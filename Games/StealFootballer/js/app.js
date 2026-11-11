@@ -1,4 +1,4 @@
-import {Game} from './game.js';
+import {Game,reconcileTacticsDraft} from './game.js';
 import {Match,resolveAbilities} from './match.js';
 import {World} from './world.js';
 import {blocksGameplayKey,rememberFocus,restoreFocus,trapTab} from './input.js';
@@ -117,6 +117,15 @@ function formationPoints(formation) {
 }
 function tacticMembers() {
   return game.team(draft);
+}
+function saveTacticsDraft() {
+  state=game.snapshot();
+  const reconciled=reconcileTacticsDraft(draft,state.roster,state.npcAttempt?.uid);
+  const changed=reconciled.selectedUids.length!==draft.selectedUids.length||reconciled.captainUid!==draft.captainUid;
+  draft=reconciled;
+  const result=act('tactics',draft);
+  if(result.ok&&changed){renderPanel();toast('Tactics saved. Unavailable players were removed from the draft lineup.');}
+  return {...result,lineupChanged:changed};
 }
 function tacticsHTML() {
   const members=tacticMembers(),points=formationPoints(draft.formation);
@@ -313,11 +322,11 @@ function handleAction(target) {
   if(name==='confirmForfeit'){closePanel();finishBattle(true);return;}
   if(name==='cancelConfirm'){closePanel();return;}
   if(name==='leaveMatch'){match=null;matchState=null;report=null;closePanel();travel('home');updateHUD();return;}
-  if(name==='applyTactics'){act('tactics',{formation:draft.formation,mentality:draft.mentality,selectedUids:draft.selectedUids,captainUid:draft.captainUid});return;}
+  if(name==='applyTactics'){saveTacticsDraft();return;}
   if(name==='autoXI'){draft.selectedUids=[];draft.captainUid=null;selectedPosition=null;renderPanel();return;}
   if(name==='captain'){const p=tacticMembers()[selectedPosition];if(p&&!p.borrowed){draft.captainUid=p.uid;renderPanel();}return;}
   if(name==='assignPosition'){assignPosition(uid);return;}
-  if(name==='savePreset'){const r=act('tactics',{formation:draft.formation,mentality:draft.mentality,selectedUids:draft.selectedUids,captainUid:draft.captainUid});if(r.ok){act(name,{index});renderPanel();}return;}
+  if(name==='savePreset'){const r=saveTacticsDraft();if(r.ok){act(name,{index});renderPanel();if(r.lineupChanged)toast('Preset saved. Unavailable players were removed from the draft lineup.');}return;}
   if(name==='loadPreset'){if(act(name,{index}).ok){draft=clone(state.tactics);selectedPosition=null;renderPanel();}return;}
   if(name==='saveKit'){const r=act('kit',{...draft,enabled:true});if(r.ok){draft=clone(state.kit);renderPanel();}return;}
   if(name==='defaultKit'){if(act('kit',{enabled:false}).ok){draft=clone(state.kit);renderPanel();}return;}

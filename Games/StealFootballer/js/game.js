@@ -1,6 +1,10 @@
 // Browser-local adaptation of the owner's FootballParty progression/services.
 // The renderer supplies location; this module alone owns coins and recruits.
 export const SAVE_KEY = 'steal-footballer:v1';
+export function reconcileTacticsDraft(draft,roster,unavailableUid) {
+  const available=new Set(roster.filter(p=>p.uid!==unavailableUid).map(p=>p.uid));
+  return {...draft,selectedUids:draft.selectedUids.filter(uid=>available.has(uid)),captainUid:available.has(draft.captainUid)?draft.captainUid:null};
+}
 export const STAFF = [
   {id:'attacking',role:'attack',name:'Attacking Coach',cost:1500},
   {id:'defending',role:'defence',name:'Defensive Coach',cost:1500},

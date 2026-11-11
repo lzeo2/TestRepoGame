@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {Game,SAVE_KEY,MUTATIONS} from '../js/game.js';
+import {Game,SAVE_KEY,MUTATIONS,reconcileTacticsDraft} from '../js/game.js';
 const data=JSON.parse(await readFile(new URL('../data/catalog.json',import.meta.url),'utf8'));
 class MemoryStorage {
   constructor() { this.values=new Map(); }
@@ -318,4 +318,24 @@ assert(returning.state.rivals[0].roster.includes(returned),'A later NPC theft ca
 for(let i=0;i<720;i++){returnNow+=.25;returning.tick(.25);}
 assert.equal(returning.npcDevelopment().level,2);
 assert.equal(JSON.stringify(returned),depositedTraining,'A deposited home recruit never regains automatic training after theft');
-console.log('PASS game: browser progression, traits/mutations, training, tactics, kits, market/eggs/mystery, battle locks/reward, raid tiers/shields, event unlocks, persistent NPC development and local-save recovery');
+const draftGame=new Game(data,{storage:null,clock:()=>600,random:()=>.2});
+assert(draftGame.action('developerCode',{code:'DEVTEAM'}).ok);
+const staleDraft=structuredClone(draftGame.state.tactics);staleDraft.formation='4-3-3';staleDraft.mentality='pressing';
+const contestedUid=staleDraft.selectedUids[2];staleDraft.captainUid=contestedUid;
+const untouchedDraft=structuredClone(staleDraft);
+draftGame.state.npcAttempt={uid:contestedUid,base:0,endsAt:612};
+assert.equal(draftGame.action('tactics',staleDraft).ok,false,'Engine validation rejects a draft with a contested starter');
+const freshDraft=reconcileTacticsDraft(staleDraft,draftGame.state.roster,contestedUid);
+assert.deepEqual(staleDraft,untouchedDraft,'Draft reconciliation never mutates unsaved edits');
+assert.deepEqual(freshDraft.selectedUids,staleDraft.selectedUids.filter(uid=>uid!==contestedUid));
+assert.equal(freshDraft.captainUid,null);
+assert.equal(freshDraft.formation,'4-3-3');assert.equal(freshDraft.mentality,'pressing');
+assert.deepEqual(freshDraft.presets,staleDraft.presets);
+assert(draftGame.action('tactics',freshDraft).ok,'Fresh ownership reconciliation permits the edited formation without an unavailable starter');
+assert.equal(draftGame.state.tactics.formation,'4-3-3');
+const removedUid=freshDraft.selectedUids[0];draftGame.state.roster=draftGame.state.roster.filter(p=>p.uid!==removedUid);
+const afterTheft=reconcileTacticsDraft(freshDraft,draftGame.state.roster,undefined);
+assert.equal(afterTheft.selectedUids.includes(removedUid),false,'Completed theft also removes stale draft ownership');
+assert(draftGame.action('tactics',afterTheft).ok);
+assert.deepEqual(reconcileTacticsDraft(afterTheft,draftGame.state.roster,undefined),afterTheft,'Valid drafts remain unchanged');
+console.log('PASS game: browser progression, traits/mutations, training, tactics reconciliation, kits, market/eggs/mystery, battle locks/reward, raid tiers/shields, event unlocks, persistent NPC development and local-save recovery');
