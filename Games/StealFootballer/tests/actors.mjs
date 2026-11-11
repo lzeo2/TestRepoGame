@@ -22,6 +22,33 @@ factory.release(plain);
 
 {
   const actor=factory.create(data.players[0]);
+  factory.pose(actor,'run',60,1);
+  const phase=actor.motion.phase,leg=actor.leftLeg.quaternion.clone();
+  factory.pose(actor,'run',60+1/60,.9);
+  assert(actor.motion.phase>phase&&actor.motion.phase-phase<.14,'Changing speed after a long session advances phase without a global-time jump');
+  assert(actor.motion.speed>.9&&actor.motion.speed<1,'Cadence eases toward the new speed');
+  assert(leg.angleTo(actor.leftLeg.quaternion)<.08,'A small speed change cannot snap a leg');
+  let previous=actor.body.position.y;
+  for(let frame=2;frame<180;frame++) {
+    const moving=frame<120;
+    factory.pose(actor,moving?(frame<70?'run':'dribble'):'idle',60+frame/60,moving?(frame<50?1.3:.7):0);
+    assert(Math.abs(actor.body.position.y-previous)<.08,'Locomotion support height changes smoothly');
+    previous=actor.body.position.y;
+  }
+  assert(actor.motion.speed<.001,'Stopping eases cadence down instead of continuing to march');
+  const second=factory.create(data.players[1]);
+  factory.pose(second,'run',60,1);
+  assert.notEqual(second.gaitSeed,actor.gaitSeed,'Different profiles have stable individual gait phases');
+  const a=factory.create(data.players[0]),b=factory.create(data.players[0]);
+  factory.pose(a,'run',0,1);factory.pose(b,'run',0,1);
+  for(let i=1;i<=30;i++)factory.pose(a,'run',i/30,1);
+  for(let i=1;i<=60;i++)factory.pose(b,'run',i/60,1);
+  assert(Math.abs(a.motion.phase-b.motion.phase)<1e-6,'Steady cadence is independent of frame rate');
+  for(const sample of [actor,second,a,b])factory.release(sample);
+}
+
+{
+  const actor=factory.create(data.players[0]);
   const transforms=()=>[actor.body,actor.head,actor.leftArm,actor.rightArm,actor.leftLeg,actor.rightLeg]
     .flatMap(part=>[...part.position.toArray(),...part.rotation.toArray().slice(0,3)]);
   factory.pose(actor,'run',.31);const running=transforms();
@@ -116,5 +143,5 @@ for(const def of data.players)for(const pattern of ['solid','stripes','hoops']) 
   assert.equal(actor.merged.length,0);
 }
 factory.dispose();
-console.log(`PASS actors: adult proportions; 11 fitted hair styles/cache disposal; 125 source profiles x3 kit patterns; max ${maximumTriangles} triangles; geometry release.`);
+console.log(`PASS actors: continuous cadence/speed transitions/grounding; adult proportions; 11 fitted hair styles/cache disposal; 125 source profiles x3 kit patterns; max ${maximumTriangles} triangles; geometry release.`);
 console.log('LIMIT: Detached checks do not establish likeness, WebGL appearance or hardware performance.');

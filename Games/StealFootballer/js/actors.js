@@ -4,9 +4,9 @@ const color = (value, fallback) => typeof value === 'string' ? (value.startsWith
 const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallback;
 
 // Shared visual touch rhythm; offsets never change authoritative ball state.
-export function dribbleMotion(pose,time=0,speed=1) {
+export function dribbleMotion(pose,time=0,speed=1,continuousPhase) {
   const kind=String(pose||'').toLowerCase();
-  const phase=finite(time)*10*Math.min(1.6,Math.max(.4,finite(speed,1)));
+  const phase=finite(continuousPhase,finite(time)*10*Math.min(1.6,Math.max(.4,finite(speed,1))));
   const touch=Math.sin(phase),alternating=Math.cos(phase);
   let lateral=touch*.18,forward=(1-Math.cos(phase*2))*.12;
   if(/slalom|wingweave/.test(kind))lateral=touch*.32;
@@ -120,7 +120,8 @@ export class ActorFactory {
     }
     const merged=[];for(const group of [body,head,...Object.values(limbs)])this.mergeParts(group,merged);
     // Foot transforms remain available for support checks after their meshes merge.
-    return {root, body, head, ...limbs, feet, owned, merged, profile: a, definition: def};
+    const gaitSeed=Array.from(String(def.id||def.name||'actor')).reduce((sum,c)=>(sum*31+c.charCodeAt(0))%997,0)/997*Math.PI*2;
+    return {root, body, head, ...limbs, feet, owned, merged, profile: a, definition: def, gaitSeed};
   }
 
   mergeParts(group,merged) {
@@ -217,17 +218,30 @@ export class ActorFactory {
 
   pose(actor, pose = 'idle', time = 0, speed = 1) {
     const kind = typeof pose === 'string' ? pose.toLowerCase() : String(pose?.type || pose?.kind || pose?.name || 'idle').toLowerCase();
-    const motion=dribbleMotion(kind,time,speed),phase=motion.phase;
     const dribble=/dribble|slalom|roulette|elastico|stepover|sambastep|wingweave/.test(kind);
     const run = !dribble&&/run|sprint|speedburst/.test(kind);
-    const stride = dribble ? motion.touch*.32 : run ? Math.sin(phase)*.7 : Math.sin(time*1.8)*.025;
+    const targetSpeed=run||dribble?Math.min(1.6,Math.max(0,finite(speed,1))):0;
+    const elapsed=finite(time)-(actor.motion?.time??finite(time));
+    const reset=!actor.motion||elapsed<=0||elapsed>.25;
+    const parts=[actor.body,actor.head,actor.leftArm,actor.rightArm,actor.leftLeg,actor.rightLeg];
+    if(!actor.motion)actor.motion={phase:0,speed:0,time:finite(time),previous:parts.map(()=>({quaternion:new THREE.Quaternion(),position:new THREE.Vector3()}))};
+    const gait=actor.motion;
+    parts.forEach((part,i)=>{gait.previous[i].quaternion.copy(part.quaternion);gait.previous[i].position.copy(part.position);});
+    if(reset){gait.phase=finite(actor.gaitSeed)+finite(time)*8*targetSpeed;gait.speed=targetSpeed;}
+    else {
+      gait.speed+=(targetSpeed-gait.speed)*(1-Math.exp(-elapsed*9));
+      gait.phase+=elapsed*8*gait.speed;
+    }
+    gait.time=finite(time);
+    const motion=dribbleMotion(kind,time,speed,gait.phase),phase=motion.phase;
+    const stride = dribble ? motion.touch*.25 : run ? Math.sin(phase)*.42 : Math.sin(time*1.8)*.015;
     actor.leftLeg.rotation.set(stride, 0, 0); actor.rightLeg.rotation.set(-stride, 0, 0);
-    actor.leftArm.rotation.set(-stride * .7, 0, -.08); actor.rightArm.rotation.set(stride * .7, 0, .08);
-    actor.body.rotation.set(0, 0, 0); actor.body.position.set(0, run ? Math.abs(Math.cos(phase)) * .12 : 0, 0);
+    actor.leftArm.rotation.set(-stride * .5, 0, -.1); actor.rightArm.rotation.set(stride * .5, 0, .1);
+    actor.body.rotation.set(run?-.045:0, 0, run?motion.touch*.015:0);actor.body.position.set(0,0,0);
+    actor.leftLeg.position.y=actor.rightLeg.position.y=3.02;
     actor.head.rotation.set(0,0,0);
     if(dribble) {
-      actor.body.rotation.set(-.11,motion.touch*.07,motion.touch*.045);
-      actor.body.position.y=Math.abs(motion.alternating)*.045;
+      actor.body.rotation.set(-.07,motion.touch*.05,motion.touch*.025);
       actor.leftArm.rotation.set(-stride*.5-.2,0,-.24-motion.touch*.07);
       actor.rightArm.rotation.set(stride*.5-.2,0,.24-motion.touch*.07);
       actor.leftLeg.rotation.y=motion.touch*.06;actor.rightLeg.rotation.y=-motion.touch*.06;
@@ -244,6 +258,19 @@ export class ActorFactory {
     if (/tackle|slide/.test(kind)) { actor.body.rotation.x = -.8; actor.body.position.y = -.65; actor.rightLeg.rotation.x = -1.2; }
     if (/dive|save/.test(kind)) { actor.body.rotation.z = /left/.test(kind) ? 1.1 : -1.1; actor.body.position.y = .3; actor.leftArm.rotation.z = -1.7; actor.rightArm.rotation.z = 1.7; }
     if (/celebrat|victory/.test(kind)) { actor.leftArm.rotation.z = -2.4; actor.rightArm.rotation.z = 2.4; actor.body.position.y = Math.max(0, Math.sin(time * 5)) * .55; }
+    if(/^(run|sprint|speedburst|dribble|dribbleglue)$/.test(kind)) {
+      // A rigid leg has no knee: lower its pivot slightly through the arc so
+      // the stance boot stays near the turf instead of lifting the whole body.
+      actor.leftLeg.position.y-=2.85*(1-Math.cos(stride));
+      actor.rightLeg.position.y-=2.85*(1-Math.cos(stride));
+    }
+    if(!reset) {
+      const blend=1-Math.exp(-elapsed*14);
+      parts.forEach((part,i)=>{
+        part.quaternion.slerpQuaternions(gait.previous[i].quaternion,part.quaternion.clone(),blend);
+        part.position.lerpVectors(gait.previous[i].position,part.position.clone(),blend);
+      });
+    }
     // Place the lowest boot on the support plane after limb rotation.
     actor.body.updateMatrix();let bottom=Infinity;
     for(let i=0;i<actor.feet.length;i++){const foot=actor.feet[i],leg=i===0?actor.leftLeg:actor.rightLeg;foot.updateMatrix();leg.updateMatrix();const m=actor.body.matrix.clone().multiply(leg.matrix).multiply(foot.matrix);const box=new THREE.Box3(new THREE.Vector3(-.5,-.5,-.5),new THREE.Vector3(.5,.5,.5)).applyMatrix4(m);bottom=Math.min(bottom,box.min.y);}

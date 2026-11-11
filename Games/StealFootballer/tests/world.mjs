@@ -136,7 +136,28 @@ let maximumMeshes=0,maximumTriangles=0;
   calls.length=0;
   world.updateMatch({...match,skillMove:[{playerIndex:0,side:0,remaining:4,id:'finesseFinish',pose:'finesse'}]}, {stadiumLevel:0});
   assert.equal(calls[0].kind,'dribble','Queued finishing ability does not freeze carrier in a kicking stance');
+  const actor=world.matchActors[0],phase=actor.motion.phase,heading=actor.root.rotation.y;
+  world.time+=1/60;
+  const changed={...match,players:players.map((p,i)=>i===0?{...p,x:13,angle:Math.PI,vx:9}:p)};
+  world.updateMatch(changed,{stadiumLevel:0});
+  assert(actor.motion.phase>phase&&actor.motion.phase-phase<.14,'Match gait advances continuously after speed change');
+  assert.equal(actor.root.position.x,13,'Visual locomotion never delays authoritative player position');
+  assert(Math.abs(actor.root.rotation.y-heading)<1,'Heading turns smoothly along the shortest arc');
+  const expected=visualBallPosition(changed,world.time,actor.motion);
+  vectorClose(world.ball.position,[expected.x,expected.y,expected.z],'Carrier ball uses the same accumulated touch phase as feet');
   world.matchActors.forEach(actor=>world.factory.release(actor));releaseWorld(world);
+}
+{
+  const world=detachedWorld(),floor=new THREE.Box3(new THREE.Vector3(-50,-1,-50),new THREE.Vector3(50,0,50));
+  Object.assign(world,{avatar:{x:0,y:.035,z:0,angle:0},avatarActor:world.factory.create(data.players[0]),
+    renderer:{shadowMap:{},render(){}},sun:{},camera:new THREE.PerspectiveCamera(),venueOrigin:new THREE.Vector3(),bounds:floor,colliders:[floor]});
+  for(const method of ['rebuildDisplays','updateMarket','updateMatch','updateCamera'])world[method]=()=>{};
+  world.moveAvatar({x:1,z:0},.05);world.update(.05);
+  const ordinary=world.avatarActor.motion.speed;
+  world.moveAvatar({x:1,z:0},.075);world.update(.05);
+  assert(world.avatarActor.motion.speed>ordinary,'Avatar sprint cadence uses distance over real frame time');
+  close(world.avatarActor.root.position.x,world.avatar.x,'Avatar animation retains authoritative position');
+  world.factory.release(world.avatarActor);releaseWorld(world);
 }
 {
   const factory=new ActorFactory();
@@ -224,5 +245,5 @@ let maximumMeshes=0,maximumTriangles=0;
 assert.equal(JSON.stringify({data,worldData}),sourceBefore,'Renderer fixtures never mutate exported source data');
 console.log(`PASS renderer-independent fixtures: ${worldData.parts.length}+${worldData.stadiumParts.length} source primitives; `+
   `12 bases x18 slots; 3 formations x2 directions; 125 appearances x2 detail modes x8 poses x3 times `+
-  `(max ${maximumMeshes} meshes, ${maximumTriangles} triangles); market cleanup/disposal; crowd tiers/static mode; scorer/orbit camera.`);
+  `(max ${maximumMeshes} meshes, ${maximumTriangles} triangles); continuous match/avatar cadence, synchronized touches; market cleanup/disposal; crowd tiers/static mode; scorer/orbit camera.`);
 console.log('LIMIT: No WebGL, browser visuals/textures/shadows, live gameplay, cloud saves or device performance verified.');
