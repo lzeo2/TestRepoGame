@@ -63,7 +63,7 @@ export class ActorFactory {
     }
     this.part(head, 'box', [.19, .19, .12], [0, -.08, -.59], skin);
     this.part(head, 'box', [.44, .065, .035], [0, -.33, -.57], '#653D32');
-    this.hair(head, a.hairStyle || 'cropped', hair, simple);
+    this.hair(head, a.hairStyle || 'cropped', hair, simple, a.hairAccentColor ? color(a.hairAccentColor, hair) : null);
     const facial = a.facialHair || 'none';
     const beardColor = color(a.facialHairColor, hair);
     if (facial === 'beard' || facial === 'stubble') {
@@ -118,38 +118,69 @@ export class ActorFactory {
     const mesh=new THREE.Mesh(geometry,this.mergedMaterial);mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);merged.push(geometry);
   }
 
-  hair(head, style, tint, simple) {
-    if (style === 'bald') return;
-    if (style === 'r9fringe') {
-      this.part(head, 'sphere', [1.15, .23, .65], [0, .6, -.39], tint); return;
+  scalp(style) {
+    const key='hair-'+style;
+    if (this.geometries[key]) return key;
+    const positions=[],indices=[],around=20,rows=7;
+    for (let row=0;row<=rows;row++) for (let col=0;col<=around;col++) {
+      const phi=col/around*Math.PI*2,front=(1-Math.cos(phi))/2;
+      // The front edge clears the brows; the sides/back follow the cranium.
+      const theta=row/rows*(style==='fade'?1.58-front*.58:1.72-front*.72);
+      const crown=Math.sin(theta),ridge=Math.sin(phi*10+theta*8);
+      const textured=['curls','afro','quiff','longslick','braids','locs'].includes(style);
+      const volume=style==='afro'?.15:style==='curls'?.07:style==='quiff'?.035:0;
+      const ripple=textured?(style==='afro'?.045:style==='curls'?.03:.012)*ridge*Math.sin(theta):0;
+      const radius=1+(style==='cropped'?.015:style==='longslick'?.06:0)+volume+ripple;
+      const sweep=style==='quiff'?front*Math.sin(theta)*.18:0;
+      positions.push(Math.sin(phi)*crown*.91*radius,
+        .02+Math.cos(theta)*.66*radius+sweep,
+        Math.cos(phi)*crown*.57*radius+(style==='longslick'?.035*Math.sin(theta):0));
     }
-    if (style === 'braids' || style === 'locs') {
-      this.part(head, 'box', [1.8, .15, 1.09], [0, .64, .02], tint);
-      const count = simple ? 4 : 8;
-      for (let i = 0; i < count; i++) {
-        const x = - .75 + i * 1.5 / (count - 1);
-        const strand = this.part(head, 'cylinder', [style === 'locs' ? .22 : .11, style === 'locs' ? 1.35 : 1.13, .15], [x, style === 'locs' ? .07 : .7, style === 'locs' ? .58 : .05], tint);
-        if (style === 'braids') strand.rotation.x = Math.PI / 2;
+    for(let row=0;row<rows;row++)for(let col=0;col<around;col++) {
+      const a=row*(around+1)+col,b=a+around+1;
+      indices.push(a,b,a+1,a+1,b,b+1);
+    }
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+    geometry.setIndex(indices);geometry.computeVertexNormals();geometry.computeBoundingSphere();
+    this.geometries[key]=geometry;return key;
+  }
+
+  hair(head, style, tint, simple, accent=null) {
+    if(style==='bald')return;
+    if(style==='r9fringe') {
+      const patch=this.part(head,'sphere',[.95,.13,.34],[0,.57,-.26],tint);
+      patch.rotation.x=-.38;return;
+    }
+    this.part(head,this.scalp(style),[1,1,1],[0,0,0],tint);
+    if(style==='longslick'||style==='pony') {
+      // Rounded swept nape, with its upper end buried in the fitted scalp.
+      this.part(head,'sphere',[1.47,1.05,.36],[0,.02,.48],tint);
+      if(style==='pony') {
+        const key='hair-tail';
+        if(!this.geometries[key])this.geometries[key]=new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0,.25,.51),new THREE.Vector3(0,.16,.78),new THREE.Vector3(.04,-.22,.87),new THREE.Vector3(.1,-.65,.78)
+        ]),8,.16,6,false);
+        this.part(head,key,[1,1,1],[0,0,0],tint);
       }
-      return;
     }
-    if (style === 'curls' || style === 'afro') {
-      const count = simple ? 5 : 11;
-      for (let i = 0; i < count; i++) {
-        const angle = i * 2.39996;
-        const radius = i ? .7 : 0;
-        this.part(head, 'sphere', [style === 'afro' ? .8 : .62, .65, .7], [Math.cos(angle) * radius, .72 + (i % 3) * .07, Math.sin(angle) * radius * .63], tint);
+    if(style==='braids'||style==='locs') {
+      const count=simple?4:7;
+      for(let i=0;i<count;i++) {
+        const lane=(i-(count-1)/2)/((count-1)/2),x=lane*.63;
+        const key='hair-'+style+'-'+count+'-'+i;
+        if(!this.geometries[key]) {
+          const points=style==='braids'?[
+            new THREE.Vector3(x,.39,-.37),new THREE.Vector3(x,.61,.02),new THREE.Vector3(x,.35,.5),new THREE.Vector3(x,.02,.57)
+          ]:[new THREE.Vector3(x,.5,.25),new THREE.Vector3(x*1.08,.25,.58),new THREE.Vector3(x*1.12,-.12,.62),new THREE.Vector3(x*1.1,-.63,.57)];
+          // Side lanes sit lower on the rounded crown so each root is attached.
+          points.forEach(point=>{point.y-=Math.abs(lane)*.13;});
+          this.geometries[key]=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),8,style==='locs'?.075:.035,5,false);
+        }
+        this.part(head,key,[1,1,1],[0,0,0],accent&&i===count-2?accent:tint);
       }
-      return;
-    }
-    this.part(head, 'box', [1.83, style === 'fade' ? .19 : .27, 1.14], [0, .64, .03], tint);
-    if (style === 'cropped') this.part(head, 'box', [1.71, .13, .32], [0, .53, -.5], tint);
-    if (style === 'quiff') {
-      const front = this.part(head, 'sphere', [1.8, .55, .72], [0, .82, -.27], tint); front.rotation.z = -.13;
-    }
-    if (style === 'longslick' || style === 'pony') {
-      this.part(head, 'box', [1.84, 1.07, .3], [0, .19, .53], tint);
-      if (style === 'pony') this.part(head, 'sphere', [.57, 1.45, .52], [0, -.05, .87], tint);
+    } else if(accent) {
+      const strand=this.part(head,'sphere',[.15,.11,.62],[-.3,.56,-.04],accent);strand.rotation.z=-.2;
     }
   }
 
