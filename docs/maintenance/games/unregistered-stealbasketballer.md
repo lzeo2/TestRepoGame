@@ -215,6 +215,18 @@ checks do not establish native safety. This new scope separately authorizes only
 one subsequent bounded attempt, with third distinct evidence directory
 `.tmp/basketball-native-readiness-filtered/`; earlier receipts stay immutable.
 
+Source fix landed as `bef62119`; the single subsequent bounded diagnostic
+invocation stopped at `pre-launch-process-baseline` with `Missing UID or
+NUL-delimited argv`, elapsed3.24s. Admission/lock/binary gates passed, but
+`launchAttempted=false`: zero Chromium launches, zero game requests, no captures.
+The receipt identifies neither PID nor which metadata field failed; no root
+cause or successful live filter completion was inferred. No retry, further
+process scan, source expansion or safety relaxation followed. Cleanup confirmed
+no Chromium, free shared lock, released server port and resources above floors.
+See [third receipt, exact gates and scope end](../../steal-basketballer-filtered-pass.md),
+ticket `pi-3273687-1794467511604-9aa0ae33`. Prior receipts/runtime/catalog remain
+unchanged; native stays unverified and browser capacity is released.
+
 ## Future outlook
 
 With fresh authorization, one diagnostic browser startup pass should capture
