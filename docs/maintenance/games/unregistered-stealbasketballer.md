@@ -152,6 +152,36 @@ selection, sandbox safety and native play remain unverified; this commit does
 not authorize another diagnostic launch. Ticket `pi-3273687-1794462997886-5cd8599f`
 remains a historical native safety hold.
 
+`BASKETBALL-UI-ORDINARY-PATH-20261112`, base `1864eeac`: extended the existing
+`scripts/check_basketball_boot.mjs`, retaining its exact readiness predicate.
+The unchanged app's installed PLAY handler hides loading/shows HUD, then actual
+parsed SHOP -> VIEW CONVEYOR -> SIGN PLAYER buttons dispatch registered click
+handlers. One real market recruit costs 50 or 70 of the initial150 coins, with no
+roster/coin grants or direct Game.action calls. Installed BATTLE creates the real
+Match; 22 queued app RAF callbacks (at most1.05s) produce five players per side,
+ten real World/ActorFactory actor groups at matching positions, Q1/score/declining
+shot-clock HUD, active spectator/play controls, paused income and a valid
+Basketballer save. All storage accesses stay in `steal-basketballer:v1` and its
+companions; Footballer main/backup/damaged sentinels remain untouched.
+
+Focused command: `node --experimental-vm-modules scripts/check_basketball_boot.mjs`.
+Ordinary path passed (first observed signing Alex Caruso70/150); changed-file
+`node --check`, repeat focused check, whitespace and maintenance inventory checks
+pass. No genuine production RED occurred, so runtime, catalog and existing game
+fixtures were not changed. No browser/server/Playwright, workers, installs,
+full-match completion, synthetic result, screenshots or native diagnostics run.
+
+Limits: the restricted HTML/button/event/focus/hidden/inert model is not a real
+DOM parser, layout engine or user-input implementation. Actual app-generated
+button attributes feed dispatch; app/Game/Match/World/actors are not replaced.
+Three math/geometry are real; DOM/2D canvas, fetch/storage, scheduling and
+WebGLRenderer remain doubles. Absent AudioContext follows the production
+fallback, not native sound proof. The few simulated RAF callbacks do not prove
+GPU rendering, sandbox safety, native timing, touch or a complete match/report.
+Retained QA/native failure receipts are byte-identical. Native remains blocked;
+Leo's newly approved single native pass is separately queued and was not run
+under this source-only assignment.
+
 ## Future outlook
 
 With fresh authorization, one diagnostic browser startup pass should capture
