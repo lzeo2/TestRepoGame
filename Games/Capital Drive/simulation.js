@@ -109,6 +109,18 @@ export function createSimulation(map, options = {}) {
     buildingIndex.insert(building, Math.min(...building.points.map(p => p[0])), Math.min(...building.points.map(p => p[1])),
       Math.max(...building.points.map(p => p[0])), Math.max(...building.points.map(p => p[1])));
   }
+  let parkedIndex = new SpatialGrid(32);
+  function setParkedCars(cars = []) {
+    parkedIndex = new SpatialGrid(32);
+    let count = 0;
+    for (const car of cars) {
+      if (!Number.isFinite(car.x) || !Number.isFinite(car.z)) continue;
+      const parked = { x: car.x, z: car.z, yaw: Number.isFinite(car.yaw) ? car.yaw : 0 };
+      parkedIndex.insert(parked, parked.x - 2, parked.z - 2, parked.x + 2, parked.z + 2);
+      count++;
+    }
+    return count;
+  }
   const bounds = map.bounds;
   const searchLimit = Math.max(bounds.maxX - bounds.minX, bounds.maxZ - bounds.minZ, 160);
   function nearestRoad(x, z) {
@@ -265,6 +277,11 @@ export function createSimulation(map, options = {}) {
       const contact = polygonContact(player.x, player.z, building.points, 1.55);
       if (contact) resolveImpact(contact.nx, contact.nz, contact.depth + 0.02);
     }
+    for (const car of parkedIndex.query(player.x, player.z, 1.55)) {
+      const dx = player.x - car.x, dz = player.z - car.z, gap = Math.hypot(dx, dz);
+      if (gap < 3.55) resolveImpact(gap > 0.001 ? dx / gap : Math.cos(car.yaw),
+        gap > 0.001 ? dz / gap : -Math.sin(car.yaw), 3.55 - gap + 0.01);
+    }
     updateTraffic(dt);
     for (const car of traffic) {
       const dx = player.x - car.x, dz = player.z - car.z, gap = Math.hypot(dx, dz);
@@ -278,5 +295,5 @@ export function createSimulation(map, options = {}) {
       reset(); player.odometer = trip; player.crashes = crashes;
     }
   }
-  return { player, traffic, graph, step, reset, nearestRoad, get elapsed() { return elapsed; } };
+  return { player, traffic, graph, step, reset, nearestRoad, setParkedCars, get elapsed() { return elapsed; } };
 }

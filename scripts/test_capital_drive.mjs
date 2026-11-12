@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises';
 // Import authored browser ES module without changing the portal's Node module mode.
 const source = await readFile(new URL('../Games/Capital Drive/simulation.js', import.meta.url), 'utf8');
 const { buildRoadGraph, pointOnLane, createSimulation } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+const navigationSource = await readFile(new URL('../Games/Capital Drive/navigation.js', import.meta.url), 'utf8');
+const { findRoute } = await import(`data:text/javascript;base64,${Buffer.from(navigationSource).toString('base64')}`);
 const road = (id, points, nodes, oneway = 0) => ({ id, name: id, type: 'residential', width: 10, speed: 50, oneway, points, nodes });
 const roads = [
   road('north', [[0, 200], [0, 0], [0, -200]], [1, 2, 3]),
@@ -26,7 +28,18 @@ assert(pointOnLane(northEdge, 30).x < 0, 'northbound left lane is west');
 const eastEdge = graph.edges.find(edge => edge.from.id === '2' && edge.to.id === '5');
 assert(pointOnLane(eastEdge, 30).z < 0, 'eastbound left lane is north');
 assert.equal(createSimulation(map, { trafficCount: 0 }).nearestRoad(3, 100).road.id, 'north');
-console.log('PASS connected directed road graph, one-way directions and left lanes');
+const directed = buildRoadGraph([
+  road('route-east', [[0, 0], [100, 0]], [101, 102], 1),
+  road('route-south', [[100, 0], [100, 100]], [102, 103], 1),
+  road('route-west', [[100, 100], [0, 100]], [103, 104], 1),
+  road('route-north', [[0, 100], [0, 0]], [104, 101], 1)
+]);
+assert.deepEqual(findRoute(directed, { x: 100, z: 0 }, { x: 0, z: 0 }),
+  [[100, 0], [100, 100], [0, 100], [0, 0]], 'navigation follows legal one-way loop instead of the reverse shortcut');
+const disconnected = buildRoadGraph([road('west-island', [[0, 0], [10, 0]], [201, 202]),
+  road('east-island', [[100, 0], [110, 0]], [203, 204])]);
+assert.deepEqual(findRoute(disconnected, { x: 0, z: 0 }, { x: 110, z: 0 }), [], 'unreachable destination has no fabricated route');
+console.log('PASS connected directed road graph, one-way directions, left lanes and legal navigation');
 
 function advance(sim, seconds, input) {
   for (let i = 0; i < seconds * 60; i++) sim.step(1 / 60, input);
@@ -85,6 +98,20 @@ vertex.reset({ x: 40, z: -80, yaw: 0 });
 vertex.step(1 / 60, {});
 assert(vertex.player.x < 40 || vertex.player.z < -80, 'closed polygon vertex resolves outside');
 console.log('PASS forgiving building impacts, unsticking, world-edge recovery and reset');
+const parked = createSimulation(map, { trafficCount: 0 });
+assert.equal(parked.setParkedCars([{ x: -2.3, z: 140, yaw: 0 }, { x: NaN, z: 0 }]), 1,
+  'parked index accepts finite coordinates only');
+advance(parked, 2.5, { throttle: 1 });
+assert(parked.player.z >= 143.5 && parked.player.crashes > 0, 'parked car stops a meaningful forward impact');
+parked.reset({ x: -2.3, z: 140, yaw: 0 });
+parked.step(1 / 60, {});
+assert(Math.hypot(parked.player.x + 2.3, parked.player.z - 140) >= 3.55, 'exact parked-car overlap resolves without sticking');
+parked.setParkedCars([{ x: 300, z: 300 }]);
+parked.reset();
+advance(parked, 2.5, { throttle: 1 });
+assert(parked.player.z < 140, 'replacing parked cars removes previous static colliders');
+parked.setParkedCars();
+console.log('PASS indexed parked-car impact, overlap recovery and collider replacement');
 
 const fleet = createSimulation(map, { seed: 17, trafficCount: 12 });
 const repeat = createSimulation(map, { seed: 17, trafficCount: 12 });
