@@ -6,8 +6,8 @@ is a source-grounded audit and maintenance guide, not a claim that every legacy
 game meets today's standards. Some engines are compiled, some rights are
 unverified, and some native interactions remain held.
 
-The catalog contains **132 registered games**. The latest Git inventory records **138 game projects**
-plus the shared `Games/_emulatorjs` runtime. Lane Run (242), Gap Glide (243) and Courtyard Cast (244) are original Schoolyard Trio prototypes published for hosted testing at the operator's explicit request. Private likeness models and photos are excluded; their native/device checks remain open. Below the Obvious (235), operator-named on 2026-10-21, is the original offline solo rare-answer trivia game with Battle gated for phase 2; see the [branch handover](../dive-trivia-handover.md). Its targeted smoke does not replace the full fleet gate. JANKOLOCK (240) is the operator-authorized original arena translation; its indexed manual and [targeted build receipt](../jankolock-release.md) record native play, software-only portrait rendering and remaining full-fleet/hardware holds. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. The six unregistered projects are
+The catalog contains **133 registered games**. The latest Git inventory records **139 game projects**
+plus the shared `Games/_emulatorjs` runtime. Capital Drive: Canberra (245) is the owner-authorized original inner-south driving preview using real OSM roads, ACT building outlines and sampled terrain, with left-hand traffic, walking pedestrians and procedural street detail; see its [source record](../capital-drive-sources.md). Lane Run (242), Gap Glide (243) and Courtyard Cast (244) are original Schoolyard Trio prototypes published for hosted testing at the operator's explicit request. Private likeness models and photos are excluded; their native/device checks remain open. Below the Obvious (235), operator-named on 2026-10-21, is the original offline solo rare-answer trivia game with Battle gated for phase 2; see the [branch handover](../dive-trivia-handover.md). Its targeted smoke does not replace the full fleet gate. JANKOLOCK (240) is the operator-authorized original arena translation; its indexed manual and [targeted build receipt](../jankolock-release.md) record native play, software-only portrait rendering and remaining full-fleet/hardware holds. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. The six unregistered projects are
 2048, Garage Borough, Hextris, Jankolock, QWOP and Slope. CITISTEN is already
 registered as241 with `Games/Citisten3D/index.html`; its canonical manual retains
 its source and held acceptance limits. This factual catalog reconciliation is
@@ -299,6 +299,7 @@ reserved by appearing here.
 | 242 | [Lane Run](games/242-schoolyardlanerun.md) | `Games/SchoolyardLaneRun/index.html` |
 | 243 | [Gap Glide](games/243-schoolyardgapglide.md) | `Games/SchoolyardGapGlide/index.html` |
 | 244 | [Courtyard Cast](games/244-schoolyardcourtyardcast.md) | `Games/SchoolyardCourtyardCast/index.html` |
+| 245 | [Capital Drive: Canberra (Preview)](games/245-capital-drive.md) | `Games/Capital Drive/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
 | Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
 | Unregistered | [Hextris](games/unregistered-hextris.md) | `Games/Hextris/index.html` |
