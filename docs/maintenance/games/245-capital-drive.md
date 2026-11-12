@@ -94,8 +94,8 @@ git diff --check
 The pure actual-map regression passed on 28,323 nodes, 48,290 directed edges,
 9,523 indexed outlines and 26 cars through 60 seconds of simulated time. Static
 geometry checks found finite buffers, 138 trees within 250 metres of spawn and
-no sampled asphalt centroids buried below bilinear terrain. Actual browser and
-full-fleet release receipts must be read separately; these checks are not full
+no sampled asphalt centroids buried below bilinear terrain. The [release receipt](../../verification/capital-drive-2026-11-12.md) records 24 browser
+checks passed and the held 123/133 full fleet result; these checks are not full
 gameplay, real hardware or city-wide fidelity certification.
 
 ## Future outlook
