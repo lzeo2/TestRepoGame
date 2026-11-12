@@ -1,6 +1,6 @@
 """One safe launch, <=90s including cleanup; no retries or browser downloads.
 Run: timeout --signal=TERM --kill-after=5s 85s python3 -B scripts/diagnose_basketball_readiness.py
-Evidence stays in .tmp/basketball-native-readiness; earlier receipts are untouched.
+Approved evidence stays in .tmp/basketball-native-readiness-approved; earlier receipts are untouched.
 """
 import fcntl
 from dataclasses import dataclass
@@ -18,7 +18,7 @@ import time
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-ARTIFACTS = ROOT / '.tmp/basketball-native-readiness'
+ARTIFACTS = ROOT / '.tmp/basketball-native-readiness-approved'
 FLOOR, TEMP_BUDGET = 2178940928, 128 * 1024**2
 BASE = 'http://127.0.0.1:8935'
 
@@ -30,7 +30,7 @@ def admission():
               'memAvailable': memory['MemAvailable'], 'swapFree': memory['SwapFree']}
     assert values['diskFree'] >= FLOOR + TEMP_BUDGET, f'Disk admission: {values}'
     assert values['memAvailable'] >= 1536 * 1024**2, f'RAM admission: {values}'
-    assert values['swapFree'] >= 256 * 1024**2, f'Swap admission: {values}'
+    assert values['swapFree'] >= (256 + 30) * 1024**2, f'Swap admission with 30MiB headroom: {values}'
     return values
 
 
@@ -182,6 +182,11 @@ class QuietHandler(SimpleHTTPRequestHandler):
     def log_message(self, *_args):
         pass
 
+    def do_GET(self):
+        if self.path.startswith('/Games/StealBasketballer'):
+            self.server.game_requests.append(self.path)
+        super().do_GET()
+
 
 PROBE = r"""(() => {
   let queued=0, entered=0, exited=0, draws=0, last='document-init', previous='';
@@ -219,6 +224,7 @@ PROBE = r"""(() => {
 def main():
     os.chdir(ROOT)
     report = {'head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+              'scope': 'BASKETBALL-NATIVE-VERIFIED-PASS-20261112', 'launchAttempted': False, 'accepted': [],
               'stage': 'admission', 'events': [], 'http': [], 'errors': [], 'external': [], 'captures': []}
     lock = server = thread = browser = None
     started = time.monotonic()
@@ -231,11 +237,13 @@ def main():
     signal.alarm(80)
     try:
         report['admission'] = admission()
+        assert not (ARTIFACTS/'receipt.json').exists(), 'This approved pass already has a receipt; no retry'
         lock = (Path.home() / '.hermes/cache/scratch/testrepogame-browser-audit.lock').open('a')
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         for command in (['pgrep', '-x', 'chromium'], ['pgrep', '-x', 'chrome'], ['pgrep', '-f', 'chrome-linux/chrome']):
             assert subprocess.run(command, capture_output=True).returncode == 1, 'Browser slot occupied'
         assert Path('/usr/bin/chromium').is_file(), 'Installed system Chromium required'
+        report['accepted'].append('resource-admission/exclusive-slot/system-binary')
         ARTIFACTS.mkdir(parents=True, exist_ok=True)
         # Short textual paths, physically inside this repo; no outside-repo profile cleanup.
         (ROOT / '.tmp').mkdir(exist_ok=True)
@@ -243,6 +251,7 @@ def main():
         os.environ['TMPDIR'] = temporary
         server = ThreadingHTTPServer(('127.0.0.1', 8935), partial(QuietHandler, directory=str(ROOT)))
         server.daemon_threads = True
+        server.game_requests = []
         thread = Thread(target=server.serve_forever, daemon=True)
         thread.start()
         from playwright.sync_api import sync_playwright
@@ -252,12 +261,14 @@ def main():
                 executable = str(Path('/usr/lib/chromium/chromium').resolve(strict=True))
                 previous = {(p.pid, p.start) for p in read_processes().values()}
                 report['immediateAdmission'] = admission()
+                report['launchAttempted'] = True
                 browser = playwright.chromium.launch(executable_path='/usr/bin/chromium',
                     chromium_sandbox=True, headless=True, timeout=15000, env=dict(os.environ))
                 report['stage'] = 'sandbox-verification'
                 observed = select_browser(read_processes(), os.getpid(), previous, executable, ROOT/'.tmp', os.getuid())
                 profile = Path(option(observed.argv, '--user-data-dir')).resolve(strict=True)
                 assert profile.is_dir() and profile.stat().st_uid == os.getuid(), 'Profile ownership not verified'
+                report['accepted'].append('actual-proc-browser-identity/argv/profile')
                 report['browserProcess'] = {'pid': observed.pid, 'startTicks': observed.start, 'exe': observed.exe}
                 report['effectiveArgv'] = [clean(arg) if not arg.startswith('--user-data-dir=')
                                           else '--user-data-dir=<ephemeral-repo-profile>' for arg in observed.argv]
@@ -266,11 +277,13 @@ def main():
                 check.goto('chrome://sandbox', wait_until='domcontentloaded', timeout=5000)
                 report['sandboxText'] = check.locator('body').inner_text(timeout=3000)
                 verify_sandbox_page(report['sandboxText'])
+                report['accepted'].append('positive-sandbox-page')
                 cdp = browser.new_browser_cdp_session()
                 renderer_pids = {p['id'] for p in cdp.send('SystemInfo.getProcessInfo')['processInfo'] if p['type'] == 'renderer'}
                 renderers = verify_renderer_sandbox(read_processes(), observed, executable, os.getuid(), renderer_pids)
                 report['rendererSandbox'] = [{'pid': p.pid, 'startTicks': p.start,
                     'NoNewPrivs': p.no_new_privs, 'Seccomp': p.seccomp} for p in renderers]
+                report['accepted'].append('proc-renderer-NoNewPrivs/Seccomp/ancestry')
                 safe.close()
 
                 def attach(page):
@@ -278,13 +291,19 @@ def main():
                     page.on('pageerror', lambda error: report['errors'].append(clean(error)))
                     def console(message):
                         if message.text.startswith('BB_DIAG '):
-                            report['events'].append(json.loads(message.text[8:]))
+                            event = json.loads(message.text[8:])
+                            report['events'].append(event)
+                            if event['kind'] in ('context-lost', 'context-creation-error'):
+                                report['errors'].append(event['kind'])
                         elif message.type in ('error', 'warning'):
                             report['events'].append({'kind': 'console-'+message.type, 'text': clean(message.text)})
                             if message.type == 'error': report['errors'].append(clean(message.text))
                     page.on('console', console)
-                    page.on('response', lambda response: report['http'].append({'url': urlsplit(response.url).path,
-                        'status': response.status, 'mime': response.headers.get('content-type'), 'complete': False}))
+                    def response_seen(response):
+                        report['http'].append({'url': urlsplit(response.url).path, 'status': response.status,
+                            'mime': response.headers.get('content-type'), 'complete': False})
+                        if response.status >= 400: report['errors'].append(f'HTTP {response.status}: {urlsplit(response.url).path}')
+                    page.on('response', response_seen)
                     def finished(request):
                         for entry in reversed(report['http']):
                             if entry['url'] == urlsplit(request.url).path:
@@ -312,9 +331,12 @@ def main():
                     report[label+'Readiness'] = page.evaluate('window.__bbReadiness()')
                     assert report[label+'Readiness']['playDisabled'] is False, 'Boot caught an exception'
                     assert not report['errors'], 'Console/page/request error; stop'
+                    report['accepted'].append(label+'-boot/readiness/RAF')
                     report['stage'] = label+'-natural-start'
                     page.locator('#start').click()
                     page.wait_for_function('window.basketballerSnapshot().started', timeout=5000)
+                    assert not report['errors'] and not report['external'], 'Start gate error; stop'
+                    report['accepted'].append(label+'-natural-PLAY')
                     return page
 
                 desktop = browser.new_context(viewport={'width': 1440, 'height': 900}, reduced_motion='reduce', service_workers='block')
@@ -324,6 +346,9 @@ def main():
                 page.locator('[data-action="openMarket"]').click()
                 page.locator('[data-action="buy"]').first.click()
                 page.wait_for_function('window.basketballerSnapshot().state.roster.length===1')
+                assert not report['errors'] and not report['external'], 'Recruit gate error; stop'
+                report['accepted'].append('natural-affordable-recruit')
+                report['signing'] = page.evaluate('window.basketballerSnapshot().state.roster[0].name')
                 page.locator('#close-sheet').click()
                 report['stage'] = 'five-on-five'
                 page.locator('#battle').click()
@@ -331,13 +356,17 @@ def main():
                     return m && m.players.length===10 && m.shotClock>0 && m.shotClock<24;}''')
                 match = page.evaluate('window.basketballerSnapshot().match')
                 assert [sum(p['side']==side for p in match['players']) for side in (0,1)] == [5,5]
+                assert not report['errors'] and not report['external'], 'Match gate error; stop'
                 report['match'] = {k: match[k] for k in ('score', 'phase', 'period', 'shotClock')}
-                admission();page.screenshot(path=str(ARTIFACTS/'desktop-match.png'), timeout=5000)
-                report['captures'].append('desktop-match.png')
+                report['playersPerSide'] = [sum(p['side']==side for p in match['players']) for side in (0,1)]
+                report['world'] = page.evaluate('window.basketballerSnapshot().world')
+                report['accepted'].append('real-five-on-five/live-score-shot-clock')
                 page.locator('[data-panel="collection"]').click()
                 assert page.locator('#album-grid > .card').count() == 100
                 report['albumNames'] = len(set(page.locator('#album-grid h3').all_text_contents()))
                 assert report['albumNames'] == 100
+                assert not report['errors'] and not report['external'], 'Album gate error; stop'
+                report['accepted'].append('100-unique-album-names')
                 desktop.close()
                 phone = browser.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True,
                     has_touch=True, device_scale_factor=1, reduced_motion='reduce', service_workers='block')
@@ -347,6 +376,7 @@ def main():
                 report['phoneState'] = page.evaluate('window.basketballerSnapshot().state.roster.length')
                 admission();page.screenshot(path=str(ARTIFACTS/'phone-world.png'), timeout=5000)
                 report['captures'].append('phone-world.png')
+                report['accepted'].append('390px-phone-HUD/touch-controls/no-overflow/capture')
                 phone.close()
                 assert not report['errors'] and not report['external']
                 assert all(h['status'] < 400 for h in report['http'])
@@ -362,9 +392,11 @@ def main():
         if lock is not None: lock.close()
         signal.alarm(0)
         report['elapsedSeconds'] = round(time.monotonic()-started, 2)
+        report['gameRequests'] = server.game_requests if server is not None else []
         report['finalDiskFree'] = shutil.disk_usage(ROOT).free
         # Tiny failure evidence is retained even when preflight refused a browser.
-        if ARTIFACTS.is_dir(): (ARTIFACTS/'receipt.json').write_text(json.dumps(report, indent=2)+'\n')
+        receipt = ARTIFACTS/'receipt.json'
+        if ARTIFACTS.is_dir() and not receipt.exists(): receipt.write_text(json.dumps(report, indent=2)+'\n')
         print(json.dumps(report, indent=2), flush=True)
     return 0 if report.get('stage') == 'complete' else 1
 

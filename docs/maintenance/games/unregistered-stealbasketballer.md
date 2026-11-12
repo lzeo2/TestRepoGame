@@ -182,6 +182,20 @@ Retained QA/native failure receipts are byte-identical. Native remains blocked;
 Leo's newly approved single native pass is separately queued and was not run
 under this source-only assignment.
 
+`BASKETBALL-NATIVE-VERIFIED-PASS-20261112`, pinned `56d4c8b4`, subsequently invoked
+the bounded diagnostic once with a distinct approved receipt directory and
+unchanged launch flags. Required offline52-case verifier/AST gates passed, as
+did fresh resource/exclusive-slot/system-binary admission. Pre-launch `/proc`
+baseline scanning then hit EACCES on the exe link of pre-existing PID1064:
+`launchAttempted=false`, zero Chromium launches, zero game requests/captures,
+elapsed3.80s. Actual browser argv/sandbox/renderer and all native gameplay gates
+were not reached. Driver cleanup warnings were tooling-only; no retry, process
+skipping, permission relaxation or production edit followed. Port/browsers were
+closed, old receipts preserved and disk remained above the floor. See
+[accepted/unaccepted gates and exact evidence](../../steal-basketballer-native-approved-pass.md),
+ticket `pi-3273687-1794466551296-0f6ec794`. The unused launch allowance does not
+permit auto-resumption within this ended scope; native remains blocked.
+
 ## Future outlook
 
 With fresh authorization, one diagnostic browser startup pass should capture
