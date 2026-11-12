@@ -87,11 +87,14 @@ new game materialized, plus its local dependencies and documentation.
 
 ## Shipping and artifacts
 
-No push, pull request or publication occurred. A fresh Git push dry-run could
-not authenticate; the configured GitHub CLI token is invalid. The repository's
+At initial verification, no push, pull request or publication had occurred.
+The Git push dry-run could not authenticate. The operator subsequently approved
+GitHub authentication and requested a draft PR for review; the feature branch
+has now been uploaded. This authorizes review, not merging or deployment. The repository's
 AGENTS release rule also states: “A blocked gate means no push. User/operator
-decides any exception.” GitHub access and an explicit exception or a passing
-fresh full gate are needed before shipping this branch.
+decides any exception.” A passing fresh full gate or an explicit operator exception is still needed
+before merging or deployment. Actual [browser previews](../capital-drive-previews/README.md)
+are now included for reviewers.
 
 The separate temporary preview tree and playable ZIP include only this game,
 its local dependencies, notices and actual screenshots. They remain independent
