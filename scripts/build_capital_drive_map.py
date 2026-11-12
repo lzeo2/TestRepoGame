@@ -220,7 +220,8 @@ def build(cache):
         landmark('telopea', 'Telopea Park School', 149.13438, -35.31417, 125, 'Heritage school and the leafy Telopea Park streets.'),
         landmark('manuka', 'Manuka shops', 149.1336, -35.32025, 120, 'Franklin Street, Bougainville Street and the Manuka shopping streets.'),
         landmark('kingston', 'Kingston shops', 149.14125, -35.3159, 110, 'Green Square, Giles Street and the Kingston village blocks.'),
-        landmark('foreshore', 'Kingston Foreshore', 149.1464, -35.3091, 150, 'Eastlake Parade and the lakeside apartment precinct.'),
+        # OSM node 102279215 on Eastlake Parade; keep the destination reachable by road.
+        landmark('foreshore', 'Kingston Foreshore', 149.1436164, -35.3105565, 150, 'Eastlake Parade and the lakeside apartment precinct.'),
         landmark('redhill', 'Red Hill', 149.1304, -35.3373, 180, 'Leafy residential streets below the Red Hill reserve.'),
         landmark('griffith', 'Griffith shops', 149.1412, -35.3277, 100, 'Barker Street and Griffith neighbourhood shops.'),
         landmark('narrabundah', 'Narrabundah', 149.1541, -35.3325, 130, 'Neighbourhood streets around Iluka Street and Boolimba Crescent.'),

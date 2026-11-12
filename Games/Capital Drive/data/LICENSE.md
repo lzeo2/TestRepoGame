@@ -89,3 +89,5 @@ tiles and terrain source/attribution documentation. The raw files are not runtim
 assets. Landmark coordinates identify approximate exploration destinations;
 school and neighbourhood names do not imply affiliation. All seven destination
 anchors lie beside the largest connected drivable road component.
+The Kingston Foreshore destination uses source OSM node 102279215 on Eastlake
+Parade, rather than the earlier approximate point beyond the drivable streets.
