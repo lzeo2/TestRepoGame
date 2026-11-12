@@ -62,7 +62,7 @@ def main():
                 before = disk_guard()
                 browser = playwright.chromium.launch(
                     executable_path='/usr/bin/chromium', headless=True, timeout=15000,
-                    args=['--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'],
+                    chromium_sandbox=True,
                 )
 
                 def attach(page):

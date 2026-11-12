@@ -72,6 +72,14 @@ produced; phone phase not reached. Cause unknown. No second pass under the user'
 single-pass budget. Native start/movement/full-match/report/touch/visual/performance
 acceptance remains held. Hermes follow-up ticket `pi-3273687-1794449864222-14f2c074`.
 
+New separately authorized safe diagnostic (`BASKETBALL-NATIVE-READINESS-20261112`)
+launched once, then stopped before any game request: effective-argv CDP query
+failed because `--enable-automation` was not set. Effective argv and sandbox
+state were not positively verified; no native boot/play result or screenshots.
+No retry or production repair. The subsequent scratch-lock path correction was
+source-only, not a new launch. See [exact safety hold and admission](../../steal-basketballer-native-readiness.md),
+ticket `pi-3273687-1794462997886-5cd8599f`. Earlier QA/source receipts are unchanged.
+
 Rules intentionally omit out-of-bounds adjudication, traveling, double-dribble,
 disqualifications, injuries, and-one, held-ball and timeouts. Arcade proportions
 and one-way substitution limit are not official rules. Read-only diagnostic
@@ -112,6 +120,13 @@ and WebGLRenderer boundary doubles. No source exception reproduced; runtime and
 inventory unchanged. Existing fixture/local closure and maintenance checks pass.
 No browser/frames run; the original native timeout and acceptance hold stand.
 See [hypothesis, proof and unresolved stages](../../steal-basketballer-boot-source-followup.md).
+
+Safe native diagnostic/checker syntax and static launch/lock checks use Python
+AST without starting a browser. The optional old checker no longer requests
+unsafe renderer flags and explicitly requests sandboxing, but it was not run.
+The new diagnostic refuses game loading until effective argv and renderer
+sandbox are verified; its consumed pass stopped at that pre-game gate. Neither
+requested sandboxing nor this source check supplies native sandbox proof.
 
 ## Future outlook
 
