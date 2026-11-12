@@ -105,6 +105,14 @@ Full-fleet, downloads, mass simulations, release tests and publication skipped.
 Maintenance checker runs after committed assembly/inventory refresh; local QA
 records actual result and exact commits.
 
+Source-only follow-up `BASKETBALL-BOOT-SOURCE-20261112` adds
+`scripts/check_basketball_boot.mjs`: unchanged production app/Game/World/actors
+reach setCamera and the exact readiness predicate with DOM/fetch/storage/RAF
+and WebGLRenderer boundary doubles. No source exception reproduced; runtime and
+inventory unchanged. Existing fixture/local closure and maintenance checks pass.
+No browser/frames run; the original native timeout and acceptance hold stand.
+See [hypothesis, proof and unresolved stages](../../steal-basketballer-boot-source-followup.md).
+
 ## Future outlook
 
 With fresh authorization, one diagnostic browser startup pass should capture

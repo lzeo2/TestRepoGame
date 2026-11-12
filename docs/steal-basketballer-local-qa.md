@@ -141,6 +141,14 @@ hardware performance remain **unverified**, not falsely passed.
 Skipped as requested: full-fleet smoke, mass simulations, browser downloads,
 extra browser attempts and public release gates. No push or registration.
 
+## Source-only boot follow-up
+
+`BASKETBALL-BOOT-SOURCE-20261112`: [bounded diagnostic receipt](steal-basketballer-boot-source-followup.md).
+Actual production modules reach the exact readiness predicate in Node with
+explicit browser-boundary doubles; no source RED or runtime change. This does
+not explain or supersede the first browser timeout above. No browser rerun,
+new workers, native-playability claim, registration or push.
+
 ## Storage and worktree
 
 Initial exact free disk2,287,517,696 bytes; before final source/maintenance
