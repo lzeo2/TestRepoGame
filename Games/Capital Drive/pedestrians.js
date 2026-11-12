@@ -154,23 +154,52 @@ export function createPedestrians(scene, map, heightAt) {
     person.y = heightAt(person.x, person.z) + PAVEMENT_LIFT;
   }
   for (let i = 0; i < stats.count; i++) {
-    const target = i < 52 || !anchors.length ? spawn : anchors[(i - 52) % anchors.length];
-    const path = choosePath(target, 0, i < 28 ? 120 : 300) || choosePath(target, 0, 1000) || paths[i % paths.length];
-    const person = { id: i, direction: random() < 0.5 ? -1 : 1, speed: 0.85 + random() * 0.6,
+    pool.push({ id: i, direction: random() < 0.5 ? -1 : 1, speed: 0.85 + random() * 0.6,
       phase: random() * Math.PI * 2, height: 0.94 + random() * 0.15,
       shirt: SHIRTS[Math.floor(random() * SHIRTS.length)], trousers: TROUSERS[Math.floor(random() * TROUSERS.length)],
-      skin: SKIN[Math.floor(random() * SKIN.length)], hair: HAIR[Math.floor(random() * HAIR.length)], bag: random() < 0.45 };
-    // Bias first-frame placement to the closest portion of a long footpath.
-    let distance = random() * path.length;
-    if (i < 28) {
-      let best = Infinity;
-      for (let j = 0; j < path.points.length; j++) {
-        const p = path.points[j], d = Math.hypot(p.x - spawn.x, p.z - spawn.z);
-        if (d < best) { best = d; distance = path.lengths[j]; }
+      skin: SKIN[Math.floor(random() * SKIN.length)], hair: HAIR[Math.floor(random() * HAIR.length)], bag: random() < 0.45 });
+  }
+  function resetPopulation(player) {
+    if (disposed) return;
+    // Explicit teleports need a fresh local street population immediately.
+    // Position-derived seed makes repeating the same arrival reproducible.
+    seed = (0x4ca7b23 ^ Math.imul(Math.round(player.x * 10), 73856093) ^ Math.imul(Math.round(player.z * 10), 19349663)) >>> 0;
+    const fx = -Math.sin(player.yaw || 0), fz = -Math.cos(player.yaw || 0);
+    const slots = [], ahead = [], occupied = [];
+    for (const path of paths) {
+      for (let j = 0; j < path.points.length; j += 2) {
+        const p = path.points[j], dx = p.x - player.x, dz = p.z - player.z;
+        const gap = Math.hypot(dx, dz);
+        if (gap < 7 || gap > 175) continue;
+        const forward = dx * fx + dz * fz, lateral = Math.abs(dx * fz - dz * fx);
+        const slot = { path, distance: path.lengths[j], x: p.x, z: p.z, forward, lateral };
+        slots.push(slot);
+        if (forward >= 10 && forward <= 58 && lateral < forward * 0.5 + 3) ahead.push(slot);
       }
-      distance = Math.min(path.length, Math.max(0, distance + (random() - 0.5) * 45));
     }
-    place(person, path, distance); pool.push(person);
+    function separated(slot) { return occupied.every(p => Math.hypot(p.x - slot.x, p.z - slot.z) > 3.5); }
+    for (let i = 0; i < pool.length; i++) {
+      let slot;
+      if (i < 8 && ahead.length) {
+        const desired = 14 + i * 5;
+        ahead.sort((a, b) => Math.abs(a.forward - desired) + a.lateral * 0.25 - Math.abs(b.forward - desired) - b.lateral * 0.25);
+        slot = ahead.find(separated);
+      }
+      if (!slot && i < 56 && slots.length) {
+        for (let attempt = 0; attempt < 40; attempt++) {
+          const candidate = slots[Math.floor(random() * slots.length)];
+          if (separated(candidate)) { slot = candidate; break; }
+        }
+      }
+      const target = i < 56 || !anchors.length ? player : anchors[(i - 56) % anchors.length];
+      const path = slot?.path || choosePath(target, 0, 250) || choosePath(target, 0, 1000) || paths[i % paths.length];
+      const distance = slot?.distance ?? random() * path.length;
+      place(pool[i], path, distance);
+      pool[i].phase = random() * Math.PI * 2;
+      occupied.push(pool[i]);
+    }
+    recycleTimer = 0;
+    render(player);
   }
   const transform = new THREE.Object3D(), color = new THREE.Color(), rootRotation = new THREE.Quaternion();
   const axis = new THREE.Vector3(0, 1, 0), limbRotation = new THREE.Quaternion(), limbAxis = new THREE.Vector3(1, 0, 0);
@@ -248,8 +277,8 @@ export function createPedestrians(scene, map, heightAt) {
     }
     render(player);
   }
-  render(spawn);
-  return { update, stats,
+  resetPopulation(spawn);
+  return { update, resetPopulation, stats,
     snapshot() { return Object.freeze(pool.map(p => Object.freeze({ id: p.id, x: p.x, y: p.y, z: p.z,
       yaw: p.yaw + (p.direction < 0 ? Math.PI : 0), roadId: p.path.roadId, roadName: p.path.name,
       sidewalkOffset: p.path.offset, escape: p.escape, stopped: p.stopped, phase: p.phase }))); },

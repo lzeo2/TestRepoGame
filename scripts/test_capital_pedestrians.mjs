@@ -96,6 +96,28 @@ function checkActual() {
   }
 }
 checkActual();
+function aheadCount(player) {
+  const fx = -Math.sin(player.yaw || 0), fz = -Math.cos(player.yaw || 0);
+  return actual.snapshot().filter(p => {
+    const dx = p.x - player.x, dz = p.z - player.z;
+    const forward = dx * fx + dz * fz, lateral = Math.abs(dx * fz - dz * fx);
+    return forward >= 10 && forward <= 60 && lateral < forward * 0.5 + 3;
+  }).length;
+}
+assert(aheadCount(map.spawn) >= 6, 'several pedestrians begin on sidewalks within the chase camera view ahead');
+const manuka = { ...map.landmarks.find(p => p.id === 'manuka'), yaw: 0 };
+actual.resetPopulation(manuka);
+assert.equal(actual.stats.count, 80, 'teleports reuse the same population');
+assert(actual.stats.visible >= 40, 'Manuka arrival immediately has nearby walkers');
+assert(aheadCount(manuka) >= 4, 'Manuka arrival places walkers ahead as well as around the destination');
+checkActual();
+const arrived = actual.snapshot();
+actual.update({ x: 3000, z: 2000, yaw: 0 }, 0);
+assert.deepEqual(actual.snapshot(), arrived, 'pause still freezes an explicitly reset population');
+actual.resetPopulation(manuka);
+assert.deepEqual(actual.snapshot(), arrived, 'repeating the same teleport is deterministic');
+actual.resetPopulation(map.spawn);
+console.log('PASS immediate Manuka population reset, forward sidewalk visibility and deterministic paused arrivals');
 for (let i = 0; i < 1800; i++) actual.update(map.spawn, 1 / 30);
 checkActual();
 const far = { x: map.spawn.x + 1300, z: map.spawn.z + 300, speed: 0 };
