@@ -112,6 +112,21 @@ for (const [i, car] of following.traffic.entries()) {
 following.step(1 / 60, {});
 assert(following.traffic[0].speed < 10, 'following vehicle slows for a car eight metres ahead');
 console.log('PASS deterministic everyday traffic, following slowdown and 120 seconds of finite connected routing');
+const largeMap = { ...map, bounds: { minX: -2500, maxX: 2500, minZ: -2500, maxZ: 2500 },
+  roads: [...roads, road('local-ring', [[400, -300], [400, 300]], [20, 21]),
+    road('distant', [[1500, -300], [1500, 300]], [30, 31])] };
+const localFleet = createSimulation(largeMap, { seed: 33, trafficCount: 26 });
+assert.equal(localFleet.traffic.length, 26);
+assert(localFleet.traffic.every(car => Math.hypot(car.x - localFleet.player.x, car.z - localFleet.player.z) < 350),
+  'initial fleet stays near the player even when distant roads exist');
+const recycled = localFleet.traffic[0];
+recycled.edge = localFleet.graph.edges.find(edge => edge.road.id === 'distant');
+recycled.position = 100;
+Object.assign(recycled, pointOnLane(recycled.edge, recycled.position));
+localFleet.step(1 / 60, {});
+const recycledDistance = Math.hypot(recycled.x - localFleet.player.x, recycled.z - localFleet.player.z);
+assert(recycledDistance > 325 && recycledDistance < 655, 'distant traffic recycles near player beyond the rendering cull');
+console.log('PASS local fleet population and spatially indexed distant-car recycling');
 console.log('Capital Drive simulation: all checks passed');
 
 if (process.argv[2]) {

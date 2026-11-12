@@ -3,7 +3,6 @@ const TAU = Math.PI * 2;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const angleDelta = (a, b) => ((b - a + Math.PI * 3) % TAU) - Math.PI;
 const yawFor = (dx, dz) => Math.atan2(-dx, -dz);
-const distance = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
 
 export function projectSegment(x, z, a, b) {
   const dx = b[0] - a[0], dz = b[1] - a[1];
@@ -51,13 +50,13 @@ export function buildRoadGraph(roads) {
     const dx = (to.x - from.x) / length, dz = (to.z - from.z) / length;
     const edge = { id: edges.length, from, to, road, segment, direction, length, dx, dz,
       yaw: yawFor(dx, dz), laneOffset: Math.min((road.width || 8) * 0.23, 3.2) };
-    from.outgoing.push(edge); edges.push(edge);
+    from.outgoing.push(edge); segment.edges.push(edge); edges.push(edge);
   }
   for (const road of roads) {
     for (let i = 0; i < road.points.length - 1; i++) {
       const from = nodeFor(road, i), to = nodeFor(road, i + 1);
       if (from === to) continue;
-      const segment = { road, a: road.points[i], b: road.points[i + 1], index: i };
+      const segment = { road, a: road.points[i], b: road.points[i + 1], index: i, edges: [] };
       segments.push(segment);
       if (road.oneway !== -1) addEdge(from, to, road, segment, 1);
       if (road.oneway !== 1) addEdge(to, from, road, segment, -1);
@@ -142,18 +141,47 @@ export function createSimulation(map, options = {}) {
   }
   reset();
   const candidates = graph.edges.filter(edge => edge.length > 8);
+  function nearbyEdges(radius) {
+    const nearby = [];
+    for (const segment of roadIndex.query(player.x, player.z, radius)) {
+      if (projectSegment(player.x, player.z, segment.a, segment.b).distance > radius) continue;
+      for (const edge of segment.edges) if (edge.length > 8) nearby.push(edge);
+    }
+    return nearby;
+  }
+  const initialEdges = nearbyEdges(350);
   const trafficCount = Math.max(0, Math.min(options.trafficCount ?? 26, 48));
   for (let i = 0; i < trafficCount && candidates.length; i++) {
     const car = { id: i, x: 0, z: 0, yaw: 0, speed: 0, modelId: models[i % models.length], color: colors[i % colors.length],
       cruiseFactor: 0.78 + random() * 0.2 };
     let valid = false;
     for (let attempt = 0; attempt < 80; attempt++) {
-      const edge = candidates[Math.floor(random() * candidates.length)];
+      const pool = initialEdges.length && attempt < 60 ? initialEdges : candidates;
+      const edge = pool[Math.floor(random() * pool.length)];
       placeTraffic(car, edge, random() * edge.length);
-      if (Math.hypot(car.x - player.x, car.z - player.z) > 35 &&
+      const spawnDistance = Math.hypot(car.x - player.x, car.z - player.z);
+      if (spawnDistance > 45 && (attempt >= 60 || spawnDistance < 350) &&
         traffic.every(other => Math.hypot(car.x - other.x, car.z - other.z) > 12)) { valid = true; break; }
     }
     if (valid) traffic.push(car);
+  }
+  let nextTrafficRefresh = 0;
+  function refreshTrafficArea() {
+    if (elapsed < nextTrafficRefresh) return;
+    nextTrafficRefresh = elapsed + 2;
+    const localEdges = nearbyEdges(650);
+    if (!localEdges.length) return;
+    for (const car of traffic) {
+      if (Math.hypot(car.x - player.x, car.z - player.z) <= 850) continue;
+      for (let attempt = 0; attempt < 40; attempt++) {
+        const edge = localEdges[Math.floor(random() * localEdges.length)];
+        const position = random() * edge.length, pose = pointOnLane(edge, position);
+        const gap = Math.hypot(pose.x - player.x, pose.z - player.z);
+        // The renderer culls traffic at 300m; replacements enter beyond that view.
+        if (gap < 330 || gap > 650 || traffic.some(other => other !== car && Math.hypot(pose.x - other.x, pose.z - other.z) < 15)) continue;
+        placeTraffic(car, edge, position); car.speed = Math.min(10, (edge.road.speed || 50) / 3.6); break;
+      }
+    }
   }
   function nextEdge(car) {
     const choices = car.edge.to.outgoing;
@@ -162,6 +190,7 @@ export function createSimulation(map, options = {}) {
     return pool.length ? pool[Math.floor(random() * pool.length)] : null;
   }
   function updateTraffic(dt) {
+    refreshTrafficArea();
     for (const car of traffic) {
       const edge = car.edge, remaining = edge.length - car.position;
       // OSM maxspeed is km/h. Junction courtesy and spacing are intentionally simple.
