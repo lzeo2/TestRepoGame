@@ -1,0 +1,119 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+
+// Import authored browser ES module without changing the portal's Node module mode.
+const source = await readFile(new URL('../Games/Capital Drive/simulation.js', import.meta.url), 'utf8');
+const { buildRoadGraph, pointOnLane, createSimulation } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+const road = (id, points, nodes, oneway = 0) => ({ id, name: id, type: 'residential', width: 10, speed: 50, oneway, points, nodes });
+const roads = [
+  road('north', [[0, 200], [0, 0], [0, -200]], [1, 2, 3]),
+  road('east', [[-200, 0], [0, 0], [200, 0]], [4, 2, 5]),
+  road('oneway', [[200, 0], [200, 200]], [5, 6], 1),
+  road('reverse-way', [[200, 200], [0, 200]], [6, 1], -1)
+];
+const map = {
+  bounds: { minX: -500, maxX: 500, minZ: -500, maxZ: 500 }, roads,
+  buildings: [{ id: 'wall', points: [[40, -80], [75, -80], [75, -40], [40, -40]], height: 15 }],
+  landmarks: [], spawn: { x: -2.3, z: 160, yaw: 0 }
+};
+const graph = buildRoadGraph(roads);
+assert.equal(graph.nodes.get('2').outgoing.length, 4, 'shared OSM intersection joins four directions');
+assert.equal(graph.edges.filter(edge => edge.road.id === 'oneway').length, 1);
+assert.equal(graph.edges.find(edge => edge.road.id === 'oneway').from.id, '5');
+assert.equal(graph.edges.find(edge => edge.road.id === 'reverse-way').from.id, '1');
+const northEdge = graph.edges.find(edge => edge.from.id === '1' && edge.to.id === '2');
+assert(pointOnLane(northEdge, 30).x < 0, 'northbound left lane is west');
+const eastEdge = graph.edges.find(edge => edge.from.id === '2' && edge.to.id === '5');
+assert(pointOnLane(eastEdge, 30).z < 0, 'eastbound left lane is north');
+assert.equal(createSimulation(map, { trafficCount: 0 }).nearestRoad(3, 100).road.id, 'north');
+console.log('PASS connected directed road graph, one-way directions and left lanes');
+
+function advance(sim, seconds, input) {
+  for (let i = 0; i < seconds * 60; i++) sim.step(1 / 60, input);
+}
+const driving = createSimulation(map, { trafficCount: 0 });
+advance(driving, 3, { throttle: 1 });
+assert(driving.player.speed > 20, 'arcade acceleration reaches city-driving speed');
+assert(driving.player.z < 130, 'yaw zero drives north');
+const beforeBrake = driving.player.speed;
+advance(driving, 0.7, { brake: true });
+assert(driving.player.speed < beforeBrake * 0.5, 'brake removes forward speed');
+driving.reset();
+advance(driving, 2, { throttle: -1 });
+assert(driving.player.speed < -5 && driving.player.z > 160, 'reverse travels backwards');
+driving.reset();
+advance(driving, 1, { throttle: 1, steer: 1 });
+assert(driving.player.yaw < 0 && driving.player.x > map.spawn.x, 'right input steers east');
+console.log('PASS fast acceleration, forward travel, braking, reverse and steering');
+
+function sidewaysVelocity(player) {
+  return Math.abs(player.vx * Math.cos(player.yaw) - player.vz * Math.sin(player.yaw));
+}
+const grip = createSimulation(map, { trafficCount: 0 });
+const drift = createSimulation(map, { trafficCount: 0 });
+for (const sim of [grip, drift]) advance(sim, 2, { throttle: 1 });
+advance(grip, 0.65, { throttle: 1, steer: 1 });
+advance(drift, 0.65, { throttle: 1, steer: 1, handbrake: true });
+assert(sidewaysVelocity(drift.player) > sidewaysVelocity(grip.player) * 1.4, 'handbrake retains sideways momentum');
+console.log('PASS handbrake increases controllable lateral slide');
+
+const collision = createSimulation(map, { trafficCount: 0 });
+collision.reset({ x: 35, z: -60, yaw: -Math.PI / 2 });
+advance(collision, 1.1, { throttle: 1 });
+assert(collision.player.x <= 38.5, 'building collision keeps car outside polygon');
+assert(collision.player.crashes > 0, 'meaningful impact records a crash');
+collision.reset({ x: 50, z: -60, yaw: 0 });
+collision.step(1 / 60, {});
+assert(collision.player.x < 40 || collision.player.x > 75 || collision.player.z < -80 || collision.player.z > -40,
+  'reset inside a building resolves outside rather than sticking');
+collision.player.x = map.bounds.maxX + 20;
+collision.step(1 / 60, {});
+assert.equal(collision.player.x, map.spawn.x, 'world edge recovers to spawn');
+collision.player.vx = NaN;
+collision.step(1 / 60, {});
+assert(Number.isFinite(collision.player.vx), 'invalid physics state recovers');
+collision.reset();
+assert.equal(collision.player.odometer, 0);
+assert.equal(collision.player.crashes, 0);
+assert.equal(collision.player.speed, 0);
+collision.reset({ x: 40, z: -60, yaw: 0 });
+collision.step(1 / 60, {});
+assert(collision.player.x < 40, 'exact polygon boundary resolves toward its exterior');
+console.log('PASS forgiving building impacts, unsticking, world-edge recovery and reset');
+
+const fleet = createSimulation(map, { seed: 17, trafficCount: 12 });
+const repeat = createSimulation(map, { seed: 17, trafficCount: 12 });
+assert.equal(fleet.traffic.length, 12);
+assert.deepEqual(fleet.traffic.map(car => [car.x, car.z, car.modelId]), repeat.traffic.map(car => [car.x, car.z, car.modelId]));
+const edgeVisits = new Map(fleet.traffic.map(car => [car.id, new Set([car.edge.id])]));
+for (let i = 0; i < 120 * 60; i++) {
+  fleet.step(1 / 60, {});
+  for (const car of fleet.traffic) {
+    assert([car.x, car.z, car.yaw, car.speed].every(Number.isFinite));
+    assert(car.edge.from.outgoing.includes(car.edge));
+    assert(car.position >= 0 && car.position <= car.edge.length + 0.001);
+    edgeVisits.get(car.id).add(car.edge.id);
+  }
+}
+assert([...edgeVisits.values()].some(visited => visited.size > 3), 'traffic navigates connected intersections');
+assert(fleet.traffic.every(car => ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch'].includes(car.modelId)));
+console.log('PASS deterministic everyday traffic and 120 seconds of finite connected routing');
+console.log('Capital Drive simulation: all checks passed');
+
+if (process.argv[2]) {
+  const actual = JSON.parse(await readFile(process.argv[2], 'utf8'));
+  const start = performance.now();
+  const city = createSimulation(actual);
+  assert(city.graph.edges.length > 0, 'real map contains driveable graph edges');
+  assert.equal(city.traffic.length, 26, 'real map supports the intended traffic population');
+  assert(Number.isFinite(city.nearestRoad(city.player.x, city.player.z)?.distance), 'spawn has a nearest road');
+  for (const edge of city.graph.edges) {
+    assert(edge.road.oneway !== 1 || edge.direction === 1);
+    assert(edge.road.oneway !== -1 || edge.direction === -1);
+  }
+  const initial = city.traffic.map(car => [car.x, car.z]);
+  for (let i = 0; i < 60 * 60; i++) city.step(1 / 60, {});
+  assert(city.traffic.every(car => [car.x, car.z, car.yaw, car.speed].every(Number.isFinite)));
+  assert(city.traffic.some((car, i) => Math.hypot(car.x - initial[i][0], car.z - initial[i][1]) > 30), 'actual-map traffic makes progress');
+  console.log(`PASS actual map: ${city.graph.nodes.size} nodes, ${city.graph.edges.length} directed edges, ${actual.buildings.length} indexed buildings, 26 cars; 60-second soak in ${Math.round(performance.now() - start)}ms`);
+}
