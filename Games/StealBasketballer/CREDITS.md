@@ -49,10 +49,13 @@ substitutions with no re-entry, no disqualification, traveling, double-dribble,
 out-of-bounds adjudication, and-one, held-ball or timeout rules. It is not an
 official simulation. Courts retain the source's arcade proportions.
 
-All runtime dependencies are local, copied byte-for-byte from the pinned sibling:
+All runtime dependencies are local, copied from the pinned sibling. Font binaries
+are byte-identical. Local modifications: one whitespace-only indentation fix in
+Three.js and one trailing space removed from each font notice; no license words
+or JavaScript tokens changed.
 
 - Three.js r160, three.js authors: `vendor/three.module.js`, MIT notice in
-  `vendor/LICENSE`. SHA256 `76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495`.
+  `vendor/LICENSE`. SHA256 `505fa5d00047c76ecfc8947c67c82922508b263e76f9b25e64948130e783b0a2`.
 - Bungee, The Bungee Project Authors: `assets/fonts/bungee/bungee-400-latin.woff2`,
   SIL OFL notice alongside. SHA256 `126eec706b7931682dbcf6c6efc274132c603f181fbf912678e6cfeb341e721b`.
 - Atkinson Hyperlegible, Braille Institute of America, Inc.: local 400/700 fonts,

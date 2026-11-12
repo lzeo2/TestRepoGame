@@ -71,8 +71,9 @@ Avatar travel and theft routes preserve grounded collision handling.
 local fonts, keyboard/touch controls, roster/album/search/store/tactics/staff/kits,
 3x clock labels, spectator, substitutions and actual coin report.
 `window.basketballerSnapshot()` returns detached, deeply frozen diagnostics only.
-All vendor/font files are sibling-local byte copies, notices retained; credits
-list binary hashes. The inherited read-only football exporter is excluded: grep
+Vendor/fonts are sibling-local copies, notices retained; font binaries are
+byte-identical, with three imported whitespace defects normalized in vendor/notice
+text only. Credits list current binary/vendor hashes. The inherited read-only football exporter is excluded: grep
 found no runtime/test consumer; only the superseded copied credits mentioned it.
 No runtime import points into the football folder.
 

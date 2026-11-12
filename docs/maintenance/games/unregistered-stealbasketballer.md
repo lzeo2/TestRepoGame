@@ -55,7 +55,9 @@ not an open-source ingestion. Original basketball geometry/simulation/UI adaptat
 under direct order. Real names manually curated from existing knowledge, not a
 live-verified or date-pinned official snapshot; catalog explicitly states this.
 No photos, logos, official jerseys, likeness meshes or measured ratings. Three.js
-r160 MIT and Bungee/Atkinson SIL OFL notices retained with exact sibling copies.
+r160 MIT and Bungee/Atkinson SIL OFL notices retained. Font binaries are exact
+sibling copies; three imported whitespace defects were normalized in vendor/notice
+text without changing code tokens or license words.
 Their licenses do not cover game/identity rights. Credits list hashes and rights
 hold. No external runtime loads, downloads, packages or local model generation.
 
