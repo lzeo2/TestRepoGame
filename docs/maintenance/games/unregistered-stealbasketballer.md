@@ -128,6 +128,30 @@ The new diagnostic refuses game loading until effective argv and renderer
 sandbox are verified; its consumed pass stopped at that pre-game gate. Neither
 requested sandboxing nor this source check supplies native sandbox proof.
 
+`BASKETBALL-SANDBOX-PROCESS-VERIFIER-20261112` is source-only tooling preparation:
+`scripts/diagnose_basketball_readiness.py` now obtains actual NUL-delimited argv,
+executable, UID, parent and start tick from `/proc`, replacing the unavailable
+CDP argv query without changing launch arguments. It requires exactly one new
+system Chromium descendant of this checker, its ephemeral repo profile and
+Playwright pipe. Reads are checked twice; missing/ambiguous identities, ancestry,
+permission/race failures or forbidden arguments stop verification. The installed
+binary path/profile naming are pinned prerequisites, not fallback guesses.
+Positive sandbox-page text remains mandatory. Existing `SystemInfo.getProcessInfo`
+renderer IDs must all map to actual `/proc` descendants of that same stable
+browser, with matching executable/UID, `NoNewPrivs=1`, `Seccomp=2` and safe argv;
+missing PID evidence is a HOLD, not silently omitted.
+
+Offline RED: `Unavailable CDP argv query still used`. GREEN:
+`python3 -B scripts/test_basketball_process_verifier.py` passes 52 fake-process
+cases, including NUL/stat parsing, missing/ambiguous/reused PIDs, profile identity,
+unsafe arguments and missing/negative sandbox/renderer evidence. AST/diff and
+maintenance checks pass. No Chromium/Playwright import or launch, game request,
+changed launch flag, worker, download or gameplay-suite rerun. Runtime/catalog,
+retained safety receipt and raw native failure are unchanged. Real process
+selection, sandbox safety and native play remain unverified; this commit does
+not authorize another diagnostic launch. Ticket `pi-3273687-1794462997886-5cd8599f`
+remains a historical native safety hold.
+
 ## Future outlook
 
 With fresh authorization, one diagnostic browser startup pass should capture
