@@ -6,9 +6,12 @@ is a source-grounded audit and maintenance guide, not a claim that every legacy
 game meets today's standards. Some engines are compiled, some rights are
 unverified, and some native interactions remain held.
 
-The catalog contains **132 registered games**. The latest Git inventory records **138 game projects**
-plus the shared `Games/_emulatorjs` runtime. Lane Run (242), Gap Glide (243) and Courtyard Cast (244) are original Schoolyard Trio prototypes published for hosted testing at the operator's explicit request. Private likeness models and photos are excluded; their native/device checks remain open. Below the Obvious (235), operator-named on 2026-10-21, is the original offline solo rare-answer trivia game with Battle gated for phase 2; see the [branch handover](../dive-trivia-handover.md). Its targeted smoke does not replace the full fleet gate. JANKOLOCK (240) is the operator-authorized original arena translation; its indexed manual and [targeted build receipt](../jankolock-release.md) record native play, software-only portrait rendering and remaining full-fleet/hardware holds. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. The six unregistered projects are
-2048, Garage Borough, Hextris, Jankolock, QWOP and Slope. CITISTEN is already
+The catalog contains **132 registered games**. The latest Git inventory records **139 game projects**
+plus the shared `Games/_emulatorjs` runtime. Lane Run (242), Gap Glide (243) and Courtyard Cast (244) are original Schoolyard Trio prototypes published for hosted testing at the operator's explicit request. Private likeness models and photos are excluded; their native/device checks remain open. Below the Obvious (235), operator-named on 2026-10-21, is the original offline solo rare-answer trivia game with Battle gated for phase 2; see the [branch handover](../dive-trivia-handover.md). Its targeted smoke does not replace the full fleet gate. JANKOLOCK (240) is the operator-authorized original arena translation; its indexed manual and [targeted build receipt](../jankolock-release.md) record native play, software-only portrait rendering and remaining full-fleet/hardware holds. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. The seven unregistered projects are
+2048, Garage Borough, Hextris, Jankolock, QWOP, Slope and StealBasketballer.
+StealBasketballer is an owner-ordered local basketball preview only, not a portal
+registration or publication; its native/browser acceptance and real-name rights
+review remain held. CITISTEN is already
 registered as241 with `Games/Citisten3D/index.html`; its canonical manual retains
 its source and held acceptance limits. This factual catalog reconciliation is
 not new native-gameplay acceptance. Existing Slipstream Borough is catalog225, explicitly labeled a police-chase preview with an unbanked handling sandbox. Existing Foldwild is owner-authorized Story preview226; its M2/inspection/campaign/device/rights holds remain. Both are registrations of existing projects, not new builds. Sparse exclusion is intentional: a missing
@@ -294,4 +297,5 @@ reserved by appearing here.
 | Unregistered | [Jankolock](games/unregistered-jankolock.md) | `Games/Jankolock/index.html` |
 | Unregistered | [QWOP](games/unregistered-qwop.md) | `Games/QWOP/index.html` |
 | Unregistered | [Slope](games/unregistered-slope.md) | `Games/Slope/index.html` |
+| Unregistered | [StealBasketballer](games/unregistered-stealbasketballer.md) | `Games/StealBasketballer/index.html` |
 <!-- game-index:end -->
