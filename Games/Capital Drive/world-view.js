@@ -5,7 +5,7 @@ const CHUNK_SIZE = 350;
 const VISIBILITY = 720;
 const CELL_SIZE = 80;
 const COLORS = {
-  grass: 0x9ba56e, park: 0x8e9f68, asphalt: 0x555654, path: 0xc3bcb0,
+  grass: 0x849565, park: 0x78905e, asphalt: 0x555654, path: 0xc3bcb0,
   kerb: 0xd5d0c2, paint: 0xe6e4d5, brick: 0x9c7560, cream: 0xd6c9ae,
   roof: 0x8e5643, metal: 0x737975, trunk: 0x796b57, green: 0x537158,
 };
@@ -20,7 +20,7 @@ export function createWorldView(scene, map) {
   const temporaryGeometry = [];
   const textures = [];
   const materials = [];
-  const counters = { buildings: 0, trees: 0, signs: 0, roadSegments: 0, triangles: 0, chunks: 0, meshes: 0 };
+  const counters = { buildings: 0, trees: 0, treesNearSpawn: 0, signs: 0, roadSegments: 0, triangles: 0, chunks: 0, meshes: 0 };
   const color = new THREE.Color();
   const matrix = new THREE.Matrix4();
   const quaternion = new THREE.Quaternion();
@@ -38,7 +38,7 @@ export function createWorldView(scene, map) {
     const context = canvas.getContext('2d');
     const pixels = context.createImageData(64, 64);
     for (let i = 0; i < pixels.data.length; i += 4) {
-      const tone = 218 + ((i * 17 + Math.floor(i / 256) * 31) % 35);
+      const tone = 237 + Math.floor(hash(i) * 18);
       pixels.data[i] = pixels.data[i + 1] = pixels.data[i + 2] = tone;
       pixels.data[i + 3] = 255;
     }
@@ -137,30 +137,42 @@ export function createWorldView(scene, map) {
 
   function groundPolygon(points, tint, lift = 0.018) {
     if (!points || points.length < 3) return;
+    const level = Math.min(...points.map(p => heightAt(...p))) + lift;
     const shape = points.map(p => new THREE.Vector2(p[0], p[1]));
     const faces = THREE.ShapeUtils.triangulateShape(shape, []);
     const batch = batchAt(points[0][0], points[0][1]);
     for (const face of faces) {
-      const p = face.map(i => [points[i][0], heightAt(...points[i]) + lift, points[i][1]]);
+      const p = face.map(i => [points[i][0], level, points[i][1]]);
       if ((p[1][0] - p[0][0]) * (p[2][2] - p[0][2]) - (p[1][2] - p[0][2]) * (p[2][0] - p[0][0]) > 0) p.reverse();
       triangle(batch, ...p, tint);
     }
   }
 
-  // Small terrain tiles allow the renderer to reject whole neighbourhoods.
-  const terrainStep = 35;
-  for (let z = bounds.minZ - 250; z < bounds.maxZ + 250; z += terrainStep) {
-    for (let x = bounds.minX - 250; x < bounds.maxX + 250; x += terrainStep) {
-      const shade = new THREE.Color(COLORS.grass).multiplyScalar(0.96 + hash(x + z * 0.3) * 0.07);
-      const point = (px, pz) => [px, heightAt(px, pz), pz];
-      quad(batchAt(x, z), point(x, z), point(x, z + terrainStep),
-        point(x + terrainStep, z + terrainStep), point(x + terrainStep, z), shade);
+  // Match bilinear terrain cells. Adaptive subdivision bounds the difference
+  // between the rendered triangles and heightAt to under eight centimetres.
+  function terrainTile(x, z, dx, dz) {
+    const shade = new THREE.Color(COLORS.grass).multiplyScalar(0.98 + hash(x + z * 0.3) * 0.04);
+    const point = (px, pz) => [px, heightAt(px, pz) - 0.18, pz];
+    quad(batchAt(x, z), point(x, z), point(x, z + dz), point(x + dx, z + dz), point(x + dx, z), shade);
+  }
+  if (terrain?.cols > 1 && terrain?.rows > 1) {
+    const dx = (terrain.maxX - terrain.minX) / (terrain.cols - 1);
+    const dz = (terrain.maxZ - terrain.minZ) / (terrain.rows - 1);
+    for (let iz = 0; iz < terrain.rows - 1; iz++) for (let ix = 0; ix < terrain.cols - 1; ix++) {
+      const x = terrain.minX + ix * dx, z = terrain.minZ + iz * dz;
+      const mixed = Math.abs(heightAt(x, z) + heightAt(x + dx, z + dz) - heightAt(x + dx, z) - heightAt(x, z + dz));
+      const divisions = Math.max(2, Math.ceil(Math.sqrt(mixed / 0.28)));
+      for (let j = 0; j < divisions; j++) for (let i = 0; i < divisions; i++) terrainTile(x + i * dx / divisions, z + j * dz / divisions, dx / divisions, dz / divisions);
     }
+  } else {
+    for (let z = bounds.minZ; z < bounds.maxZ; z += 35) for (let x = bounds.minX; x < bounds.maxX; x += 35) terrainTile(x, z, 35, 35);
   }
-  for (const area of map.areas || []) {
-    const tint = /water|lake|basin/.test(area.type) ? 0x658b8f : /pitch|sport/.test(area.type) ? 0x84996a : COLORS.park;
-    groundPolygon(area.points, tint);
+  for (let z = bounds.minZ - 245; z < bounds.maxZ + 245; z += 35) for (let x = bounds.minX - 245; x < bounds.maxX + 245; x += 35) {
+    if (x < bounds.minX || z < bounds.minZ || x >= bounds.maxX || z >= bounds.maxZ) terrainTile(x, z, 35, 35);
   }
+  // Grass polygons cannot be draped with boundary-only triangles on a hill.
+  // Terrain already supplies grass; reserve overlays for the water itself.
+  for (const area of map.areas || []) if (/water|lake|basin/.test(area.type)) groundPolygon(area.points, 0x658b8f, -0.12);
 
   // Spatial indices keep avenue placement linear in the size of the map.
   const roadCells = new Map(), buildingCells = new Map();
@@ -215,17 +227,38 @@ export function createWorldView(scene, map) {
     }
   }
 
+  // Subdivide only where a road triangle would cut through a bilinear hill.
+  function drapedTriangle(batch, a, b, c, tint, lift, depth = 0) {
+    const middle = (p, q) => {
+      const x = (p[0] + q[0]) / 2, z = (p[2] + q[2]) / 2;
+      return [x, heightAt(x, z) + lift, z];
+    };
+    const ab = middle(a, b), bc = middle(b, c), ca = middle(c, a);
+    const x = (a[0] + b[0] + c[0]) / 3, z = (a[2] + b[2] + c[2]) / 3;
+    const error = Math.max(Math.abs(ab[1] - (a[1] + b[1]) / 2), Math.abs(bc[1] - (b[1] + c[1]) / 2),
+      Math.abs(ca[1] - (c[1] + a[1]) / 2), Math.abs(heightAt(x, z) + lift - (a[1] + b[1] + c[1]) / 3));
+    if (depth < 4 && error > 0.045) {
+      drapedTriangle(batch, a, ab, ca, tint, lift, depth + 1);
+      drapedTriangle(batch, ab, b, bc, tint, lift, depth + 1);
+      drapedTriangle(batch, ca, bc, c, tint, lift, depth + 1);
+      drapedTriangle(batch, ab, bc, ca, tint, lift, depth + 1);
+    } else triangle(batch, a, b, c, tint);
+  }
+
   function ribbon(a, b, left, right, tint, lift) {
     const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
     if (length < 0.1) return;
     const nx = -(b[1] - a[1]) / length, nz = (b[0] - a[0]) / length;
-    const pieces = Math.max(1, Math.ceil(length / 14));
+    const pieces = Math.max(1, Math.ceil(length / 12));
     for (let i = 0; i < pieces; i++) {
       const t0 = i / pieces, t1 = (i + 1) / pieces;
       const x0 = THREE.MathUtils.lerp(a[0], b[0], t0), z0 = THREE.MathUtils.lerp(a[1], b[1], t0);
       const x1 = THREE.MathUtils.lerp(a[0], b[0], t1), z1 = THREE.MathUtils.lerp(a[1], b[1], t1);
       const p = (x, z, d) => [x + nx * d, heightAt(x + nx * d, z + nz * d) + lift, z + nz * d];
-      quad(batchAt(x0, z0, tint === COLORS.asphalt ? 'road' : 'solid'), p(x0, z0, right), p(x1, z1, right), p(x1, z1, left), p(x0, z0, left), tint);
+      const batch = batchAt(x0, z0, tint === COLORS.asphalt ? 'road' : 'solid');
+      const pa = p(x0, z0, right), pb = p(x1, z1, right), pc = p(x1, z1, left), pd = p(x0, z0, left);
+      drapedTriangle(batch, pa, pb, pc, tint, lift);
+      drapedTriangle(batch, pa, pc, pd, tint, lift);
     }
   }
   for (const s of roadSegments) {
@@ -244,6 +277,16 @@ export function createWorldView(scene, map) {
     counters.roadSegments++;
   }
 
+  // A small apron joins consecutive road segments at every bend, including
+  // nodes on a single named way, rather than only named intersections.
+  for (const node of nodes.values()) {
+    const radius = node.width / 2;
+    const batch = batchAt(node.x, node.z, 'road');
+    for (let i = 0; i < 10; i++) {
+      const p = a => [node.x + Math.cos(a) * radius, heightAt(node.x + Math.cos(a) * radius, node.z + Math.sin(a) * radius) + 0.09, node.z + Math.sin(a) * radius];
+      drapedTriangle(batch, [node.x, heightAt(node.x, node.z) + 0.09, node.z], p((i + 1) / 10 * Math.PI * 2), p(i / 10 * Math.PI * 2), COLORS.asphalt, 0.09);
+    }
+  }
   const intersections = [...nodes.values()].filter(n => n.roads.size > 1);
   // Asphalt aprons cover the crossing footpaths where named streets meet.
   for (const node of intersections) {
@@ -252,7 +295,7 @@ export function createWorldView(scene, map) {
     for (let i = 0; i < 12; i++) {
       const a = i / 12 * Math.PI * 2, b = (i + 1) / 12 * Math.PI * 2;
       const p = angle => [node.x + Math.cos(angle) * radius, heightAt(node.x + Math.cos(angle) * radius, node.z + Math.sin(angle) * radius) + 0.115, node.z + Math.sin(angle) * radius];
-      triangle(batch, [node.x, heightAt(node.x, node.z) + 0.115, node.z], p(b), p(a), COLORS.asphalt);
+      drapedTriangle(batch, [node.x, heightAt(node.x, node.z) + 0.115, node.z], p(b), p(a), COLORS.asphalt, 0.115);
     }
   }
 
@@ -267,14 +310,25 @@ export function createWorldView(scene, map) {
     const isSchool = school && Math.hypot(x - school.x, z - school.z) < (school.radius || 140);
     const shopping = (map.landmarks || []).some(l => /^(manuka|kingston|griffith|narrabundah)$/.test(l.id) && Math.hypot(x - l.x, z - l.z) < l.radius);
     const residential = !isSchool && !shopping && !/apartments|commercial|retail|industrial|school|public|office/.test(building.type || '');
-    const height = Math.max(2.7, Math.min(isSchool ? 6.2 : 50, Number(building.height) || (isSchool ? 5 : residential ? 3.5 : 7)));
+    const height = Math.max(2.7, Math.min(isSchool ? 4.4 : 50, Number(building.height) || (isSchool ? 5 : residential ? 3.5 : 7)));
     // A single level plinth avoids walls floating on Red Hill's sloping streets.
-    const base = Math.max(...points.map(p => heightAt(...p))) + 0.12;
+    const base = (isSchool ? points.reduce((sum, p) => sum + heightAt(...p), 0) / points.length : Math.max(...points.map(p => heightAt(...p)))) + 0.12;
     const footing = Math.min(...points.map(p => heightAt(...p))) - 0.3;
+    // OSM often describes school wings within the larger ACT footprint.
+    // Rendering both creates overlapping roofs and walls at the same height.
+    if (String(building.id).startsWith('osm-') && nearby(buildingCells, x, z).some(b => String(b.id).startsWith('act-') && inside(x, z, b.points))) return;
     const batch = batchAt(x, z);
     const walls = isSchool ? COLORS.cream : building.color || (residential ? [0x9d7761, 0xb49a7e, 0xd0c5ae, 0xad8a70][index % 4] : 0xb4ada0);
     const roofColor = isSchool ? 0x985c40 : residential ? [0x95664f, 0x755f52, 0x9f7155, 0x747975][index % 4] : 0x8a8980;
-    const pitched = isSchool || (residential && height < 10 && building.roof !== 'flat');
+    let turn = 0, convex = points.length <= 10;
+    for (let i = 0; i < points.length; i++) {
+      const a = points[i], b = points[(i + 1) % points.length], c = points[(i + 2) % points.length];
+      const cross = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+      if (Math.abs(cross) < 0.01) continue;
+      if (turn && Math.sign(cross) !== turn) convex = false;
+      turn = Math.sign(cross);
+    }
+    const pitched = convex && (isSchool || (residential && height < 10 && building.roof !== 'flat'));
     for (let i = 0; i < points.length; i++) {
       const a = points[i], b = points[(i + 1) % points.length];
       const edgeLength = Math.hypot(b[0] - a[0], b[1] - a[1]);
@@ -298,6 +352,10 @@ export function createWorldView(scene, map) {
             quad(batch, ...(side > 0 ? pane.reverse() : pane), 0x607775);
           }
         }
+      }
+      if (isSchool && edgeLength > 4) {
+        primitive(box, (a[0] + b[0]) / 2, base + height - 0.15, (a[1] + b[1]) / 2,
+          0.2, 0.22, edgeLength, 0xb4a78d, Math.atan2(b[0] - a[0], b[1] - a[1]));
       }
       if (shopping && edgeLength > 7 && edgeLength < 60) {
         primitive(box, (a[0] + b[0]) / 2, base + 3, (a[1] + b[1]) / 2, 1.2, 0.18, edgeLength,
@@ -328,8 +386,12 @@ export function createWorldView(scene, map) {
   (map.buildings || []).forEach(buildingView);
 
   // Each canopy is a small faceted crown, avoiding thousands of transparent leaves.
+  const treeChunks = new Map(), treeCells = new Map();
   function tree(x, z, seed, park = false) {
-    if (counters.trees >= 1800) return;
+    const chunkKey = `${Math.floor(x / CHUNK_SIZE)},${Math.floor(z / CHUNK_SIZE)}`;
+    if (counters.trees >= 9000 || (treeChunks.get(chunkKey) || 0) >= 90) return;
+    const treeKey = `${Math.floor(x / 12)},${Math.floor(z / 12)}`;
+    if (treeCells.has(treeKey)) return;
     const roadCollision = nearby(roadCells, x, z).some(s => segmentDistance(x, z, s.a, s.b) < s.width / 2 + 2.6);
     if (roadCollision || nearby(buildingCells, x, z).some(b => inside(x, z, b.points))) return;
     const y = heightAt(x, z), h = 6.5 + hash(seed) * 5;
@@ -339,16 +401,29 @@ export function createWorldView(scene, map) {
     primitive(eucalyptus ? crown : cone, x, y + h * 0.79, z, h * (park ? 0.42 : 0.35), h * 0.44, h * 0.32, foliage, hash(seed + 1) * 6);
     if (eucalyptus) primitive(crown, x + h * 0.18, y + h * 0.95, z + h * 0.1, h * 0.27, h * 0.3, h * 0.3, foliage);
     counters.trees++;
+    if (map.spawn && Math.hypot(x - map.spawn.x, z - map.spawn.z) < 250) counters.treesNearSpawn++;
+    treeCells.set(treeKey, true);
+    treeChunks.set(chunkKey, (treeChunks.get(chunkKey) || 0) + 1);
   }
   let seed = 0;
-  for (const s of roadSegments) {
-    if (/service|footway|path|track/.test(s.road.type)) continue;
-    const dx = (s.b[0] - s.a[0]) / s.length, dz = (s.b[1] - s.a[1]) / s.length;
-    for (let d = 15; d < s.length - 8; d += 31 + hash(seed + 17) * 12) {
-      for (const side of [-1, 1]) {
-        const offset = side * (s.width / 2 + 5.5 + hash(seed) * 2);
-        tree(s.a[0] + dx * d - dz * offset, s.a[1] + dz * d + dx * offset, seed++);
+  const streetRoads = [...(map.roads || [])].filter(r => !/service|footway|path|track|motorway|trunk/.test(r.type));
+  const anchorDistance = road => Math.min(...(map.landmarks || [map.spawn]).filter(Boolean).map(l => Math.hypot(road.points[0][0] - l.x, road.points[0][1] - l.z)));
+  streetRoads.sort((a, b) => anchorDistance(a) - anchorDistance(b));
+  for (const road of streetRoads) {
+    let untilNext = 8 + hash(seed++) * 18;
+    for (let i = 1; i < road.points.length; i++) {
+      const a = road.points[i - 1], b = road.points[i];
+      const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (length < 0.1) continue;
+      const dx = (b[0] - a[0]) / length, dz = (b[1] - a[1]) / length;
+      while (untilNext < length) {
+        for (const side of [-1, 1]) {
+          const offset = side * ((Number(road.width) || 7) / 2 + 5 + hash(seed) * 1.5);
+          tree(a[0] + dx * untilNext - dz * offset, a[1] + dz * untilNext + dx * offset, seed++);
+        }
+        untilNext += 24 + hash(seed + 17) * 8;
       }
+      untilNext -= length;
     }
   }
   // Reserve groves in the larger public parks as well as street avenues.
