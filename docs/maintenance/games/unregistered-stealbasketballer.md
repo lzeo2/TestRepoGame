@@ -196,6 +196,25 @@ closed, old receipts preserved and disk remained above the floor. See
 ticket `pi-3273687-1794466551296-0f6ec794`. The unused launch allowance does not
 permit auto-resumption within this ended scope; native remains blocked.
 
+`BASKETBALL-PROCESS-FILTER-AND-ONE-PASS-20261112` source phase: actual-reader
+in-memory `/proc` regression first reproduced `PermissionError: protected exe`.
+The narrow fix reads stable comm/argv/PID/PPID/start/UID metadata first. Only the
+exact init-owned `/usr/lib/systemd/systemd --user` service, same UID and older
+than the checker, may retain metadata with no exe link resolution; it cannot be
+a newly launched checker descendant or supply browser/renderer exe evidence.
+All other records still require exe; PermissionError is not caught/ignored.
+Metadata and exe are rechecked, and missing/ambiguous/changed identities remain
+HOLD. Read-only host metadata independently confirmed that signature for the
+previously blocked service; no PID is hardcoded into the filter.
+
+`python3 -B scripts/test_basketball_process_verifier.py`: GREEN66 offline cases,
+including unknown/protected browser/renderer argv/exe, misleading service
+signatures and a PID-start change during the read. Launch call/flags, positive
+sandbox/renderer gates and shared scratch lock stay unchanged. These source
+checks do not establish native safety. This new scope separately authorizes only
+one subsequent bounded attempt, with third distinct evidence directory
+`.tmp/basketball-native-readiness-filtered/`; earlier receipts stay immutable.
+
 ## Future outlook
 
 With fresh authorization, one diagnostic browser startup pass should capture

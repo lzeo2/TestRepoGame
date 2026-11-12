@@ -1,9 +1,9 @@
 """One safe launch, <=90s including cleanup; no retries or browser downloads.
 Run: timeout --signal=TERM --kill-after=5s 85s python3 -B scripts/diagnose_basketball_readiness.py
-Approved evidence stays in .tmp/basketball-native-readiness-approved; earlier receipts are untouched.
+Filtered-pass evidence stays in .tmp/basketball-native-readiness-filtered; earlier receipts are untouched.
 """
 import fcntl
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -18,7 +18,7 @@ import time
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-ARTIFACTS = ROOT / '.tmp/basketball-native-readiness-approved'
+ARTIFACTS = ROOT / '.tmp/basketball-native-readiness-filtered'
 FLOOR, TEMP_BUDGET = 2178940928, 128 * 1024**2
 BASE = 'http://127.0.0.1:8935'
 
@@ -48,6 +48,7 @@ class Process:
     argv: tuple
     no_new_privs: str
     seccomp: str
+    comm: str
 
 
 def stat_identity(pid, text):
@@ -72,27 +73,48 @@ def parse_process(pid, stat, status, exe, cmdline):
         raise ValueError('Missing UID or NUL-delimited argv')
     argv = tuple(arg.decode('utf-8', 'surrogateescape') for arg in cmdline[:-1].split(b'\0'))
     return Process(pid, ppid, start, uids, exe, argv,
-                   values.get('NoNewPrivs', '').strip(), values.get('Seccomp', '').strip())
+                   values.get('NoNewPrivs', '').strip(), values.get('Seccomp', '').strip(),
+                   stat.rsplit(') ', 1)[0].split(' (', 1)[1])
+
+
+def unrelated_user_manager(process, owner):
+    # Exact init-owned service, older than this checker: it cannot be a newly launched descendant.
+    return (process.pid != owner.pid and process.ppid == 1 and process.ppid != owner.pid
+            and process.start < owner.start and process.uids == owner.uids and process.comm == 'systemd'
+            and process.argv == ('/usr/lib/systemd/systemd', '--user'))
+
+
+def read_metadata(directory):
+    return parse_process(int(directory.name), (directory/'stat').read_text(), (directory/'status').read_text(),
+                         '', (directory/'cmdline').read_bytes())
 
 
 def read_processes():
-    records = {}
+    metadata, directories, records = {}, {}, {}
     for directory in Path('/proc').iterdir():
         if not directory.name.isdecimal():
             continue
         try:
             if directory.stat().st_uid != os.getuid():
                 continue
-            pid = int(directory.name)
-            def read():
-                return parse_process(pid, (directory/'stat').read_text(), (directory/'status').read_text(),
-                                     os.readlink(directory/'exe'), (directory/'cmdline').read_bytes())
-            process = read()
-            if read() != process:
-                raise ValueError('Process identity/argv changed during /proc read')
-            records[pid] = process
+            process = read_metadata(directory)
+            if read_metadata(directory) != process:
+                raise ValueError('Process metadata changed during /proc read')
+            metadata[process.pid], directories[process.pid] = process, directory
         except (FileNotFoundError, ProcessLookupError):
             continue  # Exited processes cannot serve as identity/sandbox evidence.
+    owner = metadata.get(os.getpid())
+    if owner is None or owner.uids != (os.getuid(),)*4:
+        raise ValueError('Missing/unknown checker identity')
+    for pid, process in metadata.items():
+        directory = directories[pid]
+        try:
+            exe = '' if unrelated_user_manager(process, owner) else os.readlink(directory/'exe')
+            if read_metadata(directory) != process or (exe and os.readlink(directory/'exe') != exe):
+                raise ValueError('Process identity/argv/exe changed during /proc read')
+            records[pid] = replace(process, exe=exe)
+        except (FileNotFoundError, ProcessLookupError):
+            continue
     return records
 
 
@@ -224,7 +246,7 @@ PROBE = r"""(() => {
 def main():
     os.chdir(ROOT)
     report = {'head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
-              'scope': 'BASKETBALL-NATIVE-VERIFIED-PASS-20261112', 'launchAttempted': False, 'accepted': [],
+              'scope': 'BASKETBALL-PROCESS-FILTER-AND-ONE-PASS-20261112', 'launchAttempted': False, 'accepted': [],
               'stage': 'admission', 'events': [], 'http': [], 'errors': [], 'external': [], 'captures': []}
     lock = server = thread = browser = None
     started = time.monotonic()
@@ -259,8 +281,13 @@ def main():
             try:
                 report['stage'] = 'safe-browser-launch'
                 executable = str(Path('/usr/lib/chromium/chromium').resolve(strict=True))
-                previous = {(p.pid, p.start) for p in read_processes().values()}
+                report['stage'] = 'pre-launch-process-baseline'
+                baseline = read_processes()
+                previous = {(p.pid, p.start) for p in baseline.values()}
+                report['unrelatedExeOmissions'] = [{'pid': p.pid, 'ppid': p.ppid, 'startTicks': p.start,
+                    'comm': p.comm, 'argv': list(p.argv)} for p in baseline.values() if not p.exe]
                 report['immediateAdmission'] = admission()
+                report['stage'] = 'safe-browser-launch'
                 report['launchAttempted'] = True
                 browser = playwright.chromium.launch(executable_path='/usr/bin/chromium',
                     chromium_sandbox=True, headless=True, timeout=15000, env=dict(os.environ))

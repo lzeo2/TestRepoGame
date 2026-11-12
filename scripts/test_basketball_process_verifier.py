@@ -2,6 +2,9 @@
 from dataclasses import replace
 from pathlib import Path
 import sys
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
+import diagnose_basketball_readiness as diagnostic
 
 source = Path(__file__).with_name('diagnose_basketball_readiness.py').read_text()
 assert 'Browser.getBrowserCommandLine' not in source, 'Unavailable CDP argv query still used'
@@ -35,11 +38,11 @@ def choose(values=records, old=previous):
 checks = 0
 
 
-def rejects(callback):
+def rejects(callback, expected=ValueError):
     global checks
     try:
         callback()
-    except ValueError:
+    except expected:
         checks += 1
     else:
         raise AssertionError('Unsafe/missing/ambiguous record accepted')
@@ -92,5 +95,55 @@ rejects(lambda: verify_renderer_sandbox({**records, 120: replace(browser, argv=A
 rejects(lambda: parse_process(1, 'malformed', 'Uid: 1000 1000 1000 1000', EXE, b'chromium\0'))
 rejects(lambda: parse_process(1, '1) '+' '.join(['S','0']+['0']*17+['1']), 'Uid: 1000 1000 1000 1000', EXE, b'chromium\0'))
 rejects(lambda: parse_process(1, '1 (x) '+' '.join(['S','0']+['0']*17+['1']), 'Uid: 1000 1000 1000 1000', EXE, b'not-null-terminated'))
+def fake_scan(values, denied_exe=(), denied_argv=(), unstable_pid=None):
+    """Exercise the actual reader against in-memory /proc files, never real processes."""
+    directories,reads,stat_reads=[],[],{}
+    for pid,p in values.items():
+        directory=MagicMock();directory.name=str(pid)
+        directory.stat.return_value=SimpleNamespace(st_uid=p.uids[0])
+        comm='systemd' if pid==1064 else 'chrome ) test name'
+        stat=f'{pid} ({comm}) '+' '.join(['S',str(p.ppid)]+['0']*17+[str(p.start)])
+        status=f'Uid: {" ".join(map(str,p.uids))}\nNoNewPrivs: {p.no_new_privs}\nSeccomp: {p.seccomp}\n'
+        def argv(pid=pid,p=p):
+            if pid in denied_argv:raise PermissionError('protected cmdline')
+            return b'\0'.join(a.encode() for a in p.argv)+b'\0'
+        def stat_text(pid=pid,p=p,text=stat):
+            stat_reads[pid]=stat_reads.get(pid,0)+1
+            if pid==unstable_pid and stat_reads[pid]>2:return text.rsplit(' ',1)[0]+' '+str(p.start+1)
+            return text
+        files={'stat':SimpleNamespace(read_text=stat_text),
+               'status':SimpleNamespace(read_text=lambda text=status:text),
+               'cmdline':SimpleNamespace(read_bytes=argv),'exe':pid}
+        directory.__truediv__.side_effect=lambda name,files=files:files[name]
+        directories.append(directory)
+    def exe(pid):
+        reads.append(pid)
+        if pid in denied_exe:raise PermissionError('protected exe')
+        return values[pid].exe
+    with patch.object(diagnostic,'Path',return_value=SimpleNamespace(iterdir=lambda:directories)), \
+         patch.object(diagnostic.os,'getpid',return_value=OWNER), \
+         patch.object(diagnostic.os,'getuid',return_value=1000), \
+         patch.object(diagnostic.os,'readlink',side_effect=exe):
+        result=diagnostic.read_processes()
+    return result,reads
+
+
+service=process(1064,1,5,('/usr/lib/systemd/systemd','--user'),exe='/system/systemd',nnp='0',seccomp='0')
+scanned,exe_reads=fake_scan({**records,1064:service},denied_exe={1064})
+assert scanned[1064].exe=='' and 1064 not in exe_reads,'Proven unrelated protected service must not resolve exe'
+assert scanned[120].exe==EXE and 120 in exe_reads
+checks+=2
+rejects(lambda:fake_scan({**records,1064:service},denied_exe={1064},unstable_pid=1064))
+rejects(lambda:fake_scan({**records,1065:replace(service,pid=1065)},denied_exe={1065}),PermissionError)
+for changed in [replace(service,ppid=110,start=12), replace(service,start=10),
+                replace(service,uids=(1000,1000,0,1000)),
+                replace(service,argv=service.argv+('--user-data-dir='+PROFILES+'/playwright_chromiumdev_profile-a',)),
+                replace(service,argv=ARGV)]:
+    rejects(lambda changed=changed:fake_scan({**records,1064:changed},denied_exe={1064}),PermissionError)
+rejects(lambda:fake_scan({**records,1064:service},denied_argv={1064}),PermissionError)
+rejects(lambda:fake_scan(records,denied_exe={120}),PermissionError)
+rejects(lambda:fake_scan(records,denied_exe={130}),PermissionError)
+rejects(lambda:fake_scan(records,denied_argv={120}),PermissionError)
+rejects(lambda:fake_scan({k:v for k,v in records.items() if k!=OWNER}))
 assert not any(name.startswith('playwright') for name in sys.modules)
 print(f'PASS {checks} offline process/argv/sandbox cases; no browser or Playwright import/launch')
