@@ -79,6 +79,11 @@ assert.equal(collision.player.speed, 0);
 collision.reset({ x: 40, z: -60, yaw: 0 });
 collision.step(1 / 60, {});
 assert(collision.player.x < 40, 'exact polygon boundary resolves toward its exterior');
+const closedMap = { ...map, buildings: [{ id: 'closed', points: [[40, -80], [75, -80], [75, -40], [40, -40], [40, -80]] }] };
+const vertex = createSimulation(closedMap, { trafficCount: 0 });
+vertex.reset({ x: 40, z: -80, yaw: 0 });
+vertex.step(1 / 60, {});
+assert(vertex.player.x < 40 || vertex.player.z < -80, 'closed polygon vertex resolves outside');
 console.log('PASS forgiving building impacts, unsticking, world-edge recovery and reset');
 
 const fleet = createSimulation(map, { seed: 17, trafficCount: 12 });
@@ -97,7 +102,16 @@ for (let i = 0; i < 120 * 60; i++) {
 }
 assert([...edgeVisits.values()].some(visited => visited.size > 3), 'traffic navigates connected intersections');
 assert(fleet.traffic.every(car => ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch'].includes(car.modelId)));
-console.log('PASS deterministic everyday traffic and 120 seconds of finite connected routing');
+const following = createSimulation(map, { seed: 17, trafficCount: 2 });
+for (const [i, car] of following.traffic.entries()) {
+  car.edge = following.graph.edges.find(edge => edge.from.id === '1' && edge.to.id === '2');
+  car.position = 50 + i * 8;
+  car.speed = 10;
+  Object.assign(car, pointOnLane(car.edge, car.position));
+}
+following.step(1 / 60, {});
+assert(following.traffic[0].speed < 10, 'following vehicle slows for a car eight metres ahead');
+console.log('PASS deterministic everyday traffic, following slowdown and 120 seconds of finite connected routing');
 console.log('Capital Drive simulation: all checks passed');
 
 if (process.argv[2]) {

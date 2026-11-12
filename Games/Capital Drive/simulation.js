@@ -80,6 +80,7 @@ function polygonContact(x, z, points, radius) {
   let inside = false, closest = null, area = 0;
   for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
     const a = points[j], b = points[i];
+    if (a[0] === b[0] && a[1] === b[1]) continue;
     area += a[0] * b[1] - b[0] * a[1];
     if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
     const candidate = projectSegment(x, z, a, b);
