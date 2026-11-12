@@ -1,5 +1,5 @@
 // Court-local units: x [-90,90], z [-65,65]; rims at (+/-82,10,0).
-const STEP = .05, RIM = 82, ARC = 44, ROLES = ['PG','SG','SF','PF','C'];
+const STEP = .05, RIM = 82, ARC = 48, ROLES = ['PG','SG','SF','PF','C'];
 const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
 const finite = (n,fallback=0) => Number.isFinite(n)?n:fallback;
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -52,10 +52,10 @@ export class Match {
 
   _actor(member,side,index) {
     const def=clone(member.def||{}),stats=clone(member.stats||def.stats||{});
-    const role=ROLES.includes(stats.naturalRole)?stats.naturalRole:ROLES.includes(member.role)?member.role:ROLES[index];
+    const role=ROLES.includes(member.role)?member.role:ROLES.includes(stats.naturalRole)?stats.naturalRole:ROLES[index];
     const power=finite(member.power,finite(stats.power,40));
     for(const key of ['shooting','handling','passing','defense','rebounding','stamina'])stats[key]=clamp(finite(stats[key],power),0,130);
-    stats.naturalRole=role;
+    if(!ROLES.includes(stats.naturalRole))stats.naturalRole=role;
     return {id:member.id||def.id||`academy_${side}_${index}`,uid:member.uid||null,
       key:member.uid||`${side}:${index}:${member.id||'academy'}`,name:member.name||def.name||'Basketballer',
       side,index,role,roleLabel:role,power,stats,def,borrowed:!!member.borrowed,
@@ -135,7 +135,7 @@ export class Match {
     if(shooting||this.teamFouls[defender.side]>=5) {
       const count=shooting&&distance(shooter,{x:RIM*direction(shooter.side),z:0})>=ARC?3:2;
       this.freeThrows={shooter:this.players.indexOf(shooter),remaining:count,total:count};
-      shooter.x=57*direction(shooter.side);shooter.z=0;this._give(shooter);
+      shooter.x=55*direction(shooter.side);shooter.z=0;this._give(shooter);
       this.phase='freeThrowSetup';this.phaseUntil=this.time+.7;
       this._say(`${defender.name} fouls ${shooter.name}: ${count} free throws`,true,'foul');
     } else {
@@ -312,7 +312,7 @@ export class Match {
   }
   _applySubstitution() {
     const pending=this.pendingSubstitution;if(!pending||this.freeThrows)return;
-    const old=this.players[pending.index],p=this._actor(pending.member,0,pending.index);
+    const old=this.players[pending.index],p=this._actor({...pending.member,role:old.role},0,pending.index);
     p.x=old.x;p.z=old.z;this.players[pending.index]=p;this.usedMembers.add(p.key);
     this.bench=this.bench.filter(q=>q.uid!==p.uid);this.substitutions++;this.pendingSubstitution=null;
     if(this.controlState?.index===pending.index)this.releaseControl();
@@ -383,6 +383,7 @@ export class Match {
       cooldown:Math.max(0,this.abilityReadyAt-this.time),active:this.activeAbility?.id===a.id,
       remaining:this.activeAbility?.id===a.id?Math.max(0,this.activeAbility.endsAt-this.time):0}));
     return clone({players:this.players,ball:this.ball,phase:this.phase,score:this.score,finished:this.finished,result:this.result,
+      court:{bounds:{x:[-90,90],z:[-65,65]},rims:[[-RIM,10,0],[RIM,10,0]],threePointRadius:ARC,freeThrowX:55},
       quarter:this.quarter,overtime:this.overtime,period:this.period,elapsed:this.time,
       timeRemaining:Math.max(0,this.periodDuration-this.periodElapsed),shotClock:this.shotClock,
       shotClockFraction:this.shotClock/24,clockRate:this.clockRate,possession:this.possession,

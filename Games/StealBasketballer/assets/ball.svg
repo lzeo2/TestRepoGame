@@ -1,0 +1,1 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><defs><clipPath id="ball"><circle cx="40" cy="40" r="35"/></clipPath></defs><circle cx="40" cy="40" r="35" fill="#ffd447" stroke="#17232b" stroke-width="5"/><g clip-path="url(#ball)" fill="none" stroke="#17232b" stroke-width="4"><path d="M5 40h70M40 5v70M12 8c40 8 40 56 0 64M68 8c-40 8-40 56 0 64"/></g></svg>

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {Match} from '../js/match.js';
+import {readFile} from 'node:fs/promises';
 
 const roles=['PG','SG','SF','PF','C'];
 const team=side=>roles.map((role,index)=>({id:`${side}-${index}`,uid:`${side}-${index}`,name:`${side} ${role}`,role,power:65,
@@ -22,6 +23,13 @@ assert.equal(initial.players.length,10);
 assert.deepEqual(initial.players.slice(0,5).map(p=>p.role),roles);
 assert.deepEqual(initial.players.slice(5).map(p=>p.role),roles);
 assert.equal(s.quarter,1);assert.equal(s.period,'Q1');assert.equal(s.shotClock,24);
+const {basketballCourt}=JSON.parse(await readFile(new URL('../data/world.json',import.meta.url),'utf8'));
+for(const key of ['bounds','rims','threePointRadius','freeThrowX'])assert.deepEqual(s.court[key],basketballCourt[key],'Visible and simulated court: '+key);
+const manual=team('manual');manual[0].stats.naturalRole='C';
+const assigned=new Match(manual,team('away'));assert.equal(assigned.players[0].role,'PG');assert.equal(assigned.players[0].stats.naturalRole,'C');
+for(const [range,points] of [[47.99,2],[48,3]]) {
+  const boundary=create();isolateShooter(boundary,82-range);boundary._shoot();assert.equal(boundary.ball.flight.points,points);
+}
 assert.equal(s.ball.radius,.84);assert.ok(initial.injuryUIDs instanceof Set);
 for(const key of ['penalties','offside','indirect'])assert.ok(!(key in s),key);
 assert.deepEqual(s.callPlays.map(p=>p.id),['pass','drive','shoot','three','press','zone','steal','block','pickRoll','triangle','counter','surge']);
@@ -57,7 +65,7 @@ two.shotClock=.1;two.update(1);assert.equal(two.stats[0].shotClockViolations,0);
 assert.equal(two.phase,'basketCelebration');assert.equal(two.snapshot().celebration.scorerIndex,0);
 two.update(2);assert.equal(two.possession,1);
 
-const three=create();isolateShooter(three,35);three._roll=()=>.2;
+const three=create();isolateShooter(three,33);three._roll=()=>.2;
 assert.equal(three.callPlay('three').ok,true);assert.equal(three.ball.flight.points,3);
 three.update(1.5);assert.deepEqual(three.score,[3,0]);assert.equal(three.stats[0].threePointersMade,1);
 assert.equal(three.stats[0].threePointersAttempted,1);
@@ -87,12 +95,12 @@ assert.equal(stolen.possession,1);assert.equal(stolen.stats[1].steals,1);assert.
 
 const foul=create();isolateShooter(foul,65);foul._roll=()=>.2;
 foul._foul(foul.players[5],foul.players[0],true);
-assert.equal(foul.stats[1].fouls,1);assert.equal(foul.freeThrows.remaining,2);
+assert.equal(foul.stats[1].fouls,1);assert.equal(foul.freeThrows.remaining,2);assert.equal(foul.players[0].x,55);
 const remaining=foul.snapshot().timeRemaining;foul.update(4);
 assert.equal(foul.stats[0].freeThrowsAttempted,2);assert.equal(foul.stats[0].freeThrowsMade,2);
 assert.deepEqual(foul.score,[2,0]);close(foul.snapshot().timeRemaining,remaining);
 assert.equal(foul.freeThrows,null);
-const threeFoul=create();isolateShooter(threeFoul,35);threeFoul._foul(threeFoul.players[5],threeFoul.players[0],true);
+const threeFoul=create();isolateShooter(threeFoul,33);threeFoul._foul(threeFoul.players[5],threeFoul.players[0],true);
 assert.equal(threeFoul.freeThrows.remaining,3);
 const queuedFoul=create();isolateShooter(queuedFoul,65);queuedFoul._roll=()=>.2;
 queuedFoul.substitute(0,reserve);queuedFoul._foul(queuedFoul.players[5],queuedFoul.players[0],true);
@@ -109,6 +117,8 @@ assert.notEqual(sub.players[0].uid,'reserve');sub._inbound(1);
 assert.equal(sub.players[0].uid,'reserve');assert.equal(sub.players.length,10);
 assert.equal(sub.snapshot().substitutions.used,1);assert.equal(sub.bench.length,0);
 assert.equal(sub.substitute(0,reserve).ok,false);
+const crossRole=live(create());crossRole.substitute(4,reserve);crossRole._inbound(1);
+assert.equal(crossRole.players[4].role,'C');assert.equal(crossRole.players[4].stats.naturalRole,'PG');
 
 const controlled=live(create());assert.equal(controlled.control(0,{x:NaN,z:0}).ok,false);
 assert.equal(controlled.control(0,{x:1,z:0}).ok,true);const oldX=controlled.players[0].x;
