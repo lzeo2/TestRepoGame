@@ -28,7 +28,7 @@ accept injected context and supplied dt. Street Life cannot teleport or earn fro
 sandbox travel. Invalid/denied career saves remain unwritten. Source observations
 must be recorded honestly; proprietary reference imagery is never bundled.
 
-Run the bounded authored check runner from any directory:
+Run the bounded authored check runner from the repository root:
 
 ```sh
 python3 -B scripts/check_capital_drive.py --help
