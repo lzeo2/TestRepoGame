@@ -149,6 +149,7 @@ def main():
             capture(page, 'desktop-album')
             click(page, '#close-sheet')
             s = battle(page, 'desktop')
+            receipt['observations']['initialMatchRendering'] = s['world']
             initial_coins = s['state']['coins']
             click(page, '#pause')
             paused = snap(page)
@@ -162,8 +163,16 @@ def main():
             click(page, '[data-panel="match"]')
             available = page.locator('[data-action="ability"]:enabled')
             receipt['observations']['abilityAvailable'] = available.count() > 0
-            click(page, '[data-action="controlPlayer"]:enabled')
-            before = snap(page)
+            control_attempts=[]
+            for _ in range(8):
+                click(page, '[data-action="controlPlayer"]:enabled')
+                before = snap(page)
+                control_attempts.append({'phase':before['match']['phase'],'elapsed':before['match']['elapsed'],
+                                         'accepted':bool(before['match']['control']), 'toast':page.locator('#toast').inner_text()})
+                if before['match']['control']:
+                    break
+                wait(page,350)
+            receipt['observations']['controlAttempts']=control_attempts
             check(bool(before['match']['control']), 'manual player control accepted')
             page.keyboard.down('w')
             wait(page, 950)
@@ -288,8 +297,6 @@ def main():
     except Exception as error:
         receipt['status'] = 'FAIL'
         receipt['error'] = str(error).replace(str(ROOT), '<repo>')
-        if 'page' in locals() and not page.is_closed():
-            capture(page, 'failure')
         raise
     finally:
         if browser:

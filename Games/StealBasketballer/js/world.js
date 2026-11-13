@@ -281,6 +281,7 @@ export class World {
     this.renderer.shadowMap.enabled=!this.lowGraphics;this.sun.castShadow=!this.lowGraphics;
     this.jumpVelocity=finite(this.jumpVelocity)-56*dt;this.jumpHeight=Math.max(0,finite(this.jumpHeight)+this.jumpVelocity*dt);if(this.jumpHeight===0)this.jumpVelocity=0;
     this.avatarActor.root.position.set(this.avatar.x,this.avatar.y+this.jumpHeight,this.avatar.z);this.avatarActor.root.rotation.y=-finite(this.avatar.angle)-Math.PI/2;this.factory.pose(this.avatarActor,this.avatar.moving?'run':'idle',this.time);
+    this.avatarActor.root.visible=!match;
     this.avatar.moving=false;
     this.rebuildDisplays(state);this.updateMarket(state.market);this.updateMatch(match,state);this.updateCamera(match,dt);
     const focus=this.cameraTarget||this.camera.position;const far=this.lowGraphics?360:800;
@@ -290,7 +291,7 @@ export class World {
     for(const entry of this.venueColliders)entry.box.copy(entry.original).translate(venueDelta);
     const avatarPosition=new THREE.Vector3(this.avatar.x,this.avatar.y,this.avatar.z);
     for(const label of this.labels)label.visible=this.cameraConfig.mode==='avatar'&&label.position.distanceTo(avatarPosition)<(this.lowGraphics?38:55);
-    for(const entry of this.actors.values())entry.actor.root.visible=entry.actor.root.position.distanceTo(focus)<(this.lowGraphics?170:300);
+    for(const entry of this.actors.values())entry.actor.root.visible=!match&&entry.actor.root.position.distanceTo(focus)<(this.lowGraphics?170:300);
     this.renderer.render(this.scene,this.camera);
   }
 
