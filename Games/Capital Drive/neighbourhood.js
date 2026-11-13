@@ -3,7 +3,7 @@ import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 // Original procedural streetscape details, anchored to the supplied footprints.
 const CHUNK = 350;
 const CELL = 100;
-const MAX_FRONTAGES = 2800;
+const MAX_FRONTAGES = 4200;
 const PALETTE = { concrete: 0xaaa899, timber: 0x8a8068, hedge: 0x536d42, frame: 0xc9c6ac, pole: 0x747c75 };
 
 export function createNeighbourhoodDetails(scene, map, heightAt) {
@@ -170,8 +170,15 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
     solid(box, dx - f.nx * 0.08, floor + 1.02, dz - f.nz * 0.08, 0.88, 1.98, 0.13, [0x667465, 0x876651, 0x596f76][seed % 3], yaw);
     stats.doors++;
     if (isShop) {
-      solid(box, dx - f.nx * 0.6, floor + 2.65, dz - f.nz * 0.6, 3.6, 0.18, 1.3, [0x8e654f, 0x617663, 0xb29d77][seed % 3], yaw);
+      solid(box, dx - f.nx * 0.6, floor + 2.65, dz - f.nz * 0.6, 3.6, 0.18, 1.3, 0x414b48, yaw);
       shopSigns.push({ x: dx - f.nx * 0.24, z: dz - f.nz * 0.24, y: floor + 3.1, yaw, label: seed % shopLabels.length });
+      if (seed % 2 === 0) {
+        const px = dx - f.nx * 2 + tangentX * 2.1, pz = dz - f.nz * 2 + tangentZ * 2.1;
+        if (!inRoad(px, pz, 2.3) && !inBuilding(px, pz)) {
+          groundBox(px, pz, 0.8, 0.65, 0.8, 0x797c6f);
+          solid(bush, px, heightAt(px, pz) + 0.95, pz, 0.65, 0.5, 0.65, 0x59754c);
+        }
+      }
       stats.verandahs++;
     } else if (seed % 4 === 0) {
       solid(box, dx - f.nx * 0.9, floor + 2.5, dz - f.nz * 0.9, 3.2, 0.18, 2, 0x998b75, yaw);
@@ -186,9 +193,9 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
         const px = gx + tangentX * side * 4.1, pz = gz + tangentZ * side * 4.1;
         if (inPark(px, pz) || inRoad(px, pz, 2.5) || inBuilding(px, pz, building)) continue;
         if (seed % 3) {
-          groundBox(px, pz, 4.6, 0.7 + hash(seed) * 0.35, 0.75, PALETTE.hedge, yaw); stats.hedges++;
+          groundBox(px, pz, 4.6, 1.35 + hash(seed) * 0.4, 0.95, PALETTE.hedge, yaw); stats.hedges++;
         } else {
-          groundBox(px, pz, 4.5, 0.55, 0.18, seed % 2 ? 0x9b8e73 : 0xa29279, yaw);
+          groundBox(px, pz, 4.5, 0.75, 0.2, seed % 2 ? 0xc7c1ab : 0xa29279, yaw);
           for (const end of [-1, 1]) groundBox(px + tangentX * end * 2.2, pz + tangentZ * end * 2.2, 0.25, 0.8, 0.25, PALETTE.timber);
           stats.fences++;
         }
@@ -207,6 +214,32 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
       }
     }
     stats.frontages++;
+  }
+
+  // Public reference observations place a fenced setback and parking apron
+  // in front of the heritage school. This is bounded by its real frontage.
+  const school = (map.landmarks || []).find(l => l.id === 'telopea');
+  const campus = school && (map.buildings || []).filter(b => /education|school/.test(b.type || '') && b.points?.length && Math.hypot(b.points[0][0] - school.x, b.points[0][1] - school.z) < 220).sort((a, b) => b.points.length - a.points.length)[0];
+  const schoolFront = campus && frontage(campus);
+  if (schoolFront) {
+    const f = schoolFront, tx = f.nz, tz = -f.nx, setback = f.street.segment.width / 2 + 5.5;
+    const cx = f.street.x + f.nx * setback, cz = f.street.z + f.nz * setback, yaw = Math.atan2(f.nx, f.nz);
+    for (let u = -17; u <= 17; u += 0.6) {
+      if (Math.abs(u) < 2) continue;
+      const x = cx + tx * u, z = cz + tz * u;
+      if (inRoad(x, z, 2) || inBuilding(x, z) || inPark(x, z)) continue;
+      groundBox(x, z, 0.045, 1.15, 0.045, 0x363d36);
+      solid(box, x, heightAt(x, z) + 0.3, z, 0.64, 0.04, 0.04, 0x363d36, yaw);
+      solid(box, x, heightAt(x, z) + 0.9, z, 0.64, 0.04, 0.04, 0x363d36, yaw);
+    }
+    if (f.distance - setback > 10) {
+      const depth = Math.min(13, f.distance - setback - 3);
+      for (let u = -10; u <= 10; u += 2) {
+        const ax = cx + tx * u + f.nx * 1.8, az = cz + tz * u + f.nz * 1.8;
+        const bx = ax + f.nx * depth, bz = az + f.nz * depth;
+        if (!inBuilding(ax, az) && !inBuilding(bx, bz) && !inPark(ax, az) && !inPark(bx, bz)) groundStrip([ax, az], [bx, bz], 2.02, 0x848983);
+      }
+    }
   }
 
   // Furniture uses widely spaced verges, with benches restricted to park/shop edges.
