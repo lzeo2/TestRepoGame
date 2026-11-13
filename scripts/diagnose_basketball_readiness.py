@@ -415,7 +415,7 @@ def main():
                               const s=window.__bbReadiness?.();
                               return s && (s.loadingText?.startsWith('The game could not start:') ||
                                 (s.snapshotPresent && s.playDisabled===false && s.exited>0));
-                            }''', timeout=6000, polling=250)
+                            }''', timeout=20000, polling=250)
                             break
                         except Exception:
                             # ERR_NETWORK_CHANGED is a host wlan flap hitting the
