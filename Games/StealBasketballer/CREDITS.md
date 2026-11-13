@@ -41,7 +41,8 @@ jerseys, league artwork, player assets or official ratings were obtained. The
 owner subsequently authorized improving and merging existing PR #8 after the
 Canberra continuation. That source-release order does not establish publicity,
 trademark, endorsement or redistribution rights. This iteration retains the
-standalone unregistered preview and adds no portal catalog entry.
+existing preview, now registered as 246 after the owner reported its missing
+site listing. That registration does not change the source/identity limitations.
 
 ## Rules and local assets
 
@@ -72,4 +73,4 @@ New visual work is authored procedural geometry and canvas graphics. There are
 no new downloaded meshes/textures, model-generation service, package installs or
 remote runtime loads. Three.js/font licenses do not license game or identity rights.
 See [local QA](../../docs/steal-basketballer-local-qa.md) and
-[maintenance manual](../../docs/maintenance/games/unregistered-stealbasketballer.md).
+[maintenance manual](../../docs/maintenance/games/246-stealbasketballer.md).

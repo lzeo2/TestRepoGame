@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 133,
+  "catalog_entries": 134,
   "games": [
     {
       "directory": "Games/2048",
@@ -1407,15 +1407,15 @@
     },
     {
       "directory": "Games/StealBasketballer",
-      "id": null,
-      "title": "StealBasketballer",
-      "registered": false,
+      "id": 246,
+      "title": "Steal a Basketballer (Preview)",
+      "registered": true,
       "entry": "Games/StealBasketballer/index.html",
       "entry_blob": "c890d4acc29d90f29f90881e00bb348b32e064bf",
-      "tree": "49eff5657b38cf8fdbdad1a2e6f97da80e0c4bd6",
+      "tree": "6cb3103c7cdfd5fce50bc1bc0acd8aeb2134a68f",
       "files": 27,
-      "bytes": 2793315,
-      "document": "docs/maintenance/games/unregistered-stealbasketballer.md"
+      "bytes": 2793460,
+      "document": "docs/maintenance/games/246-stealbasketballer.md"
     },
     {
       "directory": "Games/StealFootballer",

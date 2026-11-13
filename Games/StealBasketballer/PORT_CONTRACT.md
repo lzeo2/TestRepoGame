@@ -2,7 +2,8 @@
 
 Original standalone preview. Source sibling pinned at `31680023`; original
 source `30b0c28`. The owner authorized polishing/testing and merging existing
-PR #8 after Canberra PR #9. No portal ID/registration or football-save migration.
+PR #8 after Canberra PR #9. The owner's missing-site report subsequently
+registered this existing preview as 246. No Footballer save migration.
 `CREDITS.md` retains source attribution, dependencies and real-name rights hold.
 
 ## Data and authority

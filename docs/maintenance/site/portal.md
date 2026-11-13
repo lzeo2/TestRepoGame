@@ -24,6 +24,13 @@ force a light installed UI. See [deployment limits](deployment-and-routing.md).
 
 ## Catalog and render ownership
 
+The 14 November 2026 basketball listing correction registers the already-deployed
+StealBasketballer project as 246 in `games.json`, Sports. Source files alone do
+not create a shelf/search/details entry. The live direct game returned 200 while
+the old 133-row catalog omitted it. The correction takes the catalog to 134; it
+uses the existing card/details/player flow without changing the bundle or UX.
+See the [listing receipt](../../verification/basketball-site-listing-2026-11-14.md).
+
 The bundle's `Gu()` fetches `./games.json`, rejects a non-array and exposes loading/error. `Ju()` filters non-object rows, category and title/description substrings before rendering `Bu()` through `Vu()`. The base chips (`Ru`) are All, Action, Puzzle, Strategy, Classic, Sports and Riddle. UX `fetchGames()` makes a second, internally shared request, normalizes tag aliases/deduplicates them and caches `_gamesList`. `findGameData(title)` and the URL Map both rely on exact unique titles; favorites instead rely on IDs. Duplicate titles can launch the wrong entry even with unique IDs.
 
 The seven required catalog fields are not an exhaustive schema. Optional `tags`, `players`, `howto` drive injected badges and detail metadata. At this baseline there are 115 entries; categories are action 24, classic 19, puzzle 17, strategy 16, arcade 11, sports 10, story 4, word 4, card 4, idle 3, simulation 2, riddle 1. `updateCategoryCounts()` uses the full normalized list, not the visible filtered list. Zero-count badges are omitted. `applyFilterMetadata()` derives missing `data-cat-id` from label text after removing the count clone, so numbers must not become part of category identity.

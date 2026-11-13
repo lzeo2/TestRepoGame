@@ -1441,5 +1441,20 @@
     ],
     "players": "1",
     "howto": "WASD/arrows move or drive; E enters/exits cars; Shift sprints/boosts; Space jumps/handbrakes. 1/2 selects fists/pistol; right mouse aims, left fires, F melees, R reloads. J jobs, G garage, M map, P/Esc pause. Free roam alone enables teleporting and recovery; touch controls are available."
+  },
+  {
+    "id": 246,
+    "title": "Steal a Basketballer (Preview)",
+    "cat": "sports",
+    "icon": "SB",
+    "desc": "Original basketball sibling of lzeo2's Steal a Footballer: recruit 100 text-only identities, build a club and play five-on-five. Generic athletes, original arcade ratings and browser-local saves.",
+    "url": "Games/StealBasketballer/index.html",
+    "featured": false,
+    "tags": [
+      "solo",
+      "3d"
+    ],
+    "players": "1",
+    "howto": "WASD/arrows move; E interacts; Space jumps; P/Escape pauses. Use SHOP to sign an affordable player, then BATTLE for five-on-five. Z/X/C/V/B/N/M call plays, F uses a ready ability. MATCH enables temporary player control; drag or scroll changes the camera. Touch controls are available."
   }
 ]
