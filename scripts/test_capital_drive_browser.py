@@ -81,10 +81,10 @@ def main():
             before = snap(page)['player']
             people_before = snap(page)['pedestrians']['sample']
             page.keyboard.down('w')
-            page.wait_for_timeout(1100)
+            page.wait_for_function('(start) => capitalDriveSnapshot().player.odometer > start.odometer + 5', arg=before, timeout=15000)
             page.keyboard.down('d')
             page.keyboard.down('Space')
-            page.wait_for_timeout(500)
+            page.wait_for_function('(start) => Math.abs(capitalDriveSnapshot().player.yaw - start.yaw) > .08', arg=before, timeout=15000)
             page.keyboard.up('w')
             page.keyboard.up('d')
             page.keyboard.up('Space')
