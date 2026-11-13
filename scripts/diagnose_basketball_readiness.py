@@ -49,6 +49,7 @@ class Process:
     no_new_privs: str
     seccomp: str
     comm: str
+    zombie: bool
 
 
 def stat_identity(pid, text):
@@ -57,31 +58,49 @@ def stat_identity(pid, text):
         fields = tail.split()
         if not head.startswith(f'{pid} ('):
             raise ValueError('PID/comm mismatch')
+        state = fields[0]
         ppid, start = int(fields[1]), int(fields[19])
-        if pid <= 0 or ppid < 0 or start <= 0:
+        if pid <= 0 or ppid < 0 or start <= 0 or not state:
             raise ValueError('Invalid process identity')
-        return ppid, start
+        return ppid, start, state
     except (IndexError, ValueError) as error:
         raise ValueError('Malformed /proc stat identity') from error
 
 
 def parse_process(pid, stat, status, exe, cmdline):
-    ppid, start = stat_identity(pid, stat)
+    ppid, start, state = stat_identity(pid, stat)
     values = dict(line.split(':', 1) for line in status.splitlines() if ':' in line)
     uids = tuple(int(n) for n in values.get('Uid', '').split())
-    if len(uids) != 4 or not cmdline.endswith(b'\0') or not cmdline.split(b'\0')[0]:
+    zombie = state.startswith('Z')
+    if zombie:
+        # A reaped-but-unwaited child keeps its PID/UID identity but loses argv,
+        # exe and sandbox state. It can never be Chromium or a renderer; record
+        # the identity fail-closed (empty argv/exe) instead of aborting the scan.
+        if cmdline or exe:
+            raise ValueError('Zombie state with live argv/exe evidence')
+        argv = ()
+    elif len(uids) != 4 or not cmdline.endswith(b'\0') or not cmdline.split(b'\0')[0]:
         raise ValueError('Missing UID or NUL-delimited argv')
-    argv = tuple(arg.decode('utf-8', 'surrogateescape') for arg in cmdline[:-1].split(b'\0'))
+    else:
+        argv = tuple(arg.decode('utf-8', 'surrogateescape') for arg in cmdline[:-1].split(b'\0'))
     return Process(pid, ppid, start, uids, exe, argv,
                    values.get('NoNewPrivs', '').strip(), values.get('Seccomp', '').strip(),
-                   stat.rsplit(') ', 1)[0].split(' (', 1)[1])
+                   stat.rsplit(') ', 1)[0].split(' (', 1)[1], zombie)
 
 
-def unrelated_user_manager(process, owner):
-    # Exact init-owned service, older than this checker: it cannot be a newly launched descendant.
-    return (process.pid != owner.pid and process.ppid == 1 and process.ppid != owner.pid
-            and process.start < owner.start and process.uids == owner.uids and process.comm == 'systemd'
-            and process.argv == ('/usr/lib/systemd/systemd', '--user'))
+def unrelated_system_service(process, owner, records):
+    # Pre-existing same-UID system services that are provably not Chromium
+    # descendants of this checker: the init-owned user manager and its sd-pam
+    # child. Both deny exe readlink to the checker; their identity metadata is
+    # still verified and recorded. Anything else fail-closes on unreadable exe.
+    if process.uids != owner.uids or process.pid == owner.pid or process.start >= owner.start:
+        return False
+    if (process.ppid == 1 and process.comm == 'systemd' and
+            process.argv == ('/usr/lib/systemd/systemd', '--user')):
+        return True
+    parent = records.get(process.ppid)
+    return (parent is not None and parent.comm == 'systemd' and parent.ppid == 1 and
+            parent.argv == ('/usr/lib/systemd/systemd', '--user') and process.comm == '(sd-pam)')
 
 
 def read_metadata(directory):
@@ -109,7 +128,7 @@ def read_processes():
     for pid, process in metadata.items():
         directory = directories[pid]
         try:
-            exe = '' if unrelated_user_manager(process, owner) else os.readlink(directory/'exe')
+            exe = '' if unrelated_system_service(process, owner, metadata) else os.readlink(directory/'exe')
             if read_metadata(directory) != process or (exe and os.readlink(directory/'exe') != exe):
                 raise ValueError('Process identity/argv/exe changed during /proc read')
             records[pid] = replace(process, exe=exe)

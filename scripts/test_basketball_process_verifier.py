@@ -15,11 +15,13 @@ EXE, PROFILES, OWNER = '/system/chromium', '/fake/profiles', 100
 ARGV = ('chromium', '--remote-debugging-pipe', '--user-data-dir='+PROFILES+'/playwright_chromiumdev_profile-a')
 
 
-def process(pid, ppid, start, argv, exe=EXE, nnp='1', seccomp='2'):
-    # comm deliberately contains spaces and a closing parenthesis.
-    stat = f'{pid} (chrome ) test name) '+' '.join(['S', str(ppid)]+['0']*17+[str(start)])
+def process(pid, ppid, start, argv, exe=EXE, nnp='1', seccomp='2', comm='chrome ) test name'):
+    # comm deliberately contains spaces and a closing parenthesis by default.
+    state = 'Z' if not argv else 'S'
+    stat = f'{pid} ({comm}) {state} ' + ' '.join([str(ppid)] + ['0'] * 17 + [str(start)])
     status = f'Uid:\t1000 1000 1000 1000\nNoNewPrivs:\t{nnp}\nSeccomp:\t{seccomp}\n'
-    return parse_process(pid, stat, status, exe, b'\0'.join(a.encode() for a in argv)+b'\0')
+    cmdline = b'' if not argv else b'\0'.join(a.encode() for a in argv) + b'\0'
+    return parse_process(pid, stat, status, exe, cmdline)
 
 
 owner = process(100, 1, 10, ('python',), exe='/system/python')
@@ -101,11 +103,13 @@ def fake_scan(values, denied_exe=(), denied_argv=(), unstable_pid=None):
     for pid,p in values.items():
         directory=MagicMock();directory.name=str(pid)
         directory.stat.return_value=SimpleNamespace(st_uid=p.uids[0])
-        comm='systemd' if pid==1064 else 'chrome ) test name'
-        stat=f'{pid} ({comm}) '+' '.join(['S',str(p.ppid)]+['0']*17+[str(p.start)])
+        comm=p.comm
+        state='Z' if p.zombie else 'S'
+        stat=f'{pid} ({comm}) {state} '+' '.join([str(p.ppid)]+['0']*17+[str(p.start)])
         status=f'Uid: {" ".join(map(str,p.uids))}\nNoNewPrivs: {p.no_new_privs}\nSeccomp: {p.seccomp}\n'
         def argv(pid=pid,p=p):
             if pid in denied_argv:raise PermissionError('protected cmdline')
+            if not p.argv:return b''
             return b'\0'.join(a.encode() for a in p.argv)+b'\0'
         def stat_text(pid=pid,p=p,text=stat):
             stat_reads[pid]=stat_reads.get(pid,0)+1
@@ -128,13 +132,25 @@ def fake_scan(values, denied_exe=(), denied_argv=(), unstable_pid=None):
     return result,reads
 
 
-service=process(1064,1,5,('/usr/lib/systemd/systemd','--user'),exe='/system/systemd',nnp='0',seccomp='0')
+service=process(1064,1,5,('/usr/lib/systemd/systemd','--user'),exe='/system/systemd',nnp='0',seccomp='0',comm='systemd')
 scanned,exe_reads=fake_scan({**records,1064:service},denied_exe={1064})
 assert scanned[1064].exe=='' and 1064 not in exe_reads,'Proven unrelated protected service must not resolve exe'
 assert scanned[120].exe==EXE and 120 in exe_reads
 checks+=2
+# The user manager's sd-pam child (same-UID, denies exe readlink) is the second
+# real-world unrelated service: identity verified via its systemd --user parent.
+sdpam=process(1075,1064,6,('(sd-pam)',),exe='',nnp='0',seccomp='0',comm='(sd-pam)')
+scanned,exe_reads=fake_scan({**records,1064:service,1075:sdpam},denied_exe={1064,1075})
+assert scanned[1075].exe=='' and scanned[1075].comm=='(sd-pam)'
+checks+=1
+# sd-pam without its verified systemd --user parent fail-closes.
+rejects(lambda:fake_scan({**records,1075:replace(sdpam,ppid=110)},denied_exe={1075}),PermissionError)
+rejects(lambda:fake_scan({**records,1075:replace(sdpam,comm='chrome')},denied_exe={1075}),PermissionError)
+rejects(lambda:fake_scan({**records,1075:replace(sdpam,start=9)},denied_exe={1075}),PermissionError)
+checks+=3
 rejects(lambda:fake_scan({**records,1064:service},denied_exe={1064},unstable_pid=1064))
-rejects(lambda:fake_scan({**records,1065:replace(service,pid=1065)},denied_exe={1065}),PermissionError)
+# A second service record at an unexpected PID with a browser-like comm must fail closed.
+rejects(lambda:fake_scan({**records,1065:replace(service,pid=1065,comm='chrome')},denied_exe={1065}),PermissionError)
 for changed in [replace(service,ppid=110,start=12), replace(service,start=10),
                 replace(service,uids=(1000,1000,0,1000)),
                 replace(service,argv=service.argv+('--user-data-dir='+PROFILES+'/playwright_chromiumdev_profile-a',)),
@@ -145,5 +161,19 @@ rejects(lambda:fake_scan(records,denied_exe={120}),PermissionError)
 rejects(lambda:fake_scan(records,denied_exe={130}),PermissionError)
 rejects(lambda:fake_scan(records,denied_argv={120}),PermissionError)
 rejects(lambda:fake_scan({k:v for k,v in records.items() if k!=OWNER}))
+# A zombie child (reaped but unwaited, e.g. a codex daemon child) keeps identity
+# but loses argv/exe: the real-world cause of the filtered-pass pre-launch HOLD.
+zombie=process(140,26998,15,(),exe='',nnp='0',seccomp='0')
+assert zombie.zombie and zombie.argv==() and zombie.exe==''
+scanned,exe_reads=fake_scan({**records,140:zombie})
+assert scanned[140].zombie and scanned[140].exe=='' and scanned[140].argv==()
+assert 140 in exe_reads,'Zombie identity must still resolve exe (readlink fails or empty)'
+checks+=2
+# A zombie can never be selected as the browser: no exe/argv/profile identity.
+rejects(lambda: choose({**records,120:zombie}))
+checks+=1
+# A 'Z'-state record carrying live argv/exe evidence is contradictory: reject.
+rejects(lambda: parse_process(1, '1 (x) Z '+' '.join(['0']+['0']*17+['1']), 'Uid: 1000 1000 1000 1000', EXE, b'chromium\0'))
+checks+=1
 assert not any(name.startswith('playwright') for name in sys.modules)
 print(f'PASS {checks} offline process/argv/sandbox cases; no browser or Playwright import/launch')

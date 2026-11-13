@@ -227,6 +227,21 @@ See [third receipt, exact gates and scope end](../../steal-basketballer-filtered
 ticket `pi-3273687-1794467511604-9aa0ae33`. Prior receipts/runtime/catalog remain
 unchanged; native stays unverified and browser capacity is released.
 
+## Zombie and sd-pam reader corrections (2026-11-13)
+
+Read-only diagnosis identified both pre-launch HOLD causes on this host: a
+reaped-but-unwaited `codex` zombie child (stat state `Z`, empty cmdline) aborts
+`parse_process` with `Missing UID or NUL-delimited argv`, and the user
+manager's `sd-pam` child denies exe readlink like its parent. The reader now
+records zombies fail-closed (identity retained, empty argv/exe, `zombie:true`;
+contradictory Z-state records with live argv/exe are rejected) and treats only
+two same-UID, pre-existing, provably-unrelated system services as exe-omitted:
+the init-owned `systemd --user` manager and its verified `sd-pam` child.
+Candidate selection, sandbox and renderer gates are untouched; a zombie can
+never satisfy browser/renderer identity. The live `/proc` reader passes on this
+host (zombie and both services present), and the offline suite is GREEN 79
+cases. No browser launch or game change; native remains unverified.
+
 ## Future outlook
 
 With fresh authorization, one diagnostic browser startup pass should capture
