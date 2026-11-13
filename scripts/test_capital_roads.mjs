@@ -17,6 +17,21 @@ assert.deepEqual(planner.findEdges({ x: 40, z: 0 }, { x: 0, z: 0 }, { kind: 'bus
 const isolated = buildRoadGraph([roads[0], road('island', [[100, 0], [120, 0]], [7, 8])]);
 assert.deepEqual(createRoutePlanner(isolated).findEdges('1', '8'), []);
 assert.deepEqual(createRoutePlanner(isolated).findEdges({ x: 0, z: 0 }, { x: 40, z: 0 }).map(e => e.road.id), ['a'], 'point destination can be a one-way sink');
+// Access metadata is read at planner construction only. Repeated searches use cached
+// legal adjacency while retaining separate car/bus restrictions.
+let profileReads = 0;
+const cachedRoad = road('cached', [[0, 0], [20, 0], [40, 0]], [11, 12, 13]);
+Object.defineProperty(cachedRoad, 'sourceTags', { get() { profileReads++; return { bus: 'no' }; } });
+const cachedGraph = buildRoadGraph([cachedRoad]);
+profileReads = 0;
+const cachedPlanner = createRoutePlanner(cachedGraph);
+assert.equal(profileReads, 1, 'each road profile is evaluated once when constructing planner');
+for (let i = 0; i < 12; i++) {
+  assert.equal(cachedPlanner.findEdges({ x: 0, z: 0 }, { x: 40, z: 0 }).length, 2);
+  assert.deepEqual(cachedPlanner.findEdges('11', '13', { kind: 'bus' }), []);
+  assert.deepEqual(cachedPlanner.findEdges('13', '11'), [], 'cached routes preserve direction');
+}
+assert.equal(profileReads, 1, 'route calls never reread road access profiles');
 const sourceMap = { roads }, before = JSON.stringify(sourceMap);
 const annotated = applyRoadProfiles(sourceMap, { roads: { a: { service: 'driveway', width: '3' } } });
 assert.equal(JSON.stringify(sourceMap), before);

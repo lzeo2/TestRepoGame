@@ -24,18 +24,39 @@ export function applyRoadProfiles(map, sidecar = {}) {
 // Search is called when assigning a route, never from the frame loop.
 export function createRoutePlanner(graph) {
   const nodes = [...graph.nodes.values()];
+  const profiles = new Map();
+  const networks = {
+    car: { outgoing: new Map(), eligible: new Set(), candidates: [] },
+    bus: { outgoing: new Map(), eligible: new Set(), candidates: [] }
+  };
+  // The graph and its access profiles are immutable for the planner lifetime.
+  // Build eligibility and legal adjacency once, rather than rescanning the city per route.
+  for (const edge of graph.edges) {
+    if (!profiles.has(edge.road)) profiles.set(edge.road, roadProfile(edge.road));
+    const profile = profiles.get(edge.road);
+    for (const kind of ['car', 'bus']) {
+      if (!profile[kind === 'bus' ? 'busAllowed' : 'trafficAllowed']) continue;
+      const network = networks[kind];
+      network.eligible.add(edge.from); network.eligible.add(edge.to);
+      if (!network.outgoing.has(edge.from)) network.outgoing.set(edge.from, []);
+      network.outgoing.get(edge.from).push(edge);
+    }
+  }
+  for (const network of Object.values(networks)) {
+    network.candidates = nodes.filter(node => network.eligible.has(node));
+    network.eligible.clear();
+  }
+  profiles.clear();
+  const limit = Math.min(100000, Math.max(1, graph.edges.length * 2 + nodes.length));
   function findEdges(start, goal, { kind = 'car' } = {}) {
-    const allowed = edge => roadProfile(edge.road)[kind === 'bus' ? 'busAllowed' : 'trafficAllowed'];
-    const eligible = new Set();
-    for (const edge of graph.edges) if (allowed(edge)) { eligible.add(edge.from); eligible.add(edge.to); }
+    const network = networks[kind === 'bus' ? 'bus' : 'car'];
     function resolve(point) {
       if (point == null) return null;
       const id = typeof point === 'object' ? point.id : point;
       if (id !== undefined && graph.nodes.has(String(id))) return graph.nodes.get(String(id));
       if (![point.x, point.z].every(Number.isFinite)) return null;
       let best = null, distance = Infinity;
-      for (const node of nodes) {
-        if (!eligible.has(node)) continue;
+      for (const node of network.candidates) {
         const d = Math.hypot(point.x - node.x, point.z - node.z);
         if (d < distance) { distance = d; best = node; }
       }
@@ -63,7 +84,6 @@ export function createRoutePlanner(graph) {
       }
       return first;
     }
-    const limit = Math.min(100000, Math.max(1, graph.edges.length * 2 + nodes.length));
     for (let visits = 0; heap.length && visits < limit; visits++) {
       const { node, cost } = pop();
       if (cost !== costs.get(node)) continue;
@@ -72,8 +92,7 @@ export function createRoutePlanner(graph) {
         for (let at = target; at !== from;) { const edge = previous.get(at); if (!edge) return []; route.push(edge); at = edge.from; }
         return route.reverse();
       }
-      for (const edge of node.outgoing) {
-        if (!allowed(edge)) continue;
+      for (const edge of network.outgoing.get(node) || []) {
         const next = cost + edge.length;
         if (next < (costs.get(edge.to) ?? Infinity)) { costs.set(edge.to, next); previous.set(edge.to, edge); push({ node: edge.to, cost: next }); }
       }
