@@ -474,6 +474,27 @@ def main():
                 report['signing'] = page.evaluate('window.basketballerSnapshot().state.roster[0].name')
                 page.locator('#close-sheet').click(force=True, timeout=30000)
                 report['stage'] = 'five-on-five'
+                # An NPC thief can steal the signed player while the checker
+                # waits on the slow software renderer; defend with the whistle
+                # exactly as a player would, and re-sign if the theft already
+                # completed.
+                for _ in range(2):
+                    st = page.evaluate('window.basketballerSnapshot().state')
+                    if st['npcAttempt']:
+                        report['events'].append({'kind': 'thief-defense', 'endsAt': st['npcAttempt'].get('endsAt')})
+                        page.locator('[data-action="defend"]').first.click(force=True, timeout=30000)
+                        page.wait_for_function('!window.basketballerSnapshot().state.npcAttempt', timeout=30000, polling=1000)
+                        continue
+                    if not st['roster']:
+                        report['events'].append({'kind': 're-recruit-after-theft'})
+                        page.locator('[data-panel="shop"]').click(force=True, timeout=30000)
+                        page.locator('[data-action="openMarket"]').click(force=True, timeout=30000)
+                        page.locator('[data-action="buy"]:visible').first.click(force=True, timeout=8000)
+                        page.wait_for_function('window.basketballerSnapshot().state.roster.length===1', timeout=30000, polling=1000)
+                        continue
+                    break
+                else:
+                    raise ValueError('Could not defend the roster before battle')
                 pre = page.evaluate('window.basketballerSnapshot().state')
                 report['preBattle'] = {'roster': len(pre['roster']), 'battleLock': pre['battleLock'],
                     'battleReadyAt': pre['battleReadyAt'], 'npcAttempt': bool(pre['npcAttempt'])}
