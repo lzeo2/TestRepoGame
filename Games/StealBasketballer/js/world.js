@@ -1,10 +1,12 @@
 import * as THREE from '../vendor/three.module.js';
 import {ActorFactory} from './actors.js';
+import {createCourtDetails,hardwoodTexture,replacedCourtVisual} from './court-view.js';
 
 const clamp = (n, low, high) => Math.min(high, Math.max(low, n));
 const finite = (n, fallback = 0) => Number.isFinite(n) ? n : fallback;
 const xyz = (v, fallback = [0, 0, 0]) => Array.isArray(v) ? v : v ? [finite(v.x ?? v.X), finite(v.y ?? v.Y), finite(v.z ?? v.Z)] : fallback;
 const tint = v => Array.isArray(v) ? new THREE.Color(v[0], v[1], v[2]) : new THREE.Color(typeof v === 'string' ? (v.startsWith('#') ? v : `#${v}`) : '#88968B');
+const COURT_PALETTE={CourtPaint:'#203954',Seat:'#18314C',SeatBack:'#E16B4F',HoopSupport:'#14263F',HoopArm:'#14263F',CourtBoundary:'#FFF3D9',Backboard:'#F9EBCD'};
 const layout = [[-85,-58,1],[85,-58,1],[-85,58,-1],[85,58,-1],[-85,-120,1],[85,-120,1],[-85,120,-1],[85,120,-1],[-85,-182,1],[85,-182,1],[-85,182,-1],[85,182,-1]];
 const PRACTICE_KIT={primary:'#14263F',secondary:'#E4BD58',shorts:'#14263F'};
 export function miniLineup(members,formation='balanced',front=1) {
@@ -71,13 +73,13 @@ export function groundedMove(position, vector, dt, colliders, bounds) {
 export class World {
   constructor(canvas, {data, worldData, onInteract, onTravel} = {}) {
     this.canvas=canvas;this.data=data || {};this.worldData=worldData || {};this.onInteract=onInteract;this.onTravel=onTravel;
-    this.scene=new THREE.Scene();this.scene.background=new THREE.Color('#9AC2D1');this.scene.fog=new THREE.Fog('#9AC2D1',240,1000);
+    this.scene=new THREE.Scene();this.scene.background=new THREE.Color('#A8B7BF');this.scene.fog=new THREE.Fog('#A8B7BF',300,1100);
     this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
     this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     this.camera=new THREE.PerspectiveCamera(52,1,.3,2400);this.cameraConfig={mode:'avatar',index:0,zoom:1,yaw:0};
-    this.scene.add(new THREE.HemisphereLight('#F4F5DF','#546B53',2.25));
+    this.scene.add(new THREE.HemisphereLight('#FFF3DE','#45536A',2));
     this.sun=new THREE.DirectionalLight('#FFF2D6',2);this.sun.position.set(-100,220,100);this.scene.add(this.sun);this.scene.add(this.sun.target);
-    this.sun.shadow.mapSize.set(1024,1024);Object.assign(this.sun.shadow.camera,{left:-110,right:110,top:110,bottom:-110,near:1,far:500});this.sun.shadow.bias=-.001;
+    this.sun.shadow.mapSize.set(1024,1024);Object.assign(this.sun.shadow.camera,{left:-110,right:110,top:110,bottom:-110,near:1,far:500});this.sun.shadow.bias=-.0004;this.sun.shadow.normalBias=.06;this.sun.shadow.radius=3;
     this.factory=new ActorFactory();this.staticGeometries={box:new THREE.BoxGeometry(1,1,1),wedge:wedgeGeometry(),cylinder:new THREE.CylinderGeometry(.5,.5,1,12),sphere:new THREE.SphereGeometry(.5,12,8)};
     this.materials=[];this.labelTextures=[];this.chunks=[];this.colliders=[];this.labels=[];this.hotspots=[];this.actors=new Map();this.matchActors=[];this.time=0;this.lowGraphics=false;this.disposed=false;this.dynamicKey='';
     this.bases=this.normalizedBases();this.pitchIndex=0;this.venueColliders=[];
@@ -119,6 +121,7 @@ export class World {
     this.venueOrigin=new THREE.Vector3().setFromMatrixPosition(venueFrame);
     const parts=[...(this.worldData.parts || this.worldData.staticParts || []),...(this.worldData.stadiumParts || []).map(p=>({...p,venue:true}))];
     const batches=new Map();
+    this.woodTexture=hardwoodTexture();this.replacedVisualCount=0;
     for(const p of parts) {
       const transparency=clamp(p.opacity===undefined?finite(p.transparency):1-p.opacity,0,1);if(transparency>=.98)continue;
       const shape=String(p.shape || p.className || 'box').toLowerCase();
@@ -129,9 +132,9 @@ export class World {
       const center=new THREE.Vector3().setFromMatrixPosition(frame);const path=p.path || `${p.group || ''}/${p.name || ''}`;
       const venue=p.venue===true;const level=finite(p.minLevel ?? p.level ?? p.stadiumLevel ?? p.attributes?.StadiumLevel);
       const district=venue?'venue':`${Math.floor(center.x/120)},${Math.floor(center.z/120)}`;
-      const neon=String(p.material).includes('Neon');const key=`${district}|${kind}|${transparency.toFixed(2)}|${neon}|${level}`;
-      if(!batches.has(key))batches.set(key,{kind,transparency,neon,level,venue,items:[]});
-      batches.get(key).items.push({matrix,color:tint(p.color),center,path});
+      const neon=String(p.material).includes('Neon');const wood=p.name==='Hardwood';const key=`${district}|${kind}|${transparency.toFixed(2)}|${neon}|${level}|${wood}`;
+      if(!batches.has(key))batches.set(key,{kind,transparency,neon,level,venue,wood,items:[]});
+      if(replacedCourtVisual(p)){this.replacedVisualCount++;}else batches.get(key).items.push({matrix,color:tint(wood?'#FFFFFF':COURT_PALETTE[p.name]||p.color),center,path});
       if(p.collision===true || p.collide===true || p.canCollide===true) {
         const box=new THREE.Box3(new THREE.Vector3(-.5,-.5,-.5),new THREE.Vector3(.5,.5,.5)).applyMatrix4(matrix);this.colliders.push(box);
         if(venue)this.venueColliders.push({box,original:box.clone(),level});
@@ -139,28 +142,32 @@ export class World {
       if(p.text || p.label) this.addLabel(String(p.text || p.label),center.clone().add(new THREE.Vector3(0,size[1]/2+1.5,0)),Math.min(18,size[0]));
     }
     for(const batch of batches.values()) {
+      if(!batch.items.length)continue;
       const material=batch.neon?new THREE.MeshBasicMaterial({color:'#FFFFFF'}):new THREE.MeshLambertMaterial({color:'#FFFFFF'});
+      if(batch.wood){material.map=this.woodTexture;material.color.set(this.woodTexture?'#FFFFFF':'#D8AE77');}
       material.transparent=batch.transparency>0;material.opacity=1-batch.transparency;this.materials.push(material);
       const mesh=new THREE.InstancedMesh(this.staticGeometries[batch.kind],material,batch.items.length);
       batch.items.forEach((item,i)=>{mesh.setMatrixAt(i,item.matrix);mesh.setColorAt(i,item.color);});
       mesh.computeBoundingSphere();mesh.receiveShadow=true;mesh.castShadow=false;this.scene.add(mesh);this.chunks.push({mesh,level:batch.level,venue:batch.venue,center:mesh.boundingSphere.center.clone()});
     }
+    this.courtDetails=createCourtDetails();this.courtDetails.root.position.copy(this.venueOrigin);this.scene.add(this.courtDetails.root);
     if(this.colliders.length) {const groundBounds=new THREE.Box3();for(const b of this.colliders)groundBounds.union(b);this.bounds.copy(groundBounds).expandByScalar(1);}
   }
 
   addLabel(text,position,width=12) {
+    width=Math.min(width,8);
     if(typeof document==='undefined' || this.labels.length>100)return;
     const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;const ctx=canvas.getContext('2d');if(!ctx)return;
     ctx.fillStyle='#17232B';ctx.fillRect(0,0,512,128);ctx.fillStyle='#FFF7DD';ctx.font='bold 34px sans-serif';ctx.textAlign='center';
     const lines=text.split('\n').slice(0,2);lines.forEach((line,i)=>ctx.fillText(line.slice(0,34),256,lines.length===1?77:48+i*46));
     const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;this.labelTextures.push(texture);
-    const material=new THREE.SpriteMaterial({map:texture});this.materials.push(material);const sprite=new THREE.Sprite(material);sprite.position.copy(position);sprite.scale.set(width,width/4,1);this.scene.add(sprite);this.labels.push(sprite);
+    const material=new THREE.SpriteMaterial({map:texture});this.materials.push(material);const sprite=new THREE.Sprite(material);sprite.position.copy(position);sprite.scale.set(width,width/4,1);sprite.material.depthWrite=false;this.scene.add(sprite);this.labels.push(sprite);
   }
 
   buildHotspots() {
     this.bases.forEach((b,i)=>{
       const pos=this.basePosition(i);const deposit=xyz(b.deposit,[pos.x,pos.y,pos.z+b.front*15]);this.hotspots.push({kind:'base',id:`base-${i}`,base:i,rivalIndex:i>0?i-1:undefined,name:i===0?'Your team':'Rival team',x:deposit[0],y:deposit[1],z:deposit[2],radius:14});
-      this.addLabel(i===0?'YOUR TEAM · HOME':`NPC RIVAL ${i}`,new THREE.Vector3(deposit[0],deposit[1]+8,deposit[2]),16);
+      this.addLabel(i===0?'YOUR TEAM · HOME':`NPC RIVAL ${i}`,new THREE.Vector3(deposit[0],deposit[1]+5.8,deposit[2]),7);
       this.hotspots.push({kind:'pitch',id:`pitch-${i}`,base:i,name:'Home court',x:pos.x,y:pos.y,z:pos.z+b.front*12.6,radius:5});
     });
     if(this.worldData.rivalBase){const b=this.worldData.rivalBase,p=xyz(b.deposit||b.position);this.hotspots.push({kind:'base',id:'practice-base',base:12,rivalIndex:11,name:'Practice five',x:p[0],y:p[1],z:p[2],radius:14});}
@@ -227,7 +234,7 @@ export class World {
     this.crowdParts=[{name:'torso',size:[1.55,1.45,.85],position:[0,1.05,0],color:'kit'},{name:'head',size:[1.05,1.05,.95],position:[0,2.32,0],color:'skin'}, {name:'hair',size:[1.1,.25,1],position:[0,2.88,.03],color:'hair'}];
     for(const side of [-1,1])this.crowdParts.push({name:`arm${side}`,size:[.5,1.3,.55],position:[side*.99,.95,0],color:'skin'}, {name:`thigh${side}`,size:[.6,.5,1.3],position:[side*.45,.02,-.5],color:'shorts'}, {name:`leg${side}`,size:[.55,1.1,.55],position:[side*.45,-.62,-1.05],color:'skin'});
     const skins=['#795036','#BB8961','#E9C19E','#9F6C4C'];
-    for(const part of this.crowdParts){part.mesh=new THREE.InstancedMesh(this.staticGeometries.box,material,24);part.mesh.frustumCulled=false;this.crowdSeats.forEach((seat,i)=>{const def={};const colors={kit:def.color||'#286FC1',skin:skins[i%4],hair:def.appearance?.hairColor||'#282019',shorts:def.shorts||'#24334A'};part.mesh.setColorAt(i,tint(colors[part.color]));});this.crowdGroup.add(part.mesh);}
+    for(const part of this.crowdParts){part.mesh=new THREE.InstancedMesh(this.staticGeometries.box,material,24);part.mesh.frustumCulled=false;this.crowdSeats.forEach((seat,i)=>{const def={};const colors={kit:['#E16B4F','#F9EBCD','#456583','#C7A768'][i%4],skin:skins[i%4],hair:def.appearance?.hairColor||'#282019',shorts:def.shorts||'#24334A'};part.mesh.setColorAt(i,tint(colors[part.color]));});this.crowdGroup.add(part.mesh);}
     this.updateCrowd(3,false);
   }
 
@@ -251,17 +258,19 @@ export class World {
   updateCamera(match,dt) {
     const {mode,index,zoom}=this.cameraConfig;let target=new THREE.Vector3(this.avatar.x,this.avatar.y+3,this.avatar.z);let offset=new THREE.Vector3(20,23,30);
     if(mode!=='avatar'){
-      const pitch=this.pitchPosition(this.pitchIndex);target.set(pitch.x,pitch.y,pitch.z);offset.set(0,155,135);
+      const pitch=this.pitchPosition(this.pitchIndex);target.set(pitch.x,pitch.y,pitch.z);const aspect=Math.max(.45,this.camera.aspect||1);
+      const fit=Math.max(155,110/(Math.tan(THREE.MathUtils.degToRad(this.camera.fov||52)/2)*aspect));offset.set(0,fit,fit*.66);
       if(match&&(mode==='ball'||mode==='player'||mode==='celebration'||mode==='icon')){
         const celebration=match.celebration;const indexedScorer=Number.isInteger(celebration?.scorerIndex)?match.players?.[celebration.scorerIndex]:null;
         const scorer=indexedScorer||(celebration&&match.players?.find(p=>(p.name===celebration.scorer||p.id===celebration.scorer||p.key===celebration.scorer)&&p.side===celebration.side));
         const subject=mode==='celebration'?scorer:mode==='player'||mode==='icon'?match.players?.[clamp(Math.trunc(finite(index)),0,9)]:match.ball;
         if(subject)target.add(new THREE.Vector3(finite(subject.x),2,finite(subject.z)));
-        offset=mode==='icon'?new THREE.Vector3(0,12,13):mode==='celebration'?new THREE.Vector3(26,14,30):new THREE.Vector3(0,47,47);
+        offset=mode==='icon'?new THREE.Vector3(0,12,13):mode==='celebration'?new THREE.Vector3(26,14,30):new THREE.Vector3(0,62,57);
       }
       if(mode==='hoop'||mode==='goalcorner') {const side=index===1?-1:1;target.add(new THREE.Vector3(side*82,10,0));offset.set(side*24,23,40);}
     }
     offset.applyAxisAngle(new THREE.Vector3(0,1,0),finite(this.cameraConfig.yaw ?? this.cameraConfig.orbit));offset.multiplyScalar(1/zoom);const desired=target.clone().add(offset);this.camera.position.lerp(desired,1-Math.exp(-Math.min(dt,.1)*7));this.camera.lookAt(target);
+    this.cameraTarget=target.clone();
     this.sun.target.position.copy(target);this.sun.position.set(target.x-100,target.y+220,target.z+100);
   }
 
@@ -274,16 +283,18 @@ export class World {
     this.avatarActor.root.position.set(this.avatar.x,this.avatar.y+this.jumpHeight,this.avatar.z);this.avatarActor.root.rotation.y=-finite(this.avatar.angle)-Math.PI/2;this.factory.pose(this.avatarActor,this.avatar.moving?'run':'idle',this.time);
     this.avatar.moving=false;
     this.rebuildDisplays(state);this.updateMarket(state.market);this.updateMatch(match,state);this.updateCamera(match,dt);
-    const focus=this.camera.position;const far=this.lowGraphics?360:800;
+    const focus=this.cameraTarget||this.camera.position;const far=this.lowGraphics?360:800;
     const venue=this.bases[this.pitchIndex]?.pitch;const venuePosition=venue?new THREE.Vector3(...xyz(venue.position)):this.venueOrigin;const venueDelta=venuePosition.clone().sub(this.venueOrigin);
     for(const chunk of this.chunks){if(chunk.venue)chunk.mesh.position.copy(venueDelta);const center=chunk.center.clone().add(chunk.mesh.position);chunk.mesh.visible=chunk.level<=finite(state.stadiumLevel)&&center.distanceTo(focus)<far+finite(chunk.mesh.boundingSphere?.radius);}
+    if(this.courtDetails){this.courtDetails.root.position.copy(this.venueOrigin).add(venueDelta);this.courtDetails.root.visible=this.courtDetails.root.position.distanceTo(focus)<far+130;}
     for(const entry of this.venueColliders)entry.box.copy(entry.original).translate(venueDelta);
-    for(const label of this.labels)label.visible=label.position.distanceTo(focus)<(this.lowGraphics?80:140);
+    const avatarPosition=new THREE.Vector3(this.avatar.x,this.avatar.y,this.avatar.z);
+    for(const label of this.labels)label.visible=this.cameraConfig.mode==='avatar'&&label.position.distanceTo(avatarPosition)<(this.lowGraphics?38:55);
     for(const entry of this.actors.values())entry.actor.root.visible=entry.actor.root.position.distanceTo(focus)<(this.lowGraphics?170:300);
     this.renderer.render(this.scene,this.camera);
   }
 
   resize() {const width=Math.max(1,this.canvas.clientWidth||this.canvas.width||800);const height=Math.max(1,this.canvas.clientHeight||this.canvas.height||600);this.renderer.setPixelRatio(Math.min(typeof devicePixelRatio==='number'?devicePixelRatio:1,this.lowGraphics?1:1.5));this.renderer.setSize(width,height,false);this.camera.aspect=width/height;this.camera.updateProjectionMatrix();}
-  snapshot() {return {drawCalls:this.renderer.info.render.calls,triangles:this.renderer.info.render.triangles,geometries:this.renderer.info.memory.geometries,textures:this.renderer.info.memory.textures,staticParts:(this.worldData.parts||this.worldData.staticParts||[]).length,batches:this.chunks.length,actors:this.actors.size+this.matchActors.length+1,crowdCount:this.crowdCount,colliders:this.colliders.length,lowGraphics:this.lowGraphics,avatar:{...this.avatar},camera:{...this.cameraConfig}};}
-  dispose() {if(this.disposed)return;this.disposed=true;this.actors.forEach(entry=>this.factory.release(entry.actor));this.matchActors.forEach(a=>this.factory.release(a));this.factory.release(this.avatarActor);this.factory.dispose();Object.values(this.staticGeometries).forEach(g=>g.dispose());this.ballGeometry.dispose();this.ball.children[0].geometry.dispose();this.ringGeometry.dispose();this.materials.forEach(m=>m.dispose());this.labelTextures.forEach(t=>t.dispose());this.renderer.dispose();this.renderer.forceContextLoss();this.scene.clear();}
+  snapshot() {return {drawCalls:this.renderer.info.render.calls,triangles:this.renderer.info.render.triangles,geometries:this.renderer.info.memory.geometries,textures:this.renderer.info.memory.textures,staticParts:(this.worldData.parts||this.worldData.staticParts||[]).length,batches:this.chunks.length,actors:this.actors.size+this.matchActors.length+1,crowdCount:this.crowdCount,colliders:this.colliders.length,lowGraphics:this.lowGraphics,avatar:{...this.avatar},camera:{...this.cameraConfig,position:this.camera.position.toArray(),target:this.cameraTarget?.toArray(),aspect:this.camera.aspect},replacedVisuals:this.replacedVisualCount,arenaDetailMeshes:this.courtDetails?.root.children.length||0};}
+  dispose() {if(this.disposed)return;this.disposed=true;this.actors.forEach(entry=>this.factory.release(entry.actor));this.matchActors.forEach(a=>this.factory.release(a));this.factory.release(this.avatarActor);this.factory.dispose();Object.values(this.staticGeometries).forEach(g=>g.dispose());this.courtDetails?.geometries.forEach(g=>g.dispose());this.courtDetails?.materials.forEach(m=>m.dispose());this.woodTexture?.dispose();this.ballGeometry.dispose();this.ball.children[0].geometry.dispose();this.ringGeometry.dispose();this.materials.forEach(m=>m.dispose());this.labelTextures.forEach(t=>t.dispose());this.renderer.dispose();this.renderer.forceContextLoss();this.scene.clear();}
 }

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import * as THREE from '../vendor/three.module.js';
 import {ActorFactory} from '../js/actors.js';
+import {createCourtDetails,replacedCourtVisual,hardwoodTexture} from '../js/court-view.js';
 import {World,groundedMove,miniLineup,partMatrix,createBasketball} from '../js/world.js';
 
 // Detached geometry and renderer boundaries only. No WebGL/browser/device claim.
@@ -24,6 +25,7 @@ function detachedWorld() {
 function releaseWorld(world) {
   world.actors.forEach(entry=>world.factory.release(entry.actor));
   world.matchActors.forEach(actor=>world.factory.release(actor));
+  world.courtDetails?.geometries.forEach(g=>g.dispose());world.courtDetails?.materials.forEach(m=>m.dispose());world.woodTexture?.dispose();
   world.factory.dispose();world.materials.forEach(m=>m.dispose());
   Object.values(world.staticGeometries).forEach(g=>g.dispose());world.scene.clear();world.crowdGroup.clear();
 }
@@ -44,7 +46,11 @@ for(const p of parts) {
 }
 {
   const world=detachedWorld();world.buildStatic();world.buildHotspots();
-  assert.equal(world.chunks.reduce((n,c)=>n+c.mesh.count,0),parts.filter(p=>p.opacity>.02).length);
+  const replaced=worldData.stadiumParts.filter(p=>replacedCourtVisual({...p,venue:true}));
+  assert.equal(replaced.length,44,'Only the arena rim and net fragments have replacements');
+  assert(replaced.every(p=>!p.collision),'Replaced presentation has no gameplay collisions');
+  assert.equal(world.replacedVisualCount,replaced.length);
+  assert.equal(world.chunks.reduce((n,c)=>n+c.mesh.count,0),parts.filter(p=>p.opacity>.02).length-replaced.length);
   assert.equal(world.colliders.length,parts.filter(p=>p.opacity>.02&&p.collision).length);
   vecClose(world.venueOrigin,worldData.bases[0].pitch.position,'Venue anchor preserved');
   for(let i=0;i<12;i++) {
@@ -109,6 +115,15 @@ assert.equal(miniLineup([]).length,0);assert.equal(miniLineup([{role:'C'}],'unkn
   assert.equal(world.actors.get('lineup-0').actor,first,'Stable lineups reuse geometry');
   releaseWorld(world);
 }
+{
+  assert.equal(hardwoodTexture(),null,'Detached fixtures require no browser canvas');
+  const detail=createCourtDetails();let triangles=0;
+  detail.root.traverse(o=>{if(o.isMesh)triangles+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3*(o.isInstancedMesh?o.count:1);});
+  assert(triangles<1500,'Arena upgrade has a bounded triangle cost');
+  assert.equal(detail.root.children.length,6,'Two rings, three batched trim materials and one net draw');
+  for(const side of [-1,1]){const rim=detail.root.getObjectByName(`Rim ${side}`);vecClose(rim.position,[side*82,10.175,0],'Decorative rim follows court coordinate contract');}
+  detail.geometries.forEach(g=>g.dispose());detail.materials.forEach(m=>m.dispose());
+}
 let maximumMeshes=0,maximumTriangles=0;
 {
   const factory=new ActorFactory();
@@ -156,6 +171,11 @@ let maximumMeshes=0,maximumTriangles=0;
   world.updateCamera(match,.1);const origin=world.pitchPosition(0);
   close(world.sun.target.position.x,origin.x+players[9].x,'Camera index clamps to ten actors');
   world.setCamera({mode:'hoop',index:0});world.updateCamera(match,.1);close(world.sun.target.position.x,origin.x+82,'Hoop camera uses rim coordinates');
+  world.setCamera({mode:'full',zoom:1,yaw:0});world.camera.aspect=.5;world.camera.fov=52;world.updateCamera(match,.1);
+  close(world.cameraTarget.x,origin.x,'Broadcast remains centered on court');
+  assert(world.sun.position.y-world.cameraTarget.y===220);
+  const phoneHeight=world.camera.position.y;world.camera.aspect=1.8;world.updateCamera(match,.1);
+  assert(world.camera.position.y<phoneHeight,'Portrait full-court framing pulls back to preserve sidelines');
   world.setCamera({mode:'avatar',orbit:Math.PI/2,zoom:1.2});assert.equal(world.cameraConfig.yaw,Math.PI/2);assert.equal(world.cameraConfig.zoom,1.2);
   releaseWorld(world);
 }
