@@ -73,12 +73,14 @@ export function createLandmarksView(scene, map, heightAt) {
       beam([0,70,0],[0,99,0],0.55,METAL);
       quad([0,96,0],[12.8,94.6,1.4],[12.8,88.2,1.4],[0,89.6,0],0x23395d);
       detail = true;
-      quad(groundPoint(-72,-157),groundPoint(72,-157),groundPoint(72,-221),groundPoint(-72,-221),0xbcb6a7);
+      quad(groundPoint(-72,-157),groundPoint(72,-157),groundPoint(72,-221),groundPoint(-72,-221),0xa16c55);
       const poolY=groundY(0,-193)+0.24;
       block(0,poolY,-193,38,0.12,26,0x66858a);
-      for (let i=-6;i<=6;i++) block(i*5,2.8,-150,1.1,6,3.8,PALE);
+      for (let i=-6;i<=6;i++) block(i*5,4.1,-150,1.1,8.6,3.8,PALE);
+      block(0,10.4,-139,68,0.9,15,PALE);
+      block(0,12.6,-123,53,0.9,16,PALE);
       windows(62,-151.9,3.2,13,2);
-      for (const side of [-1,1]) for (let i=0;i<6;i++) block(side*(42+i*17),1.3,-143+i*4,0.8,3,0.8,0x7b8075);
+      for (let i=-6;i<=6;i++) block(i*10,groundY(i*10,-211)+0.5,-211,0.36,1,0.36,0x85877f);
     } else if (site.id === 'old-parliament-house') {
       block(0,2,0,146,12,84,PALE);
       block(0,7,-43,42,13,15,0xe5e0d0);

@@ -60,7 +60,7 @@ National Gallery/Portrait Gallery are deferred from this bounded study.
 
 ## Runtime budget and verification
 
-Four sites, eight merged meshes, two pooled vertex-colour materials,5276triangles.
+Four sites, eight merged meshes, two pooled vertex-colour materials,5312triangles.
 No images, runtime fetch, animation loop or mutable global state. Local terrain
 sets each anchor; the oval and forecourt sample terrain. Main buildings use deep
 foundations where needed to close slopes. Detail disappears after850m plus site
@@ -70,10 +70,37 @@ Three.js depth testing still allows intervening terrain/buildings to occlude it.
 No opacity fade or per-frame allocation. update accepts x/z or position.x/z;
 time is currently unused because landmarks are static. Disposal is idempotent.
 
-`node scripts/test_capital_landmarks.mjs` passed: four sites,5276triangles,
+`node scripts/test_capital_landmarks.mjs` passed: four sites,5312triangles,
 12exact replacement IDs, pure lookup/projection, anchor grounding, orientation,
 81m mast above estimated roof deck, finite buffers, near/far culling, fog-aware
 skyline and eight geometry/two material disposals. Existing world regression and
 syntax/diff checks also passed. These checks do not establish N100 hardware FPS,
-whole-site fidelity or safe walking on roofs. Root owns visual/Street View review
-and the updated game maintenance manual.
+whole-site fidelity or safe walking on roofs. Root owns the updated game maintenance manual and further visual review.
+
+
+## Street View comparison: Parliament frontage
+
+Root reported an actual Street View inspection on13November2026. Requested road
+point-35.3061889,149.1254594; actual panorama-35.3061877,149.1254252,
+Federation Mall, heading210degrees, pitch4degrees, imageryMarch2015.
+[Reproducible request URL](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-35.3061889,149.1254594&heading=210&pitch=4)
+uses the requested point; Google can resolve to a different panorama over time.
+
+Root's observed cues: broad terracotta/red-brick forecourt; waist-high grey
+bollards; low curved white/pale retaining wall framing the sloping grass roof
+wings; symmetrical two-storey white column/window grid; thin pale legs rising
+into the pyramidal mast and central antenna/flag; building low beneath roof edges;
+stepped white slabs behind the frontage; trees flanking the right.
+
+The model already represented the broad sloping lawns, curved pale frontage and
+four converging mast legs. This comparison changed the foreground paving to muted
+terracotta, lowered the foreground posts to terrain-grounded1m grey bollards,
+raised the central columns to frame both window rows and added two pale stepped
+roof slabs. Vegetation remains the shared world renderer's source-derived trees.
+These are original geometric interpretations of a single reported view, not
+photogrammetry or a current whole-building survey. No panorama image is bundled.
+
+The earlier A23 approach sample, imageryMay2024, showed an underpass rather than
+the house; it is not evidence for the facade. Old Parliament House, Manuka Oval
+and Kingston Powerhouse still rely on the public references above until root
+records their actual exterior samples.
