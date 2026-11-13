@@ -136,7 +136,21 @@ function reportHTML() {
 function matchHTML() {
   if(!match||match.finished)return reportHTML();
   const s=matchState;
-  return `<div class="card accent"><h3>HOME ${s.score[0]} : ${s.score[1]} PRACTICE · ${esc(s.period)}</h3><p>${clock(s.timeRemaining)} remaining · Shot clock ${s.shotClock.toFixed(1)}s · Clocks ${s.clockRate}x</p><p>Team stamina ${Math.round(s.stamina[0])}% · Income paused.</p></div><h3 class="section-title">TEAM PLAY CALLS</h3><div class="toolbar">${playButtons(true)}</div><h3 class="section-title">BASKETBALL ABILITIES</h3><div class="stack">${(s.abilities||[]).map(a=>`<div class="card row"><div><b>${esc(a.name)}</b><p>${esc(a.playerName||game.catalog.get(a.playerId)?.name||'Ball handler')} · ${Math.ceil(a.remaining||a.cooldown||0)}s</p></div>${button('ACTIVATE','ability',`data-id="${esc(a.id)}"`,!a.available)}</div>`).join('')}</div><h3 class="section-title">PLAYER CONTROL</h3><p>Control any home player for 10 seconds with WASD, arrows or the joystick. Shared cooldown: 20 seconds from activation; ${Math.ceil(s.cooldowns.control)}s remaining.</p><div class="toolbar">${s.players.filter(p=>p.side===0).map(p=>button(p.roleLabel+' · '+p.name,'controlPlayer',`data-index="${p.index}"`,!s.control&&s.cooldowns.control>0)).join('')}${s.control?button('RELEASE CONTROL','releaseControl'):''}</div><h3 class="section-title">COACH SPECIAL PLAY</h3>${button('CALL SPECIAL PLAY','manager','',!state.staff.slots.tactics)}<p>Hire a tactical coach to unlock their special play.</p><div class="toolbar">${button('SUBSTITUTIONS','openSubs')}${button('ABANDON MATCH','forfeit')}</div>`;
+  return `<div class="card accent"><h3 id="sheet-match-score">HOME ${s.score[0]} : ${s.score[1]} PRACTICE · ${esc(s.period)}</h3><p id="sheet-match-clock">${clock(s.timeRemaining)} remaining · Shot clock ${s.shotClock.toFixed(1)}s · Clocks ${s.clockRate}x</p><p id="sheet-match-stamina">Team stamina ${Math.round(s.stamina[0])}% · Income paused.</p></div><h3 class="section-title">TEAM PLAY CALLS</h3><div class="toolbar">${playButtons(true)}</div><h3 class="section-title">BASKETBALL ABILITIES</h3><div class="stack">${(s.abilities||[]).map(a=>`<div class="card row"><div><b>${esc(a.name)}</b><p id="ability-clock-${esc(a.id)}">${esc(a.playerName||game.catalog.get(a.playerId)?.name||'Ball handler')} · ${Math.ceil(a.remaining||a.cooldown||0)}s</p></div>${button('ACTIVATE','ability',`data-id="${esc(a.id)}" id="ability-action-${esc(a.id)}"`,!a.available)}</div>`).join('')}</div><h3 class="section-title">PLAYER CONTROL</h3><p>Control any home player for 10 seconds with WASD, arrows or the joystick. Shared cooldown: 20 seconds from activation; <span id="control-countdown">${Math.ceil(s.cooldowns.control)}</span>s remaining.</p><div class="toolbar">${s.players.filter(p=>p.side===0).map(p=>button(p.roleLabel+' · '+p.name,'controlPlayer',`data-index="${p.index}" id="control-player-${p.index}"`,!s.control&&s.cooldowns.control>0)).join('')}${button('RELEASE CONTROL','releaseControl','id="release-control"',!s.control)}</div><h3 class="section-title">COACH SPECIAL PLAY</h3>${button('CALL SPECIAL PLAY','manager','',!state.staff.slots.tactics)}<p>Hire a tactical coach to unlock their special play.</p><div class="toolbar">${button('SUBSTITUTIONS','openSubs')}${button('ABANDON MATCH','forfeit')}</div>`;
+}
+function refreshMatchPanel() {
+  if(panel!=='match'||!match||match.finished)return;
+  const s=matchState;
+  $('sheet-match-score').textContent=`HOME ${s.score[0]} : ${s.score[1]} PRACTICE · ${s.period}`;
+  $('sheet-match-clock').textContent=`${clock(s.timeRemaining)} remaining · Shot clock ${s.shotClock.toFixed(1)}s · Clocks ${s.clockRate}x`;
+  $('sheet-match-stamina').textContent=`Team stamina ${Math.round(s.stamina[0])}% · Income paused.`;
+  $('control-countdown').textContent=Math.ceil(s.cooldowns.control);
+  for(const a of s.abilities){
+    $('ability-clock-'+a.id).textContent=`${a.playerName||game.catalog.get(a.playerId)?.name||'Ball handler'} · ${Math.ceil(a.remaining||a.cooldown||0)}s`;
+    $('ability-action-'+a.id).disabled=!a.available;
+  }
+  for(const p of s.players.filter(p=>p.side===0))$('control-player-'+p.index).disabled=!s.control&&s.cooldowns.control>0;
+  $('release-control').disabled=!s.control;
 }
 const titles={roster:'YOUR BASKETBALLERS',shop:'RECRUITMENT STORE',events:'LIMITED EVENTS',tactics:'STARTING FIVE',kits:'BASKETBALL KITS',staff:'COACHING STAFF',upgrades:'BUILD YOUR COURT',collection:'PLAYER ALBUM',help:'HOW TO PLAY',match:'FIVE-ON-FIVE',subs:'SUBSTITUTIONS',rival:'RIVAL TEAM',market:'RECRUIT CONVEYOR'};
 function openPanel(name) {
@@ -327,6 +341,7 @@ document.addEventListener('click',e=>{
 });
 $('close-sheet').onclick=closePanel;$('interaction').onclick=interact;$('home').onclick=()=>travel('home');$('pitch').onclick=()=>travel('pitch');
 $('pause').onclick=()=>setPaused(true);$('resume').onclick=()=>setPaused(false);
+$('pause-screen').addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();$('resume').focus();}});
 $('route').onclick=()=>{route=!route;updateHUD();};$('battle').onclick=startBattle;$('shield').onclick=()=>act('shield');
 $('menu-toggle').onclick=()=>{const collapsed=$('actions').classList.toggle('collapsed');$('menu-toggle').setAttribute('aria-expanded',String(!collapsed));};
 $('previous').onclick=()=>setFollow(String((camera.index+9)%10));$('next').onclick=()=>setFollow(String((camera.index+1)%10));
@@ -395,7 +410,8 @@ function frame(now) {
       world.moveAvatar({x:(vector.x*cos+vector.z*sin)/length,z:(vector.z*cos-vector.x*sin)/length},dt*speed);
     }
     if(uiTime>.2){uiTime=0;state=game.snapshot();lineup=game.team();updateHUD();}
-    if(sheetTime>1&&['match','subs','staff','events','market'].includes(panel)&&!document.activeElement?.closest('#sheet-content')){
+    if(sheetTime>1&&panel==='match'){sheetTime=0;refreshMatchPanel();}
+    if(sheetTime>1&&['subs','staff','events','market'].includes(panel)&&!document.activeElement?.closest('#sheet-content')){
       sheetTime=0;
       const offersKey=panel==='market'?JSON.stringify(state.market.filter(m=>m.id).map(m=>[m.marketId,m.id,state.coins>=marketDefinition(m.id).cost])):'';
       if(panel!=='market'||offersKey!==marketKey){const scroll=$('sheet-content').scrollTop;renderPanel();$('sheet-content').scrollTop=scroll;}
@@ -414,7 +430,7 @@ async function boot() {
     [data,worldData]=await Promise.all(['./data/catalog.json','./data/world.json'].map(async url=>{const response=await fetch(url);if(!response.ok)throw new Error('Could not load '+url);return response.json();}));
     gameTime=Date.now()/1000;game=new Game(data,{clock:()=>gameTime});state=game.snapshot();lineup=game.team();world=new World(canvas,{data,worldData});world.setCamera(camera);
     $('load-status').textContent='100 basketballers · 5 v 5 · PG SG SF PF C';$('start').disabled=false;
-    $('start').onclick=()=>{started=true;$('loading').hidden=true;$('hud').hidden=false;audio.start();audio.configure(state.settings.sound,false);canvas.focus();updateHUD();if(!state.roster.length)toast('Walk to the conveyor or open SHOP to sign your first basketballer.');};
+    $('start').onclick=()=>{started=true;$('loading').hidden=true;$('hud').hidden=false;audio.start();audio.configure(state.settings.sound,false);canvas.focus();updateHUD();};
     requestAnimationFrame(frame);
   } catch(error) {$('load-status').textContent='The game could not start: '+error.message;console.error(error);}
 }
