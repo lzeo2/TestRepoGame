@@ -53,7 +53,7 @@ const document={hidden:false,activeElement:null,
   getElementById(id){assert.ok(elements.has(id),'Missing actual HTML element: '+id);return elements.get(id);},
   addEventListener(name,handler){if(!documentListeners.has(name))documentListeners.set(name,[]);documentListeners.get(name).push(handler);},
   createElement(tag){assert.equal(tag,'canvas');return {getContext(kind){
-    assert.equal(kind,'2d');return {fillRect(){},fillText(){},strokeText(){}};
+    assert.equal(kind,'2d');return {fillRect(){},fillText(){},strokeText(){},beginPath(){},moveTo(){},bezierCurveTo(){},stroke(){}};
   }};}
 };
 assert.equal(elements.size,ids.length);
@@ -189,5 +189,20 @@ assert.ok(storageReads.every(key=>key.startsWith('steal-basketballer:v1')));
 assert.ok(storageWrites.every(key=>key.startsWith('steal-basketballer:v1')));
 footballKeys.forEach(key=>assert.equal(storage.get(key),'untouched football save'));
 assert.deepEqual(errors,[]);
-console.log(`PASS ordinary app UI: installed PLAY -> SHOP/conveyor -> ${recruit.id} (${recruit.cost}/150 coins) -> BATTLE; real Match 5v5 + ten World actors; Q1/score/shot-clock HUD; isolated save; 22 bounded RAF callbacks`);
+click(document.getElementById('pause'));
+const paused=window.basketballerSnapshot();
+assert.equal(paused.paused,true);assert.equal(document.getElementById('hud').inert,true);
+for(let index=0;index<3;index++){
+  assert.equal(frames.length,1,'Paused app retains one RAF chain');frames.shift()(3000+index*50);
+}
+const held=window.basketballerSnapshot();
+assert.equal(held.match.elapsed,paused.match.elapsed);
+assert.deepEqual(held.world.avatar,paused.world.avatar);
+assert.equal(held.state.coins,paused.state.coins);
+assert.equal(held.state.event.remaining,paused.state.event.remaining,'App-owned active clock freezes event deadlines');
+click(document.getElementById('resume'));
+for(let index=0;index<2;index++)frames.shift()(4000+index*50);
+assert.equal(window.basketballerSnapshot().paused,false);
+assert.ok(window.basketballerSnapshot().match.elapsed>held.match.elapsed);
+console.log(`PASS ordinary app UI: installed PLAY -> SHOP/conveyor -> ${recruit.id} (${recruit.cost}/150 coins) -> BATTLE; real Match 5v5 + ten World actors; Q1/score/shot-clock HUD; isolated save; pause/deadline freeze/resume; 27 bounded RAF callbacks`);
 console.log('LIMIT: restricted DOM/2D/fetch/storage/RAF and WebGLRenderer doubles; AudioContext absent follows production fallback. No browser/GPU/layout/native audio/touch/full-match acceptance.');
