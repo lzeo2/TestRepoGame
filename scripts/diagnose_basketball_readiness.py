@@ -152,11 +152,21 @@ def option(argv, name):
     return values[0] if values else None
 
 
+def expand_argv(argv):
+    # Debian Chromium children rewrite /proc cmdline as one argv element with
+    # space-separated flags. When that shape is unambiguous (single element
+    # containing at least one '--' token), read flags from the space-split
+    # view; otherwise flags are taken from the real argv unchanged.
+    if len(argv) == 1 and ' --' in argv[0]:
+        return tuple(argv[0].split())
+    return argv
+
+
 def safe_argv(argv):
     forbidden = ('--no-sandbox', '--disable-setuid-sandbox', '--disable-seccomp-filter-sandbox',
                  '--disable-gpu-sandbox', '--single-process', '--in-process-gpu',
                  '--enable-unsafe', '--ignore-gpu-blocklist', '--disable-web-security')
-    if any(arg.startswith(forbidden) for arg in argv):
+    if any(arg.startswith(forbidden) for arg in expand_argv(argv)):
         raise ValueError('Unsafe actual Chromium argv')
 
 
@@ -181,7 +191,7 @@ def select_browser(records, owner_pid, previous, executable, profile_root, uid):
     if owner_pid not in records:
         raise ValueError('Missing checker PID')
     candidates = [p for p in records.values() if p.exe == executable
-                  and (p.pid, p.start) not in previous and option(p.argv, '--type') is None
+                  and (p.pid, p.start) not in previous and option(expand_argv(p.argv), '--type') is None
                   and descends(records, p, owner_pid)]
     if len(candidates) != 1:
         raise ValueError(f'Expected one new checker-owned Chromium browser, found {len(candidates)}')
@@ -189,8 +199,9 @@ def select_browser(records, owner_pid, previous, executable, profile_root, uid):
     if browser.uids != (uid,)*4:
         raise ValueError('Browser UID identity not verified')
     safe_argv(browser.argv)
-    profile = option(browser.argv, '--user-data-dir')
-    if '--remote-debugging-pipe' not in browser.argv or not profile:
+    expanded = expand_argv(browser.argv)
+    profile = option(expanded, '--user-data-dir')
+    if '--remote-debugging-pipe' not in expanded or not profile:
         raise ValueError('Missing Playwright pipe/profile identity')
     profile = Path(profile).resolve()
     if profile.parent != profile_root.resolve() or not profile.name.startswith('playwright_chromiumdev_profile-'):
@@ -209,7 +220,7 @@ def verify_renderer_sandbox(records, browser, executable, uid, renderer_pids):
     if not renderer_pids or any(pid not in records for pid in renderer_pids):
         raise ValueError('Missing browser-reported renderer PID evidence')
     renderers = [records[pid] for pid in sorted(renderer_pids)]
-    if any(option(p.argv, '--type') != 'renderer' or not descends(records, p, browser.pid) for p in renderers):
+    if any(option(expand_argv(p.argv), '--type') != 'renderer' or not descends(records, p, browser.pid) for p in renderers):
         raise ValueError('Renderer PID does not belong to the selected browser')
     for renderer in renderers:
         safe_argv(renderer.argv)
@@ -320,7 +331,7 @@ def main():
                 observed = None
                 for _ in range(20):
                     current = [p for p in records.values() if p.exe == executable
-                               and (p.pid, p.start) not in previous and option(p.argv, '--type') is None
+                               and (p.pid, p.start) not in previous and option(expand_argv(p.argv), '--type') is None
                                and descends(records, p, os.getpid())]
                     if len(current) == 1:
                         observed = current[0]
@@ -335,9 +346,9 @@ def main():
                 if observed.uids != (os.getuid(),)*4:
                     raise ValueError('Browser UID identity not verified')
                 safe_argv(observed.argv)
-                if '--remote-debugging-pipe' not in observed.argv:
+                if '--remote-debugging-pipe' not in expand_argv(observed.argv):
                     raise ValueError('Missing Playwright pipe identity')
-                profile = Path(option(observed.argv, '--user-data-dir')).resolve(strict=True)
+                profile = Path(option(expand_argv(observed.argv), '--user-data-dir')).resolve(strict=True)
                 assert profile.is_dir() and profile.stat().st_uid == os.getuid(), 'Profile ownership not verified'
                 report['accepted'].append('actual-proc-browser-identity/argv/profile')
                 report['browserProcess'] = {'pid': observed.pid, 'startTicks': observed.start, 'exe': observed.exe}
