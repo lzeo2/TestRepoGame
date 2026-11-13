@@ -453,7 +453,16 @@ def main():
                 # button; the game's own snapshot gates the result.
                 page.locator('[data-panel="shop"]').click(force=True, timeout=60000)
                 page.locator('[data-action="openMarket"]').click(force=True, timeout=60000)
-                page.locator('[data-action="buy"]').first.click(force=True, timeout=60000)
+                # Conveyor items move and can be bought by NPCs mid-click;
+                # retry until a visible SIGN PLAYER click actually lands.
+                for _ in range(6):
+                    try:
+                        page.locator('[data-action="buy"]:visible').first.click(force=True, timeout=10000)
+                        break
+                    except Exception:
+                        continue
+                else:
+                    raise TimeoutError('no visible SIGN PLAYER clicked')
                 report['events'].append({'kind': 'menu-clicks-forced', 'reason': 'swiftshader per-frame re-render'})
                 page.wait_for_function('window.basketballerSnapshot().state.roster.length===1')
                 assert not report['errors'] and not report['external'], 'Recruit gate error; stop'
