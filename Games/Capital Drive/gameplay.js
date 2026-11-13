@@ -1,3 +1,4 @@
+import { createPolice } from './police.js';
 // Pure Street Life rules. The controller owns time, driving, persistence and rendering.
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const finite = n => Number.isFinite(n) ? n : 0;
@@ -14,13 +15,14 @@ const MAGAZINE = 12;
 
 export function createGameplay(map, simulation, options = {}) {
   const state = { mode: 'vehicle', actor: { x: 0, z: 0, yaw: 0, speed: 0, jumpHeight: 0 },
-    health: 100, vehicleHealth: 100, weapon: 'unarmed', ammo: MAGAZINE, reserveAmmo: 72,
+    health: 100, vehicleHealth: 100, weapon: 'unarmed', ammo: 0, reserveAmmo: 0,
     aiming: false, reloading: 0, attackTimer: 0, wanted: 0, pursuit: 'clear', heat: 0,
     police: [], shots: [], respawnSerial: 0, vehicle: { modelId: 'lantern', color: 0xd4d7d3, stolen: false },
-    event: '', message: '', sandbox: Boolean(options.sandbox) };
-  let fireCooldown = 0, meleeCooldown = 0, jumpVelocity = 0, arrestTime = 0;
-  let previousCrashes = simulation.player.crashes || 0, witnessCooldown = 0, policeSerial = 0;
-  let lastSeen = { x: simulation.player.x, z: simulation.player.z }, retaliationCooldown = 0;
+    carjacking: null, recovery: null, event: '', message: '', sandbox: Boolean(options.sandbox) };
+  let fireCooldown = 0, meleeCooldown = 0, jumpVelocity = 0;
+  let previousCrashes = simulation.player.crashes || 0, witnessCooldown = 0;
+  let retaliationCooldown = 0, firstEquip = false;
+  const policeController = createPolice(simulation, { onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
   const focus = () => state.mode === 'foot' ? state.actor : simulation.player;
   const visible = (a, b) => simulation.hasLineOfSight(a, b);
   function emit(kind, message, extra = {}) {
@@ -36,15 +38,17 @@ export function createGameplay(map, simulation, options = {}) {
     if (typeof kind === 'object') {
       details = kind; severity = kind.severity ?? 1; kind = kind.kind || 'disturbance';
     }
+    if (state.recovery) return false;
     const point = details.point || focus();
     if ((details.offenderId !== undefined && details.offenderId !== 'player') || state.sandbox || details.witnessed === false || (!details.witnessed && !witnesses(point))) return false;
     state.wanted = clamp(state.wanted + clamp(Math.ceil(finite(severity)), 1, 3), 0, 5);
     state.heat = 28 + state.wanted * 9; state.pursuit = 'search'; witnessCooldown = 1;
-    lastSeen = { x: point.x, z: point.z };
+    policeController.report(point);
     emit('offence', `Reported: ${kind}`, { offence: kind, wanted: state.wanted });
     return true;
   }
   function interact() {
+    if (state.recovery || state.carjacking) return false;
     if (state.mode === 'vehicle') {
       if (Math.abs(simulation.player.speed) > 1.2) {
         simulation.player.speed = 0; simulation.player.vx = 0; simulation.player.vz = 0;
@@ -66,6 +70,14 @@ export function createGameplay(map, simulation, options = {}) {
     const target = simulation.nearbyVehicles(state.actor.x, state.actor.z, 7)
       .filter(v => visible(state.actor, v)).sort((a, b) => distance(a, state.actor) - distance(b, state.actor))[0];
     if (!target) { emit('no-vehicle', 'Move closer to a car.'); return false; }
+    if (target.occupied && target.id !== 'player') {
+      simulation.requestVehicleStop(target.id, 5);
+      state.carjacking = { id: target.id, elapsed: 0, waited: 0, duration: 1.8, progress: 0 };
+      emit('carjacking', 'Waiting for the driver to stop.'); return false;
+    }
+    return enterVehicle(target);
+  }
+  function enterVehicle(target) {
     const result = simulation.claimVehicle(target.id);
     if (!result.ok) { emit('blocked', result.reason || 'Car unavailable.'); return false; }
     state.mode = 'vehicle'; state.actor.speed = 0; state.actor.jumpHeight = 0; jumpVelocity = 0;
@@ -78,11 +90,16 @@ export function createGameplay(map, simulation, options = {}) {
     emit('enter', result.stolen ? 'Vehicle taken.' : 'Back behind the wheel.'); return true;
   }
   function setWeapon(weapon) {
-    if (!['unarmed', 'pistol'].includes(weapon)) return false;
+    if (state.recovery || !['unarmed', 'pistol'].includes(weapon)) return false;
+    if (weapon === 'pistol' && !(state.sandbox || options.hasPistol?.())) return false;
+    if (weapon === 'pistol' && !firstEquip) {
+      const amount = Math.min(MAGAZINE, state.reserveAmmo); state.ammo += amount; state.reserveAmmo -= amount;
+      firstEquip = true;
+    }
     state.weapon = weapon; state.aiming = false; return true;
   }
   function reload() {
-    if (state.weapon !== 'pistol' || state.ammo >= MAGAZINE || state.reserveAmmo <= 0 || state.reloading > 0) return false;
+    if (state.recovery || state.weapon !== 'pistol' || state.ammo >= MAGAZINE || state.reserveAmmo <= 0 || state.reloading > 0) return false;
     state.reloading = 1.4; emit('reload', 'Reloading.'); return true;
   }
   function attack(kind) {
@@ -129,55 +146,59 @@ export function createGameplay(map, simulation, options = {}) {
     state.mode = 'vehicle'; state.health = 100; state.vehicleHealth = 100; state.wanted = 0;
     state.heat = 0; state.pursuit = 'clear'; state.police.length = 0; state.shots.length = 0;
     state.actor.jumpHeight = 0; state.actor.speed = 0; state.aiming = false; state.reloading = 0;
-    state.ammo = MAGAZINE; state.reserveAmmo = 72; state.attackTimer = 0; state.arrestProgress = 0;
+    state.attackTimer = 0; state.arrestProgress = 0;
     fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0;
-    jumpVelocity = 0; arrestTime = 0; witnessCooldown = 0; state.respawnSerial++;
+    jumpVelocity = 0; witnessCooldown = 0; state.respawnSerial++;
     previousCrashes = simulation.player.crashes || 0;
     emit('respawn', reason === 'arrest' ? 'Released near the station.' : 'Recovered near the hospital.', { reason });
     if (!state.sandbox) options.onRespawn?.(reason);
   }
-  function spawnPolice() {
-    const target = focus(), index = state.police.length;
-    const angle = index * 2.1 + 0.7;
-    const road = simulation.nearestRoad(target.x + Math.cos(angle) * 110, target.z + Math.sin(angle) * 110);
-    if (!road) return;
-    state.police.push({ id: `police:${policeSerial++}`, x: road.x, z: road.z, yaw: road.yaw || 0,
-      speed: 0, health: 100, seesPlayer: false, searchTime: 0, modelId: 'relay', color: 0xe7e7df });
+  function beginRecovery(reason) {
+    if (state.recovery) return;
+    state.carjacking = null; state.aiming = false; state.actor.speed = 0; state.attackTimer = 0;
+    state.recovery = { reason, phase: 'out', elapsed: 0, duration: 3.4, progress: 0 };
+    simulation.player.speed = 0; simulation.player.vx = 0; simulation.player.vz = 0;
+    emit('recovery', reason === 'arrest' ? 'Being taken to the station.' : 'Medical help is arriving.', { reason });
   }
-  function updatePolice(dt) {
-    if (state.sandbox || state.wanted <= 0) { state.police.length = 0; state.pursuit = 'clear'; return; }
-    const desiredCount = Math.min(4, state.wanted + 1);
-    while (state.police.length < desiredCount) { const before = state.police.length; spawnPolice(); if (before === state.police.length) break; }
-    let seen = false, arresting = false;
-    const target = focus();
-    for (const police of state.police) {
-      police.seesPlayer = police.health > 0 && distance(police, target) < 145 && visible(police, target);
-      if (police.health <= 0) { police.speed = 0; continue; }
-      if (police.seesPlayer) { seen = true; lastSeen = { x: target.x, z: target.z }; police.searchTime = 0; }
-      else police.searchTime += dt;
-      const destination = police.seesPlayer ? target : lastSeen;
-      const gap = distance(police, destination);
-      const speed = police.seesPlayer ? 14 + state.wanted * 2 : 7;
-      if (gap > 3) {
-        const dx = (destination.x - police.x) / gap, dz = (destination.z - police.z) / gap;
-        police.yaw = yawFor(dx, dz);
-        const old = { x: police.x, z: police.z };
-        simulation.moveActor(police, dx * Math.min(gap - 2, speed * dt), dz * Math.min(gap - 2, speed * dt), 1.25);
-        police.speed = distance(old, police) / dt;
-      } else police.speed = 0;
-      if (police.seesPlayer && distance(police, target) < (state.mode === 'foot' ? 4.2 : 6) && Math.abs(target.speed) < 2) arresting = true;
+  function updateCarjacking(dt) {
+    const action = state.carjacking;
+    if (!action) return;
+    action.waited += dt;
+    if (action.waited > 8) { state.carjacking = null; emit('blocked', 'Driver did not stop nearby.'); return; }
+    const target = simulation.nearbyVehicles(state.actor.x, state.actor.z, 7).find(v => v.id === action.id);
+    if (!target || !visible(state.actor, target) || state.mode !== 'foot') { state.carjacking = null; return; }
+    simulation.requestVehicleStop(target.id, 3);
+    // The taking clock only runs beside a stopped, visible occupied car.
+    if (distance(target, state.actor) > 5 || Math.abs(target.speed || 0) > 0.7) { action.elapsed = 0; action.progress = 0; return; }
+    action.elapsed += dt; action.progress = clamp(action.elapsed / action.duration, 0, 1);
+    if (action.elapsed >= action.duration) {
+      const displaced = { id: `exit:${target.id}`, x: target.x + Math.cos(target.yaw || 0)*2,
+        z: target.z - Math.sin(target.yaw || 0)*2, yaw: target.yaw || 0 };
+      state.carjacking = null;
+      if (enterVehicle(target)) options.onCarjacked?.(displaced);
     }
-    if (seen) { state.pursuit = 'pursuit'; state.heat = 28 + state.wanted * 9; }
-    else { state.pursuit = 'search'; state.heat = Math.max(0, state.heat - dt);
-      if (state.heat <= 0) { state.wanted = 0; state.pursuit = 'clear'; state.police.length = 0; emit('escaped', 'Search ended.'); }
-    }
-    arrestTime = arresting ? arrestTime + dt : Math.max(0, arrestTime - dt * 2);
-    state.arrestProgress = clamp(arrestTime / 3.5, 0, 1);
-    if (arrestTime >= 3.5) respawn('arrest');
+  }
+  function addAmmo(amount) {
+    if (state.recovery || !Number.isFinite(amount) || amount <= 0) return false;
+    state.reserveAmmo = clamp(state.reserveAmmo + Math.floor(amount), 0, 240); return true;
+  }
+  function heal(amount) {
+    if (state.recovery || !Number.isFinite(amount) || amount <= 0 || state.health >= 100) return false;
+    state.health = clamp(state.health + amount, 0, 100); return true;
   }
   function step(dt, input = {}) {
     if (!Number.isFinite(dt) || dt <= 0) return;
     dt = Math.min(dt, 0.05);
+    if (state.recovery) {
+      const recovery = state.recovery; recovery.elapsed += dt;
+      recovery.progress = clamp(recovery.elapsed / recovery.duration, 0, 1);
+      if (recovery.phase === 'out' && recovery.elapsed >= 1.8) {
+        respawn(recovery.reason); recovery.phase = 'in';
+      }
+      if (recovery.elapsed >= recovery.duration) state.recovery = null;
+      return;
+    }
+    updateCarjacking(dt);
     fireCooldown = Math.max(0, fireCooldown - dt); meleeCooldown = Math.max(0, meleeCooldown - dt);
     witnessCooldown = Math.max(0, witnessCooldown - dt);
     retaliationCooldown = Math.max(0, retaliationCooldown - dt); state.attackTimer = Math.max(0, state.attackTimer - dt);
@@ -188,7 +209,7 @@ export function createGameplay(map, simulation, options = {}) {
     }
     if (state.mode === 'foot') {
       const x = finite(input.moveX), z = finite(input.moveZ), length = Math.hypot(x, z);
-      const speed = input.sprint ? 6.8 : 3.6;
+      const speed = input.sprint ? 6.8 + clamp(finite(options.fitness?.()), 0, 3) * 0.6 : 3.6;
       const before = { x: state.actor.x, z: state.actor.z };
       if (length > 0) simulation.moveActor(state.actor, x / Math.max(1, length) * speed * dt, z / Math.max(1, length) * speed * dt, 0.45);
       state.actor.speed = distance(before, state.actor) / dt;
@@ -223,21 +244,23 @@ export function createGameplay(map, simulation, options = {}) {
         reportOffence(event.offence || event.kind || 'assault', event.severity || 1, { witnessed: true, point: focus() });
       }
     }
-    if (!state.sandbox && (state.health <= 0 || state.vehicleHealth <= 0)) { respawn('knockout'); return; }
-    updatePolice(dt);
+    if (!state.sandbox && (state.health <= 0 || state.vehicleHealth <= 0)) { beginRecovery('knockout'); return; }
+    policeController.step(dt, state, focus());
   }
   function reset({ sandbox = state.sandbox } = {}) {
     state.mode = 'vehicle'; Object.assign(state.actor, { x: simulation.player.x, z: simulation.player.z, yaw: simulation.player.yaw,
       speed: 0, jumpHeight: 0 });
-    Object.assign(state, { health: 100, vehicleHealth: 100, weapon: 'unarmed', ammo: MAGAZINE, reserveAmmo: 72,
+    Object.assign(state, { health: 100, vehicleHealth: 100, weapon: 'unarmed', ammo: 0, reserveAmmo: 0,
       aiming: false, reloading: 0, attackTimer: 0, wanted: 0, pursuit: 'clear', heat: 0, sandbox: Boolean(sandbox),
-      event: '', message: '', arrestProgress: 0 });
+      event: '', message: '', arrestProgress: 0, recovery: null, carjacking: null });
     state.police.length = 0; state.shots.length = 0;
-    fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0; jumpVelocity = 0; arrestTime = 0; witnessCooldown = 0;
+    policeController.reset(); firstEquip = false;
+    if (state.sandbox) { state.ammo = MAGAZINE; state.reserveAmmo = 72; firstEquip = true; }
+    fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0; jumpVelocity = 0; witnessCooldown = 0;
     previousCrashes = simulation.player.crashes || 0;
     options.pedestrians?.drainEvents?.();
   }
   reset();
-  return { state, focus, step, interact, setWeapon, reload, reportOffence, reset,
+  return { state, focus, step, interact, setWeapon, reload, reportOffence, reset, addAmmo, heal,
     snapshot: () => freeze(JSON.parse(JSON.stringify(state))) };
 }

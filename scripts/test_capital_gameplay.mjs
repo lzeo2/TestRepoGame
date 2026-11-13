@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-const moduleFrom = async path => import(`data:text/javascript;base64,${Buffer.from(await readFile(new URL(path, import.meta.url), 'utf8')).toString('base64')}`);
+const moduleURL = async url => {
+  let source = await readFile(url, 'utf8');
+  for (const match of [...source.matchAll(/from ['"](\.[^'"]+)['"]/g)]) source = source.replace(match[1], await moduleURL(new URL(match[1], url)));
+  return `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
+};
+const moduleFrom = async path => import(await moduleURL(new URL(path, import.meta.url)));
 const { createGameplay } = await moduleFrom('../Games/Capital Drive/gameplay.js');
 const { createSimulation } = await moduleFrom('../Games/Capital Drive/simulation.js');
 const map = { bounds: { minX: -500, maxX: 500, minZ: -500, maxZ: 500 },
@@ -12,7 +17,7 @@ let strikeArgs, respawns = [], changes = [], events = [];
 const pedestrians = { snapshot: () => [{ x: 4, z: 4, health: 100 }],
   strike: args => { strikeArgs = args; return { hits: 1, people: [{ id: 1 }] }; },
   alert() {}, drainEvents: () => events.splice(0) };
-const game = createGameplay(map, simulation, { pedestrians, onRespawn: reason => respawns.push(reason), onVehicleChanged: v => changes.push(v) });
+const game = createGameplay(map, simulation, { pedestrians, hasPistol: () => true, onRespawn: reason => respawns.push(reason), onVehicleChanged: v => changes.push(v) });
 const tick = (seconds, input = {}) => { for (let i = 0; i < Math.ceil(seconds * 60); i++) game.step(1 / 60, input); };
 assert.equal(game.focus(), simulation.player);
 simulation.player.speed = 8;
@@ -28,7 +33,7 @@ tick(0.2, { jump: true }); assert(game.state.actor.jumpHeight > 0); tick(1); ass
 const frozen = JSON.stringify(game.snapshot()); game.step(0, { fire: true, jump: true }); assert.equal(JSON.stringify(game.snapshot()), frozen);
 // Position a fixture actor before a real polygon, aim through it, and verify clipped hit adapter.
 Object.assign(game.state.actor, { x: 10, z: 0, yaw: -Math.PI / 2 });
-game.setWeapon('pistol'); game.step(1 / 60, { aim: true, aimYaw: -Math.PI / 2, fire: true });
+game.addAmmo(84); game.setWeapon('pistol'); game.step(1 / 60, { aim: true, aimYaw: -Math.PI / 2, fire: true });
 assert(strikeArgs.range > 4.8 && strikeArgs.range < 5);
 assert.equal(game.state.ammo, 11); assert.equal(game.state.shots.length, 1);
 game.step(1 / 60, { fire: true }); assert.equal(game.state.ammo, 11, 'fire cooldown');
@@ -41,8 +46,8 @@ assert(game.state.police.every(p => !p.seesPlayer)); assert.equal(game.state.pur
 assert(game.state.police.length <= 4);
 const heat = game.state.heat; tick(1); assert(game.state.heat < heat);
 game.reportOffence('theft', 1, { witnessed: true }); assert(game.state.heat > heat - 1);
-// Remaining behind the solid wall eventually ends the search.
-tick(75); assert.equal(game.state.wanted, 0); assert.equal(game.state.police.length, 0);
+// A lost-sight fixture cannot retain pursuit indefinitely.
+game.state.police.forEach(p => { p.health = 0; }); tick(75); assert.equal(game.state.wanted, 0); assert.equal(game.state.police.length, 0);
 // Nearby adult retaliation changes health once per cooldown, never through the wall.
 events.push({ type: 'retaliation', kind: 'melee', x: 11, z: 0, damage: 5 });
 game.step(1 / 60); assert.equal(game.state.health, 95);
@@ -51,8 +56,9 @@ game.step(1 / 60); assert.equal(game.state.health, 95);
 // A stationary driver can be arrested by visible officers after a real hold period.
 game.reset(); game.reportOffence('fixture arrest', 1, { witnessed: true });
 game.state.police.splice(0, game.state.police.length, ...Array.from({ length: 4 }, (_, i) => ({ id: `arrest${i}`,
-  x: simulation.player.x + 3, z: simulation.player.z, yaw: 0, speed: 0, health: 100, searchTime: 0 })));
+  x: simulation.player.x + 3, z: simulation.player.z, yaw: 0, speed: 0, health: 100, mode: 'foot', searchTime: 0 })));
 const serial = game.state.respawnSerial; tick(3.6);
+assert(game.state.recovery); assert.equal(game.state.respawnSerial, serial); tick(3.5);
 assert.equal(game.state.respawnSerial, serial + 1); assert.equal(respawns.at(-1), 'arrest');
 assert.equal(game.state.wanted, 0); assert.equal(game.state.arrestProgress, 0);
 respawns.length = 0;
@@ -62,6 +68,7 @@ game.reset({ sandbox: true }); assert.equal(game.reportOffence('gunfire', 3, { w
 simulation.player.crashes += 7; tick(0.1); assert.equal(respawns.length, 0); assert.equal(game.state.wanted, 0);
 game.reset({ sandbox: false });
 simulation.player.crashes += 7; tick(0.1); simulation.player.crashes += 7; tick(0.1);
+assert(game.state.recovery); assert.equal(respawns.length, 0); tick(3.5);
 assert.equal(respawns.at(-1), 'knockout'); assert.equal(game.state.health, 100); assert.equal(game.state.vehicleHealth, 100);
 // Enter source with exact metadata and preserve claim state.
 simulation.setParkedCars([{ id: 'test-parked', x: 8, z: 0, yaw: 0, modelId: 'orchard', color: 0xabcdef }]);
