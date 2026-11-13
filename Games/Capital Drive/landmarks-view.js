@@ -55,9 +55,11 @@ export function createLandmarksView(scene, map, heightAt) {
         for (let i = 0; i < 12; i++) {
           const x0 = side * (18 + i * 11), x1 = side * (18 + (i + 1) * 11);
           const y0 = 18 * (1 - i / 12), y1 = 18 * (1 - (i + 1) / 12);
-          quad([x0,y0,-132],[x1,y1,-132],[x1,y1,132],[x0,y0,132],GRASS);
-          quad([x0,-13,-132],[x1,-13,-132],[x1,y1,-132],[x0,y0,-132],MARBLE);
-          quad([x1,-13,132],[x0,-13,132],[x0,y0,132],[x1,y1,132],MARBLE);
+          // Low lawn edges rise inward to the roof deck rather than a tall pale fascia.
+          quad([x0,y0*0.12,-132],[x1,y1*0.12,-132],[x1,y1,0],[x0,y0,0],GRASS);
+          quad([x0,y0,0],[x1,y1,0],[x1,y1*0.12,132],[x0,y0*0.12,132],GRASS);
+          quad([x0,-13,-132],[x1,-13,-132],[x1,y1*0.12,-132],[x0,y0*0.12,-132],MARBLE);
+          quad([x1,-13,132],[x0,-13,132],[x0,y0*0.12,132],[x1,y1*0.12,132],MARBLE);
         }
       }
       for (const side of [-1, 1]) quad([side*150,-13,-132],[side*150,-13,132],[side*150,0,132],[side*150,0,-132],MARBLE);
@@ -77,6 +79,31 @@ export function createLandmarksView(scene, map, heightAt) {
       for (const x of [-19,19]) for (const z of [-19,19]) beam([x,18,z],[0,81,0],0.65,METAL);
       beam([0,70,0],[0,99,0],0.55,METAL);
       quad([0,96,0],[12.8,94.6,1.4],[12.8,88.2,1.4],[0,89.6,0],0x23395d);
+      // Original flat flag markings, offset towards the forecourt to avoid z-fighting.
+      let flagLayer=0.035;
+      const flagPoint = (u,v) => [u*12.8,96-u*1.4-v*6.4,u*1.4-flagLayer];
+      const flagQuad = (points,tint) => { flagLayer+=0.004; quad(...points.map(p=>flagPoint(...p)),tint); };
+      const WHITE=0xffffff,RED=0xc53c40;
+      // Canton diagonal bands, kept inside the upper-left quarter.
+      flagQuad([[0,0.025],[0.025,0],[0.5,0.475],[0.475,0.5]],WHITE);
+      flagQuad([[0,0.475],[0.025,0.5],[0.5,0.025],[0.475,0]],WHITE);
+      flagQuad([[0,0.012],[0.012,0],[0.5,0.488],[0.488,0.5]],RED);
+      flagQuad([[0,0.488],[0.012,0.5],[0.5,0.012],[0.488,0]],RED);
+      flagQuad([[0.21,0],[0.29,0],[0.29,0.5],[0.21,0.5]],WHITE);
+      flagQuad([[0,0.205],[0.5,0.205],[0.5,0.295],[0,0.295]],WHITE);
+      flagQuad([[0.23,0],[0.27,0],[0.27,0.5],[0.23,0.5]],RED);
+      flagQuad([[0,0.225],[0.5,0.225],[0.5,0.275],[0,0.275]],RED);
+      function flagStar(u,v,radius,points=7) {
+        flagLayer+=0.004;
+        const ring=Array.from({length:points*2},(_,i)=>{
+          const a=-Math.PI/2+i/points*Math.PI,r=i%2?radius*0.43:radius;
+          return flagPoint(u+Math.cos(a)*r/12.8,v+Math.sin(a)*r/6.4);
+        });
+        for(let i=0;i<ring.length;i++)tri(flagPoint(u,v),ring[i],ring[(i+1)%ring.length],WHITE);
+      }
+      flagStar(0.25,0.75,0.66);
+      for(const [u,v,r] of [[0.75,0.19,0.43],[0.62,0.44,0.43],[0.85,0.39,0.43],[0.75,0.81,0.43]])flagStar(u,v,r);
+      flagStar(0.81,0.58,0.25,5);
       detail = true;
       quad(groundPoint(-72,-157),groundPoint(72,-157),groundPoint(72,-221),groundPoint(-72,-221),0xa16c55);
       const poolY=groundY(0,-193)+0.24;

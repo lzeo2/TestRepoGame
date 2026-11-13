@@ -61,7 +61,7 @@ National Gallery/Portrait Gallery are deferred from this bounded study.
 
 ## Runtime budget and verification
 
-Four sites, eight merged meshes, two pooled vertex-colour materials,5088triangles.
+Four sites, eight merged meshes, two pooled vertex-colour materials,5232triangles.
 No images, runtime fetch, animation loop or mutable global state. Local terrain
 sets each anchor; the oval and forecourt sample terrain. Main buildings use deep
 foundations where needed to close slopes. Detail disappears after850m plus site
@@ -71,7 +71,7 @@ Three.js depth testing still allows intervening terrain/buildings to occlude it.
 No opacity fade or per-frame allocation. update accepts x/z or position.x/z;
 time is currently unused because landmarks are static. Disposal is idempotent.
 
-`node scripts/test_capital_landmarks.mjs` passed: four sites,5088triangles,
+`node scripts/test_capital_landmarks.mjs` passed: four sites,5232triangles,
 12exact replacement IDs, pure lookup/projection, anchor grounding, orientation,
 81m mast above estimated roof deck, finite buffers, near/far culling, fog-aware
 skyline and eight geometry/two material disposals. Existing world regression and
@@ -173,7 +173,35 @@ would fail it. A world-generator regression verifies exact candidate removal in
 a supplied polygon and unchanged tree generation for a distant polygon. Frozen
 clearing/projection checks, finite buffers, LOD and disposal checks also pass.
 `node scripts/test_capital_landmarks.mjs`, the existing world regression, syntax
-checks and `git diff --check` passed after this change. Current budget:5088
+checks and `git diff --check` passed after this change. Current budget:5232
 triangles, eight meshes, two materials. Root owns the normal-UI recapture and
 near/distant visual acceptance; these numerical checks do not assert a new preview
 PASS or exact architectural fidelity.
+
+
+## Final bounded roof and flag polish
+
+Root's reviewed entrance/clearing capture made the pavilion and mast recognisable,
+but showed a remaining silhouette mismatch: the lawn roof had its full18m height
+at the front/back edges, leaving a tall pale wedge. Each lawn strip now uses two
+inclined green surfaces. The z±132m edge has12percent of that strip's central
+height (maximum2.16m); it rises to18m at z0 and falls to0m at the outer x±150m
+edges. This retains the central roof deck, hall, mast and footprint dimensions,
+while keeping the visible grass incline above the low frontage. The height
+profile is an authored approximation guided by the same reported exterior view,
+not an additional survey or an asserted construction section.
+
+The12.8m by6.4m blue flag plane now carries original flat white/red canton bands,
+a seven-point Commonwealth star and simplified Southern Cross stars. All markings
+are vertex-coloured triangles on slightly separated planes to avoid depth conflict;
+no downloaded flag image, texture or logo asset is used. Geometry stays in the
+existing skyline buffer, so distant views retain the markings. This adds144
+triangles across roof and flag compared with the preceding correction, for5232
+total, eight meshes and two materials. Source data, tree clearings and collision
+remain unchanged.
+
+The landmark regression still passes its entrance-glass raycast and now verifies
+low front/back roof edges,18m central crest, zero-height outer lawn edge, white/red
+flag geometry and finite buffers. Syntax and diff checks passed. Root owns the
+final recapture from the same Parliament approach; no new image PASS is claimed
+by this static geometry check.

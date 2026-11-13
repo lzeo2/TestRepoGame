@@ -49,6 +49,17 @@ assert.ok(Math.abs(inverse(LANDMARK_CLEARINGS[0][2])[1]+145)<1e-8);
 const silhouette=parliament.children[1].geometry.attributes.position.array;
 let highest=-Infinity;for(let i=1;i<silhouette.length;i+=3)highest=Math.max(highest,silhouette[i]);
 assert.equal(highest,99,'81m flag mast above18m roof deck');
+const roofColor=new THREE.Color(0x7e915d),roofPoints=[],silhouetteColor=parliament.children[1].geometry.attributes.color;
+for(let i=0;i<silhouette.length/3;i++) if(Math.abs(silhouetteColor.getX(i)-roofColor.r)<1e-6&&Math.abs(silhouetteColor.getY(i)-roofColor.g)<1e-6)roofPoints.push([silhouette[i*3],silhouette[i*3+1],silhouette[i*3+2]]);
+assert.ok(roofPoints.length>0);
+assert.equal(Math.max(...roofPoints.map(p=>p[1])),18,'central lawn roof retains18m crest');
+assert.ok(roofPoints.filter(p=>Math.abs(p[2])===132).every(p=>p[1]<=2.161),'front/back grass edge stays low');
+assert.ok(roofPoints.filter(p=>Math.abs(p[0])===150).every(p=>p[1]===0),'outer lawn edge remains grounded');
+let whiteFlag=0,redFlag=0;
+const white=new THREE.Color(0xffffff),red=new THREE.Color(0xc53c40);
+for(let i=0;i<silhouette.length/3;i++)if(silhouette[i*3+1]>88){if(Math.abs(silhouetteColor.getX(i)-white.r)<1e-6)whiteFlag++;if(Math.abs(silhouetteColor.getX(i)-red.r)<1e-6&&Math.abs(silhouetteColor.getY(i)-red.g)<1e-6)redFlag++;}
+assert.ok(whiteFlag>100&&redFlag>12,'flag has white stars/canton and red cross geometry');
+
 view.update(LANDMARKS[0]);assert.equal(view.stats.visibleNear,2);assert.ok(view.stats.visibleDistant>=1);
 view.update({x:LANDMARKS[0].x-2500,z:LANDMARKS[0].z});assert.ok(parliament.visible);assert.equal(parliament.children[0].visible,false);
 assert.equal(parliament.children[1].material.fog,false,'distant skyline survives world fog');
