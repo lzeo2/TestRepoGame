@@ -106,6 +106,9 @@ function refreshModeUI() {
   $('teleport-button').disabled = !isSandbox() || !mapSelection;
   $('recover-button').hidden = !isSandbox();
   $('jobs-button').hidden = isSandbox();
+  $('store-car-button').hidden = isSandbox();
+  $('paint-label').textContent = isSandbox() ? 'Paint' : `Paint · $${progression.garage.paintCost}`;
+  $('repair-car-button').textContent = isSandbox() ? 'Repair vehicle' : `Repair · $${progression.garage.repairCost}`;
   $('map-search').placeholder = isSandbox() ? 'Address, street or landmark' : 'Street or landmark';
   $('search-note').textContent = isSandbox() ? 'Local OSM address tags. Some points are approximate building centres.' : 'Local streets and landmarks. Street Life has no teleporting.';
   $('map-mode-note').textContent = isSandbox() ? 'Click to select. Scroll to zoom, drag to pan. Enter teleports. Buildings and water adjust to nearby clear ground.' : 'Click to select. Scroll to zoom, drag to pan. Enter sets a road route. Street Life has no teleporting.';
@@ -128,7 +131,7 @@ $('pause-button').addEventListener('click', () => openDialog('pause-dialog'));
 $('pause-garage-button').addEventListener('click', () => { streetUI.renderGarage(); openDialog('garage-dialog'); });
 $('resume-button').addEventListener('click', closeDialogs);
 $('start-button').addEventListener('click', () => {
-  if (!simulation) return;
+  if (!simulation || !gameplay || !streetUI) return;
   gameMode = selectedGameMode;
   simulation.reset(); restoreParkedCars(); gameplay.reset({ sandbox: isSandbox() });
   if (progression.state.activeJob) progression.cancelJob();

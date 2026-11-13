@@ -20,7 +20,7 @@ MODULES = (
     'script.js', 'simulation.js', 'navigation.js', 'map-projection.js',
     'world-view.js', 'neighbourhood.js', 'pedestrians.js', 'gameplay.js',
     'progression.js', 'actor-view.js', 'landmarks.js', 'landmarks-view.js',
-    'address-search.js',
+    'address-search.js', 'street-ui.js',
 )
 SUITES = (
     'test_capital_drive.mjs', 'test_capital_pedestrians.mjs',
@@ -72,6 +72,7 @@ def main():
     if output is not None and (output == ROOT or ROOT in output.parents):
         parser.error('--output must be outside the repository')
     required = [GAME / filename for filename in MODULES]
+    required += [GAME / filename for filename in ('index.html', 'style.css', 'credits.html')]
     required += [GAME / 'data' / filename for filename in DATA]
     required += [Path('scripts') / filename for filename in SUITES]
     if args.browser:
