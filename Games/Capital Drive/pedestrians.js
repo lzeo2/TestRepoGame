@@ -138,7 +138,8 @@ export function createPedestrians(scene, map, heightAt) {
     drawCalls: 0, triangles: 0, recycled: 0 };
   const spawn = map.spawn || { x: 0, z: 0, yaw: 0 };
   const anchors = (map.landmarks || []).filter(p => ['manuka', 'kingston', 'telopea'].includes(p.id));
-  const pool = [];
+  const pool = [], events = [];
+  const emit = event => { if (events.length < 160) events.push(Object.freeze(event)); };
   function choosePath(target, minimum = 0, maximum = 300) {
     const candidates = [];
     for (const path of paths) {
@@ -149,7 +150,11 @@ export function createPedestrians(scene, map, heightAt) {
     return candidates[Math.floor(random() * candidates.length)];
   }
   function place(person, path, distance = random() * path.length) {
+    person.direction = person.initialDirection;
     person.path = path; person.distance = distance; person.escape = 0; person.stopped = false;
+    person.health = 100; person.reaction = 'calm'; person.fear = 0; person.anger = 0;
+    person.reactionTimer = 0; person.stun = 0; person.knockdown = 0;
+    person.hitCooldown = 0; person.witnessCooldown = 0; person.retaliationCooldown = 0;
     Object.assign(person, pointAlong(path, distance));
     person.y = heightAt(person.x, person.z) + PAVEMENT_LIFT;
   }
@@ -159,6 +164,7 @@ export function createPedestrians(scene, map, heightAt) {
       shirt: SHIRTS[Math.floor(random() * SHIRTS.length)], trousers: TROUSERS[Math.floor(random() * TROUSERS.length)],
       skin: SKIN[Math.floor(random() * SKIN.length)], hair: HAIR[Math.floor(random() * HAIR.length)], bag: random() < 0.45 });
   }
+  for (const p of pool) p.initialDirection = p.direction;
   function resetPopulation(player) {
     if (disposed) return;
     // Explicit teleports need a fresh local street population immediately.
@@ -198,7 +204,7 @@ export function createPedestrians(scene, map, heightAt) {
       pool[i].phase = random() * Math.PI * 2;
       occupied.push(pool[i]);
     }
-    recycleTimer = 0;
+    recycleTimer = 0; events.length = 0;
     render(player);
   }
   const transform = new THREE.Object3D(), color = new THREE.Color(), rootRotation = new THREE.Quaternion();
@@ -206,6 +212,10 @@ export function createPedestrians(scene, map, heightAt) {
   function part(name, person, x, y, z, sx, sy, sz, tint, swing = 0) {
     const mesh = batches[name], index = mesh.count++;
     transform.position.set(x, y, z).applyQuaternion(rootRotation).multiplyScalar(person.height);
+    if (person.knockdown > 0) {
+      transform.position.z += transform.position.y * 0.65;
+      transform.position.y *= 0.22;
+    } else if (person.stun > 0) transform.position.y *= 0.82;
     transform.position.x += person.x; transform.position.y += person.y; transform.position.z += person.z;
     limbRotation.setFromAxisAngle(limbAxis, swing);
     transform.quaternion.copy(rootRotation).multiply(limbRotation);
@@ -218,14 +228,14 @@ export function createPedestrians(scene, map, heightAt) {
       .sort((a, b) => Math.hypot(a.x - player.x, a.z - player.z) - Math.hypot(b.x - player.x, b.z - player.z));
     for (let i = 0; i < visible.length; i++) {
       const p = visible[i], detailed = i < DETAIL_COUNT;
-      const swing = p.stopped ? 0 : Math.sin(p.phase) * 0.5;
+      const swing = p.stopped ? 0 : Math.sin(p.phase) * (p.reaction === 'flee' ? 0.85 : 0.5);
       const yaw = p.yaw + (p.direction < 0 ? Math.PI : 0);
       rootRotation.setFromAxisAngle(axis, yaw);
       part('torso', p, 0, 1.12, 0, 0.23, 0.21, 0.15, p.shirt);
       part('head', p, 0, 1.62, 0, 0.135, 0.17, 0.13, p.skin);
       part('hair', p, 0, 1.72, 0.015, 0.139, 0.09, 0.13, p.hair);
       for (const side of [-1, 1]) {
-        part('arms', p, side * 0.29, 1.06, -Math.sin(swing * side) * 0.12, 0.075, 0.19, 0.075, p.shirt, -swing * side);
+        part('arms', p, side * 0.29, 1.06, -Math.sin(swing * side) * 0.12, 0.075, 0.19, 0.075, p.shirt, p.reaction === 'angry' ? -1.1 : p.reaction === 'panic' ? -2.1 : -swing * side);
         const footLocalZ = Math.sin(swing * side) * 0.22 - 0.045;
         const footX = p.x + (Math.cos(yaw) * side * 0.105 + Math.sin(yaw) * footLocalZ) * p.height;
         const footZ = p.z + (-Math.sin(yaw) * side * 0.105 + Math.cos(yaw) * footLocalZ) * p.height;
@@ -244,21 +254,85 @@ export function createPedestrians(scene, map, heightAt) {
       if (mesh.count) { stats.drawCalls++; stats.triangles += mesh.count * (mesh.geometry.index.count / 3); }
     }
   }
+  function descriptor(p) { return Object.freeze({ id: p.id, x: p.x, z: p.z, health: p.health, reaction: p.reaction }); }
+  function react(p, source, kind, hit = false) {
+    const gun = ['pistol', 'gunshot', 'firearm', 'shot', 'fire'].includes(kind);
+    p.fear = Math.max(p.fear, gun ? 1 : 0.65);
+    p.anger = gun ? 0 : hit ? (p.id % 5 === 0 ? 1 : 0) : p.anger;
+    p.reaction = p.knockdown > 0 ? 'knockdown' : p.stun > 0 ? 'stunned' : p.anger ? 'angry' : 'panic';
+    p.reactionTimer = gun ? 8 : 5;
+    const before = pointAlong(p.path, Math.max(0, p.distance - 0.5));
+    const after = pointAlong(p.path, Math.min(p.path.length, p.distance + 0.5));
+    const dot = (after.x - before.x) * (p.x - source.x) + (after.z - before.z) * (p.z - source.z);
+    if (Math.abs(dot) > 0.001) p.direction = dot > 0 ? 1 : -1;
+    if (p.witnessCooldown <= 0) {
+      emit({ type: 'witness', kind, x: source.x, z: source.z, witnessId: p.id });
+      p.witnessCooldown = 0.8;
+    }
+  }
+  function alert({ x, z, radius = 28, kind = 'gunshot', hasLineOfSight } = {}) {
+    if (disposed || !Number.isFinite(x) || !Number.isFinite(z)) return 0;
+    const reach = Number.isFinite(radius) ? Math.max(0, Math.min(100, radius)) : 28;
+    let count = 0;
+    for (const p of pool) {
+      if (p.knockdown > 0 || Math.hypot(p.x - x, p.z - z) > reach ||
+        (hasLineOfSight && !hasLineOfSight({ x, z }, p))) continue;
+      react(p, { x, z }, kind); count++;
+    }
+    return count;
+  }
+  function strike({ x, z, yaw = 0, range = 2, damage = 20, kind = 'melee', hasLineOfSight } = {}) {
+    const people = [];
+    if (disposed || ![x, z, yaw, range, damage].every(Number.isFinite)) return { hits: 0, people };
+    const reach = Math.max(0, Math.min(100, range)), power = Math.max(0, Math.min(100, damage));
+    const gun = ['pistol', 'gunshot', 'firearm', 'shot', 'fire'].includes(kind);
+    const candidates = pool.map(p => ({ p, distance: Math.hypot(p.x - x, p.z - z) }))
+      .filter(({ p, distance }) => {
+        const forward = (p.x - x) * -Math.sin(yaw) + (p.z - z) * -Math.cos(yaw);
+        const lateral = Math.abs((p.x - x) * Math.cos(yaw) - (p.z - z) * Math.sin(yaw));
+        return power > 0 && p.health > 0 && p.hitCooldown <= 0 && distance <= reach &&
+          forward >= -0.3 && (gun ? lateral <= 0.55 : forward >= distance * 0.25) &&
+          (!hasLineOfSight || hasLineOfSight({ x, z }, p));
+      }).sort((a, b) => a.distance - b.distance);
+    for (const { p } of candidates.slice(0, gun ? 1 : 3)) {
+      p.health = Math.max(0, p.health - power); p.hitCooldown = 0.4;
+      react(p, { x, z }, kind, true);
+      p.stun = 0.65;
+      if (p.health === 0 || power >= 35) { p.knockdown = 2.8; p.reaction = 'knockdown'; }
+      else p.reaction = 'stunned';
+      people.push(descriptor(p));
+    }
+    if (people.length) alert({ x, z, radius: gun ? 40 : 16, kind, hasLineOfSight });
+    return { hits: people.length, people };
+  }
   let recycleTimer = 0;
   function update(player, dt, traffic = []) {
     if (disposed || !(dt > 0)) return;
     dt = Math.min(dt, 0.1); recycleTimer += dt;
     for (const p of pool) {
       const gap = Math.hypot(p.x - player.x, p.z - player.z);
+      for (const key of ['hitCooldown', 'witnessCooldown', 'retaliationCooldown', 'stun', 'knockdown', 'reactionTimer']) p[key] = Math.max(0, p[key] - dt);
+      if (p.reactionTimer <= 0 && p.knockdown <= 0 && p.stun <= 0) {
+        p.reaction = 'calm'; p.fear = 0; p.anger = 0; p.health = Math.min(100, p.health + dt * 20);
+      } else if (p.knockdown > 0) p.reaction = 'knockdown';
+      else if (p.stun > 0) p.reaction = 'stunned';
+      else p.reaction = p.anger ? 'angry' : 'flee';
+      const reckless = Math.abs(player.speed || 0) > 9 && gap < 11;
+      const dangerousCar = traffic.find(car => Math.abs(car.speed || 0) > 9 && Math.hypot(car.x - p.x, car.z - p.z) < 9);
+      if ((reckless || dangerousCar) && p.reactionTimer <= 0) react(p, dangerousCar || player, 'reckless');
+      if (p.reaction === 'angry' && gap < 2.1 && p.retaliationCooldown <= 0) {
+        emit({ type: 'retaliation', kind: 'melee', x: p.x, z: p.z, personId: p.id, damage: 5 });
+        p.retaliationCooldown = 2.2;
+      }
       const caution = Math.min(11, 5 + Math.abs(player.speed || 0) * 0.12);
-      p.stopped = gap < caution || traffic.some(car => Math.hypot(car.x - p.x, car.z - p.z) < 4.5);
+      p.stopped = p.knockdown > 0 || p.stun > 0 || p.reaction === 'angry' || (p.reaction === 'calm' && gap < caution) || traffic.some(car => Math.hypot(car.x - p.x, car.z - p.z) < 4.5);
       const escape = gap < 7 ? 0.45 : 0;
       p.escape += Math.max(-dt * 0.6, Math.min(dt * 0.9, escape - p.escape));
       if (!p.stopped) {
-        p.distance += p.direction * p.speed * dt;
+        p.distance += p.direction * p.speed * (p.reaction === 'flee' ? 2.7 : 1) * dt;
         if (p.distance > p.path.length) { p.distance = p.path.length; p.direction = -1; }
         if (p.distance < 0) { p.distance = 0; p.direction = 1; }
-        p.phase += dt * p.speed * 5.2;
+        p.phase += dt * p.speed * (p.reaction === 'flee' ? 9 : 5.2);
       }
       Object.assign(p, pointAlong(p.path, p.distance));
       p.x += p.nx * p.escape; p.z += p.nz * p.escape;
@@ -278,13 +352,16 @@ export function createPedestrians(scene, map, heightAt) {
     render(player);
   }
   resetPopulation(spawn);
-  return { update, resetPopulation, stats,
+  return { update, resetPopulation, stats, alert, strike,
+    drainEvents() { return events.splice(0); },
     snapshot() { return Object.freeze(pool.map(p => Object.freeze({ id: p.id, x: p.x, y: p.y, z: p.z,
       yaw: p.yaw + (p.direction < 0 ? Math.PI : 0), roadId: p.path.roadId, roadName: p.path.name,
-      sidewalkOffset: p.path.offset, escape: p.escape, stopped: p.stopped, phase: p.phase }))); },
+      sidewalkOffset: p.path.offset, escape: p.escape, stopped: p.stopped, phase: p.phase,
+      health: p.health, reaction: p.reaction, fear: p.fear, anger: p.anger,
+      stun: p.stun, knockdown: p.knockdown, reactionTimer: p.reactionTimer }))); },
     dispose() {
       if (disposed) return;
-      disposed = true; scene.remove(group); capsule.dispose(); sphere.dispose(); box.dispose(); material.dispose();
+      disposed = true; events.length = 0; scene.remove(group); capsule.dispose(); sphere.dispose(); box.dispose(); material.dispose();
       for (const mesh of Object.values(batches)) mesh.dispose();
     } };
 }
