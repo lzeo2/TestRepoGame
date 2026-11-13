@@ -300,11 +300,11 @@ reserved by appearing here.
 | 243 | [Gap Glide](games/243-schoolyardgapglide.md) | `Games/SchoolyardGapGlide/index.html` |
 | 244 | [Courtyard Cast](games/244-schoolyardcourtyardcast.md) | `Games/SchoolyardCourtyardCast/index.html` |
 | 245 | [Capital Drive: Canberra (Preview)](games/245-capital-drive.md) | `Games/Capital Drive/index.html` |
+| 246 | [Steal a Basketballer (Preview)](games/246-stealbasketballer.md) | `Games/StealBasketballer/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
 | Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
 | Unregistered | [Hextris](games/unregistered-hextris.md) | `Games/Hextris/index.html` |
 | Unregistered | [Jankolock](games/unregistered-jankolock.md) | `Games/Jankolock/index.html` |
 | Unregistered | [QWOP](games/unregistered-qwop.md) | `Games/QWOP/index.html` |
 | Unregistered | [Slope](games/unregistered-slope.md) | `Games/Slope/index.html` |
-| Unregistered | [StealBasketballer](games/unregistered-stealbasketballer.md) | `Games/StealBasketballer/index.html` |
 <!-- game-index:end -->
