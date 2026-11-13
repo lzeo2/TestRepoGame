@@ -215,6 +215,7 @@ body[data-mode=free] #cash-value,body[data-mode=free] #wanted-level{display:none
 #search-results button span{display:block;font-size:10px;color:var(--muted);font-weight:400;margin-top:4px}
 .garage-services{display:flex;gap:7px;flex-wrap:wrap}
 .garage-services button{font-size:11px}
+.pause-access{display:flex;gap:8px;margin:12px 0}
 .job-option{border-top:1px solid var(--line);padding:14px 0}
 .job-option h3{font-size:16px;margin:0}
 .job-option p{font-size:11px;margin:7px 0}

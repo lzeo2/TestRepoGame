@@ -11,7 +11,7 @@ import { createProgression } from './progression.js';
 import { createActorView } from './actor-view.js';
 import { createStreetUI } from './street-ui.js';
 import { createAddressSearch } from './address-search.js';
-import { LANDMARKS, replacedBuildingIds } from './landmarks.js';
+import { LANDMARKS, LANDMARK_CLEARINGS, replacedBuildingIds } from './landmarks.js';
 import { createLandmarksView } from './landmarks-view.js';
 
 const $ = id => document.getElementById(id);
@@ -31,6 +31,7 @@ let map, simulation, world, renderer, scene, camera, playerMesh, route = [], des
 let trafficMeshes = [], parkedChunks = [], selectedCar = 'lantern', selectedPaint = '#e7e6df';
 let quality = 'low', started = false, disposed = false, lastTime = 0, accumulator = 0, lastRender = 0, hudTime = 0;
 let orbit = 0, orbitHeight = 0, orbitHold = 0, dragging = false, pointer = null, toastTimer;
+let lookPitch = 0;
 let discovered = new Set(), mapImage, mapScale, savedError = '', routeClock = 0, audio = null;
 let cameraReady = false, raf = 0, frameCount = 0;
 let compatibility = false;
@@ -124,6 +125,7 @@ for (const dialog of dialogs) dialog.addEventListener('close', () => { clearInpu
 $('map-button').addEventListener('click', () => openDialog('map-dialog'));
 $('minimap-button').addEventListener('click', () => openDialog('map-dialog'));
 $('pause-button').addEventListener('click', () => openDialog('pause-dialog'));
+$('pause-garage-button').addEventListener('click', () => { streetUI.renderGarage(); openDialog('garage-dialog'); });
 $('resume-button').addEventListener('click', closeDialogs);
 $('start-button').addEventListener('click', () => {
   if (!simulation) return;
@@ -220,8 +222,12 @@ function toggleSound() {
   if (audio.enabled) audio.context.resume().catch(() => notify('Your browser could not start audio.'));
   $('sound-button').textContent = audio.enabled ? 'Sound on' : 'Sound off';
   $('sound-button').setAttribute('aria-pressed', String(audio.enabled));
+  $('pause-sound-button').textContent = audio.enabled ? 'Sound on' : 'Sound off';
+  $('pause-sound-button').setAttribute('aria-pressed', String(audio.enabled));
+  if (!dialogs.some(dialog => dialog.open)) renderer.domElement.focus();
 }
 $('sound-button').addEventListener('click', toggleSound);
+$('pause-sound-button').addEventListener('click', toggleSound);
 function horn() {
   if (!audio?.enabled) return;
   for (const frequency of [311, 392]) {
@@ -362,7 +368,7 @@ function teleportSelected() {
   if (!arrival.ok) { $('teleport-status').textContent = 'No clear ground at this point. Choose a nearby spot.'; return; }
   gameplay.reset({ sandbox: true });
   pedestrians.resetPopulation(simulation.player);
-  cameraReady = false; accumulator = 0; clearInput();
+  cameraReady = false; accumulator = 0; orbit = 0; orbitHeight = 0; lookPitch = 0; clearInput();
   if (destination) route = findRoute(simulation.graph, simulation.player, destination);
   world.update(simulation.player); neighbourhood.update(simulation.player);
   closeDialogs();
@@ -708,10 +714,11 @@ function animate(time) {
       p.z - Math.cos(angle) * (aiming ? 12 : 1));
   } else {
     orbitHold = Math.max(0, orbitHold - renderDt);
-    if (!dragging && orbitHold === 0) orbit *= Math.exp(-renderDt * 1.6);
+    if (!dragging && orbitHold === 0 && Math.abs(p.speed) > 1) { orbit *= Math.exp(-renderDt * 1.6); lookPitch *= Math.exp(-renderDt * 1.6); }
     const angle = p.yaw + orbit, distance = !started ? 21 : 10.8 + Math.min(4, Math.abs(p.speed) * .065);
     desiredCamera.set(p.x + Math.sin(angle) * distance, world.heightAt(p.x, p.z) + (!started ? 10 : 5.4) + orbitHeight, p.z + Math.cos(angle) * distance);
     lookTarget.set(p.x - Math.sin(p.yaw) * 5, world.heightAt(p.x, p.z) + 1.4, p.z - Math.cos(p.yaw) * 5);
+    lookTarget.y += Math.tan(lookPitch) * (distance + 5);
   }
   desiredCamera.y = Math.max(desiredCamera.y, world.heightAt(desiredCamera.x, desiredCamera.z) + .65);
   camera.position.lerp(desiredCamera, cameraReady ? 1 - Math.exp(-renderDt * 5.5) : 1);
@@ -726,6 +733,7 @@ async function boot() {
   map = await response.json();
   map.landmarks = [...map.landmarks, ...LANDMARKS.filter(place => !map.landmarks.some(old => old.id === place.id))];
   map.landmarkBuildingIds = [...replacedBuildingIds(map)];
+  map.landmarkTreeExclusions = LANDMARK_CLEARINGS;
   const addressData = await addressResponse.json(); addressSearch = createAddressSearch(map, addressData);
   simulation = createSimulation(map);
   scene = new THREE.Scene(); scene.background = new THREE.Color(0xa9c9d5); scene.fog = new THREE.Fog(0xa9c9d5, 230, 750);
@@ -789,9 +797,13 @@ async function boot() {
   viewCanvas.addEventListener('pointerdown', event => { if (paused()) return; dragging = true; pointer = [event.clientX, event.clientY]; viewCanvas.setPointerCapture(event.pointerId); });
   viewCanvas.addEventListener('pointermove', event => {
     if (!dragging || !pointer) return;
-    if (gameplay.state.mode === 'foot') footCameraYaw -= (event.clientX - pointer[0]) * .006;
-    else orbit -= (event.clientX - pointer[0]) * .006;
-    orbitHeight = THREE.MathUtils.clamp(orbitHeight + (event.clientY - pointer[1]) * .025, -1.5, 9);
+    if (gameplay.state.mode === 'foot') {
+      footCameraYaw -= (event.clientX - pointer[0]) * .006;
+      orbitHeight = THREE.MathUtils.clamp(orbitHeight + (event.clientY - pointer[1]) * .025, -1.5, 9);
+    } else {
+      orbit -= (event.clientX - pointer[0]) * .006;
+      lookPitch = THREE.MathUtils.clamp(lookPitch - (event.clientY - pointer[1]) * .004, -.5, .72);
+    }
     pointer = [event.clientX, event.clientY]; orbitHold = 3;
   });
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) viewCanvas.addEventListener(type, () => { dragging = false; pointer = null; });
@@ -802,6 +814,7 @@ async function boot() {
     player: Object.freeze({ ...simulation.player }), focus: Object.freeze({ ...focus() }),
     gameplay: gameplay.snapshot(), career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
     places: Object.freeze(map.landmarks.map(place => Object.freeze({ ...place }))), addressCount: addressData.addresses.length,
+    camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch }),
     discovered: Object.freeze([...discovered]), roadCount: map.roads.length, buildings: map.buildings.length, traffic: simulation.traffic.length,
     visibleTraffic: trafficMeshes.filter(m => m.visible).length, destination: destination?.id ?? null, routePoints: route.length,
     mapSelection: mapSelection ? Object.freeze({ ...mapSelection }) : null,
