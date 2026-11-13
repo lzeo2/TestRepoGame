@@ -1,0 +1,17 @@
+{
+  "status": "FAIL",
+  "kind": "runner teardown only",
+  "checks": "Every browser interaction/validation check reached PASS, including both phone themes, legacy cooldown validation and zero error/request collectors; exact final report unavailable because teardown raised before writing it.",
+  "error": "playwright Error: Event loop is closed! Is Playwright already stopped? at redundant outer browser.close",
+  "screenshots": [
+    "frontage-coals.png",
+    "frontage-paperback-chain.png",
+    "phone-dark.png",
+    "phone-light.png",
+    "pool-gate-inside-entrance.png",
+    "pool-gate-inside.png",
+    "pool-gate-outside.png",
+    "street-stores-route.png"
+  ],
+  "fix": "Removed redundant outer close; sync_playwright context owns browser teardown, final server shutdown/report now always executes"
+}

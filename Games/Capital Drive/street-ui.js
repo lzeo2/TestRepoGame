@@ -130,6 +130,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       const service=progression.services.find(s=>Math.hypot(s.x-pose.x,s.z-pose.z)<=s.radius);
       hint=state.carjacking?`Taking vehicle · ${Math.round(state.carjacking.progress*100)}%`:activity?`${activity.name} · stay nearby`:service?`E ${service.name}`:`${nearby?'E enter car · ':''}WASD walk · Shift sprint`;
     }
+    if(state.mode==='vehicle'&&state.vehicleHealth<=0)hint='Vehicle disabled · E to step out';
     text('interaction-hint', hint);
     const recovery=state.recovery,screen=byId('recovery-screen');
     if(screen){screen.hidden=!recovery;if(recovery){
@@ -159,8 +160,8 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
         const b=actionButton(label,()=>{const r=feedback(progression.startActivity(site.id,type,context()));if(r.ok)closeDialogs();else renderServices();});
         b.dataset.serviceActivity=type;b.disabled=!available||!!progression.state.activeJob||blocked;row.append(b);
       };
-      if(site.type==='food'){
-        purchase(`Food ${money(site.price)} · +${site.heal} health`,'food',site.price,ctx.health>=100);
+      if(site.type==='food'||site.type==='retail'){
+        if(site.type==='food')purchase(`Food ${money(site.price)} · +${site.heal} health`,'food',site.price,ctx.health>=100);
         activity('Rob till','robbery',!progression.state.equipment.pistol||ctx.weapon!=='pistol'||progression.state.robberyCooldowns[site.id]>0);
       }else if(site.type==='gym'){
         const price=site.price*(progression.state.fitnessLevel+1);

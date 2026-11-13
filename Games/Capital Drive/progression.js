@@ -1,4 +1,4 @@
-import {SERVICES} from './services.js';
+import {SERVICES,LEGACY_SHOP_IDS} from './services.js';
 // Fictional job markers beside the mapped roads; these are not real businesses.
 const CARS = [
   { id: 'lantern', name: 'Neighbourhood saloon', price: 0 },
@@ -15,7 +15,7 @@ const point = (x, z, label) => ({ x, z, label });
 const object = value => value && typeof value === 'object' && !Array.isArray(value);
 const exactKeys = (value, keys) => Object.keys(value).every(key => keys.includes(key));
 
-export function createProgression(map, saved = null) {
+export function createProgression(map, saved = null, options = {}) {
   if (!map || !object(map.spawn) || !Number.isFinite(map.spawn.x) || !Number.isFinite(map.spawn.z)) throw new Error('Career requires a mapped spawn.');
   const pickup = point(map.spawn.x, map.spawn.z, 'Crescent parcel pickup');
   const drop = point(-322.32, -348.02, 'Crescent parcel drop');
@@ -36,7 +36,7 @@ export function createProgression(map, saved = null) {
     if (!object(saved) || !exactKeys(saved, ['version', 'cash', 'ownedVehicles', 'completedJobs','equipment','fitnessLevel','robberyCooldowns']) || saved.version !== 1 || !Number.isSafeInteger(saved.cash) || saved.cash < 0 || saved.cash > MAX_CASH || !Array.isArray(saved.ownedVehicles) || saved.ownedVehicles.length < 1 || saved.ownedVehicles.length > CARS.length || !Array.isArray(saved.completedJobs) || saved.completedJobs.length > jobs.length) throw new Error('Unsupported or corrupt career save.');
     if(saved.equipment!==undefined&&(!object(saved.equipment)||!exactKeys(saved.equipment,['pistol'])||typeof saved.equipment.pistol!=='boolean'))throw new Error('Invalid saved equipment.');
     if(saved.fitnessLevel!==undefined&&(!Number.isInteger(saved.fitnessLevel)||saved.fitnessLevel<0||saved.fitnessLevel>3))throw new Error('Invalid saved fitness.');
-    if(saved.robberyCooldowns!==undefined&&(!object(saved.robberyCooldowns)||!exactKeys(saved.robberyCooldowns,SERVICES.filter(s=>s.robbery).map(s=>s.id))||Object.values(saved.robberyCooldowns).some(v=>!Number.isFinite(v)||v<0||v>180)))throw new Error('Invalid saved shop cooldown.');
+    if(saved.robberyCooldowns!==undefined&&(!object(saved.robberyCooldowns)||!exactKeys(saved.robberyCooldowns,[...SERVICES.filter(s=>s.robbery).map(s=>s.id),...LEGACY_SHOP_IDS])||Object.values(saved.robberyCooldowns).some(v=>!Number.isFinite(v)||v<0||v>180)))throw new Error('Invalid saved shop cooldown.');
     const ids = new Set();
     for (const car of saved.ownedVehicles) {
       if (!object(car) || !exactKeys(car, ['id', 'color', 'health', 'stored']) || !CARS.some(item => item.id === car.id) || ids.has(car.id) || !COLOR.test(car.color) || !Number.isFinite(car.health) || car.health < 0 || car.health > 100 || typeof car.stored !== 'boolean') throw new Error('Invalid saved garage.');
@@ -105,7 +105,7 @@ export function createProgression(map, saved = null) {
     const activity=state.activity;
     if(activity){
       const site=SERVICES.find(s=>s.id===activity.serviceId);
-      if(ctx.respawnSerial!==activity.respawnSerial||ctx.recovering||!ctx.onFoot||!near(ctx.pose,site,site.radius)||
+      if(ctx.respawnSerial!==activity.respawnSerial||ctx.recovering||!ctx.onFoot||!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx)||
         (activity.type==='robbery'?ctx.weapon!=='pistol':ctx.wanted>0)){
         state.activity=null;result(false,'Activity interrupted.',{},'activity-ended');
       }else{
@@ -209,10 +209,11 @@ export function createProgression(map, saved = null) {
     const cost = Math.min(250, state.cash); state.cash -= cost;
     return result(true, `${reason}: $${cost} deducted. Completed jobs kept.`, { cost }, 'penalty');
   }
+  function clearApproach(site,ctx){return !options.hasLineOfSight||options.hasLineOfSight(ctx.pose,{x:site.x,z:site.z});}
   function serviceGuard(id,ctx,{allowWanted=false}={}){
     if(!remember(ctx)||ctx.sandbox||ctx.recovering)return result(false,'Activity unavailable.');
     const site=SERVICES.find(s=>s.id===id);
-    if(!site||!near(ctx.pose,site,site.radius))return result(false,'Visit this location first.');
+    if(!site||!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx))return result(false,'Visit this storefront first.');
     if(!ctx.onFoot)return result(false,'Step out of the car first.');
     if(state.activity)return result(false,'Finish the current activity first.');
     if(!allowWanted&&ctx.wanted>0)return result(false,'Lose the police first.');

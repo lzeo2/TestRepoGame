@@ -1,5 +1,5 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
-import { LANDMARKS, MANUKA_POOL_BASIN } from './landmarks.js';
+import { LANDMARKS, MANUKA_POOL_BASIN, POOL_BARRIERS, POOL_GATE_APPROACHES } from './landmarks.js';
 
 const NEAR_RANGE = 850, FAR_RANGE = 4200;
 const PALE = 0xd9d5c5, GRASS = 0x7e915d, GLASS = 0x526c72, METAL = 0xb9c1be;
@@ -176,7 +176,72 @@ export function createLandmarksView(scene, map, heightAt) {
         for (const y of [0.45,1.18]) quad([p[0],p[1]+y,p[2]],[q[0],q[1]+y,q[2]],[q[0],q[1]+y+0.07,q[2]],[p[0],p[1]+y+0.07,p[2]],0x292e2b);
       }
     } else if (site.id === 'manuka-pool') {
-      // Water corners are source geometry; coping/lanes/entry are original approximations.
+      // The exact source boundary and fixed-open gate share collision descriptors.
+      const CREAM=0xe3d8bf,TILE=0xa65c3e,IRON=0x333c36;
+      const local=([x,z])=>[x-site.x,z-site.z];
+      for(const barrier of POOL_BARRIERS) {
+        const [ax,az]=local(barrier.a),[bx,bz]=local(barrier.b);
+        if(barrier.kind==='pillar') {
+          const x=barrier.x-site.x,z=barrier.z-site.z,y=groundY(x,z);
+          block(x,y+barrier.height/2,z,barrier.width,barrier.height,barrier.depth,CREAM,barrier.yaw);
+          block(x,y+3.45,z,0.63,0.18,0.63,PALE,barrier.yaw);
+          continue;
+        }
+        if(barrier.kind==='building') {
+          const x=barrier.x-site.x,z=barrier.z-site.z,y=groundY(x,z);
+          block(x,y+barrier.height/2,z,barrier.width,barrier.height,barrier.depth,CREAM,barrier.yaw);
+          const co=Math.cos(barrier.yaw),si=Math.sin(barrier.yaw);
+          const roof=(u,h,v)=>[x+co*u+si*v,y+h,z-si*u+co*v];
+          const w=barrier.width/2+0.25,d=barrier.depth/2+0.25,h=barrier.height;
+          const a=roof(-w,h,-d),b=roof(w,h,-d),c=roof(w,h,d),e=roof(-w,h,d),r=roof(-w+d,h+1.65,0),t=roof(w-d,h+1.65,0);
+          quad(a,b,t,r,TILE);quad(e,r,t,c,TILE);tri(a,r,e,TILE);tri(b,c,t,TILE);
+          detail=true;
+          // Original terracotta tile rows, dark grilles and cream pilasters.
+          for(const side of [-1,1])for(let i=1;i<5;i++) {
+            const v=side*d*i/5,yy=h+1.65*(1-i/5)+0.025;
+            beam(roof(-w+d*(1-i/5),yy,v),roof(w-d*(1-i/5),yy,v),0.035,0x8e4936);
+          }
+          for(const u of [-2.7,0,2.7]) {
+            const p=roof(u,1.9,barrier.depth/2+0.018);
+            block(p[0],p[1],p[2],1.4,1.5,0.08,IRON,barrier.yaw);
+            for(const offset of [-0.45,0,0.45]) { const q=roof(u+offset,1.9,barrier.depth/2+0.07);block(q[0],q[1],q[2],0.045,1.55,0.07,CREAM,barrier.yaw); }
+          }
+          detail=false;
+          continue;
+        }
+        const pa=groundPoint(ax,az,0),pb=groundPoint(bx,bz,0),h=barrier.height;
+        const nx=-(bz-az)/barrier.width*barrier.depth/2,nz=(bx-ax)/barrier.width*barrier.depth/2;
+        const wall=(height,tint)=>{
+          const a=[ax+nx,pa[1]-0.12,az+nz],b=[bx+nx,pb[1]-0.12,bz+nz],c=[bx-nx,pb[1]-0.12,bz-nz],d=[ax-nx,pa[1]-0.12,az-nz];
+          const up=p=>[p[0],p[1]+height+0.12,p[2]];
+          quad(a,b,up(b),up(a),tint);quad(d,up(d),up(c),c,tint);quad(up(a),up(b),up(c),up(d),tint);
+          quad(a,up(a),up(d),d,tint);quad(b,c,up(c),up(b),tint);
+        };
+        wall(barrier.kind==='wall'?h:0.24,CREAM);
+        if(barrier.kind==='fence') {
+          for(const y of [0.48,1.65])quad([ax,pa[1]+y,az],[bx,pb[1]+y,bz],[bx,pb[1]+y+0.07,bz],[ax,pa[1]+y+0.07,az],IRON);
+          const count=Math.ceil(barrier.width/0.65);
+          for(let i=0;i<=count;i++) {
+            const t=i/count,x=ax+(bx-ax)*t,z=az+(bz-az)*t;
+            const y=groundY(x,z),ex=(bx-ax)/barrier.width*0.035,ez=(bz-az)/barrier.width*0.035;
+            quad([x-ex,y,z-ez],[x+ex,y,z+ez],[x+ex,y+h,z+ez],[x-ex,y+h,z-ez],IRON);
+            quad([x-ez,y,z+ex],[x+ez,y,z-ex],[x+ez,y+h,z-ex],[x-ez,y+h,z+ex],IRON);
+          }
+        }
+      }
+      const gate=POOL_GATE_APPROACHES[0],ga=local(gate.a),gb=local(gate.b),gateYaw=-Math.atan2(gb[1]-ga[1],gb[0]-ga[0]);
+      // Raised header leaves more than three metres headroom and a 2.16m clear gap.
+      const gx=gate.x-site.x,gz=gate.z-site.z,gy=Math.max(groundY(...ga),groundY(...gb));
+      block(gx,gy+3.4,gz,gate.width+0.7,0.4,0.38,CREAM,gateYaw);
+      detail=true;
+      // Art Deco sun/shell rays are original geometric cues, not copied decoration.
+      for(let i=0;i<7;i++) {
+        const angle=(i/6)*Math.PI,dx=Math.cos(angle)*0.48,dy=Math.sin(angle)*0.48;
+        const co=Math.cos(gateYaw),si=Math.sin(gateYaw);
+        beam([gx,gy+3.55,gz-0.21],[gx+co*dx,gy+3.55+dy,gz-si*dx-0.21],0.025,IRON);
+      }
+      detail=false;
+      // Water corners are source geometry; tiled deck and lanes are original art.
       const corners = MANUKA_POOL_BASIN.map(([x,z]) => [x-site.x,z-site.z]);
       const level = Math.max(...corners.map(([x,z]) => groundY(x,z))) + 0.3;
       const point = (u,v,y=level) => [
@@ -198,10 +263,32 @@ export function createLandmarksView(scene, map, heightAt) {
         quad(point(u-half,0.03,level+0.012),point(u+half,0.03,level+0.012),point(u+half,0.97,level+0.012),point(u-half,0.97,level+0.012),0x315d68);
         for(const v of [0.06,0.94])quad(point(u-0.025,v-0.004,level+0.014),point(u+0.025,v-0.004,level+0.014),point(u+0.025,v+0.004,level+0.014),point(u-0.025,v+0.004,level+0.014),0x315d68);
       }
-      // Small unbranded entrance marker, deliberately not a reconstructed building.
-      const yaw=-Math.atan2(corners[1][1]-corners[0][1],corners[1][0]-corners[0][0]);
-      for(const u of [0.35,0.65]) {const p=point(u,-0.075);block(p[0],groundY(p[0],p[2])+1.2,p[2],0.16,2.4,0.16,METAL);}
-      const entry=point(0.5,-0.075);block(entry[0],groundY(entry[0],entry[2])+2.15,entry[2],4.2,0.45,0.16,0xddd6bf,yaw);
+      // A level tiled apron joins the coping without filling the water polygon.
+      const center=corners.reduce((p,q)=>[p[0]+q[0]/4,p[1]+q[1]/4],[0,0]);
+      const deck=corners.map(([x,z])=>[center[0]+(x-center[0])*1.36,center[1]+(z-center[1])*1.18]);
+      for(let i=0;i<4;i++) {
+        const j=(i+1)%4,a=corners[i],b=corners[j],c=deck[j],d=deck[i];
+        quad([a[0],level+0.04,a[1]],[b[0],level+0.04,b[1]],[c[0],level+0.04,c[1]],[d[0],level+0.04,d[1]],0xc3b49b);
+        const count=Math.ceil(Math.hypot(c[0]-d[0],c[1]-d[1])/1.2);
+        for(let k=0;k<=count;k++) {
+          const t=k/count,p=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],q=[d[0]+(c[0]-d[0])*t,d[1]+(c[1]-d[1])*t];
+          quad([p[0],level+0.045,p[1]],[q[0],level+0.045,q[1]],[q[0]+0.025,level+0.045,q[1]],[p[0]+0.025,level+0.045,p[1]],0x9c947f);
+        }
+      }
+      // Ground-following south lawn, backed by a high hedge beside the oval fence.
+      for(const [x,z,w,d] of [[-88,-47,32,25],[-61,-69,14,38]]) {
+        const lx=x-site.x,lz=z-site.z;
+        quad(groundPoint(lx-w/2,lz-d/2,0.12),groundPoint(lx+w/2,lz-d/2,0.12),groundPoint(lx+w/2,lz+d/2,0.12),groundPoint(lx-w/2,lz+d/2,0.12),0x77904e);
+      }
+      for(let i=0;i<12;i++) {
+        const x=-98+i*2.7,z=-24+i*0.35,lx=x-site.x,lz=z-site.z;
+        block(lx,groundY(lx,lz)+1.25,lz,2.8,2.5,1.6,0x4c6740,-0.13);
+        if(i%3===0) {
+          const tx=lx+0.5,tz=lz+2;
+          primitive(cylinder,tx,groundY(tx,tz)+3.3,tz,0.25,6.6,0.25,0x78654c);
+          primitive(cylinder,tx,groundY(tx,tz)+7.3,tz,2.9,5,2.9,0x526f43);
+        }
+      }
     } else {
       block(0,4,0,28,16,50,0xa47553);
       block(0,13,0,29,2,51,0x77796f);

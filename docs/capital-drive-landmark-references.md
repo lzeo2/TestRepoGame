@@ -241,3 +241,41 @@ No additional pool panorama was inspected. The preceding recorded Street View
 observations inform architectural cues; the pool shape comes from licensed OSM
 geometry. This continuation makes no photogrammetry, survey or citywide imagery
 claim. Fresh browser evidence belongs to the expansion receipt.
+
+
+## Enclosed Manuka Pool complex, 14 November 2026
+
+The owner requested fences and a more recognisable pool complex. The exact
+80-vertex sports-centre site polygon from OSM51677758 now defines the enclosure,
+separately from the unchanged basin58851110. Original terrain-following cream
+walls and iron fence spans follow that boundary. A northwest entrance leaves a
+2.16m clear gate, with two cream wings/terracotta hipped roofs, grille details,
+Deco shell rays, tiled deck, lawn, hedges and modest tree clusters. Gate position,
+wall materials, wing dimensions and planting are authored approximations.
+The three neighbouring ACT community buildings remain; only the inspected basin
+block is suppressed in rendering/collision. The real basin is water collision.
+
+Public references inspected as text on14November:
+[pool operator history](https://manukapool.com.au/about-us/) describes Federal
+Art Deco architecture, retained heritage design, refurbished seating and retiling;
+[Philip Leeson Architects' kiosk project](https://www.philipleeson.com.au/cultural-commercial-architecture/manuka-pool-kiosk)
+describes a low sheltering roof, lawn-facing covered area and high hedge/tall-tree
+backdrop along the oval boundary. The architectural heritage PDF request returned
+403; its search summary supplies cream rendered brick/hipped tile/wrought-iron
+cues, not a newly inspected photograph. No new Street View inspection or image
+asset is claimed or bundled.
+
+`POOL_BARRIERS` exports203 frozen polygon/rectangle descriptors matching visible
+fences, entrance wings and pillars; gate approaches are exported separately.
+Source tests require every collider corner in rendered geometry, no fence in the
+water and terrain-following heights. An actual-map simulation sweep walks a.45m
+actor from outside to inside through the gate without contact, while water and
+fence spans block actors/vehicles. The old generic basin collider alone is
+replaced. Thin fence colliders do not become opaque building sight blockers.
+
+The complex adds7474triangles to the previous landmark total: now12790triangles,
+ten merged meshes and the same two materials, within the retained16000triangle
+budget. Existing Parliament entrance/mast/roof/flag and distant-LOD/disposal
+regressions continue passing. Normal external/internal browser views are reviewed
+in the new store/pool verification receipt; source tests alone do not establish
+visual fidelity or N100 frame rate.

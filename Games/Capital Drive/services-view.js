@@ -1,6 +1,6 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
-import { SERVICES } from './services.js';
+import { GENERIC_SERVICES as SERVICES } from './services.js';
 
 // Original five-by-seven lettering, generated locally without fonts or images.
 const LETTERS = {
@@ -73,20 +73,24 @@ export function createServicesView(scene,heightAt) {
   const solidMesh = new THREE.Mesh(solidGeometry,solidMaterial), signMesh = new THREE.Mesh(signGeometry,signMaterial);
   solidMesh.name='Service posts and boards';signMesh.name='Service sign lettering';
   solidMesh.frustumCulled=signMesh.frustumCulled=false; root.add(solidMesh,signMesh);
+  const shown=ranges.map(()=>null);
   const originalSolid=solidGeometry.attributes.position.array.slice(), originalSign=signGeometry.attributes.position.array.slice();
   let disposed=false,visible=0;
   function update(focus) {
     if(disposed) return;
     visible=0;
-    for(const range of ranges) {
+    let dirty=false;
+    for(let i=0;i<ranges.length;i++) {
+      const range=ranges[i];
       const show=valid(focus)&&Math.hypot(range.x-focus.x,range.z-focus.z)<RANGE;
       if(show) visible++;
+      if(shown[i]===show)continue;shown[i]=show;dirty=true;
       for(const [geometry,original,start,count] of [[solidGeometry,originalSolid,range.solidStart,range.solidCount],[signGeometry,originalSign,range.signStart,range.signCount]]) {
         const array=geometry.attributes.position.array;
         for(let vertex=start;vertex<start+count;vertex++) for(let axis=0;axis<3;axis++) array[vertex*3+axis]=show?original[vertex*3+axis]:0;
       }
     }
-    solidGeometry.attributes.position.needsUpdate=signGeometry.attributes.position.needsUpdate=true;
+    if(dirty)solidGeometry.attributes.position.needsUpdate=signGeometry.attributes.position.needsUpdate=true;
     solidMesh.visible=signMesh.visible=visible>0;
   }
   update(null);

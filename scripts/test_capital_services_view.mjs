@@ -5,15 +5,16 @@ const url=source=>`data:text/javascript;base64,${Buffer.from(source).toString('b
 const threeURL=url(await read('../assets/car-arcade/vendor/three.module.js'));
 const THREE=await import(threeURL);
 const utilsURL=url((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace("'./three.module.js'",JSON.stringify(threeURL)));
-const servicesURL=url(await read('../Games/Capital Drive/services.js'));
-const {SERVICES}=await import(servicesURL);
+const storesURL=url(await read('../Games/Capital Drive/stores.js'));
+const servicesURL=url((await read('../Games/Capital Drive/services.js')).replace("'./stores.js'",JSON.stringify(storesURL)));
+const {GENERIC_SERVICES:SERVICES}=await import(servicesURL);
 const {createServicesView}=await import(url((await read('../Games/Capital Drive/services-view.js'))
   .replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL))
   .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'",JSON.stringify(utilsURL))
   .replace("'./services.js'",JSON.stringify(servicesURL))));
 const scene=new THREE.Scene(), heightAt=(x,z)=>x*.002+z*.001;
 const before=structuredClone(SERVICES),view=createServicesView(scene,heightAt),root=scene.children[0];
-assert.equal(root.children.length,2);assert.equal(view.stats.drawCalls,0);assert.equal(view.stats.triangles,112);
+assert.equal(root.children.length,2);assert.equal(view.stats.drawCalls,0);assert.equal(view.stats.triangles,56);
 for(const service of SERVICES) {
   view.update(service);assert(view.stats.visible>=1);assert.equal(view.stats.drawCalls,2);
   const positions=root.children[0].geometry.attributes.position;
@@ -30,11 +31,13 @@ for(const service of SERVICES) {
 assert.deepEqual(SERVICES,before,'source descriptors unchanged');
 const atlas=root.children[1].material.map;
 assert(atlas.isDataTexture && atlas.image.width===256 && atlas.image.height===256);
+let inkRows=0;
 for(let row=0;row<4;row++) {
   let ink=0;
   for(let y=row*64;y<(row+1)*64;y++) for(let x=0;x<256;x++) if(atlas.image.data[(y*256+x)*4+3]) ink++;
-  assert(ink>300,'each generated service row includes readable place and type lettering');
+  if(ink>300)inkRows++;
 }
+assert.equal(inkRows,2,'only generic gym/supplies posts occupy atlas rows; mapped stores use facade signs');
 view.update({x:10000,z:10000});assert.equal(view.stats.drawCalls,0);assert.equal(view.stats.visible,0);
 for(const mesh of root.children) assert(mesh.geometry.attributes.position.array.every(v=>v===0),'distant merged slices collapse');
 view.update({x:NaN,z:Infinity});assert.equal(view.stats.drawCalls,0);
@@ -44,4 +47,4 @@ for(const mesh of root.children){mesh.geometry.addEventListener('dispose',()=>ge
 atlas.addEventListener('dispose',()=>textures++);
 view.dispose();view.dispose();view.update(SERVICES[0]);
 assert.equal(scene.children.length,0);assert.equal(geometries,2);assert.equal(materials,2);assert.equal(textures,1);assert(view.stats.disposed);assert.equal(view.stats.drawCalls,0);
-console.log('PASS four grounded fictional service signs, local text atlas and outward readable faces, two merged draws/112 triangles, 250m culling, finite buffers and exact disposal');
+console.log('PASS two grounded fictional service signs, local text atlas and outward readable faces, two merged draws/56 triangles, 250m culling, finite buffers and exact disposal');

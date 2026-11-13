@@ -21,7 +21,7 @@ export function createGameplay(map, simulation, options = {}) {
     carjacking: null, recovery: null, event: '', message: '', sandbox: Boolean(options.sandbox) };
   let fireCooldown = 0, meleeCooldown = 0, jumpVelocity = 0;
   let previousCrashes = simulation.player.crashes || 0, witnessCooldown = 0;
-  let retaliationCooldown = 0, firstEquip = false;
+  let retaliationCooldown = 0, crashCooldown = 0, recklessCooldown = 0, firstEquip = false;
   const policeController = createPolice(simulation, { onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
   const focus = () => state.mode === 'foot' ? state.actor : simulation.player;
   const visible = (a, b) => simulation.hasLineOfSight(a, b);
@@ -42,7 +42,8 @@ export function createGameplay(map, simulation, options = {}) {
     const point = details.point || focus();
     if ((details.offenderId !== undefined && details.offenderId !== 'player') || state.sandbox || details.witnessed === false || (!details.witnessed && !witnesses(point))) return false;
     state.wanted = clamp(state.wanted + clamp(Math.ceil(finite(severity)), 1, 3), 0, 5);
-    state.heat = 28 + state.wanted * 9; state.pursuit = 'search'; witnessCooldown = 1;
+    state.heat = 28 + state.wanted * 9; state.pursuit = 'search';
+    if (kind !== 'reckless') witnessCooldown = 1;
     policeController.report(point);
     emit('offence', `Reported: ${kind}`, { offence: kind, wanted: state.wanted });
     return true;
@@ -147,7 +148,7 @@ export function createGameplay(map, simulation, options = {}) {
     state.heat = 0; state.pursuit = 'clear'; state.police.length = 0; state.shots.length = 0;
     state.actor.jumpHeight = 0; state.actor.speed = 0; state.aiming = false; state.reloading = 0;
     state.attackTimer = 0; state.arrestProgress = 0;
-    fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0;
+    fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0; crashCooldown = 0; recklessCooldown = 0;
     jumpVelocity = 0; witnessCooldown = 0; state.respawnSerial++;
     previousCrashes = simulation.player.crashes || 0;
     emit('respawn', reason === 'arrest' ? 'Released near the station.' : 'Recovered near the hospital.', { reason });
@@ -201,6 +202,7 @@ export function createGameplay(map, simulation, options = {}) {
     updateCarjacking(dt);
     fireCooldown = Math.max(0, fireCooldown - dt); meleeCooldown = Math.max(0, meleeCooldown - dt);
     witnessCooldown = Math.max(0, witnessCooldown - dt);
+    crashCooldown = Math.max(0, crashCooldown - dt); recklessCooldown = Math.max(0, recklessCooldown - dt);
     retaliationCooldown = Math.max(0, retaliationCooldown - dt); state.attackTimer = Math.max(0, state.attackTimer - dt);
     state.shots.forEach(shot => { shot.life -= dt; }); state.shots = state.shots.filter(shot => shot.life > 0);
     if (state.reloading > 0) {
@@ -225,11 +227,19 @@ export function createGameplay(map, simulation, options = {}) {
       else if (input.fire && state.weapon === 'pistol') attack('pistol');
     } else state.aiming = false;
     const crashes = simulation.player.crashes || 0;
-    if (state.mode === 'vehicle' && crashes > previousCrashes) {
-      const damage = Math.min(60, (crashes - previousCrashes) * 18);
-      state.vehicleHealth = Math.max(0, state.vehicleHealth - damage);
-      if (!state.sandbox) state.health = Math.max(0, state.health - damage * 0.35);
-      emit('crash', 'Vehicle damaged.');
+    if (state.mode === 'vehicle' && crashes > previousCrashes && crashCooldown <= 0) {
+      // Contact count includes low-speed scraping: only impact velocity causes damage.
+      const impact = Number.isFinite(simulation.player.lastImpactSpeed) ? simulation.player.lastImpactSpeed : Math.abs(simulation.player.speed || 10);
+      if (impact >= 8) {
+        const damage = clamp(4 + (impact - 8) * 1.25, 4, 24);
+        state.vehicleHealth = Math.max(0, state.vehicleHealth - damage);
+        if (!state.sandbox && impact >= 18) state.health = Math.max(0, state.health - Math.min(40, (impact - 16) * 2));
+        crashCooldown = 0.8;
+        emit('crash', state.vehicleHealth <= 0 ? 'Vehicle disabled. Press E to step out.' : 'Vehicle damaged.');
+      }
+    }
+    if (state.mode === 'vehicle' && state.vehicleHealth <= 0) {
+      simulation.player.speed = 0; simulation.player.vx = 0; simulation.player.vz = 0;
     }
     previousCrashes = crashes;
     for (const event of options.pedestrians?.drainEvents?.() || []) {
@@ -240,11 +250,16 @@ export function createGameplay(map, simulation, options = {}) {
         distance(event, state.actor) < 3 && visible(event, state.actor)) {
         if (!state.sandbox) state.health = Math.max(0, state.health - clamp(finite(event.damage) || 8, 1, 20));
         retaliationCooldown = 0.8;
-      } else if (((event.type || event.kind) === 'offence' || (event.type || event.kind) === 'witness') && witnessCooldown <= 0) {
-        reportOffence(event.offence || event.kind || 'assault', event.severity || 1, { witnessed: true, point: focus() });
+      } else if (((event.type || event.kind) === 'offence' || (event.type || event.kind) === 'witness')) {
+        const kind = event.offence || event.kind || 'assault';
+        if (kind === 'reckless' ? recklessCooldown <= 0 : witnessCooldown <= 0) {
+          if (reportOffence(kind, event.severity || 1, { witnessed: true, point: Number.isFinite(event.x) && Number.isFinite(event.z) ? event : focus() })) {
+            if (kind === 'reckless') recklessCooldown = 8;
+          }
+        }
       }
     }
-    if (!state.sandbox && (state.health <= 0 || state.vehicleHealth <= 0)) { beginRecovery('knockout'); return; }
+    if (!state.sandbox && state.health <= 0) { beginRecovery('knockout'); return; }
     policeController.step(dt, state, focus());
   }
   function reset({ sandbox = state.sandbox } = {}) {
@@ -256,7 +271,7 @@ export function createGameplay(map, simulation, options = {}) {
     state.police.length = 0; state.shots.length = 0;
     policeController.reset(); firstEquip = false;
     if (state.sandbox) { state.ammo = MAGAZINE; state.reserveAmmo = 72; firstEquip = true; }
-    fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0; jumpVelocity = 0; witnessCooldown = 0;
+    fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0; crashCooldown = 0; recklessCooldown = 0; jumpVelocity = 0; witnessCooldown = 0;
     previousCrashes = simulation.player.crashes || 0;
     options.pedestrians?.drainEvents?.();
   }

@@ -11,13 +11,16 @@ import { createProgression } from './progression.js';
 import { createActorView } from './actor-view.js';
 import { createStreetUI } from './street-ui.js';
 import { createAddressSearch } from './address-search.js';
-import { LANDMARKS, LANDMARK_CLEARINGS, replacedBuildingIds } from './landmarks.js';
+import { LANDMARKS, LANDMARK_CLEARINGS, replacedBuildingIds,POOL_BARRIERS,POOL_GATE_APPROACHES,MANUKA_POOL_BASIN } from './landmarks.js';
 import { createLandmarksView } from './landmarks-view.js';
 import {applyRoadProfiles,roadProfile} from './road-network.js';
 import {createBuses} from './buses.js';
 import {createBusView} from './bus-view.js';
 import {createVehicleOccupantsView} from './vehicle-occupants-view.js';
 import {createServicesView} from './services-view.js';
+import {MAPPED_STORES} from './stores.js';
+import {createStorefrontsView} from './storefronts-view.js';
+import {createTrafficView} from './traffic-view.js';
 
 const $ = id => document.getElementById(id);
 const keys = new Set(), touch = new Set();
@@ -33,7 +36,8 @@ const vehicles = [
   { id: 'finch', name: 'City hatchback', note: 'Small and nimble', label: 'HATCH' },
 ];
 let map, simulation, world, renderer, scene, camera, playerMesh, route = [], destination = null;
-let trafficMeshes = [], parkedChunks = [], selectedCar = 'lantern', selectedPaint = '#e7e6df';
+let trafficView,storefrontsView;
+let parkedChunks = [], selectedCar = 'lantern', selectedPaint = '#e7e6df';
 let quality = 'low', started = false, disposed = false, lastTime = 0, accumulator = 0, lastRender = 0, hudTime = 0;
 let orbit = 0, orbitHeight = 0, orbitHold = 0, dragging = false, pointer = null, toastTimer;
 let lookPitch = 0;
@@ -52,6 +56,8 @@ const parkedSourceCars = [];
 let carShadowGeometry, carShadowMaterial;
 let mapSelection = null, mapDrag = null;
 const mapView = { zoom: 1, x: null, z: null };
+const pedestrianFocus={id:'player',x:0,z:0,yaw:0,speed:0};
+const occupantPoses=new Map(),occupantInputs=[];
 const desiredCamera = new THREE.Vector3(), lookTarget = new THREE.Vector3();
 function freezeCopy(value) {
   const copy = JSON.parse(JSON.stringify(value));
@@ -696,7 +702,7 @@ function animate(time) {
     while (accumulator >= 1 / 60) {
       const walking = gameplay.state.mode === 'foot';
       syncExternalVehicles();
-      simulation.step(1 / 60, walking||gameplay.state.recovery ? { brake: true } : input(), focus());
+      simulation.step(1 / 60, walking||gameplay.state.recovery||gameplay.state.vehicleHealth<=0 ? { brake: true } : input(), focus());
       gameplay.step(1 / 60, walkingInput());
       syncExternalVehicles();buses?.step(1/60);
       if (!isSandbox()) progression.update(1 / 60, careerContext());
@@ -715,20 +721,23 @@ function animate(time) {
   if (time - lastRender < (quality === 'low' ? 1000 / 30 : 1000 / 60) - 1) return;
   const renderDt = Math.min(.1, (time - (lastRender || time)) / 1000); lastRender = time;
   const p = focus(), activeDt = paused() ? 0 : renderDt;
-  pedestrians?.update(p, activeDt, simulation.traffic.filter(car => car.active !== false));
+  pedestrianFocus.x=p.x;pedestrianFocus.z=p.z;pedestrianFocus.yaw=p.yaw;pedestrianFocus.speed=gameplay.state.mode==='vehicle'?p.speed:0;
+  pedestrians?.update(pedestrianFocus, activeDt, simulation.traffic,simulation.hasLineOfSight);
   placeCar(playerMesh, simulation.player, activeDt);
-  for (let i = 0; i < simulation.traffic.length; i++) {
-    const car = simulation.traffic[i], mesh = trafficMeshes[i];
-    mesh.visible = car.active !== false && Math.hypot(car.x - p.x, car.z - p.z) < 300;
-    if (mesh.visible) placeCar(mesh, car, activeDt);
-  }
+  trafficView?.update(p,{lowGraphics:quality==='low'});
   updateAbandonedMeshes(p, activeDt);
   busView?.update(buses.vehicles,p);servicesView?.update(p);
-  occupantsView?.update(activeDt,{focus:p,cars:[{...simulation.player,occupied:gameplay.state.mode==='vehicle'},
-    ...simulation.traffic.map(car=>({...car,occupied:true})),
-    ...gameplay.state.police.filter(police=>police.health>0&&police.car).map(police=>({...police.car,modelId:'relay',occupied:police.mode==='vehicle'}))]});
+  occupantInputs.length=0;
+  const seated=(car,occupied,modelId=car.modelId)=>{
+    let pose=occupantPoses.get(car.id);if(!pose){pose={id:car.id};occupantPoses.set(car.id,pose);}
+    pose.x=car.x;pose.z=car.z;pose.yaw=car.yaw;pose.modelId=modelId;pose.active=car.active;pose.occupied=occupied;occupantInputs.push(pose);
+  };
+  seated(simulation.player,gameplay.state.mode==='vehicle');
+  for(const car of simulation.traffic)seated(car,true);
+  for(const officer of gameplay.state.police)if(officer.health>0&&officer.car)seated(officer.car,officer.mode==='vehicle','relay');
+  occupantsView?.update(activeDt,{focus:p,cars:occupantInputs});
   if (++frameCount % 8 === 0) {
-    world.update(p, time / 1000); neighbourhood?.update(p); landmarkView?.update(p, time / 1000);
+    world.update(p, time / 1000); neighbourhood?.update(p); landmarkView?.update(p, time / 1000);storefrontsView?.update(p);
     syncParkedVisibility();
     for (const chunk of parkedChunks) chunk.group.visible = Math.hypot(chunk.x - p.x, chunk.z - p.z) < 600;
   }
@@ -763,7 +772,9 @@ async function boot() {
   const [response, addressResponse,profileResponse] = await Promise.all([fetch('./data/canberra.json'), fetch('./data/addresses.json'),fetch('./data/road-profiles.json')]);
   if (!response.ok || !addressResponse.ok||!profileResponse.ok) throw new Error('Local map or address data could not be loaded.');
   map = applyRoadProfiles(await response.json(),await profileResponse.json());
-  map.landmarks = [...map.landmarks, ...LANDMARKS.filter(place => !map.landmarks.some(old => old.id === place.id))];
+  map.landmarks = [...map.landmarks, ...LANDMARKS.filter(place => !map.landmarks.some(old => old.id === place.id)),...MAPPED_STORES.map(store=>({id:store.id,name:store.name,aliases:[...store.aliases,store.sourceName],x:store.x,z:store.z,radius:store.radius,store:true,description:store.road+' · parody store'}))];
+  map.barriers=POOL_BARRIERS;map.collisionReplacedBuildingIds=['act-75267-0'];
+  map.areas=[...map.areas,{id:'manuka-pool-water',type:'water',points:MANUKA_POOL_BASIN}];
   map.landmarkBuildingIds = [...replacedBuildingIds(map)];
   map.landmarkTreeExclusions = LANDMARK_CLEARINGS;
   const addressData = await addressResponse.json(); addressSearch = createAddressSearch(map, addressData);
@@ -793,10 +804,10 @@ async function boot() {
   try {
     const raw = localStorage.getItem(CAREER_KEY);
     if (raw && raw.length > 16000) throw new Error('Saved career is too large.');
-    progression = createProgression(map, raw ? JSON.parse(raw) : null);
+    progression = createProgression(map, raw ? JSON.parse(raw) : null,{hasLineOfSight:simulation.hasLineOfSight});
   } catch (error) {
     careerError = `Career could not be loaded: ${error.message} This session will not overwrite it.`;
-    progression = createProgression(map); $('save-status').textContent = careerError;
+    progression = createProgression(map,null,{hasLineOfSight:simulation.hasLineOfSight}); $('save-status').textContent = careerError;
   }
   gameplay = createGameplay(map, simulation, { pedestrians, heightAt: world.heightAt,
     hasPistol:()=>progression.state.equipment.pistol,fitness:()=>progression.state.fitnessLevel,
@@ -815,11 +826,12 @@ async function boot() {
   actorView = compatibility ? { update() {}, dispose() {}, stats: {} } : createActorView(scene, world.heightAt);
   occupantsView=compatibility?{update(){},addExit(){},dispose(){},stats:{}}:createVehicleOccupantsView(scene,world.heightAt);
   servicesView=compatibility?{update(){},dispose(){},stats:{}}:createServicesView(scene,world.heightAt);
+  storefrontsView=compatibility?{update(){},dispose(){},stats:{}}:createStorefrontsView(scene,world.heightAt);
+  trafficView=compatibility?{update(){},dispose(){},stats:{}}:createTrafficView(scene,world.heightAt,simulation.traffic);
   busView=compatibility?{update(){},dispose(){},stats:{}}:createBusView(scene,world.heightAt);
   streetUI = createStreetUI({ gameplay, progression, simulation, vehicles, notify, openDialog, closeDialogs,
     onVehicleSelected: applyPlayerVehicle, onRoute: routeTo, saveCareer, isSandbox });
   applyPlayerVehicle({ modelId: selectedCar, color: selectedPaint, health: 100 });
-  trafficMeshes = simulation.traffic.map(car => { const mesh = createCar(car.modelId, { color: car.color }); addCarShadow(mesh); scene.add(mesh); return mesh; });
   createParkedCars();
   buses=createBuses(map,simulation);syncExternalVehicles();
   createMapImage(); loadProgress(); populatePlaces(); refreshModeUI(); resize(); updateHud();
@@ -854,7 +866,7 @@ async function boot() {
     places: Object.freeze(map.landmarks.map(place => Object.freeze({ ...place }))), addressCount: addressData.addresses.length,
     camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch,footYaw:footCameraYaw }),
     discovered: Object.freeze([...discovered]), roadCount: map.roads.length, buildings: map.buildings.length, traffic: simulation.traffic.length,
-    visibleTraffic: trafficMeshes.filter(m => m.visible).length, destination: destination?.id ?? null, routePoints: route.length,
+    visibleTraffic: trafficView.stats.visible||0,trafficView:Object.freeze({...trafficView.stats}), destination: destination?.id ?? null, routePoints: route.length,
     mapSelection: mapSelection ? Object.freeze({ ...mapSelection }) : null,
     mapView: Object.freeze({ zoom: mapView.zoom, ...map.bounds, x: fullMapProjection().cx, z: fullMapProjection().cz, scale: fullMapProjection().scale }),
     rendering: Object.freeze({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, quality, compatibility }), world: Object.freeze({ ...world.stats }),
@@ -862,7 +874,7 @@ async function boot() {
     landmarks: Object.freeze({ ...landmarkView.stats }), actors: Object.freeze({ ...actorView.stats }),
     services:freezeCopy(progression.services),activity:freezeCopy(progression.state.activity),
     buses:freezeCopy(buses.snapshot()),busView:Object.freeze({...busView.stats}),occupants:Object.freeze({...occupantsView.stats}),
-    serviceView:Object.freeze({...servicesView.stats}),
+    serviceView:Object.freeze({...servicesView.stats}),storefronts:Object.freeze({...storefrontsView.stats}),poolGates:freezeCopy(POOL_GATE_APPROACHES),
     trafficSample: freezeCopy(simulation.traffic.slice(0, 8).map(({ id, x, z, speed, active, behaviour, honkCount }) => ({ id, x, z, speed, active, behaviour, honkCount }))) });
   raf = requestAnimationFrame(animate);
 }
@@ -871,7 +883,7 @@ window.addEventListener('pagehide', () => {
   disposed = true; cancelAnimationFrame(raf); clearTimeout(toastTimer); clearInput();
   if (audio) audio.context.close().catch(error => console.warn('Could not release audio:', error.message));
   for (const resource of parkedResources) resource.dispose();
-  streetUI?.dispose(); actorView?.dispose(); landmarkView?.dispose();busView?.dispose();occupantsView?.dispose();servicesView?.dispose();
+  streetUI?.dispose(); actorView?.dispose(); landmarkView?.dispose();busView?.dispose();occupantsView?.dispose();servicesView?.dispose();trafficView?.dispose();storefrontsView?.dispose();
   pedestrians?.dispose(); neighbourhood?.dispose(); world?.dispose(); disposeCars(); renderer?.dispose();
 });
 boot().catch(error => {

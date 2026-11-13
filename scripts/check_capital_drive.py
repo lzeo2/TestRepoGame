@@ -22,7 +22,7 @@ MODULES = (
     'progression.js', 'actor-view.js', 'landmarks.js', 'landmarks-view.js',
     'address-search.js', 'street-ui.js', 'road-network.js', 'police.js',
     'buses.js', 'bus-view.js', 'vehicle-occupants-view.js', 'districts.js',
-    'services.js', 'services-view.js',
+    'services.js', 'services-view.js', 'stores.js', 'storefronts-view.js', 'traffic-view.js',
 )
 SUITES = (
     'test_capital_drive.mjs', 'test_capital_pedestrians.mjs',
@@ -32,9 +32,10 @@ SUITES = (
     'test_capital_actors.mjs', 'test_capital_landmarks.mjs',
     'test_capital_addresses.mjs', 'test_capital_roads.mjs', 'test_capital_buses.mjs',
     'test_capital_police.mjs', 'test_capital_occupants.mjs', 'test_capital_services.mjs',
-    'test_capital_services_view.mjs',
+    'test_capital_services_view.mjs', 'test_capital_stores.mjs', 'test_capital_storefronts.mjs',
+    'test_capital_traffic_view.mjs', 'test_capital_sites.mjs',
 )
-DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json')
+DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json')
 
 
 def run_command(command, timeout):
@@ -69,8 +70,11 @@ def main():
     parser.add_argument('--browser', action='store_true', help='Also run the targeted real-input browser suite (600 second limit).')
     parser.add_argument('--output', type=Path, help='Explicit external directory for browser artifacts and runner report; required with --browser.')
     parser.add_argument('--classic-browser', action='store_true', help='Use the retained earlier Street Life browser suite instead of the expansion suite.')
+    parser.add_argument('--expansion-browser', action='store_true', help='Use the retained earlier expansion browser suite.')
     parser.add_argument('--dry-run', action='store_true', help='List required files and exact commands without running them or creating directories.')
     args = parser.parse_args()
+    if args.classic_browser and args.expansion_browser:parser.error('Choose one earlier browser suite')
+    browser_suite='scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py' if args.expansion_browser else 'scripts/test_capital_stores_pool_browser.py'
     if args.browser != (args.output is not None):
         parser.error('--browser and --output must be used together')
     output = args.output.expanduser().resolve() if args.output else None
@@ -81,7 +85,7 @@ def main():
     required += [GAME / 'data' / filename for filename in DATA]
     required += [Path('scripts') / filename for filename in SUITES]
     if args.browser:
-        required.append(Path('scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py'))
+        required.append(Path(browser_suite))
     commands = [(['node', '--check', str(GAME / filename)], 120) for filename in MODULES]
     commands += [(['node', '--check', str(Path('scripts') / filename)], 120) for filename in SUITES]
     commands += [(['node', str(Path('scripts') / filename)] +
@@ -89,7 +93,7 @@ def main():
                  for filename in SUITES]
     commands.append((['git', 'diff', '--check'], 120))
     if args.browser:
-        suite = 'scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py'
+        suite = browser_suite
         commands.append(([sys.executable, '-B', suite, '--output', str(output)], 600))
     missing = [str(path) for path in required if not (ROOT / path).is_file()]
     if missing:
