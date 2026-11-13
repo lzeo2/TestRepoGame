@@ -100,7 +100,7 @@ function polygonContact(x, z, points, radius) {
 
 export function createSimulation(map, options = {}) {
   const graph = buildRoadGraph(map.roads || []);
-  const roadIndex = new SpatialGrid(80), buildingIndex = new SpatialGrid(48);
+  const roadIndex = new SpatialGrid(80), buildingIndex = new SpatialGrid(48), waterIndex = new SpatialGrid(128);
   for (const segment of graph.segments) roadIndex.insert(segment,
     Math.min(segment.a[0], segment.b[0]), Math.min(segment.a[1], segment.b[1]),
     Math.max(segment.a[0], segment.b[0]), Math.max(segment.a[1], segment.b[1]));
@@ -108,6 +108,11 @@ export function createSimulation(map, options = {}) {
     if (!building.points?.length) continue;
     buildingIndex.insert(building, Math.min(...building.points.map(p => p[0])), Math.min(...building.points.map(p => p[1])),
       Math.max(...building.points.map(p => p[0])), Math.max(...building.points.map(p => p[1])));
+  }
+  for (const area of map.areas || []) {
+    if (area.type !== 'water' || !area.points?.length) continue;
+    waterIndex.insert(area, Math.min(...area.points.map(p => p[0])), Math.min(...area.points.map(p => p[1])),
+      Math.max(...area.points.map(p => p[0])), Math.max(...area.points.map(p => p[1])));
   }
   let parkedIndex = new SpatialGrid(32);
   function setParkedCars(cars = []) {
@@ -150,6 +155,80 @@ export function createSimulation(map, options = {}) {
     Object.assign(player, { x: target.x, z: target.z, yaw: target.yaw || 0, speed: 0, vx: 0, vz: 0, steer: 0,
       odometer: 0, crashes: 0, offroad: false });
     crashCooldown = 0;
+  }
+  // Teleport keeps the current heading unless an explicit finite yaw is supplied.
+  // It changes position/motion only; discovery and trip statistics belong to callers.
+  function teleport(point) {
+    const rejected = reason => ({ ok: false, x: player.x, z: player.z, yaw: player.yaw,
+      adjusted: false, reason, distance: 0 });
+    if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.z) ||
+      (point.yaw !== undefined && !Number.isFinite(point.yaw))) return rejected('invalid-coordinate');
+    const marginX = Math.min(2, (bounds.maxX - bounds.minX) / 2);
+    const marginZ = Math.min(2, (bounds.maxZ - bounds.minZ) / 2);
+    const insideBounds = candidate => ({ x: clamp(candidate.x, bounds.minX + marginX, bounds.maxX - marginX),
+      z: clamp(candidate.z, bounds.minZ + marginZ, bounds.maxZ - marginZ) });
+    const origin = insideBounds(point);
+    function blockerAt(candidate) {
+      for (const [index, reason] of [[buildingIndex, 'building'], [waterIndex, 'water']]) {
+        for (const polygon of index.query(candidate.x, candidate.z, 1.8)) {
+          const contact = polygonContact(candidate.x, candidate.z, polygon.points, 1.8);
+          if (contact) return { ...contact, reason };
+        }
+      }
+      for (const car of parkedIndex.query(candidate.x, candidate.z, 1.8)) {
+        const dx = candidate.x - car.x, dz = candidate.z - car.z, gap = Math.hypot(dx, dz);
+        if (gap < 3.8) return { nx: gap > 0.001 ? dx / gap : 1, nz: gap > 0.001 ? dz / gap : 0,
+          depth: 3.8 - gap, reason: 'parked-car' };
+      }
+      for (const car of traffic) {
+        const dx = candidate.x - car.x, dz = candidate.z - car.z, gap = Math.hypot(dx, dz);
+        if (gap < 3.4) return { nx: gap > 0.001 ? dx / gap : 1, nz: gap > 0.001 ? dz / gap : 0,
+          depth: 3.4 - gap, reason: 'traffic' };
+      }
+      return null;
+    }
+    const initialBlocker = blockerAt(origin);
+    let target = initialBlocker ? null : origin;
+    let reason = initialBlocker?.reason || (origin.x !== point.x || origin.z !== point.z ? 'bounds' : 'exact');
+    if (!target) {
+      // The closest polygon edge handles even large footprints/lakes without a road snap.
+      let projected = origin;
+      for (let attempt = 0; attempt < 12; attempt++) {
+        const contact = blockerAt(projected);
+        if (!contact) { target = projected; break; }
+        const next = insideBounds({ x: projected.x + contact.nx * (contact.depth + 0.05),
+          z: projected.z + contact.nz * (contact.depth + 0.05) });
+        if (Math.hypot(next.x - projected.x, next.z - projected.z) < 0.001) break;
+        projected = next;
+      }
+      if (!target && !blockerAt(projected)) target = projected;
+      // Nearby clear land takes priority over a longer projection or any road fallback.
+      const projectedDistance = target ? Math.hypot(target.x - origin.x, target.z - origin.z) : Infinity;
+      search: for (const radius of [2, 4, 8, 12, 20, 32, 48, 64, 96, 128]) {
+        if (radius >= projectedDistance) break;
+        for (let i = 0; i < 32; i++) {
+          const angle = i / 32 * TAU;
+          const candidate = insideBounds({ x: origin.x + Math.cos(angle) * radius, z: origin.z + Math.sin(angle) * radius });
+          if (!blockerAt(candidate)) { target = candidate; break search; }
+        }
+      }
+    }
+    if (!target) {
+      const road = nearestRoad(origin.x, origin.z);
+      if (road) {
+        const candidate = insideBounds(road);
+        if (!blockerAt(candidate)) { target = candidate; reason = 'road-fallback'; }
+      }
+    }
+    if (!target) return rejected('no-clear-position');
+    const yaw = point.yaw === undefined ? (Number.isFinite(player.yaw) ? player.yaw : 0)
+      : Math.atan2(Math.sin(point.yaw), Math.cos(point.yaw));
+    const road = nearestRoad(target.x, target.z);
+    Object.assign(player, { x: target.x, z: target.z, yaw, speed: 0, vx: 0, vz: 0, steer: 0,
+      offroad: !road || road.distance > (road.road.width || 8) * 0.5 + 1 });
+    crashCooldown = 0;
+    const distance = Math.hypot(target.x - point.x, target.z - point.z);
+    return { ok: true, x: target.x, z: target.z, yaw, adjusted: distance > 0.000001, reason, distance };
   }
   reset();
   const candidates = graph.edges.filter(edge => edge.length > 8);
@@ -295,5 +374,5 @@ export function createSimulation(map, options = {}) {
       reset(); player.odometer = trip; player.crashes = crashes;
     }
   }
-  return { player, traffic, graph, step, reset, nearestRoad, setParkedCars, get elapsed() { return elapsed; } };
+  return { player, traffic, graph, step, reset, teleport, nearestRoad, setParkedCars, get elapsed() { return elapsed; } };
 }

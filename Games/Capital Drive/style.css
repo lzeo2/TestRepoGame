@@ -162,3 +162,16 @@ dialog{padding:20px}
 #world canvas:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
 
 body.light{color:var(--ink)}
+
+.large-map{position:relative;display:flex;flex-direction:column;min-width:0}
+.map-tools{display:flex;align-items:center;gap:6px;padding:9px;background:var(--panel);color:var(--ink);border-bottom:1px solid var(--line)}
+.map-tools button{min-width:44px;padding:7px 10px}
+#map-zoom-level{min-width:38px;text-align:center;font-size:12px}
+#map-recenter{margin-left:auto;font-size:11px}
+#full-map{touch-action:none;cursor:crosshair;height:50vh;min-height:280px;flex:1 1 auto}
+#full-map:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.teleport-bar{display:flex;gap:14px;align-items:center;justify-content:space-between;background:var(--panel);color:var(--ink);padding:13px;border-top:1px solid var(--line)}
+.teleport-bar strong{font-size:13px}
+.teleport-bar p{font-size:10px;margin:5px 0 0;line-height:1.4}
+.teleport-bar button{min-width:120px;font-size:12px;white-space:nowrap}
+@media(max-width:800px){#full-map{height:40vh;min-height:250px;flex:none}.teleport-bar{gap:8px;padding:10px}.teleport-bar button{min-width:100px;padding:10px;font-size:11px}.teleport-bar p{font-size:9px}}

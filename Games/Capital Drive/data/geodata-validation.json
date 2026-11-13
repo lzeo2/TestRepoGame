@@ -1,0 +1,86 @@
+{
+  "oldFootprints": 9523,
+  "newFootprints": 12572,
+  "buildingSources": {
+    "act": 4663,
+    "osm": 4886,
+    "microsoft": 3023
+  },
+  "roadsUnchanged": true,
+  "boundsUnchanged": true,
+  "landmarksUnchanged": true,
+  "spawnUnchanged": true,
+  "terrain": {
+    "cols": 513,
+    "rows": 513,
+    "nativeContourIntervalMetres": 2,
+    "gridSpacingMetres": [
+      12.59587890625,
+      11.740781250000001
+    ],
+    "absoluteElevationMinMaxMetresAHD": [
+      556.0,
+      810.0
+    ],
+    "oldVersusNewAlignedGridDifferenceMetres": {
+      "median": -3.0,
+      "p95Absolute": 8.120000000000005,
+      "maxAbsolute": 86.0
+    },
+    "contourInterpolationValidation": {
+      "features": 2130,
+      "trainingPoints": 187807,
+      "heldOutPoints": 16362,
+      "heldOutMedianAbsoluteMetres": 0.07137980465631699,
+      "heldOutP95AbsoluteMetres": 0.6094454599973118,
+      "heldOutMaxAbsoluteMetres": 37.615412477423206,
+      "nearestFillCells": 0
+    },
+    "note": "Held-out contour interpolation residuals are not independent survey accuracy. Maximum residual remains disclosed; final model uses every contour sample. No nearest or Mapzen fill."
+  },
+  "sampleLocations": [
+    {
+      "id": "telopea",
+      "oldMetresRelative550": 23.0,
+      "newMetresAHD": 567.4
+    },
+    {
+      "id": "manuka",
+      "oldMetresRelative550": 28.0,
+      "newMetresAHD": 573.95
+    },
+    {
+      "id": "kingston",
+      "oldMetresRelative550": 21.0,
+      "newMetresAHD": 567.86
+    },
+    {
+      "id": "foreshore",
+      "oldMetresRelative550": 11.0,
+      "newMetresAHD": 558.96
+    },
+    {
+      "id": "redhill",
+      "oldMetresRelative550": 71.0,
+      "newMetresAHD": 616.35
+    },
+    {
+      "id": "griffith",
+      "oldMetresRelative550": 37.0,
+      "newMetresAHD": 585.74
+    },
+    {
+      "id": "narrabundah",
+      "oldMetresRelative550": 23.0,
+      "newMetresAHD": 570.38
+    }
+  ],
+  "rejectedElevationSource": {
+    "service": "Geoscience Australia DEM_LiDAR_5m_2025 WCS",
+    "dimensions": [
+      1290,
+      1047
+    ],
+    "values": "All 1,350,630 cells exactly zero; rejected, never used."
+  }
+}
