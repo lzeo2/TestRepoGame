@@ -85,6 +85,8 @@ kbd{display:inline-block;padding:2px 4px;margin-left:6px;border:1px solid var(--
 .shot-clock progress.urgent::-webkit-progress-value{background:#bc342c}
 .shot-clock progress.urgent::-moz-progress-bar{background:#bc342c}
 .in-match .travel,.in-match .route-label,.in-match .actions,.in-match .touch-buttons,.in-match .club-tabs,.in-match .hud-info,.in-match .mobile-menu{display:none}
+.in-match .touch-controls{display:none}
+.in-match.controlling .touch-controls{display:flex}
 .in-match .money{margin-left:auto;margin-right:8px}
 .in-match .pause-button{margin-left:0}
 .caption{position:absolute;bottom:150px;left:50%;transform:translateX(-50%);background:#172a3de8;color:#fff7e5;padding:10px 16px;border-radius:4px;width:min(550px,76vw);text-align:center;font-size:13px}

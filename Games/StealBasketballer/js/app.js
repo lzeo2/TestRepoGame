@@ -246,6 +246,7 @@ function queueCommentary(event) {
 function updateMatchUI(now) {
   if(!match)return;
   const s=matchState;syncFollow(s);
+  $('hud').classList.toggle('controlling',!!s.control);
   $('score').textContent=s.score.join(' : ');$('match-period').textContent=s.period;
   $('match-clock').textContent=clock(s.timeRemaining);$('shot-clock').textContent='SHOT '+s.shotClock.toFixed(1);
   $('shot-clock-bar').value=s.shotClock;$('shot-clock-bar').classList.toggle('urgent',s.shotClock<=5);
