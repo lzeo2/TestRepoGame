@@ -408,12 +408,25 @@ def main():
                     context.add_init_script(PROBE)
                     page = context.new_page();attach(page)
                     report['stage'] = label+'-boot'
-                    page.goto(BASE+'/Games/StealBasketballer/', wait_until='commit', timeout=5000)
-                    page.wait_for_function('''() => {
-                      const s=window.__bbReadiness?.();
-                      return s && (s.loadingText?.startsWith('The game could not start:') ||
-                        (s.snapshotPresent && s.playDisabled===false && s.exited>0));
-                    }''', timeout=6000, polling=250)
+                    for attempt in (1, 2):
+                        page.goto(BASE+'/Games/StealBasketballer/', wait_until='commit', timeout=5000)
+                        try:
+                            page.wait_for_function('''() => {
+                              const s=window.__bbReadiness?.();
+                              return s && (s.loadingText?.startsWith('The game could not start:') ||
+                                (s.snapshotPresent && s.playDisabled===false && s.exited>0));
+                            }''', timeout=6000, polling=250)
+                            break
+                        except Exception:
+                            # ERR_NETWORK_CHANGED is a host wlan flap hitting the
+                            # loopback fetches, not a game defect. One bounded
+                            # same-launch reload; any other failure re-raises.
+                            network = [e for e in report['errors'] if 'ERR_NETWORK_CHANGED' in e]
+                            if attempt != 1 or not network:
+                                raise
+                            report['events'].append({'kind': 'boot-retry-network-flap', 'errors': len(network)})
+                            report['errors'].clear();report['events'].clear()
+                            report['http'].clear();report['external'].clear()
                     report[label+'Readiness'] = page.evaluate('window.__bbReadiness()')
                     assert report[label+'Readiness']['playDisabled'] is False, 'Boot caught an exception'
                     assert not report['errors'], 'Console/page/request error; stop'
