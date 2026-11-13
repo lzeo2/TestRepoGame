@@ -1,0 +1,1156 @@
+{
+  "checks": [
+    {
+      "normalWaypointKioskArrival": true
+    }
+  ],
+  "path": [
+    {
+      "waypoint": 0,
+      "x": -339.4806900668006,
+      "z": -394.0557966367183
+    },
+    {
+      "waypoint": 0,
+      "x": -339.6174290578163,
+      "z": -395.0665896166781
+    },
+    {
+      "waypoint": 0,
+      "x": -339.6782019427122,
+      "z": -395.51583094110464
+    },
+    {
+      "waypoint": 0,
+      "x": -339.754168048832,
+      "z": -396.07738259663785
+    },
+    {
+      "waypoint": 0,
+      "x": -339.8149409337279,
+      "z": -396.5266239210644
+    },
+    {
+      "waypoint": 0,
+      "x": -339.8909070398477,
+      "z": -397.0881755765976
+    },
+    {
+      "waypoint": 0,
+      "x": -339.9516799247436,
+      "z": -397.5374169010242
+    },
+    {
+      "waypoint": 0,
+      "x": -340.0276460308634,
+      "z": -398.0989685565574
+    },
+    {
+      "waypoint": 0,
+      "x": -340.1643850218791,
+      "z": -399.10976153651717
+    },
+    {
+      "waypoint": 0,
+      "x": -340.30112401289483,
+      "z": -400.12055451647694
+    },
+    {
+      "waypoint": 1,
+      "x": -340.30112401289483,
+      "z": -400.12055451647694
+    },
+    {
+      "waypoint": 1,
+      "x": -340.86267566842804,
+      "z": -400.0445884103571
+    },
+    {
+      "waypoint": 1,
+      "x": -341.3119169928546,
+      "z": -399.98381552546124
+    },
+    {
+      "waypoint": 1,
+      "x": -341.8734686483878,
+      "z": -399.9078494193414
+    },
+    {
+      "waypoint": 1,
+      "x": -342.3227099728144,
+      "z": -399.84707653444553
+    },
+    {
+      "waypoint": 1,
+      "x": -342.8842616283476,
+      "z": -399.7711104283257
+    },
+    {
+      "waypoint": 1,
+      "x": -343.33350295277415,
+      "z": -399.71033754342983
+    },
+    {
+      "waypoint": 1,
+      "x": -343.89505460830736,
+      "z": -399.63437143731
+    },
+    {
+      "waypoint": 1,
+      "x": -344.3442959327339,
+      "z": -399.5735985524141
+    },
+    {
+      "waypoint": 1,
+      "x": -344.90584758826714,
+      "z": -399.4976324462943
+    },
+    {
+      "waypoint": 1,
+      "x": -345.3550889126937,
+      "z": -399.4368595613984
+    },
+    {
+      "waypoint": 1,
+      "x": -345.9166405682269,
+      "z": -399.3608934552786
+    },
+    {
+      "waypoint": 1,
+      "x": -346.3658818926535,
+      "z": -399.3001205703827
+    },
+    {
+      "waypoint": 1,
+      "x": -346.9274335481867,
+      "z": -399.2241544642629
+    },
+    {
+      "waypoint": 1,
+      "x": -347.37667487261325,
+      "z": -399.163381579367
+    },
+    {
+      "waypoint": 1,
+      "x": -347.93822652814646,
+      "z": -399.0874154732472
+    },
+    {
+      "waypoint": 1,
+      "x": -348.387467852573,
+      "z": -399.0266425883513
+    },
+    {
+      "waypoint": 1,
+      "x": -348.94901950810623,
+      "z": -398.9506764822315
+    },
+    {
+      "waypoint": 1,
+      "x": -349.3982608325328,
+      "z": -398.8899035973356
+    },
+    {
+      "waypoint": 1,
+      "x": -349.959812488066,
+      "z": -398.81393749121577
+    },
+    {
+      "waypoint": 1,
+      "x": -350.0205853729619,
+      "z": -399.26317881564233
+    },
+    {
+      "waypoint": 1,
+      "x": -350.5821370284951,
+      "z": -399.1872127095225
+    },
+    {
+      "waypoint": 1,
+      "x": -350.64290991339095,
+      "z": -399.63645403394906
+    },
+    {
+      "waypoint": 1,
+      "x": -351.20446156892416,
+      "z": -399.56048792782923
+    },
+    {
+      "waypoint": 1,
+      "x": -351.26523445382,
+      "z": -400.0097292522558
+    },
+    {
+      "waypoint": 1,
+      "x": -351.34120055993986,
+      "z": -400.571280907789
+    },
+    {
+      "waypoint": 1,
+      "x": -351.79044188436643,
+      "z": -400.51050802289313
+    },
+    {
+      "waypoint": 2,
+      "x": -351.79044188436643,
+      "z": -400.51050802289313
+    },
+    {
+      "waypoint": 2,
+      "x": -351.8512147692623,
+      "z": -400.9597493473197
+    },
+    {
+      "waypoint": 2,
+      "x": -351.92718087538213,
+      "z": -401.5213010028529
+    },
+    {
+      "waypoint": 2,
+      "x": -351.987953760278,
+      "z": -401.9705423272795
+    },
+    {
+      "waypoint": 2,
+      "x": -352.06391986639784,
+      "z": -402.5320939828127
+    },
+    {
+      "waypoint": 2,
+      "x": -352.1246927512937,
+      "z": -402.98133530723925
+    },
+    {
+      "waypoint": 2,
+      "x": -352.20065885741354,
+      "z": -403.54288696277246
+    },
+    {
+      "waypoint": 2,
+      "x": -352.2614317423094,
+      "z": -403.992128287199
+    },
+    {
+      "waypoint": 2,
+      "x": -352.33739784842925,
+      "z": -404.55367994273223
+    },
+    {
+      "waypoint": 2,
+      "x": -352.3981707333251,
+      "z": -405.0029212671588
+    },
+    {
+      "waypoint": 2,
+      "x": -352.47413683944495,
+      "z": -405.564472922692
+    },
+    {
+      "waypoint": 2,
+      "x": -352.5349097243408,
+      "z": -406.01371424711857
+    },
+    {
+      "waypoint": 2,
+      "x": -352.61087583046066,
+      "z": -406.5752659026518
+    },
+    {
+      "waypoint": 2,
+      "x": -352.6716487153565,
+      "z": -407.02450722707835
+    },
+    {
+      "waypoint": 2,
+      "x": -352.74761482147636,
+      "z": -407.58605888261155
+    },
+    {
+      "waypoint": 2,
+      "x": -352.80838770637223,
+      "z": -408.0353002070381
+    },
+    {
+      "waypoint": 2,
+      "x": -352.88435381249207,
+      "z": -408.5968518625713
+    },
+    {
+      "waypoint": 2,
+      "x": -352.94512669738793,
+      "z": -409.0460931869979
+    },
+    {
+      "waypoint": 2,
+      "x": -353.02109280350777,
+      "z": -409.6076448425311
+    },
+    {
+      "waypoint": 2,
+      "x": -353.08186568840364,
+      "z": -410.05688616695767
+    },
+    {
+      "waypoint": 2,
+      "x": -353.1578317945235,
+      "z": -410.6184378224909
+    },
+    {
+      "waypoint": 2,
+      "x": -353.21860467941934,
+      "z": -411.06767914691744
+    },
+    {
+      "waypoint": 2,
+      "x": -353.2945707855392,
+      "z": -411.62923080245065
+    },
+    {
+      "waypoint": 2,
+      "x": -353.35534367043505,
+      "z": -412.0784721268772
+    },
+    {
+      "waypoint": 2,
+      "x": -353.4313097765549,
+      "z": -412.6400237824104
+    },
+    {
+      "waypoint": 2,
+      "x": -353.49208266145075,
+      "z": -413.089265106837
+    },
+    {
+      "waypoint": 2,
+      "x": -353.5680487675706,
+      "z": -413.6508167623702
+    },
+    {
+      "waypoint": 2,
+      "x": -353.62882165246646,
+      "z": -414.10005808679676
+    }
+  ],
+  "errors": [],
+  "kioskDistance": 5.573521001630932,
+  "busView": {
+    "ready": true,
+    "started": true,
+    "paused": false,
+    "gameMode": "free",
+    "player": {
+      "id": "player",
+      "modelId": "lantern",
+      "color": 13948883,
+      "active": true,
+      "x": -411.7185526594028,
+      "z": -529.6946047132599,
+      "yaw": -3.00713,
+      "speed": 0,
+      "vx": 0,
+      "vz": 0,
+      "steer": 0,
+      "odometer": 0,
+      "crashes": 0,
+      "offroad": true
+    },
+    "focus": {
+      "x": -408.3492427262034,
+      "z": -530.1504013499781,
+      "yaw": -5.423580927734376,
+      "speed": 0,
+      "jumpHeight": 0
+    },
+    "gameplay": {
+      "mode": "foot",
+      "actor": {
+        "x": -408.3492427262034,
+        "z": -530.1504013499781,
+        "yaw": -5.423580927734376,
+        "speed": 0,
+        "jumpHeight": 0
+      },
+      "health": 100,
+      "vehicleHealth": 100,
+      "weapon": "unarmed",
+      "ammo": 12,
+      "reserveAmmo": 72,
+      "aiming": false,
+      "reloading": 0,
+      "attackTimer": 0,
+      "wanted": 0,
+      "pursuit": "clear",
+      "heat": 0,
+      "police": [],
+      "shots": [],
+      "respawnSerial": 0,
+      "vehicle": {
+        "modelId": "lantern",
+        "color": "#e7e6df",
+        "stolen": false
+      },
+      "carjacking": null,
+      "recovery": null,
+      "event": "attack",
+      "message": "Swing.",
+      "sandbox": true,
+      "arrestProgress": 0
+    },
+    "career": {
+      "version": 1,
+      "cash": 1000,
+      "ownedVehicles": [
+        {
+          "id": "lantern",
+          "color": "#e7e6df",
+          "health": 100,
+          "stored": false
+        }
+      ],
+      "completedJobs": [],
+      "equipment": {
+        "pistol": false
+      },
+      "fitnessLevel": 0,
+      "robberyCooldowns": {}
+    },
+    "totalPlaces": 12,
+    "places": [
+      {
+        "id": "telopea",
+        "name": "Telopea Park School",
+        "x": -237.98,
+        "z": -426.36,
+        "radius": 125,
+        "description": "Heritage school and the leafy Telopea Park streets.",
+        "lat": -35.31417,
+        "lon": 149.13438
+      },
+      {
+        "id": "manuka",
+        "name": "Manuka shops",
+        "x": -308.83,
+        "z": 250.47,
+        "radius": 120,
+        "description": "Franklin Street, Bougainville Street and the Manuka shopping streets.",
+        "lat": -35.32025,
+        "lon": 149.1336
+      },
+      {
+        "id": "kingston",
+        "name": "Kingston shops",
+        "x": 386.04,
+        "z": -233.77,
+        "radius": 110,
+        "description": "Green Square, Giles Street and the Kingston village blocks.",
+        "lat": -35.3159,
+        "lon": 149.14125
+      },
+      {
+        "id": "foreshore",
+        "name": "Kingston Foreshore",
+        "x": 600.98,
+        "z": -828.61,
+        "radius": 150,
+        "description": "Eastlake Parade and the lakeside apartment precinct.",
+        "lat": -35.3105565,
+        "lon": 149.1436164
+      },
+      {
+        "id": "redhill",
+        "name": "Red Hill",
+        "x": -599.49,
+        "z": 2148.48,
+        "radius": 180,
+        "description": "Leafy residential streets below the Red Hill reserve.",
+        "lat": -35.3373,
+        "lon": 149.1304
+      },
+      {
+        "id": "griffith",
+        "name": "Griffith shops",
+        "x": 381.5,
+        "z": 1079.8,
+        "radius": 100,
+        "description": "Barker Street and Griffith neighbourhood shops.",
+        "lat": -35.3277,
+        "lon": 149.1412
+      },
+      {
+        "id": "narrabundah",
+        "name": "Narrabundah",
+        "x": 1553.23,
+        "z": 1614.14,
+        "radius": 130,
+        "description": "Neighbourhood streets around Iluka Street and Boolimba Crescent.",
+        "lat": -35.3325,
+        "lon": 149.1541
+      },
+      {
+        "id": "parliament-house",
+        "name": "Parliament House",
+        "lat": -35.3081,
+        "lon": 149.1245,
+        "radius": 220,
+        "description": "Capital Hill, grass roof, curved pale walls and the central flag mast.",
+        "x": -1135.4027885841313,
+        "z": -1102.067999999409
+      },
+      {
+        "id": "old-parliament-house",
+        "name": "Old Parliament House",
+        "lat": -35.3021,
+        "lon": 149.1297,
+        "radius": 120,
+        "description": "The white stripped classical home of the Museum of Australian Democracy.",
+        "x": -663.075228532513,
+        "z": -1769.9879999994344
+      },
+      {
+        "id": "manuka-oval",
+        "name": "Manuka Oval",
+        "lat": -35.3183,
+        "lon": 149.1348,
+        "radius": 130,
+        "description": "Oval ground, grandstands and six tall floodlight towers.",
+        "x": -199.8308907898777,
+        "z": 33.396000000317656
+      },
+      {
+        "id": "manuka-pool",
+        "name": "Manuka Pool",
+        "lat": -35.3170181,
+        "lon": 149.1355791,
+        "radius": 40,
+        "description": "Outdoor swimming basin with original coping and entrance details.",
+        "x": -129.06350578399753,
+        "z": -109.30510799992362
+      },
+      {
+        "id": "kingston-powerhouse",
+        "name": "Kingston Powerhouse",
+        "lat": -35.3115975,
+        "lon": 149.1436952,
+        "radius": 65,
+        "description": "Historic industrial halls, now Canberra Glassworks, beside the former chimney base.",
+        "x": 608.1399000104491,
+        "z": -712.7263000000098
+      }
+    ],
+    "addressCount": 3446,
+    "camera": {
+      "x": -403.9471712465018,
+      "y": 26.255482505813518,
+      "z": -526.3826875902082,
+      "orbit": 0,
+      "lookPitch": 0,
+      "footYaw": -5.423580927734376
+    },
+    "discovered": [
+      "telopea"
+    ],
+    "roadCount": 5197,
+    "buildings": 12572,
+    "traffic": 40,
+    "visibleTraffic": 25,
+    "destination": null,
+    "routePoints": 0,
+    "mapSelection": {
+      "x": -411.7185526594028,
+      "z": -529.6946047132599
+    },
+    "mapView": {
+      "zoom": 1,
+      "minX": -3088.3,
+      "maxX": 3360.79,
+      "minZ": -2226.4,
+      "maxZ": 3784.88,
+      "x": 136.2449999999999,
+      "z": 779.24,
+      "scale": 0.042253896008836715
+    },
+    "rendering": {
+      "calls": 166,
+      "triangles": 275217,
+      "quality": "low",
+      "compatibility": false
+    },
+    "world": {
+      "buildings": 12549,
+      "trees": 9000,
+      "treesNearSpawn": 112,
+      "windows": 189400,
+      "roofFacets": 677743,
+      "texturedBuildings": 12549,
+      "signs": 85,
+      "roadSegments": 29899,
+      "triangles": 6485994,
+      "chunks": 420,
+      "meshes": 2178
+    },
+    "pedestrians": {
+      "count": 80,
+      "visible": 61,
+      "detailed": 20,
+      "paths": 3153,
+      "drawCalls": 8,
+      "triangles": 34866,
+      "recycled": 31,
+      "sample": [
+        {
+          "id": 0,
+          "x": -346.5666940274533,
+          "y": 22.845743287719348,
+          "z": -459.94864293448177,
+          "yaw": 6.011340145907788,
+          "roadId": "454766145-0",
+          "roadName": "New South Wales Crescent",
+          "sidewalkOffset": 3.45,
+          "escape": 0,
+          "stopped": true,
+          "phase": 4.076816904793758,
+          "health": 100,
+          "reaction": "calm",
+          "fear": 0,
+          "anger": 0,
+          "stun": 0,
+          "knockdown": 0,
+          "reactionTimer": 0
+        },
+        {
+          "id": 1,
+          "x": -431.13493787246244,
+          "y": 20.99628623463828,
+          "z": -634.7569507571336,
+          "yaw": 5.96838347227476,
+          "roadId": "664090174-0",
+          "roadName": "National Circuit",
+          "sidewalkOffset": 3.45,
+          "escape": 0,
+          "stopped": false,
+          "phase": 33.764316514288886,
+          "health": 100,
+          "reaction": "calm",
+          "fear": 0,
+          "anger": 0,
+          "stun": 0,
+          "knockdown": 0,
+          "reactionTimer": 0
+        },
+        {
+          "id": 2,
+          "x": -318.3098073451862,
+          "y": 22.555833284134103,
+          "z": -509.7714174308889,
+          "yaw": 5.522865497041577,
+          "roadId": "462480779-0",
+          "roadName": "New South Wales Crescent",
+          "sidewalkOffset": 3.45,
+          "escape": 0,
+          "stopped": false,
+          "phase": 23.227252589843875,
+          "health": 100,
+          "reaction": "calm",
+          "fear": 0,
+          "anger": 0,
+          "stun": 0,
+          "knockdown": 0,
+          "reactionTimer": 0
+        },
+        {
+          "id": 3,
+          "x": -268.52267338735027,
+          "y": 20.831496111697767,
+          "z": -548.4201617124617,
+          "yaw": 1.7982390206659997,
+          "roadId": "462480779-0",
+          "roadName": "New South Wales Crescent",
+          "sidewalkOffset": 3.45,
+          "escape": 0,
+          "stopped": false,
+          "phase": 24.54164225021794,
+          "health": 100,
+          "reaction": "calm",
+          "fear": 0,
+          "anger": 0,
+          "stun": 0,
+          "knockdown": 0,
+          "reactionTimer": 0
+        },
+        {
+          "id": 4,
+          "x": -431.12893811825995,
+          "y": 24.959285885970957,
+          "z": -370.37615292806043,
+          "yaw": 2.0211996771309684,
+          "roadId": "662335006-0",
+          "roadName": "Dominion Circuit",
+          "sidewalkOffset": 4.95,
+          "escape": 0,
+          "stopped": false,
+          "phase": 24.013082257662692,
+          "health": 100,
+          "reaction": "calm",
+          "fear": 0,
+          "anger": 0,
+          "stun": 0,
+          "knockdown": 0,
+          "reactionTimer": 0
+        },
+        {
+          "id": 5,
+          "x": -279.61166905392315,
+          "y": 21.40937384855847,
+          "z": -545.7799907209969,
+          "yaw": 5.075754179358426,
+          "roadId": "462480779-0",
+          "roadName": "New South Wales Crescent",
+          "sidewalkOffset": 3.45,
+          "escape": 0,
+          "stopped": false,
+          "phase": 27.933011518620365,
+          "health": 100,
+          "reaction": "calm",
+          "fear": 0,
+          "anger": 0,
+          "stun": 0,
+          "knockdown": 0,
+          "reactionTimer": 0
+        },
+        {
+          "id": 6,
+          "x": -528.0069752485223,
+          "y": 21.510068217910643,
+          "z": -521.3495078549671,
+          "yaw": -0.6241749550357062,
+          "roadId": "488673135-0",
+          "roadName": "National Circuit",
+          "sidewalkOffset": 4.95,
+          "escape": 0,
+          "stopped": false,
+          "phase": 29.44576354807486,
+          "health": 100,
+          "reaction": "calm",
+          "fear": 0,
+          "anger": 0,
+          "stun": 0,
+          "knockdown": 0,
+          "reactionTimer": 0
+        },
+        {
+          "id": 7,
+          "x": -353.03727328276085,
+          "y": 23.09930238407805,
+          "z": -462.4328743401249,
+          "yaw": 6.011340145907825,
+          "roadId": "454766145-0",
+          "roadName": "New South Wales Crescent",
+          "sidewalkOffset": 3.45,
+          "escape": 0,
+          "stopped": true,
+          "phase": 6.165883230488964,
+          "health": 100,
+          "reaction": "calm",
+          "fear": 0,
+          "anger": 0,
+          "stun": 0,
+          "knockdown": 0,
+          "reactionTimer": 0
+        }
+      ]
+    },
+    "neighbourhood": {
+      "frontages": 4200,
+      "driveways": 4200,
+      "hedges": 5382,
+      "fences": 2683,
+      "letterboxes": 4069,
+      "doors": 4200,
+      "verandahs": 1080,
+      "lamps": 500,
+      "benches": 6,
+      "bins": 117,
+      "stopPoles": 3,
+      "shopSigns": 26,
+      "retailAprons": 34,
+      "apronTriangles": 11618,
+      "pavedArea": 7839.1280126645825,
+      "chunks": 239,
+      "meshes": 249,
+      "triangles": 623176
+    },
+    "landmarks": {
+      "landmarks": 5,
+      "meshes": 10,
+      "triangles": 5316,
+      "visibleNear": 3,
+      "visibleDistant": 2,
+      "nearRange": 850,
+      "farRange": 4200
+    },
+    "actors": {
+      "police": 0,
+      "officers": 0,
+      "shots": 0,
+      "playerVisible": true,
+      "objectiveVisible": null,
+      "meshes": 52,
+      "triangles": 28668,
+      "drawCalls": 12,
+      "geometryCount": 24,
+      "materialCount": 24,
+      "disposed": false
+    },
+    "services": [
+      {
+        "radius": 8,
+        "id": "crescent-kiosk",
+        "name": "Crescent kiosk",
+        "type": "food",
+        "x": -353.24,
+        "z": -419.66,
+        "road": "New South Wales Crescent",
+        "price": 35,
+        "heal": 35,
+        "robbery": 180
+      },
+      {
+        "radius": 8,
+        "id": "manuka-store",
+        "name": "Manuka corner store",
+        "type": "food",
+        "x": -378.23,
+        "z": 217.66,
+        "road": "Franklin Street",
+        "price": 35,
+        "heal": 35,
+        "robbery": 350
+      },
+      {
+        "radius": 8,
+        "id": "kingston-gym",
+        "name": "Kingston gym",
+        "type": "gym",
+        "x": 607.24,
+        "z": 39.78,
+        "road": "Kennedy Street",
+        "price": 120
+      },
+      {
+        "radius": 8,
+        "id": "canalside-supplies",
+        "name": "Canalside supplies",
+        "type": "arms",
+        "x": 567.32,
+        "z": -634.87,
+        "road": "Wentworth Avenue",
+        "price": 450,
+        "ammoPrice": 60
+      }
+    ],
+    "activity": null,
+    "buses": [
+      {
+        "id": "ambient-bus-0",
+        "kind": "bus",
+        "x": -426.92678645842994,
+        "z": -545.5313255914913,
+        "yaw": 0.9359218777603602,
+        "length": 10.6,
+        "width": 2.45,
+        "active": true,
+        "occupied": true,
+        "speed": 4.020833333333344,
+        "color": 5534601,
+        "layover": 0,
+        "circuit": "fictional ambient circuit",
+        "routeEdgeIds": [
+          31346,
+          31347,
+          31047,
+          30896,
+          30897,
+          30898,
+          30899,
+          30900,
+          30901,
+          30902,
+          30903,
+          30904,
+          30905,
+          30928,
+          30929,
+          30930,
+          30931,
+          30895,
+          30888,
+          30889,
+          30890,
+          30891,
+          30892,
+          30893,
+          31084,
+          31085,
+          31086,
+          31087,
+          31088,
+          31082,
+          31083,
+          30973,
+          30485,
+          30952,
+          30953,
+          30954,
+          30955,
+          30956,
+          31452,
+          31453,
+          31454,
+          31455,
+          31456,
+          31457,
+          31458,
+          31459,
+          31460,
+          31461,
+          31015,
+          30709,
+          30710,
+          30711,
+          30712,
+          31030,
+          30478,
+          31031,
+          31032,
+          31033,
+          31629,
+          30168,
+          30166,
+          30164,
+          30162,
+          30160,
+          30158,
+          30156,
+          30204,
+          30202,
+          30200,
+          30198,
+          30945,
+          30943,
+          30941,
+          30939,
+          30937,
+          31056,
+          31057,
+          31058,
+          30925,
+          30926,
+          30927,
+          31348,
+          31349,
+          31350,
+          31351,
+          31352,
+          31353,
+          31354
+        ],
+        "waypoint": 1
+      },
+      {
+        "id": "ambient-bus-1",
+        "kind": "bus",
+        "x": -422.59901497376023,
+        "z": -282.88544487156724,
+        "yaw": -2.528918857816521,
+        "length": 10.6,
+        "width": 2.45,
+        "active": true,
+        "occupied": true,
+        "speed": 1.499999999999999,
+        "color": 12285000,
+        "layover": 0,
+        "circuit": "fictional ambient circuit",
+        "routeEdgeIds": [
+          26107,
+          26109,
+          26111,
+          26113,
+          26115,
+          26117,
+          25726,
+          25728,
+          25730,
+          25732,
+          25734,
+          25736,
+          25738,
+          25740,
+          25742,
+          25744,
+          25746,
+          25748,
+          26724,
+          26725,
+          26726,
+          26727,
+          26728,
+          26729,
+          31262,
+          31264,
+          31266,
+          30221,
+          30223,
+          30225,
+          30227,
+          30229,
+          30231,
+          30233,
+          30235,
+          30237,
+          30239,
+          30241,
+          33089,
+          33090,
+          33091,
+          32212,
+          32213,
+          32214,
+          32215,
+          32216,
+          32217,
+          32218,
+          32219,
+          30581,
+          30582,
+          30583,
+          30584,
+          30585,
+          30586,
+          30587,
+          30588,
+          30589,
+          30590,
+          30591,
+          31788,
+          30718,
+          30719,
+          30720,
+          30721,
+          30280,
+          30278,
+          30276,
+          30274,
+          30272,
+          30270,
+          30268,
+          30266,
+          30921,
+          30922,
+          30923,
+          30924,
+          31046,
+          30906,
+          30907,
+          31059,
+          31060,
+          31061,
+          30887,
+          30885,
+          30883,
+          26097,
+          26099,
+          26101,
+          26103,
+          26105
+        ],
+        "waypoint": 1
+      }
+    ],
+    "busView": {
+      "buses": 2,
+      "drawCalls": 4,
+      "triangles": 2264,
+      "geometries": 4,
+      "materials": 2,
+      "disposed": false
+    },
+    "occupants": {
+      "drivers": 25,
+      "exits": 0,
+      "drawCalls": 1,
+      "driverLimit": 64,
+      "exitLimit": 12,
+      "geometryCount": 4,
+      "materialCount": 1,
+      "disposed": false
+    },
+    "serviceView": {
+      "sites": 4,
+      "visible": 1,
+      "drawCalls": 2,
+      "triangles": 112,
+      "geometryCount": 2,
+      "materialCount": 2,
+      "textureCount": 1,
+      "disposed": false
+    },
+    "trafficSample": [
+      {
+        "id": "traffic:0",
+        "x": -416.115904839064,
+        "z": -201.6015737342794,
+        "speed": 0.0010813706492115217,
+        "active": true
+      },
+      {
+        "id": "traffic:1",
+        "x": -124.78147410769557,
+        "z": -549.8296830211121,
+        "speed": 7.695699181908822e-07,
+        "active": true
+      },
+      {
+        "id": "traffic:2",
+        "x": -496.8529125530963,
+        "z": -553.1837569760338,
+        "speed": 0,
+        "active": true
+      },
+      {
+        "id": "traffic:3",
+        "x": -177.4043152004509,
+        "z": -532.5354356239686,
+        "speed": 0.17384805248274873,
+        "active": true
+      },
+      {
+        "id": "traffic:4",
+        "x": -641.4437259531262,
+        "z": -233.86664094580817,
+        "speed": 0.06162338050883989,
+        "active": true
+      },
+      {
+        "id": "traffic:5",
+        "x": -351.2803915202393,
+        "z": -540.1198848899503,
+        "speed": 12.747306086992223,
+        "active": true
+      },
+      {
+        "id": "traffic:6",
+        "x": -491.37088494512966,
+        "z": -195.1468358511089,
+        "speed": 14.86874544946477,
+        "active": true
+      },
+      {
+        "id": "traffic:7",
+        "x": -727.4842270528484,
+        "z": -294.4388329523198,
+        "speed": 0.9367822699472783,
+        "active": true
+      }
+    ]
+  }
+}

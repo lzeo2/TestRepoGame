@@ -8,7 +8,8 @@ It does not authorize another game, registration, publication or a push.
 
 Read repository `AGENTS.md`, `docs/CODE_QUALITY.md`,
 `docs/maintenance/README.md`, `docs/maintenance/games/245-capital-drive.md`,
-`docs/maintenance/inventory.json` and `docs/capital-drive-street-life-contract.md`.
+`docs/maintenance/inventory.json`, `docs/capital-drive-street-life-contract.md`
+and `docs/capital-drive-expansion-contract.md`.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -43,7 +44,12 @@ regeneration, maintenance refresh, save reset or push.
 
 For explicitly needed browser evidence, choose a fresh directory outside the
 repository and pass it with `--browser --output`. Browser checks use a temporary
-localhost server and terminate it. Record actual results and limitations; a pure
+localhost server and terminate it. The default is the expansion suite; add
+`--classic-browser` only to reproduce the earlier Street Life suite. Optional
+`scripts/test_capital_expansion_browser.py --walk-kiosk --output <external-dir>`
+uses actual keys and must navigate around the parked car. Retain failures and
+path samples; a straight greedy test route is not a navigation solution.
+Record actual results and limitations; a pure
 pass does not establish native gameplay, visual quality or N100 performance.
 Commit only owned paths. Update maintenance prose/inventory after the source
 commit, run its checker, and hand off exact commits, commands, results and holds.

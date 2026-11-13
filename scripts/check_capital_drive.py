@@ -89,7 +89,8 @@ def main():
                  for filename in SUITES]
     commands.append((['git', 'diff', '--check'], 120))
     if args.browser:
-        commands.append(([sys.executable, '-B', 'scripts/test_capital_drive_browser.py', '--output', str(output)], 600))
+        suite = 'scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py'
+        commands.append(([sys.executable, '-B', suite, '--output', str(output)], 600))
     missing = [str(path) for path in required if not (ROOT / path).is_file()]
     if missing:
         for path in missing:

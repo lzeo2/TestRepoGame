@@ -1,0 +1,30 @@
+{
+  "backendReport": null,
+  "checks": [
+    "Software WebGL renderer available",
+    "Legacy v1 cash and vehicle condition load",
+    "Street Life wanted HUD shows five star slots",
+    "Pistol is locked before buying equipment",
+    "Street Life hides teleport and Start nearby",
+    "Street Life excludes explicit address results",
+    "Street Life address selection cannot teleport",
+    "Shops dialog lists fictional service sites",
+    "Remote pistol purchase denies without cash loss",
+    "Normal service route button sets a road route"
+  ],
+  "errors": [],
+  "failures": [],
+  "external": [],
+  "observations": [
+    {
+      "failure": "Normal WASD walk reaches nearby kiosk"
+    }
+  ],
+  "elapsedSeconds": 62.87,
+  "screenshots": [],
+  "limitations": [
+    "Software WebGL; N100 FPS unmeasured.",
+    "Police pursuit/recovery correctness belongs to pure backend suites.",
+    "No renderer fixture is positive gameplay evidence."
+  ]
+}
