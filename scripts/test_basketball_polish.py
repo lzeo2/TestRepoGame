@@ -129,11 +129,16 @@ def main():
         click(page, '#close-sheet')
 
     def battle(page, label):
-        if page.locator('#thief-alert').is_visible():
-            click(page, '#thief-alert [data-action="home"]')
-            click(page, '#thief-alert [data-action="defend"]')
-        click(page, '#battle')
-        s = snap(page)
+        # A completed match has a real45s rest; defend normally while waiting.
+        for _ in range(13):
+            if page.locator('#thief-alert').is_visible():
+                click(page, '#thief-alert [data-action="home"]')
+                click(page, '#thief-alert [data-action="defend"]')
+            click(page, '#battle')
+            s = snap(page)
+            if s['match']:
+                break
+            wait(page,5000)
         check(bool(s['match']) and len(s['match']['players']) == 10, label + ' actual 5v5 match')
         return s
 
@@ -147,6 +152,10 @@ def main():
             click(page, '[data-panel="collection"]')
             check(page.locator('#album-grid .card').count() == 100, 'album displays 100 identities')
             capture(page, 'desktop-album')
+            click(page, '#close-sheet')
+            click(page, '[data-panel="help"]')
+            page.locator('#low-graphics').check()
+            check(snap(page)['state']['settings']['lowGraphics'], 'low graphics selected through normal settings')
             click(page, '#close-sheet')
             s = battle(page, 'desktop')
             receipt['observations']['initialMatchRendering'] = s['world']
@@ -210,6 +219,7 @@ def main():
             click(page, '#close-sheet')
             last_period = None
             called = set()
+            receipt['observations']['playAttempts']=[]
             ability_used = False
             while True:
                 s = snap(page)
@@ -228,17 +238,20 @@ def main():
                     wanted = 'DEFENSE' if mode == 'defense' else 'ATTACK'
                     if wanted in toggle.inner_text():
                         click(page, '#match-controls [data-action="togglePlays"]')
-                    page.locator('#world').click(position={'x':650,'y':420})
-                    page.keyboard.press('x')
-                    wait(page, 180)
-                    if snap(page)['match']['cooldowns']['plays'] > 0:
+                    page.locator('#match-controls [data-action="play"][data-id="'+play+'"]').click()
+                    after_call=snap(page)
+                    receipt['observations']['playAttempts'].append({'play':play,'phaseBefore':m['phase'],
+                        'phaseAfter':after_call['match']['phase'],'cooldown':after_call['match']['cooldowns']['plays'],
+                        'toast':page.locator('#toast').inner_text()})
+                    if after_call['match']['cooldowns']['plays'] > 0:
                         called.add(mode)
                 period = s['match']['period']
                 if period != last_period:
                     print('LIVE ' + period + ' ' + str(s['match']['score']), flush=True)
                     last_period = period
-                wait(page, 5000)
+                wait(page, 250 if len(called)<2 else 5000)
             receipt['observations']['abilityUsed'] = ability_used
+            receipt['observations']['completedMatch'] = {'report':s['report'],'lastBattle':s['state']['lastBattle'],'coins':s['state']['coins']}
             check(called == {'attack', 'defense'}, 'valid attack and defense calls accepted')
             check(not s['report'].get('forfeit'), 'natural full match report')
             reward = s['state']['lastBattle']['reward']['total']
