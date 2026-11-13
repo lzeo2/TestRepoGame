@@ -311,7 +311,32 @@ def main():
                 browser = playwright.chromium.launch(executable_path='/usr/bin/chromium',
                     chromium_sandbox=True, headless=True, timeout=15000, env=dict(os.environ))
                 report['stage'] = 'sandbox-verification'
-                observed = select_browser(read_processes(), os.getpid(), previous, executable, ROOT/'.tmp', os.getuid())
+                # Immediately after launch, forked Chromium children still carry
+                # the parent's argv before exec rewrites it; one scan sees many
+                # --type-less candidates. Rescan until the candidate set is
+                # unambiguous (bounded settle), never relax identity gates.
+                records = read_processes()
+                seen_multi = 0
+                observed = None
+                for _ in range(20):
+                    current = [p for p in records.values() if p.exe == executable
+                               and (p.pid, p.start) not in previous and option(p.argv, '--type') is None
+                               and descends(records, p, os.getpid())]
+                    if len(current) == 1:
+                        observed = current[0]
+                        break
+                    if len(current) > 1:
+                        seen_multi += 1
+                    time.sleep(0.25)
+                    records = read_processes()
+                if observed is None:
+                    raise ValueError(f'Expected one new checker-owned Chromium browser, '
+                                     f'found {"multiple unstable" if seen_multi else 0} after settle')
+                if observed.uids != (os.getuid(),)*4:
+                    raise ValueError('Browser UID identity not verified')
+                safe_argv(observed.argv)
+                if '--remote-debugging-pipe' not in observed.argv:
+                    raise ValueError('Missing Playwright pipe identity')
                 profile = Path(option(observed.argv, '--user-data-dir')).resolve(strict=True)
                 assert profile.is_dir() and profile.stat().st_uid == os.getuid(), 'Profile ownership not verified'
                 report['accepted'].append('actual-proc-browser-identity/argv/profile')
