@@ -67,9 +67,30 @@ game.reset(); assert.equal(game.reportOffence('theft', 1, { witnessed: false }),
 game.reset({ sandbox: true }); assert.equal(game.reportOffence('gunfire', 3, { witnessed: true }), false);
 simulation.player.crashes += 7; tick(0.1); assert.equal(respawns.length, 0); assert.equal(game.state.wanted, 0);
 game.reset({ sandbox: false });
-simulation.player.crashes += 7; tick(0.1); simulation.player.crashes += 7; tick(0.1);
-assert(game.state.recovery); assert.equal(respawns.length, 0); tick(3.5);
-assert.equal(respawns.at(-1), 'knockout'); assert.equal(game.state.health, 100); assert.equal(game.state.vehicleHealth, 100);
+// Scraping and small bumps cannot send a healthy driver to hospital.
+simulation.player.lastImpactSpeed = 3;
+for (let i = 0; i < 30; i++) { simulation.player.crashes++; tick(0.05); }
+assert.equal(game.state.vehicleHealth, 100); assert.equal(game.state.health, 100);
+simulation.player.lastImpactSpeed = 10; simulation.player.crashes++; tick(0.05);
+const dented = game.state.vehicleHealth;
+assert(dented < 100 && dented >= 90); assert.equal(game.state.health, 100);
+for (let i = 0; i < 10; i++) { simulation.player.crashes++; game.step(0); }
+assert.equal(game.state.vehicleHealth, dented, 'pause freezes crash damage and its cooldown');
+for (let i = 0; i < 10; i++) { simulation.player.crashes++; tick(0.05); }
+assert.equal(game.state.vehicleHealth, dented, 'pinned-wall contacts share a brief cooldown');
+// Repeated moderate impacts can disable the car without injuring its driver.
+for (let i = 0; i < 16; i++) { tick(0.9); simulation.player.crashes++; tick(0.05); }
+assert.equal(game.state.vehicleHealth, 0); assert.equal(game.state.health, 100);
+assert.equal(game.state.recovery, null); assert.equal(respawns.length, 0);
+simulation.player.speed = 5; tick(0.05); assert.equal(simulation.player.speed, 0);
+assert(game.interact(), 'healthy driver can leave a disabled car');
+game.reset(); simulation.player.lastImpactSpeed = 36;
+for (let i = 0; i < 3; i++) { tick(0.9); simulation.player.crashes++; tick(0.05); }
+assert(game.state.recovery); assert.equal(respawns.length, 0);
+const recovering = game.snapshot(); game.step(0); assert.deepEqual(game.snapshot(), recovering);
+tick(3.5);
+assert.equal(respawns.at(-1), 'knockout'); assert.equal(respawns.length, 1);
+assert.equal(game.state.health, 100); assert.equal(game.state.vehicleHealth, 100);
 // Enter source with exact metadata and preserve claim state.
 simulation.setParkedCars([{ id: 'test-parked', x: 8, z: 0, yaw: 0, modelId: 'orchard', color: 0xabcdef }]);
 simulation.teleport({ x: 0, z: 0 }); game.reset(); game.interact(); Object.assign(game.state.actor, { x: 6, z: 0 });
@@ -130,3 +151,19 @@ assert.equal(game.reportOffence('reckless', 1, { witnessed: true, offenderId: 't
 events.push({ type: 'witness', kind: 'reckless', offenderId: 'player' });
 game.step(1 / 60); assert(game.state.wanted > 0, 'explicit player reckless report still raises wanted');
 console.log('Capital gameplay: actual-map AI panic leaves innocent player clear; explicit player offences still report PASS');
+
+// Reckless reporting has its own long cooldown, with combat still immediate.
+game.reset();
+events.push({ type: 'witness', kind: 'reckless', offenderId: 'player' });
+game.step(1 / 60); assert.equal(game.state.wanted, 1);
+events.push({ type: 'witness', kind: 'gunshot', offenderId: 'player' });
+game.step(1 / 60); assert.equal(game.state.wanted, 2, 'reckless reporting cannot delay witnessed gunfire');
+tick(1.1);
+events.push({ type: 'witness', kind: 'reckless', offenderId: 'player' });
+game.step(1 / 60); assert.equal(game.state.wanted, 2, 'multiple adults cannot rapidly stack reckless reports');
+for (let i = 0; i < 600; i++) game.step(0);
+events.push({ type: 'witness', kind: 'reckless', offenderId: 'player' });
+game.step(1 / 60); assert.equal(game.state.wanted, 2, 'pause preserves reckless cooldown');
+events.push({ type: 'witness', kind: 'assault', offenderId: 'player' });
+game.step(1 / 60); assert.equal(game.state.wanted, 3, 'actual assault remains promptly reported');
+console.log('Capital gameplay: independent reckless/combat report cooldowns and pause PASS');
