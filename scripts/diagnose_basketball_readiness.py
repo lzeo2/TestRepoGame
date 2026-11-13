@@ -270,6 +270,7 @@ PROBE = r"""(() => {
         const result=original.apply(this,args);if(first)emit('draw-exit',{name});return result;};
     }
   document.addEventListener('webglcontextlost',()=>emit('context-lost'),true);
+  document.addEventListener('webglcontextrestored',()=>emit('context-restored'),true);
   document.addEventListener('webglcontextcreationerror',e=>emit('context-creation-error',{message:e.statusMessage}),true);
   setInterval(()=>{const current=sample(),key=JSON.stringify(current);
     if(key!==previous){previous=key;emit('readiness',current);}},250);
@@ -379,8 +380,11 @@ def main():
                         if message.text.startswith('BB_DIAG '):
                             event = json.loads(message.text[8:])
                             report['events'].append(event)
-                            if event['kind'] in ('context-lost', 'context-creation-error'):
+                            if event['kind'] == 'context-creation-error':
                                 report['errors'].append(event['kind'])
+                            # 'context-lost' alone is the SwiftShader software-
+                            # rendering lifecycle (the game recovers via
+                            # webglcontextrestored); fatal only with no restore.
                         elif message.type in ('error', 'warning'):
                             report['events'].append({'kind': 'console-'+message.type, 'text': clean(message.text)})
                             if message.type == 'error': report['errors'].append(clean(message.text))
