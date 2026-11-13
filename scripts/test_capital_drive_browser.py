@@ -20,6 +20,25 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+def mission_wagon_point():
+    data = json.loads((ROOT / 'Games/Capital Drive/data/canberra.json').read_text())
+    best = None
+    for road in data['roads']:
+        for a, b in zip(road['points'], road['points'][1:]):
+            dx, dz = b[0] - a[0], b[1] - a[1]
+            length2 = dx * dx + dz * dz
+            if length2 < .01:
+                continue
+            t = max(0, min(1, ((-298 - a[0]) * dx + (-325.27 - a[1]) * dz) / length2))
+            x, z = a[0] + t * dx, a[1] + t * dz
+            gap = math.hypot(x + 298, z + 325.27)
+            if best is None or gap < best[0]:
+                best = (gap, x, z, math.atan2(-dx, -dz), road['width'])
+    _, x, z, yaw, width = best
+    offset = min(3.3, width / 2 - .8)
+    return {'x': x - math.cos(yaw) * offset, 'z': z + math.sin(yaw) * offset}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path)
@@ -143,6 +162,13 @@ def main():
             check(abs(snap(page)['mapSelection']['x'] - 200) < .01, 'keyboard arrows move the map selection')
             page.keyboard.press('Enter')
             check(abs(snap(page)['player']['x'] - 200) < .01 and not page.locator('#map-dialog').is_visible(), 'Enter teleports from the focused map')
+            own_model = snap(page)['gameplay']['vehicle']['modelId']
+            page.keyboard.press('e')
+            page.wait_for_function('capitalDriveSnapshot().gameplay.mode === "foot"', timeout=10000)
+            page.keyboard.press('e')
+            page.wait_for_function('capitalDriveSnapshot().gameplay.mode === "vehicle"', timeout=10000)
+            check(snap(page)['gameplay']['vehicle']['modelId'] == own_model and not snap(page)['gameplay']['vehicle']['stolen'],
+                  'normal E exits and re-enters the current controlled car')
             page.keyboard.press('m')
             page.locator('[data-place="redhill"]').get_by_role('button', name='Set route').click()
             check(snap(page)['routePoints'] > 10, 'Red Hill route follows the connected road graph')
@@ -201,6 +227,23 @@ def main():
             check(len(snap(page)['discovered']) == snap(page)['totalPlaces'], 'all mapped places are discoverable using the normal map controls')
             frames(page)
             page.screenshot(path=str(output / 'telopea-driving.png'))
+            career_before_claim = snap(page)['career']
+            wagon = mission_wagon_point()
+            heading = snap(page)['player']['yaw']
+            page.keyboard.press('m')
+            while snap(page)['mapView']['zoom'] > 1:
+                page.get_by_role('button', name='Zoom out', exact=True).click()
+            select_map_point(page, wagon['x'] + math.cos(heading) * 6.5, wagon['z'] - math.sin(heading) * 6.5)
+            page.locator('#teleport-button').click()
+            page.keyboard.press('e')
+            page.wait_for_function('capitalDriveSnapshot().gameplay.mode === "foot"', timeout=10000)
+            page.keyboard.press('e')
+            page.wait_for_function('capitalDriveSnapshot().gameplay.mode === "vehicle" && capitalDriveSnapshot().gameplay.vehicle.modelId === "orchard"', timeout=10000)
+            claimed = snap(page)
+            check(claimed['gameplay']['vehicle']['stolen'] and claimed['player']['modelId'] == 'orchard' and page.locator('#car-label').inner_text() == 'WAGON',
+                  'normal E claims the staged parked wagon and updates the controlled model and HUD')
+            check(claimed['career'] == career_before_claim, 'Free roam vehicle theft preserves career cash, owned cars and completed jobs')
+            page.screenshot(path=str(output / 'claimed-parked-wagon.png'))
             page.keyboard.press('p')
             page.get_by_label('Appearance', exact=True).select_option('light')
             page.locator('#resume-button').click()
