@@ -44,7 +44,8 @@ function parseElements(markup,parent){
     const node=new Element(tag,attrs,stack.at(-1));stack.at(-1)?.children.push(node);
     if(node.id){assert.ok(!elements.has(node.id),'Unique parsed ID: '+node.id);elements.set(node.id,node);}
     if(tag==='button')buttons.push(node);
-    if(!['meta','link','img','br','input'].includes(tag))stack.push(node);
+    const svgPath=tag==='path'&&raw.trimEnd().endsWith('/');
+    if(!['meta','link','img','br','input'].includes(tag)&&!svgPath)stack.push(node);
   }
   assert.equal(stack.length,1,'Complete fixture markup');return buttons;
 }
