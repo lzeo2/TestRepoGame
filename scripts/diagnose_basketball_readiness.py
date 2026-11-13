@@ -438,7 +438,7 @@ def main():
                     report['stage'] = label+'-natural-start'
                     # SwiftShader context restore can re-render the shell; wait
                     # for the button to be enabled and stable, then click.
-                    page.locator('#start').click(force=True, timeout=60000)
+                    page.locator('#start').click(force=True, timeout=30000)
                     page.wait_for_function('window.basketballerSnapshot().started', timeout=20000)
                     assert not report['errors'] and not report['external'], 'Start gate error; stop'
                     report['accepted'].append(label+'-natural-PLAY')
@@ -451,13 +451,13 @@ def main():
                 # here), so Playwright's two-stable-frames precheck rarely
                 # passes. Force keeps the click a real input event on the real
                 # button; the game's own snapshot gates the result.
-                page.locator('[data-panel="shop"]').click(force=True, timeout=60000)
-                page.locator('[data-action="openMarket"]').click(force=True, timeout=60000)
+                page.locator('[data-panel="shop"]').click(force=True, timeout=30000)
+                page.locator('[data-action="openMarket"]').click(force=True, timeout=30000)
                 # Conveyor items move and can be bought by NPCs mid-click;
                 # retry until a visible SIGN PLAYER click actually lands.
-                for _ in range(6):
+                for _ in range(4):
                     try:
-                        page.locator('[data-action="buy"]:visible').first.click(force=True, timeout=10000)
+                        page.locator('[data-action="buy"]:visible').first.click(force=True, timeout=8000)
                         break
                     except Exception:
                         continue
@@ -468,12 +468,12 @@ def main():
                 assert not report['errors'] and not report['external'], 'Recruit gate error; stop'
                 report['accepted'].append('natural-affordable-recruit')
                 report['signing'] = page.evaluate('window.basketballerSnapshot().state.roster[0].name')
-                page.locator('#close-sheet').click(force=True, timeout=60000)
+                page.locator('#close-sheet').click(force=True, timeout=30000)
                 report['stage'] = 'five-on-five'
                 pre = page.evaluate('window.basketballerSnapshot().state')
                 report['preBattle'] = {'roster': len(pre['roster']), 'battleLock': pre['battleLock'],
                     'battleReadyAt': pre['battleReadyAt'], 'npcAttempt': bool(pre['npcAttempt'])}
-                page.locator('#battle').click(force=True, timeout=60000)
+                page.locator('#battle').click(force=True, timeout=30000)
                 page.wait_for_function('''() => {const m=window.basketballerSnapshot().match;
                     return m && m.players.length===10 && m.shotClock>0 && m.shotClock<24;}''', timeout=180000)
                 match = page.evaluate('window.basketballerSnapshot().match')
@@ -483,7 +483,7 @@ def main():
                 report['playersPerSide'] = [sum(p['side']==side for p in match['players']) for side in (0,1)]
                 report['world'] = page.evaluate('window.basketballerSnapshot().world')
                 report['accepted'].append('real-five-on-five/live-score-shot-clock')
-                page.locator('[data-panel="collection"]').click(force=True, timeout=60000)
+                page.locator('[data-panel="collection"]').click(force=True, timeout=30000)
                 assert page.locator('#album-grid > .card').count() == 100
                 report['albumNames'] = len(set(page.locator('#album-grid h3').all_text_contents()))
                 assert report['albumNames'] == 100
