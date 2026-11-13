@@ -1,17 +1,19 @@
-import {Game} from './game.js';
-import {Match} from './match.js';
+import {Game,reconcileTacticsDraft} from './game.js';
+import {Match,resolveAbilities} from './match.js';
 import {World} from './world.js';
+import {blocksGameplayKey,rememberFocus,restoreFocus,trapTab} from './input.js';
 
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const number = n => Math.floor(n || 0).toLocaleString('en');
+const rate = n => (n || 0).toLocaleString('en',{maximumFractionDigits:1});
 const clone = value => JSON.parse(JSON.stringify(value));
 const axes = ['attacking','pace','passing','defending','stamina','goalkeeping'];
 const labels = ['Attack','Pace','Passing','Defense','Stamina','Keeping'];
 const formations = {'4-4-2':[4,4,2], '4-3-3':[4,3,3], '3-5-2':[3,5,2]};
 const button = (label, action, attrs = '', disabled = false) => `<button class="small" data-action="${action}" ${attrs} ${disabled?'disabled':''}>${esc(label)}</button>`;
 const select = (id, options, selected) => `<select id="${id}">${options.map(([value,label])=>`<option value="${esc(value)}" ${String(value)===String(selected)?'selected':''}>${esc(label)}</option>`).join('')}</select>`;
-const marketDefinition = id => id==='mystery'?{id,name:'Mystery Player',rarity:'Mystery',cost:data.config.Progression.mysteryCost,income:0,power:'?'}:game.catalog.get(id);
+const marketDefinition = id => id==='mystery'?{id,name:'Mystery Player',rarity:'Mystery',cost:data.config.Progression.mysteryCost,income:0,power:'?'}:{...game.catalog.get(id),income:game.baseIncome(id)};
 
 let data, worldData, game, world, state, match, matchState, report, lineup;
 let started = false, panel = '', previousFocus, draft, selectedPosition = null;
@@ -102,7 +104,7 @@ function playerCard(p,controls='owned',index=0) {
   const tags=[def.rarity,def.style?.name,p.level!==undefined?'Level '+p.level:null,p.mutationId&&p.mutationId!=='ordinary'?p.mutationId:null,trait];
   const controlsHTML=controls==='owned'?`${button(p.upgradeCost?`UPGRADE ${number(p.upgradeCost)}`:'MAX LEVEL','upgradePlayer',`data-uid="${esc(p.uid)}"`,!p.upgradeCost||state.battleLock)}${button(`SELL ${number(def.cost*.5)}`,'sell',`data-uid="${esc(p.uid)}"`,state.battleLock)}`:
     controls==='rival'?button('STEAL & CARRY','steal',`data-base="${index.base}" data-index="${index.index}"`,state.battleLock||!!state.carry):'';
-  return `<article class="card"><div class="player-heading"><div class="portrait" aria-hidden="true" style="--shirt:${esc(def.color||'#2456a6')};--skin:${esc(def.appearance?.skinColor||def.skin||'#c99a73')}">${esc(def.number||index+1||1)}</div><div><h3>${esc(title)}</h3><small>${esc(def.clubName||def.nationality||'Footballer')} · ${esc(stats.naturalRole||def.style?.naturalRole||'ST')}</small></div></div><p>${tags.filter(Boolean).map(t=>`<span class="tag ${def.isIcon||def.variantOf?'legendary':''}">${esc(t)}</span>`).join('')}</p><div class="row"><span>Power <b>${Math.round(p.power||stats.power||def.power)}</b></span>${controls==='owned'?`<span><b>${number(p.income)}</b> /s</span>`:`<span class="price">${number(def.cost)} coins</span>`}</div><p class="muted">Pace ${Math.round(stats.pace||0)} · Attack ${Math.round(stats.attacking||0)} · Defense ${Math.round(stats.defending||0)}</p>${def.abilityName?`<p>${esc(def.abilityName)}</p>`:''}${assigned?`<p>Training: ${esc(assigned.kind)} · ${Math.max(0,Math.ceil(assigned.endsAt-game.now()))}s · income paused</p>${button('CANCEL TRAINING','cancelTraining',`data-uid="${esc(p.uid)}"`)}`:''}${p.staff?.injuryUntil>game.now()?'<p>Injured: assign your physio for treatment.</p>':''}<div class="row">${controlsHTML}</div></article>`;
+  return `<article class="card"><div class="player-heading"><div class="portrait" aria-hidden="true" style="--shirt:${esc(def.color||'#2456a6')};--skin:${esc(def.appearance?.skinColor||def.skin||'#c99a73')}">${esc(def.number||index+1||1)}</div><div><h3>${esc(title)}</h3><small>${esc(def.clubName||def.nationality||'Footballer')} · ${esc(stats.naturalRole||def.style?.naturalRole||'ST')}</small></div></div><p>${tags.filter(Boolean).map(t=>`<span class="tag ${def.isIcon||def.variantOf?'legendary':''}">${esc(t)}</span>`).join('')}</p><div class="row"><span>Power <b>${Math.round(p.power||stats.power||def.power)}</b></span>${controls==='owned'?`<span><b>${rate(p.income)}</b> /s</span>`:`<span class="price">${number(def.cost)} coins</span>`}</div><p class="muted">Pace ${Math.round(stats.pace||0)} · Attack ${Math.round(stats.attacking||0)} · Defense ${Math.round(stats.defending||0)}</p>${def.abilityName?`<p>${esc(def.abilityName)}</p>`:''}${assigned?`<p>Training: ${esc(assigned.kind)} · ${Math.max(0,Math.ceil(assigned.endsAt-game.now()))}s · income paused</p>${button('CANCEL TRAINING','cancelTraining',`data-uid="${esc(p.uid)}"`)}`:''}${p.staff?.injuryUntil>game.now()?'<p>Injured: assign your physio for treatment.</p>':''}<div class="row">${controlsHTML}</div></article>`;
 }
 function radar(team) {
   const values=axes.map(a=>team.reduce((sum,p)=>sum+(p.stats[a]||0),0)/11),center=[180,125],r=83;
@@ -116,6 +118,15 @@ function formationPoints(formation) {
 function tacticMembers() {
   return game.team(draft);
 }
+function saveTacticsDraft() {
+  state=game.snapshot();
+  const reconciled=reconcileTacticsDraft(draft,state.roster,state.npcAttempt?.uid);
+  const changed=reconciled.selectedUids.length!==draft.selectedUids.length||reconciled.captainUid!==draft.captainUid;
+  draft=reconciled;
+  const result=act('tactics',draft);
+  if(result.ok&&changed){renderPanel();toast('Tactics saved. Unavailable players were removed from the draft lineup.');}
+  return {...result,lineupChanged:changed};
+}
 function tacticsHTML() {
   const members=tacticMembers(),points=formationPoints(draft.formation);
   return `<p class="notice">Choose your starting XI on the pitch. Drag one position onto another, or tap two positions to swap. Select a reserve below to replace the highlighted player.</p><div class="toolbar"><label>Formation ${select('formation',Object.keys(formations).map(v=>[v,v]),draft.formation)}</label><label>Approach ${select('mentality',[['balanced','Balanced build-up'],['pressing','High press'],['counter','Counterattack']],draft.mentality)}</label></div><div class="field"><div class="half-line"></div>${members.map((p,i)=>`<button class="position ${p.borrowed?'loan':''} ${selectedPosition===i?'selected':''}" style="left:${points[i].x}%;top:${points[i].y}%" draggable="${!p.borrowed}" data-position="${i}" aria-label="${esc(p.roleLabel+': '+p.name)}"><span class="number">${esc(p.roleLabel||p.role)}</span><strong>${esc(p.name.split(' ').slice(-1)[0])}</strong><span>${p.borrowed?'Academy loan':Math.round(p.power)}${draft.captainUid===p.uid?' · C':''}</span></button>`).join('')}</div><div class="toolbar">${button('AUTO PICK XI','autoXI')}${button('MAKE CAPTAIN','captain','',selectedPosition===null||members[selectedPosition]?.borrowed)}</div><div class="row"><h3>RESERVES & ROSTER</h3><small>Select a pitch position, then a player.</small></div><div class="toolbar">${state.roster.map(p=>button(p.name,'assignPosition',`data-uid="${esc(p.uid)}"`,selectedPosition===null)).join('')}</div><h3 class="section-title">TEAM PROFILE</h3>${radar(members)}<h3 class="section-title">FIVE LINEUP PRESETS</h3><div class="stack">${state.tactics.presets.map((p,i)=>`<div class="row card"><div><b>${i+1}. ${esc(p.name)}</b><p>${esc(p.formation)} · ${esc(p.mentality)}</p></div><div>${button('LOAD','loadPreset',`data-index="${i}"`)} ${button('SAVE XI','savePreset',`data-index="${i}"`)}</div></div>`).join('')}</div><div class="sticky-bottom">${button('APPLY TACTICS','applyTactics','',state.battleLock)}</div>`;
@@ -128,26 +139,44 @@ function reportHTML() {
   if(!report)return '<p>Complete a match to see your debrief.</p>';
   const reward=state.lastBattle?.reward||{},stats=report.stats||[{},{}];
   const rows=[['Possession','possessionPercent','%'],['Shots','shots',''],['On target','shotsOnTarget',''],['Saves','saves',''],['Pass accuracy','passAccuracy','%'],['Passes completed','passesCompleted',''],['Tackles','tackles',''],['Interceptions','interceptions',''],['Blocks','blocks',''],['Corners','corners',''],['Offsides','offsides',''],['Fouls','fouls',''],['Take-ons won','dribblesWon','']];
-  return `<article class="card accent"><p class="eyebrow">${esc(report.forfeit?'MATCH ABANDONED':state.lastBattle?.outcome?.toUpperCase()||'FULL TIME')}</p><h2>YOUR TEAM ${report.score[0]} : ${report.score[1]} PRACTICE XI</h2>${report.penalties?`<p>Penalties: ${report.penalties.scores.join(' : ')}</p>`:''}<p class="price">+${number(reward.total)} coins</p><p>Income resumes after the match. Rewards scale with your owned XI and permanent income.</p></article><h3 class="section-title">MATCH STATS</h3><table class="stats-table"><thead><tr><th>Statistic</th><th>Your team</th><th>Practice XI</th></tr></thead><tbody>${rows.map(([label,key,suffix])=>`<tr><td>${label}</td><td>${stats[0][key]||0}${suffix}</td><td>${stats[1][key]||0}${suffix}</td></tr>`).join('')}</tbody></table><h3 class="section-title">COIN BREAKDOWN</h3><div class="stack">${Object.entries(reward).filter(([key,value])=>typeof value==='number'&&!['total','multiplier'].includes(key)).map(([key,value])=>`<div class="row"><span>${esc(key.replace(/([A-Z])/g,' $1'))}</span><b>${number(value)}</b></div>`).join('')}</div><h3 class="section-title">DEBRIEF</h3><p>${report.forfeit?'Abandoned matches earn no coins.':stats[0].shotsOnTarget>stats[1].shotsOnTarget?'Your team created more shots on target; keep a compact defense behind your attack.':'Try recycling possession into midfield and using a through ball before shooting.'}</p><p>Practice level ${state.practiceLevel}/3: it increases slightly for the next match only after a win by 4 or more goals.</p>${button('RETURN TO CLUB','leaveMatch')}`;
+  return `<article class="card accent"><p class="eyebrow">${esc(report.forfeit?'MATCH ABANDONED':state.lastBattle?.outcome?.toUpperCase()||'FULL TIME')}</p><h2>YOUR TEAM ${report.score[0]} : ${report.score[1]} PRACTICE XI</h2>${report.penalties?`<p>Penalties: ${report.penalties.scores.join(' : ')}</p>`:''}<p class="price">+${number(reward.total)} coins</p><p>Income resumes after the match. Rewards scale with your owned XI and permanent income.</p></article><h3 class="section-title">MATCH STATS</h3><table class="stats-table"><thead><tr><th>Statistic</th><th>Your team</th><th>Practice XI</th></tr></thead><tbody>${rows.map(([label,key,suffix])=>`<tr><td>${label}</td><td>${stats[0][key]||0}${suffix}</td><td>${stats[1][key]||0}${suffix}</td></tr>`).join('')}</tbody></table><h3 class="section-title">COIN BREAKDOWN</h3><div class="stack">${Object.entries(reward).filter(([key,value])=>typeof value==='number'&&!['total','multiplier'].includes(key)).map(([key,value])=>`<div class="row"><span>${esc(key.replace(/([A-Z])/g,' $1'))}</span><b>${number(value)}</b></div>`).join('')}</div><h3 class="section-title">DEBRIEF</h3><p>${report.forfeit?'Abandoned matches earn no coins.':stats[0].shotsOnTarget>stats[1].shotsOnTarget?'Your team created more shots on target; keep a compact defense behind your attack.':'Try recycling possession into midfield and using a through ball before shooting.'}</p><p>Practice level ${state.practiceLevel}/3: the next practice tier increases after every win, capped at 3.</p>${button('RETURN TO CLUB','leaveMatch')}`;
 }
 function matchHTML() {
   if(!match||match.finished)return reportHTML();
   const s=matchState;
-  return `<div class="card accent"><h3>${s.score[0]} : ${s.score[1]} · ${esc(s.period)}</h3><p>${Math.ceil(s.timeRemaining)} seconds remaining · Team stamina ${Math.round(s.stamina[0])}%</p><p>Income is paused for this battle.</p></div><h3 class="section-title">TEAM PLAY CALLS</h3><div class="toolbar">${playButtons(true)}</div><h3 class="section-title">SUPERSTAR ABILITIES</h3><div class="stack">${(s.abilities||[]).map(a=>`<div class="card row"><div><b>${esc(a.name)}</b><p>${esc(a.playerName)} · ${Math.ceil(a.remaining||a.cooldown||0)}s</p></div>${button('ACTIVATE','ability',`data-id="${esc(a.id)}"`,!a.available)}</div>`).join('')||'<p>Select a superstar in your starting XI to use an ability.</p>'}</div><h3 class="section-title">ICON CONTROL</h3><p>Control an owned outfield Icon for 10 seconds with WASD; shared cooldown is 20 seconds.</p><div class="toolbar">${s.players.filter(p=>p.side===0&&p.def.isIcon&&!p.borrowed&&p.role!=='GK').map(p=>button(p.name,'controlIcon',`data-index="${p.index}"`)).join('')||'<p>No Icons in your XI.</p>'}${s.control?button('RELEASE CONTROL','releaseControl'):''}</div><h3 class="section-title">COACH SPECIAL PLAY</h3>${button('CALL SPECIAL PLAY','manager','',!state.staff.slots.tactics)}<p>Hire a tactical coach to unlock their special play.</p><div class="toolbar">${button('SUBSTITUTIONS','openSubs')}${button('ABANDON MATCH','forfeit')}</div>`;
+  const abilities=(s.abilities||[]).filter(a=>s.players.some(p=>p.side===0&&p.id===a.playerId&&!p.borrowed)).map(a=>{
+    const status=a.remaining>0?`Active · ${Math.ceil(a.remaining)}s`:a.cooldown>0?`Cooldown · ${Math.ceil(a.cooldown)}s`:a.available?'Ready':'Waiting for a legal opportunity';
+    return `<article class="card"><div class="row"><div><h3>${esc(a.name)}</h3><p>${esc(a.playerName)} · ${esc(status)}</p></div>${button('ACTIVATE','ability',`data-id="${esc(a.id)}" aria-label="${esc('Activate '+a.name)}"`,!a.available)}</div><p>${esc(a.description)}</p><p class="muted">${a.cost} stamina · ${a.duration}s window</p></article>`;
+  }).join('');
+  const opponent=s.opponentAbility&&s.elapsed<s.opponentAbility.endsAt?`<p>Opponent skill: ${esc(s.opponentAbility.name)} · ${Math.ceil(s.opponentAbility.endsAt-s.elapsed)}s</p>`:'';
+  return `<div class="card accent"><h3>${s.score[0]} : ${s.score[1]} · ${esc(s.period)}</h3><p>${Math.ceil(s.timeRemaining)} seconds remaining · Team stamina ${Math.round(s.stamina[0])}%</p><p>Income is paused for this battle.</p>${opponent}</div><h3 class="section-title">TEAM PLAY CALLS</h3><div class="toolbar">${playButtons(true)}</div><h3 class="section-title">SIGNATURE SKILLS</h3><p>Choose a skill below, or press F to use the first ready skill. Attacking skills need your possession; Anticipation needs an opponent attack.</p><div class="stack">${abilities||'<p>Select a featured superstar or Icon in your starting XI to use a signature skill.</p>'}</div><h3 class="section-title">ICON CONTROL</h3><p>Control an owned outfield Icon for 10 seconds with WASD; shared cooldown is 20 seconds.</p><div class="toolbar">${s.players.filter(p=>p.side===0&&p.def.isIcon&&!p.borrowed&&p.role!=='GK').map(p=>button(p.name,'controlIcon',`data-index="${p.index}"`)).join('')||'<p>No Icons in your XI.</p>'}${s.control?button('RELEASE CONTROL','releaseControl'):''}</div><h3 class="section-title">COACH SPECIAL PLAY</h3>${button('CALL SPECIAL PLAY','manager','',!state.staff.slots.tactics)}<p>Hire a tactical coach to unlock their special play.</p><div class="toolbar">${button('SUBSTITUTIONS','openSubs')}${button('ABANDON MATCH','forfeit')}</div>`;
+}
+
+function rivalDevelopmentHTML(development=state.npcDevelopment) {
+  if(!development)return '';
+  return `<article class="card" data-rival-development><h3>RIVAL DEVELOPMENT ${development.level}/5</h3><p>${development.level===5?'Training complete.':`Next level in ${Math.ceil(development.nextLevelSeconds)}s of active club play.`} ${development.paused?'Training pauses during battles.':''}</p><p class="muted">Rivals train every three active minutes and grow toward ${development.rosterTarget} recruits. Practice XI training reaches +${development.level*4}% stats; NPC skills improve with it.</p></article>`;
 }
 const titles={roster:'YOUR FOOTBALLERS',shop:'TRANSFER STORE',events:'LIMITED EVENTS',tactics:'STARTING XI',kits:'CREATE YOUR KIT',staff:'COACHING STAFF',upgrades:'BUILD YOUR CLUB',collection:'PLAYER ALBUM',help:'HOW TO PLAY',match:'SQUAD BATTLE',subs:'SUBSTITUTIONS',rival:'RIVAL TEAM',market:'TRANSFER CONVEYOR'};
 function openPanel(name) {
-  previousFocus=document.activeElement;panel=name;keys.clear();touchVector={x:0,z:0};
+  if(!panel)previousFocus=document.activeElement;
+  panel=name;releaseInputs();
+  for(const element of [$('hud'),$('world'),document.querySelector('.skip')])element.inert=true;
   if(name==='tactics'){draft=clone(state.tactics);selectedPosition=null;}
   if(name==='kits')draft=clone(state.kit);
   $('sheet').hidden=false;renderPanel();$('close-sheet').focus();
 }
-function closePanel() {panel='';draft=null;$('sheet').hidden=true;previousFocus?.focus?.();}
+function closePanel() {
+  panel='';draft=null;$('sheet').hidden=true;
+  for(const element of [$('hud'),$('world'),document.querySelector('.skip')])element.inert=false;
+  const target=previousFocus?.isConnected&&!previousFocus.closest('#sheet')&&!previousFocus.disabled?previousFocus:$('world');
+  previousFocus=null;target.focus();
+}
 function renderPanel() {
   if(!panel)return;$('sheet-title').textContent=titles[panel]||'YOUR CLUB';
   const content=$('sheet-content');
+  const focus=rememberFocus(content);
   if(panel==='roster')content.innerHTML=`<p class="notice">${state.roster.length}/18 owned players. Reserves still earn income; players assigned to coaches pause their income.</p><div class="grid">${state.roster.map((p,i)=>playerCard(p,'owned',i)).join('')||'<p class="empty">Recruit your first player from the conveyor. You start with 150 coins.</p>'}</div>`;
-  if(panel==='market')content.innerHTML=`<p class="notice">Footballers move along the conveyor and teleport directly to your base after purchase.</p><div class="grid">${state.market.filter(m=>m.id).map(m=>{const p=marketDefinition(m.id);return `<article class="card"><h3>${esc(p.name)}</h3><p>${esc(p.rarity)} · Power ${p.power} · ${number(p.income)}/s</p><p class="price">${number(p.cost)} coins</p>${button('SIGN PLAYER','buy',`data-market="${m.marketId}" data-id="${p.id}"`,state.battleLock)}</article>`;}).join('')}</div>`;
+  if(panel==='market')content.innerHTML=`<p class="notice">Footballers move along the conveyor and teleport directly to your base after purchase.</p><div class="grid">${state.market.filter(m=>m.id).map(m=>{const p=marketDefinition(m.id);return `<article class="card"><h3>${esc(p.name)}</h3><p>${esc(p.rarity)} · Power ${p.power} · ${rate(p.income)}/s</p><p class="price">${number(p.cost)} coins</p>${button('SIGN PLAYER','buy',`data-market="${m.marketId}" data-id="${p.id}"`,state.battleLock)}</article>`;}).join('')}</div>`;
   if(panel==='shop')content.innerHTML=`<p class="notice">Keep an eye on the conveyor for individual footballers. Eggs always hatch a level 1 player.</p>${button('VIEW CONVEYOR','openMarket')}<h3 class="section-title">PLAYER EGGS</h3><div class="grid">${data.eggs.map(e=>`<article class="card"><h3>${esc(e.name)}</h3><p>${esc(e.description)}</p><p class="price">${number(e.cost)} coins</p>${button('HATCH','egg',`data-id="${e.id}"`)}</article>`).join('')}<article class="card"><h3>MYSTERY PLAYER</h3><p>Rare 80% · Epic 18% · Icon 2%. Identity reveals on signing.</p><p class="price">2,000 coins</p>${button('REVEAL','mystery')}</article></div><h3 class="section-title">CLUB SUPPLIES</h3><div class="stack">${[['training','Training equipment',state.shop.trainingCost,'Permanent team income +10% per level, up to 3 levels.'],['sprint','Sprint boots',120,'Faster movement for 180 seconds.'],['incomeBoost','Income boost',180,'Extra income for 120 seconds, excluded from battle reward scaling.']].map(([id,name,cost,description])=>`<article class="card row"><div><h3>${name}</h3><p>${description}</p></div>${button(cost?`BUY ${number(cost)}`:'MAX LEVEL','shopBuy',`data-id="${id}"`,!cost)}</article>`).join('')}<article class="card"><h3>BASE DEFENSE</h3><p>Your whistle repels NPC thieves beside your base. The baton has a shorter cooldown.</p>${button(state.tools.includes('baton')?'BATON OWNED':'BUY BATON 350','buyTool','data-id="baton"',state.tools.includes('baton'))}</article></div>`;
   if(panel==='events') { const e=state.event;content.innerHTML=`<article class="card accent"><p class="eyebrow">${e.active?'LIVE NOW':'NEXT EVENT'}</p><h2>${esc(e.name)}</h2><p>${esc(e.objective)}</p><p>${Math.floor(e.remaining/60)}m ${Math.floor(e.remaining%60)}s remaining · ${number(e.tokens)} event tokens</p><div class="progress"><span style="width:${Math.min(100,e.progress/e.target*100)}%"></span></div><p>${number(e.progress)} / ${e.target}</p>${button(e.claimed?'CLAIMED':'CLAIM 10 TOKENS','eventClaim',`data-id="${esc(e.id)}"`,!e.active||e.claimed||e.progress<e.target)}</article><h3 class="section-title">LIMITED SIGNINGS</h3><div class="grid">${e.offers.map(o=>`<article class="card"><h3>${esc(o.name)}</h3><p>${esc(o.mutationId)} mutation</p><p class="price">${o.cost} tokens</p>${button('SIGN','eventBuy',`data-id="${o.id}" data-event="${esc(e.id)}"`,!o.available)}</article>`).join('')}</div><p>Events rotate on a 40-minute cycle. Mutation chances increase during the active event.</p>`;}
   if(panel==='tactics')content.innerHTML=tacticsHTML();
@@ -157,10 +186,17 @@ function renderPanel() {
   if(panel==='collection')content.innerHTML=`<p>${state.collection.length} / ${data.players.length} identities discovered. Duplicate footballers develop different traits and mutations.</p><label>Find a footballer<input id="album-search" placeholder="Player or club name" type="search"></label><div id="album-grid" class="grid">${albumHTML('')}</div>`;
   if(panel==='help')content.innerHTML=`<div class="stack"><article class="card"><h3>BUILD YOUR TEAM</h3><p>WASD or arrow keys move; E interacts; Space jumps. Drag the world to turn the camera and scroll to zoom. On touch screens, use the joystick.</p><p>Buy a footballer on the conveyor with your starting 150 coins. They teleport to your base and start earning. Recruit 11 starters and 7 reserves, set your formation, and build a stadium.</p><p>Approach an NPC rival base, choose a footballer and carry them home. Teleporting is blocked during a steal. Use your home shield or whistle when an NPC thief approaches.</p></article><article class="card"><h3>WIN SQUAD BATTLES</h3><p>BATTLE starts an 11 v 11 match in your home stadium. Academy loans fill empty positions. Call passes, dribbles, shots and defensive plays. Icons can be controlled for 10 seconds with a 20-second cooldown.</p><p>Matches include offsides, fouls, corners, extra time and penalties. During shootouts you can aim and choose a save direction, or leave both automatic.</p><p>Income pauses while battling. The final sheet includes possession, shots, goals and a reward scaled to your team and income.</p></article><article class="card"><h3>SETTINGS & SAVE</h3><label><span><input id="low-graphics" type="checkbox" ${state.settings.lowGraphics?'checked':''}> Low graphics</span></label><label><span><input id="sound" type="checkbox" ${state.settings.sound?'checked':''}> Crowd and referee sounds</span></label><p>${esc(state.saveStatus)}. This solo version saves on this device; it does not share your Roblox wallet or progress.</p>${button('SAVE NOW','saveNow')}${button('RESET PROGRESS','resetRequest')}</article><article class="card"><h3>LOCAL TEST CODE</h3><p>DEVTEAM unlocks the source superstar/Icon testing squad and Barcola once, with no coin grant.</p><label>Code<input id="dev-code" placeholder="Enter code" autocomplete="off"></label>${button('REDEEM','developerCode')}</article><p><a href="./CREDITS.md" target="_blank" rel="noopener">Source and credits</a> · <a href="../../index.html">Back to the arcade</a></p></div>`;
   if(panel==='match')content.innerHTML=matchHTML();
+  if(panel==='help')content.querySelector('.stack').insertAdjacentHTML('afterbegin',`<article class="card"><h3>SIGNATURE SKILLS</h3><p>Featured footballers have distinct moves, including close touches, stepovers, slalom, roulette, elastico, curved delivery and finesse finishing. Open SQUAD BATTLE for descriptions, stamina costs and cooldowns. Press F for the first ready skill.</p><p>Opponents use skills too. Stronger rival development improves their timing; defensive Anticipation is used against an opponent attack.</p></article>${rivalDevelopmentHTML()}`);
   if(panel==='subs')content.innerHTML=!match||match.finished?'<p>Start a battle to use substitutions.</p>':`<p class="notice">${matchState.substitutions.used}/5 substitutions used. Changes happen at a safe stoppage. A goalkeeper can only replace another goalkeeper.</p><label>Player coming off${select('sub-out',matchState.players.filter(p=>p.side===0).map(p=>[p.index,p.roleLabel+' · '+p.name]),0)}</label><h3 class="section-title">BENCH</h3><div class="stack">${matchState.bench.map(p=>`<article class="card row"><div><h3>${esc(p.name)}</h3><p>${esc(p.stats.naturalRole)} · Power ${Math.round(p.power)}</p></div>${button('BRING ON','substitute',`data-uid="${esc(p.uid)}"`,!!matchState.substitutions.pending||matchState.substitutions.used>=5)}</article>`).join('')||'<p>Recruit reserves to fill your bench.</p>'}</div>`;
-  if(panel==='rival') { const rival=state.rivals[panelBase],shield=Math.max(0,Math.ceil(rival.shieldUntil-game.now()));content.innerHTML=`<p class="notice">NPC team ${panelBase+1}. ${shield?'Shield active: '+shield+'s.':'Choose a player, then carry them to your home deposit pad.'}</p><div class="grid">${rival.roster.map((p,i)=>playerCard(p,'rival',{base:panelBase,index:i})).join('')||'<p>No available footballers.</p>'}</div>`;}
+  if(panel==='rival') { const rival=state.rivals[panelBase],shield=Math.max(0,Math.ceil(rival.shieldUntil-game.now()));content.innerHTML=`<p class="notice">NPC team ${panelBase+1}. ${shield?'Shield active: '+shield+'s.':'Choose a player, then carry them to your home deposit pad.'}</p>${rivalDevelopmentHTML(rival.development)}<div class="grid">${rival.roster.map((p,i)=>playerCard(p,'rival',{base:panelBase,index:i})).join('')||'<p>No available footballers.</p>'}</div>`;}
+  if(panel==='events'&&!state.event.signingsUnlocked) {
+    const note=document.createElement('p');note.className='notice';
+    note.textContent=`Icon signings unlock after ${state.event.unlockWins} squad wins. Your club: ${state.wins}/${state.event.unlockWins}. Keep earning tokens until then.`;
+    content.querySelector('.section-title').after(note);
+  }
+  restoreFocus(content,focus,$('close-sheet'));
 }
-function albumHTML(query) {query=query.toLowerCase();return data.players.filter(p=>(p.name+' '+p.clubName).toLowerCase().includes(query)).map(p=>`<article class="card"><h3>${esc(p.name)}</h3><p>${esc(p.clubName||p.nationality)} · ${esc(p.rarity)} · ${p.power}</p><p>${esc(p.style.name)} · ${state.collection.includes(p.id)?'DISCOVERED':'UNDISCOVERED'}</p>${(p.stats.signaturePlaystyles||[]).map(s=>`<span class="tag">${esc(s.name)}</span>`).join('')}${data.abilities.filter(a=>a.playerId===p.id).map(a=>`<p><b>${esc(a.name)}</b></p>`).join('')}</article>`).join('');}
+function albumHTML(query) {query=query.toLowerCase();const abilities=resolveAbilities(data);return data.players.filter(p=>(p.name+' '+p.clubName).toLowerCase().includes(query)).map(p=>`<article class="card"><h3>${esc(p.name)}</h3><p>${esc(p.clubName||p.nationality)} · ${esc(p.rarity)} · ${p.power}</p><p>${esc(p.style.name)} · ${state.collection.includes(p.id)?'DISCOVERED':'UNDISCOVERED'}</p>${(p.stats.signaturePlaystyles||[]).map(s=>`<span class="tag">${esc(s.name)}</span>`).join('')}${abilities.filter(a=>a.playerId===p.id).map(a=>`<p><b>${esc(a.name)}</b>: ${esc(a.description)}</p>`).join('')}</article>`).join('');}
 
 let panelBase=0;
 function swapPositions(a,b) {
@@ -223,7 +259,11 @@ function updateMatchUI(now) {
   for(const event of s.events||[])if(event.serial>audioSerial){audio.cue(event.kind);audioSerial=event.serial;}
   if(now>=captionUntil&&captionQueue.length){const e=captionQueue.shift();$('caption').textContent=e.text;$('caption').hidden=false;captionUntil=now+(e.important?6000:4500);}
   if(now>=captionUntil&&!captionQueue.length)$('caption').hidden=true;
-  const notice=s.penalties?`PENALTIES · ${s.penalties.side===0?'YOUR SHOT':'YOUR SAVE'} · ${s.penalties.phase}`:s.restart?`${s.restart.kind.replace(/([A-Z])/g,' $1').toUpperCase()}`:s.phase==='goalCelebration'?'GOAL!':s.control?'ICON CONTROL · '+Math.max(0,Math.ceil(s.control.endsAt-s.elapsed))+'s':'';
+  const skillNotice=(s.skillMove||[]).map(move=>{
+    const ability=move.side===0?s.activeAbility:s.opponentAbility;
+    return `${move.side===0?'YOUR':'RIVAL'} ${ability?.name||'SKILL'} · ${Math.ceil(move.remaining)}s`;
+  }).join(' / ');
+  const notice=s.penalties?`PENALTIES · ${s.penalties.side===0?'YOUR SHOT':'YOUR SAVE'} · ${s.penalties.phase}`:s.restart?`${s.restart.kind.replace(/([A-Z])/g,' $1').toUpperCase()}`:s.phase==='goalCelebration'?'GOAL!':s.control?'ICON CONTROL · '+Math.max(0,Math.ceil(s.control.endsAt-s.elapsed))+'s':skillNotice;
   $('referee').hidden=!notice;$('referee').textContent=notice;
   const key=JSON.stringify([!!s.penalties,s.penalties?.side,s.penalties?.manual,callMode,!!s.control,s.finished]);
   if(key!==lastControlsKey){lastControlsKey=key;$('match-controls').innerHTML=s.finished?'':s.penalties?`${button(s.penalties.manual?'AUTO':'MANUAL','penaltyMode')}${['left','center','right'].map(d=>button(d.toUpperCase(),s.penalties.side===0?'penaltyAim':'penaltySave',`data-id="${d}"`)).join('')}${s.penalties.side===0?button('SHOOT','penaltyShoot'):''}`:`${button(callMode==='attack'?'ATTACK PLAYS':'DEFENSE PLAYS','togglePlays')}${playButtons()}${button('ABILITY F','quickAbility')}${button(s.control?'RELEASE ICON':'CONTROL ICON','quickIcon')}`;}
@@ -232,7 +272,7 @@ function updateMatchUI(now) {
   }else if(beforeCelebration){camera=beforeCelebration;beforeCelebration=null;world.setCamera(camera);}
 }
 function updateHUD() {
-  if(!state)return;$('coins').textContent=number(state.coins);$('income').textContent=state.battleLock?'PAUSED':number(state.incomeRate)+' /s';
+  if(!state)return;$('coins').textContent=number(state.coins);$('income').textContent=state.battleLock?'PAUSED':rate(state.incomeRate)+' /s';
   $('club-name').textContent=state.kit.enabled?state.kit.name:'COBALT FC';$('roster-count').textContent=state.roster.length+' / 18 players';$('save-status').textContent=state.saveStatus;
   const active=!!match&&!match.finished;$('score-strip').hidden=!match;$('match-controls').hidden=!active;$('spectator').hidden=!active;
   $('battle').lastChild.textContent=active?' MATCH':' BATTLE';
@@ -282,11 +322,11 @@ function handleAction(target) {
   if(name==='confirmForfeit'){closePanel();finishBattle(true);return;}
   if(name==='cancelConfirm'){closePanel();return;}
   if(name==='leaveMatch'){match=null;matchState=null;report=null;closePanel();travel('home');updateHUD();return;}
-  if(name==='applyTactics'){act('tactics',{formation:draft.formation,mentality:draft.mentality,selectedUids:draft.selectedUids,captainUid:draft.captainUid});return;}
+  if(name==='applyTactics'){saveTacticsDraft();return;}
   if(name==='autoXI'){draft.selectedUids=[];draft.captainUid=null;selectedPosition=null;renderPanel();return;}
   if(name==='captain'){const p=tacticMembers()[selectedPosition];if(p&&!p.borrowed){draft.captainUid=p.uid;renderPanel();}return;}
   if(name==='assignPosition'){assignPosition(uid);return;}
-  if(name==='savePreset'){const r=act('tactics',{formation:draft.formation,mentality:draft.mentality,selectedUids:draft.selectedUids,captainUid:draft.captainUid});if(r.ok){act(name,{index});renderPanel();}return;}
+  if(name==='savePreset'){const r=saveTacticsDraft();if(r.ok){act(name,{index});renderPanel();if(r.lineupChanged)toast('Preset saved. Unavailable players were removed from the draft lineup.');}return;}
   if(name==='loadPreset'){if(act(name,{index}).ok){draft=clone(state.tactics);selectedPosition=null;renderPanel();}return;}
   if(name==='saveKit'){const r=act('kit',{...draft,enabled:true});if(r.ok){draft=clone(state.kit);renderPanel();}return;}
   if(name==='defaultKit'){if(act('kit',{enabled:false}).ok){draft=clone(state.kit);renderPanel();}return;}
@@ -325,10 +365,9 @@ $('sheet-content').addEventListener('dragstart',e=>{const target=e.target.closes
 $('sheet-content').addEventListener('dragover',e=>{const target=e.target.closest('[data-position]');if(target){e.preventDefault();target.classList.add('drag-over');}});
 $('sheet-content').addEventListener('dragleave',e=>e.target.closest('[data-position]')?.classList.remove('drag-over'));
 $('sheet-content').addEventListener('drop',e=>{const target=e.target.closest('[data-position]');if(target){e.preventDefault();swapPositions(draggedPosition,Number(target.dataset.position));}});
-const editable=target=>target.closest('input,select,textarea,button,a');
 window.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&panel){e.preventDefault();closePanel();return;}
-  if(panel||!started||editable(e.target))return;
+  if(panel||!started||blocksGameplayKey(e))return;
   const key=e.key.toLowerCase();if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(key))e.preventDefault();
   keys.add(key);if(e.repeat)return;
   if(key==='e')interact();if(key===' '&&!match)world.jump();
@@ -337,7 +376,7 @@ window.addEventListener('keydown',e=>{
 window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
 function releaseInputs(){keys.clear();touchVector={x:0,z:0};pointer=null;$('stick').style.transform='';lastTime=0;}
 window.addEventListener('blur',releaseInputs);document.addEventListener('visibilitychange',()=>{releaseInputs();audio.configure(state?.settings.sound&&!document.hidden,!!match&&!match.finished);});
-$('sheet').addEventListener('keydown',e=>{if(e.key!=='Tab')return;const focusable=[...$('sheet').querySelectorAll('button:not(:disabled),input,select,a')];const first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}});
+$('sheet').addEventListener('keydown',e=>trapTab(e,$('sheet')));
 const canvas=$('world');
 canvas.addEventListener('pointerdown',e=>{if(!started||panel)return;canvas.focus();pointer={id:e.pointerId,x:e.clientX};canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener('pointermove',e=>{if(pointer?.id!==e.pointerId)return;camera.yaw+=(e.clientX-pointer.x)*.008;pointer.x=e.clientX;world.setCamera(camera);});
@@ -365,9 +404,9 @@ function frame(now) {
       world.moveAvatar({x:(vector.x*cos+vector.z*sin)/length,z:(vector.z*cos-vector.x*sin)/length},dt*speed);
     }
     if(uiTime>.2){uiTime=0;state=game.snapshot();lineup=game.team();updateHUD();}
-    if(sheetTime>1&&['match','subs','staff','events','market'].includes(panel)&&!document.activeElement?.closest('#sheet-content')){sheetTime=0;const scroll=$('sheet-content').scrollTop;renderPanel();$('sheet-content').scrollTop=scroll;}
+    if(sheetTime>1&&['match','subs','staff','events','market','rival'].includes(panel)&&(['match','rival'].includes(panel)||!document.activeElement?.closest('#sheet-content'))){sheetTime=0;const scroll=$('sheet-content').scrollTop;renderPanel();$('sheet-content').scrollTop=scroll;}
     const displayState={...state,lineup,kit:panel==='kits'?{...draft,enabled:true}:state.kit};
-    world.update(dt,{state:displayState,match,camera,lowGraphics:state.settings.lowGraphics});
+    world.update(dt,{state:displayState,match:matchState,camera,lowGraphics:state.settings.lowGraphics});
     if(now>toastUntil)$('toast').hidden=true;
   }else if(world&&!document.hidden)world.update(dt,{state:{...state,lineup},camera,lowGraphics:state.settings.lowGraphics});
   requestAnimationFrame(frame);

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#161e23">
+  <meta name="description" content="Drive Canberra's inner south using real OpenStreetMap roads, ACT building footprints and sampled terrain. An original offline driving preview.">
+  <title>Capital Drive · Canberra</title>
+  <link rel="icon" href="../../favicon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="game" aria-label="Capital Drive Canberra driving game">
+    <div id="world" aria-label="3D driving view"></div>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">C<span>D</span></span><div><h1>CAPITAL DRIVE</h1><p>CANBERRA / INNER SOUTH</p></div><span class="preview">PREVIEW</span></div>
+      <nav aria-label="Game controls"><button id="map-button" title="Map (M)">Map <kbd>M</kbd></button><button id="garage-button">Vehicle</button><button id="sound-button" aria-pressed="false">Sound off</button><button id="pause-button" title="Pause (P)">Pause <kbd>P</kbd></button></nav>
+    </header>
+    <section class="location" aria-label="Current location"><span class="eyebrow" id="district">BARTON</span><h2 id="street">New South Wales Crescent</h2><p id="destination-line">The inner south is yours to explore.</p></section>
+    <section id="start-panel" class="panel intro" aria-labelledby="intro-title">
+      <div class="eyebrow">35°19′ S / 149°08′ E</div>
+      <h2 id="intro-title">Take the<br>long way home.</h2>
+      <p class="intro-copy">Leafy streets. Familiar corners. A little too much throttle.<br>Explore Canberra's inner south, starting beside Telopea Park School.</p>
+      <div class="intro-facts"><div><strong>REAL ROADS</strong><span>OpenStreetMap street network</span></div><div><strong>INNER SOUTH</strong><span>Manuka to Red Hill and beyond</span></div></div>
+      <p id="loading" role="status">Loading the Canberra streets…</p>
+      <button id="start-button" class="primary" disabled>Start driving <span aria-hidden="true">&gt;</span></button>
+      <p class="controls-line"><kbd>WASD</kbd> drive <kbd>SPACE</kbd> handbrake <kbd>SHIFT</kbd> boost<br>Drag mouse to look · <kbd>R</kbd> recover · <kbd>M</kbd> map</p>
+      <p class="fidelity-note">Real map geometry. Estimated building heights and original streetscape details. A driving preview, with more Canberra to come.</p>
+    </section>
+    <aside class="minimap-wrap" aria-label="Local street map"><button id="minimap-button" aria-label="Open full Canberra map"><canvas id="minimap" width="440" height="360"></canvas><span class="map-caption"><span>INNER SOUTH</span><span>N ↑</span></span></button><div class="map-footer"><span class="map-dot"></span><span id="explored">0 / 7 places discovered</span></div></aside>
+    <section class="driving-hud" aria-label="Driving information"><div class="speed-row"><div><span id="speed">0</span><span class="unit">KM/H</span></div><span id="gear">N</span></div><div class="speed-meter"><span id="speed-fill"></span></div><div class="trip"><span id="car-label">SALOON</span><span id="distance">0.0 KM</span></div><p id="driving-hint">W accelerate · S brake / reverse</p></section>
+    <div id="toast" class="toast" role="status" hidden></div>
+    <div id="touch-controls" aria-label="Touch driving controls"><div><button data-drive="left" aria-label="Steer left">←</button><button data-drive="right" aria-label="Steer right">→</button></div><div><button data-drive="handbrake" aria-label="Handbrake">DRIFT</button><button data-drive="brake" aria-label="Brake or reverse">S</button><button data-drive="throttle" aria-label="Accelerate">W</button></div></div>
+    <footer class="credits"><span>Map © OpenStreetMap contributors · Footprints ACT / Microsoft · Terrain © Australian Capital Territory</span><a href="credits.html" target="_blank" rel="noopener">Data & credits ↗</a></footer>
+    <dialog id="map-dialog" aria-labelledby="map-title"><div class="dialog-heading"><div><span class="eyebrow">EXPLORE CANBERRA</span><h2 id="map-title">The inner south</h2></div><button data-close="map-dialog" aria-label="Close map">✕</button></div><div class="map-layout"><div class="large-map"><div class="map-tools"><button id="map-zoom-out" aria-label="Zoom out">−</button><span id="map-zoom-level">1×</span><button id="map-zoom-in" aria-label="Zoom in">+</button><button id="map-recenter">Find my car</button></div><canvas id="full-map" width="1000" height="900" tabindex="0" aria-label="Canberra map. Click to select a teleport point. Arrow keys move the selection; Enter teleports."></canvas><div class="teleport-bar"><div><strong>Teleport anywhere</strong><p id="teleport-status" role="status">Click or tap any point inside the mapped boundary.</p></div><button id="teleport-button" class="primary" disabled>Teleport here</button></div></div><div class="place-list"><p>Choose a destination, or select any point on the map to teleport there.</p><div id="places"></div><button id="clear-route">Clear route</button></div></div><p class="dialog-note">Click to select. Scroll to zoom, drag to pan. Arrow keys move the selection; Enter teleports. Buildings and water adjust to nearby clear ground. The boundary marks the loaded inner south.</p></dialog>
+    <dialog id="pause-dialog" aria-labelledby="pause-title"><div class="dialog-heading"><div><span class="eyebrow">TAKE A BREATHER</span><h2 id="pause-title">Parked for a moment.</h2></div><button data-close="pause-dialog" aria-label="Resume driving">✕</button></div><p>Your drive pauses while this menu is open.</p><div class="setting"><label for="quality">Rendering</label><select id="quality"><option value="low">Low · 30 FPS target / N100</option><option value="standard">Standard · 60 FPS target</option></select></div><div class="setting"><label for="theme">Appearance</label><select id="theme"><option value="dark">Dark dashboard</option><option value="light">Light dashboard</option></select></div><div class="button-row"><button id="resume-button" class="primary">Resume driving</button><button id="recover-button">Return to road</button></div><p class="controls-line"><kbd>WASD / ↑↓←→</kbd> drive · <kbd>SPACE</kbd> handbrake<br><kbd>SHIFT</kbd> boost · drag mouse to orbit · <kbd>H</kbd> horn<br><kbd>R</kbd> recover · <kbd>M</kbd> map · <kbd>P / ESC</kbd> pause</p><p id="save-status" class="dialog-note">Discovery progress is saved on this browser.</p></dialog>
+    <dialog id="garage-dialog" aria-labelledby="garage-title"><div class="dialog-heading"><div><span class="eyebrow">YOUR DRIVE</span><h2 id="garage-title">Something for the neighbourhood.</h2></div><button data-close="garage-dialog" aria-label="Close vehicle selection">✕</button></div><p>Original fictional cars: everyday saloons, wagons, SUVs and a ute. All available from the start.</p><div id="car-options"></div><div class="setting"><label for="paint">Paint</label><select id="paint"><option value="#e7e6df">Pearl white</option><option value="#394956">Slate blue</option><option value="#929797">Silver</option><option value="#39443c">Eucalypt green</option><option value="#913d32">Burgundy</option></select></div></dialog>
+  </main>
+  <script type="module" src="script.js"></script>
+</body>
+</html>

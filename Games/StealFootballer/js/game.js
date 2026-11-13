@@ -1,6 +1,10 @@
 // Browser-local adaptation of the owner's FootballParty progression/services.
 // The renderer supplies location; this module alone owns coins and recruits.
 export const SAVE_KEY = 'steal-footballer:v1';
+export function reconcileTacticsDraft(draft,roster,unavailableUid) {
+  const available=new Set(roster.filter(p=>p.uid!==unavailableUid).map(p=>p.uid));
+  return {...draft,selectedUids:draft.selectedUids.filter(uid=>available.has(uid)),captainUid:available.has(draft.captainUid)?draft.captainUid:null};
+}
 export const STAFF = [
   {id:'attacking',role:'attack',name:'Attacking Coach',cost:1500},
   {id:'defending',role:'defence',name:'Defensive Coach',cost:1500},
@@ -47,6 +51,12 @@ const STADIUMS = [
 ];
 const DEV_SQUAD = ['courtois','maldini','vandijk','saliba','rodri','maradona','messi','neymar','mbappe','r9','yamal_superstar','ronaldo','henry','barcola'];
 const DEV_XI = ['courtois','maldini','vandijk','saliba','neymar','maradona','rodri','messi','yamal_superstar','mbappe','r9'];
+// Browser pacing: keep source prices and identities, but make club growth earned.
+const CLUB_INCOME_SCALE = .6;
+const ICON_EVENT_WINS = 6;
+const RIVAL_REFILL_SECONDS = 90;
+const NPC_LEVEL_SECONDS = 180;
+const NPC_MAX_LEVEL = 5;
 const finite = n => typeof n === 'number' && Number.isFinite(n);
 const bound = (n,lo,hi) => finite(n) ? Math.min(hi,Math.max(lo,n)) : lo;
 const int = (n,lo,hi) => Math.floor(bound(n,lo,hi));
@@ -77,7 +87,7 @@ export class Game {
   rng() { return bound(this.random(),0,.999999999999); }
   choice(values) { return values[Math.floor(this.rng()*values.length)]; }
   fresh() {
-    return {version:1,coins:150,roster:[],teamUpgrade:0,stadiumLevel:0,shieldUntil:0,shieldReadyAt:0,practiceLevel:0,wins:0,steals:0,eventTokens:0,
+    return {version:1,coins:150,roster:[],npcActiveSeconds:0,teamUpgrade:0,stadiumLevel:0,shieldUntil:0,shieldReadyAt:0,practiceLevel:0,wins:0,steals:0,eventTokens:0,
       tactics:{formation:'4-4-2',mentality:'balanced',selectedUids:[],captainUid:null,presets:PRESETS.map(([name,formation,mentality])=>({name,formation,mentality,selectedUids:[],captainUid:null}))},
       kit:defaultKit(),staff:{owned:[],slots:{},assignments:[]},settings:{lowGraphics:false,sound:true},market:[],rivals:[],carry:null,npcAttempt:null,
       tools:['whistle'],defenseReadyAt:0,battleLock:false,battleReadyAt:0,trainingLevel:0,sprintUntil:0,incomeBoostUntil:0,collection:[],rewardedUids:[],event:null,developerTeamRedeemed:false};
@@ -109,6 +119,7 @@ export class Game {
     s.roster=raw.roster.map(v=>this.normalizeRecruit(v,seen));
     if (s.roster.some(v=>!v)) throw new Error('Invalid recruit identity in save');
     s.coins=bound(raw.coins,0,1e15);
+    s.npcActiveSeconds=bound(raw.npcActiveSeconds,0,NPC_LEVEL_SECONDS*NPC_MAX_LEVEL);
     for (const [key,max] of Object.entries({teamUpgrade:3,stadiumLevel:3,practiceLevel:3,wins:1e9,steals:1e9,eventTokens:1e9,trainingLevel:3})) s[key]=int(raw[key],0,max);
     for (const key of ['shieldUntil','shieldReadyAt','defenseReadyAt','battleReadyAt','sprintUntil','incomeBoostUntil']) s[key]=bound(raw[key],0,1e13);
     const normalizeTactics=v=> {
@@ -179,7 +190,7 @@ export class Game {
     const def=this.catalog.get(p.id),trait=TRAITS.find(t=>t.id===p.traitId)||TRAITS[5],mutation=MUTATIONS.find(m=>m.id===p.mutationId)||MUTATIONS[0];
     const variation=1+((p.seed%401)-200)/10000, power=def.power*variation*(1+p.level*.03)*(1+mutation.powerBonus);
     const baseline=def.stats||{},style=def.style||{};
-    const stats={...baseline,power:rounded(power),income:def.income*(1+p.level*.1)*(1+mutation.incomeBonus),level:p.level,seed:p.seed,traitId:trait.id,traitName:trait.name,traitStat:trait.stat,traitBonus:.08,mutationId:mutation.id,mutationName:mutation.name,
+    const stats={...baseline,power:rounded(power),income:this.baseIncome(p.id)*(1+p.level*.1)*(1+mutation.incomeBonus),level:p.level,seed:p.seed,traitId:trait.id,traitName:trait.name,traitStat:trait.stat,traitBonus:.08,mutationId:mutation.id,mutationName:mutation.name,
       playstyleId:style.id||baseline.playstyleId||def.playstyleId,playstyleName:style.name||baseline.playstyleName,naturalRole:style.naturalRole||baseline.naturalRole||this.naturalRole(def),position:style.position||baseline.position||def.position};
     // The catalog export removes its baseline trait bonus. Reapply this recruit's trait.
     for (const key of AXES) {
@@ -204,6 +215,23 @@ export class Game {
     const sum=s.roster.reduce((n,p)=>n+(assigned.has(p.uid)||s.npcAttempt?.uid===p.uid?0:this.stats(p).income),0);
     return sum*(1+s.teamUpgrade*.25)*(1+s.stadiumLevel*.05)*(1+s.trainingLevel*.1)*(!stable&&s.incomeBoostUntil>this.now()?1.5:1);
   }
+  baseIncome(id) { return (this.catalog.get(id)?.income||0)*CLUB_INCOME_SCALE; }
+  npcDevelopment() {
+    const activeSeconds=this.state.npcActiveSeconds,level=Math.min(NPC_MAX_LEVEL,Math.floor(activeSeconds/NPC_LEVEL_SECONDS));
+    const progress=level===NPC_MAX_LEVEL?0:activeSeconds-level*NPC_LEVEL_SECONDS;
+    return {level,progress,nextLevelSeconds:level===NPC_MAX_LEVEL?0:NPC_LEVEL_SECONDS-progress,rosterTarget:level>=4?5:level>=2?4:3,activeSeconds,paused:this.state.battleLock};
+  }
+  npcRecruit(id) {
+    const recruit=this.recruit(id,this.npcDevelopment().level);
+    // Only generated rival recruits train; a thief's transfers retain home training.
+    this.npcRecruitUids.add(recruit.uid);return recruit;
+  }
+  rivalPool() {
+    const best=this.state.roster.reduce((cost,p)=>Math.max(cost,this.catalog.get(p.id).cost),50);
+    // A raid supports the current club; it cannot skip straight to its best tier.
+    const budget=Math.max(50,Math.min(1040,best*.5));
+    return [...this.catalog.values()].filter(p=>!p.eventOnly&&!p.isIcon&&!p.variantOf&&p.cost<=budget).map(p=>p.id);
+  }
   marketPlayer(index) {
     const groups=this.config.MarketLineup||this.config.marketLineup||[['saka','palmer'],['yamal'],['son','neymar','pedri','foden'],['debruyne','bellingham','vinicius','kane','lewandowski','vandijk'],['salah','mbappe','haaland','messi','ronaldo','r9','maradona','henry','maldini']];
     if (index===4&&this.rng()<.3) return 'mystery';
@@ -212,9 +240,10 @@ export class Game {
   }
   populate() {
     const now=this.now();
+    this.npcRecruitUids=new Set();
     this.state.market=Array.from({length:5},(_,index)=>({marketId:'belt-'+index,id:this.marketPlayer(index),index,x:index*.2,readyAt:0}));
-    const pool=(this.config.PracticeLineup||this.config.practiceLineup||['saka','son','debruyne']).filter(id=>this.catalog.has(id));
-    this.state.rivals=Array.from({length:12},(_,index)=>({index,name:'Rival '+(index+1),shieldUntil:0,refillAt:now+45,roster:Array.from({length:3},(_,i)=>this.recruit(pool[i%pool.length]||this.catalog.keys().next().value))}));
+    const pool=this.rivalPool();
+    this.state.rivals=Array.from({length:12},(_,index)=>({index,name:'Rival '+(index+1),shieldUntil:0,refillAt:now+RIVAL_REFILL_SECONDS,roster:Array.from({length:this.npcDevelopment().rosterTarget},(_,i)=>this.npcRecruit(pool[(index+i)%pool.length]||this.catalog.keys().next().value))}));
     this.nextAttemptAt=now+35+this.rng()*25;
   }
   completeTraining() {
@@ -229,15 +258,20 @@ export class Game {
   tick(dt) {
     dt=bound(dt,0,.25); if (!dt) return;
     const s=this.state,now=this.now(); this.currentEvent(); this.completeTraining();
+    if(!s.battleLock) {
+      s.npcActiveSeconds=Math.min(NPC_LEVEL_SECONDS*NPC_MAX_LEVEL,s.npcActiveSeconds+dt);
+      const level=this.npcDevelopment().level;
+      for(const rival of s.rivals)for(const recruit of rival.roster)if(this.npcRecruitUids.has(recruit.uid))recruit.level=Math.max(recruit.level,level);
+    }
     s.coins=Math.min(1e15,s.coins+this.income()*dt);
     if (!s.battleLock&&s.roster.length) this.progress('training_camp',dt);
     for (const item of s.market) {
       if (item.id) { item.x+=dt/30; if (item.x>1) { item.id=null; item.x=0; item.readyAt=now; } }
       else if (now>=item.readyAt&&!s.market.some(other=>other!==item&&other.id&&other.x<.14)) { item.id=this.marketPlayer(item.index); item.x=0; }
     }
-    for (const rival of s.rivals) if (now>=rival.refillAt) {
-      rival.refillAt=now+45; const pool=(this.config.PracticeLineup||['saka','son','debruyne']).filter(id=>this.catalog.has(id));
-      if (rival.roster.length<3&&pool.length) rival.roster.push(this.recruit(this.choice(pool)));
+    for (const rival of s.rivals) if (!s.battleLock&&now>=rival.refillAt&&now>=rival.shieldUntil) {
+      rival.refillAt=now+RIVAL_REFILL_SECONDS; const pool=this.rivalPool();
+      if (rival.roster.length<this.npcDevelopment().rosterTarget&&pool.length) rival.roster.push(this.npcRecruit(this.choice(pool)));
     }
     if (!s.battleLock) {
       if (s.npcAttempt&&now>=s.npcAttempt.endsAt) {
@@ -291,17 +325,20 @@ export class Game {
     for (const pool of Object.values(pools)) pool.sort((a,b)=>a.power-b.power||a.id.localeCompare(b.id));
     return FORMATIONS['4-4-2'].map((role,index)=>{
       const pool=pools[role],def=pool[(used[role]||0)%Math.max(1,pool.length)]||this.catalog.values().next().value; used[role]=(used[role]||0)+1;
-      const base=role==='GK'?28:bound(def.power*.55,22,34),scale=1+this.state.practiceLevel*.05;
-      const stats={...def.style,power:base,income:0,level:0,traitId:'practice',naturalRole:role,attacking:bound(base*(role==='ST'?1.05:role==='MF'?.88:.65),18,34),pace:bound(base*.9+2,22,32),passing:bound(base*(role==='MF'?1.05:.9),20,34),defending:bound(base*(role==='DF'?1.08:role==='MF'?.88:.65),18,34),stamina:bound(base,28,34),goalkeeping:role==='GK'?28:16};
+      const developmentLevel=this.npcDevelopment().level;
+      const base=role==='GK'?40:bound(def.power*.7,30,48),scale=(1+this.state.practiceLevel*.12)*(1+developmentLevel*.04);
+      const stats={...def.style,power:base,income:0,level:0,traitId:'practice',naturalRole:role,attacking:base*(role==='ST'?1.05:role==='MF'?.88:.65),pace:base*.9+2,passing:base*(role==='MF'?1.05:.9),defending:base*(role==='DF'?1.08:role==='MF'?.88:.65),stamina:Math.max(34,base),goalkeeping:role==='GK'?40:16};
       for (const key of ['power',...AXES]) stats[key]*=scale;
+      stats.developmentLevel=developmentLevel;
       return {uid:'practice-'+index,id:def.id,name:def.name,def,power:stats.power,stats,role,roleLabel:JOBS['4-4-2'][index],borrowed:true,captain:index===6};
     });
   }
   snapshot() {
     const e=this.currentEvent(),s=this.state,def=this.catalog.get(e.offer);
     return clone({...s,incomeRate:this.income(),saveStatus:this.saveStatus,staffCatalog:STAFF,mutations:MUTATIONS,
+      npcDevelopment:this.npcDevelopment(),rivals:s.rivals.map(r=>({...r,development:this.npcDevelopment(),roster:r.roster.map(p=>({...p,stats:this.stats(p),power:this.stats(p).power}))})),
       stadium:{...STADIUMS[s.stadiumLevel],level:s.stadiumLevel,next:STADIUMS[s.stadiumLevel+1]||null},
-      event:{...e,...s.event,tokens:s.eventTokens,reward:10,offers:def?[{id:def.id,name:def.name,cost:e.cost,mutationId:e.offerMutation,available:e.active&&!s.event.purchased.includes(def.id)&&s.eventTokens>=e.cost}]:[]},
+      event:{...e,...s.event,tokens:s.eventTokens,reward:10,signingsUnlocked:s.wins>=ICON_EVENT_WINS,unlockWins:ICON_EVENT_WINS,offers:def?[{id:def.id,name:def.name,cost:e.cost,mutationId:e.offerMutation,available:s.wins>=ICON_EVENT_WINS&&e.active&&!s.event.purchased.includes(def.id)&&s.eventTokens>=e.cost}]:[]},
       shop:{trainingCost:[200,450,900][s.trainingLevel]||null,sprintCost:120,incomeBoostCost:180},
       roster:s.roster.map(p=>({...p,name:this.catalog.get(p.id).name,def:this.catalog.get(p.id),stats:this.stats(p),upgradeCost:p.level<5?Math.max(75,Math.floor(this.catalog.get(p.id).cost*.4*(p.level+1))):null,income:this.stats(p).income}))});
   }
@@ -339,10 +376,10 @@ export class Game {
       const rival=Number.isInteger(payload.base)?s.rivals[payload.base]:null;
       if (!rival||!Number.isInteger(payload.index)||!rival.roster[payload.index]) return fail('Choose an available rival footballer');
       if (this.location.atHome||this.location.base!==payload.base) return fail('Move beside that rival team'); if (rival.shieldUntil>now) return fail('Rival team shield is active'); if (s.roster.length>=18) return fail('Your team is full');
-      const [recruit]=rival.roster.splice(payload.index,1); s.carry={player:recruit,originBase:payload.base,originIndex:payload.index}; message='Carry '+this.catalog.get(recruit.id).name+' home';
+      const [recruit]=rival.roster.splice(payload.index,1); rival.shieldUntil=now+45; s.carry={player:recruit,originBase:payload.base,originIndex:payload.index}; message='Carry '+this.catalog.get(recruit.id).name+' home';
     } else if (name==='deposit') {
       if (!s.carry) return fail('You are not carrying a footballer'); if (!this.location.atHome) return fail('Carry your footballer to your home deposit pad'); if (s.roster.length>=18) return fail('Your roster is full');
-      s.roster.push(s.carry.player); this.delivered(s.carry.player,true); s.steals++; s.carry=null; message='Stolen footballer delivered';
+      this.npcRecruitUids.delete(s.carry.player.uid); s.roster.push(s.carry.player); this.delivered(s.carry.player,true); s.steals++; s.carry=null; message='Stolen footballer delivered';
     } else if (name==='drop') {
       if (!s.carry) return fail('You are not carrying a footballer'); s.rivals[s.carry.originBase].roster.splice(s.carry.originIndex,0,s.carry.player); s.carry=null; message='Footballer returned to their team';
     } else if (name==='buyTool') {
@@ -379,7 +416,7 @@ export class Game {
     } else if (name==='eventClaim'||name==='eventBuy') {
       const event=this.currentEvent(); if (!event.active||(payload.eventId!==undefined&&payload.eventId!==event.id)||name==='eventClaim'&&payload.id!==event.id) return fail('That event has expired');
       if (name==='eventClaim') { if (s.event.claimed||s.event.progress<event.target) return fail('Complete the unclaimed objective first'); s.event.claimed=true; s.eventTokens+=10; message='+10 event tokens'; }
-      else { if (payload.id!==event.offer||!this.catalog.get(payload.id)?.eventOnly||s.event.purchased.includes(payload.id)) return fail('Offer unavailable or already bought'); if (s.roster.length>=18) return fail('Your roster is full'); if (s.eventTokens<event.cost) return fail('Requires '+event.cost+' event tokens'); const recruit=this.recruit(payload.id,0,event.offerMutation); s.eventTokens-=event.cost; s.event.purchased.push(payload.id); s.roster.push(recruit); this.delivered(recruit); message='Limited signing completed'; }
+      else { if (s.wins<ICON_EVENT_WINS) return fail('Win '+ICON_EVENT_WINS+' squad battles to unlock Icon event signings'); if (payload.id!==event.offer||!this.catalog.get(payload.id)?.eventOnly||s.event.purchased.includes(payload.id)) return fail('Offer unavailable or already bought'); if (s.roster.length>=18) return fail('Your roster is full'); if (s.eventTokens<event.cost) return fail('Requires '+event.cost+' event tokens'); const recruit=this.recruit(payload.id,0,event.offerMutation); s.eventTokens-=event.cost; s.event.purchased.push(payload.id); s.roster.push(recruit); this.delivered(recruit); message='Limited signing completed'; }
     } else if (name==='beginBattle') {
       if (!s.roster.length) return fail('Buy your first footballer before playing'); if (now<s.battleReadyAt) return fail('Squad is resting'); if (s.npcAttempt) return fail('Repel the thief first');
       const team=this.team(),owned=team.filter(m=>!m.borrowed),average=owned.reduce((n,m)=>n+bound(m.power,20,150),0)/Math.max(1,owned.length),level=owned.reduce((n,m)=>n+m.stats.level,0)/Math.max(1,owned.length);
@@ -395,7 +432,7 @@ export class Game {
         s.eventTokens+=outcome==='win'?5:3; this.progress('mutation_rush');
         if (outcome==='win') {
           s.wins++; this.progress('golden_goal');
-          if (score[0]-score[1]>3) s.practiceLevel=Math.min(3,s.practiceLevel+1);
+          s.practiceLevel=Math.min(3,s.practiceLevel+1);
         }
       }
       for (const uid of Array.isArray(result.injuries)?result.injuries:[]) { const recruit=s.roster.find(p=>p.uid===uid); if (recruit) recruit.staff.injuryUntil=Math.max(recruit.staff.injuryUntil,now+180); }

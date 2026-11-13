@@ -1,0 +1,18 @@
+{
+  "checks": 36,
+  "screenshots": [
+    "canberra-map.png",
+    "compatibility-view.png",
+    "desktop-intro.png",
+    "desktop-light.png",
+    "map-teleport.png",
+    "phone-driving.png",
+    "phone-intro.png",
+    "phone-light.png",
+    "red-hill.png",
+    "telopea-driving.png"
+  ],
+  "errors": [],
+  "failures": [],
+  "external": []
+}

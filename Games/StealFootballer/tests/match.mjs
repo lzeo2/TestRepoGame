@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {Match} from '../js/match.js';
+import {Match,resolveAbilities} from '../js/match.js';
 
 // Detached mathematical fixtures exercise the port; they never touch a save or live squad.
 const makeTeam=(power=80,prefix='home')=>Array.from({length:18},(_,index)=>({
@@ -16,6 +16,139 @@ const assertFinite=match=>{
   for(const key of ['x','y','z'])assert(Number.isFinite(match.ball[key]));
   assert(match.players.every(p=>Math.abs(p.x)<=88&&Math.abs(p.z)<=62));
 };
+
+{
+  const named=(id,index=9)=>{const team=makeTeam();team[index].id=id;team[index].def.id=id;return new Match(team,makeTeam(75,'away'),{seed:31});};
+  const trajectories=[];
+  for(const [id,move] of [['maradona','slalom'],['zidane','roulette'],['ronaldinho','elastico']]) {
+    const match=named(id);open(match);const p=match.players[9];p.x=35;p.z=0;match._give(p);
+    assert(match.ability(move).ok);const stamina=match.stamina[0];
+    assert.equal(match.ability(move).ok,false,'signature cooldown prevents repeat spending');assert.equal(match.stamina[0],stamina);
+    for(let i=0;i<8;i++){match.time+=.1;match._move(.1);}
+    assert.equal(p.pose,move);assert(Math.abs(p.z)>0.1,'signature changes the actual carry route');
+    trajectories.push([p.x,p.z]);assert.equal(match.snapshot().skillMove[0].id,move);
+  }
+  assert.equal(new Set(trajectories.map(p=>p.map(v=>v.toFixed(3)).join(','))).size,3,'turn, alternating slalom and outside-inside elastico use distinct routes');
+  const shot=(enabled,z=8)=>{const match=named('henry');open(match);const p=match.players[9];p.x=65;p.z=z;match._give(p);
+    match.players.filter(p=>p.side===1&&p.role!=='GK').forEach(p=>p.z=55);
+    if(enabled)assert(match.ability('finesseFinish').ok);match._roll=()=>.99;match._shoot();return match;};
+  const ordinary=shot(false),finesse=shot(true);assert(finesse.ball.flight.goalChance>ordinary.ball.flight.goalChance);
+  assert.equal(finesse.players[9].pose,'finesse');assert(finesse.ball.flight.goalChance<100);
+  assert.equal(shot(true,45).ball.flight.goalChance,shot(false,45).ball.flight.goalChance,'poor wide angle does not get finesse bonus');
+  const bend=named('beckham');open(bend);bend.players[9].x=0;bend.players[9].z=10;bend.players[8].x=35;bend.players[8].z=10;
+  bend._give(bend.players[9]);assert(bend.ability('bendingDelivery').ok);
+  assert(bend.nextDecision<bend.activeAbility.endsAt,'delivery is queued before its skill window expires');bend._pass(bend.players[8]);
+  const flight=bend.ball.flight;assert(Math.abs(flight.curve)>0);assert.equal(bend.players[9].pose,'bend');
+  bend.players.filter(p=>p.side===1).forEach(p=>p.z=55);bend._stepFlight(flight.duration*.5);
+  assert.notEqual(bend.ball.z,10,'bending delivery follows a real curved route');bend._stepFlight(flight.duration);
+  assert.equal(bend.players[8].assistBonus,3,'completed bending delivery benefits receiver');
+  const read=named('maldini',1);open(read);const defender=read.players[1],passer=read.players[20],receiver=read.players[19];
+  assert.equal(read.ability('anticipation').ok,false,'anticipation is defensive only');
+  assert.equal(read.snapshot().abilities.find(a=>a.id==='anticipation').available,false);
+  read.players.forEach(p=>{p.x=-60;p.z=55;});passer.x=30;passer.z=0;receiver.x=-20;receiver.z=0;defender.x=20;defender.z=2.7;
+  read._give(passer);const enemyDecision=read.nextDecision;assert(read.ability('anticipation').ok,'Maldini can activate while defending');
+  assert.equal(read.nextDecision,enemyDecision,'defensive signature does not freeze opposition decisions');
+  read._pass(receiver);read.ball.flight.duration=1;read._roll=()=>0;read._stepFlight(.3);
+  assert.equal(read.ball.owner,1,'anticipation intercepts a nearby lane beyond normal 2.1-unit reach');
+  assert.equal(read.stats[0].interceptions,1);
+  const blocked=named('henry');open(blocked);blocked.stamina[0]=0;
+  assert.equal(blocked.ability('finesseFinish').ok,false);assert.equal(blocked.activeAbility,null);
+  blocked.phase='keeperRestart';blocked.stamina[0]=100;assert.equal(blocked.ability('finesseFinish').ok,false,'closed phases reject signatures');
+  const merged=new Match(makeTeam(),makeTeam(75,'away'),{data:{abilities:[{id:'dribbleGlue',name:'Source override',playerId:'messi',duration:8,cooldown:25,cost:10}]}});
+  assert.equal(merged.snapshot().abilities.length,12);assert.equal(merged.snapshot().abilities.find(a=>a.id==='dribbleGlue').name,'Source override');
+  assert(merged.snapshot().abilities.every(a=>a.playerName&&a.description));
+  const exposed=resolveAbilities();exposed[0].name='mutated';assert.notEqual(resolveAbilities()[0].name,'mutated','public definitions are detached');
+  const malformed=resolveAbilities({abilities:[{id:'slalom',cost:-5,duration:Infinity,cooldown:NaN}]}).find(a=>a.id==='slalom');
+  assert.deepEqual([malformed.cost,malformed.duration,malformed.cooldown],[10,5,27],'invalid numeric overrides use bounded defaults');
+  const replacement=named('maldini',1);open(replacement);replacement._give(replacement.players[20]);assert(replacement.ability('anticipation').ok);
+  const readyAt=replacement.abilityReadyAt;replacement.controlState={index:1};
+  replacement.pendingSubstitution={index:1,member:replacement.bench[0]};replacement._applyPendingSubstitution();
+  assert.equal(replacement.activeAbility,null,'reserve never inherits outgoing signature');assert.equal(replacement.controlState,null);
+  assert.equal(replacement.abilityReadyAt,readyAt,'substitution preserves signature cooldown');
+  const cadence=[0,5].map(level=>{const m=fresh();open(m);m.players.filter(p=>p.side===1).forEach(p=>p.stats.developmentLevel=level);m._roll=()=>.5;m.npcDecisionAt=0;m._npcAbility();return m.npcDecisionAt-m.time;});
+  assert(Math.abs(cadence[0]-6.5)<1e-9&&Math.abs(cadence[1]-5)<1e-9,'development improves bounded NPC decision cadence without changing shared cooldown');
+  const npc=named('maradona');open(npc);npc._give(npc.players[9]);assert(npc.ability('slalom').ok);const homeAbility=npc.activeAbility,homeStamina=npc.stamina[0];
+  const beforeAway=npc.stamina[1];npc._give(npc.players[20]);npc.npcDecisionAt=0;npc._npcAbility();
+  assert(npc.opponentAbility);assert.equal(npc.activeAbility,homeAbility,'opponent skill never overwrites home activation');
+  assert.equal(npc.stamina[0],homeStamina);assert.equal(npc.stamina[1],beforeAway-10);assert.equal(npc.opponentAbility.playerIndex,20);
+  const awayStamina=npc.stamina[1];npc.npcDecisionAt=0;npc._npcAbility();assert.equal(npc.stamina[1],awayStamina,'opponent has an independent bounded cooldown');
+  npc.opponentAbilityReadyAt=0;npc.npcDecisionAt=0;npc.stamina[1]=0;npc.opponentAbility=null;npc._npcAbility();assert.equal(npc.opponentAbility,null);
+  npc.stamina[1]=100;npc.npcDecisionAt=0;npc.phase='keeperRestart';npc._npcAbility();assert.equal(npc.opponentAbility,null,'NPC cannot activate during restarts');
+  npc.phase='buildUp';npc.players[20].id='zidane';npc.npcDecisionAt=0;npc._npcAbility();assert.equal(npc.opponentAbility.id,'roulette','named NPC uses its own signature');
+  npc.opponentAbilityReadyAt=0;npc.npcDecisionAt=0;npc.opponentAbility=null;npc._give(npc.players[9]);
+  npc.players[12].x=npc.players[9].x+8;npc.players[12].z=npc.players[9].z;const beforeDefend=npc.nextDecision;npc._npcAbility();
+  assert.equal(npc.opponentAbility.id,'anticipation');assert.equal(npc.nextDecision,beforeDefend,'NPC defensive skill does not delay home decisions');
+  const moving=fresh();open(moving);moving._move(.1);assert.equal(moving.players[moving.ball.owner].pose,'dribble','ordinary carriers expose a natural dribble pose');
+}
+
+{
+  for(const side of [0,1]) {
+    const match=fresh();open(match);const sign=side===0?1:-1;
+    const striker=match.players[side*11+9],keeper=match.players[(1-side)*11];
+    striker.x=80*sign;striker.z=0;keeper.x=72*sign;keeper.z=0;
+    match.players.filter(p=>p.side!==side&&p!==keeper).forEach(p=>{p.x=0;p.z=50;});
+    match._give(striker);match.nextDecision=match.time+20;
+    match.duel={attacker:side*11+9};match._roll=()=>.8;
+    match._auto();assert.equal(match.ball.flight?.kind,'shot','close AI finish bypasses decision and duel delay on both sides');
+    assert.equal(match.duel,null);assert.equal(match.ball.flight.outcome,'goal','beaten keeper cannot save open net');
+    assert(match.ball.flight.goalChance<100,'open finishes remain fallible');
+    const chance=match.ball.flight.goalChance;
+    match.ball.flight=null;keeper.x=87*sign;match._give(striker);match._shoot();
+    assert(match.ball.flight.goalChance<chance,'a keeper covering the line lowers finish likelihood');
+    match.ball.flight=null;keeper.x=72*sign;match._give(striker);match._roll=()=>.99;match._shoot();
+    assert.equal(match.ball.flight.outcome,'miss','beaten keeper does not magically save a missed finish');
+  }
+  const manual=fresh();open(manual);const p=manual.players[9];p.x=80;p.z=0;manual._give(p);
+  manual.controlState={index:9};manual._auto();assert.equal(manual.ball.flight,null,'Icon finish remains manual');
+  manual.controlState=null;manual.indirect={side:0,taker:9};manual._auto();
+  assert.notEqual(manual.ball.flight?.kind,'shot','indirect taker cannot directly shoot');
+  const wide=fresh();open(wide);wide.players[9].x=81;wide.players[9].z=40;wide._give(wide.players[9]);
+  wide.nextDecision=wide.time+20;wide._auto();assert.equal(wide.ball.flight,null,'wide angle does not trigger urgent shot');
+}
+{
+  const match=fresh({practice:true});open(match);
+  const striker=match.players[9],keeper=match.players[11];
+  striker.x=78;striker.z=5;keeper.x=80;keeper.z=5;
+  match.players.filter(p=>p.side===1&&p!==keeper).forEach(p=>{p.x=0;p.z=50;});
+  match._give(striker);striker.receivedAt=match.time-1;match._roll=()=>.3;
+  match._contacts();assert.equal(match.ball.owner,11,'keeper can win a reachable ball using goalkeeping');
+  assert.equal(match.phase,'keeperRestart');
+  match._give(striker);striker.receivedAt=match.time-1;keeper.challengeAt=0;match._roll=()=>.99;
+  match._contacts();assert.equal(match.ball.owner,9,'close keeper contest can fail');
+  const distant=fresh();open(distant);distant.players[9].x=78;distant.players[9].z=5;
+  distant.players[11].x=85;distant.players[11].z=5;distant._give(distant.players[9]);
+  distant.players[9].receivedAt=distant.time-1;distant._roll=()=>0;distant._contacts();
+  assert.equal(distant.ball.owner,9,'keeper cannot catch from outside contact range');
+  distant._move(.1);assert(distant.players[11].vx<0,'keeper moves off line to close the attacker');
+  const press=fresh({practice:true});open(press);const carrier=press.players[9],defender=press.players[12];
+  carrier.x=40;carrier.z=0;defender.x=42;defender.z=0;
+  press.players.filter(p=>p.side===1&&p!==defender).forEach(p=>{p.x=-50;p.z=50;});
+  press._give(carrier);carrier.receivedAt=press.time-.7;press._roll=()=>.3;press._contacts();
+  assert.equal(press.ball.owner,12,'practice pressure challenges after short receive protection');
+  const close=fresh({practice:true});open(close);const c=close.players[9],d=close.players[12];
+  c.x=40;c.z=0;d.x=49;d.z=0;close._give(c);c.receivedAt=close.time-2;
+  close.players.filter(p=>p.side===1&&p!==d).forEach(p=>{p.x=-50;p.z=50;});
+  close.controlState={index:9,vector:{x:0,z:0},lastInputAt:close.time};
+  for(let i=0;i<30;i++)close._move(.1);
+  assert(Math.hypot(c.x-d.x,c.z-d.z)<3.3,'practice presser closes into actual challenge reach');
+}
+{
+  const match=fresh();open(match);match.time=10;match.nextDecision=0;
+  const striker=match.players[9],keeper=match.players[11];
+  striker.x=78;striker.z=5;keeper.x=80;keeper.z=5;
+  match.players.filter(p=>p.side===1&&p!==keeper).forEach(p=>{p.x=0;p.z=50;});
+  match._give(striker);striker.receivedAt=8;match._roll=()=>0;
+  match._step(.05);
+  assert.equal(match.phase,'keeperRestart','contact collection keeps its restart phase through the real step');
+  assert.equal(match.ball.owner,11);assert.equal(match.ball.flight,null);
+  const deadline=match.phaseUntil;
+  while(match.time+.05<deadline)match._step(.05);
+  assert.equal(match.phase,'keeperRestart','keeper holds the ball for the bounded collection delay');
+  assert.equal(match.ball.owner,11);assert.equal(match.ball.flight,null);
+  for(let i=0;i<12&&!match.ball.flight;i++)match._step(.05);
+  assert.equal(match.ball.flight?.kind,'pass','keeper resumes distribution after its restart and decision delays');
+  assert(match.time>=deadline&&match.time<deadline+.7);
+}
 
 {
   const team=makeTeam();const original=JSON.stringify(team);const match=new Match(team,makeTeam(60,'away'));
@@ -188,4 +321,4 @@ const assertFinite=match=>{
     assert(match.result.stats[0].possessionPercent+match.result.stats[1].possessionPercent===100);
   }
 }
-console.log('PASS match: formation, flight contacts, offside, controls, pace, saves, subs, managers, periods, PKs, rewards, confirmed foul injuries, detached audio events and eight full seeded simulations');
+console.log('PASS match: 12 merged signatures, six distinct new skill mechanics, NPC cooldown/stamina isolation, dribble poses, formation, flight contacts, offside, controls, urgent finishes, keeper positioning/contests, practice pressure, pace, saves, subs, managers, periods, PKs, rewards, confirmed foul injuries, detached audio events and eight full seeded simulations');

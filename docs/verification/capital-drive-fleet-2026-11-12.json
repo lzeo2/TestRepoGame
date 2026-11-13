@@ -1,0 +1,812 @@
+{
+  "source_commit": "4da996369911531cc0ed8878434ee4bb2f6c6e86",
+  "catalog_entries": 133,
+  "projects": 139,
+  "visited": 133,
+  "passed": 123,
+  "failed": 10,
+  "exit_code": 1,
+  "restoration": "SPARSE RESTORED: pages=133/133, peak_Games_bytes=195853427, remaining_Games_bytes=0; this is not a gate-pass assertion.",
+  "filters": "Unchanged existing runner; benign/exclusion counts are not reported by it.",
+  "observed_failure": "ERR_CERT_AUTHORITY_INVALID on remote requests; root cause beyond certificate validation is not established.",
+  "results": [
+    {
+      "title": "Soccer Random",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Basket Random",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Volley Random",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Ovo",
+      "status": "FAIL",
+      "console_errors": 0,
+      "failed_requests": 4
+    },
+    {
+      "title": "Run 3",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Snake",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Chrome Dino",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Breakout",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Character Alsen",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Gladihoppers",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Burrito Bison",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "BitLife",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Subway Surfers",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "A Dark Room",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Stranded In Isekai",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Papa's Pizzeria",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Retro Bowl",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Super Hot",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "10 Minutes Till Dawn",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Fleeing the Complex",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Infiltrating the Airship",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Baldi's Basics",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Temple Run 2",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Cut the Rope",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Fancy Pants Adventure 3",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Vex 7",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Geometry Dash Lite",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Cookie Clicker",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Bloons TD",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Drift Boss",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Doodle Jump",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Chess",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Jetpack Joyride",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Jetpack Joyride Hacked",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Doge Miner",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Retro Bowl Hacked",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Cookie Clicker Hacked",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Breakout Hacked",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Snake Hacked",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Subway Surfers Hacked",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Doodle Jump Hacked",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Dr. Mario",
+      "status": "FAIL",
+      "console_errors": 0,
+      "failed_requests": 1
+    },
+    {
+      "title": "Street Fighter II",
+      "status": "FAIL",
+      "console_errors": 0,
+      "failed_requests": 1
+    },
+    {
+      "title": "Advance Wars",
+      "status": "FAIL",
+      "console_errors": 0,
+      "failed_requests": 1
+    },
+    {
+      "title": "Mario Kart Super Circuit",
+      "status": "FAIL",
+      "console_errors": 0,
+      "failed_requests": 1
+    },
+    {
+      "title": "Metroid Fusion",
+      "status": "FAIL",
+      "console_errors": 0,
+      "failed_requests": 1
+    },
+    {
+      "title": "Mega Man Zero",
+      "status": "FAIL",
+      "console_errors": 0,
+      "failed_requests": 1
+    },
+    {
+      "title": "Kirby Amazing Mirror",
+      "status": "FAIL",
+      "console_errors": 0,
+      "failed_requests": 1
+    },
+    {
+      "title": "Sonic Advance",
+      "status": "FAIL",
+      "console_errors": 0,
+      "failed_requests": 1
+    },
+    {
+      "title": "Crush the Castle",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Fireboy and Watergirl",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Fireboy & Watergirl 4: Crystal Temple",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Fireboy & Watergirl: Forest Temple",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Fireboy and Watergirl Hacked (Light Temple)",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Fireboy and Watergirl Forest Temple Hacked",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Fireboy and Watergirl Crystal Temple Hacked",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Merge Cats Defender",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Merge Cats Defender Hacked",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Archery",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Free Throw",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Backgammon",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Pacman",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Qix",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Joust",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Tron Light Cycles",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Puzzle 15",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Peg Solitaire",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Checkers",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Reversi",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Mastermind",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Nim",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Dots and Boxes",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Ultimate Tic-Tac-Toe",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Klondike Solitaire",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "FreeCell",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Blackjack",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Video Poker",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Yahtzee",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Go Fish",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "War",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Word Search",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Word Ladder",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Word Scramble",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Darts 501",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Mahjong Lite",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Sokoban",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Tower of Hanoi",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Nonogram",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Battleship",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Boggle",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Achtung die Kurve",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Dominoes",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Mini Golf",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Bowling",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Hearts Classic",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Spider Solitaire",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "SameGame",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Tower Defense",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "JavaScript Racer",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Rhythm",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Bullet Hell",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Cribbage",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Crossword",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Gomoku",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Mancala",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Asteroids",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Frogger",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Missile Command",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Lunar Lander",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Space Invaders",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Duck Hunt",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Balatro",
+      "status": "FAIL",
+      "console_errors": 0,
+      "failed_requests": 1
+    },
+    {
+      "title": "Circuit Ward",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Tag Relay",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Spline Ride",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Slipstream Borough: Police Chase (Preview)",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Foldwild: Open-World RPG (Preview)",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Steal a Footballer for Your Team",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Night Shift",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Borough Run",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Blackout",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Getaway",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Wings",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Server Survival",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Astray",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Below the Obvious",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "JANKOLOCK",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "CITISTEN",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Lane Run",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Gap Glide",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Courtyard Cast",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Brainrot Boulevard: After Dark",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    },
+    {
+      "title": "Capital Drive: Canberra (Preview)",
+      "status": "ok",
+      "console_errors": 0,
+      "failed_requests": 0
+    }
+  ]
+}

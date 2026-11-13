@@ -1,5 +1,5 @@
 import * as THREE from '../vendor/three.module.js';
-import {ActorFactory} from './actors.js';
+import {ActorFactory,dribbleMotion} from './actors.js';
 
 const clamp = (n, low, high) => Math.min(high, Math.max(low, n));
 const finite = (n, fallback = 0) => Number.isFinite(n) ? n : fallback;
@@ -8,6 +8,34 @@ const tint = v => Array.isArray(v) ? new THREE.Color(v[0], v[1], v[2]) : new THR
 const layout = [[-85,-58,1],[85,-58,1],[-85,58,-1],[85,58,-1],[-85,-120,1],[85,-120,1],[-85,120,-1],[85,120,-1],[-85,-182,1],[85,-182,1],[-85,182,-1],[85,182,-1]];
 const PRACTICE_KIT={primary:'#14263F',secondary:'#E4BD58',shorts:'#14263F'};
 const PRACTICE_KEEPER={primary:'#1D885A',secondary:'#F4F6F8',shorts:'#123C31'};
+
+const movementSpeed=player=>Math.hypot(finite(player.vx),finite(player.vz))/10;
+function playerPose(match,player,index) {
+  const move=(match.skillMove||[]).find(m=>m.playerIndex===index&&m.side===player.side&&m.remaining>0);
+  // Finishing/delivery abilities stay queued until the simulation emits the action.
+  const movement=move&&/dribbleglue|speedburst|slalom|roulette|elastico|stepover|sambastep|wingweave|anticipation/i.test(move.id||move.pose);
+  return movement&&['idle','run','dribble','feint'].includes(player.pose)?move.pose:player.pose;
+}
+
+function faceActor(actor,angle,time) {
+  const target=-finite(angle)-Math.PI/2,dt=time-(actor.facingTime??time);
+  if(actor.facingTime!==undefined&&dt===0)return;
+  const turn=Math.atan2(Math.sin(target-actor.root.rotation.y),Math.cos(target-actor.root.rotation.y));
+  actor.root.rotation.y=dt>0&&dt<=.25?actor.root.rotation.y+turn*(1-Math.exp(-dt*16)):target;
+  actor.facingTime=time;
+}
+
+export function visualBallPosition(match,time=0,gait) {
+  const ball=match.ball||{},position={x:finite(ball.x),y:Math.max(.84,finite(ball.y,.84)),z:finite(ball.z)};
+  const player=Number.isInteger(ball.owner)?match.players?.[ball.owner]:null;
+  if(!player||player.role==='GK'||ball.flight||match.restart||!['buildUp','duel'].includes(match.phase)||position.y>1.2||movementSpeed(player)<.04)return position;
+  const pose=playerPose(match,player,ball.owner);
+  if(!/dribble|slalom|roulette|elastico|stepover|sambastep|wingweave/i.test(pose||''))return position;
+  const touch=dribbleMotion(pose,time,movementSpeed(player),gait?.phase),angle=finite(player.angle);
+  position.x+=Math.cos(angle)*touch.forward-Math.sin(angle)*touch.lateral;
+  position.z+=Math.sin(angle)*touch.forward+Math.cos(angle)*touch.lateral;
+  return position;
+}
 
 export function miniLineup(members,formation='4-4-2',front=1) {
   const counts={'4-4-2':[1,4,4,2],'4-3-3':[1,4,3,3],'3-5-2':[1,3,5,2]}[formation]||[1,4,4,2];
@@ -170,7 +198,7 @@ export class World {
     return items.map(h=>({...h,distance:Math.hypot(position.x-h.x,position.z-h.z)})).filter(h=>h.distance<=h.radius).sort((a,b)=>a.distance-b.distance);
   }
 
-  moveAvatar(vector,dt) {const old=this.avatar;this.avatar=groundedMove(old,vector,dt,this.colliders,this.bounds);this.avatar.moving=Math.hypot(this.avatar.x-old.x,this.avatar.z-old.z)>.001;return {...this.avatar};}
+  moveAvatar(vector,dt) {const old=this.avatar;this.avatar=groundedMove(old,vector,dt,this.colliders,this.bounds);const distance=Math.hypot(this.avatar.x-old.x,this.avatar.z-old.z);this.avatar.moving=distance>.001;this.avatar.distance=distance;return {...this.avatar};}
   teleport(point) {const p=xyz(point);if(!p.every(Number.isFinite))return false;this.avatar={x:p[0],y:p[1]+.035,z:p[2],angle:finite(point?.angle,this.avatar.angle)};this.jumpHeight=0;this.jumpVelocity=0;return {...this.avatar};}
   jump() {if(finite(this.jumpHeight)>.001)return false;this.jumpVelocity=20;this.jumpHeight=.01;return true;}
   setCamera(config={}) {this.cameraConfig={...this.cameraConfig,...config,yaw:finite(config.yaw,finite(config.orbit,this.cameraConfig.yaw)),zoom:clamp(finite(config.zoom,this.cameraConfig.zoom),.35,2.5)};if(Number.isInteger(config.pitchIndex))this.pitchIndex=clamp(config.pitchIndex,0,11);}
@@ -233,8 +261,8 @@ export class World {
     const practice=match.isPractice===true||match.practice===true||players.filter(p=>p.side===1).every(p=>p.stats?.traitId==='practice');const key=players.map(a=>`${a.key||a.id}:${a.side}:${a.index}`).join('|')+practice;
     if(key!==this.matchKey){this.matchActors.forEach(a=>{this.matchGroup.remove(a.root);this.factory.release(a);});this.matchActors=players.map(player=>{
       const def=player.def||this.data.players?.find(d=>d.id===player.id)||{name:player.name};const kit=player.side===0?(state.kit?.enabled?state.kit:{primary:'#246AC9',secondary:'#FAF4DD',shorts:'#172B52'}):practice?(player.role==='GK'?PRACTICE_KEEPER:PRACTICE_KIT):{primary:'#C93549',secondary:'#FFF2D1',shorts:'#272A32'};const actor=this.factory.create(def,kit,{number:player.index+1});this.matchGroup.add(actor.root);return actor;});this.matchKey=key;}
-    players.forEach((player,i)=>{const actor=this.matchActors[i];if(!actor)return;actor.root.position.set(finite(player.x),.035,finite(player.z));actor.root.rotation.y=-finite(player.angle)-Math.PI/2;this.factory.pose(actor,player.pose,this.time,finite(player.speed,1));});
-    const ball=match.ball||{};this.ball.position.set(finite(ball.x),Math.max(.84,finite(ball.y,.84)),finite(ball.z));this.ball.rotation.z+=.03;this.ballRing.position.set(finite(ball.x),.09,finite(ball.z));
+    players.forEach((player,i)=>{const actor=this.matchActors[i];if(!actor)return;actor.root.position.set(finite(player.x),.035,finite(player.z));faceActor(actor,player.angle,this.time);this.factory.pose(actor,playerPose(match,player,i),this.time,movementSpeed(player));});
+    const ball=visualBallPosition(match,this.time,this.matchActors[match.ball?.owner]?.motion);this.ball.position.set(ball.x,ball.y,ball.z);this.ball.rotation.z+=.03;this.ballRing.position.set(ball.x,.09,ball.z);
   }
 
   updateCamera(match,dt) {
@@ -260,7 +288,8 @@ export class World {
     if(this.lowGraphics!==Boolean(lowGraphics)){this.lowGraphics=Boolean(lowGraphics);this.resize();}
     this.renderer.shadowMap.enabled=!this.lowGraphics;this.sun.castShadow=!this.lowGraphics;
     this.jumpVelocity=finite(this.jumpVelocity)-56*dt;this.jumpHeight=Math.max(0,finite(this.jumpHeight)+this.jumpVelocity*dt);if(this.jumpHeight===0)this.jumpVelocity=0;
-    this.avatarActor.root.position.set(this.avatar.x,this.avatar.y+this.jumpHeight,this.avatar.z);this.avatarActor.root.rotation.y=-finite(this.avatar.angle)-Math.PI/2;this.factory.pose(this.avatarActor,this.avatar.moving?'run':'idle',this.time);
+    const avatarSpeed=this.avatar.moving&&dt>0?finite(this.avatar.distance)/dt/20:0;
+    this.avatarActor.root.position.set(this.avatar.x,this.avatar.y+this.jumpHeight,this.avatar.z);faceActor(this.avatarActor,this.avatar.angle,this.time);this.factory.pose(this.avatarActor,this.avatar.moving?'run':'idle',this.time,avatarSpeed);
     this.avatar.moving=false;
     this.rebuildDisplays(state);this.updateMarket(state.market);this.updateMatch(match,state);this.updateCamera(match,dt);
     const focus=this.camera.position;const far=this.lowGraphics?360:800;

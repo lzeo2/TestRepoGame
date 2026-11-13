@@ -2,7 +2,55 @@
 
 Owner-authorized solo port from `lzeo2/steal-a-footballer` at `30b0c28`. Preserve source gameplay and 3D layout. Rivals are NPCs, saves are browser-local, runtime assets are local. Arrays and sides in JS are zero-based.
 
-## Data
+## Browser tuning, 10 November 2026
+
+Catalog prices and identities remain source-derived. Passive income is now 60%
+of the exported rate. Fresh rivals contain starters; later raid pools stay below
+the most expensive owned recruit and cap at Rare. Refills take 90 seconds and a
+raid activates a 45-second rival shield. Event Icon signings unlock at six wins;
+tokens remain earnable before unlock. Every win raises the next practice tier,
+capped at three, with stronger base opponents and 12% stat scaling per tier.
+These are browser tuning decisions, not claims about original Roblox balance.
+The owner's 20–30 minute first-superstar preference is a tuning target, not
+verified session-length acceptance. Existing saves and owned players stay valid.
+
+## Skills and rival development, 11 November 2026
+
+`resolveAbilities(data)` exported by `match.js` returns 12 canonical signature
+definitions merged with supplied source overrides. The six added skills are
+Maradona's Slalom, Zidane's Roulette, Ronaldinho's Elastico, Henry's Finesse
+Finish, Beckham's Bending Delivery and Maldini's Anticipation. Attacking skills
+need home possession; Anticipation needs an opponent attack. Stamina, legal
+phases and shared home cooldown still apply. `snapshot.opponentAbility` has
+independent NPC stamina/cooldown; `snapshot.skillMove` is an array of
+`{id,pose,playerIndex,side,remaining}`, using the global 22-player index.
+`snapshot.abilities` includes player names, descriptions, cost and duration;
+its `cooldown` is remaining home cooldown, not the configured duration.
+
+Saved `npcActiveSeconds` counts clamped active club ticks, pauses in battles,
+and caps at 900. One level takes 180 seconds; levels 0–5 grow generated recruits
+and roster targets 3/4/5 at levels 0/2/4. Snapshot `npcDevelopment` and each
+`rival.development` expose `{level,progress,nextLevelSeconds,rosterTarget,
+activeSeconds,paused}`; progress is seconds into the current level. There is no
+offline training grant. Delivered recruits leave automatic NPC training.
+Practice XI adds 4% stats per development level and exposes
+`stats.developmentLevel` to the opponent's skill timing. Match teams are frozen
+when created.
+
+The renderer uses short dribble strides and signature poses, with less than
+half a unit of synchronized visual ball touch movement for grounded moving
+carriers. Authoritative ball state, shots, flights and restarts stay in Match.
+The model wishlist in `docs/steal-footballer-model-wishlist.md` is a proposed art
+delivery contract; GLB import/rig integration is not implemented.
+
+Push-preparation repair: `reconcileTacticsDraft(draft,roster,unavailableUid)` is a
+pure exported helper from `game.js` used before applying/saving editor drafts.
+It preserves edits while removing missing/contested starters/captain; strict
+Game action validation remains. Actor-local accumulated gait and eased facing
+replace global-time speed multiplication. Ball rendering shares the carrier's
+gait phase; simulation coordinates and input response are unchanged.
+
+## Exported catalog
 
 `data/catalog.json`: `{config,players,traits,eggs,styles,abilities,signatures}`. Each player retains its final source definition plus baseline `stats`, `style` and `appearance` (hex colors). `worldData`: exported world base geometry, bases/pitch positions and static material/color transforms; root supplies after read-only Studio export. Three r160 locally vendored as `vendor/three.module.js`.
 

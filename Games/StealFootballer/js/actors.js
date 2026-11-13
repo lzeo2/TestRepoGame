@@ -3,13 +3,29 @@ import * as THREE from '../vendor/three.module.js';
 const color = (value, fallback) => typeof value === 'string' ? (value.startsWith('#') ? value : `#${value}`) : fallback;
 const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallback;
 
+// Shared visual touch rhythm; offsets never change authoritative ball state.
+export function dribbleMotion(pose,time=0,speed=1,continuousPhase) {
+  const kind=String(pose||'').toLowerCase();
+  const phase=finite(continuousPhase,finite(time)*10*Math.min(1.6,Math.max(.4,finite(speed,1))));
+  const touch=Math.sin(phase),alternating=Math.cos(phase);
+  let lateral=touch*.18,forward=(1-Math.cos(phase*2))*.12;
+  if(/slalom|wingweave/.test(kind))lateral=touch*.32;
+  if(/elastico|sambastep/.test(kind))lateral=Math.sin(phase)*Math.abs(Math.sin(phase))*.38;
+  if(/roulette/.test(kind)){lateral=Math.sin(phase)*.3;forward=Math.cos(phase)*.23;}
+  if(/stepover/.test(kind)){lateral=touch*.24;forward=.1*Math.cos(phase);}
+  return {phase,touch,alternating,lateral,forward};
+}
+
 // Original web geometry: silhouette adaptations of the source appearance profiles.
 // No Roblox catalog mesh, clothing image or face texture is redistributed here.
 export class ActorFactory {
   constructor() {
     this.geometries = {
       box: new THREE.BoxGeometry(1, 1, 1),
-      sphere: new THREE.SphereGeometry(.5, 10, 8),
+      sphere: new THREE.SphereGeometry(.5, 8, 6),
+      beard: new THREE.SphereGeometry(.5, 10, 4, Math.PI, Math.PI, Math.PI / 2, Math.PI / 2),
+      shirt: new THREE.CylinderGeometry(.5, .37, 1, 8),
+      shorts: new THREE.CylinderGeometry(.46, .5, 1, 8),
       cylinder: new THREE.CylinderGeometry(.5, .5, 1, 10),
     };
     this.materials = new Map();
@@ -39,16 +55,20 @@ export class ActorFactory {
     const primary = color(kit.primary || def.color || def.shirt || def.primary || def.kitColor, '#3978C7');
     const secondary = color(kit.secondary || def.secondary || def.trim, '#F5F5E9');
     const shorts = color(kit.shorts || def.shorts, '#202C40');
-    this.part(body, 'box', [2, 1.85, 1], [0, 3.18, 0], primary);
-    this.part(body, 'box', [2.04, .22, 1.04], [0, 4, 0], secondary);
-    this.part(body, 'box', [.18, 1.65, .025], [-.58, 3.2, -.515], secondary);
-    this.part(body, 'box', [.18, 1.65, .025], [.58, 3.2, -.515], secondary);
-    if(kit.pattern==='stripes')for(const x of [-.75,-.25,.25,.75])this.part(body,'box',[.22,1.6,1.035],[x,3.18,0],secondary);
-    if(kit.pattern==='hoops')for(const y of [2.63,3.12,3.61])this.part(body,'box',[2.035,.18,1.035],[0,y,0],secondary);
-    this.part(body, 'sphere', [.24, .3, .025], [-.72, 3.76, -.535], secondary);
-    this.part(body, 'box', [2.02, .66, 1.02], [0, 2.04, 0], shorts);
-    const head = new THREE.Group(); head.position.set(0, 4.56, 0); body.add(head);
-    this.part(head, 'box', [1.78, 1.25, 1.1], [0, 0, 0], skin);
+    // Adult athletic silhouette: long legs, a tapered torso and a smaller head.
+    this.part(body, 'shirt', [1.65, 1.65, .76], [0, 4.04, 0], primary);
+    this.part(body, 'sphere', [.64, .18, .57], [0, 4.82, 0], secondary);
+    this.part(body, 'cylinder', [.34, .38, .34], [0, 4.99, 0], skin);
+    for (const x of [-.4, .4]) this.part(body, 'box', [.09, 1.28, .025], [x, 4.02, -.354], secondary);
+    if (kit.pattern === 'stripes') for (const x of [-.5, -.17, .17, .5]) this.part(body, 'box', [.12, 1.28, .025], [x, 4.02, -.367], secondary);
+    if (kit.pattern === 'hoops') for (const y of [3.55, 4.02, 4.49]) this.part(body, 'shirt', [1.67, .13, .78], [0, y, 0], secondary);
+    this.part(body, 'sphere', [.15, .2, .025], [-.47, 4.48, -.363], secondary);
+    this.part(body, 'shorts', [1.2, .57, .68], [0, 3.05, 0], shorts);
+    const head = new THREE.Group(); head.position.set(0, 5.56, 0);
+    // Profile coordinates remain shared with the original source silhouette details.
+    head.scale.set(.46, .76, .68); body.add(head);
+    this.part(head, 'sphere', [1.78, 1.25, 1.1], [0, .02, 0], skin);
+    this.part(head, 'sphere', [1.35, .65, 1.02], [0, -.29, -.025], skin);
     for (const side of [-1, 1]) {
       this.part(head, 'sphere', [.2, .38, .28], [side * .92, -.04, 0], skin);
       this.part(head, 'box', [.16, .12, .035], [side * .39, .1, -.57], '#191C22');
@@ -56,28 +76,28 @@ export class ActorFactory {
     }
     this.part(head, 'box', [.19, .19, .12], [0, -.08, -.59], skin);
     this.part(head, 'box', [.44, .065, .035], [0, -.33, -.57], '#653D32');
-    this.hair(head, a.hairStyle || 'cropped', hair, simple);
+    this.hair(head, a.hairStyle || 'cropped', hair, simple, a.hairAccentColor ? color(a.hairAccentColor, hair) : null);
     const facial = a.facialHair || 'none';
     const beardColor = color(a.facialHairColor, hair);
     if (facial === 'beard' || facial === 'stubble') {
-      this.part(head, 'box', [1.47, facial === 'beard' ? .44 : .24, .035], [0, -.46, -.576], beardColor);
-      for (const side of [-1, 1]) this.part(head, 'box', [.1, .47, .99], [side * .85, -.36, .02], beardColor);
+      this.part(head, 'beard', [1.64, facial === 'beard' ? 1.01 : .82, 1.18], [0, -.14, -.02], beardColor);
+      for (const side of [-1, 1]) this.part(head, 'sphere', [.12, .46, .6], [side * .79, -.18, -.08], beardColor);
     }
     if (facial === 'goatee') this.part(head, 'box', [.45, .27, .035], [0, -.51, -.578], beardColor);
     if (facial !== 'none') this.part(head, 'box', [.47, .075, .035], [0, -.23, -.58], beardColor);
     if (a.headbandColor) this.part(head, 'box', [1.86, .13, 1.14], [0, .28, 0], color(a.headbandColor, '#FFFFFF'));
     const limbs = {};const feet=[];const owned=[];
     for (const side of [-1, 1]) {
-      const arm = new THREE.Group(); arm.position.set(side * 1.48, 3.91, 0); body.add(arm);
-      this.part(arm, 'box', [.83, .73, .91], [0, -.32, 0], primary);
-      this.part(arm, 'box', [.79, 1.05, .83], [0, -1.18, 0], skin);
-      if (a.goalkeeper) this.part(arm, 'box', [.84, .42, .88], [0, -1.57, 0], color(a.gloveColor, '#F3F3EC'));
-      const leg = new THREE.Group(); leg.position.set(side * .53, 1.94, 0); body.add(leg);
-      this.part(leg, 'box', [.87, .84, .89], [0, -.28, 0], skin);
-      this.part(leg, 'box', [.9, .9, .91], [0, -1.04, 0], secondary);
-      this.part(leg, 'box', [.93, .13, .94], [0, -.61, 0], primary);
-      feet.push(this.part(leg, 'box', [.98, .38, 1.36], [0, -1.74, -.19], color(a.bootColor, '#17202B')));
-      this.part(leg, 'box', [.65, .055, .73], [0, -1.53, -.38], color(a.bootAccent, '#F0F2F4'));
+      const arm = new THREE.Group(); arm.position.set(side * .91, 4.65, 0); body.add(arm);
+      this.part(arm, 'sphere', [.49, .65, .52], [0, -.22, 0], primary);
+      this.part(arm, 'sphere', [.33, 1.33, .36], [0, -1.02, 0], skin);
+      this.part(arm, 'sphere', [.3, .38, .33], [0, -1.66, -.025], a.goalkeeper ? color(a.gloveColor, '#F3F3EC') : skin);
+      const leg = new THREE.Group(); leg.position.set(side * .32, 3.02, 0); body.add(leg);
+      this.part(leg, 'sphere', [.5, 1.55, .52], [0, -.65, 0], skin);
+      this.part(leg, 'sphere', [.38, 1.5, .41], [0, -2.04, 0], secondary);
+      this.part(leg, 'cylinder', [.39, .12, .42], [0, -1.42, 0], primary);
+      feet.push(this.part(leg, 'box', [.43, .32, .82], [0, -2.85, -.16], color(a.bootColor, '#17202B')));
+      this.part(leg, 'box', [.34, .035, .49], [0, -2.67, -.25], color(a.bootAccent, '#F0F2F4'));
       limbs[side < 0 ? 'leftArm' : 'rightArm'] = arm;
       limbs[side < 0 ? 'leftLeg' : 'rightLeg'] = leg;
     }
@@ -95,12 +115,13 @@ export class ActorFactory {
         ctx.font = 'bold 72px sans-serif'; ctx.fillText(String(number ?? a.number ?? def.number ?? 0), 64, 100);
         const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; this.textures.push(texture);
         const material = new THREE.MeshLambertMaterial({map: texture});owned.push({material,texture});
-        const badge = new THREE.Mesh(this.geometries.box, material); badge.scale.set(1.45, 1.5, .01); badge.position.set(0, 3.18, .513); body.add(badge);
+        const badge = new THREE.Mesh(this.geometries.box, material); badge.scale.set(.94, 1.28, .01); badge.position.set(0, 4.04, .36); body.add(badge);
       }
     }
     const merged=[];for(const group of [body,head,...Object.values(limbs)])this.mergeParts(group,merged);
     // Foot transforms remain available for support checks after their meshes merge.
-    return {root, body, head, ...limbs, feet, owned, merged, profile: a, definition: def};
+    const gaitSeed=Array.from(String(def.id||def.name||'actor')).reduce((sum,c)=>(sum*31+c.charCodeAt(0))%997,0)/997*Math.PI*2;
+    return {root, body, head, ...limbs, feet, owned, merged, profile: a, definition: def, gaitSeed};
   }
 
   mergeParts(group,merged) {
@@ -111,54 +132,147 @@ export class ActorFactory {
     const mesh=new THREE.Mesh(geometry,this.mergedMaterial);mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);merged.push(geometry);
   }
 
-  hair(head, style, tint, simple) {
-    if (style === 'bald') return;
-    if (style === 'r9fringe') {
-      this.part(head, 'sphere', [1.15, .23, .65], [0, .6, -.39], tint); return;
+  scalp(style) {
+    const key='hair-'+style;
+    if (this.geometries[key]) return key;
+    const positions=[],indices=[],around=20,rows=7;
+    for (let row=0;row<=rows;row++) for (let col=0;col<=around;col++) {
+      const phi=col/around*Math.PI*2,front=(1-Math.cos(phi))/2;
+      // The front edge clears the brows; the sides/back follow the cranium.
+      const theta=row/rows*(style==='fade'?1.58-front*.58:1.72-front*.72);
+      const crown=Math.sin(theta),ridge=Math.sin(phi*10+theta*8);
+      const textured=['curls','afro','quiff','longslick','braids','locs'].includes(style);
+      const volume=style==='afro'?.16:style==='curls'?.08:style==='quiff'?.02:0;
+      const ripple=textured?(style==='afro'?.045:style==='curls'?.03:.012)*ridge*Math.sin(theta):0;
+      const radius=1+(style==='cropped'?.015:style==='longslick'?.06:0)+volume*(1-(row/rows)**2)+ripple*(1-row/rows);
+      positions.push(Math.sin(phi)*crown*.91*radius,
+        .02+Math.cos(theta)*.66*radius,
+        Math.cos(phi)*crown*.57*radius+(style==='longslick'?.035*Math.sin(theta):0));
     }
-    if (style === 'braids' || style === 'locs') {
-      this.part(head, 'box', [1.8, .15, 1.09], [0, .64, .02], tint);
-      const count = simple ? 4 : 8;
-      for (let i = 0; i < count; i++) {
-        const x = - .75 + i * 1.5 / (count - 1);
-        const strand = this.part(head, 'cylinder', [style === 'locs' ? .22 : .11, style === 'locs' ? 1.35 : 1.13, .15], [x, style === 'locs' ? .07 : .7, style === 'locs' ? .58 : .05], tint);
-        if (style === 'braids') strand.rotation.x = Math.PI / 2;
+    for(let row=0;row<rows;row++)for(let col=0;col<around;col++) {
+      const a=row*(around+1)+col,b=a+around+1;
+      indices.push(a,b,a+1,a+1,b,b+1);
+    }
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+    geometry.setIndex(indices);geometry.computeVertexNormals();geometry.computeBoundingSphere();
+    this.geometries[key]=geometry;return key;
+  }
+
+  hair(head, style, tint, simple, accent=null) {
+    if(style==='bald')return;
+    if(style==='r9fringe') {
+      const patch=this.part(head,'sphere',[.95,.13,.34],[0,.57,-.26],tint);
+      patch.rotation.x=-.38;return;
+    }
+    this.part(head,this.scalp(style),[1,1,1],[0,0,0],tint);
+    if(style==='quiff') {
+      // Overlapping swept locks rise from the fitted scalp, rather than lifting
+      // the entire crown into a pointed cap.
+      const locks=[
+        {size:[.75,.4,.62],position:[-.3,.61,-.14],angle:-.2},
+        {size:[.8,.46,.62],position:[.12,.65,-.17],angle:-.24},
+        {size:[.58,.34,.54],position:[.48,.61,-.12],angle:-.3},
+      ];
+      for(const lock of locks){const mesh=this.part(head,'sphere',lock.size,lock.position,tint);mesh.rotation.z=lock.angle;}
+    }
+    if(style==='curls'||style==='afro') {
+      const round=style==='afro',size=round?[.64,.5,.6]:[.48,.32,.46];
+      const clumps=[[0,0],...[0,1,2,3].map(i=>[.65,i*Math.PI/2]),...[0,1,2,3].map(i=>[.95,Math.PI/4+i*Math.PI/2])];
+      for(const [theta,phi]of clumps) {
+        const position=[Math.sin(phi)*Math.sin(theta)*.91*1.04,
+          .02+Math.cos(theta)*.66*1.04+(round?.06:.04),Math.cos(phi)*Math.sin(theta)*.57*1.04];
+        this.part(head,'sphere',size,position,tint);
       }
-      return;
     }
-    if (style === 'curls' || style === 'afro') {
-      const count = simple ? 5 : 11;
-      for (let i = 0; i < count; i++) {
-        const angle = i * 2.39996;
-        const radius = i ? .7 : 0;
-        this.part(head, 'sphere', [style === 'afro' ? .8 : .62, .65, .7], [Math.cos(angle) * radius, .72 + (i % 3) * .07, Math.sin(angle) * radius * .63], tint);
+    if(style==='longslick'||style==='pony') {
+      // Rounded swept nape, with its upper end buried in the fitted scalp.
+      this.part(head,'sphere',[1.47,1.05,.36],[0,.02,.48],tint);
+      if(style==='pony') {
+        const key='hair-tail';
+        if(!this.geometries[key])this.geometries[key]=new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0,.25,.51),new THREE.Vector3(0,.16,.78),new THREE.Vector3(.04,-.22,.87),new THREE.Vector3(.1,-.65,.78)
+        ]),8,.16,6,false);
+        this.part(head,key,[1,1,1],[0,0,0],tint);
       }
-      return;
     }
-    this.part(head, 'box', [1.83, style === 'fade' ? .19 : .27, 1.14], [0, .64, .03], tint);
-    if (style === 'cropped') this.part(head, 'box', [1.71, .13, .32], [0, .53, -.5], tint);
-    if (style === 'quiff') {
-      const front = this.part(head, 'sphere', [1.8, .55, .72], [0, .82, -.27], tint); front.rotation.z = -.13;
-    }
-    if (style === 'longslick' || style === 'pony') {
-      this.part(head, 'box', [1.84, 1.07, .3], [0, .19, .53], tint);
-      if (style === 'pony') this.part(head, 'sphere', [.57, 1.45, .52], [0, -.05, .87], tint);
+    if(style==='braids'||style==='locs') {
+      const count=simple?4:7;
+      for(let i=0;i<count;i++) {
+        const lane=(i-(count-1)/2)/((count-1)/2),x=lane*.63;
+        const key='hair-'+style+'-'+count+'-'+i;
+        if(!this.geometries[key]) {
+          const points=style==='braids'?[
+            new THREE.Vector3(x,.39,-.37),new THREE.Vector3(x,.61,.02),new THREE.Vector3(x,.35,.5),new THREE.Vector3(x,.02,.57)
+          ]:[new THREE.Vector3(x,.5,.25),new THREE.Vector3(x*1.08,.25,.58),new THREE.Vector3(x*1.12,-.12,.62),new THREE.Vector3(x*1.1,-.63,.57)];
+          // Side lanes sit lower on the rounded crown so each root is attached.
+          points.forEach(point=>{point.y-=Math.abs(lane)*.13;});
+          this.geometries[key]=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),8,style==='locs'?.075:.035,5,false);
+        }
+        this.part(head,key,[1,1,1],[0,0,0],accent&&i===count-2?accent:tint);
+      }
+    } else if(accent) {
+      const strand=this.part(head,'sphere',[.15,.11,.62],[-.3,.56,-.04],accent);strand.rotation.z=-.2;
     }
   }
 
   pose(actor, pose = 'idle', time = 0, speed = 1) {
     const kind = typeof pose === 'string' ? pose.toLowerCase() : String(pose?.type || pose?.kind || pose?.name || 'idle').toLowerCase();
-    const phase = time * 9 * Math.max(.4, speed);
-    const run = /run|dribble|sprint/.test(kind);
-    const stride = run ? Math.sin(phase) * .7 : Math.sin(time * 1.8) * .025;
+    const dribble=/dribble|slalom|roulette|elastico|stepover|sambastep|wingweave/.test(kind);
+    const run = !dribble&&/run|sprint|speedburst/.test(kind);
+    const targetSpeed=run||dribble?Math.min(1.6,Math.max(0,finite(speed,1))):0;
+    const elapsed=finite(time)-(actor.motion?.time??finite(time));
+    // Menus can render another frame without advancing the world clock.
+    if(actor.motion&&elapsed===0)return;
+    const reset=!actor.motion||elapsed<0||elapsed>.25;
+    const parts=[actor.body,actor.head,actor.leftArm,actor.rightArm,actor.leftLeg,actor.rightLeg];
+    if(!actor.motion)actor.motion={phase:0,speed:0,time:finite(time),previous:parts.map(()=>({quaternion:new THREE.Quaternion(),position:new THREE.Vector3()}))};
+    const gait=actor.motion;
+    parts.forEach((part,i)=>{gait.previous[i].quaternion.copy(part.quaternion);gait.previous[i].position.copy(part.position);});
+    if(reset){gait.phase=finite(actor.gaitSeed)+finite(time)*8*targetSpeed;gait.speed=targetSpeed;}
+    else {
+      gait.speed+=(targetSpeed-gait.speed)*(1-Math.exp(-elapsed*9));
+      gait.phase+=elapsed*8*gait.speed;
+    }
+    gait.time=finite(time);
+    const motion=dribbleMotion(kind,time,speed,gait.phase),phase=motion.phase;
+    const stride = dribble ? motion.touch*.25 : run ? Math.sin(phase)*.42 : Math.sin(time*1.8)*.015;
     actor.leftLeg.rotation.set(stride, 0, 0); actor.rightLeg.rotation.set(-stride, 0, 0);
-    actor.leftArm.rotation.set(-stride * .7, 0, -.08); actor.rightArm.rotation.set(stride * .7, 0, .08);
-    actor.body.rotation.set(0, 0, 0); actor.body.position.set(0, run ? Math.abs(Math.cos(phase)) * .12 : 0, 0);
+    actor.leftArm.rotation.set(-stride * .5, 0, -.1); actor.rightArm.rotation.set(stride * .5, 0, .1);
+    actor.body.rotation.set(run?-.045:0, 0, run?motion.touch*.015:0);actor.body.position.set(0,0,0);
+    actor.leftLeg.position.y=actor.rightLeg.position.y=3.02;
+    actor.head.rotation.set(0,0,0);
+    if(dribble) {
+      actor.body.rotation.set(-.07,motion.touch*.05,motion.touch*.025);
+      actor.leftArm.rotation.set(-stride*.5-.2,0,-.24-motion.touch*.07);
+      actor.rightArm.rotation.set(stride*.5-.2,0,.24-motion.touch*.07);
+      actor.leftLeg.rotation.y=motion.touch*.06;actor.rightLeg.rotation.y=-motion.touch*.06;
+    }
     if (/kick|shoot|pass/.test(kind)) { actor.rightLeg.rotation.x = -1.13; actor.leftArm.rotation.x = -.5; actor.rightArm.rotation.x = .6; }
-    if (/feint|stepover/.test(kind)) { actor.body.rotation.z = Math.sin(phase) * .22; actor.rightLeg.rotation.z = .4; }
+    if (/slalom|wingweave/.test(kind)) {actor.body.rotation.z=motion.touch*.18;actor.body.rotation.y=motion.touch*.2;actor.leftLeg.rotation.z=motion.touch*.1;}
+    if (/roulette/.test(kind)) {actor.body.rotation.y=phase%(Math.PI*2);actor.rightLeg.rotation.x=-.32;actor.leftLeg.rotation.x=.18;actor.leftArm.rotation.z=-.5;actor.rightArm.rotation.z=.5;}
+    if (/elastico|sambastep/.test(kind)) {actor.rightLeg.rotation.y=motion.touch*.5;actor.rightLeg.rotation.z=motion.alternating*.3;actor.body.rotation.z=-motion.touch*.16;}
+    if (/feint|stepover/.test(kind)) {actor.body.rotation.z=motion.touch*.15;actor.rightLeg.rotation.set(-.25-motion.touch*.3,motion.touch*.4,motion.alternating*.28);actor.leftArm.rotation.z=-.45;}
+    if (/finesse/.test(kind)) {actor.rightLeg.rotation.set(-.95,-.5,.23);actor.body.rotation.y=.25;actor.leftArm.rotation.z=-.65;actor.rightArm.rotation.x=.5;}
+    if (/bend/.test(kind)) {actor.rightLeg.rotation.set(-.8,-.8,.12);actor.body.rotation.set(-.1,.4,-.16);actor.leftArm.rotation.z=-.85;}
+    if (/rocketshot/.test(kind)) {actor.rightLeg.rotation.x=-1.35;actor.body.rotation.x=.16;actor.leftArm.rotation.x=-.7;actor.rightArm.rotation.x=.75;}
+    if (/anticipation/.test(kind)) {actor.body.rotation.x=-.14;actor.body.position.y=-.12;actor.leftLeg.rotation.x=.13;actor.rightLeg.rotation.x=-.13;actor.head.rotation.y=Math.sin(time*3)*.28;actor.leftArm.rotation.z=-.35;actor.rightArm.rotation.z=.35;}
     if (/tackle|slide/.test(kind)) { actor.body.rotation.x = -.8; actor.body.position.y = -.65; actor.rightLeg.rotation.x = -1.2; }
     if (/dive|save/.test(kind)) { actor.body.rotation.z = /left/.test(kind) ? 1.1 : -1.1; actor.body.position.y = .3; actor.leftArm.rotation.z = -1.7; actor.rightArm.rotation.z = 1.7; }
     if (/celebrat|victory/.test(kind)) { actor.leftArm.rotation.z = -2.4; actor.rightArm.rotation.z = 2.4; actor.body.position.y = Math.max(0, Math.sin(time * 5)) * .55; }
+    if(/^(run|sprint|speedburst|dribble|dribbleglue)$/.test(kind)) {
+      // A rigid leg has no knee: lower its pivot slightly through the arc so
+      // the stance boot stays near the turf instead of lifting the whole body.
+      actor.leftLeg.position.y-=2.85*(1-Math.cos(stride));
+      actor.rightLeg.position.y-=2.85*(1-Math.cos(stride));
+    }
+    if(!reset) {
+      const blend=1-Math.exp(-elapsed*14);
+      parts.forEach((part,i)=>{
+        part.quaternion.slerpQuaternions(gait.previous[i].quaternion,part.quaternion.clone(),blend);
+        part.position.lerpVectors(gait.previous[i].position,part.position.clone(),blend);
+      });
+    }
     // Place the lowest boot on the support plane after limb rotation.
     actor.body.updateMatrix();let bottom=Infinity;
     for(let i=0;i<actor.feet.length;i++){const foot=actor.feet[i],leg=i===0?actor.leftLeg:actor.rightLeg;foot.updateMatrix();leg.updateMatrix();const m=actor.body.matrix.clone().multiply(leg.matrix).multiply(foot.matrix);const box=new THREE.Box3(new THREE.Vector3(-.5,-.5,-.5),new THREE.Vector3(.5,.5,.5)).applyMatrix4(m);bottom=Math.min(bottom,box.min.y);}

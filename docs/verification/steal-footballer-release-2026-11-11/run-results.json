@@ -1,0 +1,12 @@
+{
+  "frames": [
+    0,
+    2,
+    4,
+    6
+  ],
+  "stepSeconds": 0.09,
+  "errors": [],
+  "rendering": "on demand; no game loop",
+  "browserClosed": true
+}

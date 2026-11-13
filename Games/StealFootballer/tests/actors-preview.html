@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Footballer character review</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui,sans-serif; color: #17232b; background: #edece4; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { padding: 20px 28px 8px; }
+    h1 { margin: 0 0 6px; font-size: 24px; }
+    p { margin: 0; }
+    canvas { display: block; width: 100%; height: 68vh; }
+    footer { display: flex; flex-wrap: wrap; justify-content: space-around; padding: 12px 20px; gap: 12px; }
+    label { display: grid; gap: 8px; font-weight: 700; }
+    select,button { min-height: 44px; font: inherit; padding: 8px 12px; }
+    button { color: #fff; background: #17232b; border: 0; cursor: pointer; }
+    :focus-visible { outline: 3px solid #a7412d; outline-offset: 3px; }
+    .note { padding: 0 28px 20px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header><h1>Footballer character review</h1><p>Original procedural silhouettes using the port's existing appearance profiles.</p></header>
+  <canvas aria-label="Three footballer models for visual review"></canvas>
+  <footer id="controls"></footer>
+  <p class="note">Static review fixture. This renders on demand, without a game loop. These are stylized approximations of the named players.</p>
+  <script type="module">
+    import * as THREE from '../vendor/three.module.js';
+    import {ActorFactory} from '../js/actors.js';
+    const response=await fetch('../data/catalog.json');
+    if(!response.ok)throw new Error('Cannot load player profiles');
+    const data=await response.json(),canvas=document.querySelector('canvas');
+    const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+    renderer.setPixelRatio(1);renderer.outputColorSpace=THREE.SRGBColorSpace;
+    const scene=new THREE.Scene();scene.background=new THREE.Color('#edece4');
+    scene.add(new THREE.HemisphereLight('#ffffff','#9d9989',2.5));
+    const sun=new THREE.DirectionalLight('#fff6e3',2.3);sun.position.set(-5,10,-8);scene.add(sun);
+    const camera=new THREE.PerspectiveCamera(35,1,.1,100);camera.position.set(0,4.2,-15);camera.lookAt(0,3.2,0);
+    const factory=new ActorFactory(),actors=[];
+    const requested=new URLSearchParams(location.search).get('players')?.split(',')||['messi','ronaldo','r9'];
+    const poses=['idle','run','dribble','slalom','roulette','elastico','stepover','finesse','bend','anticipation','rocketShot','speedBurst','dive','celebrate'];
+    const requestedPose=new URLSearchParams(location.search).get('pose');
+    let previewPose=poses.includes(requestedPose)?requestedPose:'idle',previewTime=.31;
+    const render=()=>renderer.render(scene,camera);
+    const replace=(index,id)=>{
+      if(actors[index]){scene.remove(actors[index].root);factory.release(actors[index]);}
+      const def=data.players.find(p=>p.id===id)||data.players[index];
+      const actor=factory.create(def);actor.root.position.x=(1-index)*3.5;
+      actor.root.rotation.y=-.12;factory.pose(actor,previewPose,previewTime);scene.add(actor.root);actors[index]=actor;
+      render();
+    };
+    for(let i=0;i<3;i++) {
+      const label=document.createElement('label');label.textContent=`Player ${i+1}`;
+      const select=document.createElement('select');
+      for(const player of data.players){const option=document.createElement('option');option.value=player.id;option.textContent=player.name;select.append(option);}
+      select.value=data.players.some(p=>p.id===requested[i])?requested[i]:data.players[i].id;
+      select.addEventListener('change',()=>replace(i,select.value));label.append(select);document.getElementById('controls').append(label);replace(i,select.value);
+    }
+    const turn=document.createElement('button');turn.textContent='TURN MODELS';
+    turn.addEventListener('click',()=>{actors.forEach(actor=>actor.root.rotation.y+=Math.PI/4);render();});document.getElementById('controls').append(turn);
+    const poseLabel=document.createElement('label');poseLabel.textContent='Movement';
+    const poseSelect=document.createElement('select');
+    for(const pose of poses){const option=document.createElement('option');option.value=pose;option.textContent=pose;poseSelect.append(option);}
+    poseSelect.value=previewPose;poseLabel.append(poseSelect);document.getElementById('controls').append(poseLabel);
+    const showPose=()=>{actors.forEach(actor=>factory.pose(actor,previewPose,previewTime));render();};
+    poseSelect.addEventListener('change',()=>{previewPose=poseSelect.value;previewTime=.31;actors.forEach(actor=>{actor.motion=null;});showPose();});
+    const step=document.createElement('button');step.textContent='STEP POSE';
+    step.addEventListener('click',()=>{previewTime+=.09;showPose();});document.getElementById('controls').append(step);
+    const resize=()=>{renderer.setSize(canvas.clientWidth,canvas.clientHeight,false);camera.aspect=canvas.clientWidth/canvas.clientHeight;camera.updateProjectionMatrix();render();};
+    window.addEventListener('resize',resize);resize();window.previewReady=true;
+    window.addEventListener('pagehide',()=>{actors.forEach(actor=>factory.release(actor));factory.dispose();renderer.dispose();});
+  </script>
+</body>
+</html>

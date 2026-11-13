@@ -6,17 +6,25 @@ is a source-grounded audit and maintenance guide, not a claim that every legacy
 game meets today's standards. Some engines are compiled, some rights are
 unverified, and some native interactions remain held.
 
-The catalog contains **132 registered games**. The latest Git inventory records **139 game projects**
-plus the shared `Games/_emulatorjs` runtime. Lane Run (242), Gap Glide (243) and Courtyard Cast (244) are original Schoolyard Trio prototypes published for hosted testing at the operator's explicit request. Private likeness models and photos are excluded; their native/device checks remain open. Below the Obvious (235), operator-named on 2026-10-21, is the original offline solo rare-answer trivia game with Battle gated for phase 2; see the [branch handover](../dive-trivia-handover.md). Its targeted smoke does not replace the full fleet gate. JANKOLOCK (240) is the operator-authorized original arena translation; its indexed manual and [targeted build receipt](../jankolock-release.md) record native play, software-only portrait rendering and remaining full-fleet/hardware holds. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. The seven unregistered projects are
-2048, Garage Borough, Hextris, Jankolock, QWOP, Slope and StealBasketballer.
-StealBasketballer is an owner-ordered local basketball preview only, not a portal
-registration or publication; its native/browser acceptance and real-name rights
-review remain held. CITISTEN is already
+The catalog contains **133 registered games**. The latest Git inventory records **139 game projects**
+plus the shared `Games/_emulatorjs` runtime. Capital Drive: Canberra (245) is the owner-authorized original inner-south driving preview using real OSM roads, ACT building outlines and sampled terrain, with left-hand traffic, walking pedestrians and procedural street detail; see its [source record](../capital-drive-sources.md). Lane Run (242), Gap Glide (243) and Courtyard Cast (244) are original Schoolyard Trio prototypes published for hosted testing at the operator's explicit request. Private likeness models and photos are excluded; their native/device checks remain open. Below the Obvious (235), operator-named on 2026-10-21, is the original offline solo rare-answer trivia game with Battle gated for phase 2; see the [branch handover](../dive-trivia-handover.md). Its targeted smoke does not replace the full fleet gate. JANKOLOCK (240) is the operator-authorized original arena translation; its indexed manual and [targeted build receipt](../jankolock-release.md) record native play, software-only portrait rendering and remaining full-fleet/hardware holds. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. The six unregistered projects are
+2048, Garage Borough, Hextris, Jankolock, QWOP and Slope. CITISTEN is already
 registered as241 with `Games/Citisten3D/index.html`; its canonical manual retains
 its source and held acceptance limits. This factual catalog reconciliation is
 not new native-gameplay acceptance. Existing Slipstream Borough is catalog225, explicitly labeled a police-chase preview with an unbanked handling sandbox. Existing Foldwild is owner-authorized Story preview226; its M2/inspection/campaign/device/rights holds remain. Both are registrations of existing projects, not new builds. Sparse exclusion is intentional: a missing
 local Games folder does not mean a broken deployment. See [inventory](inventory.json)
 for exact tracked counts, entry hashes, source-tree hashes and manual paths.
+
+Steal a Footballer's 10 November continuation supersedes its October testing
+stop with explicit owner permission for bounded, low-impact playtests. The
+[targeted receipt](../verification/steal-footballer-2026-11-10.md) records model,
+finishing/defense and progression changes: 42 browser checks passed, two
+complete-match browser checks skipped. This does not authorize a release.
+
+The 11 November [follow-up receipt](../verification/steal-footballer-2026-11-11.md)
+records fitted hair, 12 signature skills, persistent rival development and
+dribbling animations, plus the complete Dot model wishlist. The owner explicitly
+requested the localhost test server to remain available for personal testing.
 
 ## Current fleet handover (2026-10-17)
 
@@ -291,6 +299,7 @@ reserved by appearing here.
 | 242 | [Lane Run](games/242-schoolyardlanerun.md) | `Games/SchoolyardLaneRun/index.html` |
 | 243 | [Gap Glide](games/243-schoolyardgapglide.md) | `Games/SchoolyardGapGlide/index.html` |
 | 244 | [Courtyard Cast](games/244-schoolyardcourtyardcast.md) | `Games/SchoolyardCourtyardCast/index.html` |
+| 245 | [Capital Drive: Canberra (Preview)](games/245-capital-drive.md) | `Games/Capital Drive/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
 | Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
 | Unregistered | [Hextris](games/unregistered-hextris.md) | `Games/Hextris/index.html` |

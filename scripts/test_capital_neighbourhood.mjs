@@ -1,0 +1,93 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
+const threeSource = await readFile(new URL('../assets/car-arcade/vendor/three.module.js', import.meta.url), 'utf8');
+const threeURL = moduleURL(threeSource);
+const THREE = await import(threeURL);
+const source = await readFile(new URL('../Games/Capital Drive/neighbourhood.js', import.meta.url), 'utf8');
+const { createNeighbourhoodDetails } = await import(moduleURL(source.replace('../../assets/car-arcade/vendor/three.module.js', threeURL)));
+const house = { id: 'house', type: 'house', height: 4, points: [[-6, 20], [6, 20], [6, 32], [-6, 32], [-6, 20]] };
+const base = { roads: [{ id: '1', name: 'Test Street', type: 'residential', width: 8, points: [[-100, 0], [100, 0]] }], buildings: [house], areas: [], landmarks: [], spawn: { x: 0, z: 0 } };
+const scene = new THREE.Scene();
+const details = createNeighbourhoodDetails(scene, base, () => 0);
+assert.equal(details.stats.frontages, 1, 'a real footprint receives frontage details');
+assert.equal(details.stats.driveways, 1);
+assert.equal(details.stats.doors, 1);
+scene.traverse(object => {
+  if (!object.isMesh) return;
+  for (const attribute of Object.values(object.geometry.attributes)) for (const n of attribute.array) assert.ok(Number.isFinite(n));
+});
+const first = scene.children[0].children[0].children[0].geometry;
+assert.ok(first.attributes.normal.array[1] > 0, 'driveway front face points upwards');
+details.update({ x: 1e6, z: 1e6 });
+assert.ok(scene.children[0].children.every(chunk => !chunk.visible));
+details.update(base.spawn);
+assert.ok(scene.children[0].children.some(chunk => chunk.visible));
+details.dispose(); details.dispose(); assert.equal(scene.children.length, 0);
+const park = { type: 'park', points: [[-20, 5], [20, 5], [20, 18], [-20, 18]] };
+const protectedPark = createNeighbourhoodDetails(scene, { ...base, areas: [park] }, () => 0);
+assert.equal(protectedPark.stats.frontages, 0, 'a mapped park blocks a proposed private driveway'); protectedPark.dispose();
+const obstacle = { id: 'shed', type: 'shed', points: [[-4, 8], [4, 8], [4, 15], [-4, 15]] };
+const blocked = createNeighbourhoodDetails(scene, { ...base, buildings: [house, obstacle] }, () => 0);
+assert.equal(blocked.stats.frontages, 0, 'an existing footprint blocks a proposed driveway'); blocked.dispose();
+const empty = createNeighbourhoodDetails(scene, { roads: [], buildings: [], areas: [] }, () => 0);
+assert.equal(empty.stats.frontages, 0); empty.dispose();
+console.log('PASS neighbourhood finite geometry, upward pavement, real frontage, park/building avoidance, culling and disposal');
+
+const shop = { ...house, id: 'shop', type: 'commercial' };
+const shoppingMap = { ...base, buildings: [shop], landmarks: [{ id: 'manuka', x: 0, z: 20, radius: 50 }] };
+const terrain = (x, z) => x * 0.015 + z * 0.03;
+function apronVertices(scene) {
+  const vertices = [];
+  scene.traverse(mesh => {
+    if (mesh.name !== 'Neighbourhood retail-apron') return;
+    const p = mesh.geometry.attributes.position, n = mesh.geometry.attributes.normal;
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+      assert([x, y, z, n.getX(i), n.getY(i), n.getZ(i)].every(Number.isFinite));
+      assert(n.getY(i) > 0.99, 'paved apron faces upward on sloping terrain');
+      assert(Math.abs(y - terrain(x, z) - 0.14) < 1e-5, 'apron follows the supplied terrain height');
+      vertices.push([x, z]);
+    }
+  });
+  return vertices;
+}
+const retail = createNeighbourhoodDetails(scene, shoppingMap, terrain);
+assert.equal(retail.stats.retailAprons, 1, 'mapped commercial footprint in a shopping centre receives a broad apron');
+assert(retail.stats.pavedArea > 150, 'apron fills the broad setback rather than a narrow driveway');
+let paved = apronVertices(scene);
+assert(paved.some(p => Math.abs(p[1] - 5.45) < 1e-4), 'apron joins the derived sidewalk');
+assert(paved.some(p => p[1] > 19.8), 'apron reaches the facade');
+assert(paved.every(p => Math.abs(p[0]) <= 6.01 && p[1] >= 5.44 && p[1] < 20), 'apron remains within the real street-facing edge');
+retail.dispose();
+const noResidentialPaving = createNeighbourhoodDetails(scene, { ...shoppingMap, buildings: [house] }, terrain);
+assert.equal(noResidentialPaving.stats.retailAprons, 0, 'shopping-centre proximity does not pave residential property');
+noResidentialPaving.dispose();
+const outsideCentre = createNeighbourhoodDetails(scene, { ...shoppingMap, landmarks: [{ id: 'redhill', x: 0, z: 20, radius: 50 }] }, terrain);
+assert.equal(outsideCentre.stats.retailAprons, 0, 'treatment remains limited to the two referenced retail centres');
+outsideCentre.dispose();
+const protectedArea = { type: 'park', points: [[-3, 8], [1, 8], [1, 11], [-3, 11]] };
+const apronBlocker = { id: 'blocker', type: 'shed', points: [[2, 14], [5, 14], [5, 17], [2, 17]] };
+const crossingRoad = { id: '2', name: 'Service access', type: 'service', width: 2, points: [[-20, 12], [20, 12]] };
+const clipped = createNeighbourhoodDetails(scene, { ...shoppingMap, buildings: [shop, apronBlocker], areas: [protectedArea], roads: [...base.roads, crossingRoad] }, terrain);
+assert(clipped.stats.retailAprons > 0, 'clear portions can still be paved around obstacles');
+paved = apronVertices(scene);
+for (const [x, z] of paved) {
+  assert(!(x > -3 && x < 1 && z > 8 && z < 11), 'mapped park stays unpaved');
+  assert(!(x > 2 && x < 5 && z > 14 && z < 17), 'existing building footprint stays unpaved');
+  assert(Math.abs(z - 12) >= 1.34, 'service access road stays clear');
+}
+clipped.dispose();
+console.log('PASS bounded retail aprons: facade-to-sidewalk connection, finite/upward draped surfaces, residential exclusion and road/park/building clipping');
+
+const actualMap = JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra.json', import.meta.url), 'utf8'));
+const actualDetails = createNeighbourhoodDetails(scene, actualMap, terrain);
+assert(actualDetails.stats.retailAprons > 10, 'actual Manuka/Kingston commercial footprints receive paving');
+assert(actualDetails.stats.apronTriangles <= 18000, 'additional paving has a fixed geometry budget');
+const actualPaving = apronVertices(scene);
+for (const id of ['manuka', 'kingston']) {
+  const centre = actualMap.landmarks.find(l => l.id === id);
+  assert(actualPaving.some(p => Math.hypot(p[0] - centre.x, p[1] - centre.z) < 80), `${id} central retail streets receive paving`);
+}
+console.log(`PASS actual map: ${actualDetails.stats.retailAprons} retail footprints, ${actualDetails.stats.apronTriangles} apron triangles, ${Math.round(actualDetails.stats.pavedArea)} square metres`);
+actualDetails.dispose();

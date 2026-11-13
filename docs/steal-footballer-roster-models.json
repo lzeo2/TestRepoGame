@@ -1,0 +1,4279 @@
+{
+  "formatVersion": 1,
+  "source": "Games/StealFootballer/data/catalog.json",
+  "sourceRevision": "30b0c28",
+  "entryCount": 125,
+  "uniqueLikenessCount": 124,
+  "notes": [
+    "Existing appearance and reference metadata are starting hints, not current photo acceptance.",
+    "Variant effects reuse the base head through likenessId.",
+    "New GLB paths are proposed names and are not currently loaded by the game."
+  ],
+  "entries": [
+    {
+      "id": "saka",
+      "name": "Bukayo Saka",
+      "likenessId": "saka",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 7,
+        "kitName": "SAKA",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#1d1916",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 0.99,
+        "heightScale": 0.99,
+        "facialHairColor": "#1d1916",
+        "facialHair": "none",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "cropped",
+        "bootColor": "#246fff",
+        "skinColor": "#845735",
+        "id": "saka"
+      },
+      "kitColors": {
+        "primary": "#cc2133",
+        "secondary": null,
+        "shorts": "#f1f2f4"
+      },
+      "references": {
+        "clubSource": "https://www.arsenal.com/news/team-news-unchanged-team-to-face-west-ham-aicBb9k61ctu"
+      },
+      "proposedHeadPath": "heads/saka/head_lod0.glb"
+    },
+    {
+      "id": "yamal",
+      "name": "Lamine Yamal",
+      "likenessId": "yamal",
+      "variantOf": null,
+      "priority": "P1",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 19,
+        "kitName": "LAMINE YAMAL",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#25201b",
+        "bootAccent": "#ffffff",
+        "buildScale": 0.94,
+        "heightScale": 0.99,
+        "facialHairColor": "#25201b",
+        "facialHair": "none",
+        "gloveColor": "#ffffff",
+        "hairStyle": "curls",
+        "bootColor": "#e957a4",
+        "skinColor": "#ad7852",
+        "id": "yamal"
+      },
+      "kitColors": {
+        "primary": "#821f41",
+        "secondary": null,
+        "shorts": "#162558"
+      },
+      "references": {
+        "clubSource": "https://www.fcbarcelona.com/en/football/equipe-premiere/joueurs"
+      },
+      "proposedHeadPath": "heads/yamal/head_lod0.glb"
+    },
+    {
+      "id": "son",
+      "name": "Son Heung-min",
+      "likenessId": "son",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 7,
+        "kitName": "SON",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#211d1b",
+        "bootAccent": "#1b2814",
+        "buildScale": 0.98,
+        "heightScale": 1,
+        "facialHairColor": "#211d1b",
+        "facialHair": "none",
+        "gloveColor": "#1b2814",
+        "hairStyle": "quiff",
+        "bootColor": "#a8ef42",
+        "skinColor": "#e6b98f",
+        "id": "son"
+      },
+      "kitColors": {
+        "primary": "#e0303d",
+        "secondary": null,
+        "shorts": "#181a22"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/son/head_lod0.glb"
+    },
+    {
+      "id": "neymar",
+      "name": "Neymar Jr",
+      "likenessId": "neymar",
+      "variantOf": null,
+      "priority": "P1",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "NEYMAR JR",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#67422a",
+        "bootAccent": "#2d263c",
+        "buildScale": 0.95,
+        "heightScale": 0.97,
+        "facialHairColor": "#67422a",
+        "facialHair": "stubble",
+        "gloveColor": "#2d263c",
+        "hairStyle": "fade",
+        "bootColor": "#ff8036",
+        "skinColor": "#c48d62",
+        "id": "neymar"
+      },
+      "kitColors": {
+        "primary": "#f6d733",
+        "secondary": null,
+        "shorts": "#1b40a4"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/neymar/head_lod0.glb"
+    },
+    {
+      "id": "debruyne",
+      "name": "Kevin De Bruyne",
+      "likenessId": "debruyne",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 7,
+        "kitName": "DE BRUYNE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#bd843e",
+        "bootAccent": "#162a35",
+        "buildScale": 1,
+        "heightScale": 1,
+        "facialHairColor": "#bd843e",
+        "facialHair": "stubble",
+        "gloveColor": "#162a35",
+        "hairStyle": "quiff",
+        "bootColor": "#39d4de",
+        "skinColor": "#f0cba9",
+        "id": "debruyne"
+      },
+      "kitColors": {
+        "primary": "#b82730",
+        "secondary": null,
+        "shorts": "#18191f"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/debruyne/head_lod0.glb"
+    },
+    {
+      "id": "bellingham",
+      "name": "Jude Bellingham",
+      "likenessId": "bellingham",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "BELLINGHAM",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#24201d",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.01,
+        "heightScale": 1.03,
+        "facialHairColor": "#24201d",
+        "facialHair": "none",
+        "gloveColor": "#1f2937",
+        "hairStyle": "fade",
+        "bootColor": "#eceff4",
+        "skinColor": "#b9855f",
+        "id": "bellingham"
+      },
+      "kitColors": {
+        "primary": "#f2f3f6",
+        "secondary": null,
+        "shorts": "#f2f3f6"
+      },
+      "references": {
+        "clubSource": "https://www.realmadrid.com/en-US/football/first-team/players"
+      },
+      "proposedHeadPath": "heads/bellingham/head_lod0.glb"
+    },
+    {
+      "id": "vinicius",
+      "name": "Vinicius Junior",
+      "likenessId": "vinicius",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 7,
+        "kitName": "VINI JR",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#221d19",
+        "bootAccent": "#ffffff",
+        "buildScale": 0.96,
+        "heightScale": 0.98,
+        "facialHairColor": "#221d19",
+        "facialHair": "none",
+        "gloveColor": "#ffffff",
+        "hairStyle": "fade",
+        "bootColor": "#e957a4",
+        "skinColor": "#835336",
+        "id": "vinicius"
+      },
+      "kitColors": {
+        "primary": "#f2f3f6",
+        "secondary": null,
+        "shorts": "#f2f3f6"
+      },
+      "references": {
+        "clubSource": "https://www.realmadrid.com/en-US/football/first-team/players"
+      },
+      "proposedHeadPath": "heads/vinicius/head_lod0.glb"
+    },
+    {
+      "id": "salah",
+      "name": "Mohamed Salah",
+      "likenessId": "salah",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "M.SALAH",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#31251d",
+        "bootAccent": "#fee2e2",
+        "buildScale": 0.99,
+        "heightScale": 0.96,
+        "facialHairColor": "#31251d",
+        "facialHair": "beard",
+        "gloveColor": "#fee2e2",
+        "hairStyle": "curls",
+        "bootColor": "#ef4148",
+        "skinColor": "#be8c65",
+        "id": "salah"
+      },
+      "kitColors": {
+        "primary": "#d1252c",
+        "secondary": null,
+        "shorts": "#1b1c22"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/salah/head_lod0.glb"
+    },
+    {
+      "id": "mbappe",
+      "name": "Kylian Mbappe",
+      "likenessId": "mbappe",
+      "variantOf": null,
+      "priority": "P1",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "MBAPPE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#211a17",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 1.02,
+        "heightScale": 0.99,
+        "facialHairColor": "#211a17",
+        "facialHair": "none",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "fade",
+        "bootColor": "#246fff",
+        "skinColor": "#a36e4a",
+        "id": "mbappe"
+      },
+      "kitColors": {
+        "primary": "#f2f3f6",
+        "secondary": null,
+        "shorts": "#f2f3f6"
+      },
+      "references": {
+        "clubSource": "https://www.realmadrid.com/en-US/football/first-team/players"
+      },
+      "proposedHeadPath": "heads/mbappe/head_lod0.glb"
+    },
+    {
+      "id": "haaland",
+      "name": "Erling Haaland",
+      "likenessId": "haaland",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 9,
+        "kitName": "HAALAND",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#d9b570",
+        "bootAccent": "#1b2814",
+        "buildScale": 1.055,
+        "heightScale": 1.065,
+        "facialHairColor": "#d9b570",
+        "facialHair": "none",
+        "gloveColor": "#1b2814",
+        "hairStyle": "pony",
+        "bootColor": "#a8ef42",
+        "skinColor": "#f1cfac",
+        "id": "haaland"
+      },
+      "kitColors": {
+        "primary": "#6bb4da",
+        "secondary": null,
+        "shorts": "#eff4f7"
+      },
+      "references": {
+        "clubSource": "https://shop.mancity.com/us/en/manchester-city-home-jersey-2026-27-with-foden-47-printing/701242784FK001803.html"
+      },
+      "proposedHeadPath": "heads/haaland/head_lod0.glb"
+    },
+    {
+      "id": "messi",
+      "name": "Lionel Messi",
+      "likenessId": "messi",
+      "variantOf": null,
+      "priority": "P0",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "MESSI",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#473225",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.98,
+        "heightScale": 0.94,
+        "facialHairColor": "#473225",
+        "facialHair": "beard",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#e8ba90",
+        "id": "messi"
+      },
+      "kitColors": {
+        "primary": "#74c5ef",
+        "secondary": null,
+        "shorts": "#16191f"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/messi/head_lod0.glb"
+    },
+    {
+      "id": "ronaldo",
+      "name": "Cristiano Ronaldo",
+      "likenessId": "ronaldo",
+      "variantOf": null,
+      "priority": "P0",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 7,
+        "kitName": "RONALDO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#2b221c",
+        "bootAccent": "#2d263c",
+        "buildScale": 1.02,
+        "heightScale": 1.025,
+        "facialHairColor": "#2b221c",
+        "facialHair": "none",
+        "gloveColor": "#2d263c",
+        "hairStyle": "quiff",
+        "bootColor": "#ff8036",
+        "skinColor": "#d4a479",
+        "id": "ronaldo"
+      },
+      "kitColors": {
+        "primary": "#bb1f2b",
+        "secondary": null,
+        "shorts": "#247043"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/ronaldo/head_lod0.glb"
+    },
+    {
+      "id": "palmer",
+      "name": "Cole Palmer",
+      "likenessId": "palmer",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 20,
+        "kitName": "PALMER",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#805b3d",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 0.94,
+        "heightScale": 1.035,
+        "facialHairColor": "#805b3d",
+        "facialHair": "none",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "cropped",
+        "bootColor": "#246fff",
+        "skinColor": "#edc7a4",
+        "id": "palmer"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/palmer/head_lod0.glb"
+    },
+    {
+      "id": "pedri",
+      "name": "Pedri",
+      "likenessId": "pedri",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 20,
+        "kitName": "PEDRI",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#3e2d22",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.94,
+        "heightScale": 0.97,
+        "facialHairColor": "#3e2d22",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#d9ac86",
+        "id": "pedri"
+      },
+      "kitColors": {
+        "primary": "#821f41",
+        "secondary": null,
+        "shorts": "#162558"
+      },
+      "references": {
+        "clubSource": "https://www.fcbarcelona.com/en/football/equipe-premiere/joueurs"
+      },
+      "proposedHeadPath": "heads/pedri/head_lod0.glb"
+    },
+    {
+      "id": "foden",
+      "name": "Phil Foden",
+      "likenessId": "foden",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "FODEN",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#382a20",
+        "bootAccent": "#202337",
+        "buildScale": 0.95,
+        "heightScale": 0.96,
+        "facialHairColor": "#382a20",
+        "facialHair": "none",
+        "gloveColor": "#202337",
+        "hairStyle": "fade",
+        "bootColor": "#f9d945",
+        "skinColor": "#eac5a5",
+        "id": "foden"
+      },
+      "kitColors": {
+        "primary": "#6bb4da",
+        "secondary": null,
+        "shorts": "#eff4f7"
+      },
+      "references": {
+        "clubSource": "https://shop.mancity.com/us/en/manchester-city-home-jersey-2026-27-with-foden-47-printing/701242784FK001803.html"
+      },
+      "proposedHeadPath": "heads/foden/head_lod0.glb"
+    },
+    {
+      "id": "kane",
+      "name": "Harry Kane",
+      "likenessId": "kane",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 9,
+        "kitName": "KANE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#906641",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.04,
+        "heightScale": 1.035,
+        "facialHairColor": "#906641",
+        "facialHair": "beard",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#e7be98",
+        "id": "kane"
+      },
+      "kitColors": {
+        "primary": "#c8222c",
+        "secondary": null,
+        "shorts": "#c8222c"
+      },
+      "references": {
+        "clubSource": "https://fcbayern.com/en/teams/first-team"
+      },
+      "proposedHeadPath": "heads/kane/head_lod0.glb"
+    },
+    {
+      "id": "lewandowski",
+      "name": "Robert Lewandowski",
+      "likenessId": "lewandowski",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 9,
+        "kitName": "LEWANDOWSKI",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#392a21",
+        "bootAccent": "#fee2e2",
+        "buildScale": 1.02,
+        "heightScale": 1.025,
+        "facialHairColor": "#392a21",
+        "facialHair": "none",
+        "gloveColor": "#fee2e2",
+        "hairStyle": "quiff",
+        "bootColor": "#ef4148",
+        "skinColor": "#deb18a",
+        "id": "lewandowski"
+      },
+      "kitColors": {
+        "primary": "#f3f4f7",
+        "secondary": null,
+        "shorts": "#bf2330"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/lewandowski/head_lod0.glb"
+    },
+    {
+      "id": "vandijk",
+      "name": "Virgil van Dijk",
+      "likenessId": "vandijk",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 4,
+        "kitName": "VAN DIJK",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#30241e",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 1.07,
+        "heightScale": 1.06,
+        "facialHairColor": "#30241e",
+        "facialHair": "goatee",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "pony",
+        "bootColor": "#246fff",
+        "skinColor": "#b8855e",
+        "id": "vandijk"
+      },
+      "kitColors": {
+        "primary": "#c21f2c",
+        "secondary": null,
+        "shorts": "#c21f2c"
+      },
+      "references": {
+        "clubSource": "https://www.liverpoolfc.com/news/internationals-guide-when-and-where-liverpool-players-are-action"
+      },
+      "proposedHeadPath": "heads/vandijk/head_lod0.glb"
+    },
+    {
+      "id": "alisson",
+      "name": "Alisson Becker",
+      "likenessId": "alisson",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "facialHairColor": "#35261f",
+        "hairColor": "#35261f",
+        "skinColor": "#deaf87",
+        "id": "alisson",
+        "buildScale": 1.055,
+        "bootAccent": "#f1f5fa",
+        "heightScale": 1.045,
+        "kitName": "ALISSON",
+        "headbandColor": "#f2f3f5",
+        "facialHair": "beard",
+        "gloveColor": "#315dce",
+        "hairStyle": "longslick",
+        "bootColor": "#171d26",
+        "preserveFace": true,
+        "goalkeeper": true
+      },
+      "kitColors": {
+        "primary": "#f6d733",
+        "secondary": null,
+        "shorts": "#1b40a4"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/alisson/head_lod0.glb"
+    },
+    {
+      "id": "courtois",
+      "name": "Thibaut Courtois",
+      "likenessId": "courtois",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "COURTOIS",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#3e2d23",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.03,
+        "heightScale": 1.08,
+        "facialHairColor": "#3e2d23",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "cropped",
+        "bootColor": "#eceff4",
+        "skinColor": "#e9c49f",
+        "id": "courtois"
+      },
+      "kitColors": {
+        "primary": "#b82730",
+        "secondary": null,
+        "shorts": "#18191f"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/courtois/head_lod0.glb"
+    },
+    {
+      "id": "ederson",
+      "name": "Ederson",
+      "likenessId": "ederson",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 23,
+        "kitName": "EDERSON",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#30251f",
+        "bootAccent": "#2d263c",
+        "buildScale": 1.015,
+        "heightScale": 1.03,
+        "facialHairColor": "#30251f",
+        "facialHair": "stubble",
+        "gloveColor": "#2d263c",
+        "hairStyle": "fade",
+        "bootColor": "#ff8036",
+        "skinColor": "#c99871",
+        "id": "ederson"
+      },
+      "kitColors": {
+        "primary": "#f6d733",
+        "secondary": null,
+        "shorts": "#1b40a4"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/ederson/head_lod0.glb"
+    },
+    {
+      "id": "donnarumma",
+      "name": "Gianluigi Donnarumma",
+      "likenessId": "donnarumma",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "DONNARUMMA",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#33271f",
+        "bootAccent": "#202337",
+        "buildScale": 1.055,
+        "heightScale": 1.075,
+        "facialHairColor": "#33271f",
+        "facialHair": "beard",
+        "gloveColor": "#202337",
+        "hairStyle": "cropped",
+        "bootColor": "#f9d945",
+        "skinColor": "#d7ab85",
+        "id": "donnarumma"
+      },
+      "kitColors": {
+        "primary": "#732b4a",
+        "secondary": null,
+        "shorts": "#2d2230"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/donnarumma/head_lod0.glb"
+    },
+    {
+      "id": "rodri",
+      "name": "Rodri",
+      "likenessId": "rodri",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 16,
+        "kitName": "RODRI",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#3a2b22",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 1.03,
+        "heightScale": 1.04,
+        "facialHairColor": "#3a2b22",
+        "facialHair": "stubble",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "cropped",
+        "bootColor": "#171d26",
+        "skinColor": "#dcb18b",
+        "id": "rodri"
+      },
+      "kitColors": {
+        "primary": "#821f41",
+        "secondary": null,
+        "shorts": "#162558"
+      },
+      "references": {
+        "clubSource": "https://www.fcbarcelona.com/en/football/equipe-premiere/joueurs"
+      },
+      "proposedHeadPath": "heads/rodri/head_lod0.glb"
+    },
+    {
+      "id": "musiala",
+      "name": "Jamal Musiala",
+      "likenessId": "musiala",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "MUSIALA",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#29211d",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 0.93,
+        "heightScale": 1.015,
+        "facialHairColor": "#29211d",
+        "facialHair": "none",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "curls",
+        "bootColor": "#246fff",
+        "skinColor": "#b5845f",
+        "id": "musiala"
+      },
+      "kitColors": {
+        "primary": "#c8222c",
+        "secondary": null,
+        "shorts": "#c8222c"
+      },
+      "references": {
+        "clubSource": "https://fcbayern.com/en/teams/first-team"
+      },
+      "proposedHeadPath": "heads/musiala/head_lod0.glb"
+    },
+    {
+      "id": "valverde",
+      "name": "Federico Valverde",
+      "likenessId": "valverde",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 15,
+        "kitName": "VALVERDE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#5b3d2c",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.995,
+        "heightScale": 1.025,
+        "facialHairColor": "#5b3d2c",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#dfb28b",
+        "id": "valverde"
+      },
+      "kitColors": {
+        "primary": "#f2f3f6",
+        "secondary": null,
+        "shorts": "#f2f3f6"
+      },
+      "references": {
+        "clubSource": "https://www.realmadrid.com/en-US/football/first-team/players"
+      },
+      "proposedHeadPath": "heads/valverde/head_lod0.glb"
+    },
+    {
+      "id": "saliba",
+      "name": "William Saliba",
+      "likenessId": "saliba",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 17,
+        "kitName": "SALIBA",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#251e19",
+        "bootAccent": "#fee2e2",
+        "buildScale": 1.055,
+        "heightScale": 1.06,
+        "facialHairColor": "#251e19",
+        "facialHair": "stubble",
+        "gloveColor": "#fee2e2",
+        "hairStyle": "fade",
+        "bootColor": "#ef4148",
+        "skinColor": "#a67450",
+        "id": "saliba"
+      },
+      "kitColors": {
+        "primary": "#cc2133",
+        "secondary": null,
+        "shorts": "#f1f2f4"
+      },
+      "references": {
+        "clubSource": "https://www.arsenal.com/news/team-news-unchanged-team-to-face-west-ham-aicBb9k61ctu"
+      },
+      "proposedHeadPath": "heads/saliba/head_lod0.glb"
+    },
+    {
+      "id": "r9",
+      "name": "Ronaldo Nazário (R9)",
+      "likenessId": "r9",
+      "variantOf": null,
+      "priority": "P0",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 9,
+        "kitName": "RONALDO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#241b16",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 1.08,
+        "heightScale": 1.005,
+        "facialHairColor": "#241b16",
+        "facialHair": "none",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "r9fringe",
+        "bootColor": "#171d26",
+        "skinColor": "#bc875b",
+        "id": "r9"
+      },
+      "kitColors": {
+        "primary": "#f7da32",
+        "secondary": null,
+        "shorts": "#1b41a2"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/r9/head_lod0.glb"
+    },
+    {
+      "id": "maradona",
+      "name": "Diego Maradona",
+      "likenessId": "maradona",
+      "variantOf": null,
+      "priority": "P1",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "MARADONA",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#211b17",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 1.06,
+        "heightScale": 0.94,
+        "facialHairColor": "#211b17",
+        "facialHair": "none",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "curls",
+        "bootColor": "#171d26",
+        "skinColor": "#cda078",
+        "id": "maradona"
+      },
+      "kitColors": {
+        "primary": "#74c5ef",
+        "secondary": null,
+        "shorts": "#16191f"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/maradona/head_lod0.glb"
+    },
+    {
+      "id": "henry",
+      "name": "Thierry Henry",
+      "likenessId": "henry",
+      "variantOf": null,
+      "priority": "P0",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 12,
+        "kitName": "HENRY",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#211a16",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 0.96,
+        "heightScale": 1.045,
+        "facialHairColor": "#211a16",
+        "facialHair": "goatee",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "bald",
+        "bootColor": "#171d26",
+        "skinColor": "#91603e",
+        "id": "henry"
+      },
+      "kitColors": {
+        "primary": "#213876",
+        "secondary": null,
+        "shorts": "#ebeff4"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/henry/head_lod0.glb"
+    },
+    {
+      "id": "maldini",
+      "name": "Paolo Maldini",
+      "likenessId": "maldini",
+      "variantOf": null,
+      "priority": "P0",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 3,
+        "kitName": "MALDINI",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#372820",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 1.02,
+        "heightScale": 1.035,
+        "facialHairColor": "#372820",
+        "facialHair": "none",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "longslick",
+        "bootColor": "#171d26",
+        "skinColor": "#dcb38c",
+        "id": "maldini"
+      },
+      "kitColors": {
+        "primary": "#265bb6",
+        "secondary": null,
+        "shorts": "#eef1f5"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/maldini/head_lod0.glb"
+    },
+    {
+      "id": "zidane",
+      "name": "Zinedine Zidane",
+      "likenessId": "zidane",
+      "variantOf": null,
+      "priority": "P1",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "ZIDANE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#453027",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.035,
+        "heightScale": 1.03,
+        "facialHairColor": "#453027",
+        "facialHair": "none",
+        "gloveColor": "#1f2937",
+        "hairStyle": "bald",
+        "bootColor": "#eceff4",
+        "skinColor": "#d1a67e",
+        "id": "zidane"
+      },
+      "kitColors": {
+        "primary": "#213876",
+        "secondary": null,
+        "shorts": "#ebeff4"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/zidane/head_lod0.glb"
+    },
+    {
+      "id": "ronaldinho",
+      "name": "Ronaldinho",
+      "likenessId": "ronaldinho",
+      "variantOf": null,
+      "priority": "P0",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "RONALDINHO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#2a211b",
+        "bootAccent": "#2d263c",
+        "buildScale": 0.98,
+        "heightScale": 0.99,
+        "facialHairColor": "#2a211b",
+        "facialHair": "none",
+        "gloveColor": "#2d263c",
+        "hairStyle": "pony",
+        "bootColor": "#ff8036",
+        "skinColor": "#a16d46",
+        "id": "ronaldinho"
+      },
+      "kitColors": {
+        "primary": "#f7da32",
+        "secondary": null,
+        "shorts": "#1b41a2"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/ronaldinho/head_lod0.glb"
+    },
+    {
+      "id": "beckham",
+      "name": "David Beckham",
+      "likenessId": "beckham",
+      "variantOf": null,
+      "priority": "P1",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 7,
+        "kitName": "BECKHAM",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#92704a",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.97,
+        "heightScale": 1.015,
+        "facialHairColor": "#92704a",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#e1b895",
+        "id": "beckham"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/beckham/head_lod0.glb"
+    },
+    {
+      "id": "stones",
+      "name": "John Stones",
+      "likenessId": "stones",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 4,
+        "kitName": "STONES",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#795536",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.99,
+        "heightScale": 1.04,
+        "facialHairColor": "#795536",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#e9be98",
+        "id": "stones"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/stones/head_lod0.glb"
+    },
+    {
+      "id": "walker",
+      "name": "Kyle Walker",
+      "likenessId": "walker",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 2,
+        "kitName": "WALKER",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#33261d",
+        "bootAccent": "#1b2814",
+        "buildScale": 1.05,
+        "heightScale": 0.985,
+        "facialHairColor": "#33261d",
+        "facialHair": "beard",
+        "gloveColor": "#1b2814",
+        "hairStyle": "fade",
+        "bootColor": "#a8ef42",
+        "skinColor": "#b78661",
+        "id": "walker"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/walker/head_lod0.glb"
+    },
+    {
+      "id": "alexanderarnold",
+      "name": "Trent Alexander-Arnold",
+      "likenessId": "alexanderarnold",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 2,
+        "kitName": "ALEXANDER-ARNOLD",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#29221d",
+        "bootAccent": "#ffffff",
+        "buildScale": 0.97,
+        "heightScale": 1,
+        "facialHairColor": "#29221d",
+        "facialHair": "stubble",
+        "gloveColor": "#ffffff",
+        "hairStyle": "braids",
+        "bootColor": "#e957a4",
+        "skinColor": "#b5835c",
+        "id": "alexanderarnold"
+      },
+      "kitColors": {
+        "primary": "#f2f3f6",
+        "secondary": null,
+        "shorts": "#f2f3f6"
+      },
+      "references": {
+        "clubSource": "https://www.realmadrid.com/en-US/football/first-team/players"
+      },
+      "proposedHeadPath": "heads/alexanderarnold/head_lod0.glb"
+    },
+    {
+      "id": "maguire",
+      "name": "Harry Maguire",
+      "likenessId": "maguire",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 4,
+        "kitName": "MAGUIRE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#483425",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 1.08,
+        "heightScale": 1.06,
+        "facialHairColor": "#483425",
+        "facialHair": "none",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "cropped",
+        "bootColor": "#171d26",
+        "skinColor": "#e4b991",
+        "id": "maguire"
+      },
+      "kitColors": {
+        "primary": "#c82431",
+        "secondary": null,
+        "shorts": "#f1f2f5"
+      },
+      "references": {
+        "clubSource": "https://www.manutd.com/en/teams/mens-team"
+      },
+      "proposedHeadPath": "heads/maguire/head_lod0.glb"
+    },
+    {
+      "id": "shaw",
+      "name": "Luke Shaw",
+      "likenessId": "shaw",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 3,
+        "kitName": "SHAW",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#72533d",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.065,
+        "heightScale": 0.995,
+        "facialHairColor": "#72533d",
+        "facialHair": "beard",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#e5bc99",
+        "id": "shaw"
+      },
+      "kitColors": {
+        "primary": "#c82431",
+        "secondary": null,
+        "shorts": "#f1f2f5"
+      },
+      "references": {
+        "clubSource": "https://www.manutd.com/en/teams/mens-team"
+      },
+      "proposedHeadPath": "heads/shaw/head_lod0.glb"
+    },
+    {
+      "id": "trippier",
+      "name": "Kieran Trippier",
+      "likenessId": "trippier",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 2,
+        "kitName": "TRIPPIER",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#5a3d28",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 1.02,
+        "heightScale": 0.96,
+        "facialHairColor": "#5a3d28",
+        "facialHair": "stubble",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "fade",
+        "bootColor": "#246fff",
+        "skinColor": "#dbac87",
+        "id": "trippier"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/trippier/head_lod0.glb"
+    },
+    {
+      "id": "reecejames",
+      "name": "Reece James",
+      "likenessId": "reecejames",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 2,
+        "kitName": "JAMES",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#31271e",
+        "bootAccent": "#ffffff",
+        "buildScale": 1.08,
+        "heightScale": 1,
+        "facialHairColor": "#31271e",
+        "facialHair": "beard",
+        "gloveColor": "#ffffff",
+        "hairStyle": "fade",
+        "bootColor": "#e957a4",
+        "skinColor": "#af7d54",
+        "id": "reecejames"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/reecejames/head_lod0.glb"
+    },
+    {
+      "id": "rubendias",
+      "name": "Ruben Dias",
+      "likenessId": "rubendias",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 4,
+        "kitName": "RUBEN",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#382920",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.07,
+        "heightScale": 1.045,
+        "facialHairColor": "#382920",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#d4a780",
+        "id": "rubendias"
+      },
+      "kitColors": {
+        "primary": "#6bb4da",
+        "secondary": null,
+        "shorts": "#eff4f7"
+      },
+      "references": {
+        "clubSource": "https://shop.mancity.com/us/en/manchester-city-home-jersey-2026-27-with-foden-47-printing/701242784FK001803.html"
+      },
+      "proposedHeadPath": "heads/rubendias/head_lod0.glb"
+    },
+    {
+      "id": "cancelo",
+      "name": "Joao Cancelo",
+      "likenessId": "cancelo",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 2,
+        "kitName": "CANCELO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#33271f",
+        "bootAccent": "#202337",
+        "buildScale": 0.97,
+        "heightScale": 1,
+        "facialHairColor": "#33271f",
+        "facialHair": "stubble",
+        "gloveColor": "#202337",
+        "hairStyle": "fade",
+        "bootColor": "#f9d945",
+        "skinColor": "#ddb08b",
+        "id": "cancelo"
+      },
+      "kitColors": {
+        "primary": "#821f41",
+        "secondary": null,
+        "shorts": "#162558"
+      },
+      "references": {
+        "clubSource": "https://www.fcbarcelona.com/en/football/equipe-premiere/joueurs"
+      },
+      "proposedHeadPath": "heads/cancelo/head_lod0.glb"
+    },
+    {
+      "id": "nunomendes",
+      "name": "Nuno Mendes",
+      "likenessId": "nunomendes",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 3,
+        "kitName": "N.MENDES",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#251e19",
+        "bootAccent": "#1b2814",
+        "buildScale": 0.98,
+        "heightScale": 0.975,
+        "facialHairColor": "#251e19",
+        "facialHair": "none",
+        "gloveColor": "#1b2814",
+        "hairStyle": "braids",
+        "bootColor": "#a8ef42",
+        "skinColor": "#845736",
+        "id": "nunomendes"
+      },
+      "kitColors": {
+        "primary": "#162449",
+        "secondary": null,
+        "shorts": "#162449"
+      },
+      "references": {
+        "clubSource": "https://www.psg.fr/football-masculin/effectif"
+      },
+      "proposedHeadPath": "heads/nunomendes/head_lod0.glb"
+    },
+    {
+      "id": "pepe",
+      "name": "Pepe",
+      "likenessId": "pepe",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 4,
+        "kitName": "PEPE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#2e221b",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 1.05,
+        "heightScale": 1.035,
+        "facialHairColor": "#2e221b",
+        "facialHair": "none",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "bald",
+        "bootColor": "#171d26",
+        "skinColor": "#c69770",
+        "id": "pepe"
+      },
+      "kitColors": {
+        "primary": "#bb1f2b",
+        "secondary": null,
+        "shorts": "#247043"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/pepe/head_lod0.glb"
+    },
+    {
+      "id": "rudiger",
+      "name": "Antonio Rudiger",
+      "likenessId": "rudiger",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 4,
+        "kitName": "RUDIGER",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#211b17",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 1.075,
+        "heightScale": 1.045,
+        "facialHairColor": "#211b17",
+        "facialHair": "beard",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "cropped",
+        "bootColor": "#171d26",
+        "skinColor": "#8e613f",
+        "id": "rudiger"
+      },
+      "kitColors": {
+        "primary": "#f2f3f6",
+        "secondary": null,
+        "shorts": "#f2f3f6"
+      },
+      "references": {
+        "clubSource": "https://www.realmadrid.com/en-US/football/first-team/players"
+      },
+      "proposedHeadPath": "heads/rudiger/head_lod0.glb"
+    },
+    {
+      "id": "schlotterbeck",
+      "name": "Nico Schlotterbeck",
+      "likenessId": "schlotterbeck",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 4,
+        "kitName": "SCHLOTTERBECK",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#a78b5b",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 1.005,
+        "heightScale": 1.055,
+        "facialHairColor": "#a78b5b",
+        "facialHair": "none",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "quiff",
+        "bootColor": "#246fff",
+        "skinColor": "#e8c6a4",
+        "id": "schlotterbeck"
+      },
+      "kitColors": {
+        "primary": "#eef1f5",
+        "secondary": null,
+        "shorts": "#191d23"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/schlotterbeck/head_lod0.glb"
+    },
+    {
+      "id": "tah",
+      "name": "Jonathan Tah",
+      "likenessId": "tah",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 4,
+        "kitName": "TAH",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#25201b",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.08,
+        "heightScale": 1.07,
+        "facialHairColor": "#25201b",
+        "facialHair": "beard",
+        "gloveColor": "#1f2937",
+        "hairStyle": "cropped",
+        "bootColor": "#eceff4",
+        "skinColor": "#a17452",
+        "id": "tah"
+      },
+      "kitColors": {
+        "primary": "#c8222c",
+        "secondary": null,
+        "shorts": "#c8222c"
+      },
+      "references": {
+        "clubSource": "https://fcbayern.com/en/teams/first-team"
+      },
+      "proposedHeadPath": "heads/tah/head_lod0.glb"
+    },
+    {
+      "id": "bastoni",
+      "name": "Alessandro Bastoni",
+      "likenessId": "bastoni",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 4,
+        "kitName": "BASTONI",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#493327",
+        "bootAccent": "#2d263c",
+        "buildScale": 1.015,
+        "heightScale": 1.055,
+        "facialHairColor": "#493327",
+        "facialHair": "stubble",
+        "gloveColor": "#2d263c",
+        "hairStyle": "quiff",
+        "bootColor": "#ff8036",
+        "skinColor": "#e5bd98",
+        "id": "bastoni"
+      },
+      "kitColors": {
+        "primary": "#265bb6",
+        "secondary": null,
+        "shorts": "#eef1f5"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/bastoni/head_lod0.glb"
+    },
+    {
+      "id": "dilorenzo",
+      "name": "Giovanni Di Lorenzo",
+      "likenessId": "dilorenzo",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 2,
+        "kitName": "DI LORENZO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#413023",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 1,
+        "heightScale": 1,
+        "facialHairColor": "#413023",
+        "facialHair": "stubble",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "cropped",
+        "bootColor": "#246fff",
+        "skinColor": "#d8a981",
+        "id": "dilorenzo"
+      },
+      "kitColors": {
+        "primary": "#265bb6",
+        "secondary": null,
+        "shorts": "#eef1f5"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/dilorenzo/head_lod0.glb"
+    },
+    {
+      "id": "kounde",
+      "name": "Jules Kounde",
+      "likenessId": "kounde",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 2,
+        "kitName": "KOUNDE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#2b231e",
+        "bootAccent": "#f7e8ff",
+        "buildScale": 0.98,
+        "heightScale": 0.985,
+        "facialHairColor": "#2b231e",
+        "facialHair": "goatee",
+        "gloveColor": "#f7e8ff",
+        "hairStyle": "braids",
+        "bootColor": "#8d58da",
+        "skinColor": "#9e6d49",
+        "id": "kounde"
+      },
+      "kitColors": {
+        "primary": "#821f41",
+        "secondary": null,
+        "shorts": "#162558"
+      },
+      "references": {
+        "clubSource": "https://www.fcbarcelona.com/en/football/equipe-premiere/joueurs"
+      },
+      "proposedHeadPath": "heads/kounde/head_lod0.glb"
+    },
+    {
+      "id": "theohernandez",
+      "name": "Theo Hernandez",
+      "likenessId": "theohernandez",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 3,
+        "kitName": "THEO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#483125",
+        "bootAccent": "#2d263c",
+        "buildScale": 1.05,
+        "heightScale": 1.025,
+        "facialHairColor": "#483125",
+        "facialHair": "beard",
+        "gloveColor": "#2d263c",
+        "hairStyle": "fade",
+        "bootColor": "#ff8036",
+        "skinColor": "#d5a780",
+        "id": "theohernandez"
+      },
+      "kitColors": {
+        "primary": "#213876",
+        "secondary": null,
+        "shorts": "#ebeff4"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/theohernandez/head_lod0.glb"
+    },
+    {
+      "id": "upamecano",
+      "name": "Dayot Upamecano",
+      "likenessId": "upamecano",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 4,
+        "kitName": "UPAMECANO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#241c17",
+        "bootAccent": "#fee2e2",
+        "buildScale": 1.075,
+        "heightScale": 1.03,
+        "facialHairColor": "#241c17",
+        "facialHair": "goatee",
+        "gloveColor": "#fee2e2",
+        "hairStyle": "cropped",
+        "bootColor": "#ef4148",
+        "skinColor": "#885b3d",
+        "id": "upamecano"
+      },
+      "kitColors": {
+        "primary": "#c8222c",
+        "secondary": null,
+        "shorts": "#c8222c"
+      },
+      "references": {
+        "clubSource": "https://fcbayern.com/en/teams/first-team"
+      },
+      "proposedHeadPath": "heads/upamecano/head_lod0.glb"
+    },
+    {
+      "id": "marquinhos",
+      "name": "Marquinhos",
+      "likenessId": "marquinhos",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 4,
+        "kitName": "MARQUINHOS",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#34271e",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.98,
+        "heightScale": 1.01,
+        "facialHairColor": "#34271e",
+        "facialHair": "goatee",
+        "gloveColor": "#1f2937",
+        "hairStyle": "curls",
+        "bootColor": "#eceff4",
+        "skinColor": "#be8b64",
+        "id": "marquinhos"
+      },
+      "kitColors": {
+        "primary": "#162449",
+        "secondary": null,
+        "shorts": "#162449"
+      },
+      "references": {
+        "clubSource": "https://www.psg.fr/football-masculin/effectif"
+      },
+      "proposedHeadPath": "heads/marquinhos/head_lod0.glb"
+    },
+    {
+      "id": "rice",
+      "name": "Declan Rice",
+      "likenessId": "rice",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 6,
+        "kitName": "RICE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#6c4c34",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 1.03,
+        "heightScale": 1.04,
+        "facialHairColor": "#6c4c34",
+        "facialHair": "stubble",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "quiff",
+        "bootColor": "#171d26",
+        "skinColor": "#e5c29f",
+        "id": "rice"
+      },
+      "kitColors": {
+        "primary": "#cc2133",
+        "secondary": null,
+        "shorts": "#f1f2f4"
+      },
+      "references": {
+        "clubSource": "https://www.arsenal.com/news/team-news-unchanged-team-to-face-west-ham-aicBb9k61ctu"
+      },
+      "proposedHeadPath": "heads/rice/head_lod0.glb"
+    },
+    {
+      "id": "mainoo",
+      "name": "Kobbie Mainoo",
+      "likenessId": "mainoo",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 8,
+        "kitName": "MAINOO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#211c18",
+        "bootAccent": "#1b2814",
+        "buildScale": 1,
+        "heightScale": 0.995,
+        "facialHairColor": "#211c18",
+        "facialHair": "none",
+        "gloveColor": "#1b2814",
+        "hairStyle": "locs",
+        "bootColor": "#a8ef42",
+        "skinColor": "#90603f",
+        "id": "mainoo"
+      },
+      "kitColors": {
+        "primary": "#c82431",
+        "secondary": null,
+        "shorts": "#f1f2f5"
+      },
+      "references": {
+        "clubSource": "https://www.manutd.com/en/teams/mens-team"
+      },
+      "proposedHeadPath": "heads/mainoo/head_lod0.glb"
+    },
+    {
+      "id": "eze",
+      "name": "Eberechi Eze",
+      "likenessId": "eze",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "EZE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#281f19",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.99,
+        "heightScale": 0.975,
+        "facialHairColor": "#281f19",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "locs",
+        "bootColor": "#eceff4",
+        "skinColor": "#875937",
+        "id": "eze"
+      },
+      "kitColors": {
+        "primary": "#cc2133",
+        "secondary": null,
+        "shorts": "#f1f2f4"
+      },
+      "references": {
+        "clubSource": "https://www.arsenal.com/news/team-news-unchanged-team-to-face-west-ham-aicBb9k61ctu"
+      },
+      "proposedHeadPath": "heads/eze/head_lod0.glb"
+    },
+    {
+      "id": "maddison",
+      "name": "James Maddison",
+      "likenessId": "maddison",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "MADDISON",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#825b39",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 0.97,
+        "heightScale": 0.975,
+        "facialHairColor": "#825b39",
+        "facialHair": "stubble",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "quiff",
+        "bootColor": "#246fff",
+        "skinColor": "#e1b18d",
+        "id": "maddison"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/maddison/head_lod0.glb"
+    },
+    {
+      "id": "gallagher",
+      "name": "Conor Gallagher",
+      "likenessId": "gallagher",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 8,
+        "kitName": "GALLAGHER",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#c9aa70",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.99,
+        "heightScale": 1.015,
+        "facialHairColor": "#c9aa70",
+        "facialHair": "none",
+        "gloveColor": "#1f2937",
+        "hairStyle": "longslick",
+        "bootColor": "#eceff4",
+        "skinColor": "#e8c7a1",
+        "id": "gallagher"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/gallagher/head_lod0.glb"
+    },
+    {
+      "id": "brunofernandes",
+      "name": "Bruno Fernandes",
+      "likenessId": "brunofernandes",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "B.FERNANDES",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#3b2d22",
+        "bootAccent": "#ffffff",
+        "buildScale": 0.95,
+        "heightScale": 0.99,
+        "facialHairColor": "#3b2d22",
+        "facialHair": "beard",
+        "gloveColor": "#ffffff",
+        "hairStyle": "quiff",
+        "bootColor": "#e957a4",
+        "skinColor": "#d8ad85",
+        "id": "brunofernandes"
+      },
+      "kitColors": {
+        "primary": "#c82431",
+        "secondary": null,
+        "shorts": "#f1f2f5"
+      },
+      "references": {
+        "clubSource": "https://www.manutd.com/en/teams/mens-team"
+      },
+      "proposedHeadPath": "heads/brunofernandes/head_lod0.glb"
+    },
+    {
+      "id": "bernardosilva",
+      "name": "Bernardo Silva",
+      "likenessId": "bernardosilva",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "BERNARDO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#463127",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 0.94,
+        "heightScale": 0.955,
+        "facialHairColor": "#463127",
+        "facialHair": "beard",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "cropped",
+        "bootColor": "#246fff",
+        "skinColor": "#e0b28c",
+        "id": "bernardosilva"
+      },
+      "kitColors": {
+        "primary": "#f2f3f6",
+        "secondary": null,
+        "shorts": "#f2f3f6"
+      },
+      "references": {
+        "clubSource": "https://www.realmadrid.com/en-US/football/first-team/players"
+      },
+      "proposedHeadPath": "heads/bernardosilva/head_lod0.glb"
+    },
+    {
+      "id": "vitinha",
+      "name": "Vitinha",
+      "likenessId": "vitinha",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 8,
+        "kitName": "VITINHA",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#392b22",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.94,
+        "heightScale": 0.955,
+        "facialHairColor": "#392b22",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#d6ac83",
+        "id": "vitinha"
+      },
+      "kitColors": {
+        "primary": "#162449",
+        "secondary": null,
+        "shorts": "#162449"
+      },
+      "references": {
+        "clubSource": "https://www.psg.fr/football-masculin/effectif"
+      },
+      "proposedHeadPath": "heads/vitinha/head_lod0.glb"
+    },
+    {
+      "id": "joaoneves",
+      "name": "Joao Neves",
+      "likenessId": "joaoneves",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 8,
+        "kitName": "J.NEVES",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#573b28",
+        "bootAccent": "#2d263c",
+        "buildScale": 0.95,
+        "heightScale": 0.965,
+        "facialHairColor": "#573b28",
+        "facialHair": "none",
+        "gloveColor": "#2d263c",
+        "hairStyle": "curls",
+        "bootColor": "#ff8036",
+        "skinColor": "#ddb693",
+        "id": "joaoneves"
+      },
+      "kitColors": {
+        "primary": "#162449",
+        "secondary": null,
+        "shorts": "#162449"
+      },
+      "references": {
+        "clubSource": "https://www.psg.fr/football-masculin/effectif"
+      },
+      "proposedHeadPath": "heads/joaoneves/head_lod0.glb"
+    },
+    {
+      "id": "kimmich",
+      "name": "Joshua Kimmich",
+      "likenessId": "kimmich",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 6,
+        "kitName": "KIMMICH",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#9d764b",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 0.96,
+        "heightScale": 0.98,
+        "facialHairColor": "#9d764b",
+        "facialHair": "none",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "quiff",
+        "bootColor": "#171d26",
+        "skinColor": "#ebc9a7",
+        "id": "kimmich"
+      },
+      "kitColors": {
+        "primary": "#c8222c",
+        "secondary": null,
+        "shorts": "#c8222c"
+      },
+      "references": {
+        "clubSource": "https://fcbayern.com/en/teams/first-team"
+      },
+      "proposedHeadPath": "heads/kimmich/head_lod0.glb"
+    },
+    {
+      "id": "wirtz",
+      "name": "Florian Wirtz",
+      "likenessId": "wirtz",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "kitName": "WIRTZ",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#805b3f",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 0.94,
+        "heightScale": 0.985,
+        "facialHairColor": "#805b3f",
+        "facialHair": "none",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "quiff",
+        "bootColor": "#246fff",
+        "skinColor": "#e9c39f",
+        "id": "wirtz"
+      },
+      "kitColors": {
+        "primary": "#c21f2c",
+        "secondary": null,
+        "shorts": "#c21f2c"
+      },
+      "references": {
+        "clubSource": "https://www.liverpoolfc.com/news/internationals-guide-when-and-where-liverpool-players-are-action"
+      },
+      "proposedHeadPath": "heads/wirtz/head_lod0.glb"
+    },
+    {
+      "id": "goretzka",
+      "name": "Leon Goretzka",
+      "likenessId": "goretzka",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 8,
+        "kitName": "GORETZKA",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#69503a",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.08,
+        "heightScale": 1.045,
+        "facialHairColor": "#69503a",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#dfb28e",
+        "id": "goretzka"
+      },
+      "kitColors": {
+        "primary": "#eef1f5",
+        "secondary": null,
+        "shorts": "#191d23"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/goretzka/head_lod0.glb"
+    },
+    {
+      "id": "dejong",
+      "name": "Frenkie de Jong",
+      "likenessId": "dejong",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 8,
+        "kitName": "F.DE JONG",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#c3a069",
+        "bootAccent": "#ffffff",
+        "buildScale": 0.96,
+        "heightScale": 1.015,
+        "facialHairColor": "#c3a069",
+        "facialHair": "none",
+        "gloveColor": "#ffffff",
+        "hairStyle": "longslick",
+        "bootColor": "#e957a4",
+        "skinColor": "#eed0ab",
+        "id": "dejong"
+      },
+      "kitColors": {
+        "primary": "#821f41",
+        "secondary": null,
+        "shorts": "#162558"
+      },
+      "references": {
+        "clubSource": "https://www.fcbarcelona.com/en/football/equipe-premiere/joueurs"
+      },
+      "proposedHeadPath": "heads/dejong/head_lod0.glb"
+    },
+    {
+      "id": "gravenberch",
+      "name": "Ryan Gravenberch",
+      "likenessId": "gravenberch",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 6,
+        "kitName": "GRAVENBERCH",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#2c241c",
+        "bootAccent": "#1b2814",
+        "buildScale": 1.01,
+        "heightScale": 1.05,
+        "facialHairColor": "#2c241c",
+        "facialHair": "none",
+        "gloveColor": "#1b2814",
+        "hairStyle": "fade",
+        "bootColor": "#a8ef42",
+        "skinColor": "#9f704f",
+        "id": "gravenberch"
+      },
+      "kitColors": {
+        "primary": "#c21f2c",
+        "secondary": null,
+        "shorts": "#c21f2c"
+      },
+      "references": {
+        "clubSource": "https://www.liverpoolfc.com/news/internationals-guide-when-and-where-liverpool-players-are-action"
+      },
+      "proposedHeadPath": "heads/gravenberch/head_lod0.glb"
+    },
+    {
+      "id": "barella",
+      "name": "Nicolo Barella",
+      "likenessId": "barella",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 8,
+        "kitName": "BARELLA",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#513b2b",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 0.99,
+        "heightScale": 0.96,
+        "facialHairColor": "#513b2b",
+        "facialHair": "none",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "quiff",
+        "bootColor": "#171d26",
+        "skinColor": "#ddb38c",
+        "id": "barella"
+      },
+      "kitColors": {
+        "primary": "#265bb6",
+        "secondary": null,
+        "shorts": "#eef1f5"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/barella/head_lod0.glb"
+    },
+    {
+      "id": "tonali",
+      "name": "Sandro Tonali",
+      "likenessId": "tonali",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 6,
+        "kitName": "TONALI",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#3b2c23",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.01,
+        "heightScale": 1,
+        "facialHairColor": "#3b2c23",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "longslick",
+        "bootColor": "#eceff4",
+        "skinColor": "#d7ae8a",
+        "id": "tonali"
+      },
+      "kitColors": {
+        "primary": "#265bb6",
+        "secondary": null,
+        "shorts": "#eef1f5"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/tonali/head_lod0.glb"
+    },
+    {
+      "id": "enzofernandez",
+      "name": "Enzo Fernandez",
+      "likenessId": "enzofernandez",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 8,
+        "kitName": "ENZO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#5d3e2a",
+        "bootAccent": "#202337",
+        "buildScale": 1.015,
+        "heightScale": 0.99,
+        "facialHairColor": "#5d3e2a",
+        "facialHair": "none",
+        "gloveColor": "#202337",
+        "hairStyle": "fade",
+        "bootColor": "#f9d945",
+        "skinColor": "#d8ad84",
+        "id": "enzofernandez"
+      },
+      "kitColors": {
+        "primary": "#6bb4da",
+        "secondary": null,
+        "shorts": "#eff4f7"
+      },
+      "references": {
+        "clubSource": "https://shop.mancity.com/us/en/manchester-city-home-jersey-2026-27-with-foden-47-printing/701242784FK001803.html"
+      },
+      "proposedHeadPath": "heads/enzofernandez/head_lod0.glb"
+    },
+    {
+      "id": "macallister",
+      "name": "Alexis Mac Allister",
+      "likenessId": "macallister",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 8,
+        "kitName": "MAC ALLISTER",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#a27043",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 1,
+        "heightScale": 0.97,
+        "facialHairColor": "#a27043",
+        "facialHair": "beard",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "quiff",
+        "bootColor": "#246fff",
+        "skinColor": "#e4ba98",
+        "id": "macallister"
+      },
+      "kitColors": {
+        "primary": "#c21f2c",
+        "secondary": null,
+        "shorts": "#c21f2c"
+      },
+      "references": {
+        "clubSource": "https://www.liverpoolfc.com/news/internationals-guide-when-and-where-liverpool-players-are-action"
+      },
+      "proposedHeadPath": "heads/macallister/head_lod0.glb"
+    },
+    {
+      "id": "gavi",
+      "name": "Gavi",
+      "likenessId": "gavi",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 8,
+        "kitName": "GAVI",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#4b3527",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.95,
+        "heightScale": 0.965,
+        "facialHairColor": "#4b3527",
+        "facialHair": "none",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#deb28c",
+        "id": "gavi"
+      },
+      "kitColors": {
+        "primary": "#821f41",
+        "secondary": null,
+        "shorts": "#162558"
+      },
+      "references": {
+        "clubSource": "https://www.fcbarcelona.com/en/football/equipe-premiere/joueurs"
+      },
+      "proposedHeadPath": "heads/gavi/head_lod0.glb"
+    },
+    {
+      "id": "fabianruiz",
+      "name": "Fabian Ruiz",
+      "likenessId": "fabianruiz",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 8,
+        "kitName": "FABIAN",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#4b3527",
+        "bootAccent": "#fee2e2",
+        "buildScale": 0.975,
+        "heightScale": 1.04,
+        "facialHairColor": "#4b3527",
+        "facialHair": "beard",
+        "gloveColor": "#fee2e2",
+        "hairStyle": "cropped",
+        "bootColor": "#ef4148",
+        "skinColor": "#d7ac84",
+        "id": "fabianruiz"
+      },
+      "kitColors": {
+        "primary": "#162449",
+        "secondary": null,
+        "shorts": "#162449"
+      },
+      "references": {
+        "clubSource": "https://www.psg.fr/football-masculin/effectif"
+      },
+      "proposedHeadPath": "heads/fabianruiz/head_lod0.glb"
+    },
+    {
+      "id": "rashford",
+      "name": "Marcus Rashford",
+      "likenessId": "rashford",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "RASHFORD",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#2d241d",
+        "bootAccent": "#1b2814",
+        "buildScale": 0.96,
+        "heightScale": 1.025,
+        "facialHairColor": "#2d241d",
+        "facialHair": "none",
+        "gloveColor": "#1b2814",
+        "hairStyle": "fade",
+        "bootColor": "#a8ef42",
+        "skinColor": "#986b48",
+        "id": "rashford"
+      },
+      "kitColors": {
+        "primary": "#c82431",
+        "secondary": null,
+        "shorts": "#f1f2f5"
+      },
+      "references": {
+        "clubSource": "https://www.manutd.com/en/teams/mens-team"
+      },
+      "proposedHeadPath": "heads/rashford/head_lod0.glb"
+    },
+    {
+      "id": "watkins",
+      "name": "Ollie Watkins",
+      "likenessId": "watkins",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 9,
+        "kitName": "WATKINS",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#35281f",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.015,
+        "heightScale": 1.01,
+        "facialHairColor": "#35281f",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "curls",
+        "bootColor": "#eceff4",
+        "skinColor": "#bb8b64",
+        "id": "watkins"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/watkins/head_lod0.glb"
+    },
+    {
+      "id": "bowen",
+      "name": "Jarrod Bowen",
+      "likenessId": "bowen",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "BOWEN",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#886644",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 1.025,
+        "heightScale": 0.975,
+        "facialHairColor": "#886644",
+        "facialHair": "stubble",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "quiff",
+        "bootColor": "#246fff",
+        "skinColor": "#e2b68f",
+        "id": "bowen"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/bowen/head_lod0.glb"
+    },
+    {
+      "id": "grealish",
+      "name": "Jack Grealish",
+      "likenessId": "grealish",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "GREALISH",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#795135",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.02,
+        "heightScale": 0.985,
+        "facialHairColor": "#795135",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "longslick",
+        "bootColor": "#eceff4",
+        "skinColor": "#d7ac84",
+        "id": "grealish"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/grealish/head_lod0.glb"
+    },
+    {
+      "id": "sancho",
+      "name": "Jadon Sancho",
+      "likenessId": "sancho",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "SANCHO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#29221d",
+        "bootAccent": "#2d263c",
+        "buildScale": 1,
+        "heightScale": 0.985,
+        "facialHairColor": "#29221d",
+        "facialHair": "stubble",
+        "gloveColor": "#2d263c",
+        "hairStyle": "braids",
+        "bootColor": "#ff8036",
+        "skinColor": "#a67550",
+        "id": "sancho"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/sancho/head_lod0.glb"
+    },
+    {
+      "id": "dembele",
+      "name": "Ousmane Dembele",
+      "likenessId": "dembele",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "DEMBELE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#29201a",
+        "bootAccent": "#ffffff",
+        "buildScale": 0.94,
+        "heightScale": 0.99,
+        "facialHairColor": "#29201a",
+        "facialHair": "none",
+        "gloveColor": "#ffffff",
+        "hairStyle": "cropped",
+        "bootColor": "#e957a4",
+        "skinColor": "#956442",
+        "id": "dembele"
+      },
+      "kitColors": {
+        "primary": "#162449",
+        "secondary": null,
+        "shorts": "#162449"
+      },
+      "references": {
+        "clubSource": "https://www.psg.fr/football-masculin/effectif"
+      },
+      "proposedHeadPath": "heads/dembele/head_lod0.glb"
+    },
+    {
+      "id": "barcola",
+      "name": "Bradley Barcola",
+      "likenessId": "barcola",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "BARCOLA",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#393023",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 0.92,
+        "heightScale": 1.03,
+        "facialHairColor": "#393023",
+        "facialHair": "none",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "braids",
+        "bootColor": "#246fff",
+        "skinColor": "#b7855d",
+        "id": "barcola"
+      },
+      "kitColors": {
+        "primary": "#c21f2c",
+        "secondary": null,
+        "shorts": "#c21f2c"
+      },
+      "references": {
+        "clubSource": "https://www.liverpoolfc.com/news/internationals-guide-when-and-where-liverpool-players-are-action"
+      },
+      "proposedHeadPath": "heads/barcola/head_lod0.glb"
+    },
+    {
+      "id": "coman",
+      "name": "Kingsley Coman",
+      "likenessId": "coman",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "COMAN",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#2b211a",
+        "bootAccent": "#202337",
+        "buildScale": 0.95,
+        "heightScale": 0.985,
+        "facialHairColor": "#2b211a",
+        "facialHair": "none",
+        "gloveColor": "#202337",
+        "hairStyle": "braids",
+        "bootColor": "#f9d945",
+        "skinColor": "#98683f",
+        "id": "coman"
+      },
+      "kitColors": {
+        "primary": "#213876",
+        "secondary": null,
+        "shorts": "#ebeff4"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/coman/head_lod0.glb"
+    },
+    {
+      "id": "thuram",
+      "name": "Marcus Thuram",
+      "likenessId": "thuram",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 9,
+        "kitName": "THURAM",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#231b16",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.06,
+        "heightScale": 1.06,
+        "facialHairColor": "#231b16",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "cropped",
+        "bootColor": "#eceff4",
+        "skinColor": "#966646",
+        "id": "thuram"
+      },
+      "kitColors": {
+        "primary": "#213876",
+        "secondary": null,
+        "shorts": "#ebeff4"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/thuram/head_lod0.glb"
+    },
+    {
+      "id": "raphinha",
+      "name": "Raphinha",
+      "likenessId": "raphinha",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "RAPHINHA",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#463326",
+        "bootAccent": "#1b2814",
+        "buildScale": 0.97,
+        "heightScale": 0.975,
+        "facialHairColor": "#463326",
+        "facialHair": "goatee",
+        "gloveColor": "#1b2814",
+        "hairStyle": "fade",
+        "bootColor": "#a8ef42",
+        "skinColor": "#bc8d66",
+        "id": "raphinha"
+      },
+      "kitColors": {
+        "primary": "#821f41",
+        "secondary": null,
+        "shorts": "#162558"
+      },
+      "references": {
+        "clubSource": "https://www.fcbarcelona.com/en/football/equipe-premiere/joueurs"
+      },
+      "proposedHeadPath": "heads/raphinha/head_lod0.glb"
+    },
+    {
+      "id": "rodrygo",
+      "name": "Rodrygo",
+      "likenessId": "rodrygo",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "RODRYGO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#2b211b",
+        "bootAccent": "#2d263c",
+        "buildScale": 0.95,
+        "heightScale": 0.97,
+        "facialHairColor": "#2b211b",
+        "facialHair": "none",
+        "gloveColor": "#2d263c",
+        "hairStyle": "fade",
+        "bootColor": "#ff8036",
+        "skinColor": "#ae7a55",
+        "id": "rodrygo"
+      },
+      "kitColors": {
+        "primary": "#f2f3f6",
+        "secondary": null,
+        "shorts": "#f2f3f6"
+      },
+      "references": {
+        "clubSource": "https://www.realmadrid.com/en-US/football/first-team/players"
+      },
+      "proposedHeadPath": "heads/rodrygo/head_lod0.glb"
+    },
+    {
+      "id": "richarlison",
+      "name": "Richarlison",
+      "likenessId": "richarlison",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 9,
+        "kitName": "RICHARLISON",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#cdbba0",
+        "bootAccent": "#fee2e2",
+        "buildScale": 1.035,
+        "heightScale": 1.015,
+        "facialHairColor": "#cdbba0",
+        "facialHair": "none",
+        "gloveColor": "#fee2e2",
+        "hairStyle": "cropped",
+        "bootColor": "#ef4148",
+        "skinColor": "#c89b73",
+        "id": "richarlison"
+      },
+      "kitColors": {
+        "primary": "#f7da32",
+        "secondary": null,
+        "shorts": "#1b41a2"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/richarlison/head_lod0.glb"
+    },
+    {
+      "id": "martinelli",
+      "name": "Gabriel Martinelli",
+      "likenessId": "martinelli",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "MARTINELLI",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#443124",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.965,
+        "heightScale": 0.995,
+        "facialHairColor": "#443124",
+        "facialHair": "none",
+        "gloveColor": "#1f2937",
+        "hairStyle": "cropped",
+        "bootColor": "#eceff4",
+        "skinColor": "#d3a67d",
+        "id": "martinelli"
+      },
+      "kitColors": {
+        "primary": "#cc2133",
+        "secondary": null,
+        "shorts": "#f1f2f4"
+      },
+      "references": {
+        "clubSource": "https://www.arsenal.com/news/team-news-unchanged-team-to-face-west-ham-aicBb9k61ctu"
+      },
+      "proposedHeadPath": "heads/martinelli/head_lod0.glb"
+    },
+    {
+      "id": "julianalvarez",
+      "name": "Julian Alvarez",
+      "likenessId": "julianalvarez",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 9,
+        "kitName": "J.ALVAREZ",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#362a20",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 0.985,
+        "heightScale": 0.96,
+        "facialHairColor": "#362a20",
+        "facialHair": "none",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "quiff",
+        "bootColor": "#246fff",
+        "skinColor": "#d5aa80",
+        "id": "julianalvarez"
+      },
+      "kitColors": {
+        "primary": "#74c5ef",
+        "secondary": null,
+        "shorts": "#16191f"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/julianalvarez/head_lod0.glb"
+    },
+    {
+      "id": "lautaromartinez",
+      "name": "Lautaro Martinez",
+      "likenessId": "lautaromartinez",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 9,
+        "kitName": "LAUTARO",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#3b2b20",
+        "bootAccent": "#ffffff",
+        "buildScale": 1.03,
+        "heightScale": 0.965,
+        "facialHairColor": "#3b2b20",
+        "facialHair": "stubble",
+        "gloveColor": "#ffffff",
+        "hairStyle": "fade",
+        "bootColor": "#e957a4",
+        "skinColor": "#c8976c",
+        "id": "lautaromartinez"
+      },
+      "kitColors": {
+        "primary": "#74c5ef",
+        "secondary": null,
+        "shorts": "#16191f"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/lautaromartinez/head_lod0.glb"
+    },
+    {
+      "id": "dybala",
+      "name": "Paulo Dybala",
+      "likenessId": "dybala",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "DYBALA",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#433025",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 0.95,
+        "heightScale": 0.975,
+        "facialHairColor": "#433025",
+        "facialHair": "none",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "quiff",
+        "bootColor": "#171d26",
+        "skinColor": "#dbaf88",
+        "id": "dybala"
+      },
+      "kitColors": {
+        "primary": "#74c5ef",
+        "secondary": null,
+        "shorts": "#16191f"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/dybala/head_lod0.glb"
+    },
+    {
+      "id": "sane",
+      "name": "Leroy Sane",
+      "likenessId": "sane",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "SANE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#2b221c",
+        "bootAccent": "#f7e8ff",
+        "buildScale": 0.975,
+        "heightScale": 1.025,
+        "facialHairColor": "#2b221c",
+        "facialHair": "goatee",
+        "gloveColor": "#f7e8ff",
+        "hairStyle": "afro",
+        "bootColor": "#8d58da",
+        "skinColor": "#ac7a54",
+        "id": "sane"
+      },
+      "kitColors": {
+        "primary": "#eef1f5",
+        "secondary": null,
+        "shorts": "#191d23"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/sane/head_lod0.glb"
+    },
+    {
+      "id": "havertz",
+      "name": "Kai Havertz",
+      "likenessId": "havertz",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "HAVERTZ",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#55412e",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.95,
+        "heightScale": 1.055,
+        "facialHairColor": "#55412e",
+        "facialHair": "none",
+        "gloveColor": "#1f2937",
+        "hairStyle": "curls",
+        "bootColor": "#eceff4",
+        "skinColor": "#e4bc98",
+        "id": "havertz"
+      },
+      "kitColors": {
+        "primary": "#cc2133",
+        "secondary": null,
+        "shorts": "#f1f2f4"
+      },
+      "references": {
+        "clubSource": "https://www.arsenal.com/news/team-news-unchanged-team-to-face-west-ham-aicBb9k61ctu"
+      },
+      "proposedHeadPath": "heads/havertz/head_lod0.glb"
+    },
+    {
+      "id": "goncaloramos",
+      "name": "Goncalo Ramos",
+      "likenessId": "goncaloramos",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 9,
+        "kitName": "G.RAMOS",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#3e2d21",
+        "bootAccent": "#2d263c",
+        "buildScale": 1.015,
+        "heightScale": 1.015,
+        "facialHairColor": "#3e2d21",
+        "facialHair": "beard",
+        "gloveColor": "#2d263c",
+        "hairStyle": "quiff",
+        "bootColor": "#ff8036",
+        "skinColor": "#d4a87f",
+        "id": "goncaloramos"
+      },
+      "kitColors": {
+        "primary": "#bb1f2b",
+        "secondary": null,
+        "shorts": "#247043"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/goncaloramos/head_lod0.glb"
+    },
+    {
+      "id": "joaofelix",
+      "name": "Joao Felix",
+      "likenessId": "joaofelix",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 11,
+        "kitName": "JOAO FELIX",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#503d2c",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 0.93,
+        "heightScale": 1.01,
+        "facialHairColor": "#503d2c",
+        "facialHair": "none",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "curls",
+        "bootColor": "#246fff",
+        "skinColor": "#deb593",
+        "id": "joaofelix"
+      },
+      "kitColors": {
+        "primary": "#bb1f2b",
+        "secondary": null,
+        "shorts": "#247043"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/joaofelix/head_lod0.glb"
+    },
+    {
+      "id": "neuer",
+      "name": "Manuel Neuer",
+      "likenessId": "neuer",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "NEUER",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#956f49",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 1.06,
+        "heightScale": 1.07,
+        "facialHairColor": "#956f49",
+        "facialHair": "stubble",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "cropped",
+        "bootColor": "#171d26",
+        "skinColor": "#ebc9aa",
+        "id": "neuer"
+      },
+      "kitColors": {
+        "primary": "#eef1f5",
+        "secondary": null,
+        "shorts": "#191d23"
+      },
+      "references": {
+        "clubSource": "https://fcbayern.com/en/teams/first-team"
+      },
+      "proposedHeadPath": "heads/neuer/head_lod0.glb"
+    },
+    {
+      "id": "terstegen",
+      "name": "Marc-Andre ter Stegen",
+      "likenessId": "terstegen",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "TER STEGEN",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#ab8556",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 1.025,
+        "heightScale": 1.035,
+        "facialHairColor": "#ab8556",
+        "facialHair": "none",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "quiff",
+        "bootColor": "#246fff",
+        "skinColor": "#e8c6a2",
+        "id": "terstegen"
+      },
+      "kitColors": {
+        "primary": "#eef1f5",
+        "secondary": null,
+        "shorts": "#191d23"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/terstegen/head_lod0.glb"
+    },
+    {
+      "id": "maignan",
+      "name": "Mike Maignan",
+      "likenessId": "maignan",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "MAIGNAN",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#241d18",
+        "bootAccent": "#fee2e2",
+        "buildScale": 1.05,
+        "heightScale": 1.04,
+        "facialHairColor": "#241d18",
+        "facialHair": "goatee",
+        "gloveColor": "#fee2e2",
+        "hairStyle": "cropped",
+        "bootColor": "#ef4148",
+        "skinColor": "#8c5e3d",
+        "id": "maignan"
+      },
+      "kitColors": {
+        "primary": "#213876",
+        "secondary": null,
+        "shorts": "#ebeff4"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/maignan/head_lod0.glb"
+    },
+    {
+      "id": "emilianomartinez",
+      "name": "Emiliano Martinez",
+      "likenessId": "emilianomartinez",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "MARTINEZ",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#3d2c20",
+        "bootAccent": "#1b2814",
+        "buildScale": 1.06,
+        "heightScale": 1.07,
+        "facialHairColor": "#3d2c20",
+        "facialHair": "stubble",
+        "gloveColor": "#1b2814",
+        "hairStyle": "fade",
+        "bootColor": "#a8ef42",
+        "skinColor": "#d5a57d",
+        "id": "emilianomartinez"
+      },
+      "kitColors": {
+        "primary": "#74c5ef",
+        "secondary": null,
+        "shorts": "#16191f"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/emilianomartinez/head_lod0.glb"
+    },
+    {
+      "id": "pickford",
+      "name": "Jordan Pickford",
+      "likenessId": "pickford",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "PICKFORD",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#ac8252",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.015,
+        "heightScale": 1.005,
+        "facialHairColor": "#ac8252",
+        "facialHair": "none",
+        "gloveColor": "#1f2937",
+        "hairStyle": "longslick",
+        "bootColor": "#eceff4",
+        "skinColor": "#e6bd99",
+        "id": "pickford"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/pickford/head_lod0.glb"
+    },
+    {
+      "id": "pope",
+      "name": "Nick Pope",
+      "likenessId": "pope",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "POPE",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#74563d",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 1.045,
+        "heightScale": 1.08,
+        "facialHairColor": "#74563d",
+        "facialHair": "stubble",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "cropped",
+        "bootColor": "#171d26",
+        "skinColor": "#e7c4a0",
+        "id": "pope"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/pope/head_lod0.glb"
+    },
+    {
+      "id": "diogocosta",
+      "name": "Diogo Costa",
+      "likenessId": "diogocosta",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "D.COSTA",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#39291f",
+        "bootAccent": "#202337",
+        "buildScale": 1.01,
+        "heightScale": 1.035,
+        "facialHairColor": "#39291f",
+        "facialHair": "stubble",
+        "gloveColor": "#202337",
+        "hairStyle": "fade",
+        "bootColor": "#f9d945",
+        "skinColor": "#cca077",
+        "id": "diogocosta"
+      },
+      "kitColors": {
+        "primary": "#bb1f2b",
+        "secondary": null,
+        "shorts": "#247043"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/diogocosta/head_lod0.glb"
+    },
+    {
+      "id": "unaisimon",
+      "name": "Unai Simon",
+      "likenessId": "unaisimon",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "UNAI SIMON",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#483326",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.025,
+        "heightScale": 1.055,
+        "facialHairColor": "#483326",
+        "facialHair": "beard",
+        "gloveColor": "#1f2937",
+        "hairStyle": "cropped",
+        "bootColor": "#eceff4",
+        "skinColor": "#d3a77e",
+        "id": "unaisimon"
+      },
+      "kitColors": {
+        "primary": "#cc262b",
+        "secondary": null,
+        "shorts": "#192b4d"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/unaisimon/head_lod0.glb"
+    },
+    {
+      "id": "raya",
+      "name": "David Raya",
+      "likenessId": "raya",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "RAYA",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#392a21",
+        "bootAccent": "#2d263c",
+        "buildScale": 1,
+        "heightScale": 0.995,
+        "facialHairColor": "#392a21",
+        "facialHair": "stubble",
+        "gloveColor": "#2d263c",
+        "hairStyle": "fade",
+        "bootColor": "#ff8036",
+        "skinColor": "#d4a881",
+        "id": "raya"
+      },
+      "kitColors": {
+        "primary": "#cc262b",
+        "secondary": null,
+        "shorts": "#192b4d"
+      },
+      "references": {
+        "clubSource": "https://www.arsenal.com/news/team-news-unchanged-team-to-face-west-ham-aicBb9k61ctu"
+      },
+      "proposedHeadPath": "heads/raya/head_lod0.glb"
+    },
+    {
+      "id": "ramsdale",
+      "name": "Aaron Ramsdale",
+      "likenessId": "ramsdale",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "RAMSDALE",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#986f46",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 1.02,
+        "heightScale": 1.035,
+        "facialHairColor": "#986f46",
+        "facialHair": "stubble",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "quiff",
+        "bootColor": "#246fff",
+        "skinColor": "#ebc5a2",
+        "id": "ramsdale"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/ramsdale/head_lod0.glb"
+    },
+    {
+      "id": "deanhenderson",
+      "name": "Dean Henderson",
+      "likenessId": "deanhenderson",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "HENDERSON",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#835f3e",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.025,
+        "heightScale": 1.035,
+        "facialHairColor": "#835f3e",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#e3ba94",
+        "id": "deanhenderson"
+      },
+      "kitColors": {
+        "primary": "#eef1f8",
+        "secondary": null,
+        "shorts": "#182444"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/deanhenderson/head_lod0.glb"
+    },
+    {
+      "id": "leno",
+      "name": "Bernd Leno",
+      "likenessId": "leno",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "LENO",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#96724b",
+        "bootAccent": "#fee2e2",
+        "buildScale": 1.015,
+        "heightScale": 1.04,
+        "facialHairColor": "#96724b",
+        "facialHair": "stubble",
+        "gloveColor": "#fee2e2",
+        "hairStyle": "quiff",
+        "bootColor": "#ef4148",
+        "skinColor": "#e7c39e",
+        "id": "leno"
+      },
+      "kitColors": {
+        "primary": "#eef1f5",
+        "secondary": null,
+        "shorts": "#191d23"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/leno/head_lod0.glb"
+    },
+    {
+      "id": "kepa",
+      "name": "Kepa Arrizabalaga",
+      "likenessId": "kepa",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "KEPA",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#493427",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 0.99,
+        "heightScale": 1.02,
+        "facialHairColor": "#493427",
+        "facialHair": "none",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "quiff",
+        "bootColor": "#171d26",
+        "skinColor": "#deaf87",
+        "id": "kepa"
+      },
+      "kitColors": {
+        "primary": "#cc262b",
+        "secondary": null,
+        "shorts": "#192b4d"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/kepa/head_lod0.glb"
+    },
+    {
+      "id": "robertsanchez",
+      "name": "Robert Sanchez",
+      "likenessId": "robertsanchez",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "SANCHEZ",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#38291f",
+        "bootAccent": "#1b2814",
+        "buildScale": 1.06,
+        "heightScale": 1.075,
+        "facialHairColor": "#38291f",
+        "facialHair": "goatee",
+        "gloveColor": "#1b2814",
+        "hairStyle": "fade",
+        "bootColor": "#a8ef42",
+        "skinColor": "#a87350",
+        "id": "robertsanchez"
+      },
+      "kitColors": {
+        "primary": "#cc262b",
+        "secondary": null,
+        "shorts": "#192b4d"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/robertsanchez/head_lod0.glb"
+    },
+    {
+      "id": "lloris",
+      "name": "Hugo Lloris",
+      "likenessId": "lloris",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "LLORIS",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#443026",
+        "bootAccent": "#1f2937",
+        "buildScale": 0.995,
+        "heightScale": 1.03,
+        "facialHairColor": "#443026",
+        "facialHair": "stubble",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#ddb18a",
+        "id": "lloris"
+      },
+      "kitColors": {
+        "primary": "#213876",
+        "secondary": null,
+        "shorts": "#ebeff4"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/lloris/head_lod0.glb"
+    },
+    {
+      "id": "areola",
+      "name": "Alphonse Areola",
+      "likenessId": "areola",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "AREOLA",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#38281e",
+        "bootAccent": "#ffffff",
+        "buildScale": 1.035,
+        "heightScale": 1.065,
+        "facialHairColor": "#38281e",
+        "facialHair": "stubble",
+        "gloveColor": "#ffffff",
+        "hairStyle": "fade",
+        "bootColor": "#e957a4",
+        "skinColor": "#ba8a61",
+        "id": "areola"
+      },
+      "kitColors": {
+        "primary": "#213876",
+        "secondary": null,
+        "shorts": "#ebeff4"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/areola/head_lod0.glb"
+    },
+    {
+      "id": "trapp",
+      "name": "Kevin Trapp",
+      "likenessId": "trapp",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "TRAPP",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#6b4e35",
+        "bootAccent": "#f1f5fa",
+        "buildScale": 1.035,
+        "heightScale": 1.04,
+        "facialHairColor": "#6b4e35",
+        "facialHair": "stubble",
+        "gloveColor": "#f1f5fa",
+        "hairStyle": "quiff",
+        "bootColor": "#171d26",
+        "skinColor": "#e2b997",
+        "id": "trapp"
+      },
+      "kitColors": {
+        "primary": "#eef1f5",
+        "secondary": null,
+        "shorts": "#191d23"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/trapp/head_lod0.glb"
+    },
+    {
+      "id": "bento",
+      "name": "Bento",
+      "likenessId": "bento",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "BENTO",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#443027",
+        "bootAccent": "#202337",
+        "buildScale": 1.025,
+        "heightScale": 1.055,
+        "facialHairColor": "#443027",
+        "facialHair": "stubble",
+        "gloveColor": "#202337",
+        "hairStyle": "quiff",
+        "bootColor": "#f9d945",
+        "skinColor": "#d6ab83",
+        "id": "bento"
+      },
+      "kitColors": {
+        "primary": "#f7da32",
+        "secondary": null,
+        "shorts": "#1b41a2"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/bento/head_lod0.glb"
+    },
+    {
+      "id": "ruipatricio",
+      "name": "Rui Patricio",
+      "likenessId": "ruipatricio",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "R.PATRICIO",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#403025",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 1.045,
+        "heightScale": 1.04,
+        "facialHairColor": "#403025",
+        "facialHair": "beard",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "cropped",
+        "bootColor": "#246fff",
+        "skinColor": "#d0a17b",
+        "id": "ruipatricio"
+      },
+      "kitColors": {
+        "primary": "#bb1f2b",
+        "secondary": null,
+        "shorts": "#247043"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/ruipatricio/head_lod0.glb"
+    },
+    {
+      "id": "ortega",
+      "name": "Stefan Ortega",
+      "likenessId": "ortega",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "kitName": "ORTEGA",
+        "preserveFace": true,
+        "goalkeeper": true,
+        "hairColor": "#463329",
+        "bootAccent": "#1f2937",
+        "buildScale": 1.03,
+        "heightScale": 1.035,
+        "facialHairColor": "#463329",
+        "facialHair": "beard",
+        "gloveColor": "#1f2937",
+        "hairStyle": "quiff",
+        "bootColor": "#eceff4",
+        "skinColor": "#d9ad86",
+        "id": "ortega"
+      },
+      "kitColors": {
+        "primary": "#eef1f5",
+        "secondary": null,
+        "shorts": "#191d23"
+      },
+      "references": {},
+      "proposedHeadPath": "heads/ortega/head_lod0.glb"
+    },
+    {
+      "id": "doue",
+      "name": "Désiré Doué",
+      "likenessId": "doue",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 14,
+        "facialHairColor": "#38261c",
+        "hairColor": "#38261c",
+        "hairAccentColor": "#c3b080",
+        "id": "doue",
+        "buildScale": 0.99,
+        "bootAccent": "#f7e8ff",
+        "heightScale": 1.01,
+        "kitName": "DOUE",
+        "preserveFace": true,
+        "facialHair": "none",
+        "gloveColor": "#f7e8ff",
+        "hairStyle": "curls",
+        "bootColor": "#8d58da",
+        "skinColor": "#b8855f",
+        "goalkeeper": false
+      },
+      "kitColors": {
+        "primary": "#162449",
+        "secondary": null,
+        "shorts": "#162449"
+      },
+      "references": {
+        "clubSource": "https://www.psg.fr/football-masculin/effectif"
+      },
+      "proposedHeadPath": "heads/doue/head_lod0.glb"
+    },
+    {
+      "id": "kvaratskhelia",
+      "name": "Khvicha Kvaratskhelia",
+      "likenessId": "kvaratskhelia",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 7,
+        "kitName": "KVARATSKHELIA",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#3f2b20",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 0.975,
+        "heightScale": 1.02,
+        "facialHairColor": "#3f2b20",
+        "facialHair": "beard",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "quiff",
+        "bootColor": "#246fff",
+        "skinColor": "#d8ad85",
+        "id": "kvaratskhelia"
+      },
+      "kitColors": {
+        "primary": "#162449",
+        "secondary": null,
+        "shorts": "#162449"
+      },
+      "references": {
+        "clubSource": "https://www.psg.fr/football-masculin/effectif"
+      },
+      "proposedHeadPath": "heads/kvaratskhelia/head_lod0.glb"
+    },
+    {
+      "id": "yamal_superstar",
+      "name": "Lamine Yamal (Superstar)",
+      "likenessId": "yamal",
+      "variantOf": "yamal",
+      "priority": "P1",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 19,
+        "kitName": "LAMINE YAMAL",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#25201b",
+        "bootAccent": "#ffffff",
+        "buildScale": 0.94,
+        "heightScale": 0.99,
+        "facialHairColor": "#25201b",
+        "facialHair": "none",
+        "gloveColor": "#ffffff",
+        "hairStyle": "curls",
+        "bootColor": "#e957a4",
+        "skinColor": "#ad7852",
+        "id": "yamal_superstar"
+      },
+      "kitColors": {
+        "primary": "#821f41",
+        "secondary": null,
+        "shorts": "#162558"
+      },
+      "references": {
+        "clubSource": "https://www.fcbarcelona.com/en/football/equipe-premiere/joueurs"
+      },
+      "proposedHeadPath": "heads/yamal/head_lod0.glb"
+    },
+    {
+      "id": "olise",
+      "name": "Michael Olise",
+      "likenessId": "olise",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 17,
+        "kitName": "OLISE",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#1f1914",
+        "bootAccent": "#202337",
+        "buildScale": 0.96,
+        "heightScale": 1.01,
+        "facialHairColor": "#1f1914",
+        "facialHair": "goatee",
+        "gloveColor": "#202337",
+        "hairStyle": "locs",
+        "bootColor": "#f9d945",
+        "skinColor": "#946545",
+        "id": "olise"
+      },
+      "kitColors": {
+        "primary": "#c8222c",
+        "secondary": null,
+        "shorts": "#c8222c"
+      },
+      "references": {
+        "clubSource": "https://fcbayern.com/en/teams/first-team"
+      },
+      "proposedHeadPath": "heads/olise/head_lod0.glb"
+    },
+    {
+      "id": "luisdiaz",
+      "name": "Luis Díaz",
+      "likenessId": "luisdiaz",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 14,
+        "kitName": "LUIS DIAZ",
+        "preserveFace": true,
+        "goalkeeper": false,
+        "hairColor": "#251d17",
+        "bootAccent": "#b7e7ff",
+        "buildScale": 0.95,
+        "heightScale": 1.01,
+        "facialHairColor": "#251d17",
+        "facialHair": "goatee",
+        "gloveColor": "#b7e7ff",
+        "hairStyle": "fade",
+        "bootColor": "#246fff",
+        "skinColor": "#bc8f6a",
+        "id": "luisdiaz"
+      },
+      "kitColors": {
+        "primary": "#c8222c",
+        "secondary": null,
+        "shorts": "#c8222c"
+      },
+      "references": {
+        "clubSource": "https://fcbayern.com/en/teams/first-team"
+      },
+      "proposedHeadPath": "heads/luisdiaz/head_lod0.glb"
+    },
+    {
+      "id": "igorthiago",
+      "name": "Igor Thiago",
+      "likenessId": "igorthiago",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 9,
+        "skinColor": "#95633f",
+        "bootAccent": "#202a35",
+        "facialHair": "beard",
+        "buildScale": 1.07,
+        "bootColor": "#f1f4f8",
+        "facialHairColor": "#241d19",
+        "hairColor": "#241d19",
+        "id": "igorthiago",
+        "catalogHairAssetId": 0,
+        "hairStyle": "bald",
+        "kitName": "THIAGO",
+        "gloveColor": "#202a35",
+        "preserveFace": true,
+        "heightScale": 1.045,
+        "goalkeeper": false,
+        "catalogHairKey": "bald"
+      },
+      "kitColors": {
+        "primary": "#d92e39",
+        "secondary": null,
+        "shorts": "#171d27"
+      },
+      "references": {
+        "clubSource": "https://www.brentfordfc.com/en/teams/mens"
+      },
+      "proposedHeadPath": "heads/igorthiago/head_lod0.glb"
+    },
+    {
+      "id": "damsgaard",
+      "name": "Mikkel Damsgaard",
+      "likenessId": "damsgaard",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 24,
+        "skinColor": "#e3ba97",
+        "bootAccent": "#fee2e2",
+        "facialHair": "stubble",
+        "buildScale": 0.95,
+        "bootColor": "#ef4148",
+        "facialHairColor": "#694c36",
+        "hairColor": "#694c36",
+        "id": "damsgaard",
+        "catalogHairAssetId": 123432930273330,
+        "hairStyle": "cropped",
+        "kitName": "DAMSGAARD",
+        "gloveColor": "#fee2e2",
+        "preserveFace": true,
+        "heightScale": 1,
+        "goalkeeper": false,
+        "catalogHairKey": "cropBrown"
+      },
+      "kitColors": {
+        "primary": "#d92e39",
+        "secondary": null,
+        "shorts": "#171d27"
+      },
+      "references": {
+        "clubSource": "https://www.brentfordfc.com/en/teams/mens"
+      },
+      "proposedHeadPath": "heads/damsgaard/head_lod0.glb"
+    },
+    {
+      "id": "schade",
+      "name": "Kevin Schade",
+      "likenessId": "schade",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "ST",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 7,
+        "skinColor": "#a57452",
+        "bootAccent": "#1b2814",
+        "facialHair": "goatee",
+        "buildScale": 0.99,
+        "bootColor": "#a8ef42",
+        "facialHairColor": "#29221d",
+        "hairColor": "#29221d",
+        "id": "schade",
+        "catalogHairAssetId": 18258058568,
+        "hairStyle": "curls",
+        "kitName": "SCHADE",
+        "gloveColor": "#1b2814",
+        "preserveFace": true,
+        "heightScale": 1.035,
+        "goalkeeper": false,
+        "catalogHairKey": "curls"
+      },
+      "kitColors": {
+        "primary": "#d92e39",
+        "secondary": null,
+        "shorts": "#171d27"
+      },
+      "references": {
+        "clubSource": "https://www.brentfordfc.com/en/teams/mens"
+      },
+      "proposedHeadPath": "heads/schade/head_lod0.glb"
+    },
+    {
+      "id": "kelleher",
+      "name": "Caoimhín Kelleher",
+      "likenessId": "kelleher",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "GK",
+      "goalkeeper": true,
+      "appearance": {
+        "number": 1,
+        "skinColor": "#e8c4a3",
+        "bootAccent": "#f1f5fa",
+        "facialHair": "beard",
+        "buildScale": 1.02,
+        "bootColor": "#171d26",
+        "facialHairColor": "#b79b69",
+        "hairColor": "#b79b69",
+        "id": "kelleher",
+        "catalogHairAssetId": 9215205908,
+        "hairStyle": "longslick",
+        "kitName": "KELLEHER",
+        "gloveColor": "#f1f5fa",
+        "preserveFace": true,
+        "heightScale": 1.045,
+        "goalkeeper": true,
+        "catalogHairKey": "sweptBlonde"
+      },
+      "kitColors": {
+        "primary": "#26865b",
+        "secondary": null,
+        "shorts": "#171d27"
+      },
+      "references": {
+        "clubSource": "https://www.brentfordfc.com/en/teams/mens"
+      },
+      "proposedHeadPath": "heads/kelleher/head_lod0.glb"
+    },
+    {
+      "id": "nathancollins",
+      "name": "Nathan Collins",
+      "likenessId": "nathancollins",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "DF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 22,
+        "skinColor": "#e1b997",
+        "bootAccent": "#b7e7ff",
+        "facialHair": "stubble",
+        "buildScale": 1.06,
+        "bootColor": "#246fff",
+        "facialHairColor": "#6d5039",
+        "hairColor": "#6d5039",
+        "id": "nathancollins",
+        "catalogHairAssetId": 9215222929,
+        "hairStyle": "quiff",
+        "kitName": "COLLINS",
+        "gloveColor": "#b7e7ff",
+        "preserveFace": true,
+        "heightScale": 1.075,
+        "goalkeeper": false,
+        "catalogHairKey": "swept"
+      },
+      "kitColors": {
+        "primary": "#d92e39",
+        "secondary": null,
+        "shorts": "#171d27"
+      },
+      "references": {
+        "clubSource": "https://www.brentfordfc.com/en/teams/mens"
+      },
+      "proposedHeadPath": "heads/nathancollins/head_lod0.glb"
+    },
+    {
+      "id": "janelt",
+      "name": "Vitaly Janelt",
+      "likenessId": "janelt",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 27,
+        "skinColor": "#dab190",
+        "bootAccent": "#1f2937",
+        "facialHair": "stubble",
+        "buildScale": 1.015,
+        "bootColor": "#eceff4",
+        "facialHairColor": "#493427",
+        "hairColor": "#493427",
+        "id": "janelt",
+        "catalogHairAssetId": 9215222929,
+        "hairStyle": "quiff",
+        "kitName": "JANELT",
+        "gloveColor": "#1f2937",
+        "preserveFace": true,
+        "heightScale": 1.025,
+        "goalkeeper": false,
+        "catalogHairKey": "swept"
+      },
+      "kitColors": {
+        "primary": "#d92e39",
+        "secondary": null,
+        "shorts": "#171d27"
+      },
+      "references": {
+        "clubSource": "https://www.brentfordfc.com/en/teams/mens"
+      },
+      "proposedHeadPath": "heads/janelt/head_lod0.glb"
+    },
+    {
+      "id": "cherki",
+      "name": "Rayan Cherki",
+      "likenessId": "cherki",
+      "variantOf": null,
+      "priority": "P2",
+      "role": "MF",
+      "goalkeeper": false,
+      "appearance": {
+        "number": 10,
+        "skinColor": "#d3a680",
+        "bootAccent": "#a8ef42",
+        "facialHair": "stubble",
+        "hairStyle": "cropped",
+        "bootColor": "#8d58da",
+        "appearanceSource": "https://www.mancity.com/news/mens/rayan-cherki-number-10-63890702",
+        "facialHairColor": "#251d18",
+        "hairColor": "#251d18",
+        "id": "cherki",
+        "catalogHairAssetId": 88330641873481,
+        "preserveFace": true,
+        "catalogHairKey": "cropBlack",
+        "gloveColor": "#eff4f7",
+        "kitName": "CHERKI",
+        "heightScale": 0.99,
+        "goalkeeper": false,
+        "buildScale": 1.015
+      },
+      "kitColors": {
+        "primary": "#6bb4da",
+        "secondary": null,
+        "shorts": "#eff4f7"
+      },
+      "references": {
+        "appearanceSource": "https://www.mancity.com/news/mens/rayan-cherki-number-10-63890702",
+        "clubSource": "https://shop.mancity.com/fr/fr/maillot-domicile-manchester-city-2026-27-avec-impression-cherki-10/701242784BZ001807.html"
+      },
+      "proposedHeadPath": "heads/cherki/head_lod0.glb"
+    }
+  ]
+}
