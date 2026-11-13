@@ -101,6 +101,7 @@ def main():
         page.on('request', lambda req: receipt['externalRequests'].append({'context':label,'url':req.url}) if urlsplit(req.url).scheme in ('http','https','ws','wss') and not req.url.startswith(origin + '/') else None)
         page.goto(origin + '/Games/StealBasketballer/', wait_until='networkidle')
         page.wait_for_function("typeof window.basketballerSnapshot==='function' && !document.getElementById('start').disabled", timeout=20000)
+        capture(page, label.replace(' ', '-') + '-intro')
         click(page, '#start')
         check(snap(page)['started'], label + ' PLAY')
         return page
