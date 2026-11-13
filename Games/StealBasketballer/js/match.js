@@ -1,5 +1,7 @@
-// Court-local units: x [-90,90], z [-65,65]; rims at (+/-82,10,0).
-const STEP = .05, RIM = 82, ARC = 48, ROLES = ['PG','SG','SF','PF','C'];
+import {COURT} from './court-config.js';
+
+// Positions, reach, spacing and speed use court-local feet.
+const STEP = .05, RIM = COURT.rimX, ARC = COURT.arc, ROLES = ['PG','SG','SF','PF','C'];
 const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
 const finite = (n,fallback=0) => Number.isFinite(n)?n:fallback;
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -26,7 +28,7 @@ export class Match {
     this.overtimeDuration=clamp(finite(options.overtimeDuration,45),6,90);
     this.quarter=1;this.overtime=0;this.period='Q1';this.horn=false;
     this.phase='inbound';this.phaseUntil=.7;this.score=[0,0];this.finished=false;this.result=null;
-    this.ball={x:0,y:.84,z:0,radius:.84,owner:null,flight:null};
+    this.ball={x:0,y:COURT.ballRadius,z:0,radius:COURT.ballRadius,owner:null,flight:null};
     this.players=[];this.stats=[newStats(),newStats()];this.stamina=[100,100];
     this.formation=['balanced','spread','inside'].includes(options.formation)?options.formation:'balanced';
     this.mentality=['balanced','counter','pressing'].includes(options.mentality)?options.mentality:'balanced';
@@ -73,7 +75,7 @@ export class Match {
   _live() {return ['live','pass','shot','rebound'].includes(this.phase);}
   _give(p,reset=false) {
     this.ball.owner=this.players.indexOf(p);this.ball.flight=null;this.possession=p.side;
-    this.ball.x=p.x+direction(p.side);this.ball.z=p.z;this.ball.y=2.7;
+    this.ball.x=p.x+direction(p.side);this.ball.z=p.z;this.ball.y=3.5;
     if(reset){this.shotClock=24;this.attackStarted=this.time;this.lastPass=null;}
     this.nextDecision=this.time+1.1;this.phase='live';
   }
@@ -82,8 +84,8 @@ export class Match {
     this.possession=side;this.shotClock=24;this.lastPass=null;this.attackStarted=this.time;
     this.players.forEach(p=>{
       const own=p.side===side,d=direction(side);
-      p.x=(own?[-60,-34,-30,-14,-8][p.index]:[-8,4,10,20,27][p.index])*d;
-      p.z=[0,-40,40,-19,19][p.index];p.pose='idle';p.speed=0;
+      p.x=(own?[-32,-18,-16,-8,-4][p.index]:[-4,2,5,10,14][p.index])*d;
+      p.z=[0,-19,19,-9,9][p.index];p.pose='idle';p.speed=0;
     });
     this._give(this.players[side*5],true);this.phase='inbound';this.phaseUntil=this.time+delay;
     if(announce)this._say(`${side===0?'Home':'Away'} inbounds with 24 on the shot clock`,false,'inbound');
@@ -98,15 +100,15 @@ export class Match {
   _receiver(p,mode='pass') {
     return this.players.filter(q=>q.side===p.side&&q!==p).sort((a,b)=>{
       const value=q=>rating(q,mode==='pickRoll'?'rebounding':'shooting')*.1+
-        Math.min(15,distance(q,this._nearest(1-p.side,q)))+(mode==='three'?(distance(q,{x:RIM*direction(p.side),z:0})>=ARC?30:-30):0);
+        Math.min(7.5,distance(q,this._nearest(1-p.side,q)))+(mode==='three'?(distance(q,{x:RIM*direction(p.side),z:0})>=ARC?30:-30):0);
       return value(b)-value(a)||a.index-b.index;
     })[0];
   }
   _pass(receiver,thenShot=false) {
     const p=this.players[this.ball.owner];if(!p||this.ball.flight||!receiver)return false;
-    const duration=clamp(distance(p,receiver)/70,.3,.85);
-    this.ball.flight={kind:'pass',from:{x:this.ball.x,y:3,z:this.ball.z},to:{x:receiver.x,y:3,z:receiver.z},
-      elapsed:0,duration,height:1.8,side:p.side,receiver:this.players.indexOf(receiver),shooter:this.players.indexOf(p),thenShot};
+    const duration=clamp(distance(p,receiver)/50,.3,.85);
+    this.ball.flight={kind:'pass',from:{x:this.ball.x,y:4.5,z:this.ball.z},to:{x:receiver.x,y:4.5,z:receiver.z},
+      elapsed:0,duration,height:1.2,side:p.side,receiver:this.players.indexOf(receiver),shooter:this.players.indexOf(p),thenShot};
     this.ball.owner=null;this.phase='pass';this.stats[p.side].passesAttempted++;
     p.pose='pass';p.poseUntil=this.time+.4;this._say(`${p.name} passes to ${receiver.name}`,false,'pass');return true;
   }
@@ -116,14 +118,14 @@ export class Match {
     const points=free?1:range>=ARC?3:2,defender=this._nearest(1-p.side,p),gap=distance(p,defender);
     const boosted=this.activeAbility?.playerIndex===this.ball.owner&&this.time<this.activeAbility.endsAt;
     const chance=free?clamp(.48+rating(p,'shooting')*.004,.45,.94):clamp(.38+rating(p,'shooting')*.004-
-      (points===3?.2:0)-Math.max(0,range-30)*.003-Math.max(0,12-gap)*.02-p.fatigue*.001+(boosted?.13:0),.08,.88);
-    const blockChance=free?0:gap<12?clamp(.04+rating(defender,'defense')*.001+(this.tactics[defender.side].blockUntil>this.time?.2:0),0,.35):0;
+      (points===3?.2:0)-Math.max(0,range-15)*.006-Math.max(0,6-gap)*.04-p.fatigue*.001+(boosted?.13:0),.08,.88);
+    const blockChance=free?0:gap<6?clamp(.04+rating(defender,'defense')*.001+(this.tactics[defender.side].blockUntil>this.time?.2:0),0,.35):0;
     const blocked=!free&&this._roll()<blockChance;
     const made=!blocked&&this._roll()<chance;
     const stat=this.stats[p.side];if(free)stat.freeThrowsAttempted++;else {stat.shots++;if(points===3)stat.threePointersAttempted++;}
     if(blocked){this.stats[defender.side].blocks++;defender.pose='block';defender.poseUntil=this.time+.7;}
-    this.ball.flight={kind:free?'freeThrow':'shot',from:{x:p.x,y:5.5,z:p.z},to:{x:rim.x,y:10,z:0},
-      elapsed:0,duration:free?.85:clamp(range/52,.6,1.35),height:free?8:12,
+    this.ball.flight={kind:free?'freeThrow':'shot',from:{x:p.x,y:7,z:p.z},to:{x:rim.x,y:COURT.rimY,z:0},
+      elapsed:0,duration:free?.85:clamp(range/35,.6,1.35),height:free?4:6,
       side:p.side,shooter:this.ball.owner,points,made,blocked,defender:this.players.indexOf(defender)};
     this.ball.owner=null;this.phase=free?'freeThrow':'shot';p.pose='shoot';p.poseUntil=this.time+.8;
     this._say(`${p.name} releases ${free?'a free throw':points===3?'a three-pointer':'a two-point shot'}`,false,'shot');return true;
@@ -135,7 +137,7 @@ export class Match {
     if(shooting||this.teamFouls[defender.side]>=5) {
       const count=shooting&&distance(shooter,{x:RIM*direction(shooter.side),z:0})>=ARC?3:2;
       this.freeThrows={shooter:this.players.indexOf(shooter),remaining:count,total:count};
-      shooter.x=55*direction(shooter.side);shooter.z=0;this._give(shooter);
+      shooter.x=COURT.freeThrowX*direction(shooter.side);shooter.z=0;this._give(shooter);
       this.phase='freeThrowSetup';this.phaseUntil=this.time+.7;
       this._say(`${defender.name} fouls ${shooter.name}: ${count} free throws`,true,'foul');
     } else {
@@ -146,7 +148,7 @@ export class Match {
   _challenge(forced=false) {
     const p=this.players[this.ball.owner];if(!p)return;
     const defender=this._nearest(1-p.side,p),gap=distance(p,defender);
-    if(gap>(forced?18:10))return;
+    if(gap>(forced?9:5))return;
     const press=this.tactics[defender.side].pressUntil>this.time||(defender.side===0&&this.mentality==='pressing');
     if(this._roll()<(forced?.18:press?.1:.05)){this._foul(defender,p,false);return;}
     const boosted=this.activeAbility?.id==='quickHandle'&&this.activeAbility.playerIndex===this.ball.owner;
@@ -155,10 +157,10 @@ export class Match {
   _rebound(side,blocked=false) {
     const rim={x:RIM*direction(side),z:0};
     const candidates=this.players.slice().sort((a,b)=>{
-      const weight=p=>rating(p,'rebounding')*.55-distance(p,rim)*1.3+(p.side===side?0:12);
+      const weight=p=>rating(p,'rebounding')*.55-distance(p,rim)*2.6+(p.side===side?0:12);
       return weight(b)-weight(a)||a.side-b.side||a.index-b.index;
     }).slice(0,4);
-    const weights=candidates.map(p=>Math.max(1,rating(p,'rebounding')+30-distance(p,rim))),sum=weights.reduce((a,b)=>a+b,0);
+    const weights=candidates.map(p=>Math.max(1,rating(p,'rebounding')+30-distance(p,rim)*2)),sum=weights.reduce((a,b)=>a+b,0);
     let roll=this._roll()*sum,winner=candidates[0];
     for(let i=0;i<candidates.length;i++){roll-=weights[i];if(roll<=0){winner=candidates[i];break;}}
     this.stats[winner.side].rebounds++;
@@ -185,7 +187,7 @@ export class Match {
       this.phase='basketCelebration';this.phaseUntil=this.time+.9;
     } else {
       this.phase='rebound';this.phaseUntil=this.time+.45;this.reboundSide=flight.side;this.reboundBlocked=flight.blocked;
-      this.ball.x=flight.to.x-direction(flight.side)*3;this.ball.y=5;this.ball.z=3;
+      this.ball.x=flight.to.x-direction(flight.side)*1.5;this.ball.y=5;this.ball.z=1.5;
     }
   }
   _flight() {
@@ -201,7 +203,7 @@ export class Match {
     this.ball.flight=null;
     if(f.kind!=='pass'){this._finishShot(f);return;}
     const receiver=this.players[f.receiver],passer=this.players[f.shooter],defender=this._nearest(1-f.side,receiver);
-    const chance=distance(defender,receiver)<12?clamp(.15+(rating(defender,'defense')-rating(passer,'passing'))*.002,.02,.4):.01;
+    const chance=distance(defender,receiver)<6?clamp(.15+(rating(defender,'defense')-rating(passer,'passing'))*.002,.02,.4):.01;
     if(this._roll()<chance){this._turnover(defender,'interception');return;}
     this.stats[f.side].passesCompleted++;this._give(receiver);this.lastPass={receiver:f.receiver,time:this.time};
     if(f.thenShot)this._shoot();
@@ -212,31 +214,32 @@ export class Match {
       let target={x:p.x,z:p.z};const own=p.side===this.possession;
       const spacing=this.formation==='spread'?1.2:this.formation==='inside'?.7:1;
       if(own) {
-        target={x:[38,48,48,66,72][p.index]*d,z:[0,-39,39,-17,17][p.index]*spacing};
-        if(owner===p)target={x:(this.tactics[p.side].driveUntil>this.time||(p.side===0&&this.mentality==='counter')?75:55)*d,z:p.z*.7};
-        if(this.tactics[p.side].pickUntil>this.time&&p.role==='C')target={x:70*d,z:3};
+        target={x:[19,24,24,33,36][p.index]*d,z:[0,-19,19,-8.5,8.5][p.index]*spacing};
+        if(owner===p)target={x:(this.tactics[p.side].driveUntil>this.time||(p.side===0&&this.mentality==='counter')?38:28)*d,z:p.z*.7};
+        if(this.tactics[p.side].pickUntil>this.time&&p.role==='C')target={x:35*d,z:1.5};
       } else {
         const marked=this.players[this.possession*5+p.index];
         const zone=this.tactics[p.side].zoneUntil>this.time;
-        target=zone?{x:[48,48,58,70,70][p.index]*d,z:[-28,28,0,-15,15][p.index]}:
-          {x:marked.x+d*6,z:marked.z*.95};
-        if(owner&&(this.tactics[p.side].pressUntil>this.time||(p.side===0&&this.mentality==='pressing'))&&distance(p,owner)<28)target={x:owner.x,z:owner.z};
+        target=zone?{x:[24,24,29,35,35][p.index]*d,z:[-14,14,0,-7.5,7.5][p.index]}:
+          {x:marked.x+d*3,z:marked.z*.95};
+        if(owner&&(this.tactics[p.side].pressUntil>this.time||(p.side===0&&this.mentality==='pressing'))&&distance(p,owner)<14)target={x:owner.x,z:owner.z};
       }
       // A called catch-and-shoot keeps its receiver at the selected three-point spot.
       if(this.ball.flight?.kind==='pass'&&this.ball.flight.thenShot&&this.players[this.ball.flight.receiver]===p)
         target={x:this.ball.flight.to.x,z:this.ball.flight.to.z};
       let dx=target.x-p.x,dz=target.z-p.z;
       if(this.controlState?.index===this.players.indexOf(p)) {
-        dx=this.controlState.vector.x*50;dz=this.controlState.vector.z*50;
+        dx=this.controlState.vector.x*25;dz=this.controlState.vector.z*25;
       }
-      const len=Math.hypot(dx,dz),speed=(owner===p?25:22)*(1-p.fatigue*.002),step=Math.min(len,speed*STEP);
-      if(len>.01){p.x=clamp(p.x+dx/len*step,-87,87);p.z=clamp(p.z+dz/len*step,-62,62);p.angle=Math.atan2(dz,dx);}
+      const len=Math.hypot(dx,dz),speed=(owner===p?18:17)*(1-p.fatigue*.002),step=Math.min(len,speed*STEP);
+      if(len>.01){p.x=clamp(p.x+dx/len*step,-COURT.halfLength+1,COURT.halfLength-1);p.z=clamp(p.z+dz/len*step,-COURT.halfWidth+1,COURT.halfWidth-1);p.angle=Math.atan2(dz,dx);}
       p.speed=step/STEP;p.fatigue=clamp(p.fatigue+STEP*(.12+(100-rating(p,'stamina'))*.001),0,100);
       if(this.time>=finite(p.poseUntil))p.pose=owner===p?'dribble':step>.02?'run':'idle';
     });
     if(owner&&!this.ball.flight) {
-      this.ball.x=owner.x+d*1.3;this.ball.z=owner.z+1;
-      this.ball.y=.84+Math.abs(Math.sin(this.time*11))*2.3;
+      this.ball.x=clamp(owner.x+d*1.1,-COURT.halfLength+COURT.ballRadius,COURT.halfLength-COURT.ballRadius);
+      this.ball.z=clamp(owner.z+.9,-COURT.halfWidth+COURT.ballRadius,COURT.halfWidth-COURT.ballRadius);
+      this.ball.y=COURT.ballRadius+Math.abs(Math.sin(this.time*11))*3.1;
     }
   }
   _auto() {
@@ -244,9 +247,9 @@ export class Match {
     const p=this.players[this.ball.owner];if(!p)return;
     this._challenge();if(this.ball.owner!==this.players.indexOf(p)||this.phase!=='live')return;
     const range=distance(p,{x:RIM*direction(p.side),z:0});
-    if(this.shotClock<5||range<36||this.time-this.attackStarted>5.3) {
+    if(this.shotClock<5||range<18||this.time-this.attackStarted>5.3) {
       const defender=this._nearest(1-p.side,p);
-      if(distance(p,defender)<12&&this._roll()<.12){this._foul(defender,p,true);return;}
+      if(distance(p,defender)<6&&this._roll()<.12){this._foul(defender,p,true);return;}
       this._shoot();return;
     }
     if(this.controlState?.index===this.ball.owner){this.nextDecision=this.time+.5;return;}
@@ -391,7 +394,7 @@ export class Match {
       cooldown:Math.max(0,this.abilityReadyAt-this.time),active:this.activeAbility?.id===a.id,
       remaining:this.activeAbility?.id===a.id?Math.max(0,this.activeAbility.endsAt-this.time):0}));
     return clone({players:this.players,ball:this.ball,phase:this.phase,score:this.score,finished:this.finished,result:this.result,
-      court:{bounds:{x:[-90,90],z:[-65,65]},rims:[[-RIM,10,0],[RIM,10,0]],threePointRadius:ARC,freeThrowX:55},
+      court:{bounds:{x:[-COURT.halfLength,COURT.halfLength],z:[-COURT.halfWidth,COURT.halfWidth]},rims:[[-RIM,COURT.rimY,0],[RIM,COURT.rimY,0]],threePointRadius:ARC,freeThrowX:COURT.freeThrowX},
       quarter:this.quarter,overtime:this.overtime,period:this.period,elapsed:this.time,
       timeRemaining:Math.max(0,this.periodDuration-this.periodElapsed),shotClock:this.shotClock,
       shotClockFraction:this.shotClock/24,clockRate:this.clockRate,possession:this.possession,
