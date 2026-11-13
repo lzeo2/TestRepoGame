@@ -1197,14 +1197,14 @@
     "title": "Circuit Ward",
     "cat": "action",
     "icon": "",
-    "desc": "Original arena shooter. Clear six bot waves solo, or pair 2\u20134 players for shared-score LAN co-op.",
+    "desc": "Original arena shooter. Clear six bot waves solo, or pair 2–4 players for shared-score LAN co-op.",
     "url": "Games/Circuit Ward/index.html",
     "featured": false,
     "tags": [
       "2p",
       "coop"
     ],
-    "players": "1\u20134",
+    "players": "1–4",
     "howto": "WASD/arrows move; mouse or IJKL aims; click/Space fires. Touch: move left, aim right, hold Fire. P/Esc pauses. Co-op uses manual WebRTC offer/answer pairing; local Wi-Fi may block it."
   },
   {
@@ -1386,7 +1386,10 @@
     "desc": "Original schoolyard three-lane runner. Dodge, jump and slide through an endless courtyard; WebGL scene with a playable 2D fallback. Keyboard and touch controls.",
     "url": "Games/SchoolyardLaneRun/index.html",
     "featured": false,
-    "tags": ["solo", "3d"]
+    "tags": [
+      "solo",
+      "3d"
+    ]
   },
   {
     "id": 243,
@@ -1396,7 +1399,10 @@
     "desc": "Original schoolyard glider through moving gaps. Flap, pause and retry; WebGL scene with a playable 2D fallback. Keyboard and touch controls.",
     "url": "Games/SchoolyardGapGlide/index.html",
     "featured": false,
-    "tags": ["solo", "3d"]
+    "tags": [
+      "solo",
+      "3d"
+    ]
   },
   {
     "id": 244,
@@ -1406,7 +1412,10 @@
     "desc": "Original schoolyard slingshot prototype with twenty authored draft levels, three fictional playable characters, physics blocks and a 2D fallback. Some levels and mobile/3D interactions still need review.",
     "url": "Games/SchoolyardCourtyardCast/index.html",
     "featured": false,
-    "tags": ["solo", "3d"]
+    "tags": [
+      "solo",
+      "3d"
+    ]
   },
   {
     "id": 1,
@@ -1416,5 +1425,21 @@
     "desc": "Single-player collect-and-raid game with three AI rivals. PBR-textured creatures, hidden GLB collectible. Offline, no accounts.",
     "url": "Games/BrainrotBoulevard/index.html",
     "featured": false
+  },
+  {
+    "id": 245,
+    "title": "Capital Drive: Canberra (Preview)",
+    "cat": "arcade",
+    "icon": "CD",
+    "desc": "Original Canberra driving preview with OpenStreetMap roads and ACT building outlines, left-hand traffic, walking pedestrians and seven inner-south destinations.",
+    "url": "Games/Capital Drive/index.html",
+    "featured": false,
+    "tags": [
+      "driving",
+      "exploration",
+      "3d"
+    ],
+    "players": "1",
+    "howto": "WASD/arrows drive; Space handbrakes; Shift boosts; drag mouse to orbit. M opens the route map; R recovers; P/Esc pauses. Touch driving controls are available."
   }
 ]
