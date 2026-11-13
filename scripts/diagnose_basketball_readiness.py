@@ -472,7 +472,7 @@ def main():
                 report['stage'] = 'five-on-five'
                 pre = page.evaluate('window.basketballerSnapshot().state')
                 report['preBattle'] = {'roster': len(pre['roster']), 'battleLock': pre['battleLock'],
-                    battleReadyAt: pre['battleReadyAt'], npcAttempt: bool(pre['npcAttempt'])}
+                    'battleReadyAt': pre['battleReadyAt'], 'npcAttempt': bool(pre['npcAttempt'])}
                 page.locator('#battle').click(force=True, timeout=60000)
                 page.wait_for_function('''() => {const m=window.basketballerSnapshot().match;
                     return m && m.players.length===10 && m.shotClock>0 && m.shotClock<24;}''', timeout=180000)
