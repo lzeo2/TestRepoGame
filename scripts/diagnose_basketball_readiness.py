@@ -443,9 +443,14 @@ def main():
                 desktop = browser.new_context(viewport={'width': 1440, 'height': 900}, reduced_motion='reduce', service_workers='block')
                 page = start(desktop, 'desktop')
                 report['stage'] = 'natural-recruit'
-                page.locator('[data-panel="shop"]').click()
-                page.locator('[data-action="openMarket"]').click()
-                page.locator('[data-action="buy"]').first.click()
+                # SwiftShader re-renders the menu shell every frame (~5s/frame
+                # here), so Playwright's two-stable-frames precheck rarely
+                # passes. Force keeps the click a real input event on the real
+                # button; the game's own snapshot gates the result.
+                page.locator('[data-panel="shop"]').click(force=True)
+                page.locator('[data-action="openMarket"]').click(force=True)
+                page.locator('[data-action="buy"]').first.click(force=True)
+                report['events'].append({'kind': 'menu-clicks-forced', 'reason': 'swiftshader per-frame re-render'})
                 page.wait_for_function('window.basketballerSnapshot().state.roster.length===1')
                 assert not report['errors'] and not report['external'], 'Recruit gate error; stop'
                 report['accepted'].append('natural-affordable-recruit')
