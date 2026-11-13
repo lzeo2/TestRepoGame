@@ -66,9 +66,11 @@ def main():
         page.wait_for_timeout(milliseconds)
 
     def click(page, selector):
-        # Locator.click sends real input and retries nodes replaced by live menus.
-        # Keep actionability checks: no force-click or DOM event dispatch.
-        page.locator(selector).first.click(timeout=10000)
+        # Dialogs make the underlying HUD inert; identical actions can exist in both.
+        scope = page.locator('#sheet') if page.locator('#sheet').is_visible() else page
+        if page.locator('#pause-screen').is_visible():
+            scope = page.locator('#pause-screen')
+        scope.locator(selector).first.click(timeout=10000)
         wait(page, 180)
 
     def capture(page, name):
@@ -201,11 +203,15 @@ def main():
                 mode = 'attack' if m['possession'] == 0 else 'defense'
                 play = 'drive' if mode == 'attack' else 'zone'
                 if mode not in called and m['phase'] == 'live' and not m['ball'].get('flight') and any(p['id'] == play and p['available'] for p in m['callPlays']):
-                    click(page, '[data-panel="match"]')
-                    click(page, '[data-action="play"][data-id="' + play + '"]')
+                    toggle = page.locator('#match-controls [data-action="togglePlays"]')
+                    wanted = 'DEFENSE' if mode == 'defense' else 'ATTACK'
+                    if wanted in toggle.inner_text():
+                        click(page, '#match-controls [data-action="togglePlays"]')
+                    page.locator('#world').click(position={'x':650,'y':420})
+                    page.keyboard.press('x')
+                    wait(page, 180)
                     if snap(page)['match']['cooldowns']['plays'] > 0:
                         called.add(mode)
-                    click(page, '#close-sheet')
                 period = s['match']['period']
                 if period != last_period:
                     print('LIVE ' + period + ' ' + str(s['match']['score']), flush=True)
