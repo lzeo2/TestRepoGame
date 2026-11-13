@@ -114,13 +114,18 @@ export function createSimulation(map, options = {}) {
     waterIndex.insert(area, Math.min(...area.points.map(p => p[0])), Math.min(...area.points.map(p => p[1])),
       Math.max(...area.points.map(p => p[0])), Math.max(...area.points.map(p => p[1])));
   }
+  const parkedCars = [], abandonedCars = [];
+  let abandonedSerial = 0, focusPoint;
   let parkedIndex = new SpatialGrid(32);
   function setParkedCars(cars = []) {
     parkedIndex = new SpatialGrid(32);
+    parkedCars.length = 0;
     let count = 0;
     for (const car of cars) {
       if (!Number.isFinite(car.x) || !Number.isFinite(car.z)) continue;
-      const parked = { x: car.x, z: car.z, yaw: Number.isFinite(car.yaw) ? car.yaw : 0 };
+      const parked = { ...car, id: car.id ?? `parked:${count}`, x: car.x, z: car.z, yaw: Number.isFinite(car.yaw) ? car.yaw : 0,
+        modelId: car.modelId || 'lantern', color: car.color ?? 0xd4d7d3, active: car.active !== false };
+      parkedCars.push(parked);
       parkedIndex.insert(parked, parked.x - 2, parked.z - 2, parked.x + 2, parked.z + 2);
       count++;
     }
@@ -140,7 +145,7 @@ export function createSimulation(map, options = {}) {
     }
     return best;
   }
-  const player = { x: 0, z: 0, yaw: 0, speed: 0, vx: 0, vz: 0, steer: 0, odometer: 0, crashes: 0, offroad: false };
+  const player = { id: 'player', modelId: 'lantern', color: 0xd4d7d3, active: true, x: 0, z: 0, yaw: 0, speed: 0, vx: 0, vz: 0, steer: 0, odometer: 0, crashes: 0, offroad: false };
   const random = seededRandom(options.seed ?? 20261112);
   const traffic = [], models = ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch'];
   const colors = [0xd4d7d3, 0x777e84, 0x274d79, 0xa4463b, 0xd1c8b4, 0x555952, 0xc5b86e];
@@ -175,12 +180,14 @@ export function createSimulation(map, options = {}) {
           if (contact) return { ...contact, reason };
         }
       }
-      for (const car of parkedIndex.query(candidate.x, candidate.z, 1.8)) {
+      for (const car of [...parkedIndex.query(candidate.x, candidate.z, 1.8), ...abandonedCars]) {
+        if (!car.active) continue;
         const dx = candidate.x - car.x, dz = candidate.z - car.z, gap = Math.hypot(dx, dz);
         if (gap < 3.8) return { nx: gap > 0.001 ? dx / gap : 1, nz: gap > 0.001 ? dz / gap : 0,
           depth: 3.8 - gap, reason: 'parked-car' };
       }
       for (const car of traffic) {
+        if (!car.active) continue;
         const dx = candidate.x - car.x, dz = candidate.z - car.z, gap = Math.hypot(dx, dz);
         if (gap < 3.4) return { nx: gap > 0.001 ? dx / gap : 1, nz: gap > 0.001 ? dz / gap : 0,
           depth: 3.4 - gap, reason: 'traffic' };
@@ -232,18 +239,18 @@ export function createSimulation(map, options = {}) {
   }
   reset();
   const candidates = graph.edges.filter(edge => edge.length > 8);
-  function nearbyEdges(radius) {
+  function nearbyEdges(radius, focus = focusPoint || player) {
     const nearby = [];
-    for (const segment of roadIndex.query(player.x, player.z, radius)) {
-      if (projectSegment(player.x, player.z, segment.a, segment.b).distance > radius) continue;
+    for (const segment of roadIndex.query(focus.x, focus.z, radius)) {
+      if (projectSegment(focus.x, focus.z, segment.a, segment.b).distance > radius) continue;
       for (const edge of segment.edges) if (edge.length > 8) nearby.push(edge);
     }
     return nearby;
   }
   const initialEdges = nearbyEdges(350);
-  const trafficCount = Math.max(0, Math.min(options.trafficCount ?? 26, 48));
+  const trafficCount = Math.max(0, Math.min(options.trafficCount ?? 40, 56));
   for (let i = 0; i < trafficCount && candidates.length; i++) {
-    const car = { id: i, x: 0, z: 0, yaw: 0, speed: 0, modelId: models[i % models.length], color: colors[i % colors.length],
+    const car = { id: `traffic:${i}`, slot: i, active: true, anger: 0, honks: 0, honkCooldown: 0, overtake: 0, overtakeCooldown: 0, aggressive: i % 3 !== 0, x: 0, z: 0, yaw: 0, speed: 0, modelId: models[i % models.length], color: colors[i % colors.length],
       cruiseFactor: 0.78 + random() * 0.2 };
     let valid = false;
     for (let attempt = 0; attempt < 80; attempt++) {
@@ -254,7 +261,8 @@ export function createSimulation(map, options = {}) {
       if (spawnDistance > 45 && (attempt >= 60 || spawnDistance < 350) &&
         traffic.every(other => Math.hypot(car.x - other.x, car.z - other.z) > 12)) { valid = true; break; }
     }
-    if (valid) traffic.push(car);
+    car.active = valid;
+    traffic.push(car);
   }
   let nextTrafficRefresh = 0;
   function refreshTrafficArea() {
@@ -263,14 +271,15 @@ export function createSimulation(map, options = {}) {
     const localEdges = nearbyEdges(650);
     if (!localEdges.length) return;
     for (const car of traffic) {
-      if (Math.hypot(car.x - player.x, car.z - player.z) <= 850) continue;
+      const focus = focusPoint || player;
+      if (Math.hypot(car.x - focus.x, car.z - focus.z) <= (car.active ? 850 : 330)) continue;
       for (let attempt = 0; attempt < 40; attempt++) {
         const edge = localEdges[Math.floor(random() * localEdges.length)];
         const position = random() * edge.length, pose = pointOnLane(edge, position);
-        const gap = Math.hypot(pose.x - player.x, pose.z - player.z);
+        const gap = Math.hypot(pose.x - focus.x, pose.z - focus.z);
         // The renderer culls traffic at 300m; replacements enter beyond that view.
-        if (gap < 330 || gap > 650 || traffic.some(other => other !== car && Math.hypot(pose.x - other.x, pose.z - other.z) < 15)) continue;
-        placeTraffic(car, edge, position); car.speed = Math.min(10, (edge.road.speed || 50) / 3.6); break;
+        if (gap < 330 || gap > 650 || traffic.some(other => other !== car && other.active && Math.hypot(pose.x - other.x, pose.z - other.z) < 15)) continue;
+        placeTraffic(car, edge, position); car.active = true; car.anger = 0; car.overtake = 0; car.speed = Math.min(10, (edge.road.speed || 50) / 3.6); break;
       }
     }
   }
@@ -283,22 +292,54 @@ export function createSimulation(map, options = {}) {
   function updateTraffic(dt) {
     refreshTrafficArea();
     for (const car of traffic) {
+      if (!car.active) continue;
+      car.honkCooldown = Math.max(0, car.honkCooldown - dt);
+      car.overtakeCooldown = Math.max(0, car.overtakeCooldown - dt);
       const edge = car.edge, remaining = edge.length - car.position;
       // OSM maxspeed is km/h. Junction courtesy and spacing are intentionally simple.
-      let target = clamp((edge.road.speed || 50) / 3.6, 5, 24) * car.cruiseFactor;
+      let target = clamp((edge.road.speed || 50) / 3.6, 5, 24) * car.cruiseFactor * (car.aggressive ? 1.16 : 1);
+      const cruise = target;
+      let blocked = false;
       if (edge.to.outgoing.length > 2 && remaining < 20) target = Math.min(target, 7.5);
       for (const other of traffic) {
-        if (car === other) continue;
+        if (car === other || !other.active) continue;
         if (other.edge === edge && other.position > car.position) {
           const gap = other.position - car.position;
-          if (gap < 24) target = Math.min(target, Math.max(0, (gap - 7) * 0.8));
-        } else if (remaining < 12 && other.id < car.id && other.edge.to === edge.to &&
+          if (gap < 24) { blocked = true; target = Math.min(target, Math.max(0, (gap - 7) * 0.8)); }
+        } else if (remaining < 12 && other.slot < car.slot && other.edge.to === edge.to &&
           other.edge !== edge && other.edge.length - other.position < 10) target = Math.min(target, 1.5);
       }
       const px = player.x - car.x, pz = player.z - car.z;
       const ahead = px * edge.dx + pz * edge.dz;
       if (ahead > 0 && ahead < 22 && Math.abs(px * edge.dz - pz * edge.dx) < 2.8) target = Math.min(target, Math.max(0, (ahead - 7) * 0.75));
-      car.speed += clamp(target - car.speed, -7 * dt, 2.8 * dt);
+      for (const obstacle of [...parkedCars, ...abandonedCars, ...traffic]) {
+        if (obstacle === car || obstacle.active === false) continue;
+        const dx = obstacle.x - car.x, dz = obstacle.z - car.z;
+        const ahead = dx * edge.dx + dz * edge.dz;
+        if (ahead > 0 && ahead < 18 && Math.abs(dx * edge.dz - dz * edge.dx - (car.overtake > 0 ? -Math.min(3.2, edge.laneOffset * 1.5) : 0)) < 3.2) {
+          target = Math.min(target, Math.max(0, (ahead - 6) * 0.8));
+        }
+      }
+      if (target < cruise * 0.65) blocked = true;
+      car.anger = clamp(car.anger + (blocked ? dt * 0.3 : -dt * 0.2), 0, 1);
+      if (car.anger > 0.45 && car.honkCooldown === 0) { car.honks++; car.honkCooldown = 5 + car.slot % 4; }
+      // Passing stays on wide one-way carriageways, with a clear return corridor.
+      const passOffset = -Math.min(3.2, edge.laneOffset * 1.5);
+      const lanePose = pointOnLane(edge, car.position);
+      const passClear = edge.road.oneway !== 0 && Boolean(edge.road.oneway) && (edge.road.width || 8) >= 10 && remaining > 35 &&
+        ![player, ...traffic, ...parkedCars, ...abandonedCars].some(other => {
+          if (other === car || other.active === false) return false;
+          const dx = other.x - lanePose.x, dz = other.z - lanePose.z;
+          return Math.abs(dx * edge.dx + dz * edge.dz) < 24 && Math.abs(dx * edge.dz - dz * edge.dx - passOffset) < 3.1;
+        });
+      if (car.overtake > 0) {
+        car.overtake = Math.max(0, car.overtake - dt);
+        if (!passClear) car.overtake = 0;
+        else target = Math.min(cruise * 1.1, 28);
+      } else if (car.aggressive && blocked && car.anger > 0.4 && car.overtakeCooldown === 0 && passClear) {
+        car.overtake = 2; car.overtakeCooldown = 9;
+      }
+      car.speed += clamp(target - car.speed, -9 * dt, 3.5 * dt);
       car.position += car.speed * dt;
       // Small segments can cross more than one node per tick.
       let transitions = 0;
@@ -306,12 +347,14 @@ export function createSimulation(map, options = {}) {
         const overflow = car.position - car.edge.length, next = nextEdge(car);
         if (next) { car.edge = next; car.position = overflow; }
         else {
-          const destination = candidates[Math.floor(random() * candidates.length)];
-          placeTraffic(car, destination, 0); car.speed = 0; break;
+          car.position = car.edge.length; car.speed = 0;
+          if (Math.hypot(car.x - (focusPoint || player).x, car.z - (focusPoint || player).z) > 330) car.active = false;
+          break;
         }
       }
       const pose = pointOnLane(car.edge, Math.min(car.position, car.edge.length));
-      car.x = pose.x; car.z = pose.z;
+      car.x = pose.x + (car.overtake > 0 ? car.edge.dz * passOffset : 0);
+      car.z = pose.z - (car.overtake > 0 ? car.edge.dx * passOffset : 0);
       car.yaw += angleDelta(car.yaw, pose.yaw) * Math.min(1, dt * 9);
     }
   }
@@ -324,8 +367,9 @@ export function createSimulation(map, options = {}) {
       if (-impact > 3 && crashCooldown <= 0) { player.crashes++; crashCooldown = 0.85; }
     }
   }
-  function step(dt, input = {}) {
+  function step(dt, input = {}, focus = player) {
     if (!Number.isFinite(dt) || dt <= 0) return;
+    focusPoint = focus && Number.isFinite(focus.x) && Number.isFinite(focus.z) ? focus : player;
     dt = Math.min(dt, 0.05); elapsed += dt; crashCooldown -= dt;
     const throttle = clamp(Number(input.throttle) || 0, -1, 1);
     player.steer += (clamp(Number(input.steer) || 0, -1, 1) - player.steer) * Math.min(1, dt * 10);
@@ -356,13 +400,15 @@ export function createSimulation(map, options = {}) {
       const contact = polygonContact(player.x, player.z, building.points, 1.55);
       if (contact) resolveImpact(contact.nx, contact.nz, contact.depth + 0.02);
     }
-    for (const car of parkedIndex.query(player.x, player.z, 1.55)) {
+    for (const car of [...parkedIndex.query(player.x, player.z, 1.55), ...abandonedCars]) {
+      if (!car.active) continue;
       const dx = player.x - car.x, dz = player.z - car.z, gap = Math.hypot(dx, dz);
       if (gap < 3.55) resolveImpact(gap > 0.001 ? dx / gap : Math.cos(car.yaw),
         gap > 0.001 ? dz / gap : -Math.sin(car.yaw), 3.55 - gap + 0.01);
     }
     updateTraffic(dt);
     for (const car of traffic) {
+      if (!car.active) continue;
       const dx = player.x - car.x, dz = player.z - car.z, gap = Math.hypot(dx, dz);
       if (gap < 3.2) resolveImpact(gap > 0.001 ? dx / gap : 1, gap > 0.001 ? dz / gap : 0, (3.2 - gap) * 0.65);
     }
@@ -374,5 +420,79 @@ export function createSimulation(map, options = {}) {
       reset(); player.odometer = trip; player.crashes = crashes;
     }
   }
-  return { player, traffic, graph, step, reset, teleport, nearestRoad, setParkedCars, get elapsed() { return elapsed; } };
+  function setPlayerVehicle(vehicle = {}) {
+    if (typeof vehicle.modelId === 'string') player.modelId = vehicle.modelId;
+    if (Number.isFinite(vehicle.color)) player.color = vehicle.color;
+    return { modelId: player.modelId, color: player.color };
+  }
+  function nearbyVehicles(x, z, radius = 7) {
+    if (![x, z, radius].every(Number.isFinite) || radius < 0) return [];
+    return [player, ...traffic, ...parkedCars, ...abandonedCars].filter(car => car.active !== false &&
+      Math.hypot(x - car.x, z - car.z) <= radius).map(car => ({ id: car.id, x: car.x, z: car.z, yaw: car.yaw,
+        modelId: car.modelId, color: car.color, active: true, speed: car.speed || 0 }));
+  }
+  function claimVehicle(id) {
+    if (id === 'player') return { ok: true, vehicle: { ...nearbyVehicles(player.x, player.z, 0)[0] }, stolen: false, reason: 'current' };
+    const car = [...traffic, ...parkedCars, ...abandonedCars].find(item => item.id === id && item.active);
+    if (!car) return { ok: false, vehicle: null, stolen: false, reason: 'unavailable' };
+    if (Math.abs(car.speed || 0) > 5) return { ok: false, vehicle: null, stolen: false, reason: 'moving' };
+    const prior = { id: `abandoned:${++abandonedSerial}`, x: player.x, z: player.z, yaw: player.yaw,
+      modelId: player.modelId, color: player.color, active: true };
+    if (abandonedCars.length >= 12) {
+      const disposable = abandonedCars.findIndex(item => !item.active || Math.hypot(item.x - player.x, item.z - player.z) > 330);
+      if (disposable < 0) return { ok: false, vehicle: null, stolen: false, reason: 'vehicle-limit' };
+      abandonedCars.splice(disposable, 1);
+    }
+    const stolen = !abandonedCars.includes(car);
+    abandonedCars.push(prior);
+    car.active = false; car.speed = 0;
+    Object.assign(player, { x: car.x, z: car.z, yaw: car.yaw, modelId: car.modelId, color: car.color,
+      speed: 0, vx: 0, vz: 0, steer: 0 });
+    return { ok: true, vehicle: nearbyVehicles(player.x, player.z, 0).find(item => item.id === 'player'), stolen, reason: 'claimed' };
+  }
+  function moveActor(actor, dx, dz, radius = 0.45) {
+    if (!actor || ![actor.x, actor.z, dx, dz, radius].every(Number.isFinite) || radius <= 0) return { moved: false, blocked: true, distance: 0 };
+    radius = clamp(radius, 0.1, 2);
+    const startX = actor.x, startZ = actor.z;
+    // A bounded sweep prevents thin-wall tunnelling and never seeks a distant road.
+    const length = Math.hypot(dx, dz), scale = length > 8 ? 8 / length : 1;
+    dx *= scale; dz *= scale;
+    const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / Math.min(radius * 0.5, 0.2)));
+    function clear(x, z) {
+      if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return false;
+      for (const index of [buildingIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
+        if (polygonContact(x, z, polygon.points, radius)) return false;
+      }
+      return ![player, ...traffic, ...parkedCars, ...abandonedCars].some(car => car !== actor && car.active !== false && Math.hypot(x - car.x, z - car.z) < radius + 1.8);
+    }
+    let blocked = scale < 1;
+    for (let i = 0; i < steps; i++) {
+      const x = actor.x + dx / steps, z = actor.z + dz / steps;
+      if (clear(x, z)) { actor.x = x; actor.z = z; }
+      else { blocked = true; if (clear(x, actor.z)) actor.x = x; else if (clear(actor.x, z)) actor.z = z; }
+    }
+    const distance = Math.hypot(actor.x - startX, actor.z - startZ);
+    return { moved: distance > 0.00001, blocked, distance, x: actor.x, z: actor.z };
+  }
+  function hasLineOfSight(a, b) {
+    if (!a || !b || ![a.x, a.z, b.x, b.z].every(Number.isFinite)) return false;
+    const distance = Math.hypot(b.x - a.x, b.z - a.z);
+    if (distance > 1500) return false;
+    const polygons = buildingIndex.query((a.x + b.x) / 2, (a.z + b.z) / 2, distance / 2 + 1);
+    for (const polygon of polygons) {
+      if (polygonContact(a.x, a.z, polygon.points, 0.001) || polygonContact(b.x, b.z, polygon.points, 0.001)) return false;
+      for (let i = 0, j = polygon.points.length - 1; i < polygon.points.length; j = i++) {
+        const p = polygon.points[j], q = polygon.points[i];
+        const rx = b.x - a.x, rz = b.z - a.z, sx = q[0] - p[0], sz = q[1] - p[1];
+        const cross = rx * sz - rz * sx;
+        if (Math.abs(cross) < 1e-9) continue;
+        const tx = p[0] - a.x, tz = p[1] - a.z;
+        const t = (tx * sz - tz * sx) / cross, u = (tx * rz - tz * rx) / cross;
+        if (t >= 0 && t <= 1 && u >= 0 && u <= 1) return false;
+      }
+    }
+    return true;
+  }
+  return { player, traffic, parkedCars, abandonedCars, graph, step, reset, teleport, nearestRoad, setParkedCars,
+    setPlayerVehicle, nearbyVehicles, claimVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
 }
