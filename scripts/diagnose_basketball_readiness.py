@@ -471,7 +471,7 @@ def main():
                 page.locator('#close-sheet').click(force=True, timeout=60000)
                 report['stage'] = 'five-on-five'
                 pre = page.evaluate('window.basketballerSnapshot().state')
-                report['preBattle'] = {roster: len(pre['roster']), battleLock: pre['battleLock'],
+                report['preBattle'] = {'roster': len(pre['roster']), 'battleLock': pre['battleLock'],
                     battleReadyAt: pre['battleReadyAt'], npcAttempt: bool(pre['npcAttempt'])}
                 page.locator('#battle').click(force=True, timeout=60000)
                 page.wait_for_function('''() => {const m=window.basketballerSnapshot().match;
