@@ -204,6 +204,71 @@ localFleet.step(1 / 60, {});
 const recycledDistance = Math.hypot(recycled.x - localFleet.player.x, recycled.z - localFleet.player.z);
 assert(recycledDistance > 325 && recycledDistance < 655, 'distant traffic recycles near player beyond the rendering cull');
 console.log('PASS local fleet population and spatially indexed distant-car recycling');
+const street = createSimulation(teleportMap, { trafficCount: 0 });
+street.setPlayerVehicle({ modelId: 'atlas', color: 0x123456 });
+street.setParkedCars([{ id: 'customer:7', x: 20, z: 120, yaw: 0.4, modelId: 'finch', color: 0xabcdef, owner: 'resident' }]);
+assert.equal(street.parkedCars[0].owner, 'resident', 'caller metadata survives indexing');
+assert.equal(street.nearbyVehicles(20, 120)[0].id, 'customer:7');
+Object.assign(street.player, { odometer: 85, crashes: 3 });
+const claimed = street.claimVehicle('customer:7');
+assert(claimed.ok && claimed.stolen);
+assert.equal(claimed.vehicle.id, 'player');
+assert.deepEqual([street.player.modelId, street.player.color, street.player.odometer, street.player.crashes], ['finch', 0xabcdef, 85, 3]);
+assert.equal(street.parkedCars[0].active, false);
+assert.equal(street.abandonedCars[0].modelId, 'atlas');
+assert.equal(street.claimVehicle('customer:7').ok, false, 'inactive sources cannot be claimed twice');
+assert(street.claimVehicle(street.abandonedCars[0].id).ok, 'previous car can be reclaimed');
+assert.equal(street.player.modelId, 'atlas');
+assert.equal(street.abandonedCars.filter(car => car.active).length, 1);
+const actor = { x: 38, z: -60 };
+assert(street.moveActor(actor, 8, 0).blocked && actor.x < 40, 'swept foot movement cannot tunnel through building');
+const swimmer = { x: -78, z: -120 };
+assert(street.moveActor(swimmer, -8, 0).blocked && swimmer.x > -80, 'water blocks actor');
+const walker = { x: 497, z: 300 };
+assert(street.moveActor(walker, 8, 0).blocked && walker.x <= 499.55, 'bounds block actor locally');
+const byCar = { x: street.player.x + 3, z: street.player.z };
+assert(street.moveActor(byCar, -2, 0).blocked && byCar.x >= street.player.x + 2.25, 'vehicle clearance blocks actor');
+assert.equal(street.hasLineOfSight({ x: 20, z: -60 }, { x: 90, z: -60 }), false, 'building blocks full segment');
+assert.equal(street.hasLineOfSight({ x: 20, z: -90 }, { x: 90, z: -90 }), true, 'clear segment stays visible');
+assert.equal(street.hasLineOfSight({ x: 50, z: -60 }, { x: 90, z: -60 }), false, 'interior endpoint blocks sight');
+assert.equal(street.hasLineOfSight({ x: NaN, z: 0 }, { x: 0, z: 0 }), false);
+const capped = createSimulation(largeMap, { trafficCount: 100 });
+assert.equal(capped.traffic.length, 56);
+assert(capped.traffic.every((car, i) => car.id === `traffic:${i}`));
+const focusFleet = createSimulation(largeMap, { seed: 33, trafficCount: 12 });
+const focus = { x: 1500, z: -400 };
+const stable = [...focusFleet.traffic];
+const trafficState = () => focusFleet.traffic.map(({ x, z, speed, active, anger, honkCooldown }) => ({ x, z, speed, active, anger, honkCooldown }));
+const frozen = trafficState();
+focusFleet.step(0, {}, focus);
+assert.deepEqual(trafficState(), frozen, 'dt0 freezes traffic and timers');
+for (let i = 0; i < 180; i++) focusFleet.step(1 / 60, {}, focus);
+assert(focusFleet.traffic.some(car => Math.hypot(car.x - focus.x, car.z - focus.z) < 650), 'walking focus attracts local fleet');
+assert(focusFleet.traffic.every((car, i) => car === stable[i]), 'refresh preserves slots and objects');
+assert(focusFleet.traffic.every(car => car.anger >= 0 && car.anger <= 1 && Number.isFinite(car.overtakeCooldown)));
+const rage = createSimulation(map, { trafficCount: 1 });
+const angry = rage.traffic[0];
+angry.aggressive = true;
+const blocking = pointOnLane(angry.edge, angry.position + 9);
+rage.setParkedCars([{ id: 'blocker', ...blocking }]);
+for (let i = 0; i < 240; i++) rage.step(1 / 60, {});
+assert(angry.anger > 0.4 && angry.honks > 0 && angry.honkCooldown > 0, 'blocked aggressive driver reacts with bounded anger and honk cooldown');
+assert.equal(angry.overtake, 0, 'two-way street does not permit unsafe passing');
+const passingMap = { ...map, spawn: { x: -400, z: -400 }, buildings: [], roads: [
+  { ...road('wide-oneway', [[0, 0], [0, -400]], [91, 92], 1), width: 14 }
+] };
+const passing = createSimulation(passingMap, { trafficCount: 1 });
+const passer = passing.traffic[0];
+passer.position = 70; passer.active = true; passer.speed = 0; passer.anger = 0.8; passer.aggressive = true;
+Object.assign(passer, pointOnLane(passer.edge, passer.position));
+passing.setParkedCars([{ id: 'slow', ...pointOnLane(passer.edge, 82) }]);
+passing.step(1 / 60, {});
+assert(passer.overtake > 0 && passer.overtakeCooldown > 0, 'wide one-way permits clear overtaking with cooldown');
+const passLane = { x: passer.x, z: passer.z };
+passing.setParkedCars([{ id: 'slow', ...pointOnLane(passer.edge, 82) }, { id: 'passing-obstacle', x: passLane.x, z: passLane.z - 10 }]);
+passing.step(1 / 60, {});
+assert.equal(passer.overtake, 0, 'occupied passing corridor immediately cancels overtaking');
+console.log('PASS vehicle metadata/claims, abandoned cars, actor sweeps, polygon sight, bounded stable fleet, walking focus and road rage');
 console.log('Capital Drive simulation: all checks passed');
 
 if (process.argv[2]) {
@@ -211,7 +276,7 @@ if (process.argv[2]) {
   const start = performance.now();
   const city = createSimulation(actual);
   assert(city.graph.edges.length > 0, 'real map contains driveable graph edges');
-  assert.equal(city.traffic.length, 26, 'real map supports the intended traffic population');
+  assert.equal(city.traffic.length, 40, 'real map supports the intended traffic population');
   assert(Number.isFinite(city.nearestRoad(city.player.x, city.player.z)?.distance), 'spawn has a nearest road');
   for (const edge of city.graph.edges) {
     assert(edge.road.oneway !== 1 || edge.direction === 1);
@@ -229,5 +294,5 @@ if (process.argv[2]) {
   assert(arrival.ok && arrival.adjusted && arrival.reason === 'building', 'real footprint boundary receives safe teleport clearance');
   city.step(1 / 60, {});
   assert(Math.hypot(city.player.x - arrival.x, city.player.z - arrival.z) < 0.05, 'real-map arrival needs no subsequent collision correction');
-  console.log(`PASS actual map: ${city.graph.nodes.size} nodes, ${city.graph.edges.length} directed edges, ${actual.buildings.length} indexed buildings, 26 cars; 60-second soak in ${Math.round(performance.now() - start)}ms`);
+  console.log(`PASS actual map: ${city.graph.nodes.size} nodes, ${city.graph.edges.length} directed edges, ${actual.buildings.length} indexed buildings, 40 cars; 60-second soak in ${Math.round(performance.now() - start)}ms`);
 }

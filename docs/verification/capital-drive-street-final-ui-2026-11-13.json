@@ -1,0 +1,25 @@
+{
+  "checks": 16,
+  "passed": [
+    "final landmark geometry renders in actual WebGL",
+    "landmark review uses the sampled public approach",
+    "pause menu opens the garage",
+    "sound enables through its normal button",
+    "keyboard driving retains focus after sound controls",
+    "phone pause menu reaches career garage controls",
+    "phone garage has no horizontal overflow",
+    "phone garage choice has a44px touch target",
+    "phone garage choice has a44px touch target",
+    "phone garage choice has a44px touch target",
+    "phone garage choice has a44px touch target",
+    "phone garage choice has a44px touch target",
+    "phone pause menu enables sound",
+    "no console or page errors",
+    "no failed local assets",
+    "no external runtime requests"
+  ],
+  "errors": [],
+  "failures": [],
+  "external": [],
+  "revision": "5f87c9c892285cf98a35dbd2bdaa1e51f53533fd"
+}
