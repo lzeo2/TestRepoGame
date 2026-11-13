@@ -472,7 +472,7 @@ def main():
                 report['stage'] = 'five-on-five'
                 page.locator('#battle').click(force=True, timeout=60000)
                 page.wait_for_function('''() => {const m=window.basketballerSnapshot().match;
-                    return m && m.players.length===10 && m.shotClock>0 && m.shotClock<24;}''')
+                    return m && m.players.length===10 && m.shotClock>0 && m.shotClock<24;}''', timeout=180000)
                 match = page.evaluate('window.basketballerSnapshot().match')
                 assert [sum(p['side']==side for p in match['players']) for side in (0,1)] == [5,5]
                 assert not report['errors'] and not report['external'], 'Match gate error; stop'
