@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#182c3f">
+  <meta name="description" content="Build a 12-player basketball roster, recruit and steal from NPC rivals, and play five-on-five on your home court.">
+  <title>Leo's Steal a Basketballer</title>
+  <link rel="icon" href="./assets/ball.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <a class="skip" href="#actions">Skip to game controls</a>
+  <canvas id="world" aria-label="Three-dimensional basketball neighborhood and court" tabindex="0"></canvas>
+  <div id="loading" class="screen"><div class="start-card">
+    <img class="crest" src="./assets/ball.svg" alt="">
+    <p class="eyebrow">SOLO CAREER / FIVE ON FIVE</p>
+    <h1>LEO'S STEAL A<br><span>BASKETBALLER</span></h1>
+    <p class="start-description">Sign your first player. Build your starting five.<br>Take over the court.</p>
+    <div class="start-facts"><span><b>100</b> players</span><span><b>12</b> roster spots</span><span><b>5v5</b> basketball</span></div>
+    <p id="load-status" role="status">Loading your team...</p>
+    <button id="start" class="primary" disabled>PLAY</button>
+    <p class="start-controls">WASD move · E interact · Space jump · P pause<br>Drag to orbit · Scroll to zoom · Touch controls on mobile</p>
+    <small>Solo local preview. Progress saves on this device.<br>100 real names, original arcade ratings. No official assets or endorsement.</small>
+  </div></div>
+  <main id="hud" hidden>
+    <header class="hud-header">
+      <div class="club-badge"><img src="./assets/ball.svg" alt=""><div><strong>YOUR TEAM</strong><span id="club-name">MY TEAM</span></div></div>
+      <div class="money"><strong id="coins">150</strong><span>COINS <b id="income">0 /s</b></span></div>
+      <div class="hud-info"><span id="roster-count">0 / 12 players</span><span id="save-status">Saved on this device</span></div>
+      <button id="pause" aria-label="Pause game" class="pause-button">PAUSE <kbd>P</kbd></button>
+      <button id="menu-toggle" aria-label="Toggle team controls" aria-controls="actions" aria-expanded="true" class="mobile-menu">☰</button>
+    </header>
+    <nav id="actions" class="actions" aria-label="Team menus">
+      <button data-panel="roster"><span>01</span>ROSTER</button>
+      <button data-panel="upgrades"><span>02</span>UPGRADE</button>
+      <button id="shield"><span>03</span>SHIELD</button>
+      <button id="battle"><span>04</span>BATTLE</button>
+      <button data-panel="help"><span>?</span>HELP</button>
+    </nav>
+    <nav class="club-tabs" aria-label="Club management">
+      <button data-panel="shop">SHOP</button><button data-panel="events">EVENTS</button><button data-panel="tactics">TACTICS</button><button data-panel="kits">KITS</button><button data-panel="staff">STAFF</button><button data-panel="collection">ALBUM</button>
+    </nav>
+    <div id="score-strip" class="score-strip" aria-label="Home and practice team scoreboard" hidden><span id="match-period">Q1</span><div class="score-value"><small>HOME : PRACTICE</small><strong id="score">0 : 0</strong></div><span id="match-clock">1:30</span><div class="shot-clock"><span id="shot-clock">SHOT 24.0</span><progress id="shot-clock-bar" max="24" value="24" aria-label="Shot clock seconds remaining"></progress><small id="clock-rate">CLOCKS 3x</small></div><button data-panel="match" aria-label="Match controls and report">MATCH</button></div>
+    <div class="travel"><button id="home">GO HOME</button><button id="pitch">GO COURT</button><button id="route">SHOW ROUTE</button></div>
+    <div id="route-label" class="route-label" hidden></div>
+    <aside id="first-signing" class="first-signing"><p class="eyebrow">START YOUR CLUB</p><h2>Your first signing</h2><p>Spend your 150 coins on the conveyor. One recruit unlocks a five-on-five match.</p><button data-action="openMarket">FIND A PLAYER <span aria-hidden="true">→</span></button></aside>
+    <div id="thief-alert" class="thief-alert" role="status" hidden></div>
+    <button id="interaction" class="interaction" hidden></button>
+    <div id="caption" class="caption" role="status" hidden></div>
+    <div id="referee" class="referee" hidden></div>
+    <div id="match-controls" class="match-controls" hidden></div>
+    <div id="spectator" class="spectator" hidden><button id="previous" aria-label="Follow previous player"><svg width="12" height="16" viewBox="0 0 12 16" aria-hidden="true"><path d="m9 2-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></button><select id="follow" aria-label="Spectator target"></select><button id="next" aria-label="Follow next player"><svg width="12" height="16" viewBox="0 0 12 16" aria-hidden="true"><path d="m3 2 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></button><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button data-panel="subs">SUBS</button></div>
+    <div id="touch-controls" class="touch-controls"><div id="joystick" aria-label="Movement joystick"><div id="stick"></div></div><div class="touch-buttons"><button id="touch-jump" aria-label="Jump">JUMP</button><button id="touch-interact" aria-label="Interact">E</button></div></div>
+  </main>
+  <section id="pause-screen" class="pause-screen" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden><div class="pause-card"><p class="eyebrow">TAKE A BREATHER</p><h2 id="pause-title">GAME PAUSED</h2><p>Your match and club income are paused.</p><button id="resume">BACK TO THE COURT</button><small>Escape or P to resume</small></div></section>
+  <section id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+    <header><div><p id="sheet-kicker" class="eyebrow">YOUR BASKETBALL TEAM</p><h2 id="sheet-title"></h2></div><button id="close-sheet" aria-label="Close menu">✕</button></header>
+    <div id="sheet-content" class="sheet-content"></div>
+  </section>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

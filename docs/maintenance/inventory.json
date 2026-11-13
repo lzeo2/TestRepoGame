@@ -1406,6 +1406,18 @@
       "document": "docs/maintenance/games/224-spline-ride.md"
     },
     {
+      "directory": "Games/StealBasketballer",
+      "id": null,
+      "title": "StealBasketballer",
+      "registered": false,
+      "entry": "Games/StealBasketballer/index.html",
+      "entry_blob": "c890d4acc29d90f29f90881e00bb348b32e064bf",
+      "tree": "49eff5657b38cf8fdbdad1a2e6f97da80e0c4bd6",
+      "files": 27,
+      "bytes": 2793315,
+      "document": "docs/maintenance/games/unregistered-stealbasketballer.md"
+    },
+    {
       "directory": "Games/StealFootballer",
       "id": 227,
       "title": "Steal a Footballer for Your Team",

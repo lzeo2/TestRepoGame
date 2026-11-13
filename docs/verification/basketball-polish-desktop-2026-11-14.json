@@ -1,0 +1,384 @@
+{
+  "rendering": "system Chromium headless software WebGL; no hardware/sandbox acceptance",
+  "flags": [
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--enable-unsafe-swiftshader",
+    "--ignore-gpu-blocklist"
+  ],
+  "checks": [
+    {
+      "name": "desktop PLAY",
+      "pass": true
+    },
+    {
+      "name": "desktop affordable natural conveyor recruit",
+      "pass": true
+    },
+    {
+      "name": "album displays 100 identities",
+      "pass": true
+    },
+    {
+      "name": "low graphics selected through normal settings",
+      "pass": true
+    },
+    {
+      "name": "desktop actual 5v5 match",
+      "pass": true
+    },
+    {
+      "name": "pause freezes match, avatar and economy",
+      "pass": true
+    },
+    {
+      "name": "resume advances live match",
+      "pass": true
+    },
+    {
+      "name": "manual player control accepted",
+      "pass": true
+    },
+    {
+      "name": "WASD advances controlled player",
+      "pass": true
+    },
+    {
+      "name": "full court camera selected",
+      "pass": true
+    },
+    {
+      "name": "world drag orbit and wheel zoom",
+      "pass": true
+    },
+    {
+      "name": "single natural recruit has no granted reserve",
+      "pass": true
+    },
+    {
+      "name": "valid attack and defense calls accepted",
+      "pass": true
+    },
+    {
+      "name": "natural full match report",
+      "pass": true
+    },
+    {
+      "name": "actual match reward credited",
+      "pass": true
+    },
+    {
+      "name": "reward and roster survive save/reload",
+      "pass": true
+    }
+  ],
+  "observations": {
+    "desktop recruitment": {
+      "attempts": [
+        {
+          "offers": [
+            {
+              "id": "alex-caruso",
+              "cost": 70
+            },
+            {
+              "id": "xavier-tillman",
+              "cost": 630
+            },
+            {
+              "id": "deandre-hunter",
+              "cost": 1465
+            },
+            {
+              "id": "pascal-siakam",
+              "cost": 1860
+            },
+            {
+              "id": "mystery",
+              "cost": 2000
+            }
+          ],
+          "coins": 150,
+          "affordable": {
+            "id": "alex-caruso",
+            "cost": 70
+          },
+          "toast": "Alex Caruso signed"
+        }
+      ],
+      "panel": "market",
+      "text": "Sign a player with your coins. They join your home roster and start earning immediately.\n\nCommon\nXavier Tillman\n\nC \u00b7 Power 47 \u00b7 4/s\n\n630 coins\n\nNEED MORE COINS\nRare\nDeAndre Hunter\n\nSF \u00b7 Power 62 \u00b7 8/s\n\n1,465 coins\n\nNEED MORE COINS\nEpic\nPascal Siakam\n\nPF \u00b7 Power 66 \u00b7 10/s\n\n1,860 coins\n\nNEED MORE COINS\nMystery\nMystery Player\n\nSF \u00b7 Power ? \u00b7 0/s\n\n2,000 coins\n\nNEED MORE COINS"
+    },
+    "initialMatchRendering": {
+      "drawCalls": 98,
+      "triangles": 29304,
+      "geometries": 209,
+      "textures": 14,
+      "staticParts": 3057,
+      "batches": 83,
+      "actors": 62,
+      "crowdCount": 8,
+      "colliders": 366,
+      "lowGraphics": true,
+      "avatar": {
+        "x": -378,
+        "y": 2.935000333786011,
+        "z": -173,
+        "angle": 3.141592653589793,
+        "moving": false
+      },
+      "camera": {
+        "mode": "pitch",
+        "index": 0,
+        "zoom": 1,
+        "yaw": 0,
+        "pitchIndex": 0,
+        "position": [
+          -259.85821906294717,
+          135.43924380908655,
+          2.247867816964876
+        ],
+        "target": [
+          -300,
+          2.85000042617321,
+          -100
+        ],
+        "aspect": 1.6
+      },
+      "replacedVisuals": 44,
+      "arenaDetailMeshes": 6
+    },
+    "abilityAvailable": true,
+    "controlAttempts": [
+      {
+        "phase": "rebound",
+        "elapsed": 5.5,
+        "accepted": true,
+        "toast": "Player control active for 10 seconds"
+      }
+    ],
+    "cameraAfterDragZoom": {
+      "mode": "ball",
+      "index": 0,
+      "zoom": 0.95,
+      "yaw": 0.8,
+      "pitchIndex": 0,
+      "position": [
+        -242.49618281009992,
+        72.8041484528159,
+        -80.32269343059892
+      ],
+      "target": [
+        -287.3847733142549,
+        4.85000042617321,
+        -114.697217357717
+      ],
+      "aspect": 1.6
+    },
+    "renderingSnapshot": {
+      "drawCalls": 50,
+      "triangles": 17728,
+      "geometries": 192,
+      "textures": 14,
+      "staticParts": 3057,
+      "batches": 83,
+      "actors": 62,
+      "crowdCount": 8,
+      "colliders": 366,
+      "lowGraphics": true,
+      "avatar": {
+        "x": -378,
+        "y": 2.935000333786011,
+        "z": -173,
+        "angle": 3.141592653589793,
+        "moving": false
+      },
+      "camera": {
+        "mode": "celebration",
+        "index": 0,
+        "zoom": 1.5499999999999996,
+        "yaw": 0.8,
+        "pitchIndex": 0,
+        "position": [
+          -222.1997615113537,
+          19.32850931049864,
+          -94.30689096421501
+        ],
+        "target": [
+          -245,
+          4.85000042617321,
+          -100
+        ],
+        "aspect": 1.6
+      },
+      "replacedVisuals": 44,
+      "arenaDetailMeshes": 6
+    },
+    "substitutions": "0/5 substitutions used. Changes happen at a safe stoppage. Choose one of your five and an unused reserve.\n\nPlayer coming off\nPG \u00b7 Alex Caruso\nSG \u00b7 Academy SG\nSF \u00b7 Academy SF\nPF \u00b7 Academy PF\nC \u00b7 Academy C\nBENCH\n\nRecruit reserves to fill your bench.",
+    "playAttempts": [
+      {
+        "play": "zone",
+        "phaseBefore": "live",
+        "phaseAfter": "live",
+        "cooldown": 1.6999999999999993,
+        "toast": "Home calls zone."
+      },
+      {
+        "play": "drive",
+        "phaseBefore": "live",
+        "phaseAfter": "live",
+        "cooldown": 0,
+        "toast": "Win possession first."
+      },
+      {
+        "play": "drive",
+        "phaseBefore": "live",
+        "phaseAfter": "quarterBreak",
+        "cooldown": 1.6499999999999986,
+        "toast": "Alex Caruso drives toward the basket."
+      }
+    ],
+    "abilityAfterF": null,
+    "abilityUsed": false,
+    "completedMatch": {
+      "report": {
+        "score": [
+          13,
+          6
+        ],
+        "winner": 0,
+        "outcome": "win",
+        "quarter": 4,
+        "overtime": 0,
+        "injuries": [],
+        "stats": [
+          {
+            "points": 13,
+            "shots": 10,
+            "fieldGoalsMade": 4,
+            "twoPointersMade": 4,
+            "threePointersAttempted": 0,
+            "threePointersMade": 0,
+            "freeThrowsAttempted": 6,
+            "freeThrowsMade": 5,
+            "passesAttempted": 11,
+            "passesCompleted": 10,
+            "assists": 2,
+            "possessionSeconds": 61.59999999999864,
+            "steals": 7,
+            "interceptions": 5,
+            "blocks": 0,
+            "rebounds": 6,
+            "offensiveRebounds": 4,
+            "fouls": 4,
+            "turnovers": 2,
+            "shotClockViolations": 0,
+            "dribblesAttempted": 14,
+            "dribblesWon": 13,
+            "possessionPercent": 51,
+            "passAccuracy": 91
+          },
+          {
+            "points": 6,
+            "shots": 6,
+            "fieldGoalsMade": 2,
+            "twoPointersMade": 2,
+            "threePointersAttempted": 0,
+            "threePointersMade": 0,
+            "freeThrowsAttempted": 2,
+            "freeThrowsMade": 2,
+            "passesAttempted": 20,
+            "passesCompleted": 15,
+            "assists": 2,
+            "possessionSeconds": 58.39999999999882,
+            "steals": 2,
+            "interceptions": 1,
+            "blocks": 1,
+            "rebounds": 5,
+            "offensiveRebounds": 2,
+            "fouls": 3,
+            "turnovers": 7,
+            "shotClockViolations": 0,
+            "dribblesAttempted": 4,
+            "dribblesWon": 4,
+            "possessionPercent": 49,
+            "passAccuracy": 75
+          }
+        ],
+        "reward": {
+          "ownedPlayers": 1,
+          "averageSkill": 39.23,
+          "multiplier": 1.03846,
+          "incomeRate": 1.35,
+          "resultLabel": "win",
+          "resultBonus": 100,
+          "pointBonus": 39,
+          "performance": 144,
+          "incomeCompensation": 203,
+          "total": 347
+        }
+      },
+      "lastBattle": {
+        "outcome": "win",
+        "score": [
+          13,
+          6
+        ],
+        "reward": {
+          "multiplier": 1.03846,
+          "incomeRate": 1.35,
+          "ownedPlayers": 1,
+          "averageSkill": 39.23,
+          "averageLevel": 0,
+          "resultLabel": "Win",
+          "incomeCompensation": 152,
+          "incomeSkillBonus": 1,
+          "performance": 131,
+          "cap": 413,
+          "total": 284
+        }
+      },
+      "coins": 390.706375
+    }
+  },
+  "console": [
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x28ec001ee000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x28ec001ee000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x28ec001ee000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x28ec001ee000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestFailures": [],
+  "httpErrors": [],
+  "externalRequests": [],
+  "revision": "ec23a3f9c072c118155ca9584cb3ff1275ca4340",
+  "sourceHashes": {
+    "Games/StealBasketballer/js/actors.js": "5b120a2a496468d836a9c9548edc000aeb9fad0eac471a75fbf5902d73ad3105",
+    "Games/StealBasketballer/js/app.js": "213a27452baeb7c6d838aa72287c583531f98c6c6b01f48e15a50bdb716fdcea",
+    "Games/StealBasketballer/js/court-view.js": "42905c8fc7bc9b523bb9334987d5823045d2fe9ef69e7cfd18099396916227c2",
+    "Games/StealBasketballer/js/game.js": "3ae715d3f0cadc3e509273da331bc869a84dfa8ef3394df4ebf31da9078b94dc",
+    "Games/StealBasketballer/js/match.js": "b087346b2489e512331b43e943aa8801c34b8ae2f6693e50e41113efc4029f89",
+    "Games/StealBasketballer/js/world.js": "f38c83a653a3765efa71284548ef8f23577e21eca7f60dc63b8c82e1297115b2"
+  },
+  "status": "FAIL",
+  "error": "'match'",
+  "browserCleanupNotice": "Event loop is closed! Is Playwright already stopped?",
+  "elapsedSeconds": 204.82
+}

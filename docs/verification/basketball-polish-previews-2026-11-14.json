@@ -1,0 +1,86 @@
+{
+  "revision": "ea3fd9379aa54bda4046c3d75117c42c9227b482",
+  "errors": [],
+  "failed": [],
+  "external": [],
+  "views": {
+    "desktopDetail": {
+      "drawCalls": 65,
+      "triangles": 16776,
+      "geometries": 197,
+      "textures": 14,
+      "staticParts": 3057,
+      "batches": 83,
+      "actors": 62,
+      "crowdCount": 8,
+      "colliders": 366,
+      "lowGraphics": false,
+      "avatar": {
+        "x": -378,
+        "y": 2.935000333786011,
+        "z": -173,
+        "angle": 3.141592653589793,
+        "moving": false
+      },
+      "camera": {
+        "mode": "player",
+        "index": 0,
+        "zoom": 1.5999999999999996,
+        "yaw": 0,
+        "pitchIndex": 0,
+        "position": [
+          -303.3470141185342,
+          43.60004297086097,
+          -64.37495752597249
+        ],
+        "target": [
+          -314.76728961475,
+          4.85000042617321,
+          -100
+        ],
+        "aspect": 1.6
+      },
+      "replacedVisuals": 44,
+      "arenaDetailMeshes": 6
+    },
+    "phone": {
+      "drawCalls": 60,
+      "triangles": 19052,
+      "geometries": 185,
+      "textures": 13,
+      "staticParts": 3057,
+      "batches": 83,
+      "actors": 61,
+      "crowdCount": 8,
+      "colliders": 366,
+      "lowGraphics": false,
+      "avatar": {
+        "x": -378,
+        "y": 2.935000333786011,
+        "z": -173,
+        "angle": 3.141592653589793,
+        "moving": false
+      },
+      "camera": {
+        "mode": "ball",
+        "index": 0,
+        "zoom": 1,
+        "yaw": 0,
+        "pitchIndex": 0,
+        "position": [
+          -264.4779786438171,
+          66.85000042616956,
+          -42.14871129649362
+        ],
+        "target": [
+          -260.9713586753,
+          4.85000042617321,
+          -99
+        ],
+        "aspect": 0.46208530805687204
+      },
+      "replacedVisuals": 44,
+      "arenaDetailMeshes": 6
+    }
+  }
+}
