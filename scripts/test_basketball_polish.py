@@ -8,9 +8,11 @@ software WebGL functional/visual pass, not a hardware or native-sandbox claim.
 import argparse
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+import hashlib
 import json
 from pathlib import Path
 import shutil
+import subprocess
 import tempfile
 from threading import Thread
 import time
@@ -44,6 +46,9 @@ def main():
     receipt = {'rendering': 'system Chromium headless software WebGL; no hardware/sandbox acceptance',
                'flags': FLAGS, 'checks': [], 'observations': {}, 'console': [], 'consoleErrors': [],
                'pageErrors': [], 'requestFailures': [], 'httpErrors': [], 'externalRequests': []}
+    receipt['revision'] = subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+    receipt['sourceHashes'] = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
+                              for path in sorted((ROOT/'Games/StealBasketballer/js').glob('*.js'))}
     deadline = time.monotonic() + args.budget
     server = ThreadingHTTPServer(('127.0.0.1', args.port), partial(QuietHandler, directory=str(ROOT)))
     thread = Thread(target=server.serve_forever, daemon=True)
@@ -183,6 +188,13 @@ def main():
             camera_after = snap(page)['world']['camera']
             receipt['observations']['cameraAfterDragZoom'] = camera_after
             check(camera_before['yaw'] != camera_after['yaw'] and camera_before['zoom'] != camera_after['zoom'], 'world drag orbit and wheel zoom')
+            capture(page, 'desktop-ball-follow')
+            page.locator('#follow').select_option('0')
+            for _ in range(4):
+                click(page, '#zoom-in')
+            capture(page, 'desktop-player-detail')
+            receipt['observations']['renderingSnapshot'] = snap(page)['world']
+            page.locator('#follow').select_option('ball')
             click(page, '[data-panel="subs"]')
             receipt['observations']['substitutions'] = page.locator('#sheet-content').inner_text()
             check(page.locator('[data-action="substitute"]').count() == 0, 'single natural recruit has no granted reserve')
@@ -276,6 +288,8 @@ def main():
     except Exception as error:
         receipt['status'] = 'FAIL'
         receipt['error'] = str(error).replace(str(ROOT), '<repo>')
+        if 'page' in locals() and not page.is_closed():
+            capture(page, 'failure')
         raise
     finally:
         if browser:
