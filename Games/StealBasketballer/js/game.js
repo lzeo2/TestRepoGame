@@ -67,7 +67,7 @@ export class Game {
   rng() { return bound(this.random(),0,.999999999999); }
   choice(values) { return values[Math.floor(this.rng()*values.length)]; }
   fresh() {
-    return {version:1,coins:150,roster:[],teamUpgrade:0,stadiumLevel:0,shieldUntil:0,shieldReadyAt:0,practiceLevel:0,wins:0,steals:0,eventTokens:0,
+    return {version:1,coins:150,roster:[],teamUpgrade:0,stadiumLevel:0,shieldUntil:0,shieldReadyAt:0,theftGraceUntil:0,practiceLevel:0,wins:0,steals:0,eventTokens:0,
       tactics:{formation:'balanced',mentality:'balanced',selectedUids:[],captainUid:null,presets:PRESETS.map(([name,formation,mentality])=>({name,formation,mentality,selectedUids:[],captainUid:null}))},
       kit:defaultKit(),staff:{owned:[],slots:{},assignments:[]},settings:{lowGraphics:false,sound:true},market:[],rivals:[],carry:null,npcAttempt:null,
       tools:['whistle'],defenseReadyAt:0,battleLock:false,battleReadyAt:0,trainingLevel:0,sprintUntil:0,incomeBoostUntil:0,collection:[],rewardedUids:[],event:null,developerTeamRedeemed:false};
@@ -100,7 +100,7 @@ export class Game {
     if (s.roster.some(v=>!v)) throw new Error('Invalid recruit identity in save');
     s.coins=bound(raw.coins,0,1e15);
     for (const [key,max] of Object.entries({teamUpgrade:3,stadiumLevel:3,practiceLevel:3,wins:1e9,steals:1e9,eventTokens:1e9,trainingLevel:3})) s[key]=int(raw[key],0,max);
-    for (const key of ['shieldUntil','shieldReadyAt','defenseReadyAt','battleReadyAt','sprintUntil','incomeBoostUntil']) s[key]=bound(raw[key],0,1e13);
+    for (const key of ['shieldUntil','shieldReadyAt','theftGraceUntil','defenseReadyAt','battleReadyAt','sprintUntil','incomeBoostUntil']) s[key]=bound(raw[key],0,1e13);
     const normalizeTactics=v=> {
       v=object(v); const uids=Array.isArray(v.selectedUids)?v.selectedUids.filter((u,i,a)=>seen.has(u)&&a.indexOf(u)===i).slice(0,5):[];
       return {formation:formationExists(v.formation)?v.formation:'balanced',mentality:['balanced','pressing','counter'].includes(v.mentality)?v.mentality:'balanced',selectedUids:uids,captainUid:seen.has(v.captainUid)&&(!uids.length||uids.includes(v.captainUid))?v.captainUid:null};
@@ -160,6 +160,8 @@ export class Game {
   }
   progress(key,amount=1) { const e=this.currentEvent(); if (e.active&&e.key===key) this.state.event.progress=Math.min(e.target,this.state.event.progress+amount); }
   delivered(p,stolen=false) {
+    // Start learning time at the first signing, rather than while browsing an empty team.
+    if (!this.state.collection.length) this.state.theftGraceUntil=this.now()+90;
     if (!this.state.collection.includes(p.id)) this.state.collection.push(p.id);
     if (this.state.rewardedUids.includes(p.uid)) return;
     this.state.rewardedUids.push(p.uid); if (this.state.rewardedUids.length>2000) this.state.rewardedUids.shift();
@@ -235,7 +237,7 @@ export class Game {
         if (s.shieldUntil<=now&&at>=0) { const [p]=s.roster.splice(at,1); rival.roster.push(p); this.cleanSelection(); }
         s.npcAttempt=null;
       }
-      if (!s.npcAttempt&&s.roster.length&&now>=this.nextAttemptAt) {
+      if (!s.npcAttempt&&s.roster.length&&now>=this.nextAttemptAt&&now>=s.theftGraceUntil) {
         this.nextAttemptAt=now+45+this.rng()*30;
         if (s.shieldUntil<=now) { const eligible=s.roster.filter(p=>!s.staff.assignments.some(a=>a.uid===p.uid)); if (eligible.length) s.npcAttempt={uid:this.choice(eligible).uid,base:Math.floor(this.rng()*12),startsAt:now,endsAt:now+12}; }
       }

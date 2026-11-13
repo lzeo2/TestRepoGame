@@ -164,6 +164,30 @@ const uidStorage=new MemoryStorage(),opts={storage:uidStorage,clock:()=>600,rand
 const first=new Game(data,opts);assert.equal(first.action('buy',{marketId:'belt-0'}).ok,true);
 const again=new Game(data,opts);assert.equal(again.action('buy',{marketId:'belt-0'}).ok,true);
 assert.equal(new Set(again.state.roster.map(p=>p.uid)).size,2);
+// Reading the shop before a first purchase must not consume the learning window.
+let learningNow=600;
+const learningStorage=new MemoryStorage();
+const learner=new Game(data,{storage:learningStorage,clock:()=>learningNow,random:()=>0});
+learningNow+=120;learner.tick(.25);
+assert.equal(learner.action('buy',{marketId:'belt-0'}).ok,true);
+learner.tick(.25);
+assert.equal(learner.state.npcAttempt,null,'First recruit has time to learn before NPC theft');
+learningNow+=89;learner.tick(.25);
+assert.equal(learner.state.npcAttempt,null);
+assert.equal(learner.action('beginBattle').ok,true,'A new player can start their first match without repelling a thief');
+assert.equal(learner.action('endBattle',{result:{score:[0,0],forfeit:true}}).ok,true);
+const resumedLearner=new Game(data,{storage:learningStorage,clock:()=>learningNow,random:()=>0});
+resumedLearner.nextAttemptAt=learningNow;
+resumedLearner.tick(.25);
+assert.equal(resumedLearner.state.npcAttempt,null,'Saving and loading retains the first-recruit grace deadline');
+learningNow++;
+resumedLearner.tick(.25);
+assert.ok(resumedLearner.state.npcAttempt,'NPC theft resumes after the one-time learning window');
+learningNow+=12;resumedLearner.tick(.25);
+assert.equal(resumedLearner.state.roster.length,0,'Unanswered theft still transfers ownership');
+assert.equal(resumedLearner.action('buy',{marketId:'belt-0'}).ok,true);
+resumedLearner.nextAttemptAt=learningNow;resumedLearner.tick(.25);
+assert.ok(resumedLearner.state.npcAttempt,'Replacing a stolen recruit does not restart learning grace');
 // One bounded game, not a seed sweep. Keep quarters long enough for live decisions.
 const flowStorage=new MemoryStorage();
 const flow=new Game(data,{storage:flowStorage,clock:()=>600,random:()=>0});
