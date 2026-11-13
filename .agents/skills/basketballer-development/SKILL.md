@@ -23,8 +23,12 @@ State owners:
 - `game.js`: validated isolated saves, economy, recruits, training, NPC theft and
   actual rewards. Only `steal-basketballer:v1` and its companions are accessed.
 - `match.js`: seeded 50ms steps, ten players, possession/rules and score/result.
+- `court-config.js`: court-local feet, 94 by 50, rim X41.75/Y10, ball .4.
 - `world.js`/`court-view.js`/`actors.js`: presentation and collision adapters;
   names must not choose likenesses. Preserve bounds/rims, resource budgets and disposal.
+- `camera-rig.js`, `stadium-view.js`, `officiating-view.js`, `stadium-audio.js`:
+  bounded presentation only; smooth target and position, fit the venue across
+  aspects, keep officials outside play and release all owned resources/voices.
 - `app.js`: the sole RAF, actual input, active-time clock, modes, menus/audio.
   Update live nodes without recreating focused controls. No diagnostic state grants.
 
@@ -35,6 +39,10 @@ node Games/StealBasketballer/tests/fixture.mjs
 node Games/StealBasketballer/tests/match.mjs
 node Games/StealBasketballer/tests/world.mjs
 node Games/StealBasketballer/tests/actors.mjs
+node Games/StealBasketballer/tests/camera.mjs
+node Games/StealBasketballer/tests/stadium.mjs
+node Games/StealBasketballer/tests/officiating.mjs
+node scripts/check_sports_stadium_progression.mjs
 node --experimental-vm-modules scripts/check_basketball_boot.mjs
 ```
 
@@ -49,6 +57,11 @@ the bounded complete pass, `--followup` for normal rest/restart and phone, and
 artifact directory. Keep actual input, the real 45s rest, natural affordable
 signing and the normal 90s/3x quarter contract. No save seeds, cash/roster grants,
 clock acceleration, forced clicks or error filtering as positive proof.
+For the sports continuation, `scripts/test_sports_presentation.py` batches actual
+desktop/phone input, one normal complete match/reward/reload, both upgrade panels,
+and explicitly labeled World-only tier fixtures. Fixture tiers grant no Game
+progression and never establish earned upgrades. Offline generated audio is a
+waveform check; retain the sample and label native audition separately.
 
 Record actual phase results and source hashes. Retain failure statuses and
 explain repaired harness assumptions. Separate pure logic, live milestones,

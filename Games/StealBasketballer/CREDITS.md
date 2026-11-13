@@ -15,7 +15,9 @@ cross-laced nets and articulated athlete meshes/number badges; all are locally
 generated geometry or canvas graphics, with no new downloaded asset.
 The economy, carry/deposit, NPC rivals, progression, local-save validation and
 cream/ink/yellow/green Bungee/Atkinson interface retain the football sibling's
-structure and explicitly requested style. No original football files are changed.
+structure and explicitly requested style. The subsequent owner-ordered sports
+continuation also adds original visible stadium tiers to the existing football
+game, preserving its field, match and save contracts.
 
 ## Exactly 100 real names, not licensed likenesses
 
@@ -52,7 +54,10 @@ This document was not downloaded or newly verified. Four 90-clock-second quarter
 run at 3x, with overtime until a winner. Simplifications include five one-way
 substitutions with no re-entry, no disqualification, traveling, double-dribble,
 out-of-bounds adjudication, and-one, held-ball or timeout rules. It is not an
-official simulation. Courts retain the source's arcade proportions.
+official simulation. The November sports continuation uses a 94-by-50-foot court,
+10-foot rims and human athlete heights, with the existing compressed arcade clocks.
+Its camera, referee, tier geometry and short breath/noise whistle are original
+authored code and local procedural art/audio.
 
 All runtime dependencies are local, copied from the pinned sibling. Font binaries
 are byte-identical. Local modifications: one whitespace-only indentation fix in

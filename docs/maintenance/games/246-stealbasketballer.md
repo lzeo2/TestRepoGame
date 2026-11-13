@@ -12,7 +12,8 @@ the site menu, the existing preview was registered as **246**, Sports, on
 14 November 2026. The runtime entry and saved progress keys are unchanged.
 The portal now has 134 entries across 140 source projects, six unregistered.
 Identity rights remain unreviewed; listing authorization is not an identity
-license. Original Footballer is unchanged. See
+license. The later sports continuation also updates Footballer's stadium
+presentation under the owner's explicit order. See
 [credits](../../../Games/StealBasketballer/CREDITS.md) and
 [local QA](../../steal-basketballer-local-qa.md).
 
@@ -22,11 +23,16 @@ license. Original Footballer is unchanged. See
 `js/match.js` owns seeded fixed-step five-on-five simulation;
 `js/world.js`, `court-view.js` and `actors.js` present original procedural
 maple courts, smooth rims/laced nets, a seamed ball and articulated generic
-athletes. Six merged actor meshes plus an optional numbered badge stay within
-seven meshes and 1,600 triangles. The sampled maximum is 1,284 triangles.
+athletes. `court-config.js` shares 94-by-50-foot dimensions with Match and
+metadata. Six merged meshes plus an optional numbered badge stay within seven
+draws and 1,536 triangles. Independent generic traits and role-based heights
+span 5.7 to 7.1 feet. `camera-rig.js` smooths target and position with aspect-aware
+court/venue fit and zoom .65 to 1.8. `stadium-view.js` owns four bounded visible
+tiers/colliders; `officiating-view.js` presents a six-foot referee on the apron.
 The shared hardwood texture is generated locally at 512 by 512 pixels.
 `index.html/style.css/js/app.js` own menus, input, clocks, spectator, subtitles,
-reports and synthesized local audio. `data/catalog.json` has 100 identities;
+reports; `stadium-audio.js` owns short locally synthesized whistles and distinct
+buzzers with explicit voice cleanup. `data/catalog.json` has 100 identities;
 `data/world.json` preserves 12 plots/routes and has 3,333 total static primitives
 including arena template. Copied Three.js and fonts remain local with licenses.
 `PORT_CONTRACT.md` describes all interfaces. No build/install step.
@@ -79,6 +85,32 @@ Their licenses do not cover game/identity rights. Credits list hashes and rights
 hold. No external runtime loads, downloads, packages or local model generation.
 
 ## Audit findings
+
+### Sports scale, camera and stadium continuation, 14 November 2026
+
+The owner's follow-up replaces the oversized court with shared court-local feet:
+bounds X +/-47/Z +/-25, rims X +/-41.75/Y10, ball .4 and arc23.75. Match movement,
+spacing and release heights use that contract. World replaces the old venue
+visuals and contacts while retaining ordinary source plots, grounds/access paths
+and all source primitive records. Grounded entry sits outside the baseline.
+
+CameraRig smooths camera and target, ignores bounce height in ball follow, bounds
+lead across possessions and fits court/stand bounds across aspect ratios. Ten
+generic match athletes have independent appearance traits and adult role heights.
+A visible referee follows a bounded apron path and signals observed events.
+The whistle combines short stable tones and breath noise; the buzzer is distinct.
+
+Four saved stadium levels now visibly add court, bleachers/benches, larger
+stands/live score, then canopies/lights/entrance. The renderer uses 7/9/12/14 draws
+and 2,970/3,258/4,110/4,314 triangles. Crowd counts are 0/12/24/24. Build controls
+show next features, exact cost and roster gates, update eligibility in place,
+and offer a full-venue camera. Game retains purchase authority and save keys.
+Pure both-sport regressions cover every tier, rejection immutability, exact
+spending and save isolation. See the [sports contract](../../sports-presentation-2026-11-14-contract.md).
+The fresh [sports receipt](../../verification/sports-presentation-2026-11-14.md)
+records43/43 browser checks, normal6:8 match/65coin reward/save-reload, actual
+desktop/phone views and separately labeled high-tier visual fixtures. The
+historical results below retain their original scale/source limits.
 
 ### Site listing correction, 14 November 2026
 
