@@ -153,6 +153,7 @@ export function createPedestrians(scene, map, heightAt) {
     person.direction = person.initialDirection;
     person.path = path; person.distance = distance; person.escape = 0; person.stopped = false;
     person.health = 100; person.reaction = 'calm'; person.fear = 0; person.anger = 0;
+    person.angerOffender = null;
     person.reactionTimer = 0; person.stun = 0; person.knockdown = 0;
     person.hitCooldown = 0; person.witnessCooldown = 0; person.retaliationCooldown = 0;
     Object.assign(person, pointAlong(path, distance));
@@ -259,6 +260,7 @@ export function createPedestrians(scene, map, heightAt) {
     const gun = ['pistol', 'gunshot', 'firearm', 'shot', 'fire'].includes(kind);
     p.fear = Math.max(p.fear, gun ? 1 : 0.65);
     p.anger = gun ? 0 : hit ? (p.id % 5 === 0 ? 1 : 0) : p.anger;
+    if (gun || hit) p.angerOffender = p.anger ? source.offenderId : null;
     p.reaction = p.knockdown > 0 ? 'knockdown' : p.stun > 0 ? 'stunned' : p.anger ? 'angry' : 'panic';
     p.reactionTimer = gun ? 8 : 5;
     const before = pointAlong(p.path, Math.max(0, p.distance - 0.5));
@@ -266,22 +268,22 @@ export function createPedestrians(scene, map, heightAt) {
     const dot = (after.x - before.x) * (p.x - source.x) + (after.z - before.z) * (p.z - source.z);
     if (Math.abs(dot) > 0.001) p.direction = dot > 0 ? 1 : -1;
     if (p.witnessCooldown <= 0) {
-      emit({ type: 'witness', kind, x: source.x, z: source.z, witnessId: p.id });
+      emit({ type: 'witness', kind, x: source.x, z: source.z, witnessId: p.id, offenderId: source.offenderId });
       p.witnessCooldown = 0.8;
     }
   }
-  function alert({ x, z, radius = 28, kind = 'gunshot', hasLineOfSight } = {}) {
+  function alert({ x, z, radius = 28, kind = 'gunshot', hasLineOfSight, offenderId = 'player' } = {}) {
     if (disposed || !Number.isFinite(x) || !Number.isFinite(z)) return 0;
     const reach = Number.isFinite(radius) ? Math.max(0, Math.min(100, radius)) : 28;
     let count = 0;
     for (const p of pool) {
       if (p.knockdown > 0 || Math.hypot(p.x - x, p.z - z) > reach ||
         (hasLineOfSight && !hasLineOfSight({ x, z }, p))) continue;
-      react(p, { x, z }, kind); count++;
+      react(p, { x, z, offenderId }, kind); count++;
     }
     return count;
   }
-  function strike({ x, z, yaw = 0, range = 2, damage = 20, kind = 'melee', hasLineOfSight } = {}) {
+  function strike({ x, z, yaw = 0, range = 2, damage = 20, kind = 'melee', hasLineOfSight, offenderId = 'player' } = {}) {
     const people = [];
     if (disposed || ![x, z, yaw, range, damage].every(Number.isFinite)) return { hits: 0, people };
     const reach = Math.max(0, Math.min(100, range)), power = Math.max(0, Math.min(100, damage));
@@ -296,13 +298,13 @@ export function createPedestrians(scene, map, heightAt) {
       }).sort((a, b) => a.distance - b.distance);
     for (const { p } of candidates.slice(0, gun ? 1 : 3)) {
       p.health = Math.max(0, p.health - power); p.hitCooldown = 0.4;
-      react(p, { x, z }, kind, true);
+      react(p, { x, z, offenderId }, kind, true);
       p.stun = 0.65;
       if (p.health === 0 || power >= 35) { p.knockdown = 2.8; p.reaction = 'knockdown'; }
       else p.reaction = 'stunned';
       people.push(descriptor(p));
     }
-    if (people.length) alert({ x, z, radius: gun ? 40 : 16, kind, hasLineOfSight });
+    if (people.length) alert({ x, z, radius: gun ? 40 : 16, kind, hasLineOfSight, offenderId });
     return { hits: people.length, people };
   }
   let recycleTimer = 0;
@@ -313,15 +315,18 @@ export function createPedestrians(scene, map, heightAt) {
       const gap = Math.hypot(p.x - player.x, p.z - player.z);
       for (const key of ['hitCooldown', 'witnessCooldown', 'retaliationCooldown', 'stun', 'knockdown', 'reactionTimer']) p[key] = Math.max(0, p[key] - dt);
       if (p.reactionTimer <= 0 && p.knockdown <= 0 && p.stun <= 0) {
-        p.reaction = 'calm'; p.fear = 0; p.anger = 0; p.health = Math.min(100, p.health + dt * 20);
+        p.reaction = 'calm'; p.fear = 0; p.anger = 0; p.angerOffender = null; p.health = Math.min(100, p.health + dt * 20);
       } else if (p.knockdown > 0) p.reaction = 'knockdown';
       else if (p.stun > 0) p.reaction = 'stunned';
       else p.reaction = p.anger ? 'angry' : 'flee';
       const reckless = Math.abs(player.speed || 0) > 9 && gap < 11;
       const dangerousCar = traffic.find(car => Math.abs(car.speed || 0) > 9 && Math.hypot(car.x - p.x, car.z - p.z) < 9);
-      if ((reckless || dangerousCar) && p.reactionTimer <= 0) react(p, dangerousCar || player, 'reckless');
-      if (p.reaction === 'angry' && gap < 2.1 && p.retaliationCooldown <= 0) {
-        emit({ type: 'retaliation', kind: 'melee', x: p.x, z: p.z, personId: p.id, damage: 5 });
+      if ((reckless || dangerousCar) && p.reactionTimer <= 0) {
+        const source = reckless ? player : dangerousCar;
+        react(p, { x: source.x, z: source.z, offenderId: reckless ? 'player' : String(source.id || 'npc:traffic') }, 'reckless');
+      }
+      if (p.reaction === 'angry' && p.angerOffender === 'player' && gap < 2.1 && p.retaliationCooldown <= 0) {
+        emit({ type: 'retaliation', kind: 'melee', x: p.x, z: p.z, personId: p.id, targetId: 'player', damage: 5 });
         p.retaliationCooldown = 2.2;
       }
       const caution = Math.min(11, 5 + Math.abs(player.speed || 0) * 0.12);

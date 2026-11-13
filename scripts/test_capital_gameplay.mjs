@@ -89,3 +89,37 @@ for (let i = 0; i < 1800; i++) {
   assert(realGame.state.police.length <= 4);
 }
 console.log('Capital gameplay: foot collision/sprint/jump, entry/theft, combat occlusion/ammo, wanted/search, sandbox, respawn and actual-map finite police PASS');
+
+// Reproduce innocent stationary player beside frightened adults on the real map.
+const threeText = await readFile(new URL('../assets/car-arcade/vendor/three.module.js', import.meta.url), 'utf8');
+const threeURL = `data:text/javascript;base64,${Buffer.from(threeText).toString('base64')}`;
+const THREE = await import(threeURL);
+const pedestrianText = (await readFile(new URL('../Games/Capital Drive/pedestrians.js', import.meta.url), 'utf8'))
+  .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL));
+const { createPedestrians } = await import(`data:text/javascript;base64,${Buffer.from(pedestrianText).toString('base64')}`);
+const attributionSimulation = createSimulation(actual, { trafficCount: 0 });
+const actualAdults = createPedestrians(new THREE.Scene(), actual, () => 0);
+const innocentGame = createGameplay(actual, attributionSimulation, { pedestrians: actualAdults });
+assert(innocentGame.interact());
+const adult = actualAdults.snapshot()[0];
+actualAdults.update(innocentGame.focus(), 0.1, [{ id: 'traffic:23', x: adult.x, z: adult.z, speed: 25 }]);
+assert.notEqual(actualAdults.snapshot()[0].reaction, 'calm');
+innocentGame.step(1 / 60);
+assert.equal(innocentGame.state.wanted, 0, 'actual-map AI reckless driving cannot implicate a stationary on-foot player');
+assert.equal(innocentGame.state.health, 100);
+actualAdults.resetPopulation(actual.spawn);
+actualAdults.alert({ x: adult.x, z: adult.z, kind: 'gunshot' });
+innocentGame.step(1 / 60);
+assert(innocentGame.state.wanted > 0, 'player gunfire witnesses still report the offence');
+actualAdults.dispose();
+// Defensive event consumer also rejects external NPC offence/retaliation descriptors.
+game.reset(); game.interact();
+events.push({ type: 'witness', kind: 'reckless', offenderId: 'traffic:9' },
+  { type: 'offence', kind: 'assault', offenderId: 'traffic:9' },
+  { type: 'retaliation', targetId: 'traffic:9', x: game.state.actor.x, z: game.state.actor.z, damage: 20 });
+game.step(1 / 60);
+assert.equal(game.state.wanted, 0); assert.equal(game.state.health, 100);
+assert.equal(game.reportOffence('reckless', 1, { witnessed: true, offenderId: 'traffic:9' }), false);
+events.push({ type: 'witness', kind: 'reckless', offenderId: 'player' });
+game.step(1 / 60); assert(game.state.wanted > 0, 'explicit player reckless report still raises wanted');
+console.log('Capital gameplay: actual-map AI panic leaves innocent player clear; explicit player offences still report PASS');

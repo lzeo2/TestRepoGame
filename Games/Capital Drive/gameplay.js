@@ -37,7 +37,7 @@ export function createGameplay(map, simulation, options = {}) {
       details = kind; severity = kind.severity ?? 1; kind = kind.kind || 'disturbance';
     }
     const point = details.point || focus();
-    if (state.sandbox || details.witnessed === false || (!details.witnessed && !witnesses(point))) return false;
+    if ((details.offenderId !== undefined && details.offenderId !== 'player') || state.sandbox || details.witnessed === false || (!details.witnessed && !witnesses(point))) return false;
     state.wanted = clamp(state.wanted + clamp(Math.ceil(finite(severity)), 1, 3), 0, 5);
     state.heat = 28 + state.wanted * 9; state.pursuit = 'search'; witnessCooldown = 1;
     lastSeen = { x: point.x, z: point.z };
@@ -212,6 +212,9 @@ export function createGameplay(map, simulation, options = {}) {
     }
     previousCrashes = crashes;
     for (const event of options.pedestrians?.drainEvents?.() || []) {
+      // Ambient drivers can frighten adults without implicating the player.
+      if (event.offenderId !== undefined && event.offenderId !== 'player') continue;
+      if (event.targetId !== undefined && event.targetId !== 'player') continue;
       if ((event.type || event.kind) === 'retaliation' && state.mode === 'foot' && retaliationCooldown <= 0 &&
         distance(event, state.actor) < 3 && visible(event, state.actor)) {
         if (!state.sandbox) state.health = Math.max(0, state.health - clamp(finite(event.damage) || 8, 1, 20));
