@@ -397,18 +397,19 @@ window.addEventListener('resize',()=>world?.resize());
 window.addEventListener('pagehide',e=>{game?.save();if(!e.persisted){audio.dispose();world?.dispose();}});
 
 function frame(now) {
-  const dt=lastTime?Math.min(.05,(now-lastTime)/1000):0;lastTime=now;
+  const elapsed=lastTime?Math.min(1,Math.max(0,(now-lastTime)/1000)):0;lastTime=now;
+  const dt=Math.min(.05,elapsed);
   if(started&&!paused&&!document.hidden) {
-    gameTime+=dt;
-    game.tick(dt);uiTime+=dt;sheetTime+=dt;
+    for(let remaining=elapsed;remaining>1e-8;){const step=Math.min(.25,remaining);gameTime+=step;game.tick(step);remaining-=step;}
+    uiTime+=elapsed;sheetTime+=elapsed;
     const vector={x:((keys.has('d')||keys.has('arrowright'))?1:0)-((keys.has('a')||keys.has('arrowleft'))?1:0)+touchVector.x,z:((keys.has('s')||keys.has('arrowdown'))?1:0)-((keys.has('w')||keys.has('arrowup'))?1:0)+touchVector.z};
     if(match&&!match.finished) {
       if(match.controlState&&!panel)match.control(match.controlState.index,vector);
-      matchState=match.update(dt);updateMatchUI(now);if(match.finished)finishBattle();
+      matchState=match.update(elapsed);updateMatchUI(now);if(match.finished)finishBattle();
     }else if(!panel) {
       const length=Math.max(1,Math.hypot(vector.x,vector.z)),sin=Math.sin(camera.yaw),cos=Math.cos(camera.yaw);
       const speed=game.state.sprintUntil>game.now()?1.5:1;
-      world.moveAvatar({x:(vector.x*cos+vector.z*sin)/length,z:(vector.z*cos-vector.x*sin)/length},dt*speed);
+      for(let remaining=elapsed;remaining>1e-8;){const step=Math.min(.05,remaining);world.moveAvatar({x:(vector.x*cos+vector.z*sin)/length,z:(vector.z*cos-vector.x*sin)/length},step*speed);remaining-=step;}
     }
     if(uiTime>.2){uiTime=0;state=game.snapshot();lineup=game.team();updateHUD();}
     if(sheetTime>1&&panel==='match'){sheetTime=0;refreshMatchPanel();}
