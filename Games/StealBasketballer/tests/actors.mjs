@@ -38,11 +38,53 @@ for(const kind of ['idle','run','dribble','pass','shoot','freeThrow','block','re
   }
 }
 assert.equal(position.array,buffer,'Animation reuses the allocated vertex buffer');
+factory.pose(a,'shoot',.8);
 assert.notDeepEqual(Array.from(buffer),rest,'Forearms bend in the merged mesh');
-factory.pose(a,'shoot',.8);assert(a.rightArm.rotation.x<-2);assert(a.rightArm.userData.hinge.rotation.x<-.5);
+assert(a.rightArm.rotation.x<-2);assert(a.rightArm.userData.hinge.rotation.x<-.5);
 factory.pose(a,'defend',.8);assert(a.leftLeg.userData.hinge.rotation.x>.3);
 factory.pose(a,{type:'run'},NaN,Infinity);assert(a.body.position.toArray().every(Number.isFinite));
 assert.equal(JSON.stringify(source),before,'Presentation never mutates catalog data');
+// Fixed representatives exercise trait combinations, not a probabilistic population sweep.
+const representatives = Array.from({length: 18}, (_, i) => factory.create({id: `variety-${i}`}));
+const profiles = representatives.map(actor => actor.profile);
+assert(new Set(profiles.map(p => p.skinColor)).size >= 5);
+assert.equal(new Set(profiles.map(p => p.hairStyle)).size, 6);
+assert.equal(new Set(profiles.map(p => p.accessory)).size, 4);
+assert(new Set(profiles.map(p => p.hairColor)).size >= 3);
+assert(Math.max(...profiles.map(p => p.buildScale)) - Math.min(...profiles.map(p => p.buildScale)) > .18);
+assert(Math.max(...profiles.map(p => p.heightFeet)) - Math.min(...profiles.map(p => p.heightFeet)) > 1);
+for (const trait of ['hairStyle', 'hairColor', 'accessory']) {
+  assert(profiles.some((p, i) => profiles.some((q, j) => i !== j && p.skinColor === q.skinColor && p[trait] !== q[trait])), `${trait} varies within a skin tone`);
+}
+let maxTriangles = triangles;
+for (const actor of representatives) {
+  actor.root.updateMatrixWorld(true);
+  const bounds = new THREE.Box3().setFromObject(actor.root);
+  assert(Math.abs(bounds.max.y - bounds.min.y - actor.profile.heightFeet) < 1e-5);
+  assert(bounds.min.y >= -1e-5 && bounds.min.y < .08);
+  assert(actor.profile.heightFeet >= 5.7 && actor.profile.heightFeet <= 7.1);
+  let draws = 0, count = 0;
+  actor.root.traverse(o => {if (o.isMesh) {draws++; count += (o.geometry.index?.count || o.geometry.attributes.position.count) / 3;}});
+  assert.equal(draws, 7); assert(count < 1600); maxTriangles = Math.max(maxTriangles, count);
+  for (const kind of ['run', 'defend', 'shoot']) {
+    factory.pose(actor, kind, .7); actor.root.updateMatrixWorld(true);
+    const posed = new THREE.Box3().setFromObject(actor.root);
+    assert(posed.min.y >= -1e-5 && posed.min.y < .08, `${actor.profile.hairStyle}/${kind} grounded`);
+  }
+}
+const roleRanges = {PG:[5.7,6.4], SG:[6.1,6.7], SF:[6.3,6.9], PF:[6.5,7], C:[6.7,7.1]};
+for (const [role, [min, max]] of Object.entries(roleRanges)) {
+  const actor = factory.create(source, {}, {role, simple: true});
+  assert(actor.profile.heightFeet >= min && actor.profile.heightFeet <= max);
+  for (const trait of ['skinColor', 'hairStyle', 'hairColor', 'buildScale', 'accessory']) assert.equal(actor.profile[trait], a.profile[trait], `${role} changes height only`);
+  factory.release(actor);
+}
+const scaled = factory.create(source, {}, {scale: .5, simple: true});
+scaled.root.updateMatrixWorld(true);
+const scaledBounds = new THREE.Box3().setFromObject(scaled.root);
+assert(Math.abs(scaledBounds.max.y - scaledBounds.min.y - scaled.profile.heightFeet * .5) < 1e-5);
+factory.release(scaled);
+representatives.forEach(actor => factory.release(actor));
 let geometryDisposals=0,textureDisposals=0,materialDisposals=0;
 a.merged.forEach(g=>g.addEventListener('dispose',()=>geometryDisposals++));
 a.owned[0].texture.addEventListener('dispose',()=>textureDisposals++);
@@ -51,5 +93,11 @@ factory.release(a);factory.release(a);
 assert.equal(geometryDisposals,6);assert.equal(textureDisposals,1);assert.equal(materialDisposals,1);
 assert.equal(factory.textures.length,1);
 factory.release(b);assert.equal(factory.textures.length,0);
-factory.dispose();delete globalThis.document;
-console.log(`PASS actors: generic seeded profiles, numbered jersey, seven meshes/${triangles} triangles, ten grounded basketball poses, in-place elbows/knees, finite input and idempotent geometry/badge disposal.`);
+let sharedDisposals = 0;
+const sharedResources = [...Object.values(factory.geometries), ...factory.materials.values(), factory.mergedMaterial];
+sharedResources.forEach(resource => resource.addEventListener('dispose', () => sharedDisposals++));
+factory.dispose();
+assert.equal(sharedDisposals, sharedResources.length, 'Factory releases its shared geometry and materials');
+assert.equal(factory.materials.size, 0);
+delete globalThis.document;
+console.log(`PASS actors: independent generic traits, six hairstyles, adult role heights, numbered jersey, at most seven meshes/${maxTriangles} triangles, ten grounded basketball poses, in-place elbows/knees, finite input and idempotent geometry/badge disposal.`);

@@ -15,7 +15,10 @@ Generic teams and bodies, no likeness assets. Names were manually curated, not
 verified against a live official snapshot. `data/world.json` preserves 12 plots,
 market routes and venue anchors, replacing football fields/goals with original
 hardwood/markings/hoops. `basketballCourt` describes matching visible/simulated
-bounds x +/-90, z +/-65, rims x +/-82/y10/z0, arc radius48, free-throw x +/-55.
+bounds x +/-47, z +/-25, rims x +/-41.75/y10/z0, arc radius23.75,
+free-throw x +/-28 and ball radius .4, all in court-local feet.
+`js/court-config.js` is the shared dimension authority. The source plot primitives
+remain in JSON; World replaces their old venue presentation and collision boxes.
 
 ## Game
 
@@ -77,12 +80,19 @@ movement uses bounded collision substeps; rendering time is separately bounded.
 Slow rendering therefore does not discard most of the displayed match clock.
 World receives actual Match; renders at most ten match actors, procedural seamed
 ball, hoops, maple hardwood, generic articulated athletes and existing neighborhood.
-A shared 512px canvas texture supplies original wood grain. Six arena-detail
-draws add 1,248 triangles; exactly 44 non-colliding rim/net fragments are visually
-replaced while all source data/colliders remain intact. Actor sampling stays at
-1,284 triangles/six merged meshes plus an optional numbered badge. No real
-likeness/official kit is inferred from catalog names. Full-court framing uses
-viewport aspect; nearby world labels are smaller and hide in match views.
+A shared 512px canvas texture supplies original wood grain. `stadium-view.js`
+replaces the old venue visuals/colliders, retaining ordinary plots and access
+grounds. Four tiers add bleachers, larger stands/live score, then canopies,
+lights and an entrance: 7/9/12/14 draws and 2,970/3,258/4,110/4,314 triangles.
+Game owns all purchase costs, roster gates and saved level. The venue preview
+camera fits the complete stands, separate from full-court match framing.
+Generic adult heights range 5.7 to 7.1 feet with role-based bounds, independent
+hair/skin/build/accessories and at most seven draws/1,536 triangles per athlete.
+No real likeness/official kit is inferred from names. Nearby labels hide in
+match views. `camera-rig.js` smooths target and camera, rejects vertical ball
+bounce, bounds possession lead and clamps zoom .65 to 1.8 with aspect-aware fit.
+`officiating-view.js` observes events with an original six-foot referee outside
+play; `stadium-audio.js` owns locally synthesized whistle/buzzer lifecycle.
 `pitchPosition`, `mode:'pitch'` remain internal compatibility names for court.
 Avatar travel and theft routes preserve grounded collision handling.
 
@@ -110,6 +120,10 @@ No runtime import points into the football folder.
 `game.mjs`'s one bounded recruit/theft/deposit/match/report/reload flow.
 `node tests/match.mjs` covers rules and one compressed seeded match, not a sweep.
 `node tests/world.mjs` checks detached geometry/collision/render APIs, no WebGL.
+`node tests/camera.mjs`, `tests/stadium.mjs` and `tests/officiating.mjs` check
+framing/cadence, tier geometry/disposal and referee/audio lifecycle.
+`node ../../scripts/check_sports_stadium_progression.mjs` verifies both Games'
+actual tier authority, exact spending, rejection immutability and save isolation.
 `tests/browser.py` retains its historical optional start-only check. The
 owner-requested polish pass uses `scripts/test_basketball_polish.py`: a bounded
 normal-input desktop full match/report/reload plus phone layout/touch/camera

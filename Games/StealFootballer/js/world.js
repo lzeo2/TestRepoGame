@@ -1,5 +1,6 @@
 import * as THREE from '../vendor/three.module.js';
 import {ActorFactory,dribbleMotion} from './actors.js';
+import {StadiumView,REPLACED_STADIUM_PARTS} from './stadium-view.js';
 
 const clamp = (n, low, high) => Math.min(high, Math.max(low, n));
 const finite = (n, fallback = 0) => Number.isFinite(n) ? n : fallback;
@@ -100,6 +101,7 @@ export class World {
     this.bases=this.normalizedBases();this.pitchIndex=0;this.venueColliders=[];
     this.bounds=new THREE.Box3(new THREE.Vector3(-900,-20,-900),new THREE.Vector3(1100,200,1100));
     this.buildStatic();this.buildHotspots();
+    this.stadiumView=new StadiumView();this.stadiumGroup=this.stadiumView.root;this.scene.add(this.stadiumGroup);
     const spawn=xyz(this.worldData.spawn || this.bases[0]?.spawn,[this.basePosition(0).x,this.basePosition(0).y+.04,this.basePosition(0).z+10]);
     this.avatar={x:spawn[0],y:spawn[1],z:spawn[2],angle:Math.PI};this.avatarActor=this.factory.create({id:'avatar',name:'YOU',appearance:{hairStyle:'quiff',skinColor:'#D7AC84',hairColor:'#34251B',bootColor:'#171D26'}},{primary:'#F4DA62',shorts:'#263549'},{simple:true});this.scene.add(this.avatarActor.root);
     this.matchGroup=new THREE.Group();this.scene.add(this.matchGroup);
@@ -148,7 +150,8 @@ export class World {
       const district=venue?'venue':`${Math.floor(center.x/120)},${Math.floor(center.z/120)}`;
       const neon=String(p.material).includes('Neon');const key=`${district}|${kind}|${transparency.toFixed(2)}|${neon}|${level}`;
       if(!batches.has(key))batches.set(key,{kind,transparency,neon,level,venue,items:[]});
-      batches.get(key).items.push({matrix,color:tint(p.color),center,path});
+      const replaced=venue&&REPLACED_STADIUM_PARTS.includes(p.name);
+      if(!replaced)batches.get(key).items.push({matrix,color:tint(p.color),center,path});
       if(p.collision===true || p.collide===true || p.canCollide===true) {
         const box=new THREE.Box3(new THREE.Vector3(-.5,-.5,-.5),new THREE.Vector3(.5,.5,.5)).applyMatrix4(matrix);this.colliders.push(box);
         if(venue)this.venueColliders.push({box,original:box.clone(),level});
@@ -156,6 +159,7 @@ export class World {
       if(p.text || p.label) this.addLabel(String(p.text || p.label),center.clone().add(new THREE.Vector3(0,size[1]/2+1.5,0)),Math.min(18,size[0]));
     }
     for(const batch of batches.values()) {
+      if(!batch.items.length)continue;
       const material=batch.neon?new THREE.MeshBasicMaterial({color:'#FFFFFF'}):new THREE.MeshLambertMaterial({color:'#FFFFFF'});
       material.transparent=batch.transparency>0;material.opacity=1-batch.transparency;this.materials.push(material);
       const mesh=new THREE.InstancedMesh(this.staticGeometries[batch.kind],material,batch.items.length);
@@ -249,7 +253,7 @@ export class World {
   }
 
   updateCrowd(level,animate) {
-    this.crowdCount=Math.min(this.crowdSeats.length,[8,8,16,24][clamp(Math.trunc(finite(level)),0,3)]);if(!animate&&this.crowdStaticCount===this.crowdCount)return;this.crowdStaticCount=animate?null:this.crowdCount;const dummy=new THREE.Object3D();
+    this.crowdCount=Math.min(this.crowdSeats.length,[0,8,16,24][clamp(Math.trunc(finite(level)),0,3)]);if(!animate&&this.crowdStaticCount===this.crowdCount)return;this.crowdStaticCount=animate?null:this.crowdCount;const dummy=new THREE.Object3D();
     for(const part of this.crowdParts){part.mesh.count=this.crowdCount;for(let i=0;i<this.crowdCount;i++){const seat=this.crowdSeats[i],p=seat.matrix;dummy.position.set(p[12]+part.position[0],p[13]+seat.size[1]/2+part.position[1],p[14]+part.position[2]);dummy.scale.set(...part.size);dummy.rotation.set(0,0,animate&&part.name.startsWith('arm')?Math.sin(this.time*2+i)*.3:0);dummy.updateMatrix();part.mesh.setMatrixAt(i,dummy.matrix);}part.mesh.instanceMatrix.needsUpdate=true;}
   }
 
@@ -269,6 +273,7 @@ export class World {
     const {mode,index,zoom}=this.cameraConfig;let target=new THREE.Vector3(this.avatar.x,this.avatar.y+3,this.avatar.z);let offset=new THREE.Vector3(20,23,30);
     if(mode!=='avatar'){
       const pitch=this.pitchPosition(this.pitchIndex);target.set(pitch.x,pitch.y,pitch.z);offset.set(0,155,135);
+      if(mode==='venue')offset.set(0,180,180).multiplyScalar(Math.max(1,1/this.camera.aspect));
       if(match&&(mode==='ball'||mode==='player'||mode==='celebration'||mode==='icon')){
         const celebration=match.celebration;const indexedScorer=Number.isInteger(celebration?.scorerIndex)?match.players?.[celebration.scorerIndex]:null;
         const scorer=indexedScorer||(celebration&&match.players?.find(p=>(p.name===celebration.scorer||p.id===celebration.scorer||p.key===celebration.scorer)&&p.side===celebration.side));
@@ -294,6 +299,7 @@ export class World {
     this.rebuildDisplays(state);this.updateMarket(state.market);this.updateMatch(match,state);this.updateCamera(match,dt);
     const focus=this.camera.position;const far=this.lowGraphics?360:800;
     const venue=this.bases[this.pitchIndex]?.pitch;const venuePosition=venue?new THREE.Vector3(...xyz(venue.position)):this.venueOrigin;const venueDelta=venuePosition.clone().sub(this.venueOrigin);
+    if(this.stadiumView){this.stadiumView.setLevel(state.stadiumLevel);this.stadiumGroup.position.copy(venuePosition);this.stadiumView.update({match});this.stadiumGroup.visible=venuePosition.distanceTo(focus)<far+160;}
     for(const chunk of this.chunks){if(chunk.venue)chunk.mesh.position.copy(venueDelta);const center=chunk.center.clone().add(chunk.mesh.position);chunk.mesh.visible=chunk.level<=finite(state.stadiumLevel)&&center.distanceTo(focus)<far+finite(chunk.mesh.boundingSphere?.radius);}
     for(const entry of this.venueColliders)entry.box.copy(entry.original).translate(venueDelta);
     for(const label of this.labels)label.visible=label.position.distanceTo(focus)<(this.lowGraphics?80:140);
@@ -302,6 +308,6 @@ export class World {
   }
 
   resize() {const width=Math.max(1,this.canvas.clientWidth||this.canvas.width||800);const height=Math.max(1,this.canvas.clientHeight||this.canvas.height||600);this.renderer.setPixelRatio(Math.min(typeof devicePixelRatio==='number'?devicePixelRatio:1,this.lowGraphics?1:1.5));this.renderer.setSize(width,height,false);this.camera.aspect=width/height;this.camera.updateProjectionMatrix();}
-  snapshot() {return {drawCalls:this.renderer.info.render.calls,triangles:this.renderer.info.render.triangles,geometries:this.renderer.info.memory.geometries,textures:this.renderer.info.memory.textures,staticParts:(this.worldData.parts||this.worldData.staticParts||[]).length,batches:this.chunks.length,actors:this.actors.size+this.matchActors.length+1,crowdCount:this.crowdCount,colliders:this.colliders.length,lowGraphics:this.lowGraphics,avatar:{...this.avatar},camera:{...this.cameraConfig}};}
-  dispose() {if(this.disposed)return;this.disposed=true;this.actors.forEach(entry=>this.factory.release(entry.actor));this.matchActors.forEach(a=>this.factory.release(a));this.factory.release(this.avatarActor);this.factory.dispose();Object.values(this.staticGeometries).forEach(g=>g.dispose());this.ballGeometry.dispose();this.ringGeometry.dispose();this.materials.forEach(m=>m.dispose());this.labelTextures.forEach(t=>t.dispose());this.renderer.dispose();this.renderer.forceContextLoss();this.scene.clear();}
+  snapshot() {return {stadium:this.stadiumView?.snapshot(),drawCalls:this.renderer.info.render.calls,triangles:this.renderer.info.render.triangles,geometries:this.renderer.info.memory.geometries,textures:this.renderer.info.memory.textures,staticParts:(this.worldData.parts||this.worldData.staticParts||[]).length,batches:this.chunks.length,actors:this.actors.size+this.matchActors.length+1,crowdCount:this.crowdCount,colliders:this.colliders.length,lowGraphics:this.lowGraphics,avatar:{...this.avatar},camera:{...this.cameraConfig}};}
+  dispose() {if(this.disposed)return;this.disposed=true;this.stadiumView?.dispose();this.actors.forEach(entry=>this.factory.release(entry.actor));this.matchActors.forEach(a=>this.factory.release(a));this.factory.release(this.avatarActor);this.factory.dispose();Object.values(this.staticGeometries).forEach(g=>g.dispose());this.ballGeometry.dispose();this.ringGeometry.dispose();this.materials.forEach(m=>m.dispose());this.labelTextures.forEach(t=>t.dispose());this.renderer.dispose();this.renderer.forceContextLoss();this.scene.clear();}
 }

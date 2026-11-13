@@ -1,0 +1,1529 @@
+{
+  "rendering": "headless system Chromium software WebGL, not physical hardware acceptance",
+  "flags": [
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--enable-unsafe-swiftshader",
+    "--ignore-gpu-blocklist"
+  ],
+  "checks": [
+    {
+      "name": "basketball actual PLAY",
+      "pass": true
+    },
+    {
+      "name": "basketball-desktop real tier0 requirements shown",
+      "pass": true
+    },
+    {
+      "name": "basketball-desktop unaffordable build disabled",
+      "pass": true
+    },
+    {
+      "name": "basketball-desktop blocked build loses no coins",
+      "pass": true
+    },
+    {
+      "name": "basketball-desktop VIEW VENUE camera",
+      "pass": true
+    },
+    {
+      "name": "normal low graphics setting",
+      "pass": true
+    },
+    {
+      "name": "natural affordable basketball recruit",
+      "pass": true
+    },
+    {
+      "name": "real five-on-five match",
+      "pass": true
+    },
+    {
+      "name": "regulation94x50 court diagnostics",
+      "pass": true
+    },
+    {
+      "name": "basketball-desktop zoom lower clamp .65",
+      "pass": true
+    },
+    {
+      "name": "basketball-desktop zoom upper clamp 1.8",
+      "pass": true
+    },
+    {
+      "name": "basketball-desktop player follow",
+      "pass": true
+    },
+    {
+      "name": "basketball-desktop orbit drag",
+      "pass": true
+    },
+    {
+      "name": "basketball-desktop no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "ten athletes with varied heights",
+      "pass": true
+    },
+    {
+      "name": "human athlete height bounds",
+      "pass": true
+    },
+    {
+      "name": "independent generic athlete appearance variety",
+      "pass": true
+    },
+    {
+      "name": "visible referee outside playable court",
+      "pass": true
+    },
+    {
+      "name": "normal complete basketball match report",
+      "pass": true
+    },
+    {
+      "name": "actual complete-match reward",
+      "pass": true
+    },
+    {
+      "name": "natural reward and roster save reload",
+      "pass": true
+    },
+    {
+      "name": "football actual PLAY",
+      "pass": true
+    },
+    {
+      "name": "football-desktop real tier0 requirements shown",
+      "pass": true
+    },
+    {
+      "name": "football-desktop unaffordable build disabled",
+      "pass": true
+    },
+    {
+      "name": "football-desktop blocked build loses no coins",
+      "pass": true
+    },
+    {
+      "name": "football-desktop VIEW VENUE camera",
+      "pass": true
+    },
+    {
+      "name": "offline generated whistle nonzero and unclipped",
+      "pass": true
+    },
+    {
+      "name": "basketball actual PLAY",
+      "pass": true
+    },
+    {
+      "name": "basketball-phone real tier0 requirements shown",
+      "pass": true
+    },
+    {
+      "name": "basketball-phone unaffordable build disabled",
+      "pass": true
+    },
+    {
+      "name": "basketball-phone blocked build loses no coins",
+      "pass": true
+    },
+    {
+      "name": "basketball-phone VIEW VENUE camera",
+      "pass": true
+    },
+    {
+      "name": "normal low graphics setting",
+      "pass": true
+    },
+    {
+      "name": "natural affordable basketball recruit",
+      "pass": true
+    },
+    {
+      "name": "basketball-phone zoom lower clamp .65",
+      "pass": true
+    },
+    {
+      "name": "basketball-phone zoom upper clamp 1.8",
+      "pass": true
+    },
+    {
+      "name": "basketball-phone player follow",
+      "pass": true
+    },
+    {
+      "name": "basketball-phone orbit drag",
+      "pass": true
+    },
+    {
+      "name": "basketball-phone no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "no page exceptions",
+      "pass": true
+    },
+    {
+      "name": "no console errors unfiltered",
+      "pass": true
+    },
+    {
+      "name": "no failed local runtime requests",
+      "pass": true
+    },
+    {
+      "name": "no external runtime requests",
+      "pass": true
+    }
+  ],
+  "observations": {
+    "basketball-desktop-venue": {
+      "drawCalls": 27,
+      "triangles": 29066,
+      "geometries": 141,
+      "textures": 4,
+      "staticParts": 3057,
+      "batches": 77,
+      "actors": 51,
+      "crowdCount": 24,
+      "colliders": 359,
+      "lowGraphics": false,
+      "avatar": {
+        "x": -357,
+        "y": 2.8850004291534423,
+        "z": -82,
+        "angle": 0,
+        "moving": false
+      },
+      "camera": {
+        "mode": "venue",
+        "index": 0,
+        "zoom": 1,
+        "yaw": 0,
+        "pitchIndex": 0,
+        "position": [
+          -300,
+          128.17186257602685,
+          -21.364517189379796
+        ],
+        "target": [
+          -300,
+          5.85000042617321,
+          -100
+        ],
+        "aspect": 1.7777777777777777
+      },
+      "replacedVisuals": 271,
+      "athletes": [],
+      "stadium": {
+        "level": 0,
+        "lowGraphics": false,
+        "disposed": false,
+        "drawCalls": 7,
+        "triangles": 2970,
+        "score": "0:0",
+        "court": {
+          "length": 94,
+          "width": 50,
+          "rims": [
+            [
+              -41.75,
+              10.175,
+              0
+            ],
+            [
+              41.75,
+              10.175,
+              0
+            ]
+          ],
+          "floorTop": 0.175
+        },
+        "entryOffset": [
+          -57,
+          0.175,
+          18
+        ],
+        "colliders": [
+          {
+            "min": [
+              -61,
+              -0.175,
+              -34
+            ],
+            "max": [
+              61,
+              0.175,
+              34
+            ]
+          }
+        ]
+      },
+      "official": {
+        "visible": false,
+        "signal": "idle",
+        "serial": -1,
+        "path": 78,
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "height": 6.015,
+        "draws": 5
+      }
+    },
+    "basketball-live-world": {
+      "drawCalls": 91,
+      "triangles": 26302,
+      "geometries": 84,
+      "textures": 14,
+      "staticParts": 3057,
+      "batches": 77,
+      "actors": 62,
+      "crowdCount": 0,
+      "colliders": 359,
+      "lowGraphics": true,
+      "avatar": {
+        "x": -357,
+        "y": 2.8850004261732103,
+        "z": -82,
+        "angle": 0,
+        "moving": false
+      },
+      "camera": {
+        "mode": "pitch",
+        "index": 0,
+        "zoom": 1.2000000000000004,
+        "yaw": 2.048,
+        "pitchIndex": 0,
+        "position": [
+          -244.03053193367865,
+          104.1006422329344,
+          -129.06511270612393
+        ],
+        "target": [
+          -300.0452988173212,
+          5.85000042617321,
+          -100.01771864510954
+        ],
+        "aspect": 1.7777777777777777
+      },
+      "replacedVisuals": 271,
+      "athletes": [
+        {
+          "heightFeet": 6.093035507574678,
+          "role": "PG",
+          "hairStyle": "fade",
+          "skinColor": "#795036",
+          "accessory": "left-sleeve",
+          "buildScale": 0.8946658797352575
+        },
+        {
+          "heightFeet": 6.459968278603628,
+          "role": "SG",
+          "hairStyle": "fade",
+          "skinColor": "#C5936D",
+          "accessory": "left-sleeve",
+          "buildScale": 1.0041683331504463
+        },
+        {
+          "heightFeet": 6.689438255410642,
+          "role": "SF",
+          "hairStyle": "curls",
+          "skinColor": "#583B2D",
+          "accessory": "right-wrist",
+          "buildScale": 0.9488306403066963
+        },
+        {
+          "heightFeet": 6.736616137670353,
+          "role": "PF",
+          "hairStyle": "curls",
+          "skinColor": "#583B2D",
+          "accessory": "headband",
+          "buildScale": 1.0544913089391774
+        },
+        {
+          "heightFeet": 7.087627864815294,
+          "role": "C",
+          "hairStyle": "cropped",
+          "skinColor": "#F0CCAA",
+          "accessory": "none",
+          "buildScale": 1.035387143390253
+        },
+        {
+          "heightFeet": 6.093035507574678,
+          "role": "PG",
+          "hairStyle": "fade",
+          "skinColor": "#795036",
+          "accessory": "left-sleeve",
+          "buildScale": 0.8946658797352575
+        },
+        {
+          "heightFeet": 6.459968278603628,
+          "role": "SG",
+          "hairStyle": "fade",
+          "skinColor": "#C5936D",
+          "accessory": "left-sleeve",
+          "buildScale": 1.0041683331504463
+        },
+        {
+          "heightFeet": 6.689438255410642,
+          "role": "SF",
+          "hairStyle": "curls",
+          "skinColor": "#583B2D",
+          "accessory": "right-wrist",
+          "buildScale": 0.9488306403066963
+        },
+        {
+          "heightFeet": 6.736616137670353,
+          "role": "PF",
+          "hairStyle": "curls",
+          "skinColor": "#583B2D",
+          "accessory": "headband",
+          "buildScale": 1.0544913089391774
+        },
+        {
+          "heightFeet": 7.087627864815294,
+          "role": "C",
+          "hairStyle": "cropped",
+          "skinColor": "#F0CCAA",
+          "accessory": "none",
+          "buildScale": 1.035387143390253
+        }
+      ],
+      "stadium": {
+        "level": 0,
+        "lowGraphics": true,
+        "disposed": false,
+        "drawCalls": 6,
+        "triangles": 2970,
+        "score": "2:4",
+        "court": {
+          "length": 94,
+          "width": 50,
+          "rims": [
+            [
+              -41.75,
+              10.175,
+              0
+            ],
+            [
+              41.75,
+              10.175,
+              0
+            ]
+          ],
+          "floorTop": 0.175
+        },
+        "entryOffset": [
+          -57,
+          0.175,
+          18
+        ],
+        "colliders": [
+          {
+            "min": [
+              -61,
+              -0.175,
+              -34
+            ],
+            "max": [
+              61,
+              0.175,
+              34
+            ]
+          }
+        ]
+      },
+      "official": {
+        "visible": true,
+        "signal": "idle",
+        "serial": 16,
+        "path": 58.80131458267434,
+        "position": [
+          -19.198685417325663,
+          0,
+          -28
+        ],
+        "height": 6.015,
+        "draws": 5
+      }
+    },
+    "natural-match": {
+      "report": {
+        "score": [
+          6,
+          8
+        ],
+        "winner": 1,
+        "outcome": "loss",
+        "quarter": 4,
+        "overtime": 0,
+        "injuries": [],
+        "stats": [
+          {
+            "points": 6,
+            "shots": 13,
+            "fieldGoalsMade": 3,
+            "twoPointersMade": 3,
+            "threePointersAttempted": 0,
+            "threePointersMade": 0,
+            "freeThrowsAttempted": 0,
+            "freeThrowsMade": 0,
+            "passesAttempted": 12,
+            "passesCompleted": 10,
+            "assists": 3,
+            "possessionSeconds": 63.34999999999854,
+            "steals": 7,
+            "interceptions": 2,
+            "blocks": 0,
+            "rebounds": 6,
+            "offensiveRebounds": 3,
+            "fouls": 4,
+            "turnovers": 6,
+            "shotClockViolations": 0,
+            "dribblesAttempted": 11,
+            "dribblesWon": 11,
+            "possessionPercent": 53,
+            "passAccuracy": 83
+          },
+          {
+            "points": 8,
+            "shots": 11,
+            "fieldGoalsMade": 3,
+            "twoPointersMade": 3,
+            "threePointersAttempted": 0,
+            "threePointersMade": 0,
+            "freeThrowsAttempted": 2,
+            "freeThrowsMade": 2,
+            "passesAttempted": 10,
+            "passesCompleted": 8,
+            "assists": 2,
+            "possessionSeconds": 56.899999999998904,
+            "steals": 6,
+            "interceptions": 2,
+            "blocks": 2,
+            "rebounds": 10,
+            "offensiveRebounds": 5,
+            "fouls": 2,
+            "turnovers": 7,
+            "shotClockViolations": 0,
+            "dribblesAttempted": 7,
+            "dribblesWon": 7,
+            "possessionPercent": 47,
+            "passAccuracy": 80
+          }
+        ],
+        "reward": {
+          "ownedPlayers": 1,
+          "averageSkill": 37.96,
+          "multiplier": 1.03592,
+          "incomeRate": 1.2,
+          "resultLabel": "loss",
+          "resultBonus": 25,
+          "pointBonus": 18,
+          "performance": 45,
+          "incomeCompensation": 36,
+          "total": 81
+        }
+      },
+      "lastBattle": {
+        "outcome": "loss",
+        "score": [
+          6,
+          8
+        ],
+        "reward": {
+          "multiplier": 1.03592,
+          "incomeRate": 1.2,
+          "ownedPlayers": 1,
+          "averageSkill": 37.96,
+          "averageLevel": 0,
+          "resultLabel": "Loss",
+          "incomeCompensation": 27,
+          "incomeSkillBonus": 0,
+          "performance": 38,
+          "cap": 286,
+          "total": 65
+        }
+      }
+    },
+    "football-desktop-venue": {
+      "stadium": {
+        "tier": 0,
+        "capacity": 0,
+        "features": [
+          "Basic pitch"
+        ],
+        "drawCalls": 0,
+        "triangles": 0,
+        "scoreText": "0 : 0 | HOME GROUND",
+        "scoreUpdates": 1,
+        "colliders": 0
+      },
+      "drawCalls": 31,
+      "triangles": 41100,
+      "geometries": 173,
+      "textures": 3,
+      "staticParts": 3095,
+      "batches": 69,
+      "actors": 57,
+      "crowdCount": 24,
+      "colliders": 364,
+      "lowGraphics": false,
+      "avatar": {
+        "x": -378,
+        "y": 2.8850004261732103,
+        "z": -173,
+        "angle": 3.141592653589793,
+        "moving": false,
+        "distance": 0
+      },
+      "camera": {
+        "mode": "venue",
+        "index": 0,
+        "zoom": 1,
+        "yaw": 0,
+        "pitchIndex": 0
+      }
+    },
+    "VisualFixture-basketball-tier0": {
+      "label": "VisualFixture: not earned progression",
+      "frames": 26,
+      "world": {
+        "drawCalls": 43,
+        "triangles": 39062,
+        "geometries": 25,
+        "textures": 3,
+        "staticParts": 3057,
+        "batches": 77,
+        "actors": 5,
+        "crowdCount": 24,
+        "colliders": 359,
+        "lowGraphics": false,
+        "avatar": {
+          "x": -89,
+          "y": 2.90000057220459,
+          "z": -28,
+          "angle": 3.141592653589793,
+          "moving": false
+        },
+        "camera": {
+          "mode": "venue",
+          "index": 0,
+          "zoom": 1,
+          "yaw": 0,
+          "pitchIndex": 0,
+          "position": [
+            -181.8179505259671,
+            128.02099223096258,
+            18.862908770754167
+          ],
+          "target": [
+            -196.82620359912065,
+            5.874449264498588,
+            -64.79377563571893
+          ],
+          "aspect": 1.7777777777777777
+        },
+        "replacedVisuals": 271,
+        "athletes": [],
+        "stadium": {
+          "level": 0,
+          "lowGraphics": false,
+          "disposed": false,
+          "drawCalls": 7,
+          "triangles": 2970,
+          "score": "0:0",
+          "court": {
+            "length": 94,
+            "width": 50,
+            "rims": [
+              [
+                -41.75,
+                10.175,
+                0
+              ],
+              [
+                41.75,
+                10.175,
+                0
+              ]
+            ],
+            "floorTop": 0.175
+          },
+          "entryOffset": [
+            -57,
+            0.175,
+            18
+          ],
+          "colliders": [
+            {
+              "min": [
+                -61,
+                -0.175,
+                -34
+              ],
+              "max": [
+                61,
+                0.175,
+                34
+              ]
+            }
+          ]
+        },
+        "official": {
+          "visible": false,
+          "signal": "idle",
+          "serial": -1,
+          "path": 78,
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "height": 6.015,
+          "draws": 5
+        }
+      }
+    },
+    "VisualFixture-basketball-tier3": {
+      "label": "VisualFixture: not earned progression",
+      "frames": 55,
+      "world": {
+        "drawCalls": 27,
+        "triangles": 26070,
+        "geometries": 27,
+        "textures": 3,
+        "staticParts": 3057,
+        "batches": 77,
+        "actors": 5,
+        "crowdCount": 24,
+        "colliders": 387,
+        "lowGraphics": false,
+        "avatar": {
+          "x": -89,
+          "y": 2.90000057220459,
+          "z": -28,
+          "angle": 3.141592653589793,
+          "moving": false
+        },
+        "camera": {
+          "mode": "venue",
+          "index": 0,
+          "zoom": 1,
+          "yaw": 0,
+          "pitchIndex": 0,
+          "position": [
+            -289.64243216748935,
+            128.1741666361247,
+            -17.830265380072262
+          ],
+          "target": [
+            -295.6331565078195,
+            5.851035226231529,
+            -98.50989226807108
+          ],
+          "aspect": 1.7777777777777777
+        },
+        "replacedVisuals": 271,
+        "athletes": [],
+        "stadium": {
+          "level": 3,
+          "lowGraphics": false,
+          "disposed": false,
+          "drawCalls": 14,
+          "triangles": 4314,
+          "score": "0:0",
+          "court": {
+            "length": 94,
+            "width": 50,
+            "rims": [
+              [
+                -41.75,
+                10.175,
+                0
+              ],
+              [
+                41.75,
+                10.175,
+                0
+              ]
+            ],
+            "floorTop": 0.175
+          },
+          "entryOffset": [
+            -57,
+            0.175,
+            18
+          ],
+          "colliders": [
+            {
+              "min": [
+                -61,
+                -0.175,
+                -34
+              ],
+              "max": [
+                61,
+                0.175,
+                34
+              ]
+            },
+            {
+              "min": [
+                -35,
+                0.4,
+                -39
+              ],
+              "max": [
+                35,
+                1.2000000000000002,
+                -37
+              ]
+            },
+            {
+              "min": [
+                -35,
+                1.2000000000000002,
+                -41
+              ],
+              "max": [
+                35,
+                2,
+                -39
+              ]
+            },
+            {
+              "min": [
+                -35,
+                2.0000000000000004,
+                -43
+              ],
+              "max": [
+                35,
+                2.8000000000000003,
+                -41
+              ]
+            },
+            {
+              "min": [
+                -35,
+                0.4,
+                37
+              ],
+              "max": [
+                35,
+                1.2000000000000002,
+                39
+              ]
+            },
+            {
+              "min": [
+                -35,
+                1.2000000000000002,
+                39
+              ],
+              "max": [
+                35,
+                2,
+                41
+              ]
+            },
+            {
+              "min": [
+                -35,
+                2.0000000000000004,
+                41
+              ],
+              "max": [
+                35,
+                2.8000000000000003,
+                43
+              ]
+            },
+            {
+              "min": [
+                -44,
+                2.725,
+                -45.1
+              ],
+              "max": [
+                44,
+                3.6750000000000003,
+                -42.9
+              ]
+            },
+            {
+              "min": [
+                -44,
+                3.6750000000000003,
+                -47.300000000000004
+              ],
+              "max": [
+                44,
+                4.625,
+                -45.1
+              ]
+            },
+            {
+              "min": [
+                -44,
+                4.625,
+                -49.5
+              ],
+              "max": [
+                44,
+                5.574999999999999,
+                -47.3
+              ]
+            },
+            {
+              "min": [
+                -44,
+                5.575,
+                -51.7
+              ],
+              "max": [
+                44,
+                6.5249999999999995,
+                -49.5
+              ]
+            },
+            {
+              "min": [
+                -44,
+                6.525,
+                -53.9
+              ],
+              "max": [
+                44,
+                7.475,
+                -51.699999999999996
+              ]
+            },
+            {
+              "min": [
+                -44,
+                2.725,
+                42.9
+              ],
+              "max": [
+                44,
+                3.6750000000000003,
+                45.1
+              ]
+            },
+            {
+              "min": [
+                -44,
+                3.6750000000000003,
+                45.1
+              ],
+              "max": [
+                44,
+                4.625,
+                47.300000000000004
+              ]
+            },
+            {
+              "min": [
+                -44,
+                4.625,
+                47.3
+              ],
+              "max": [
+                44,
+                5.574999999999999,
+                49.5
+              ]
+            },
+            {
+              "min": [
+                -44,
+                5.575,
+                49.5
+              ],
+              "max": [
+                44,
+                6.5249999999999995,
+                51.7
+              ]
+            },
+            {
+              "min": [
+                -44,
+                6.525,
+                51.699999999999996
+              ],
+              "max": [
+                44,
+                7.475,
+                53.9
+              ]
+            },
+            {
+              "min": [
+                -7.3,
+                0,
+                -55.3
+              ],
+              "max": [
+                -6.7,
+                12,
+                -54.7
+              ]
+            },
+            {
+              "min": [
+                6.7,
+                0,
+                -55.3
+              ],
+              "max": [
+                7.3,
+                12,
+                -54.7
+              ]
+            },
+            {
+              "min": [
+                -42.35,
+                0,
+                -54.35
+              ],
+              "max": [
+                -41.65,
+                15,
+                -53.65
+              ]
+            },
+            {
+              "min": [
+                41.65,
+                0,
+                -54.35
+              ],
+              "max": [
+                42.35,
+                15,
+                -53.65
+              ]
+            },
+            {
+              "min": [
+                -45.275,
+                0,
+                -34.275
+              ],
+              "max": [
+                -44.725,
+                20,
+                -33.725
+              ]
+            },
+            {
+              "min": [
+                44.725,
+                0,
+                -34.275
+              ],
+              "max": [
+                45.275,
+                20,
+                -33.725
+              ]
+            },
+            {
+              "min": [
+                -42.35,
+                0,
+                53.65
+              ],
+              "max": [
+                -41.65,
+                15,
+                54.35
+              ]
+            },
+            {
+              "min": [
+                41.65,
+                0,
+                53.65
+              ],
+              "max": [
+                42.35,
+                15,
+                54.35
+              ]
+            },
+            {
+              "min": [
+                -45.275,
+                0,
+                33.725
+              ],
+              "max": [
+                -44.725,
+                20,
+                34.275
+              ]
+            },
+            {
+              "min": [
+                44.725,
+                0,
+                33.725
+              ],
+              "max": [
+                45.275,
+                20,
+                34.275
+              ]
+            },
+            {
+              "min": [
+                -59.3,
+                0,
+                11.7
+              ],
+              "max": [
+                -58.7,
+                10,
+                12.3
+              ]
+            },
+            {
+              "min": [
+                -59.3,
+                0,
+                23.7
+              ],
+              "max": [
+                -58.7,
+                10,
+                24.3
+              ]
+            }
+          ]
+        },
+        "official": {
+          "visible": false,
+          "signal": "idle",
+          "serial": -1,
+          "path": 78,
+          "position": [
+            0,
+            0,
+            0
+          ],
+          "height": 6.015,
+          "draws": 5
+        }
+      }
+    },
+    "VisualFixture-football-tier0": {
+      "label": "VisualFixture: not earned progression",
+      "frames": 34,
+      "world": {
+        "stadium": {
+          "tier": 0,
+          "capacity": 0,
+          "features": [
+            "Basic pitch"
+          ],
+          "drawCalls": 0,
+          "triangles": 0,
+          "scoreText": "0 : 0 | HOME GROUND",
+          "scoreUpdates": 1,
+          "colliders": 0
+        },
+        "drawCalls": 25,
+        "triangles": 38972,
+        "geometries": 4,
+        "textures": 1,
+        "staticParts": 3095,
+        "batches": 69,
+        "actors": 5,
+        "crowdCount": 24,
+        "colliders": 364,
+        "lowGraphics": false,
+        "avatar": {
+          "x": -89,
+          "y": 2.90000057220459,
+          "z": -28,
+          "angle": 3.141592653589793,
+          "moving": false
+        },
+        "camera": {
+          "mode": "venue",
+          "index": 0,
+          "zoom": 1,
+          "yaw": 0,
+          "pitchIndex": 0
+        }
+      }
+    },
+    "VisualFixture-football-tier3": {
+      "label": "VisualFixture: not earned progression",
+      "frames": 65,
+      "world": {
+        "stadium": {
+          "tier": 3,
+          "capacity": 48,
+          "features": [
+            "Basic pitch",
+            "Bleachers",
+            "Team benches",
+            "Expanded stands",
+            "Live scoreboard",
+            "Floodlights",
+            "Canopies",
+            "Entrance gate"
+          ],
+          "drawCalls": 4,
+          "triangles": 1682,
+          "scoreText": "0 : 0 | HOME GROUND",
+          "scoreUpdates": 1,
+          "colliders": 0
+        },
+        "drawCalls": 30,
+        "triangles": 40726,
+        "geometries": 6,
+        "textures": 2,
+        "staticParts": 3095,
+        "batches": 69,
+        "actors": 5,
+        "crowdCount": 24,
+        "colliders": 364,
+        "lowGraphics": false,
+        "avatar": {
+          "x": -89,
+          "y": 2.90000057220459,
+          "z": -28,
+          "angle": 3.141592653589793,
+          "moving": false
+        },
+        "camera": {
+          "mode": "venue",
+          "index": 0,
+          "zoom": 1,
+          "yaw": 0,
+          "pitchIndex": 0
+        }
+      }
+    },
+    "OfflineGeneratedAudio-not-native-audition": {
+      "rms": 0.009347914855499672,
+      "peak": 0.0445624440908432,
+      "rate": 44100
+    },
+    "basketball-phone-venue": {
+      "drawCalls": 20,
+      "triangles": 13634,
+      "geometries": 122,
+      "textures": 4,
+      "staticParts": 3057,
+      "batches": 77,
+      "actors": 51,
+      "crowdCount": 24,
+      "colliders": 359,
+      "lowGraphics": false,
+      "avatar": {
+        "x": -357,
+        "y": 2.8850004291534423,
+        "z": -82,
+        "angle": 0,
+        "moving": false
+      },
+      "camera": {
+        "mode": "venue",
+        "index": 0,
+        "zoom": 1,
+        "yaw": 0,
+        "pitchIndex": 0,
+        "position": [
+          -300,
+          316.52355054390307,
+          99.71871078996921
+        ],
+        "target": [
+          -300,
+          5.85000042617321,
+          -100
+        ],
+        "aspect": 0.46208530805687204
+      },
+      "replacedVisuals": 271,
+      "athletes": [],
+      "stadium": {
+        "level": 0,
+        "lowGraphics": false,
+        "disposed": false,
+        "drawCalls": 7,
+        "triangles": 2970,
+        "score": "0:0",
+        "court": {
+          "length": 94,
+          "width": 50,
+          "rims": [
+            [
+              -41.75,
+              10.175,
+              0
+            ],
+            [
+              41.75,
+              10.175,
+              0
+            ]
+          ],
+          "floorTop": 0.175
+        },
+        "entryOffset": [
+          -57,
+          0.175,
+          18
+        ],
+        "colliders": [
+          {
+            "min": [
+              -61,
+              -0.175,
+              -34
+            ],
+            "max": [
+              61,
+              0.175,
+              34
+            ]
+          }
+        ]
+      },
+      "official": {
+        "visible": false,
+        "signal": "idle",
+        "serial": -1,
+        "path": 78,
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "height": 6.015,
+        "draws": 5
+      }
+    },
+    "basketball-phone-world": {
+      "drawCalls": 91,
+      "triangles": 26302,
+      "geometries": 89,
+      "textures": 14,
+      "staticParts": 3057,
+      "batches": 77,
+      "actors": 61,
+      "crowdCount": 0,
+      "colliders": 359,
+      "lowGraphics": true,
+      "avatar": {
+        "x": -357,
+        "y": 2.8850004261732103,
+        "z": -82,
+        "angle": 0,
+        "moving": false
+      },
+      "camera": {
+        "mode": "pitch",
+        "index": 0,
+        "zoom": 1.0500000000000005,
+        "yaw": 0.624,
+        "pitchIndex": 0,
+        "position": [
+          -214.82475340456236,
+          232.60759358723644,
+          18.301564071236495
+        ],
+        "target": [
+          -299.99928689535153,
+          5.85000042617321,
+          -100.00000109545132
+        ],
+        "aspect": 0.46208530805687204
+      },
+      "replacedVisuals": 271,
+      "athletes": [
+        {
+          "heightFeet": 6.1199629917042335,
+          "role": "PG",
+          "hairStyle": "fade",
+          "skinColor": "#C5936D",
+          "accessory": "left-sleeve",
+          "buildScale": 1.0041683331504463
+        },
+        {
+          "heightFeet": 6.459968278603628,
+          "role": "SG",
+          "hairStyle": "fade",
+          "skinColor": "#C5936D",
+          "accessory": "left-sleeve",
+          "buildScale": 1.0041683331504463
+        },
+        {
+          "heightFeet": 6.689438255410642,
+          "role": "SF",
+          "hairStyle": "curls",
+          "skinColor": "#583B2D",
+          "accessory": "right-wrist",
+          "buildScale": 0.9488306403066963
+        },
+        {
+          "heightFeet": 6.736616137670353,
+          "role": "PF",
+          "hairStyle": "curls",
+          "skinColor": "#583B2D",
+          "accessory": "headband",
+          "buildScale": 1.0544913089391774
+        },
+        {
+          "heightFeet": 7.087627864815294,
+          "role": "C",
+          "hairStyle": "cropped",
+          "skinColor": "#F0CCAA",
+          "accessory": "none",
+          "buildScale": 1.035387143390253
+        },
+        {
+          "heightFeet": 6.093035507574678,
+          "role": "PG",
+          "hairStyle": "fade",
+          "skinColor": "#795036",
+          "accessory": "left-sleeve",
+          "buildScale": 0.8946658797352575
+        },
+        {
+          "heightFeet": 6.459968278603628,
+          "role": "SG",
+          "hairStyle": "fade",
+          "skinColor": "#C5936D",
+          "accessory": "left-sleeve",
+          "buildScale": 1.0041683331504463
+        },
+        {
+          "heightFeet": 6.689438255410642,
+          "role": "SF",
+          "hairStyle": "curls",
+          "skinColor": "#583B2D",
+          "accessory": "right-wrist",
+          "buildScale": 0.9488306403066963
+        },
+        {
+          "heightFeet": 6.736616137670353,
+          "role": "PF",
+          "hairStyle": "curls",
+          "skinColor": "#583B2D",
+          "accessory": "headband",
+          "buildScale": 1.0544913089391774
+        },
+        {
+          "heightFeet": 7.087627864815294,
+          "role": "C",
+          "hairStyle": "cropped",
+          "skinColor": "#F0CCAA",
+          "accessory": "none",
+          "buildScale": 1.035387143390253
+        }
+      ],
+      "stadium": {
+        "level": 0,
+        "lowGraphics": true,
+        "disposed": false,
+        "drawCalls": 6,
+        "triangles": 2970,
+        "score": "2:0",
+        "court": {
+          "length": 94,
+          "width": 50,
+          "rims": [
+            [
+              -41.75,
+              10.175,
+              0
+            ],
+            [
+              41.75,
+              10.175,
+              0
+            ]
+          ],
+          "floorTop": 0.175
+        },
+        "entryOffset": [
+          -57,
+          0.175,
+          18
+        ],
+        "colliders": [
+          {
+            "min": [
+              -61,
+              -0.175,
+              -34
+            ],
+            "max": [
+              61,
+              0.175,
+              34
+            ]
+          }
+        ]
+      },
+      "official": {
+        "visible": true,
+        "signal": "idle",
+        "serial": 7,
+        "path": 51.41623333333299,
+        "position": [
+          -26.58376666666701,
+          0,
+          -28
+        ],
+        "height": 6.015,
+        "draws": 5
+      }
+    }
+  },
+  "console": [
+    {
+      "context": "basketball",
+      "type": "warning",
+      "text": "[.WebGL-0x15ec009e5e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "basketball",
+      "type": "warning",
+      "text": "[.WebGL-0x15ec009e5e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "basketball",
+      "type": "warning",
+      "text": "[.WebGL-0x15ec009e5e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "basketball",
+      "type": "warning",
+      "text": "[.WebGL-0x15ec009e5e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    }
+  ],
+  "pageErrors": [],
+  "httpErrors": [],
+  "failedRequests": [],
+  "externalRequests": [],
+  "status": "PASS",
+  "elapsedSeconds": 204.25
+}

@@ -211,10 +211,13 @@ const controlButton=actionButton('controlPlayer');
 for(let index=0;index<22;index++)frames.shift()(5000+index*50);
 assert.equal(actionButton('controlPlayer'),controlButton,'Live match panel keeps its button nodes');
 assert.equal(controlButton.isConnected,true);
+let frameTime=6050,liveWait=0;
+while(controlButton.disabled&&liveWait<160){frameTime+=50;frames.shift()(frameTime);liveWait++;}
+assert.equal(controlButton.disabled,false,'Player control becomes available during actual live play');
 click(controlButton);
 assert.ok(window.basketballerSnapshot().match.control,'Stable normal control button remains actionable');
 const beforeSlow=window.basketballerSnapshot().match.elapsed;
-for(let index=0;index<10;index++)frames.shift()(6250+index*200);
+for(let index=0;index<10;index++){frameTime+=200;frames.shift()(frameTime);}
 assert.ok(window.basketballerSnapshot().match.elapsed-beforeSlow>=1.95,'Slow frames retain elapsed match time');
-console.log(`PASS ordinary app UI: installed PLAY -> SHOP/conveyor -> ${recruit.id} (${recruit.cost}/150 coins) -> BATTLE; real Match 5v5 + ten World actors; Q1/score/shot-clock HUD; isolated save; pause/deadline freeze/resume; stable match menu/player-control input; slow-frame elapsed time; 59 bounded RAF callbacks`);
+console.log(`PASS ordinary app UI: installed PLAY -> SHOP/conveyor -> ${recruit.id} (${recruit.cost}/150 coins) -> BATTLE; real Match 5v5 + ten World actors; Q1/score/shot-clock HUD; isolated save; pause/deadline freeze/resume; stable match menu/player-control input; slow-frame elapsed time; ${59+liveWait} bounded RAF callbacks`);
 console.log('LIMIT: restricted DOM/2D/fetch/storage/RAF and WebGLRenderer doubles; AudioContext absent follows production fallback. No browser/GPU/layout/native audio/touch/full-match acceptance.');

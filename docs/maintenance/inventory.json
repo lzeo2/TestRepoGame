@@ -1412,9 +1412,9 @@
       "registered": true,
       "entry": "Games/StealBasketballer/index.html",
       "entry_blob": "c890d4acc29d90f29f90881e00bb348b32e064bf",
-      "tree": "6cb3103c7cdfd5fce50bc1bc0acd8aeb2134a68f",
-      "files": 27,
-      "bytes": 2793460,
+      "tree": "a321dee80a1577d57b20fa683111eb1ea3a4a985",
+      "files": 35,
+      "bytes": 2838804,
       "document": "docs/maintenance/games/246-stealbasketballer.md"
     },
     {
@@ -1424,9 +1424,9 @@
       "registered": true,
       "entry": "Games/StealFootballer/index.html",
       "entry_blob": "8f94e387ceef2350f534f65b9bb984b679ea34ab",
-      "tree": "fbae42173934ede1f2f59df8ca0644c51f1fd5aa",
-      "files": 30,
-      "bytes": 2917670,
+      "tree": "53bb0da5d67364adc8b8e78ddcfba8097a20624b",
+      "files": 32,
+      "bytes": 2930429,
       "document": "docs/maintenance/games/227-stealfootballer.md"
     },
     {

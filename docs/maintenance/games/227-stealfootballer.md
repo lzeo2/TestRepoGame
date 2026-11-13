@@ -27,6 +27,15 @@ spectator camera, on-screen commentary and synthesized crowd/referee audio.
 `js/match.js` owns the 22-player simulation, contacts, play calls, abilities,
 offsides, injuries, restarts, substitutions, extra time, penalties and report.
 `js/world.js`/`js/actors.js` present state with Three.js; they grant no coins.
+`js/stadium-view.js` presents four saved upgrade levels with instanced bleachers,
+stands/live scoreboard, canopies, lights and entrance. Twelve old decoration
+names are replaced in rendering only; source field/goals and colliders remain.
+Maximum new venue presentation is four draws/1,682 triangles. VIEW VENUE uses an
+aspect-aware wide camera; upgrade UI exposes actual costs, roster gates and
+features while Game retains purchase authority and existing saved levels/keys.
+The [14 November sports receipt](../../verification/sports-presentation-2026-11-14.md)
+records fresh tier authority, actual PLAY/upgrade-panel/venue flow and labeled
+World-only high-tier captures. It does not renew complete football-match acceptance.
 `js/input.js` contains keyboard editing guards and focus restoration/trapping.
 `PORT_CONTRACT.md` records interfaces. `data/catalog.json` contains 125 source
 identities; `data/world.json` contains 3,095 static primitives, a 261-part stadium

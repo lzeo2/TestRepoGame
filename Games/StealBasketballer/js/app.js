@@ -1,6 +1,8 @@
 import {Game} from './game.js';
 import {Match} from './match.js';
 import {World} from './world.js';
+import {CAMERA_ZOOM} from './camera-rig.js';
+import {StadiumAudio} from './stadium-audio.js';
 
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -24,55 +26,6 @@ let commentarySerial = -1, audioSerial = -1, captionUntil = 0, captionQueue = []
 let followKey = '', lastControlsKey = '', touchVector = {x:0,z:0}, keys = new Set(), pointer;
 let thiefKey = '', marketKey = '', gameTime = Date.now()/1000;
 
-// Original synthesized crowd and referee cues: no speech or downloaded recordings.
-class StadiumAudio {
-  constructor() { this.enabled=true;this.context=null;this.ambient=null;this.voices=new Set(); }
-  start() {
-    if (!this.context) {
-      const Audio = window.AudioContext || window.webkitAudioContext;
-      if (!Audio) return;
-      this.context=new Audio();this.master=this.context.createGain();this.master.gain.value=.15;this.master.connect(this.context.destination);
-      this.noise=this.context.createBuffer(1,this.context.sampleRate*3,this.context.sampleRate);
-      const samples=this.noise.getChannelData(0);for(let i=0;i<samples.length;i++)samples[i]=Math.random()*2-1;
-    }
-    this.context.resume().catch(()=>{});
-  }
-  configure(enabled, inMatch) {
-    this.enabled=enabled;
-    if (!this.context) return;
-    this.master.gain.setTargetAtTime(enabled?.15:0,this.context.currentTime,.15);
-    if (enabled && inMatch && !this.ambient) {
-      const source=this.context.createBufferSource(), filter=this.context.createBiquadFilter(), gain=this.context.createGain();
-      source.buffer=this.noise;source.loop=true;filter.type='lowpass';filter.frequency.value=500;gain.gain.value=.12;
-      source.connect(filter);filter.connect(gain);gain.connect(this.master);source.start();this.ambient={source,gain};
-    } else if ((!enabled||!inMatch) && this.ambient) {
-      const {source,gain}=this.ambient;gain.gain.setTargetAtTime(0,this.context.currentTime,.5);source.stop(this.context.currentTime+2);this.ambient=null;
-    }
-  }
-  cue(kind) {
-    if (!this.enabled||!this.context) return;
-    const now=this.context.currentTime;
-    if (['foul','violation','period','fullTime','tipoff'].includes(kind)) {
-      const count=kind==='fullTime'?3:kind==='period'?2:1;
-      for(let i=0;i<count;i++) {
-        const tone=this.context.createOscillator(),gain=this.context.createGain();const t=now+i*.38;
-        tone.type='sine';tone.frequency.setValueAtTime(2100+Math.random()*420,t);tone.frequency.linearRampToValueAtTime(2700,t+.08);
-        gain.gain.setValueAtTime(0,t);gain.gain.linearRampToValueAtTime(.28,t+.03);gain.gain.exponentialRampToValueAtTime(.001,t+.27);
-        tone.connect(gain);gain.connect(this.master);tone.start(t);tone.stop(t+.3);
-      }
-    }
-    if (!['basket','block','steal','commentary'].includes(kind)) return;
-    if(kind==='commentary'&&Math.random()>.18)return;
-    const source=this.context.createBufferSource(),filter=this.context.createBiquadFilter(),gain=this.context.createGain();
-    const duration=kind==='basket'?2.1:1.4;
-    source.buffer=this.noise;source.loop=true;filter.type='bandpass';filter.frequency.value=600+Math.random()*700;filter.Q.value=.65;
-    gain.gain.setValueAtTime(.001,now);gain.gain.linearRampToValueAtTime(kind==='basket'?.65:.3,now+.22);
-    gain.gain.exponentialRampToValueAtTime(.001,now+duration);
-    source.connect(filter);filter.connect(gain);gain.connect(this.master);source.start();source.stop(now+duration+.1);
-    this.voices.add(source);source.onended=()=>this.voices.delete(source);
-  }
-  dispose() {for(const source of this.voices)try{source.stop();}catch{};this.context?.close().catch(()=>{});}
-}
 const audio=new StadiumAudio();
 
 function toast(message) { $('toast').textContent=message;$('toast').hidden=false;toastUntil=performance.now()+3800; }
@@ -95,7 +48,7 @@ function act(name,payload={}) {
 function travel(target) {
   if(state.carry){toast('Carry your stolen basketballer home on foot, or drop them.');return;}
   if(match&&!match.finished){toast('Use the spectator controls during your match.');return;}
-  const base=worldData.bases[0];world.teleport(target==='pitch'?base.pitch.spawn:base.spawn);
+  const base=worldData.bases[0];world.teleport(target==='pitch'?world.courtEntryPoint(0):base.spawn);
   camera={...camera,mode:'avatar',yaw:0};world.setCamera(camera);toast(target==='pitch'?'Your home court':'Your base');
 }
 function playerCard(p,controls='owned',index=0) {
@@ -175,7 +128,11 @@ function renderPanel() {
   if(panel==='events') { const e=state.event;content.innerHTML=`<article class="card accent"><p class="eyebrow">${e.active?'LIVE NOW':'NEXT EVENT'}</p><h2>${esc(e.name)}</h2><p>${esc(e.objective)}</p><p>${Math.floor(e.remaining/60)}m ${Math.floor(e.remaining%60)}s remaining · ${number(e.tokens)} event tokens</p><div class="progress"><span style="width:${Math.min(100,e.progress/e.target*100)}%"></span></div><p>${number(e.progress)} / ${e.target}</p>${button(e.claimed?'CLAIMED':'CLAIM 10 TOKENS','eventClaim',`data-id="${esc(e.id)}"`,!e.active||e.claimed||e.progress<e.target)}</article><h3 class="section-title">LIMITED SIGNINGS</h3><div class="grid">${e.offers.map(o=>`<article class="card"><h3>${esc(o.name)}</h3><p>${esc(o.mutationId)} mutation</p><p class="price">${o.cost} tokens</p>${button('SIGN','eventBuy',`data-id="${o.id}" data-event="${esc(e.id)}"`,!o.available)}</article>`).join('')}</div><p>A new event starts every 10 minutes and stays active for eight. Mutation chances increase during the active event.</p>`;}
   if(panel==='tactics')content.innerHTML=tacticsHTML();
   if(panel==='kits')content.innerHTML=`<p class="notice">Pick colors, a pattern and a club name. Save to dress your starting five and home roster.</p><div id="kit-preview">${kitPreview(draft)}</div><div class="toolbar"><label>Club name <input id="kit-name" maxlength="20" value="${esc(draft.name)}"></label><label>Pattern ${select('kit-pattern',[['solid','Solid'],['stripes','Stripes'],['hoops','Hoops']],draft.pattern)}</label></div><div class="grid">${[['primary','Jersey'],['secondary','Trim'],['shorts','Shorts']].map(([key,label])=>`<label>${label}<input type="color" id="kit-${key}" value="${draft[key]}"></label>`).join('')}</div><div class="toolbar">${button('SAVE & WEAR KIT','saveKit','',state.battleLock)}${button('USE GENERIC PLAYER KITS','defaultKit','',state.battleLock)}</div>`;
-  if(panel==='upgrades') {const next=state.stadium.next,teamCost=data.config.UpgradeCosts[state.teamUpgrade];content.innerHTML=`<article class="card accent"><h3>${esc(state.stadium.name)}</h3><p>Court tier ${state.stadiumLevel}/3. Home matches take place here.</p>${next?`<p>Next: ${esc(next.name)} · ${next.recruits} owned players required</p>${button(`BUILD ${number(next.cost)}`,'upgradeStadium')}`:'<p>Floodlit arena complete.</p>'}</article><div class="card"><h3 class="section-title">TEAM DEVELOPMENT</h3><p>Level ${state.teamUpgrade}/3 · Income +${state.teamUpgrade*25}%</p>${button(teamCost?`UPGRADE ${number(teamCost)}`:'MAX LEVEL','upgradeTeam','',!teamCost)}</div><p>Use GO COURT to visit your home court, then build stands and lights here.</p>`;}
+  if(panel==='upgrades') {
+    const current=state.stadium,next=current.next,teamCost=data.config.UpgradeCosts[state.teamUpgrade];
+    const eligible=!!next&&state.roster.length>=next.recruits&&state.coins>=next.cost&&!state.battleLock;
+    content.innerHTML=`<article class="card accent"><p class="eyebrow">YOUR VENUE · TIER ${state.stadiumLevel} / 3</p><h2>${esc(current.name)}</h2><p>${(current.features||[]).map(esc).join(' · ')}</p></article>${next?`<article class="card"><p class="eyebrow">NEXT UPGRADE</p><h3>${esc(next.name)}</h3><p>${(next.features||[]).map(esc).join(' · ')}</p><p id="stadium-requirements"><b>${number(next.cost)} coins</b> · ${next.recruits} recruits required (${state.roster.length}/${next.recruits})</p>${button('BUILD '+next.name.toUpperCase(),'upgradeStadium','id="stadium-build"',!eligible)}</article>`:'<p class="notice">Your venue is fully built.</p>'}<div class="toolbar">${button('VIEW VENUE','visitStadium','',state.battleLock||!!state.carry)}</div><p class="muted">Build at home or at your venue. Upgrades stay with your club.</p><div class="card"><h3>TEAM DEVELOPMENT</h3><p>Level ${state.teamUpgrade}/3 · Income +${state.teamUpgrade*25}%</p>${button(teamCost?'UPGRADE '+number(teamCost):'MAX LEVEL','upgradeTeam','',!teamCost||state.battleLock)}</div>`;
+  }
   if(panel==='staff')content.innerHTML=`<p class="notice">Buy coaches, then assign one basketballer to each job. Only that player's income pauses. Shooting and defense training take 120 seconds; conditioning takes 90 seconds; injury treatment takes 45 seconds.</p><div class="stack">${state.staffCatalog.map(c=>{const owned=state.staff.owned.includes(c.id),active=state.staff.slots[c.role]===c.id,job=state.staff.assignments.find(a=>a.role===c.role);return `<article class="card"><div class="row"><div><h3>${esc(c.name)}</h3><p>${esc({attack:'Shooting and passing',defence:'Defense and rebounding',physio:'Conditioning',tactics:'Tactics'}[c.role]||c.role)} ${c.specialPlay?'· Special play: '+esc(c.specialPlay):''}</p></div>${button(!owned?`HIRE ${number(c.cost)}`:active?'SELECTED':'SELECT',owned?'equipStaff':'hire',`data-id="${c.id}"`,active||state.battleLock)}</div>${owned&&active&&c.role!=='tactics'?job?`<p>${esc(game.catalog.get(job.id)?.name)} · ${esc(job.kind)} · ${Math.max(0,Math.ceil(job.endsAt-game.now()))}s</p>${button('CANCEL','cancelTraining',`data-uid="${esc(job.uid)}"`)}`:`<div class="toolbar"><label>Basketballer ${select('staff-'+c.id,state.roster.map(p=>[p.uid,p.name]),'')}</label>${button('ASSIGN','assignStaff',`data-id="${c.id}"`,!state.roster.length||state.battleLock)}</div>`:''}</article>`;}).join('')}</div>`;
   if(panel==='collection')content.innerHTML=`<p>${state.collection.length} / ${data.players.length} identities discovered. Original arcade ratings, not official statistics. Duplicate basketballers develop different traits and mutations.</p><label>Find a basketballer<input id="album-search" placeholder="Player, role or generic team" type="search"></label><div id="album-grid" class="grid">${albumHTML('')}</div>`;
   if(panel==='help')content.innerHTML=`<div class="stack"><article class="card"><h3>BUILD YOUR TEAM</h3><p>WASD or arrow keys move; E interacts; Space jumps. Drag the world to turn the camera and scroll to zoom. P or Escape pauses the game. On touch screens, use the joystick and pause button.</p><p>Buy a basketballer on the conveyor with your starting 150 coins. They teleport home and start earning. Build a 12-player roster with five starters and up to seven reserves. Choose balanced, spread or inside spacing in TACTICS.</p><p>Approach an NPC rival base, choose a basketballer and carry them home. Teleporting is blocked during a steal. Use your home shield or whistle when an NPC thief approaches.</p></article><article class="card"><h3>PLAY FIVE-ON-FIVE</h3><p>Sign at least one player, then BATTLE starts a match on your home court. Academy loans fill empty positions. PG: point guard, SG: shooting guard, SF: small forward, PF: power forward, C: center.</p><p>Four quarters, then overtime until a winner. All basketball clocks run at 3x: 90 clock seconds per quarter and a visible 24-second shot clock. Baskets score 2, shots beyond the arc score 3, free throws score 1. Fouls, steals, blocks and rebounds change possession.</p><p>Use Z/X/C/V/B/N/M for the displayed attack plays, toggle DEFENSE for defensive calls, and F for a ready ability. Open MATCH to control any home player for 10 seconds, with a shared 20-second cooldown. WASD, arrows or joystick steer the selected player. SUBS queues a reserve at the next stoppage, up to five changes.</p><p>Income pauses while battling. Match reports show basketball stats and the actual coins awarded to your team.</p></article><article class="card"><h3>SETTINGS & SAVE</h3><label><span><input id="low-graphics" type="checkbox" ${state.settings.lowGraphics?'checked':''}> Low graphics</span></label><label><span><input id="sound" type="checkbox" ${state.settings.sound?'checked':''}> Crowd and referee sounds</span></label><p>${esc(state.saveStatus)}. This solo preview saves only on this device.</p>${button('SAVE NOW','saveNow')}${button('RESET PROGRESS','resetRequest')}</article><article class="card"><h3>LOCAL TEST CODE</h3><p>DEVTEAM adds a 12-player basketball test roster once, selects a starting five and leaves coins unchanged. Make room in your roster first.</p><label>Code<input id="dev-code" placeholder="Enter code" autocomplete="off"></label>${button('REDEEM','developerCode')}</article><p>100 real player names are text only. Ratings, teams and generic uniforms are original arcade designs. No official assets or endorsement. Progress stays in this browser. See credits for source and asset information.</p><p><a href="./CREDITS.md" target="_blank" rel="noopener">Source and credits</a></p></div>`;
@@ -209,7 +166,7 @@ function startBattle() {
   match=new Match(team,game.practiceTeam(),{data,formation:state.tactics.formation,mentality:state.tactics.mentality,kit:state.kit,practice:true,
     managerId:state.staff.slots.tactics,incomeRate:game.battleScaling.incomeRate,bench:game.ownedMembers().filter(p=>!selected.has(p.uid)).slice(0,7),seed:Math.floor(Math.random()*2**32)});
   matchState=match.snapshot();report=null;commentarySerial=-1;audioSerial=-1;captionQueue=[];captionUntil=0;beforeCelebration=null;celebrationSerial=null;
-  camera={...camera,mode:canvas.clientWidth/canvas.clientHeight<.8?'ball':'pitch',index:0,yaw:0,pitchIndex:0,zoom:1};world.setCamera(camera);world.teleport(worldData.bases[0].pitch.spawn);closePanel();
+  camera={...camera,mode:canvas.clientWidth/canvas.clientHeight<.8?'ball':'pitch',index:0,yaw:0,pitchIndex:0,zoom:1};world.setCamera(camera);world.teleport(world.courtEntryPoint(0));closePanel();
   followKey='';syncFollow(matchState);callMode='attack';
   lastControlsKey='';updateMatchUI(performance.now());audio.start();audio.configure(state.settings.sound,true);updateHUD();
 }
@@ -220,7 +177,7 @@ function finishBattle(forfeit=false) {
     report={forfeit:true,score:s.score,winner:1,injuries:[...match.injuryUIDs],stats:s.stats.map(p=>({...p,possessionPercent:total?Math.round(p.possessionSeconds/total*100):0,passAccuracy:p.passesAttempted?Math.round(p.passesCompleted/p.passesAttempted*100):0}))};
     match.finished=true;
   } else report=clone(match.result);
-  act('endBattle',{result:report});matchState=match.snapshot();audio.configure(state.settings.sound,false);if(forfeit)audio.cue('fullTime');
+  act('endBattle',{result:report});matchState=match.snapshot();audio.configure(state.settings.sound,false);audio.cue('fullTime');
   beforeCelebration=null;camera={...camera,mode:'pitch'};world.setCamera(camera);$('caption').hidden=true;$('referee').hidden=true;openPanel('match');updateHUD();
 }
 const attackPlays=[['pass','PASS','Z'],['drive','DRIVE','X'],['shoot','SHOOT','C'],['three','THREE','V'],['pickRoll','PICK & ROLL','B'],['triangle','TRIANGLE','N'],['counter','FAST BREAK','M']];
@@ -263,8 +220,14 @@ function updateMatchUI(now) {
     if(celebrationSerial!==s.commentary.serial&&!beforeCelebration){beforeCelebration={...camera};celebrationSerial=s.commentary.serial;camera={...camera,mode:'celebration'};world.setCamera(camera);}
   }else if(beforeCelebration){camera=beforeCelebration;beforeCelebration=null;world.setCamera(camera);}
 }
+function refreshStadiumPanel() {
+  if(panel!=='upgrades'||!state?.stadium.next)return;
+  const next=state.stadium.next,build=$('stadium-build'),requirements=$('stadium-requirements');
+  if(build)build.disabled=state.battleLock||state.roster.length<next.recruits||state.coins<next.cost;
+  if(requirements)requirements.textContent=`${number(next.cost)} coins · ${next.recruits} recruits required (${state.roster.length}/${next.recruits})`;
+}
 function updateHUD() {
-  if(!state)return;$('coins').textContent=number(state.coins);$('income').textContent=state.battleLock?'PAUSED':number(state.incomeRate)+' /s';
+  if(!state)return;refreshStadiumPanel();$('coins').textContent=number(state.coins);$('income').textContent=state.battleLock?'PAUSED':number(state.incomeRate)+' /s';
   $('club-name').textContent=state.kit.enabled?state.kit.name:'MY TEAM';$('roster-count').textContent=state.roster.length+' / 12 players';$('save-status').textContent=state.saveStatus;
   const active=!!match&&!match.finished;$('hud').classList.toggle('in-match',!!match);$('score-strip').hidden=!match;$('match-controls').hidden=!active;$('spectator').hidden=!active;
   $('battle').lastChild.textContent=active?' MATCH':' BATTLE';
@@ -301,6 +264,7 @@ function handleAction(target) {
   const name=target.dataset.action;if(!name)return;
   const id=target.dataset.id,uid=target.dataset.uid,index=Number(target.dataset.index);
   if(name==='home'){travel('home');return;}
+  if(name==='visitStadium'){closePanel();travel('pitch');camera={...camera,mode:'venue',yaw:0,zoom:1};world.setCamera(camera);openPanel('upgrades');return;}
   if(name==='openMarket'){openPanel('market');return;}
   if(name==='openSubs'){openPanel('subs');return;}
   if(name==='play'){runPlay(id);return;}
@@ -347,7 +311,7 @@ $('route').onclick=()=>{route=!route;updateHUD();};$('battle').onclick=startBatt
 $('menu-toggle').onclick=()=>{const collapsed=$('actions').classList.toggle('collapsed');$('menu-toggle').setAttribute('aria-expanded',String(!collapsed));};
 $('previous').onclick=()=>setFollow(String((camera.index+9)%10));$('next').onclick=()=>setFollow(String((camera.index+1)%10));
 $('follow').onchange=e=>setFollow(e.target.value);
-function zoom(delta){camera.zoom=Math.max(.35,Math.min(2.5,camera.zoom+delta));world?.setCamera(camera);}
+function zoom(delta){camera.zoom=Math.max(CAMERA_ZOOM.min,Math.min(CAMERA_ZOOM.max,camera.zoom+delta));world?.setCamera(camera);}
 $('zoom-in').onclick=()=>zoom(.15);$('zoom-out').onclick=()=>zoom(-.15);
 $('sheet-content').addEventListener('input',e=>{
   const id=e.target.id;
@@ -419,9 +383,9 @@ function frame(now) {
       if(panel!=='market'||offersKey!==marketKey){const scroll=$('sheet-content').scrollTop;renderPanel();$('sheet-content').scrollTop=scroll;}
     }
     const displayState={...state,lineup,kit:panel==='kits'?{...draft,enabled:true}:state.kit};
-    world.update(dt,{state:displayState,match,camera,lowGraphics:state.settings.lowGraphics});
+    world.update(elapsed,{state:displayState,match,camera,lowGraphics:state.settings.lowGraphics});
     if(now>toastUntil)$('toast').hidden=true;
-  }else if(world&&!document.hidden&&!paused)world.update(dt,{state:{...state,lineup},camera,lowGraphics:state.settings.lowGraphics});
+  }else if(world&&!document.hidden&&!paused)world.update(elapsed,{state:{...state,lineup},camera,lowGraphics:state.settings.lowGraphics});
   requestAnimationFrame(frame);
 }
 function deepFreeze(value){if(value&&typeof value==='object'){Object.freeze(value);for(const v of Object.values(value))deepFreeze(v);}return value;}

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {Match} from '../js/match.js';
-import {readFile} from 'node:fs/promises';
+import {COURT} from '../js/court-config.js';
 
 const roles=['PG','SG','SF','PF','C'];
 const team=side=>roles.map((role,index)=>({id:`${side}-${index}`,uid:`${side}-${index}`,name:`${side} ${role}`,role,power:65,
@@ -14,7 +14,7 @@ const live=match=>{
 };
 const isolateShooter=(match,x,z=0)=>{
   live(match);match.players[0].x=x;match.players[0].z=z;
-  match.players.filter(p=>p.side===1).forEach(p=>{p.x=-80;p.z=-50;});
+  match.players.filter(p=>p.side===1).forEach(p=>{p.x=-40;p.z=-20;});
   match.ball.x=x;match.ball.z=z;
 };
 
@@ -23,14 +23,16 @@ assert.equal(initial.players.length,10);
 assert.deepEqual(initial.players.slice(0,5).map(p=>p.role),roles);
 assert.deepEqual(initial.players.slice(5).map(p=>p.role),roles);
 assert.equal(s.quarter,1);assert.equal(s.period,'Q1');assert.equal(s.shotClock,24);
-const {basketballCourt}=JSON.parse(await readFile(new URL('../data/world.json',import.meta.url),'utf8'));
-for(const key of ['bounds','rims','threePointRadius','freeThrowX'])assert.deepEqual(s.court[key],basketballCourt[key],'Visible and simulated court: '+key);
+const basketballCourt={bounds:{x:[-COURT.halfLength,COURT.halfLength],z:[-COURT.halfWidth,COURT.halfWidth]},
+  rims:[[-COURT.rimX,COURT.rimY,0],[COURT.rimX,COURT.rimY,0]],threePointRadius:COURT.arc,freeThrowX:COURT.freeThrowX};
+for(const key of ['bounds','rims','threePointRadius','freeThrowX'])assert.deepEqual(s.court[key],basketballCourt[key],'Shared and simulated court: '+key);
 const manual=team('manual');manual[0].stats.naturalRole='C';
 const assigned=new Match(manual,team('away'));assert.equal(assigned.players[0].role,'PG');assert.equal(assigned.players[0].stats.naturalRole,'C');
-for(const [range,points] of [[47.99,2],[48,3]]) {
-  const boundary=create();isolateShooter(boundary,82-range);boundary._shoot();assert.equal(boundary.ball.flight.points,points);
+for(const [range,points] of [[COURT.arc-.01,2],[COURT.arc,3]]) {
+  const boundary=create();isolateShooter(boundary,COURT.rimX-range);boundary._shoot();assert.equal(boundary.ball.flight.points,points);
 }
-assert.equal(s.ball.radius,.84);assert.ok(initial.injuryUIDs instanceof Set);
+assert.equal(COURT.length,94);assert.equal(COURT.width,50);
+assert.equal(s.ball.radius,COURT.ballRadius);assert.ok(initial.injuryUIDs instanceof Set);
 for(const key of ['penalties','offside','indirect'])assert.ok(!(key in s),key);
 assert.deepEqual(s.callPlays.map(p=>p.id),['pass','drive','shoot','three','press','zone','steal','block','pickRoll','triangle','counter','surge']);
 assert.equal(initial.callPlay('throughBall').ok,false);
@@ -59,26 +61,31 @@ assert.equal(clock.possession,1);assert.equal(clock.phase,'inbound');assert.equa
 const latePass=live(create());latePass._pass(latePass.players[1]);latePass.shotClock=.1;latePass.update(.05);
 assert.equal(latePass.stats[0].shotClockViolations,1);assert.equal(latePass.ball.flight,null);assert.equal(latePass.possession,1);
 
-const two=create();isolateShooter(two,65);two._roll=()=>.3;
-assert.ok(two._shoot());assert.equal(two.ball.flight.points,2);assert.equal(two.ball.flight.to.x,82);assert.equal(two.ball.flight.to.y,10);
+const two=create();isolateShooter(two,33);two._roll=()=>.3;
+assert.ok(two._shoot());assert.equal(two.ball.flight.points,2);assert.equal(two.ball.flight.to.x,COURT.rimX);assert.equal(two.ball.flight.to.y,10);
+assert.equal(two.ball.flight.from.y,7);assert.equal(two.ball.flight.to.y,COURT.rimY);
 two.shotClock=.1;two.update(1);assert.equal(two.stats[0].shotClockViolations,0);assert.deepEqual(two.score,[2,0]);assert.equal(two.stats[0].twoPointersMade,1);
 assert.equal(two.phase,'basketCelebration');assert.equal(two.snapshot().celebration.scorerIndex,0);
 two.update(2);assert.equal(two.possession,1);
 
-const three=create();isolateShooter(three,33);three._roll=()=>.2;
+const three=create();isolateShooter(three,17);three._roll=()=>.2;
 assert.equal(three.callPlay('three').ok,true);assert.equal(three.ball.flight.points,3);
 three.update(1.5);assert.deepEqual(three.score,[3,0]);assert.equal(three.stats[0].threePointersMade,1);
 assert.equal(three.stats[0].threePointersAttempted,1);
 
-const away=create();live(away);away._give(away.players[5]);away.players[5].x=-65;away.players[5].z=0;
-away.players.filter(p=>p.side===0).forEach(p=>{p.x=80;p.z=50;});away._roll=()=>.3;
-away._shoot();assert.equal(away.ball.flight.to.x,-82);away.update(1);assert.deepEqual(away.score,[0,2]);
+const away=create();live(away);away._give(away.players[5]);away.players[5].x=-33;away.players[5].z=0;
+away.players.filter(p=>p.side===0).forEach(p=>{p.x=40;p.z=20;});away._roll=()=>.3;
+away._shoot();assert.equal(away.ball.flight.to.x,-COURT.rimX);away.update(1);assert.deepEqual(away.score,[0,2]);
 
-const blocked=create();isolateShooter(blocked,65);blocked.players[5].x=66;blocked.players[5].z=0;blocked._roll=()=>0;
+const blocked=create();isolateShooter(blocked,33);blocked.players[5].x=34;blocked.players[5].z=0;blocked._roll=()=>0;
 blocked._shoot();assert.equal(blocked.ball.flight.blocked,true);blocked.update(1.3);
 assert.equal(blocked.stats[1].blocks,1);assert.equal(blocked.score[0],0);
 assert.equal(blocked.stats[0].rebounds+blocked.stats[1].rebounds,1);
 assert.ok([14,24].includes(blocked.shotClock)||blocked.shotClock>13);
+
+// A defender beyond six feet cannot block a release with a zero random draw.
+const distantBlock=create();isolateShooter(distantBlock,33);distantBlock.players[5].x=40;distantBlock.players[5].z=0;
+distantBlock._roll=()=>0;distantBlock._shoot();assert.equal(distantBlock.ball.flight.blocked,false);
 
 const pass=live(create());pass._roll=()=>.99;
 assert.equal(pass.callPlay('pass').ok,true);assert.equal(pass.stats[0].passesAttempted,1);
@@ -93,8 +100,8 @@ close(movingPass.ball.flight.to.x,movingPass.players[1].x);
 close(movingPass.ball.flight.to.z,movingPass.players[1].z);
 
 // Calling THREE inside the arc finds a teammate, holds the spot and shoots on receipt.
-const catchThree=create();isolateShooter(catchThree,65);catchThree._roll=()=>.99;
-catchThree.players.slice(1,5).forEach(p=>{p.x=30;p.z=p.index===1?0:5;});
+const catchThree=create();isolateShooter(catchThree,33);catchThree._roll=()=>.99;
+catchThree.players.slice(1,5).forEach(p=>{p.x=15;p.z=p.index===1?0:2.5;});
 assert.equal(catchThree.callPlay('three').ok,true);
 const catchIndex=catchThree.ball.flight.receiver,catchSpot={x:catchThree.players[catchIndex].x,z:catchThree.players[catchIndex].z};
 for(let i=0;i<20&&catchThree.phase==='pass';i++)catchThree.update(.05);
@@ -112,16 +119,16 @@ const stolen=live(create());stolen.players[5].x=stolen.players[0].x;stolen.playe
 const rolls=[.9,0];stolen._roll=()=>rolls.shift()??.9;stolen._challenge(true);
 assert.equal(stolen.possession,1);assert.equal(stolen.stats[1].steals,1);assert.equal(stolen.shotClock,24);
 
-const foul=create();isolateShooter(foul,65);foul._roll=()=>.2;
+const foul=create();isolateShooter(foul,33);foul._roll=()=>.2;
 foul._foul(foul.players[5],foul.players[0],true);
-assert.equal(foul.stats[1].fouls,1);assert.equal(foul.freeThrows.remaining,2);assert.equal(foul.players[0].x,55);
+assert.equal(foul.stats[1].fouls,1);assert.equal(foul.freeThrows.remaining,2);assert.equal(foul.players[0].x,COURT.freeThrowX);
 const remaining=foul.snapshot().timeRemaining;foul.update(4);
 assert.equal(foul.stats[0].freeThrowsAttempted,2);assert.equal(foul.stats[0].freeThrowsMade,2);
 assert.deepEqual(foul.score,[2,0]);close(foul.snapshot().timeRemaining,remaining);
 assert.equal(foul.freeThrows,null);
-const threeFoul=create();isolateShooter(threeFoul,33);threeFoul._foul(threeFoul.players[5],threeFoul.players[0],true);
+const threeFoul=create();isolateShooter(threeFoul,17);threeFoul._foul(threeFoul.players[5],threeFoul.players[0],true);
 assert.equal(threeFoul.freeThrows.remaining,3);
-const queuedFoul=create();isolateShooter(queuedFoul,65);queuedFoul._roll=()=>.2;
+const queuedFoul=create();isolateShooter(queuedFoul,33);queuedFoul._roll=()=>.2;
 queuedFoul.substitute(0,reserve);queuedFoul._foul(queuedFoul.players[5],queuedFoul.players[0],true);
 assert.equal(queuedFoul.players[0].uid,'home-0');queuedFoul.update(4);
 assert.equal(queuedFoul.stats[0].freeThrowsAttempted,2);assert.equal(queuedFoul.players[0].uid,'reserve');
@@ -143,10 +150,20 @@ const controlled=live(create());assert.equal(controlled.control(0,{x:NaN,z:0}).o
 assert.equal(controlled.control(0,{x:1,z:0}).ok,true);const oldX=controlled.players[0].x;
 controlled.update(.5);assert.ok(controlled.players[0].x>oldX);assert.equal(controlled.releaseControl().ok,true);
 assert.equal(controlled.controlState,null);
+// Even a baseline-to-baseline carry fits within the eight real seconds of the 3x shot clock.
+const traverse=live(create());traverse._auto=()=>{};traverse.players[0].x=-COURT.halfLength+1;traverse.players[0].z=0;
+assert.equal(traverse.control(0,{x:1,z:0}).ok,true);
+for(let i=0;i<120;i++) {
+  traverse.update(.05);
+  assert.ok(traverse.ball.y>=COURT.ballRadius&&traverse.ball.y<=3.5);
+  assert.ok(Math.abs(traverse.ball.x)+traverse.ball.radius<=COURT.halfLength);
+  assert.ok(traverse.players.every(p=>Math.abs(p.x)<COURT.halfLength&&Math.abs(p.z)<COURT.halfWidth));
+}
+close(traverse.players[0].x,COURT.halfLength-1);assert.ok(traverse.shotClock>0);
 const ability=live(create());assert.equal(ability.ability('hotHand').ok,true);
 assert.equal(ability.snapshot().abilities[0].active,true);assert.equal(ability.ability('hotHand').ok,false);
 
-const horn=create();isolateShooter(horn,65);horn._roll=()=>.3;horn.periodElapsed=89.95;
+const horn=create();isolateShooter(horn,33);horn._roll=()=>.3;horn.periodElapsed=89.95;
 horn._shoot();horn.update(1.1);assert.equal(horn.score[0],2);assert.equal(horn.quarter,2);
 assert.equal(horn.period,'Q2');assert.equal(horn.phase,'quarterBreak');
 const overtime=live(create());overtime.quarter=4;overtime.period='Q4';overtime.periodElapsed=89.95;
@@ -167,7 +184,7 @@ for(let side=0;side<2;side++) {
   assert.equal(s.fieldGoalsMade,s.twoPointersMade+s.threePointersMade);
   assert.ok(s.passesCompleted<=s.passesAttempted);assert.ok(s.fieldGoalsMade<=s.shots);
 }
-assert.ok(complete.players.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.z)&&Math.abs(p.x)<=90&&Math.abs(p.z)<=65));
+assert.ok(complete.players.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.z)&&Math.abs(p.x)<COURT.halfLength&&Math.abs(p.z)<COURT.halfWidth));
 const final=complete.snapshot();complete.update(1);assert.deepEqual(complete.snapshot(),final);
 final.players[0].x=999;assert.notEqual(complete.players[0].x,999);
 console.log(`PASS basketball match fixtures; one short complete match ${complete.score.join(':')} (${complete.period}, ${complete.time.toFixed(1)}s); fixed-step 30/60fps identical`);

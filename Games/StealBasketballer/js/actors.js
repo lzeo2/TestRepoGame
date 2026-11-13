@@ -1,6 +1,13 @@
 import * as THREE from '../vendor/three.module.js';
 
 const color = (value, fallback) => typeof value === 'string' ? (value.startsWith('#') ? value : `#${value}`) : fallback;
+const sample = (id, trait) => {
+  let hash = 2166136261;
+  for (const c of `${id}:${trait}`) hash = Math.imul(hash ^ c.charCodeAt(0), 16777619);
+  hash ^= hash >>> 16; hash = Math.imul(hash, 0x7feb352d); hash ^= hash >>> 15;
+  return (hash >>> 0) / 4294967296;
+};
+const choose = (id, trait, values) => values[Math.floor(sample(id, trait) * values.length)];
 const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallback;
 
 // Original generic stylised athletes. Catalog names never select real likenesses.
@@ -30,11 +37,23 @@ export class ActorFactory {
     return mesh;
   }
 
-  create(def = {}, kit = {}, {scale = 1, number, simple = false} = {}) {
-    const seed=[...String(def.id||'player')].reduce((n,c)=>(n*31+c.charCodeAt(0))>>>0,0);
-    const a={skinColor:['#795036','#BB8961','#E9C19E','#9F6C4C'][seed%4],hairColor:'#33271F',hairStyle:['cropped','bald','fade','quiff'][seed%4],heightScale:1.08,buildScale:.94+(seed%5)*.025,number:1+seed%99};
+  create(def = {}, kit = {}, {scale = 1, number, simple = false, role} = {}) {
+    const id = String(def.id || 'player');
+    const position = ['PG', 'SG', 'SF', 'PF', 'C'].includes(role) ? role : 'generic';
+    const ranges = {PG: [5.7, 6.4], SG: [6.1, 6.7], SF: [6.3, 6.9], PF: [6.5, 7], C: [6.7, 7.1], generic: [5.7, 7.1]};
+    const [min, max] = ranges[position];
+    // Each trait has its own mixed hash, so skin never selects hair or equipment.
+    const a = {
+      skinColor: choose(id, 'skin', ['#583B2D', '#795036', '#A16F4E', '#C5936D', '#DEB18B', '#F0CCAA']),
+      hairColor: choose(id, 'hair-color', ['#211C19', '#493329', '#775237', '#B28B52']),
+      hairStyle: choose(id, 'hair-style', ['cropped', 'bald', 'fade', 'quiff', 'curls', 'tied']),
+      buildScale: .86 + sample(id, 'build') * .25,
+      heightFeet: min + sample(id, 'height') * (max - min),
+      heightScale: 1,
+      accessory: choose(id, 'accessory', ['none', 'headband', 'left-sleeve', 'right-wrist']),
+      number: 1 + Math.floor(sample(id, 'number') * 99), role: position,
+    };
     const root = new THREE.Group();
-    root.scale.set(scale * finite(a.buildScale, 1), scale * finite(a.heightScale, 1), scale);
     const body = new THREE.Group(); root.add(body);
     const skin = color(a.skinColor || def.skin, '#C99A73');
     const hair = color(a.hairColor || def.hair, '#33271F');
@@ -52,7 +71,7 @@ export class ActorFactory {
       this.part(body, 'box', [.79, .09, .88], [side * .43, 1.98, 0], secondary);
     }
     this.part(body, 'cylinder', [.42, .36, .42], [0, 4.26, 0], skin);
-    const head = new THREE.Group(); head.position.set(0, 4.87, 0); body.add(head);
+    const head = new THREE.Group(); head.position.set(0, 4.65, 0); head.scale.setScalar(.55); body.add(head);
     this.part(head, 'sphere', [1.18, 1.36, 1.08], [0, 0, 0], skin);
     for (const side of [-1, 1]) {
       this.part(head, 'sphere', [.2, .3, .24], [side * .57, -.05, 0], skin);
@@ -62,14 +81,15 @@ export class ActorFactory {
     this.part(head, 'box', [.15, .19, .16], [0, -.08, -.51], skin);
     this.part(head, 'box', [.29, .045, .035], [0, -.3, -.475], '#653D32');
     this.hair(head, a.hairStyle, hair);
+    if (a.accessory === 'headband') this.part(head, 'cylinder', [1.2, .16, 1.1], [0, .25, 0], secondary);
     const limbs = {}, feet = [], owned = [];
     for (const side of [-1, 1]) {
       const arm = new THREE.Group(); arm.position.set(side * 1.02, 3.94, 0); body.add(arm);
-      this.part(arm, 'taper', [.48, .86, .5], [0, -.4, 0], skin);
+      this.part(arm, 'taper', [.48, .86, .5], [0, -.4, 0], side === -1 && a.accessory === 'left-sleeve' ? secondary : skin);
       const elbow = new THREE.Group(); elbow.position.y = -.82; arm.add(elbow);
       this.part(elbow, 'taper', [.39, .77, .41], [0, -.36, 0], skin);
       this.part(elbow, 'sphere', [.42, .43, .42], [0, -.8, -.015], skin);
-      if(side===1)this.part(elbow, 'cylinder', [.41, .14, .43], [0, -.58, 0], secondary);
+      if(side===1 && a.accessory === 'right-wrist')this.part(elbow, 'cylinder', [.41, .14, .43], [0, -.58, 0], secondary);
       const leg = new THREE.Group(); leg.position.set(side * .44, 2.02, 0); body.add(leg);
       this.part(leg, 'taper', [.64, .88, .68], [0, -.38, 0], skin);
       const knee = new THREE.Group(); knee.position.y = -.82; leg.add(knee);
@@ -102,7 +122,14 @@ export class ActorFactory {
     }
     const merged=[];for(const group of [body,head,...Object.values(limbs)])this.mergeParts(group,merged);
     // Foot transforms remain available for support checks after their meshes merge.
-    return {root, body, head, ...limbs, feet, owned, merged, profile: a, definition: def};
+    const actor = {root, body, head, ...limbs, feet, owned, merged, profile: a, definition: def};
+    this.pose(actor);
+    root.updateMatrixWorld(true);
+    const bounds = new THREE.Box3().setFromObject(root);
+    a.heightScale = a.heightFeet / (bounds.max.y - bounds.min.y);
+    const size = Math.max(.01, finite(scale, 1));
+    root.scale.set(size * a.heightScale * .78 * a.buildScale, size * a.heightScale, size * a.heightScale * .82);
+    return actor;
   }
 
   mergeParts(group, merged) {
@@ -154,6 +181,11 @@ export class ActorFactory {
   hair(head, style, tint) {
     if (style === 'bald') return;
     this.part(head, 'sphere', [1.2, .51, 1.08], [0, .48, .025], tint);
+    if (style === 'fade') this.part(head, 'box', [.84, .25, .73], [0, .69, -.03], tint);
+    if (style === 'curls') {
+      for (const x of [-.34, .34]) for (const z of [-.28, .28]) this.part(head, 'sphere', [.65, .58, .61], [x, .67, z], tint);
+    }
+    if (style === 'tied') this.part(head, 'sphere', [.59, .6, .65], [0, .48, .65], tint);
     if (style === 'cropped') this.part(head, 'box', [.9, .13, .33], [0, .46, -.39], tint);
     if (style === 'quiff') {
       const front = this.part(head, 'sphere', [.92, .46, .58], [0, .69, -.21], tint);
