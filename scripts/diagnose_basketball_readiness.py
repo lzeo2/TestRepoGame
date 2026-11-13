@@ -438,7 +438,7 @@ def main():
                     report['stage'] = label+'-natural-start'
                     # SwiftShader context restore can re-render the shell; wait
                     # for the button to be enabled and stable, then click.
-                    page.locator('#start').click(force=True, timeout=15000)
+                    page.locator('#start').click(force=True, timeout=60000)
                     page.wait_for_function('window.basketballerSnapshot().started', timeout=20000)
                     assert not report['errors'] and not report['external'], 'Start gate error; stop'
                     report['accepted'].append(label+'-natural-PLAY')
