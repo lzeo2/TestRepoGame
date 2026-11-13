@@ -414,7 +414,24 @@ export function createWorldView(scene, map) {
     const wallKind = isSchool || index % 3 === 0 || !residential ? 1 : 0;
     const pitched = !utility && (isSchool || residential && height < 10) && building.roof !== 'flat';
     const batch = batchAt(x, z);
-    let buildingWindows = 0;
+    const floors = Math.min(8, Math.max(1, Math.floor((height + 0.2) / 3.1)));
+    const windowColumns = points.map((a, i) => {
+      const b = points[(i + 1) % points.length], length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      return utility || length < 3 ? 0 : Math.min(residential ? 7 : 16, Math.floor(length / (isSchool ? 3 : residential ? 3.8 : 3.2)));
+    });
+    const eligibleSides = windowColumns.filter(Boolean).length;
+    const columnBudget = Math.max(eligibleSides, Math.floor((residential ? 40 : 120) / floors));
+    const requestedColumns = windowColumns.reduce((sum, n) => sum + n, 0);
+    if (requestedColumns > columnBudget) {
+      // Reserve one bay on every eligible side before dividing the rest by size.
+      // Footprint order must not leave the last street-facing wings windowless.
+      const remaining = columnBudget - eligibleSides, weights = requestedColumns - eligibleSides;
+      const shares = windowColumns.map((count, index) => ({ index, share: count ? remaining * (count - 1) / weights : 0 }));
+      for (const { index, share } of shares) if (windowColumns[index]) windowColumns[index] = 1 + Math.floor(share);
+      let unassigned = columnBudget - windowColumns.reduce((sum, n) => sum + n, 0);
+      shares.sort((a, b) => (b.share % 1) - (a.share % 1));
+      for (const { index } of shares) if (unassigned && windowColumns[index]) { windowColumns[index]++; unassigned--; }
+    }
     function faceQuad(vertices, tint, detail = false) { quad(detail ? batchAt(x, z, 'detail') : batch, ...(reverse ? vertices.slice().reverse() : vertices), tint); }
     for (let i = 0; i < points.length; i++) {
       const a = points[i], b = points[(i + 1) % points.length], length = Math.hypot(b[0] - a[0], b[1] - a[1]);
@@ -445,15 +462,13 @@ export function createWorldView(scene, map) {
         [b[0] + nx * 0.28, base + height - 0.05, b[1] + nz * 0.28], [a[0] + nx * 0.28, base + height - 0.05, a[1] + nz * 0.28]];
       quad(batch, ...eave, 0x807c6d); quad(batch, ...eave.slice().reverse(), 0x807c6d);
       if (utility || length < 3) continue;
-      const floors = Math.min(8, Math.max(1, Math.floor((height + 0.2) / 3.1)));
-      const columns = Math.min(residential ? 7 : 16, Math.floor(length / (isSchool ? 3.0 : residential ? 3.8 : 3.2)));
+      const columns = windowColumns[i];
       const bay = (u, v, halfWidth, halfHeight, offset, tint) => {
         const cx = a[0] + ex * u + nx * offset, cz = a[1] + ez * u + nz * offset;
         faceQuad([[cx - ex * halfWidth, v - halfHeight, cz - ez * halfWidth], [cx + ex * halfWidth, v - halfHeight, cz + ez * halfWidth],
           [cx + ex * halfWidth, v + halfHeight, cz + ez * halfWidth], [cx - ex * halfWidth, v + halfHeight, cz - ez * halfWidth]], tint, true);
       };
       for (let row = 0; row < floors; row++) for (let col = 0; col < columns; col++) {
-        if (buildingWindows >= (residential ? 40 : 120)) continue;
         const u = (col + 0.5) / columns * length, y = base + (isSchool ? 1.7 : 1.9) + row * (isSchool ? 3.55 : 3.0);
         const hw = Math.min(isSchool ? 1.0 : shopping && row === 0 ? 1.25 : 0.82, length / columns * 0.34);
         const hh = isSchool ? 0.95 : shopping && row === 0 ? 1.2 : 0.72;
@@ -462,7 +477,7 @@ export function createWorldView(scene, map) {
         bay(u, y + hh * 0.57, hw, hh * 0.18, 0.058, 0x8ba0a0);
         bay(u, y, 0.035, hh, 0.065, 0xc6c6b9);
         if (isSchool) bay(u, y - 0.08, hw, 0.035, 0.068, 0xc9cbbb);
-        counters.windows++; buildingWindows++;
+        counters.windows++;
       }
       if (shopping && length > 7 && length < 70) {
         primitive(box, (a[0] + b[0]) / 2 + nx * 0.45, base + 3, (a[1] + b[1]) / 2 + nz * 0.45, 1.05, 0.18, length,
@@ -477,7 +492,14 @@ export function createWorldView(scene, map) {
         const mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2;
         for (const road of roadSegments) {
           if (!/New South Wales Crescent/i.test(road.road.name || '')) continue;
-          const distance = segmentDistance(mx, mz, road.a, road.b);
+          const dx = road.b[0] - road.a[0], dz = road.b[1] - road.a[1];
+          const t = THREE.MathUtils.clamp(((mx - road.a[0]) * dx + (mz - road.a[1]) * dz) / (dx * dx + dz * dz), 0, 1);
+          const qx = road.a[0] + t * dx, qz = road.a[1] + t * dz;
+          const distance = Math.hypot(qx - mx, qz - mz);
+          const nx = (reverse ? b[1] - a[1] : a[1] - b[1]) / length;
+          const nz = (reverse ? a[0] - b[0] : b[0] - a[0]) / length;
+          if ((qx - mx) * nx + (qz - mz) * nz < distance * 0.35) continue;
+          if ([0.1, 0.3, 0.6].some(f => inside(mx + (qx - mx) * f, mz + (qz - mz) * f, points))) continue;
           if (!front || distance < front.distance) front = { a, b, length, mx, mz, distance, road };
         }
       }

@@ -38,3 +38,51 @@ const denseView = createWorldView(scene, dense);
 assert.ok(Math.abs(denseView.heightAt(12.5, 15.5) - 4.35) < 1e-9);
 denseView.dispose();
 console.log('PASS world bilinear DEM, multistorey facade, concave roof containment, asphalt clearance, finite geometry, culling and disposal');
+
+// Keep the real complex heritage footprint as a regression for facade order.
+const actual = JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra.json', import.meta.url), 'utf8'));
+const mainSchool = actual.buildings.find(b => b.id === 'act-101001-0');
+assert.ok(mainSchool, 'the verified ACT main school footprint remains available');
+const schoolAnchor = actual.landmarks.find(l => l.id === 'telopea');
+const schoolRoads = actual.roads.filter(r => r.name === 'New South Wales Crescent');
+const schoolMap = { bounds: { minX: schoolAnchor.x - 250, maxX: schoolAnchor.x + 250, minZ: schoolAnchor.z - 250, maxZ: schoolAnchor.z + 250 }, roads: schoolRoads, buildings: [mainSchool], areas: [], landmarks: [schoolAnchor], spawn: schoolAnchor };
+const schoolView = createWorldView(scene, schoolMap);
+const footprint = mainSchool.points.slice(0, -1);
+const signedArea = footprint.reduce((sum, a, i) => { const b = footprint[(i + 1) % footprint.length]; return sum + a[0] * b[1] - b[0] * a[1]; }, 0);
+const windows = [], arches = [], archColor = new THREE.Color(0xeee9d8);
+scene.traverse(object => {
+  if (!object.isMesh) return;
+  const p = object.geometry.attributes.position.array, n = object.geometry.attributes.normal.array, c = object.geometry.attributes.color?.array;
+  for (let i = 0; i < p.length; i += 9) {
+    const triangle = { x: (p[i] + p[i + 3] + p[i + 6]) / 3, z: (p[i + 2] + p[i + 5] + p[i + 8]) / 3, y: (p[i + 1] + p[i + 4] + p[i + 7]) / 3, nx: n[i], nz: n[i + 2] };
+    if (object.name === 'Canberra detail') windows.push(triangle);
+    if (object.name === 'Canberra solid' && c && Math.abs(c[i] - archColor.r) < 1e-5 && Math.abs(c[i + 1] - archColor.g) < 1e-5 && Math.abs(c[i + 2] - archColor.b) < 1e-5) arches.push(triangle);
+  }
+});
+let checkedSides = 0;
+for (let i = 0; i < footprint.length; i++) {
+  const a = footprint[i], b = footprint[(i + 1) % footprint.length], length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  if (length < 6) continue;
+  const ex = (b[0] - a[0]) / length, ez = (b[1] - a[1]) / length, nx = signedArea > 0 ? ez : -ez, nz = signedArea > 0 ? -ex : ex;
+  const onSide = windows.filter(p => {
+    const along = (p.x - a[0]) * ex + (p.z - a[1]) * ez, offset = (p.x - a[0]) * nx + (p.z - a[1]) * nz;
+    return along > 0.2 && along < length - 0.2 && offset > 0.025 && offset < 0.085 && p.nx * nx + p.nz * nz > 0.95;
+  });
+  assert.ok(onSide.some(p => p.y < 3.5), `school facade ${i} retains ground floor windows`);
+  assert.ok(onSide.some(p => p.y > 4), `school facade ${i} retains upper floor windows`);
+  checkedSides++;
+}
+assert.ok(checkedSides > 10);
+assert.ok(schoolView.stats.windows <= 120, 'school facade redistribution stays within its existing window budget');
+assert.ok(arches.length > 50, 'main school retains its distinctive arched window group');
+const arch = arches.reduce((sum, p) => ({ x: sum.x + p.x / arches.length, z: sum.z + p.z / arches.length, nx: sum.nx + p.nx / arches.length, nz: sum.nz + p.nz / arches.length }), { x: 0, z: 0, nx: 0, nz: 0 });
+let closest = null;
+for (const road of schoolRoads) for (let i = 1; i < road.points.length; i++) {
+  const a = road.points[i - 1], b = road.points[i], dx = b[0] - a[0], dz = b[1] - a[1];
+  const t = Math.max(0, Math.min(1, ((arch.x - a[0]) * dx + (arch.z - a[1]) * dz) / (dx * dx + dz * dz || 1)));
+  const x = a[0] + t * dx, z = a[1] + t * dz, distance = Math.hypot(x - arch.x, z - arch.z);
+  if (!closest || distance < closest.distance) closest = { x, z, distance };
+}
+assert.ok((closest.x - arch.x) * arch.nx + (closest.z - arch.z) * arch.nz > closest.distance * 0.35, 'arched window normals face actual NSW Crescent');
+schoolView.dispose();
+console.log(`PASS actual ACT school: ${checkedSides} long facades have both window rows; ${schoolView.stats.windows} windows; arches face NSW Crescent`);
