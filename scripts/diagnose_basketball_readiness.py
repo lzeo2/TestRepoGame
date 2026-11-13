@@ -72,11 +72,15 @@ def parse_process(pid, stat, status, exe, cmdline):
     values = dict(line.split(':', 1) for line in status.splitlines() if ':' in line)
     uids = tuple(int(n) for n in values.get('Uid', '').split())
     zombie = state.startswith('Z')
-    if zombie:
+    comm = stat.rsplit(') ', 1)[0].split(' (', 1)[1]
+    hidden_argv = zombie or (cmdline == b'' and (comm == 'codex' or (exe and exe.startswith(str(Path.home())+'/.codex/'))))
+    if hidden_argv:
         # A reaped-but-unwaited child keeps its PID/UID identity but loses argv,
         # exe and sandbox state. It can never be Chromium or a renderer; record
         # the identity fail-closed (empty argv/exe) instead of aborting the scan.
-        if cmdline or exe:
+        # Same for the codex app-server daemon, which hides its own argv with
+        # setproctitle while alive; its exe path proves the daemon family.
+        if zombie and (cmdline or exe):
             raise ValueError('Zombie state with live argv/exe evidence')
         argv = ()
     elif len(uids) != 4 or not cmdline.endswith(b'\0') or not cmdline.split(b'\0')[0]:
@@ -85,7 +89,7 @@ def parse_process(pid, stat, status, exe, cmdline):
         argv = tuple(arg.decode('utf-8', 'surrogateescape') for arg in cmdline[:-1].split(b'\0'))
     return Process(pid, ppid, start, uids, exe, argv,
                    values.get('NoNewPrivs', '').strip(), values.get('Seccomp', '').strip(),
-                   stat.rsplit(') ', 1)[0].split(' (', 1)[1], zombie)
+                   comm, zombie)
 
 
 def unrelated_system_service(process, owner, records):
