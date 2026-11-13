@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 const dataURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
 const threeURL = dataURL(await read('../assets/car-arcade/vendor/three.module.js'));
 const dataSource = await read('../Games/Capital Drive/landmarks.js'), landmarksURL = dataURL(dataSource);
-const { LANDMARKS, LANDMARK_CLEARINGS, MANUKA_POOL_BASIN, replacedBuildingIds } = await import(landmarksURL);
+const { LANDMARKS, LANDMARK_CLEARINGS, MANUKA_POOL_BASIN, MANUKA_POOL_SITE, POOL_BARRIERS, POOL_GATE_APPROACHES, replacedBuildingIds } = await import(landmarksURL);
 const THREE = await import(threeURL);
 const source = (await read('../Games/Capital Drive/landmarks-view.js')).replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./landmarks.js', landmarksURL);
 const { createLandmarksView } = await import(dataURL(source));
@@ -44,6 +45,67 @@ assert.equal(waterVertices.length,6,'basin remains two bounded water triangles')
 for(const [x,z] of MANUKA_POOL_BASIN)assert.ok(waterVertices.some(p=>Math.abs(p[0]-x)<1e-5&&Math.abs(p[2]-z)<1e-5),'exact projected water corner retained');
 assert.ok(waterVertices.every(p=>Math.abs(p[1]-waterVertices[0][1])<1e-6),'water is level across terrain');
 assert.ok(waterVertices.every(p=>p[1]>ground(p[0],p[2])),'basin clears sampled terrain');
+// Source-way geometry is independently checked against the cached 80-node ring.
+const sourceRing=MANUKA_POOL_SITE.map(([x,z])=>[
+  Number((-z/111320-35.318).toFixed(7)),
+  Number((x/(111320*Math.cos(-35.318*Math.PI/180))+149.137).toFixed(7)),
+]);
+assert.equal(sourceRing.length,80);
+assert.equal(createHash('sha256').update(JSON.stringify(sourceRing)).digest('hex'),'df0b8c2f164b3ad24f1efe5af7b4b2f9d71a6a0e1e395838f6a47fc988acdf2d','exact OSM way51677758 v7 vertices, independent of art');
+assert.ok(Object.isFrozen(MANUKA_POOL_SITE)&&MANUKA_POOL_SITE.every(Object.isFrozen));
+assert.ok(LANDMARK_CLEARINGS.includes(MANUKA_POOL_SITE),'authored pool landscape clears generated trees throughout site');
+assert.ok(Object.isFrozen(POOL_BARRIERS)&&POOL_BARRIERS.every(b=>Object.isFrozen(b)&&Object.isFrozen(b.points)&&b.points.every(Object.isFrozen)));
+assert.equal(new Set(POOL_BARRIERS.map(b=>b.id)).size,POOL_BARRIERS.length);
+assert.equal(POOL_BARRIERS.filter(b=>b.kind==='building').length,2);
+assert.equal(POOL_BARRIERS.filter(b=>b.kind==='pillar').length,2);
+const poolVertices=pool.children.flatMap(mesh=>{
+  const a=mesh.geometry.attributes.position,out=[];
+  for(let i=0;i<a.count;i++)out.push([a.getX(i)+pool.position.x,a.getY(i)+pool.position.y,a.getZ(i)+pool.position.z]);
+  return out;
+});
+function inside([x,z],polygon) {
+  let hit=false;
+  for(let i=0,j=polygon.length-1;i<polygon.length;j=i++) {
+    const a=polygon[i],b=polygon[j];
+    if((a[1]>z)!==(b[1]>z)&&x<(b[0]-a[0])*(z-a[1])/(b[1]-a[1])+a[0])hit=!hit;
+  }
+  return hit;
+}
+function distanceToSegment(p,a,b) {
+  const dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dz)/(dx*dx+dz*dz)));
+  return Math.hypot(p[0]-a[0]-dx*t,p[1]-a[1]-dz*t);
+}
+for(const barrier of POOL_BARRIERS) {
+  assert.ok(barrier.width>0&&barrier.depth>0&&Number.isFinite(barrier.yaw));
+  for(const [x,z] of barrier.points) {
+    assert.ok(poolVertices.some(p=>Math.abs(p[0]-x)<2e-5&&Math.abs(p[2]-z)<2e-5),'render footprint matches exported collision corner');
+    assert.ok(!inside([x,z],MANUKA_POOL_BASIN),'no enclosure or entrance collider across source water');
+  }
+  assert.ok(!MANUKA_POOL_BASIN.some(p=>inside(p,barrier.points)),'basin corners remain outside every barrier');
+  if(barrier.kind==='wall'||barrier.kind==='fence') {
+    for(const [x,z] of [barrier.a,barrier.b]) {
+      const expected=ground(x,z)+barrier.height;
+      assert.ok(poolVertices.some(p=>Math.hypot(p[0]-x,p[2]-z)<0.3&&Math.abs(p[1]-expected)<0.01),'fence/wall tops follow segment terrain');
+    }
+  }
+}
+assert.ok(Object.isFrozen(POOL_GATE_APPROACHES)&&POOL_GATE_APPROACHES.every(Object.isFrozen));
+const gate=POOL_GATE_APPROACHES[0];
+assert.ok(gate.clearWidth>=2&&gate.width>gate.clearWidth,'open entrance has at least two metres usable width');
+assert.ok(inside(gate.inside,MANUKA_POOL_SITE)&&!inside(gate.outside,MANUKA_POOL_SITE));
+// A pedestrian-radius sweep from road side through the fixed-open portal is clear.
+for(let step=0;step<=30;step++) {
+  const t=step/30,p=[gate.outside[0]+(gate.inside[0]-gate.outside[0])*t,gate.outside[1]+(gate.inside[1]-gate.outside[1])*t];
+  for(const barrier of POOL_BARRIERS) {
+    assert.ok(!inside(p,barrier.points));
+    for(let i=0;i<4;i++)assert.ok(distanceToSegment(p,barrier.points[i],barrier.points[(i+1)%4])>0.4,'pedestrian sweep clears every fence, gate pillar and entrance wing');
+  }
+}
+const localPoolMeshes=pool.children.map(mesh=>new THREE.Mesh(mesh.geometry,mesh.material));
+const start=new THREE.Vector3(gate.outside[0]-pool.position.x,ground(gate.x,gate.z)+1-pool.position.y,gate.outside[1]-pool.position.z);
+const finish=new THREE.Vector3(gate.inside[0]-pool.position.x,start.y,gate.inside[1]-pool.position.z);
+const gateRay=new THREE.Raycaster(start,finish.clone().sub(start).normalize(),0,start.distanceTo(finish));
+assert.equal(gateRay.intersectObjects(localPoolMeshes).length,0,'rendered portal also stays clear at pedestrian height');
 const nearShader={vertexShader:'#include <begin_vertex>',fragmentShader:'#include <color_fragment>'};
 pool.children[0].material.onBeforeCompile(nearShader);
 assert.ok(nearShader.fragmentShader.includes('grain * 0.055'),'original bounded near material grain');
@@ -91,4 +153,4 @@ const treeMap={bounds:{minX:0,maxX:200,minZ:0,maxZ:200},roads:[],buildings:[],ar
 const trees=createWorldView(scene,treeMap), baseline=trees.stats.trees;assert.ok(baseline>0);trees.dispose();
 const cleared=createWorldView(scene,{...treeMap,landmarkTreeExclusions:[[[-10,-10],[210,-10],[210,210],[-10,210]]]});assert.equal(cleared.stats.trees,0);cleared.dispose();
 const outside=createWorldView(scene,{...treeMap,landmarkTreeExclusions:[[[300,300],[400,300],[400,400],[300,400]]]});assert.equal(outside.stats.trees,baseline);outside.dispose();
-console.log(`PASS landmarks:5 sites,${view.stats.triangles} triangles, exact13 replacement IDs, projection, grounding,81m mast, LOD, fog, finite buffers and idempotent disposal`);
+console.log(`PASS landmarks:5 sites,${view.stats.triangles} triangles, exact13 replacement IDs, exact site/basin, aligned barriers, passable gate, projection, grounding,81m mast, LOD, fog, finite buffers and idempotent disposal`);
