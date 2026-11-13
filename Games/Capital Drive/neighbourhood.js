@@ -12,7 +12,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
   scene.add(root);
   const chunks = new Map(), roadIndex = new Map(), buildingIndex = new Map(), parkIndex = new Map();
   const materials = [], textures = [];
-  const stats = { frontages: 0, driveways: 0, hedges: 0, fences: 0, letterboxes: 0, doors: 0, verandahs: 0, lamps: 0, benches: 0, bins: 0, stopPoles: 0, shopSigns: 0, chunks: 0, meshes: 0, triangles: 0 };
+  const stats = { frontages: 0, driveways: 0, hedges: 0, fences: 0, letterboxes: 0, doors: 0, verandahs: 0, lamps: 0, benches: 0, bins: 0, stopPoles: 0, shopSigns: 0, retailAprons: 0, apronTriangles: 0, pavedArea: 0, chunks: 0, meshes: 0, triangles: 0 };
   const material = new THREE.MeshLambertMaterial({ vertexColors: true });
   materials.push(material);
   const box = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
@@ -145,6 +145,92 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
       }
     }
     return { face, street, nx, nz, start, distance, x, z };
+  }
+  // Broad paved forecourts are a district treatment for mapped commercial
+  // footprints, not a claim about a particular shop or its surveyed paving.
+  function overlapsOutline(quad, samples, index) {
+    const outlines = new Set(samples.flatMap(p => nearby(index, ...p)));
+    const turn = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+    for (const outline of outlines) {
+      if (outline.points.some(p => inside(...p, quad))) return true;
+      for (let i = 0; i < quad.length; i++) for (let j = 0; j < outline.points.length; j++) {
+        const a = quad[i], b = quad[(i + 1) % quad.length];
+        const c = outline.points[j], d = outline.points[(j + 1) % outline.points.length];
+        if (turn(a, b, c) * turn(a, b, d) < 0 && turn(c, d, a) * turn(c, d, b) < 0) return true;
+      }
+    }
+    return false;
+  }
+  const retailCentres = (map.landmarks || []).filter(l => /^(manuka|kingston)$/.test(l.id));
+  const APRON_LIMIT = 18000;
+  const apronColors = [0x9b7965, 0xa17e68, 0x95745f, 0xa48370];
+  const retailBuildings = (map.buildings || []).filter(b => /^(commercial|retail)$/.test(b.type || '') && b.points?.length);
+  const centreDistance = building => {
+    const x = building.points.reduce((sum, p) => sum + p[0], 0) / building.points.length;
+    const z = building.points.reduce((sum, p) => sum + p[1], 0) / building.points.length;
+    return Math.min(...retailCentres.map(l => Math.hypot(x - l.x, z - l.z)));
+  };
+  retailBuildings.sort((a, b) => centreDistance(a) - centreDistance(b));
+  for (const building of retailBuildings) {
+    const points = building.points;
+    const cx = points.reduce((sum, p) => sum + p[0], 0) / points.length;
+    const cz = points.reduce((sum, p) => sum + p[1], 0) / points.length;
+    if (!retailCentres.some(l => Math.hypot(cx - l.x, cz - l.z) < (l.radius || 120) + 25)) continue;
+    if (String(building.id).startsWith('osm-') && nearby(buildingIndex, cx, cz).some(b => String(b.id).startsWith('act-') && inside(cx, cz, b.points))) continue;
+    let added = false;
+    for (let edge = 0; edge < points.length && stats.apronTriangles < APRON_LIMIT; edge++) {
+      const a = points[edge], b = points[(edge + 1) % points.length];
+      const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      if (length < 3 || length > 90) continue;
+      const mx = (a[0] + b[0]) / 2, mz = (a[1] + b[1]) / 2;
+      const street = nearestStreet(mx, mz);
+      if (!street || street.distance < street.segment.width / 2 + 1.7 || street.distance > 26) continue;
+      let nx = -(b[1] - a[1]) / length, nz = (b[0] - a[0]) / length;
+      if (nx * (street.x - mx) + nz * (street.z - mz) < 0) { nx = -nx; nz = -nz; }
+      if (inside(mx + nx * 0.2, mz + nz * 0.2, points)) continue;
+      if ((nx * (street.x - mx) + nz * (street.z - mz)) / street.distance < 0.8) continue;
+      const clear = (x, z) => !inRoad(x, z, 0.35) && !inPark(x, z) && !inBuilding(x, z) &&
+        (!map.bounds || (x >= map.bounds.minX && x <= map.bounds.maxX && z >= map.bounds.minZ && z <= map.bounds.maxZ));
+      const columns = Math.ceil(length / 1.6);
+      for (let column = 0; column < columns && stats.apronTriangles < APRON_LIMIT; column++) {
+        const u0 = column / columns, u1 = (column + 1) / columns;
+        const endpoints = [u0, u1].map(u => {
+          const x = THREE.MathUtils.lerp(a[0], b[0], u), z = THREE.MathUtils.lerp(a[1], b[1], u);
+          const kerb = project(x, z, street.segment.a, street.segment.b);
+          const d = kerb.distance;
+          if (d < street.segment.width / 2 + 1.7 || d > 26) return null;
+          // Meet the outer half of the already-derived two-metre sidewalk.
+          const stop = street.segment.width / 2 + 1.45;
+          const endX = kerb.x + (x - kerb.x) / d * stop;
+          const endZ = kerb.z + (z - kerb.z) / d * stop;
+          if (Math.hypot(endX - x, endZ - z) > 20) return null;
+          return { x: x + nx * 0.08, z: z + nz * 0.08, endX, endZ };
+        });
+        if (endpoints.some(p => !p)) continue;
+        const [left, right] = endpoints;
+        const rows = Math.ceil(Math.max(Math.hypot(left.endX - left.x, left.endZ - left.z), Math.hypot(right.endX - right.x, right.endZ - right.z)) / 1.0);
+        for (let row = 0; row < rows && stats.apronTriangles < APRON_LIMIT; row++) {
+          const point = (p, t) => [THREE.MathUtils.lerp(p.x, p.endX, t), THREE.MathUtils.lerp(p.z, p.endZ, t)];
+          const q = [point(left, row / rows), point(right, row / rows), point(right, (row + 1) / rows), point(left, (row + 1) / rows)];
+          const samples = [...q, ...q.map((p, i) => [(p[0] + q[(i + 1) % 4][0]) / 2, (p[1] + q[(i + 1) % 4][1]) / 2]),
+            [q.reduce((sum, p) => sum + p[0], 0) / 4, q.reduce((sum, p) => sum + p[1], 0) / 4]];
+          if (samples.some(p => !clear(...p)) || overlapsOutline(q, samples, buildingIndex) || overlapsOutline(q, samples, parkIndex)) continue;
+          const vertices = q.map(p => [p[0], heightAt(...p) + 0.14, p[1]]);
+          const tint = apronColors[(column + row * 3 + edge) % apronColors.length];
+          const batch = batchAt(q[0][0], q[0][1], 'retail-apron');
+          // Keep both terrain-draped triangles front-facing on either winding.
+          for (const ids of [[0, 1, 2], [0, 2, 3]]) {
+            const [p, r, t] = ids.map(i => vertices[i]);
+            const up = (r[2] - p[2]) * (t[0] - p[0]) - (r[0] - p[0]) * (t[2] - p[2]);
+            triangle(batch, p, up > 0 ? r : t, up > 0 ? t : r, tint);
+            stats.apronTriangles++;
+            stats.pavedArea += Math.abs(up) / 2;
+          }
+          added = true;
+        }
+      }
+    }
+    if (added) stats.retailAprons++;
   }
   const shopping = (x, z) => (map.landmarks || []).some(l => /^(manuka|kingston|griffith|narrabundah)$/.test(l.id) && Math.hypot(x - l.x, z - l.z) < (l.radius || 120));
   const shopLabels = ['CAFE', 'GROCER', 'BAKERY', 'BOOKS'];
@@ -297,6 +383,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
       else geometry.setAttribute('color', new THREE.Float32BufferAttribute(batch.colors, 3));
       geometry.computeBoundingSphere();
       const mesh = new THREE.Mesh(geometry, kind === 'sign' ? materials.at(-1) : material);
+      mesh.name = `Neighbourhood ${kind}`;
       mesh.matrixAutoUpdate = false; mesh.updateMatrix(); chunk.group.add(mesh); stats.meshes++;
     }
     chunk.batches.clear();
