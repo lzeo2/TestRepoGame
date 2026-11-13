@@ -6,7 +6,8 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
   const sandbox = () => Boolean(isSandbox());
   const context = () => ({ pose: gameplay.focus(), onFoot: gameplay.state.mode === 'foot',
     vehicle: { ...gameplay.state.vehicle, color: paintColor(gameplay.state.vehicle.color) }, wanted: gameplay.state.wanted,
-    vehicleHealth: gameplay.state.vehicleHealth, respawnSerial: gameplay.state.respawnSerial });
+    vehicleHealth: gameplay.state.vehicleHealth, respawnSerial: gameplay.state.respawnSerial,health:gameplay.state.health,
+    weapon:gameplay.state.weapon,reserveAmmo:gameplay.state.reserveAmmo,recovering:!!gameplay.state.recovery,sandbox:sandbox() });
   const remember = () => progression.update(0, context());
   const money = value => `$${Math.round(value).toLocaleString('en-AU')}`;
   const paintColor = value => typeof value === 'number' ? `#${value.toString(16).padStart(6, '0')}` : value;
@@ -109,26 +110,71 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
     text('garage-description', sandbox() ? 'Choose any original fictional vehicle and paint.' : `Visit ${progression.garage.name} to buy, retrieve, repair, store or paint a vehicle.`);
   }
   function refresh() {
-    const state = gameplay.state, active = progression.state.activeJob;
+    const state = gameplay.state, active = progression.state.activeJob,activity=progression.state.activity;
     text('cash-value', sandbox() ? 'Free roam' : money(progression.state.cash));
     text('health-value', Math.ceil(state.health)); text('car-health-value', Math.ceil(state.vehicleHealth));
-    text('wanted-level', sandbox() ? 'Free roam' : `${state.wanted}/5`);
+    text('wanted-level','★'.repeat(state.wanted)+'☆'.repeat(5-state.wanted));
+    const stars=byId('wanted-level');if(stars){stars.setAttribute('aria-label',`Wanted ${state.wanted} of 5 stars`);stars.dataset.pursuit=state.pursuit;}
     text('pursuit-status', sandbox() ? 'No police' : state.pursuit === 'pursuit' ? 'In sight' : state.pursuit === 'search' ? 'Searching' : 'Clear');
     text('weapon-label', state.weapon === 'pistol' ? state.reloading > 0 ? 'Pistol · reloading' : `Pistol · ${state.ammo}/${state.reserveAmmo}` : 'Fists');
-    text('job-title', active?.name || 'Street Life');
-    text('job-description', active ? active.target.label : 'Open Jobs to choose a delivery, race, theft or getaway.');
+    text('job-title', activity?.name||active?.name||'');
+    text('job-description', activity?progression.services.find(s=>s.id===activity.serviceId)?.name:active?.target.label||'');
     const job = active && progression.jobs.find(item => item.id === active.id);
-    text('job-progress', active ? `Stage ${active.stage + 1}/${job?.stages.length || 1} · ${Math.ceil(active.remaining)}s · ${money(active.reward)}` : 'No active job');
-    const jobHud = byId('job-hud'); if (jobHud) jobHud.hidden = sandbox();
+    text('job-progress',activity?`${Math.round(activity.progress*100)}%`:active ? `Stage ${active.stage + 1}/${job?.stages.length || 1} · ${Math.ceil(active.remaining)}s · ${money(active.reward)}` : '');
+    const jobHud = byId('job-hud'); if (jobHud) jobHud.hidden = sandbox()||(!active&&!activity);
     let hint;
     if (state.mode === 'vehicle') hint = Math.abs(simulation.player.speed) > 1.2 ? 'E stop · WASD drive · Shift boost' : 'E step out · WASD drive';
     else {
       const pose = gameplay.focus();
       const nearby = simulation.nearbyVehicles(pose.x, pose.z, 7).some(car => simulation.hasLineOfSight(pose, car));
-      hint = `${nearby ? 'E enter car · ' : ''}WASD walk · Shift sprint · Space jump · 1 fists · 2 pistol`;
+      const service=progression.services.find(s=>Math.hypot(s.x-pose.x,s.z-pose.z)<=s.radius);
+      hint=state.carjacking?`Taking vehicle · ${Math.round(state.carjacking.progress*100)}%`:activity?`${activity.name} · stay nearby`:service?`E ${service.name}`:`${nearby?'E enter car · ':''}WASD walk · Shift sprint`;
     }
     text('interaction-hint', hint);
+    const recovery=state.recovery,screen=byId('recovery-screen');
+    if(screen){screen.hidden=!recovery;if(recovery){
+      screen.style.backgroundColor=`rgba(10,15,18,${recovery.phase==='out'?Math.min(.96,recovery.elapsed/1.8):Math.max(.12,.96-(recovery.elapsed-1.8)*.5)})`;
+      text('recovery-title',recovery.reason==='arrest'?'BUSTED':'HOSPITAL');
+      text('recovery-status',recovery.phase==='out'?'Transferring…':'Recovering. Completed jobs kept.');
+    }}
   }
+  function renderServices(){
+    const container=byId('services-list');if(!container)return;container.replaceChildren();
+    const ctx=context();
+    for(const site of progression.services){
+      const entry=document.createElement('article');entry.className='job-option';entry.dataset.serviceId=site.id;
+      const title=document.createElement('h3');title.textContent=site.name;
+      const detail=document.createElement('p');detail.textContent=`${site.road} · ${Math.round(Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z))} m`;
+      const row=document.createElement('div');row.className='button-row service-actions';
+      const route=actionButton('Route',()=>{onRoute(site);closeDialogs();});route.dataset.serviceRoute=site.id;row.append(route);
+      const available=!sandbox()&&ctx.onFoot&&!ctx.recovering&&Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)<=site.radius&&!progression.state.activity;
+      const purchase=(label,item,cost,blocked=false)=>{
+        const b=actionButton(label,()=>{
+          const r=progression.purchaseService(site.id,item,context());
+          if(r.ok){if(r.heal)gameplay.heal(r.heal);if(r.ammo)gameplay.addAmmo(r.ammo);if(r.pistol)gameplay.setWeapon('pistol');}
+          feedback(r,true);renderServices();
+        });b.dataset.serviceItem=item;b.disabled=!available||ctx.wanted>0||progression.state.cash<cost||blocked;row.append(b);
+      };
+      const activity=(label,type,blocked=false)=>{
+        const b=actionButton(label,()=>{const r=feedback(progression.startActivity(site.id,type,context()));if(r.ok)closeDialogs();else renderServices();});
+        b.dataset.serviceActivity=type;b.disabled=!available||!!progression.state.activeJob||blocked;row.append(b);
+      };
+      if(site.type==='food'){
+        purchase(`Food ${money(site.price)} · +${site.heal} health`,'food',site.price,ctx.health>=100);
+        activity('Rob till','robbery',!progression.state.equipment.pistol||ctx.weapon!=='pistol'||progression.state.robberyCooldowns[site.id]>0);
+      }else if(site.type==='gym'){
+        const price=site.price*(progression.state.fitnessLevel+1);
+        detail.textContent+=` · Fitness ${progression.state.fitnessLevel}/3`;
+        activity(`Train ${money(price)} · 8s`,'workout',ctx.wanted>0||progression.state.fitnessLevel>=3||progression.state.cash<price);
+      }else{
+        purchase(`Pistol ${money(site.price)}`,'pistol',site.price,progression.state.equipment.pistol);
+        purchase(`24 rounds ${money(site.ammoPrice)}`,'ammo',site.ammoPrice,!progression.state.equipment.pistol||ctx.reserveAmmo>96);
+      }
+      entry.append(title,detail,row);container.append(entry);
+    }
+  }
+  listen('services-button','click',()=>{renderServices();openDialog('services-dialog');});
+  listen('pause-services-button','click',()=>{renderServices();openDialog('services-dialog');});
   listen('jobs-button', 'click', () => { renderJobs(); openDialog('jobs-dialog'); });
   listen('garage-button', 'click', () => { renderGarage(); openDialog('garage-dialog'); });
   listen('cancel-job-button', 'click', () => { feedback(progression.cancelJob()); renderJobs(); });
@@ -157,6 +203,6 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
     feedback(result, true);
   });
   refresh();
-  return { refresh, renderJobs, renderGarage, dispose() { cleanups.splice(0).forEach(cleanup => cleanup());
+  return { refresh, renderJobs, renderGarage,renderServices, dispose() { cleanups.splice(0).forEach(cleanup => cleanup());
     byId('jobs-list')?.replaceChildren(); byId('car-options')?.replaceChildren(); } };
 }

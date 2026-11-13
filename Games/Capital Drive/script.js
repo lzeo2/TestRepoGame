@@ -13,6 +13,11 @@ import { createStreetUI } from './street-ui.js';
 import { createAddressSearch } from './address-search.js';
 import { LANDMARKS, LANDMARK_CLEARINGS, replacedBuildingIds } from './landmarks.js';
 import { createLandmarksView } from './landmarks-view.js';
+import {applyRoadProfiles,roadProfile} from './road-network.js';
+import {createBuses} from './buses.js';
+import {createBusView} from './bus-view.js';
+import {createVehicleOccupantsView} from './vehicle-occupants-view.js';
+import {createServicesView} from './services-view.js';
 
 const $ = id => document.getElementById(id);
 const keys = new Set(), touch = new Set();
@@ -38,6 +43,7 @@ let compatibility = false;
 const parkedResources = [];
 let pedestrians, neighbourhood;
 let gameplay, progression, actorView, landmarkView, streetUI, addressSearch;
+let buses,busView,occupantsView,servicesView,previousActorMode='vehicle';
 let gameMode = 'street', selectedGameMode = 'street', careerError = '', footCameraYaw = 0;
 let mouseAim = false, mouseFire = false, lastJobTarget = '';
 const actionTouch = new Set(), abandonedMeshes = new Map();
@@ -85,7 +91,8 @@ const focus = () => gameplay ? gameplay.focus() : simulation.player;
 function careerContext() {
   const state = gameplay.state;
   return { pose: focus(), onFoot: state.mode === 'foot', vehicle: { ...state.vehicle },
-    wanted: state.wanted, vehicleHealth: state.vehicleHealth, respawnSerial: state.respawnSerial };
+    wanted: state.wanted, vehicleHealth: state.vehicleHealth, respawnSerial: state.respawnSerial,
+    health:state.health,weapon:state.weapon,reserveAmmo:state.reserveAmmo,recovering:!!state.recovery,sandbox:isSandbox() };
 }
 function saveCareer() {
   if (careerError || isSandbox() || !started) return;
@@ -134,6 +141,8 @@ $('start-button').addEventListener('click', () => {
   if (!simulation || !gameplay || !streetUI) return;
   gameMode = selectedGameMode;
   simulation.reset(); restoreParkedCars(); gameplay.reset({ sandbox: isSandbox() });
+  buses?.reset();progression.cancelActivity();
+  if(!isSandbox()&&progression.state.equipment.pistol)gameplay.addAmmo(24);
   if (progression.state.activeJob) progression.cancelJob();
   const owned = progression.state.ownedVehicles.find(car => car.id === 'lantern');
   applyPlayerVehicle({ modelId: 'lantern', color: owned?.color || '#e7e6df', health: isSandbox() ? 100 : owned?.health ?? 100 });
@@ -156,7 +165,7 @@ function recover() {
   const p = simulation.player, nearby = simulation.nearestRoad(p.x, p.z);
   if (nearby && nearby.distance < 500) {
     const yaw = nearby.road.oneway === -1 ? nearby.yaw + Math.PI : nearby.yaw;
-    const lane = Math.min(2.3, nearby.road.width * .23);
+    const lane = Math.min(2.3, roadProfile(nearby.road).driveWidth * .23);
     const trip = p.odometer;
     simulation.reset({ x: nearby.x - Math.cos(yaw) * lane, z: nearby.z + Math.sin(yaw) * lane, yaw });
     p.odometer = trip;
@@ -251,6 +260,7 @@ window.addEventListener('keydown', event => {
     if (event.code === 'KeyP' || event.code === 'Escape') { dialogs.some(d => d.open) ? closeDialogs() : openDialog('pause-dialog'); return; }
     if (event.code === 'KeyJ') { streetUI.renderJobs(); openDialog('jobs-dialog'); return; }
     if (event.code === 'KeyG') { streetUI.renderGarage(); openDialog('garage-dialog'); return; }
+    if (event.code === 'KeyK') { streetUI.renderServices(); openDialog('services-dialog'); return; }
     if (event.code === 'KeyE' && !paused()) { event.preventDefault(); interact(); return; }
     if (event.code === 'Digit1' && !paused()) gameplay.setWeapon('unarmed');
     if (event.code === 'Digit2' && !paused()) gameplay.setWeapon('pistol');
@@ -268,6 +278,11 @@ for (const button of document.querySelectorAll('[data-drive]')) {
 }
 function interact() {
   if (!gameplay || paused()) return;
+  if(gameplay.state.recovery)return;
+  if(gameplay.state.mode==='foot'&&!gameplay.state.carjacking){
+    const pose=focus(),site=progression.services.find(s=>Math.hypot(s.x-pose.x,s.z-pose.z)<=s.radius);
+    if(site){streetUI.renderServices();openDialog('services-dialog');return;}
+  }
   const previousMode = gameplay.state.mode;
   gameplay.interact();
   if (gameplay.state.mode !== previousMode) {
@@ -282,6 +297,7 @@ for (const button of document.querySelectorAll('[data-action]')) {
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(type, () => actionTouch.delete(button.dataset.action));
 }
 function walkingInput() {
+  if(gameplay?.state.recovery||progression?.state.activity?.type==='workout')return {};
   const forward = Number(keys.has('KeyW') || keys.has('ArrowUp') || touch.has('throttle')) - Number(keys.has('KeyS') || keys.has('ArrowDown') || touch.has('brake'));
   const lateral = Number(keys.has('KeyD') || keys.has('ArrowRight') || touch.has('right')) - Number(keys.has('KeyA') || keys.has('ArrowLeft') || touch.has('left'));
   return { moveX: -Math.sin(footCameraYaw) * forward + Math.cos(footCameraYaw) * lateral,
@@ -308,8 +324,8 @@ function createMapImage() {
   ctx.fillStyle = '#bfc1b3';
   for (const building of map.buildings) { path(building.points); ctx.fill(); }
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  for (const road of map.roads) { path(road.points); ctx.strokeStyle = '#c1c4b9'; ctx.lineWidth = Math.max(1.6, road.width * mapScale + 1.5); ctx.stroke(); }
-  for (const road of map.roads) { path(road.points); ctx.strokeStyle = '#fffef3'; ctx.lineWidth = Math.max(1, road.width * mapScale); ctx.stroke(); }
+  for (const road of map.roads) { path(road.points); ctx.strokeStyle = '#c1c4b9'; ctx.lineWidth = Math.max(.6, roadProfile(road).driveWidth * mapScale + .7); ctx.stroke(); }
+  for (const road of map.roads) { path(road.points); ctx.strokeStyle = '#fffef3'; ctx.lineWidth = Math.max(.35, roadProfile(road).driveWidth * mapScale); ctx.stroke(); }
 }
 function drawMap(canvas, full) {
   if (!mapImage) return;
@@ -330,6 +346,7 @@ function drawMap(canvas, full) {
     ctx.beginPath(); ctx.arc(x, y, full ? 8 : 6, 0, Math.PI * 2); ctx.fillStyle = discovered.has(place.id) ? '#608467' : '#efb15e'; ctx.fill(); ctx.strokeStyle = '#fff8e7'; ctx.lineWidth = 2; ctx.stroke();
     if (full) { ctx.font = 'bold 16px Arial'; ctx.fillStyle = '#253a36'; ctx.fillText(place.name, x + 14, y + 5); }
   }
+  if(progression)for(const site of progression.services){const x=sx(site.x),y=sz(site.z);ctx.fillStyle=site.type==='gym'?'#37614e':site.type==='arms'?'#80563e':'#986b34';ctx.fillRect(x-4,y-4,8,8);if(full){ctx.font='12px Arial';ctx.fillStyle='#253a36';ctx.fillText(site.name,x+9,y+3);}}
   if (full && mapSelection) {
     const x = sx(mapSelection.x), y = sz(mapSelection.z);
     ctx.strokeStyle = '#a34624'; ctx.lineWidth = 3;
@@ -612,7 +629,8 @@ function updateHud() {
   const nearestPlace = map.landmarks.reduce((a, b) => Math.hypot(a.x - p.x, a.z - p.z) < Math.hypot(b.x - p.x, b.z - p.z) ? a : b);
   $('district').textContent = nearestPlace.id === 'telopea' ? 'BARTON' : nearestPlace.name.toUpperCase();
   $('driving-hint').textContent = gameplay?.state.mode === 'foot' ? 'SHIFT sprint · SPACE jump · RMB aim' : 'SPACE handbrake · SHIFT boost';
-  $('destination-line').textContent = destination ? `${destination.name} · ${(Math.hypot(destination.x - p.x, destination.z - p.z) / 1000).toFixed(1)} km away` : 'The inner south is yours to explore.';
+  $('destination-line').hidden=!destination;
+  $('destination-line').textContent = destination ? `${destination.name} · ${(Math.hypot(destination.x - p.x, destination.z - p.z) / 1000).toFixed(1)} km away` : '';
   if (started && !paused()) for (const place of map.landmarks) {
     if (!discovered.has(place.id) && Math.hypot(place.x - p.x, place.z - p.z) < place.radius) {
       discovered.add(place.id); saveProgress(); updatePlaces();
@@ -653,8 +671,9 @@ function updateAbandonedMeshes(p, dt) {
 }
 function updateCareer() {
   for (const event of progression.drainEvents()) {
-    if (['job-stage', 'job-complete', 'job-failed', 'penalty'].includes(event.type)) notify(event.message);
-    if (event.type === 'job-complete' || event.type === 'penalty') saveCareer();
+    if (['job-stage','job-complete','job-failed','penalty','robbery-complete','workout-complete','activity-ended'].includes(event.type)) notify(event.message);
+    if(event.type==='robbery-started'&&!isSandbox())gameplay.reportOffence('shop robbery',2,{witnessed:true,point:event.point});
+    if (['job-complete','penalty','robbery-complete','workout-complete'].includes(event.type)) saveCareer();
   }
   if (isSandbox()) return;
   const target = progression.state.activeJob?.target;
@@ -665,6 +684,9 @@ function updateCareer() {
     lastJobTarget = key;
   }
 }
+function syncExternalVehicles(){
+  simulation.setExternalVehicles([...(buses?.vehicles||[]),...gameplay.state.police.filter(p=>p.health>0&&p.car).map(p=>p.car)]);
+}
 function animate(time) {
   if (disposed) return;
   raf = requestAnimationFrame(animate);
@@ -673,9 +695,12 @@ function animate(time) {
     accumulator += dt;
     while (accumulator >= 1 / 60) {
       const walking = gameplay.state.mode === 'foot';
-      simulation.step(1 / 60, walking ? { brake: true } : input(), focus());
+      syncExternalVehicles();
+      simulation.step(1 / 60, walking||gameplay.state.recovery ? { brake: true } : input(), focus());
       gameplay.step(1 / 60, walkingInput());
+      syncExternalVehicles();buses?.step(1/60);
       if (!isSandbox()) progression.update(1 / 60, careerContext());
+      if(previousActorMode!==gameplay.state.mode){previousActorMode=gameplay.state.mode;footCameraYaw=gameplay.state.actor.yaw;cameraReady=false;clearInput();}
       accumulator -= 1 / 60;
     }
     routeClock += dt;
@@ -698,6 +723,10 @@ function animate(time) {
     if (mesh.visible) placeCar(mesh, car, activeDt);
   }
   updateAbandonedMeshes(p, activeDt);
+  busView?.update(buses.vehicles,p);servicesView?.update(p);
+  occupantsView?.update(activeDt,{focus:p,cars:[{...simulation.player,occupied:gameplay.state.mode==='vehicle'},
+    ...simulation.traffic.map(car=>({...car,occupied:true})),
+    ...gameplay.state.police.filter(police=>police.health>0&&police.car).map(police=>({...police.car,modelId:'relay',occupied:police.mode==='vehicle'}))]});
   if (++frameCount % 8 === 0) {
     world.update(p, time / 1000); neighbourhood?.update(p); landmarkView?.update(p, time / 1000);
     syncParkedVisibility();
@@ -731,9 +760,9 @@ function animate(time) {
   if (hudTime > .18) { updateHud(); streetUI.refresh(); hudTime = 0; }
 }
 async function boot() {
-  const [response, addressResponse] = await Promise.all([fetch('./data/canberra.json'), fetch('./data/addresses.json')]);
-  if (!response.ok || !addressResponse.ok) throw new Error('Local map or address data could not be loaded.');
-  map = await response.json();
+  const [response, addressResponse,profileResponse] = await Promise.all([fetch('./data/canberra.json'), fetch('./data/addresses.json'),fetch('./data/road-profiles.json')]);
+  if (!response.ok || !addressResponse.ok||!profileResponse.ok) throw new Error('Local map or address data could not be loaded.');
+  map = applyRoadProfiles(await response.json(),await profileResponse.json());
   map.landmarks = [...map.landmarks, ...LANDMARKS.filter(place => !map.landmarks.some(old => old.id === place.id))];
   map.landmarkBuildingIds = [...replacedBuildingIds(map)];
   map.landmarkTreeExclusions = LANDMARK_CLEARINGS;
@@ -770,6 +799,8 @@ async function boot() {
     progression = createProgression(map); $('save-status').textContent = careerError;
   }
   gameplay = createGameplay(map, simulation, { pedestrians, heightAt: world.heightAt,
+    hasPistol:()=>progression.state.equipment.pistol,fitness:()=>progression.state.fitnessLevel,
+    onCarjacked:pose=>occupantsView?.addExit(pose),
     onVehicleChanged: applyPlayerVehicle,
     onRespawn: reason => {
       progression.penalize(reason === 'arrest' ? 'Arrest' : 'Hospital treatment');
@@ -782,11 +813,15 @@ async function boot() {
       if (event.kind === 'respawn') cameraReady = false;
     } });
   actorView = compatibility ? { update() {}, dispose() {}, stats: {} } : createActorView(scene, world.heightAt);
+  occupantsView=compatibility?{update(){},addExit(){},dispose(){},stats:{}}:createVehicleOccupantsView(scene,world.heightAt);
+  servicesView=compatibility?{update(){},dispose(){},stats:{}}:createServicesView(scene,world.heightAt);
+  busView=compatibility?{update(){},dispose(){},stats:{}}:createBusView(scene,world.heightAt);
   streetUI = createStreetUI({ gameplay, progression, simulation, vehicles, notify, openDialog, closeDialogs,
     onVehicleSelected: applyPlayerVehicle, onRoute: routeTo, saveCareer, isSandbox });
   applyPlayerVehicle({ modelId: selectedCar, color: selectedPaint, health: 100 });
   trafficMeshes = simulation.traffic.map(car => { const mesh = createCar(car.modelId, { color: car.color }); addCarShadow(mesh); scene.add(mesh); return mesh; });
   createParkedCars();
+  buses=createBuses(map,simulation);syncExternalVehicles();
   createMapImage(); loadProgress(); populatePlaces(); refreshModeUI(); resize(); updateHud();
   if (careerError) $('save-status').textContent = [savedError, careerError].filter(Boolean).join(' ');
   const viewCanvas = renderer.domElement;
@@ -810,14 +845,14 @@ async function boot() {
     pointer = [event.clientX, event.clientY]; orbitHold = 3;
   });
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) viewCanvas.addEventListener(type, () => { dragging = false; pointer = null; });
-  $('loading').textContent = `${map.roads.length.toLocaleString()} real road sections · ${map.buildings.length.toLocaleString()} building footprints${compatibility ? ' · 2D map view (WebGL unavailable)' : ''}`;
+  $('loading').textContent = compatibility?'Ready · 2D map view (WebGL unavailable)':'Ready';
   $('start-button').disabled = false;
   // Read-only diagnostics for QA; no production state setters.
   window.capitalDriveSnapshot = () => Object.freeze({ ready: true, started, paused: paused(), gameMode,
     player: Object.freeze({ ...simulation.player }), focus: Object.freeze({ ...focus() }),
     gameplay: gameplay.snapshot(), career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
     places: Object.freeze(map.landmarks.map(place => Object.freeze({ ...place }))), addressCount: addressData.addresses.length,
-    camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch }),
+    camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch,footYaw:footCameraYaw }),
     discovered: Object.freeze([...discovered]), roadCount: map.roads.length, buildings: map.buildings.length, traffic: simulation.traffic.length,
     visibleTraffic: trafficMeshes.filter(m => m.visible).length, destination: destination?.id ?? null, routePoints: route.length,
     mapSelection: mapSelection ? Object.freeze({ ...mapSelection }) : null,
@@ -825,6 +860,9 @@ async function boot() {
     rendering: Object.freeze({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, quality, compatibility }), world: Object.freeze({ ...world.stats }),
     pedestrians: Object.freeze({ ...pedestrians.stats, sample: Object.freeze(pedestrians.snapshot().slice(0, 8)) }), neighbourhood: Object.freeze({ ...neighbourhood.stats }),
     landmarks: Object.freeze({ ...landmarkView.stats }), actors: Object.freeze({ ...actorView.stats }),
+    services:freezeCopy(progression.services),activity:freezeCopy(progression.state.activity),
+    buses:freezeCopy(buses.snapshot()),busView:Object.freeze({...busView.stats}),occupants:Object.freeze({...occupantsView.stats}),
+    serviceView:Object.freeze({...servicesView.stats}),
     trafficSample: freezeCopy(simulation.traffic.slice(0, 8).map(({ id, x, z, speed, active, behaviour, honkCount }) => ({ id, x, z, speed, active, behaviour, honkCount }))) });
   raf = requestAnimationFrame(animate);
 }
@@ -833,7 +871,7 @@ window.addEventListener('pagehide', () => {
   disposed = true; cancelAnimationFrame(raf); clearTimeout(toastTimer); clearInput();
   if (audio) audio.context.close().catch(error => console.warn('Could not release audio:', error.message));
   for (const resource of parkedResources) resource.dispose();
-  streetUI?.dispose(); actorView?.dispose(); landmarkView?.dispose();
+  streetUI?.dispose(); actorView?.dispose(); landmarkView?.dispose();busView?.dispose();occupantsView?.dispose();servicesView?.dispose();
   pedestrians?.dispose(); neighbourhood?.dispose(); world?.dispose(); disposeCars(); renderer?.dispose();
 });
 boot().catch(error => {
