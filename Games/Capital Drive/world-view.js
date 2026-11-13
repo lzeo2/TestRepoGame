@@ -554,7 +554,10 @@ export function createWorldView(scene, map) {
     if (isSchool) schoolDetailed = true;
     counters.buildings++; counters.texturedBuildings++;
   }
-  (map.buildings || []).forEach(buildingView);
+  const landmarkBuildingIds = new Set(map.landmarkBuildingIds || []);
+  (map.buildings || []).forEach((building, index) => {
+    if (!landmarkBuildingIds.has(building.id)) buildingView(building, index);
+  });
 
   // Each canopy is a small faceted crown, avoiding thousands of transparent leaves.
   const treeChunks = new Map(), treeCells = new Map();
