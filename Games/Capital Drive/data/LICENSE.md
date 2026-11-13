@@ -1,6 +1,6 @@
 # Capital Drive geographic data
 
-Snapshot imported on 12 November 2026. This directory contains real geographic
+Snapshot imported on 12 November 2026, enriched on 13 November 2026. This directory contains real geographic
 data converted for an original driving game. The game has no runtime dependency
 on the source services. Geographic data does not imply endorsement by its
 contributors or public agencies.
@@ -19,6 +19,11 @@ bounding-box tiles and unioned by object type and ID. The enclosing extent is
 149.103 to 149.174 degrees east and -35.352 to -35.298 degrees north.
 312,757 unique OSM objects supplied the snapshot. Output retains 5,197 drivable
 road runs, 1,464 green/water polygons and 4,860 supplementary building outlines.
+
+The enriched output retains 4,886 OSM building outlines. The earlier 4,860 count
+below describes the first snapshot. Actual polygon-overlap checks now replace
+the original fifteen-metre centre-distance heuristic, preserving distinct close
+neighbours and suppressing overlapping geometry from lower-priority sources.
 
 Changes: road geometry is clipped to contiguous runs of source nodes inside the
 extent. No road links are invented across clipped gaps. Source node IDs preserve
@@ -54,6 +59,43 @@ dataset. The 3.8/6.5/10 metre heights are visual estimates based on footprint
 area. Facades, roof treatments and colours are game artwork, not surveyed detail.
 
 ## Terrain
+
+### Current model: ACT 2020 LiDAR-derived contours
+
+© Australian Capital Territory, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+The current 513 by 513 terrain grid is interpolated from the official
+[2020 two-metre contour download](https://actmapi-open-data.s3.amazonaws.com/DataDownload/GIS/Contours/2020/Contour_2m.gdb.zip).
+The [ACTmapi source item](https://www.arcgis.com/home/item.html?id=8c12c8e2e9f340908164d4aab9355e28)
+identifies its source as the 2020 one-metre AHD LiDAR DEM, mosaicked/resampled,
+adaptively smoothed, contoured every two metres from base elevation 550m, and
+generalised with 0.06m tolerance. This is an interpolated contour-derived terrain
+model, **not the original one-metre DEM or a claim of one-metre accuracy**.
+
+The bounded extraction includes 2,130 source contour features and a 300m margin.
+187,807 unique samples at ten-metre line spacing are triangulated linearly in
+MGA2020 (EPSG:7855), then evaluated at the geographic output grid. Cells are
+approximately 12.60 by 11.74 metres. Heights are in AHD metres minus the existing
+550m game datum. Elevation ranges from 556 to 810m AHD. Every grid cell lies
+inside the source sample convex hull; no old Mapzen, nearest-neighbour or
+invented-height filling is used. Contour interpolation can flatten local extrema,
+span unsampled depressions and omit kerbs or abrupt road cuts.
+
+Held-out interior samples of long contours have median absolute residual 0.071m,
+p95 0.609m and maximum 37.615m. These are interpolation consistency measurements,
+not independent survey accuracy; the maximum outlier remains a limitation.
+The final model uses every source sample, including the validation samples.
+Compared with the old terrain at aligned grid locations, median change is -3m,
+p95 absolute change 8.12m, maximum absolute change 86m. Different source, datum
+handling and resolution prevent interpreting these differences as measured
+absolute error. See [quantitative checks](geodata-validation.json).
+
+The public Geoscience Australia 2025 five-metre LiDAR WCS was also checked.
+Its Canberra subset contained 1,350,630 zero-valued cells and was rejected.
+
+### Historical terrain source, retained attribution
+
+The initial 129 by 129 Mapzen grid is superseded by the ACT contour model.
+The following source and modifications describe that earlier snapshot.
 
 Mapzen terrain tiles. Global GMTED2010 and SRTM terrain data courtesy of the
 U.S. Geological Survey. Australia terrain data © Commonwealth of Australia
@@ -91,3 +133,27 @@ school and neighbourhood names do not imply affiliation. All seven destination
 anchors lie beside the largest connected drivable road component.
 The Kingston Foreshore destination uses source OSM node 102279215 on Eastlake
 Parade, rather than the earlier approximate point beyond the drivable streets.
+
+## Additional Microsoft outlines
+
+Microsoft GlobalML Building Footprints, licensed under the
+[Community Data License Agreement Permissive 2.0](CDLA-Permissive-2.0.txt).
+[Publisher source and release details](https://github.com/microsoft/GlobalMLBuildingFootprints).
+The official Australia quadkey 311230302 file in the 2026-02-03 distribution
+(indexed upload 2026-02-23) supplies 9,320 candidate outlines in this district.
+It is a machine-derived satellite imagery dataset; individual capture dates and
+on-ground existence have not been independently verified. The distribution date
+is not the date each building was surveyed. Heights are satellite-derived
+estimates when provided, otherwise explicit visual defaults.
+
+3,023 candidates add missing outlines after actual polygon-overlap rejection
+against ACT and OSM sources. Priority is ACT, then OSM, then Microsoft. A candidate
+is suppressed when intersection area exceeds 35% of the smaller outline's area;
+this conservative heuristic is not cadastral reconciliation. No random houses
+are generated. Source identifiers retain the quadkey and original record index.
+Total output is 12,572 outlines, 3,049 more than the initial snapshot.
+
+Rebuild enriched sources with `--fetch-details`; this developer import additionally
+requires NumPy, Shapely, SciPy, Pyogrio/OpenFileGDB and Pyproj, installed outside
+the repository. The pinned official Microsoft tile and ACT contour archive stay
+in the external cache. The runtime only reads the resulting local JSON.
