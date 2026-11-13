@@ -78,6 +78,32 @@ def main():
         page.screenshot(path=str(output / (name + '.png')))
         (output / (name + '.json')).write_text(json.dumps(snapshot(page), indent=2) + '\n')
 
+    def map_point(page, x, z):
+        canvas = page.locator('#full-map')
+        rect = canvas.bounding_box()
+        view = snapshot(page)['mapView']
+        size = canvas.evaluate('(e) => ({width:e.width,height:e.height})')
+        px = ((x-view['x'])*view['scale']+size['width']/2)/size['width']
+        py = ((z-view['z'])*view['scale']+size['height']/2)/size['height']
+        page.mouse.click(rect['x']+px*rect['width'], rect['y']+py*rect['height'])
+        page.locator('#teleport-button').click()
+
+    def look_towards(page, x, z, pitch_pixels=0):
+        state = snapshot(page)
+        pose = state['focus']
+        desired = math.atan2(-(x-pose['x']), -(z-pose['z']))
+        if state['gameplay']['mode'] == 'foot':
+            delta = state['camera']['footYaw'] - desired
+        else:
+            delta = state['camera']['orbit'] - (desired-state['player']['yaw'])
+        delta = (delta+math.pi) % (2*math.pi)-math.pi
+        rect = page.locator('#world canvas').bounding_box()
+        cx, cy = rect['x']+rect['width']/2, rect['y']+rect['height']/2
+        page.mouse.move(cx, cy)
+        page.mouse.down()
+        page.mouse.move(cx+delta/.006, cy-pitch_pixels, steps=6)
+        page.mouse.up()
+
     def close_dialog(page, name):
         page.locator(f'[data-close="{name}"]').click()
 
@@ -144,19 +170,29 @@ def main():
                 if args.walk_kiosk:
                     yaw = snapshot(page)['camera']['footYaw']
                     target = next(s for s in snapshot(page)['services'] if s['id'] == 'crescent-kiosk')
-                    walk_end = time.monotonic() + 30
-                    while time.monotonic() < walk_end:
-                        actor = snapshot(page)['gameplay']['actor']
-                        dx, dz = target['x'] - actor['x'], target['z'] - actor['z']
-                        if math.hypot(dx, dz) < 6:
-                            break
-                        forward = -math.sin(yaw) * dx - math.cos(yaw) * dz
-                        lateral = math.cos(yaw) * dx - math.sin(yaw) * dz
-                        key = ('w' if forward > 0 else 's') if abs(forward) > abs(lateral) else ('d' if lateral > 0 else 'a')
-                        page.keyboard.down(key)
-                        page.wait_for_timeout(200)
-                        page.keyboard.up(key)
+                    walk_path = []
+                    page.keyboard.down('Shift')
+                    walk_end = time.monotonic() + 50
+                    initial = snapshot(page)
+                    waypoints = [(initial['gameplay']['actor']['x'], initial['player']['z']-8),
+                                 (target['x'], initial['player']['z']-8), (target['x'], target['z'])]
+                    for index, (tx, tz) in enumerate(waypoints):
+                        while time.monotonic() < walk_end:
+                            actor = snapshot(page)['gameplay']['actor']
+                            walk_path.append({'actor': actor, 'yaw': yaw, 'waypoint': index})
+                            dx, dz = tx - actor['x'], tz - actor['z']
+                            if math.hypot(dx, dz) < (6 if index == 2 else 2):
+                                break
+                            forward = -math.sin(yaw) * dx - math.cos(yaw) * dz
+                            lateral = math.cos(yaw) * dx - math.sin(yaw) * dz
+                            key = ('w' if forward > 0 else 's') if abs(forward) > abs(lateral) else ('d' if lateral > 0 else 'a')
+                            page.keyboard.down(key)
+                            page.wait_for_timeout(180)
+                            page.keyboard.up(key)
+                    page.keyboard.up('Shift')
                     actor = snapshot(page)['gameplay']['actor']
+                    observations.append({'kind':'normal kiosk walk path','target':target,'path':walk_path,'end':actor})
+                    capture(page,'kiosk-walk-result')
                     check(math.hypot(actor['x'] - target['x'], actor['z'] - target['z']) < 8, 'Normal WASD walk reaches nearby kiosk')
                 pause_check(page, 'Desktop')
                 capture(page, 'desktop-street-life')
@@ -174,26 +210,27 @@ def main():
                     page.locator('#teleport-button').click()
                     page.wait_for_function('!capitalDriveSnapshot().paused')
                     check(snapshot(page)['gameMode'] == 'free', 'Normal Free roam search/teleport: ' + query)
+                    if name == 'parliament-house':
+                        page.keyboard.press('m')
+                        map_point(page, -1048.26, -1314.81)
+                        look_towards(page, -1135.4, -1102.07, 75)
+                        page.wait_for_timeout(4300)
                     capture(page, name)
                 observations.append({'kind': 'read-only runtime counts', 'buses': snapshot(page).get('buses'), 'occupants': snapshot(page).get('occupants')})
                 buses = snapshot(page)['buses']
                 check(len(buses) == 2, 'Two bounded ambient buses are integrated')
                 bus = next(b for b in buses if b.get('active', True))
                 page.keyboard.press('m')
-                canvas = page.locator('#full-map')
-                rect = canvas.bounding_box()
-                view = snapshot(page)['mapView']
-                size = canvas.evaluate('(e) => ({width:e.width,height:e.height})')
-                # Normal map input beside an observed live bus; no state injection.
-                x, z = bus['x'] + 11, bus['z'] + 15
-                px = ((x-view['x'])*view['scale']+size['width']/2)/size['width']
-                py = ((z-view['z'])*view['scale']+size['height']/2)/size['height']
-                page.mouse.click(rect['x']+px*rect['width'], rect['y']+py*rect['height'])
-                page.locator('#teleport-button').click()
-                page.keyboard.press('p')
-                page.wait_for_selector('#pause-dialog[open]')
-                capture(page, 'observed-bus-nearby-paused')
-                page.locator('#resume-button').click()
+                # Approach the bus front from its observed heading using only map input.
+                x = bus['x']-math.sin(bus['yaw'])*20+math.cos(bus['yaw'])*6
+                z = bus['z']-math.cos(bus['yaw'])*20-math.sin(bus['yaw'])*6
+                map_point(page, x, z)
+                page.keyboard.press('e')
+                page.wait_for_function('capitalDriveSnapshot().gameplay.mode === "foot"')
+                observed = snapshot(page)['buses'][0]
+                look_towards(page, observed['x'], observed['z'])
+                page.wait_for_timeout(150)
+                capture(page, 'observed-bus-front-nearby')
                 context.close()
                 for mode in ('street', 'free'):
                     phone = browser.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True)
