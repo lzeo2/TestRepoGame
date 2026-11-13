@@ -66,14 +66,9 @@ def main():
         page.wait_for_timeout(milliseconds)
 
     def click(page, selector):
-        # Per-frame menus replace nodes: aim from a fresh live box and use input.
-        target = page.locator(selector).first
-        target.wait_for(state='visible', timeout=10000)
-        target.scroll_into_view_if_needed(timeout=10000)
-        box = target.bounding_box()
-        if not box:
-            raise AssertionError('No visible target: ' + selector)
-        page.mouse.click(box['x'] + box['width']/2, box['y'] + box['height']/2)
+        # Locator.click sends real input and retries nodes replaced by live menus.
+        # Keep actionability checks: no force-click or DOM event dispatch.
+        page.locator(selector).first.click(timeout=10000)
         wait(page, 180)
 
     def capture(page, name):
@@ -108,16 +103,21 @@ def main():
 
     def recruit(page, label):
         click(page, '[data-panel="shop"]')
-        click(page, '[data-action="openMarket"]')
+        click(page, '#sheet-content [data-action="openMarket"]')
+        attempts = []
         for _ in range(20):
             candidates = page.locator('[data-action="buy"]').evaluate_all('''els=>els.map(e=>({id:e.dataset.id,cost:Number(e.closest('article').querySelector('.price').textContent.replace(/[^0-9]/g,''))}))''')
             coins = snap(page)['state']['coins']
             affordable = next((c for c in candidates if c['cost'] <= coins), None)
+            attempts.append({'offers':candidates,'coins':coins,'affordable':affordable})
             if affordable:
                 click(page, '[data-action="buy"][data-id="' + affordable['id'] + '"]')
+                attempts[-1]['toast'] = page.locator('#toast').inner_text()
                 if snap(page)['state']['roster']:
                     break
             wait(page, 500)
+        receipt['observations'][label + ' recruitment'] = {'attempts':attempts,'panel':snap(page)['panel'],'text':page.locator('#sheet-content').inner_text()}
+        capture(page, label + '-conveyor')
         check(bool(snap(page)['state']['roster']), label + ' affordable natural conveyor recruit')
         click(page, '#close-sheet')
 
@@ -155,8 +155,6 @@ def main():
             click(page, '[data-panel="match"]')
             available = page.locator('[data-action="ability"]:enabled')
             receipt['observations']['abilityAvailable'] = available.count() > 0
-            if available.count():
-                click(page, '[data-action="ability"]:enabled')
             click(page, '[data-action="controlPlayer"]:enabled')
             before = snap(page)
             check(bool(before['match']['control']), 'manual player control accepted')
@@ -189,11 +187,17 @@ def main():
             click(page, '#close-sheet')
             last_period = None
             called = set()
+            ability_used = False
             while True:
                 s = snap(page)
                 if s['report']:
                     break
                 m = s['match']
+                if not ability_used and any(a['available'] for a in m['abilities']):
+                    page.keyboard.press('f')
+                    ability_result = snap(page)['match']
+                    ability_used = ability_result['cooldowns']['ability'] > 0
+                    receipt['observations']['abilityAfterF'] = ability_result['activeAbility']
                 mode = 'attack' if m['possession'] == 0 else 'defense'
                 play = 'drive' if mode == 'attack' else 'zone'
                 if mode not in called and m['phase'] == 'live' and not m['ball'].get('flight') and any(p['id'] == play and p['available'] for p in m['callPlays']):
@@ -207,6 +211,7 @@ def main():
                     print('LIVE ' + period + ' ' + str(s['match']['score']), flush=True)
                     last_period = period
                 wait(page, 5000)
+            receipt['observations']['abilityUsed'] = ability_used
             check(called == {'attack', 'defense'}, 'valid attack and defense calls accepted')
             check(not s['report'].get('forfeit'), 'natural full match report')
             reward = s['state']['lastBattle']['reward']['total']
