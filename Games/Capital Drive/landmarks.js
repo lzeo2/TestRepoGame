@@ -18,3 +18,12 @@ export function replacedBuildingIds(map) {
   const available = new Set((map.buildings || []).map(building => building.id));
   return new Set(REPLACED_IDS.filter(id => available.has(id)));
 }
+
+// Exact art clearings in world metres, independent of building suppression.
+const parliament = LANDMARKS[0], oval = LANDMARKS[2];
+const clearing = points => Object.freeze(points.map(point => Object.freeze(point)));
+const parliamentPoint = ([x,z]) => [parliament.x + Math.cos(-0.615)*x + Math.sin(-0.615)*z, parliament.z - Math.sin(-0.615)*x + Math.cos(-0.615)*z];
+export const LANDMARK_CLEARINGS = Object.freeze([
+  clearing([[-80,-235],[80,-235],[80,-145],[-80,-145]].map(parliamentPoint)),
+  clearing(Array.from({length:32},(_,i) => [oval.x + Math.cos(i/32*Math.PI*2)*80, oval.z + Math.sin(i/32*Math.PI*2)*94])),
+]);

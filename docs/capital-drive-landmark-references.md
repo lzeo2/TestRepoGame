@@ -61,7 +61,7 @@ National Gallery/Portrait Gallery are deferred from this bounded study.
 
 ## Runtime budget and verification
 
-Four sites, eight merged meshes, two pooled vertex-colour materials,5172triangles.
+Four sites, eight merged meshes, two pooled vertex-colour materials,5088triangles.
 No images, runtime fetch, animation loop or mutable global state. Local terrain
 sets each anchor; the oval and forecourt sample terrain. Main buildings use deep
 foundations where needed to close slopes. Detail disappears after850m plus site
@@ -71,7 +71,7 @@ Three.js depth testing still allows intervening terrain/buildings to occlude it.
 No opacity fade or per-frame allocation. update accepts x/z or position.x/z;
 time is currently unused because landmarks are static. Disposal is idempotent.
 
-`node scripts/test_capital_landmarks.mjs` passed: four sites,5172triangles,
+`node scripts/test_capital_landmarks.mjs` passed: four sites,5088triangles,
 12exact replacement IDs, pure lookup/projection, anchor grounding, orientation,
 81m mast above estimated roof deck, finite buffers, near/far culling, fog-aware
 skyline and eight geometry/two material disposals. Existing world regression and
@@ -140,3 +140,40 @@ is a limited exterior reference. It does not verify the chimney, hall dimensions
 complete layout or orientation. The geometry remains based on the source footprint
 and public conservation/Glassworks/artwork references; it was not changed from
 this obstructed view. No proprietary imagery is bundled or used as a texture.
+
+
+## Parliament entrance visibility correction
+
+Root's normal-UI capture from the reference approach, local world point
+(-1048.26,-1314.81), exposed an authored geometry error: the original continuous
+13m curved wall stood in front of the central column/window grid. It hid the
+entrance, and generated trees occupied the open forecourt. This was an occlusion
+bug, not evidence of a terrain interpolation failure. Root sampled centre46.235m,
+approach41.412m and centre-front44.86m from the local DEM.
+
+The curved frontage now has an approximately85m central gap and terrain-grounded
+6m wing walls. A68m pavilion backing supports the entrance, with its glazing in
+front of the backing and its twelve window bays between thirteen columns. The
+marble tint is lighter white/cream for Parliament geometry only. Shared world
+lighting, grass and other landmark colours are unchanged. The gap is physical
+geometry removal; no depth-test bypass or transparent wall masks the problem.
+
+`LANDMARK_CLEARINGS` exports two frozen world-coordinate polygons: the Parliament
+forecourt transformed from local x±80m,z[-235,-145] using the same-0.615rad axis,
+and the inner Manuka playing field ellipse with80m/94m radii. Parent integration
+sets `map.landmarkTreeExclusions = LANDMARK_CLEARINGS` before world construction.
+The existing world tree generator skips only candidate centres inside these
+polygons. It preserves neighbouring plots, flanking trees, original building
+outlines, source JSON, terrain and the9000-tree/per-chunk budgets. This is an
+explicit authored open-space interpretation, not a new geographic dataset.
+
+The new raycast regression traces from the local forecourt through a window bay
+and requires its first hit to be the glass at z-152.14m; the former curved wall
+would fail it. A world-generator regression verifies exact candidate removal in
+a supplied polygon and unchanged tree generation for a distant polygon. Frozen
+clearing/projection checks, finite buffers, LOD and disposal checks also pass.
+`node scripts/test_capital_landmarks.mjs`, the existing world regression, syntax
+checks and `git diff --check` passed after this change. Current budget:5088
+triangles, eight meshes, two materials. Root owns the normal-UI recapture and
+near/distant visual acceptance; these numerical checks do not assert a new preview
+PASS or exact architectural fidelity.

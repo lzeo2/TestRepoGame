@@ -49,24 +49,29 @@ export function createLandmarksView(scene, map, heightAt) {
       for (let row = 0; row < rows; row++) for (let i = 0; i < columns; i++) block((i + 0.5) / columns * width - width / 2, y + row * spacing, z, width / columns * 0.48, 1.9, 0.18, GLASS);
     }
     if (site.id === 'parliament-house') {
+      const MARBLE = 0xf5f3e9;
       // The raised lawn is split around the axial central hall, not a conical hill.
       for (const side of [-1, 1]) {
         for (let i = 0; i < 12; i++) {
           const x0 = side * (18 + i * 11), x1 = side * (18 + (i + 1) * 11);
           const y0 = 18 * (1 - i / 12), y1 = 18 * (1 - (i + 1) / 12);
           quad([x0,y0,-132],[x1,y1,-132],[x1,y1,132],[x0,y0,132],GRASS);
-          quad([x0,-13,-132],[x1,-13,-132],[x1,y1,-132],[x0,y0,-132],PALE);
-          quad([x1,-13,132],[x0,-13,132],[x0,y0,132],[x1,y1,132],PALE);
+          quad([x0,-13,-132],[x1,-13,-132],[x1,y1,-132],[x0,y0,-132],MARBLE);
+          quad([x1,-13,132],[x0,-13,132],[x0,y0,132],[x1,y1,132],MARBLE);
         }
       }
-      for (const side of [-1, 1]) quad([side*150,-13,-132],[side*150,-13,132],[side*150,0,132],[side*150,0,-132],PALE);
-      block(0, 6, 0, 36, 22, 250, PALE);
+      for (const side of [-1, 1]) quad([side*150,-13,-132],[side*150,-13,132],[side*150,0,132],[side*150,0,-132],MARBLE);
+      block(0, 6, 0, 36, 22, 250, MARBLE);
       block(0, 18, 0, 29, 3, 180, GLASS);
       // Pale curved facade across the north forecourt, segmented for a real arc silhouette.
       for (let i = 0; i < 24; i++) {
         const a = -1.15 + i / 24 * 2.3, b = -1.15 + (i + 1) / 24 * 2.3;
         const p = t => [Math.sin(t)*150, -79-Math.cos(t)*74];
-        const u=p(a), w=p(b); block((u[0]+w[0])/2, 3.5, (u[1]+w[1])/2, Math.hypot(w[0]-u[0],w[1]-u[1])+0.2, 13, 3.5, PALE, -Math.atan2(w[1]-u[1],w[0]-u[0]));
+        const u=p(a), w=p(b);
+        // Leave the axial entrance open: this wall used to hide the entire grid.
+        if (Math.min(u[0],w[0]) < 36 && Math.max(u[0],w[0]) > -36) continue;
+        const x=(u[0]+w[0])/2,z=(u[1]+w[1])/2;
+        block(x,groundY(x,z)+3,z,Math.hypot(w[0]-u[0],w[1]-u[1])+0.2,6,3.5,MARBLE,-Math.atan2(w[1]-u[1],w[0]-u[0]));
       }
       // Four stainless legs converge into the mast, 81 metres above its roof deck.
       for (const x of [-19,19]) for (const z of [-19,19]) beam([x,18,z],[0,81,0],0.65,METAL);
@@ -76,10 +81,11 @@ export function createLandmarksView(scene, map, heightAt) {
       quad(groundPoint(-72,-157),groundPoint(72,-157),groundPoint(72,-221),groundPoint(-72,-221),0xa16c55);
       const poolY=groundY(0,-193)+0.24;
       block(0,poolY,-193,38,0.12,26,0x66858a);
-      for (let i=-6;i<=6;i++) block(i*5,4.1,-150,1.1,8.6,3.8,PALE);
-      block(0,10.4,-139,68,0.9,15,PALE);
-      block(0,12.6,-123,53,0.9,16,PALE);
-      windows(62,-151.9,3.2,13,2);
+      block(0,4.3,-147,68,9,5,MARBLE);
+      for (let i=-6;i<=6;i++) block(i*5,4.1,-150,1.1,8.6,3.8,MARBLE);
+      block(0,10.4,-139,68,0.9,15,MARBLE);
+      block(0,12.6,-123,53,0.9,16,MARBLE);
+      windows(60,-152.05,3.2,12,2);
       for (let i=-6;i<=6;i++) block(i*10,groundY(i*10,-211)+0.5,-211,0.36,1,0.36,0x85877f);
     } else if (site.id === 'old-parliament-house') {
       block(0,2,0,146,12,84,PALE);
