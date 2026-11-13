@@ -22,7 +22,7 @@ MODULES = (
     'progression.js', 'actor-view.js', 'landmarks.js', 'landmarks-view.js',
     'address-search.js', 'street-ui.js', 'road-network.js', 'police.js',
     'buses.js', 'bus-view.js', 'vehicle-occupants-view.js', 'districts.js',
-    'services.js', 'services-view.js',
+    'services.js', 'services-view.js', 'stores.js', 'storefronts-view.js', 'traffic-view.js',
 )
 SUITES = (
     'test_capital_drive.mjs', 'test_capital_pedestrians.mjs',
@@ -32,9 +32,10 @@ SUITES = (
     'test_capital_actors.mjs', 'test_capital_landmarks.mjs',
     'test_capital_addresses.mjs', 'test_capital_roads.mjs', 'test_capital_buses.mjs',
     'test_capital_police.mjs', 'test_capital_occupants.mjs', 'test_capital_services.mjs',
-    'test_capital_services_view.mjs',
+    'test_capital_services_view.mjs', 'test_capital_stores.mjs', 'test_capital_storefronts.mjs',
+    'test_capital_traffic_view.mjs', 'test_capital_sites.mjs',
 )
-DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json')
+DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json')
 
 
 def run_command(command, timeout):

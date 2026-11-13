@@ -101,12 +101,13 @@ function polygonContact(x, z, points, radius) {
 
 export function createSimulation(map, options = {}) {
   const graph = buildRoadGraph(map.roads || []);
-  const roadIndex = new SpatialGrid(80), buildingIndex = new SpatialGrid(48), waterIndex = new SpatialGrid(128);
+  const roadIndex = new SpatialGrid(80), buildingIndex = new SpatialGrid(48), waterIndex = new SpatialGrid(128), barrierIndex = new SpatialGrid(32);
+  const replacedColliders=new Set(map.collisionReplacedBuildingIds||[]);
   for (const segment of graph.segments) roadIndex.insert(segment,
     Math.min(segment.a[0], segment.b[0]), Math.min(segment.a[1], segment.b[1]),
     Math.max(segment.a[0], segment.b[0]), Math.max(segment.a[1], segment.b[1]));
   for (const building of map.buildings || []) {
-    if (!building.points?.length) continue;
+    if (!building.points?.length||replacedColliders.has(building.id)) continue;
     buildingIndex.insert(building, Math.min(...building.points.map(p => p[0])), Math.min(...building.points.map(p => p[1])),
       Math.max(...building.points.map(p => p[0])), Math.max(...building.points.map(p => p[1])));
   }
@@ -114,6 +115,10 @@ export function createSimulation(map, options = {}) {
     if (area.type !== 'water' || !area.points?.length) continue;
     waterIndex.insert(area, Math.min(...area.points.map(p => p[0])), Math.min(...area.points.map(p => p[1])),
       Math.max(...area.points.map(p => p[0])), Math.max(...area.points.map(p => p[1])));
+  }
+  for(const barrier of map.barriers||[]){
+    if(!barrier.points?.length)continue;
+    barrierIndex.insert(barrier,Math.min(...barrier.points.map(p=>p[0])),Math.min(...barrier.points.map(p=>p[1])),Math.max(...barrier.points.map(p=>p[0])),Math.max(...barrier.points.map(p=>p[1])));
   }
   const parkedCars = [], abandonedCars = [];
   let externalVehicles = [];
@@ -146,11 +151,11 @@ export function createSimulation(map, options = {}) {
       const offset = -span + 2 * span * i / samples;
       const x = pose.x - Math.sin(pose.yaw) * offset, z = pose.z - Math.cos(pose.yaw) * offset;
       if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return false;
-      for (const index of [buildingIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
+      for (const index of [buildingIndex, barrierIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
         if (polygonContact(x, z, polygon.points, radius)) return false;
       }
     }
-    return ![player, ...traffic, ...parkedCars, ...abandonedCars, ...externalVehicles].some(car =>
+    return ![player, ...traffic, ...parkedIndex.query(pose.x,pose.z,Math.hypot(length,width)/2+4), ...abandonedCars, ...externalVehicles].some(car =>
       car !== pose && car.id !== ignoreId && car.active !== false && vehicleOverlap(pose, length, width, car));
   }
   function moveVehicle(vehicle, dx, dz, { length = vehicle?.length || 4.5, width = vehicle?.width || 1.8 } = {}) {
@@ -197,7 +202,7 @@ export function createSimulation(map, options = {}) {
     }
     return best;
   }
-  const player = { id: 'player', modelId: 'lantern', color: 0xd4d7d3, active: true, x: 0, z: 0, yaw: 0, speed: 0, vx: 0, vz: 0, steer: 0, odometer: 0, crashes: 0, offroad: false };
+  const player = { id: 'player', modelId: 'lantern', color: 0xd4d7d3, active: true, x: 0, z: 0, yaw: 0, speed: 0, vx: 0, vz: 0, steer: 0, odometer: 0, crashes: 0, lastImpactSpeed:0, offroad: false };
   const random = seededRandom(options.seed ?? 20261112);
   const traffic = [], models = ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch'];
   const colors = [0xd4d7d3, 0x777e84, 0x274d79, 0xa4463b, 0xd1c8b4, 0x555952, 0xc5b86e];
@@ -210,7 +215,7 @@ export function createSimulation(map, options = {}) {
     const fallback = graph.edges[0] ? pointOnLane(graph.edges[0], Math.min(8, graph.edges[0].length / 2)) : { x: 0, z: 0, yaw: 0 };
     const target = spawn || fallback;
     Object.assign(player, { x: target.x, z: target.z, yaw: target.yaw || 0, speed: 0, vx: 0, vz: 0, steer: 0,
-      odometer: 0, crashes: 0, offroad: false });
+      odometer: 0, crashes: 0, lastImpactSpeed:0, offroad: false });
     crashCooldown = 0; stopRequests.clear();
   }
   // Teleport keeps the current heading unless an explicit finite yaw is supplied.
@@ -226,7 +231,7 @@ export function createSimulation(map, options = {}) {
       z: clamp(candidate.z, bounds.minZ + marginZ, bounds.maxZ - marginZ) });
     const origin = insideBounds(point);
     function blockerAt(candidate) {
-      for (const [index, reason] of [[buildingIndex, 'building'], [waterIndex, 'water']]) {
+      for (const [index, reason] of [[buildingIndex, 'building'], [barrierIndex, 'fence'], [waterIndex, 'water']]) {
         for (const polygon of index.query(candidate.x, candidate.z, 1.8)) {
           const contact = polygonContact(candidate.x, candidate.z, polygon.points, 1.8);
           if (contact) return { ...contact, reason };
@@ -367,7 +372,7 @@ export function createSimulation(map, options = {}) {
       const px = player.x - car.x, pz = player.z - car.z;
       const ahead = px * edge.dx + pz * edge.dz;
       if (ahead > 0 && ahead < 22 && Math.abs(px * edge.dz - pz * edge.dx) < 2.8) target = Math.min(target, Math.max(0, (ahead - 7) * 0.75));
-      for (const obstacle of [...parkedCars, ...abandonedCars, ...traffic, ...externalVehicles]) {
+      for (const obstacle of [...parkedIndex.query(car.x,car.z,28), ...abandonedCars, ...traffic, ...externalVehicles]) {
         if (obstacle === car || obstacle.active === false) continue;
         const dx = obstacle.x - car.x, dz = obstacle.z - car.z;
         const ahead = dx * edge.dx + dz * edge.dz;
@@ -382,7 +387,7 @@ export function createSimulation(map, options = {}) {
       const passOffset = -Math.min(3.2, edge.laneOffset * 1.5);
       const lanePose = pointOnLane(edge, car.position);
       const passClear = edge.road.oneway !== 0 && Boolean(edge.road.oneway) && roadProfile(edge.road).driveWidth >= 10 && remaining > 35 &&
-        ![player, ...traffic, ...parkedCars, ...abandonedCars, ...externalVehicles].some(other => {
+        ![player, ...traffic, ...parkedIndex.query(car.x,car.z,30), ...abandonedCars, ...externalVehicles].some(other => {
           if (other === car || other.active === false) return false;
           const dx = other.x - lanePose.x, dz = other.z - lanePose.z;
           return Math.abs(dx * edge.dx + dz * edge.dz) < 24 && Math.abs(dx * edge.dz - dz * edge.dx - passOffset) < 3.1;
@@ -421,7 +426,7 @@ export function createSimulation(map, options = {}) {
     if (impact < 0) {
       player.vx -= impact * nx * 1.15; player.vz -= impact * nz * 1.15;
       player.vx *= 0.85; player.vz *= 0.85;
-      if (-impact > 3 && crashCooldown <= 0) { player.crashes++; crashCooldown = 0.85; }
+      if (-impact > 3 && crashCooldown <= 0) { player.crashes++; player.lastImpactSpeed=-impact; crashCooldown = 0.85; }
     }
   }
   function step(dt, input = {}, focus = player) {
@@ -454,10 +459,10 @@ export function createSimulation(map, options = {}) {
     player.vx = fx * forward - fz * lateral; player.vz = fz * forward + fx * lateral;
     const movement = moveVehicle(player, player.vx * dt, player.vz * dt);
     if (movement.blocked) {
-      if (Math.hypot(player.vx, player.vz) > 3 && crashCooldown <= 0) { player.crashes++; crashCooldown = 0.85; }
+      if (Math.hypot(player.vx, player.vz) > 3 && crashCooldown <= 0) { player.crashes++; player.lastImpactSpeed=Math.hypot(player.vx,player.vz); crashCooldown = 0.85; }
       player.vx *= 0.4; player.vz *= 0.4;
     }
-    for (const building of buildingIndex.query(player.x, player.z, 2)) {
+    for (const building of [...buildingIndex.query(player.x, player.z, 2),...barrierIndex.query(player.x,player.z,2)]) {
       const contact = polygonContact(player.x, player.z, building.points, 1.55);
       if (contact) resolveImpact(contact.nx, contact.nz, contact.depth + 0.02);
     }
@@ -488,7 +493,7 @@ export function createSimulation(map, options = {}) {
   }
   function nearbyVehicles(x, z, radius = 7) {
     if (![x, z, radius].every(Number.isFinite) || radius < 0) return [];
-    return [player, ...traffic, ...parkedCars, ...abandonedCars].filter(car => car.active !== false &&
+    return [player, ...traffic, ...parkedIndex.query(x,z,radius), ...abandonedCars].filter(car => car.active !== false &&
       Math.hypot(x - car.x, z - car.z) <= radius).map(car => ({ id: car.id, x: car.x, z: car.z, yaw: car.yaw,
         modelId: car.modelId, color: car.color, active: true, occupied: traffic.includes(car), speed: car.speed || 0 }));
   }
@@ -521,10 +526,10 @@ export function createSimulation(map, options = {}) {
     const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / Math.min(radius * 0.5, 0.2)));
     function clear(x, z) {
       if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return false;
-      for (const index of [buildingIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
+      for (const index of [buildingIndex, barrierIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
         if (polygonContact(x, z, polygon.points, radius)) return false;
       }
-      return ![player, ...traffic, ...parkedCars, ...abandonedCars, ...externalVehicles].some(car => {
+      return ![player, ...traffic, ...parkedIndex.query(x,z,radius+3), ...abandonedCars, ...externalVehicles].some(car => {
         if (car === actor || car.id === actor.id || car.active === false) return false;
         if (!externalVehicles.includes(car)) return Math.hypot(x - car.x, z - car.z) < radius + 1.8;
         const yaw = car.yaw || 0, dx = x - car.x, dz = z - car.z;

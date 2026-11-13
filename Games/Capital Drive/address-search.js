@@ -41,7 +41,7 @@ export function createAddressSearch(map, addresses = []) {
   }
   for (const landmark of map.landmarks || []) {
     add({ id: `landmark:${landmark.id}`, label: landmark.name, x: landmark.x, z: landmark.z,
-      kind: 'landmark', detail: landmark.description || 'Mapped landmark' }, landmark.name, landmark.name);
+      kind: landmark.store?'store':'landmark', detail: landmark.description || 'Mapped landmark' }, [landmark.name,...(landmark.aliases||[])].join(' '), landmark.name);
   }
   function search(query, limit = 10) {
     const q = normalize(query);
