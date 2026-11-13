@@ -1,5 +1,5 @@
-"""One safe launch, <=190s including cleanup; no retries or browser downloads.
-Run: timeout --signal=TERM --kill-after=5s 185s python3 -B scripts/diagnose_basketball_readiness.py
+"""One safe launch, <=310s including cleanup; no retries or browser downloads.
+Run: timeout --signal=TERM --kill-after=5s 305s python3 -B scripts/diagnose_basketball_readiness.py
 Filtered-pass evidence stays in .tmp/basketball-native-readiness-filtered; earlier receipts are untouched.
 """
 import fcntl
@@ -286,7 +286,7 @@ def main():
     started = time.monotonic()
 
     def wall_stop(*_args):
-        raise TimeoutError('180s diagnostic deadline (approved 3-minute bounded pass); cleanup reserved within 190s wall cap')
+        raise TimeoutError('300s diagnostic deadline (approved 5-minute bounded pass); cleanup reserved within 310s wall cap')
 
     signal.signal(signal.SIGALRM, wall_stop)
     signal.signal(signal.SIGTERM, wall_stop)
