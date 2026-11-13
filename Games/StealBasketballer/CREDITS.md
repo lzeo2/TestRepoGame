@@ -1,4 +1,4 @@
-# Leo's Steal a Basketballer: local preview
+# Leo's Steal a Basketballer: original preview
 
 Owner-ordered original basketball sibling of `Games/StealFootballer`, copied
 from repository revision `31680023af77c580121bc9efc34698b8ed2bb58b`.
@@ -8,8 +8,11 @@ revision `30b0c28`. Its browser adaptation and exported neighborhood layout are
 reused under the owner's direct adaptation order. This is not an open-source
 game ingestion or a claim that the game source is MIT-licensed.
 
-The basketball match, court geometry, ball mark, generic sleeveless block
-athletes, roster and original arcade ratings are authored for this sibling.
+The basketball match, court geometry, ball mark, generic sleeveless athletes,
+roster and original arcade ratings are authored for this sibling. The polish
+continuation adds original deterministic maple grain, smooth tubular rims,
+cross-laced nets and articulated athlete meshes/number badges; all are locally
+generated geometry or canvas graphics, with no new downloaded asset.
 The economy, carry/deposit, NPC rivals, progression, local-save validation and
 cream/ink/yellow/green Bungee/Atkinson interface retain the football sibling's
 structure and explicitly requested style. No original football files are changed.
@@ -33,11 +36,12 @@ Historical names also make this intentionally different from a current roster.
 The catalog truthfully sets `liveRosterVerified` and `officialRosterSnapshot`
 to false. Name review used existing knowledge, not external source verification.
 
-**Publication HOLD:** local preview authorization does not establish publicity,
-trademark, endorsement or redistribution rights. No photos, face scans, official
-logos, jerseys, league artwork, player assets or official ratings were obtained.
-Do not register, push or publish without a separate owner decision and rights
-review. Real-name approval is not public-distribution clearance.
+**Identity rights remain unreviewed:** no photos, face scans, official logos,
+jerseys, league artwork, player assets or official ratings were obtained. The
+owner subsequently authorized improving and merging existing PR #8 after the
+Canberra continuation. That source-release order does not establish publicity,
+trademark, endorsement or redistribution rights. This iteration retains the
+standalone unregistered preview and adds no portal catalog entry.
 
 ## Rules and local assets
 
