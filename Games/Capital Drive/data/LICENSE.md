@@ -31,8 +31,8 @@ decimals. Widths, speeds and building heights use source tags where available
 and explicitly estimated defaults otherwise. Non-driving paths are omitted.
 The initial snapshot omitted OSM building outlines when their centre was within
 fifteen metres of an ACT footprint centre. The enriched snapshot instead uses
-the polygon-overlap priority described below. Public accessibility and current road restrictions are not
-certified. This is a game map, not navigation or surveying data.
+the polygon-overlap priority described below. Public accessibility and current
+road restrictions are not certified. This is a game map, not navigation or surveying data.
 
 ## ACT building footprints
 
