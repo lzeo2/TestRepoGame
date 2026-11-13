@@ -1,4 +1,6 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
+import { roadProfile } from './road-network.js';
+import { retailDistrict } from './districts.js';
 
 // Metres, with east = +x and south = +z. All art is generated locally.
 const CHUNK_SIZE = 350;
@@ -32,6 +34,8 @@ export function createWorldView(scene, map) {
   const normal = new THREE.Vector3();
   const opaque = new THREE.MeshLambertMaterial({ vertexColors: true });
   materials.push(opaque);
+  const glazing = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.28, metalness: 0.15 });
+  materials.push(glazing);
   let roadMaterial = opaque;
   if (typeof document !== 'undefined') {
     const canvas = document.createElement('canvas');
@@ -48,7 +52,7 @@ export function createWorldView(scene, map) {
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.colorSpace = THREE.SRGBColorSpace;
     textures.push(texture);
-    roadMaterial = new THREE.MeshLambertMaterial({ map: texture, vertexColors: true });
+    roadMaterial = new THREE.MeshStandardMaterial({ map: texture, roughnessMap: texture, roughness: 0.96, metalness: 0, vertexColors: true });
     materials.push(roadMaterial);
   }
 
@@ -76,7 +80,7 @@ export function createWorldView(scene, map) {
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = 4;
     textures.push(texture);
-    surfaceMaterial = new THREE.MeshLambertMaterial({ map: texture, vertexColors: true });
+    surfaceMaterial = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.92, metalness: 0, vertexColors: true });
     surfaceMaterial.onBeforeCompile = shader => {
       shader.vertexShader = 'attribute float surfaceKind; varying float vSurfaceKind;\n' + shader.vertexShader;
       shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvSurfaceKind = surfaceKind;');
@@ -88,7 +92,7 @@ export function createWorldView(scene, map) {
         diffuseColor *= texture2D(map, atlasUv);
       `);
     };
-    surfaceMaterial.customProgramCacheKey = () => 'capital-surface-atlas-v1';
+    surfaceMaterial.customProgramCacheKey = () => 'capital-surface-atlas-rough-v2';
     materials.push(surfaceMaterial);
   }
   const shadowMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false });
@@ -272,12 +276,12 @@ export function createWorldView(scene, map) {
 
   const nodes = new Map();
   for (const road of map.roads || []) {
-    const width = Math.max(3.2, Number(road.width) || 7);
+    const profile = roadProfile(road), width = profile.driveWidth;
     for (let i = 1; i < road.points.length; i++) {
       const a = road.points[i - 1], b = road.points[i];
       const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
       if (length < 0.2) continue;
-      const segment = { a, b, road, width, length };
+      const segment = { a, b, road, width, length, profile };
       roadSegments.push(segment);
       indexBounds(roadCells, segment, Math.min(a[0], b[0]) - width - 5, Math.min(a[1], b[1]) - width - 5,
         Math.max(a[0], b[0]) + width + 5, Math.max(a[1], b[1]) + width + 5);
@@ -328,13 +332,18 @@ export function createWorldView(scene, map) {
     const half = s.width / 2;
     // Side strips avoid hidden duplicate pavement under the entire carriageway.
     const residentialPath = s.road.type === 'residential';
-    const pathWidth = residentialPath ? 1.45 : 2;
-    ribbon(s.a, s.b, -half - pathWidth, -half - 0.18, residentialPath ? 0xb7b59c : COLORS.path, 0.045);
-    ribbon(s.a, s.b, half + 0.18, half + pathWidth, COLORS.path, 0.045);
-    ribbon(s.a, s.b, -half - 0.18, -half, COLORS.kerb, 0.065);
-    ribbon(s.a, s.b, half, half + 0.18, COLORS.kerb, 0.065);
+    const pathWidth = s.profile.pavementWidth;
+    const kerbWidth = s.profile.hasKerb ? 0.18 : 0;
+    if (pathWidth > 0) {
+      ribbon(s.a, s.b, -half - kerbWidth - pathWidth, -half - kerbWidth, residentialPath ? 0xb7b59c : COLORS.path, 0.045);
+      ribbon(s.a, s.b, half + kerbWidth, half + kerbWidth + pathWidth, COLORS.path, 0.045);
+    }
+    if (kerbWidth) {
+      ribbon(s.a, s.b, -half - kerbWidth, -half, COLORS.kerb, 0.065);
+      ribbon(s.a, s.b, half, half + kerbWidth, COLORS.kerb, 0.065);
+    }
     ribbon(s.a, s.b, -half, half, COLORS.asphalt, 0.083);
-    const marked = s.width >= 7 && !/service|living_street|footway|path|track/.test(s.road.type);
+    const marked = s.profile.markings;
     const schoolAnchor = (map.landmarks || []).find(l => l.id === 'telopea');
     const schoolApproach = schoolAnchor && /New South Wales Crescent/i.test(s.road.name || '') && Math.hypot((s.a[0] + s.b[0]) / 2 - schoolAnchor.x, (s.a[1] + s.b[1]) / 2 - schoolAnchor.z) < 350;
     if (marked && schoolApproach) {
@@ -360,9 +369,10 @@ export function createWorldView(scene, map) {
     }
   }
   const intersections = [...nodes.values()].filter(n => n.roads.size > 1);
-  // Asphalt aprons cover the crossing footpaths where named streets meet.
+  // Keep junction fill inside the widest participating carriageway; enlarged
+  // discs used to turn small access junctions into broad asphalt plazas.
   for (const node of intersections) {
-    const radius = node.width / 2 + 2.1;
+    const radius = node.width / 2;
     const batch = batchAt(node.x, node.z, 'road');
     for (let i = 0; i < 12; i++) {
       const a = i / 12 * Math.PI * 2, b = (i + 1) / 12 * Math.PI * 2;
@@ -399,17 +409,17 @@ export function createWorldView(scene, map) {
     const x = points.reduce((sum, p) => sum + p[0], 0) / points.length, z = points.reduce((sum, p) => sum + p[1], 0) / points.length;
     if (String(building.id).startsWith('osm-') && nearby(buildingCells, x, z).some(b => String(b.id).startsWith('act-') && inside(x, z, b.points))) return;
     const isSchool = school && Math.hypot(x - school.x, z - school.z) < (school.radius || 140) && !/residential|house|apartment|diplomatic/.test(building.type || '');
-    const shopping = (map.landmarks || []).some(l => /^(manuka|kingston|griffith|narrabundah)$/.test(l.id) && Math.hypot(x - l.x, z - l.z) < l.radius);
+    const shopping = Boolean(retailDistrict(map, x, z));
     const utility = /shed|garage|carport|roof/.test(building.type || '');
     const residential = !isSchool && !shopping && !/apartments|commercial|retail|industrial|school|public|office/.test(building.type || '');
-    const lowShop = shopping && /commercial|retail/.test(building.type || '') && String(building.id).startsWith('act-') && Number(building.height) <= 10;
+    const lowShop = shopping && /commercial|retail/.test(building.type || '') && (Number(building.height) || 4) <= 10;
     const height = Math.max(2.5, Math.min(50, building === schoolMain ? 7.8 : lowShop ? 3.9 : isSchool ? Math.min(7.8, Number(building.height) || 4.2) : Number(building.height) || (residential ? 3.8 : 7)));
     const floorHeights = points.map(p => heightAt(...p));
     const base = (isSchool ? floorHeights.reduce((a, b) => a + b, 0) / points.length : Math.max(...floorHeights)) + 0.12;
     const footing = Math.min(...floorHeights) - 0.3;
     const signedArea = points.reduce((sum, p, i) => { const q = points[(i + 1) % points.length]; return sum + p[0] * q[1] - q[0] * p[1]; }, 0);
     const reverse = signedArea > 0;
-    const walls = isSchool ? 0xe0d2b4 : building.color || (residential ? [0xa97860, 0xc8b598, 0xddd4bd, 0x996e59, 0xbca68a][index % 5] : 0xc4bca9);
+    const walls = isSchool ? 0xe0d2b4 : lowShop ? 0xd6c9ae : building.color || (residential ? [0xa97860, 0xc8b598, 0xddd4bd, 0x996e59, 0xbca68a][index % 5] : 0xc4bca9);
     const roofColor = isSchool ? 0x9f5943 : residential ? [0x92604b, 0x686964, 0xa26e53, 0x726558][index % 4] : 0x777d79;
     const wallKind = isSchool || index % 3 === 0 || !residential ? 1 : 0;
     const pitched = !utility && (isSchool || residential && height < 10) && building.roof !== 'flat';
@@ -432,7 +442,7 @@ export function createWorldView(scene, map) {
       shares.sort((a, b) => (b.share % 1) - (a.share % 1));
       for (const { index } of shares) if (unassigned && windowColumns[index]) { windowColumns[index]++; unassigned--; }
     }
-    function faceQuad(vertices, tint, detail = false) { quad(detail ? batchAt(x, z, 'detail') : batch, ...(reverse ? vertices.slice().reverse() : vertices), tint); }
+    function faceQuad(vertices, tint, detail = false) { quad(detail ? batchAt(x, z, detail === 'glass' ? 'glass' : 'detail') : batch, ...(reverse ? vertices.slice().reverse() : vertices), tint); }
     for (let i = 0; i < points.length; i++) {
       const a = points[i], b = points[(i + 1) % points.length], length = Math.hypot(b[0] - a[0], b[1] - a[1]);
       if (length < 0.1) continue;
@@ -457,31 +467,31 @@ export function createWorldView(scene, map) {
           [b[0] + nx * offset, y1, b[1] + nz * offset], [a[0] + nx * offset, y1, a[1] + nz * offset]], tint);
       }
       stripe(base, base + 0.26, 0.025, isSchool ? 0xb2a58a : 0x8a8172);
-      stripe(base + height - 0.18, base + height + 0.05, 0.1, isSchool ? 0xded4bc : 0xc1b9a6);
+      stripe(base + height - 0.18, base + height + (lowShop ? 0.5 : 0.05), 0.1, isSchool ? 0xded4bc : lowShop ? 0xe0d5bf : 0xc1b9a6);
       const eave = [[a[0], base + height - 0.05, a[1]], [b[0], base + height - 0.05, b[1]],
         [b[0] + nx * 0.28, base + height - 0.05, b[1] + nz * 0.28], [a[0] + nx * 0.28, base + height - 0.05, a[1] + nz * 0.28]];
       quad(batch, ...eave, 0x807c6d); quad(batch, ...eave.slice().reverse(), 0x807c6d);
       if (utility || length < 3) continue;
       const columns = windowColumns[i];
-      const bay = (u, v, halfWidth, halfHeight, offset, tint) => {
+      const bay = (u, v, halfWidth, halfHeight, offset, tint, glass = false) => {
         const cx = a[0] + ex * u + nx * offset, cz = a[1] + ez * u + nz * offset;
         faceQuad([[cx - ex * halfWidth, v - halfHeight, cz - ez * halfWidth], [cx + ex * halfWidth, v - halfHeight, cz + ez * halfWidth],
-          [cx + ex * halfWidth, v + halfHeight, cz + ez * halfWidth], [cx - ex * halfWidth, v + halfHeight, cz - ez * halfWidth]], tint, true);
+          [cx + ex * halfWidth, v + halfHeight, cz + ez * halfWidth], [cx - ex * halfWidth, v + halfHeight, cz - ez * halfWidth]], tint, glass ? 'glass' : true);
       };
       for (let row = 0; row < floors; row++) for (let col = 0; col < columns; col++) {
         const u = (col + 0.5) / columns * length, y = base + (isSchool ? 1.7 : 1.9) + row * (isSchool ? 3.55 : 3.0);
         const hw = Math.min(isSchool ? 1.0 : shopping && row === 0 ? 1.25 : 0.82, length / columns * 0.34);
         const hh = isSchool ? 0.95 : shopping && row === 0 ? 1.2 : 0.72;
         bay(u, y, hw + 0.09, hh + 0.1, 0.042, isSchool ? 0xe8dfc6 : 0xd4cec0);
-        bay(u, y, hw, hh, 0.055, [0x566d70, 0x627b7b, 0x4c656c][(row + col + index) % 3]);
+        bay(u, y, hw, hh, 0.055, [0x566d70, 0x627b7b, 0x4c656c][(row + col + index) % 3], true);
         bay(u, y + hh * 0.57, hw, hh * 0.18, 0.058, 0x8ba0a0);
         bay(u, y, 0.035, hh, 0.065, 0xc6c6b9);
         if (isSchool) bay(u, y - 0.08, hw, 0.035, 0.068, 0xc9cbbb);
         counters.windows++;
       }
-      if (shopping && length > 7 && length < 70) {
-        primitive(box, (a[0] + b[0]) / 2 + nx * 0.45, base + 3, (a[1] + b[1]) / 2 + nz * 0.45, 1.05, 0.18, length,
-          0x414b48, Math.atan2(ex, ez));
+      if (lowShop && length > 7 && length < 70) {
+        primitive(box, (a[0] + b[0]) / 2 + nx * 0.45, base + 3, (a[1] + b[1]) / 2 + nz * 0.45, 1.85, 0.18, length,
+          0x414743, Math.atan2(ex, ez));
       }
     }
     if (building === schoolMain) {
@@ -593,6 +603,7 @@ export function createWorldView(scene, map) {
   const anchorDistance = road => Math.min(...(map.landmarks || [map.spawn]).filter(Boolean).map(l => Math.hypot(road.points[0][0] - l.x, road.points[0][1] - l.z)));
   streetRoads.sort((a, b) => anchorDistance(a) - anchorDistance(b));
   for (const road of streetRoads) {
+    const profile = roadProfile(road);
     let untilNext = 8 + hash(seed++) * 18;
     for (let i = 1; i < road.points.length; i++) {
       const a = road.points[i - 1], b = road.points[i];
@@ -601,10 +612,10 @@ export function createWorldView(scene, map) {
       const dx = (b[0] - a[0]) / length, dz = (b[1] - a[1]) / length;
       while (untilNext < length) {
         for (const side of [-1, 1]) {
-          const offset = side * ((Number(road.width) || 7) / 2 + 5 + hash(seed) * 1.5);
+          const offset = side * (profile.driveWidth / 2 + profile.pavementWidth + 3.5 + hash(seed) * 1.5);
           tree(a[0] + dx * untilNext - dz * offset, a[1] + dz * untilNext + dx * offset, seed++);
         }
-        untilNext += 24 + hash(seed + 17) * 8;
+        untilNext += 33 + hash(seed + 17) * 11;
       }
       untilNext -= length;
     }
@@ -731,7 +742,7 @@ export function createWorldView(scene, map) {
         }
       }
       meshGeometry.computeBoundingSphere();
-      const mesh = new THREE.Mesh(meshGeometry, kind === 'sign' ? signMaterial : kind === 'road' ? roadMaterial : kind === 'surface' ? surfaceMaterial : kind === 'shadow' ? shadowMaterial : opaque);
+      const mesh = new THREE.Mesh(meshGeometry, kind === 'sign' ? signMaterial : kind === 'road' ? roadMaterial : kind === 'surface' ? surfaceMaterial : kind === 'shadow' ? shadowMaterial : kind === 'glass' ? glazing : opaque);
       mesh.name = `Canberra ${kind}`;
       mesh.receiveShadow = false;
       mesh.castShadow = false;
@@ -754,7 +765,7 @@ export function createWorldView(scene, map) {
       const distance = Math.hypot(chunk.x - x, chunk.z - z);
       chunk.group.visible = distance < VISIBILITY + CHUNK_SIZE * 0.71;
       for (const mesh of chunk.group.children) {
-        const range = mesh.name === 'Canberra detail' ? 280 : mesh.name === 'Canberra shadow' ? 350 : mesh.name === 'Canberra pavement' ? 450 : mesh.name === 'Canberra solid' ? 475 : VISIBILITY;
+        const range = (mesh.name === 'Canberra detail' || mesh.name === 'Canberra glass') ? 280 : mesh.name === 'Canberra shadow' ? 350 : mesh.name === 'Canberra pavement' ? 450 : mesh.name === 'Canberra solid' ? 475 : VISIBILITY;
         mesh.visible = distance < range + CHUNK_SIZE * 0.71;
       }
     }
