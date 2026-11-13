@@ -92,6 +92,10 @@ the pause button opens a genuine pause; resume restores canvas keyboard focus.
 Match dialog timers/availability update existing DOM nodes rather than replacing
 the active controls every second; unchanged conveyor cards remain stable.
 The first-signing card opens the real conveyor and unaffordable signings disable.
+Desktop matches open in full-court view; portrait matches follow the ball so
+athletes remain readable. Both views remain selectable. Control buttons wait
+for live play. Saved kit changes rebuild matching athlete geometry, including
+when the same lineup returns. Absent match/report diagnostics serialize as null.
 `window.basketballerSnapshot()` returns detached, deeply frozen diagnostics only.
 Vendor/fonts are sibling-local copies, notices retained; font binaries are
 byte-identical, with three imported whitespace defects normalized in vendor/notice

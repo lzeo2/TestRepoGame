@@ -68,7 +68,8 @@ or JavaScript tokens changed.
   `140e2bd25a7315c8a062508391426b0d8c3297400c947b8d847be28f73a199f0`.
 - `assets/ball.svg`: original geometric basketball mark, no official branding.
 
-No new downloads, packages, remote runtime loads, services or local AI-generated
-3D models. Three.js/font licenses do not license the game or identity rights.
+New visual work is authored procedural geometry and canvas graphics. There are
+no new downloaded meshes/textures, model-generation service, package installs or
+remote runtime loads. Three.js/font licenses do not license game or identity rights.
 See [local QA](../../docs/steal-basketballer-local-qa.md) and
 [maintenance manual](../../docs/maintenance/games/unregistered-stealbasketballer.md).

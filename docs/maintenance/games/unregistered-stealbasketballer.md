@@ -123,6 +123,27 @@ buttons, genuine pause/deadline freeze/resume and 200ms-frame elapsed-time
 retention. The timing regression failed before the app fix and passed after it.
 These pure/boundary checks do not establish native rendering or hardware FPS.
 
+The full natural desktop match finished **13:6**, credited **284 coins**, and
+retained coins/roster through a save/reload (16 desktop milestones). That run then
+stopped on a harness assumption that an absent diagnostic match serialized as a
+key rather than being omitted. The actual API now returns explicit null; the
+source fixture and subsequent normal browser restart verify it. A separate
+23-check continuation passes genuine zero-reward forfeits, a normal rest/restart,
+phone touch/layout and clean request/error collectors. Final portrait framing,
+both themes and landscape pass seventeen phone checks. The
+[receipt](../../verification/basketball-polish-2026-11-14.md) retains the raw FAIL
+and PASS statuses and their source revisions instead of claiming one combined
+all-in-one pass. No live ability activation or substitution with a granted
+reserve is claimed; those engine paths retain pure fixture coverage.
+
+Final visual review uses actual standard-graphics desktop and phone frames.
+Portrait starts in ball-follow, desktop in full-court; camera choices remain
+available. CSS bars and original SVG chevrons avoid missing-glyph icons.
+Non-match actors hide while the arena is active, and saved kit changes refresh
+athletes even if the lineup is unchanged. New kit geometry has a focused world
+regression. The portal catalog remains unchanged; this adds one unregistered
+original source project to main, not a newly registered entry.
+
 ### Historical diagnostic findings
 
 Node fixtures establish detached engine and geometry behavior, not native play.
