@@ -1431,7 +1431,7 @@
     "title": "Capital Drive: Canberra (Preview)",
     "cat": "arcade",
     "icon": "CD",
-    "desc": "Original Canberra driving preview with OpenStreetMap roads and ACT building outlines, left-hand traffic, walking pedestrians and seven inner-south destinations.",
+    "desc": "Original Canberra Street Life preview: drive or walk, take jobs and evade police. Real OpenStreetMap roads, ACT/Microsoft outlines and ACT contour terrain; Free roam adds local address search and teleporting.",
     "url": "Games/Capital Drive/index.html",
     "featured": false,
     "tags": [
@@ -1440,6 +1440,6 @@
       "3d"
     ],
     "players": "1",
-    "howto": "WASD/arrows drive; Space handbrakes; Shift boosts; drag mouse to orbit. M opens the route map; R recovers; P/Esc pauses. Touch driving controls are available."
+    "howto": "WASD/arrows move or drive; E enters/exits cars; Shift sprints/boosts; Space jumps/handbrakes. 1/2 selects fists/pistol; right mouse aims, left fires, F melees, R reloads. J jobs, G garage, M map, P/Esc pause. Free roam alone enables teleporting and recovery; touch controls are available."
   }
 ]

@@ -11,11 +11,32 @@ from urllib.parse import urlsplit
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
+_ADDRESS = next(item for item in json.loads((ROOT / 'Games/Capital Drive/data/addresses.json').read_text())['addresses'] if item.get('number') and item.get('street'))
+ADDRESS_QUERY = f"{_ADDRESS['number']} {_ADDRESS['street']}"
 
 
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
+
+
+def mission_wagon_point():
+    data = json.loads((ROOT / 'Games/Capital Drive/data/canberra.json').read_text())
+    best = None
+    for road in data['roads']:
+        for a, b in zip(road['points'], road['points'][1:]):
+            dx, dz = b[0] - a[0], b[1] - a[1]
+            length2 = dx * dx + dz * dz
+            if length2 < .01:
+                continue
+            t = max(0, min(1, ((-298 - a[0]) * dx + (-325.27 - a[1]) * dz) / length2))
+            x, z = a[0] + t * dx, a[1] + t * dz
+            gap = math.hypot(x + 298, z + 325.27)
+            if best is None or gap < best[0]:
+                best = (gap, x, z, math.atan2(-dx, -dz), road['width'])
+    _, x, z, yaw, width = best
+    offset = min(3.3, width / 2 - .8)
+    return {'x': x - math.cos(yaw) * offset, 'z': z + math.sin(yaw) * offset}
 
 
 def main():
@@ -59,6 +80,9 @@ def main():
         else:
             page.mouse.click(cx, cy)
 
+    def frames(page, count=8):
+        page.evaluate('(count) => new Promise(resolve => { let n = 0; function tick(){ if (++n >= count) resolve(); else requestAnimationFrame(tick); } requestAnimationFrame(tick); })', count)
+
     def check(condition, message):
         assert condition, message
         checks.append(message)
@@ -76,6 +100,7 @@ def main():
             check(snap(page)['pedestrians']['count'] == 80 and snap(page)['pedestrians']['visible'] > 0, 'walking pedestrians are populated around the driving area')
             check(snap(page)['neighbourhood']['frontages'] > 2000, 'gardens, driveways and street furniture are integrated')
             page.screenshot(path=str(output / 'desktop-intro.png'))
+            page.locator('[data-game-mode=free]').click()
             page.get_by_role('button', name='Start driving').click()
             page.wait_for_function('capitalDriveSnapshot().discovered.includes("telopea")')
             before = snap(page)['player']
@@ -96,7 +121,7 @@ def main():
             page.wait_for_selector('#pause-dialog[open]')
             paused = snap(page)['player']
             page.keyboard.down('w')
-            page.wait_for_timeout(400)
+            frames(page)
             page.keyboard.up('w')
             check(snap(page)['player'] == paused, 'pause freezes simulation and releases driving input')
             page.locator('#resume-button').click()
@@ -137,6 +162,13 @@ def main():
             check(abs(snap(page)['mapSelection']['x'] - 200) < .01, 'keyboard arrows move the map selection')
             page.keyboard.press('Enter')
             check(abs(snap(page)['player']['x'] - 200) < .01 and not page.locator('#map-dialog').is_visible(), 'Enter teleports from the focused map')
+            own_model = snap(page)['gameplay']['vehicle']['modelId']
+            page.keyboard.press('e')
+            page.wait_for_function('capitalDriveSnapshot().gameplay.mode === "foot"', timeout=10000)
+            page.keyboard.press('e')
+            page.wait_for_function('capitalDriveSnapshot().gameplay.mode === "vehicle"', timeout=10000)
+            check(snap(page)['gameplay']['vehicle']['modelId'] == own_model and not snap(page)['gameplay']['vehicle']['stolen'],
+                  'normal E exits and re-enters the current controlled car')
             page.keyboard.press('m')
             page.locator('[data-place="redhill"]').get_by_role('button', name='Set route').click()
             check(snap(page)['routePoints'] > 10, 'Red Hill route follows the connected road graph')
@@ -145,28 +177,160 @@ def main():
             page.wait_for_function('capitalDriveSnapshot().discovered.includes("redhill")')
             check(snap(page)['pedestrians']['visible'] > 0, 'map arrivals repopulate nearby walking pedestrians')
             page.screenshot(path=str(output / 'red-hill.png'))
-            page.get_by_role('button', name='Vehicle', exact=True).click()
+            page.keyboard.press('m')
+            for query in ['Parliament House', ADDRESS_QUERY]:
+                page.locator('#map-search').fill(query)
+                page.locator('#map-search-form').get_by_role('button', name='Search', exact=True).click()
+                result = page.locator('#search-results button').first
+                result.wait_for(state='visible')
+                result.click()
+                selected_search = snap(page)['mapSelection']
+                check(page.locator('#full-map').evaluate('(e) => document.activeElement === e'), 'search selection focuses the map: ' + query)
+                page.locator('#teleport-button').click()
+                arrival = snap(page)['player']
+                check(math.hypot(arrival['x'] - selected_search['x'], arrival['z'] - selected_search['z']) < 150 and abs(arrival['speed']) < .01,
+                      'Free roam search reaches a safely adjusted local point: ' + query)
+                if query == 'Parliament House':
+                    page.keyboard.press('m')
+                    select_map_point(page, selected_search['x'], selected_search['z'] - 350)
+                    page.locator('#teleport-button').click()
+                    view = page.locator('#world canvas').bounding_box()
+                    page.mouse.move(view['x'] + view['width'] * .5, view['y'] + view['height'] * .5)
+                    car = snap(page)['player']
+                    toward = math.atan2(-(selected_search['x'] - car['x']), -(selected_search['z'] - car['z']))
+                    orbit_delta = (toward - car['yaw'] + math.pi) % (2 * math.pi) - math.pi
+                    page.mouse.down()
+                    page.mouse.move(view['x'] + view['width'] * .5 - orbit_delta / .006,
+                                    view['y'] + view['height'] * .5 - 110, steps=20)
+                    frames(page, 24)
+                    page.mouse.up()
+                    check(snap(page)['camera']['lookPitch'] > .3, 'normal vertical mouse orbit pitches the camera toward the landmark skyline')
+                    check(snap(page)['landmarks']['visibleNear'] + snap(page)['landmarks']['visibleDistant'] > 0, 'dedicated landmarks are visible after normal Parliament House search travel')
+                    page.screenshot(path=str(output / 'parliament-house.png'))
+                page.keyboard.press('m')
+            page.get_by_role('button', name='Close map').click()
+            page.get_by_role('button', name='Garage', exact=True).click()
             page.get_by_label('Paint', exact=True).select_option('#394956')
             page.get_by_role('button', name='Suburban SUV').click()
             check(page.locator('#car-label').inner_text() == 'SUV', 'vehicle and paint selectors update the playable car')
+            page.get_by_role('button', name='Close vehicle selection').click()
             page.keyboard.press('r')
-            page.wait_for_timeout(200)
+            page.wait_for_function('Math.abs(capitalDriveSnapshot().player.speed) < 1')
             check(abs(snap(page)['player']['speed']) < 1, 'recovery returns the car to a road at rest')
-            for ident in ['manuka', 'kingston', 'foreshore', 'griffith', 'narrabundah', 'telopea']:
+            for ident in [place['id'] for place in snap(page)['places']]:
                 page.keyboard.press('m')
                 page.locator(f'[data-place="{ident}"]').get_by_role('button', name='Start nearby').click()
                 page.wait_for_function('(id) => capitalDriveSnapshot().discovered.includes(id)', arg=ident)
-            check(len(snap(page)['discovered']) == 7, 'all seven places are discoverable using the normal map controls')
-            page.wait_for_timeout(300)
+                if ident in ['old-parliament-house', 'manuka-oval', 'kingston-powerhouse']:
+                    frames(page, 8)
+                    page.screenshot(path=str(output / (ident + '.png')))
+            check(len(snap(page)['discovered']) == snap(page)['totalPlaces'], 'all mapped places are discoverable using the normal map controls')
+            frames(page)
             page.screenshot(path=str(output / 'telopea-driving.png'))
+            career_before_claim = snap(page)['career']
+            wagon = mission_wagon_point()
+            heading = snap(page)['player']['yaw']
+            page.keyboard.press('m')
+            while snap(page)['mapView']['zoom'] > 1:
+                page.get_by_role('button', name='Zoom out', exact=True).click()
+            select_map_point(page, wagon['x'] + math.cos(heading) * 6.5, wagon['z'] - math.sin(heading) * 6.5)
+            page.locator('#teleport-button').click()
+            page.keyboard.press('e')
+            page.wait_for_function('capitalDriveSnapshot().gameplay.mode === "foot"', timeout=10000)
+            page.keyboard.press('e')
+            page.wait_for_function('capitalDriveSnapshot().gameplay.mode === "vehicle" && capitalDriveSnapshot().gameplay.vehicle.modelId === "orchard"', timeout=10000)
+            claimed = snap(page)
+            check(claimed['gameplay']['vehicle']['stolen'] and claimed['player']['modelId'] == 'orchard' and page.locator('#car-label').inner_text() == 'WAGON',
+                  'normal E claims the staged parked wagon and updates the controlled model and HUD')
+            check(claimed['career'] == career_before_claim, 'Free roam vehicle theft preserves career cash, owned cars and completed jobs')
+            page.screenshot(path=str(output / 'claimed-parked-wagon.png'))
             page.keyboard.press('p')
             page.get_by_label('Appearance', exact=True).select_option('light')
             page.locator('#resume-button').click()
             page.screenshot(path=str(output / 'desktop-light.png'))
             page.reload(wait_until='load')
             page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=120000)
-            check(len(snap(page)['discovered']) == 7, 'discovery progress survives a normal reload')
+            check(len(snap(page)['discovered']) == snap(page)['totalPlaces'], 'discovery progress survives a normal reload')
             page.close()
+
+            # Independent career context: every positive action uses ordinary UI/input.
+            street_context = browser.new_context(viewport={'width': 1280, 'height': 800})
+            street = street_context.new_page()
+            track(street)
+            ready(street)
+            street.get_by_role('button', name='Start driving').click()
+            check(snap(street)['gameMode'] == 'street', 'Street Life is the normal starting mode')
+            frames(street, 20)
+            check(snap(street)['gameplay']['wanted'] == 0, 'stationary Street Life player is not blamed for ambient traffic offences')
+            street.keyboard.press('j')
+            street.locator('.job-option').filter(has=street.get_by_role('heading', name='Crescent parcel', exact=True)).get_by_role('button', name='Start job').click()
+            street.locator('#job-progress').filter(has_text='Stage 2/2').wait_for(state='visible', timeout=15000)
+            initial_cash = snap(street)['career']['cash']
+            street.keyboard.down('w')
+            try:
+                street.wait_for_function('capitalDriveSnapshot().career.completedJobs.includes("crescent-parcel")', timeout=30000)
+            finally:
+                street.keyboard.up('w')
+            check(snap(street)['career']['cash'] == initial_cash + 300, 'normal driving completes parcel delivery and earns exactly $300')
+            earned = snap(street)['career']
+            street.reload(wait_until='load')
+            street.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=120000)
+            check(snap(street)['career'] == earned, 'career cash, owned vehicles and completed jobs survive reload')
+            street.get_by_role('button', name='Start driving').click()
+            street.keyboard.press('m')
+            street.wait_for_selector('#map-dialog[open]')
+            check(not street.locator('#teleport-button').is_visible() and street.get_by_role('button', name='Start nearby').count() == 0,
+                  'Street Life exposes neither Teleport nor Start nearby')
+            stationary = snap(street)['player']
+            select_map_point(street, 160, -430)
+            street.locator('#full-map').focus()
+            street.keyboard.press('Enter')
+            check(snap(street)['player'] == stationary and snap(street)['routePoints'] > 0, 'Street Life map Enter sets a route without moving the car')
+            # Explicit negative fixture invokes an inaccessible action to test its guard.
+            street.locator('#teleport-button').evaluate('(button) => button.click()')
+            check(snap(street)['player'] == stationary, 'hidden teleport action handler rejects Street Life travel')
+            if street.locator('#map-dialog').is_visible():
+                street.get_by_role('button', name='Close map').click()
+            street.keyboard.press('e')
+            street.wait_for_function('capitalDriveSnapshot().gameplay.mode === "foot"', timeout=10000)
+            actor_before = snap(street)['gameplay']['actor']
+            street.keyboard.down('w')
+            street.wait_for_function('(a) => Math.hypot(capitalDriveSnapshot().gameplay.actor.x-a.x,capitalDriveSnapshot().gameplay.actor.z-a.z) > .6', arg=actor_before, timeout=10000)
+            street.keyboard.down('Shift')
+            street.wait_for_function('capitalDriveSnapshot().gameplay.actor.speed > 5', timeout=10000)
+            street.keyboard.up('Shift')
+            street.keyboard.up('w')
+            check(snap(street)['gameplay']['mode'] == 'foot', 'E exits the stopped car and WASD/Shift walk and sprint')
+            street.keyboard.down('Space')
+            street.wait_for_function('capitalDriveSnapshot().gameplay.actor.jumpHeight > .1', timeout=10000)
+            street.keyboard.up('Space')
+            check(snap(street)['gameplay']['actor']['jumpHeight'] > 0, 'Space makes the walking actor jump')
+            street.keyboard.press('1')
+            check(snap(street)['gameplay']['weapon'] == 'unarmed', '1 selects fists')
+            street.keyboard.press('2')
+            street.wait_for_function('capitalDriveSnapshot().gameplay.weapon === "pistol"')
+            ammo = snap(street)['gameplay']['ammo']
+            rect = street.locator('#world canvas').bounding_box()
+            street.mouse.move(rect['x'] + rect['width'] / 2, rect['y'] + rect['height'] / 2)
+            street.mouse.down(button='right')
+            street.wait_for_function('capitalDriveSnapshot().gameplay.aiming')
+            street.mouse.down(button='left')
+            street.wait_for_function('(a) => capitalDriveSnapshot().gameplay.ammo < a', arg=ammo, timeout=10000)
+            street.mouse.up(button='left')
+            street.mouse.up(button='right')
+            check(snap(street)['gameplay']['ammo'] < ammo, 'right mouse aims and left mouse fires a real round')
+            street.wait_for_function('capitalDriveSnapshot().gameplay.wanted > 0 && capitalDriveSnapshot().gameplay.police.length > 0', timeout=15000)
+            check(snap(street)['gameplay']['police'] != [], 'witnessed gunfire raises wanted level and deploys police')
+            street.keyboard.press('p')
+            street.wait_for_selector('#pause-dialog[open]')
+            paused_gameplay = snap(street)['gameplay']
+            street.keyboard.down('w')
+            frames(street)
+            street.keyboard.up('w')
+            check(snap(street)['gameplay'] == paused_gameplay, 'pause freezes character pose, health and police dynamics')
+            street.locator('#resume-button').click()
+            street.screenshot(path=str(output / 'street-life-on-foot.png'))
+            street_context.close()
 
             # Explicit fixtures exercise unavailable APIs, without granting gameplay progress.
             fallback = context.new_page()
@@ -174,9 +338,10 @@ def main():
             track(fallback)
             ready(fallback)
             check(snap(fallback)['rendering']['compatibility'], 'missing WebGL has an explicit playable map fallback')
+            fallback.locator('[data-game-mode=free]').click()
             fallback.get_by_role('button', name='Start driving').click()
             fallback.keyboard.down('w')
-            fallback.wait_for_timeout(750)
+            fallback.wait_for_function('capitalDriveSnapshot().player.odometer > 1', timeout=15000)
             fallback.keyboard.up('w')
             check(snap(fallback)['player']['odometer'] > 1, 'compatibility view uses the same working driving simulation')
             fallback.screenshot(path=str(output / 'compatibility-view.png'))
@@ -200,6 +365,21 @@ def main():
             for button in mobile.locator('[data-drive]').all():
                 rect = button.bounding_box()
                 check(rect and rect['width'] >= 44 and rect['height'] >= 44, 'touch driving target is at least 44 pixels')
+            for button in mobile.locator('#touch-actions button').all():
+                rect = button.bounding_box()
+                check(rect and rect['width'] >= 44 and rect['height'] >= 44, 'touch character target is at least 44 pixels')
+            check(snap(mobile)['gameMode'] == 'street', 'phone starts in Street Life')
+            mobile.get_by_role('button', name='Enter or exit vehicle').tap()
+            mobile.wait_for_function('capitalDriveSnapshot().gameplay.mode === "foot"', timeout=10000)
+            check(snap(mobile)['gameplay']['mode'] == 'foot', 'phone E action exits the car')
+            frames(mobile, 20)
+            check(snap(mobile)['gameplay']['wanted'] == 0, 'stationary phone pedestrian is not blamed for ambient traffic offences')
+            mobile.screenshot(path=str(output / 'phone-street-life.png'))
+            mobile.get_by_role('button', name='Pause', exact=True).tap()
+            mobile.get_by_role('button', name='Change mode').tap()
+            mobile.locator('[data-game-mode=free]').tap()
+            mobile.get_by_role('button', name='Start driving').tap()
+            check(snap(mobile)['gameMode'] == 'free' and snap(mobile)['gameplay']['mode'] == 'vehicle', 'phone mode switch resets into Free roam driving')
             mobile.screenshot(path=str(output / 'phone-driving.png'))
             mobile.get_by_role('button', name='Map', exact=True).click()
             select_map_point(mobile, 160, -430, touch=True)
@@ -219,6 +399,11 @@ def main():
         report = dict(checks=len(checks), screenshots=sorted(p.name for p in output.glob('*.png')), errors=errors, failures=failures, external=external)
         (output / 'results.json').write_text(json.dumps(report, indent=2) + '\n')
         print(json.dumps(report, indent=2), flush=True)
+    except Exception as error:
+        report = dict(checks=len(checks), passed=checks, error=str(error), errors=errors, failures=failures, external=external,
+                      screenshots=sorted(p.name for p in output.glob('*.png')))
+        (output / 'results.json').write_text(json.dumps(report, indent=2) + '\n')
+        raise
     finally:
         server.shutdown()
         server.server_close()

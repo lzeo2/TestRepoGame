@@ -1,0 +1,25 @@
+{
+  "checks": 66,
+  "screenshots": [
+    "canberra-map.png",
+    "claimed-parked-wagon.png",
+    "compatibility-view.png",
+    "desktop-intro.png",
+    "desktop-light.png",
+    "kingston-powerhouse.png",
+    "manuka-oval.png",
+    "map-teleport.png",
+    "old-parliament-house.png",
+    "parliament-house.png",
+    "phone-driving.png",
+    "phone-intro.png",
+    "phone-light.png",
+    "phone-street-life.png",
+    "red-hill.png",
+    "street-life-on-foot.png",
+    "telopea-driving.png"
+  ],
+  "errors": [],
+  "failures": [],
+  "external": []
+}

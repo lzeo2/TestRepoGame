@@ -34,6 +34,15 @@ fifteen metres of an ACT footprint centre. The enriched snapshot instead uses
 the polygon-overlap priority described below. Public accessibility and current
 road restrictions are not certified. This is a game map, not navigation or surveying data.
 
+## Explicit address index
+
+The separate `addresses.json` index also derives from the same OSM snapshot,
+© OpenStreetMap contributors, ODbL 1.0. It retains 3,446 explicit house-number
+and street tags with source object IDs. Tagged nodes retain coordinates; tagged
+ways use approximate representative centroids. Missing numbers are never
+interpolated or invented. The index retains input hashes and import metadata;
+its coverage does not certify current addresses or entrance locations.
+
 ## ACT building footprints
 
 © Australian Capital Territory. Licensed under
