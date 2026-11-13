@@ -45,7 +45,7 @@ checks = 0
 # browser candidate (no exe match).
 codex_stat = '2660284 (codex) S 26998 ' + ' '.join(['0']*17) + ' 39289868'
 codex = parse_process(2660284, codex_stat, 'Uid:\t1000 1000 1000 1000\nNoNewPrivs:\t0\nSeccomp:\t0\n',
-    '/home/leozhang/.codex/packages/app-server-daemon/bin/codex', b'')
+    '~/.codex/packages/app-server-daemon/bin/codex', b'')
 assert codex.zombie is False and codex.argv == () and codex.comm == 'codex'
 checks += 1
 
