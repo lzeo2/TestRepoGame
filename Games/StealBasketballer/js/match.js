@@ -189,7 +189,12 @@ export class Match {
     }
   }
   _flight() {
-    const f=this.ball.flight;f.elapsed+=STEP;const t=Math.min(1,f.elapsed/f.duration);
+    const f=this.ball.flight;
+    // Track the receiver's hands while they move, rather than arriving at an empty spot.
+    if(f.kind==='pass') {
+      const receiver=this.players[f.receiver];f.to.x=receiver.x;f.to.z=receiver.z;
+    }
+    f.elapsed+=STEP;const t=Math.min(1,f.elapsed/f.duration);
     this.ball.x=f.from.x+(f.to.x-f.from.x)*t;this.ball.z=f.from.z+(f.to.z-f.from.z)*t;
     this.ball.y=f.from.y+(f.to.y-f.from.y)*t+Math.sin(t*Math.PI)*f.height;
     if(t<1)return;
@@ -199,7 +204,7 @@ export class Match {
     const chance=distance(defender,receiver)<12?clamp(.15+(rating(defender,'defense')-rating(passer,'passing'))*.002,.02,.4):.01;
     if(this._roll()<chance){this._turnover(defender,'interception');return;}
     this.stats[f.side].passesCompleted++;this._give(receiver);this.lastPass={receiver:f.receiver,time:this.time};
-    if(f.thenShot)this.nextDecision=this.time+.2;
+    if(f.thenShot)this._shoot();
   }
   _move() {
     const owner=this.players[this.ball.owner],d=direction(this.possession);
@@ -217,6 +222,9 @@ export class Match {
           {x:marked.x+d*6,z:marked.z*.95};
         if(owner&&(this.tactics[p.side].pressUntil>this.time||(p.side===0&&this.mentality==='pressing'))&&distance(p,owner)<28)target={x:owner.x,z:owner.z};
       }
+      // A called catch-and-shoot keeps its receiver at the selected three-point spot.
+      if(this.ball.flight?.kind==='pass'&&this.ball.flight.thenShot&&this.players[this.ball.flight.receiver]===p)
+        target={x:this.ball.flight.to.x,z:this.ball.flight.to.z};
       let dx=target.x-p.x,dz=target.z-p.z;
       if(this.controlState?.index===this.players.indexOf(p)) {
         dx=this.controlState.vector.x*50;dz=this.controlState.vector.z*50;

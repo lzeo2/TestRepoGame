@@ -84,6 +84,25 @@ const pass=live(create());pass._roll=()=>.99;
 assert.equal(pass.callPlay('pass').ok,true);assert.equal(pass.stats[0].passesAttempted,1);
 assert.equal(pass.ball.flight.kind,'pass');pass.update(1);
 assert.equal(pass.stats[0].passesCompleted,1);assert.equal(pass.possession,0);
+// A moving receiver is the actual pass destination, not their stale release position.
+const movingPass=live(create());movingPass._roll=()=>.99;
+movingPass._pass(movingPass.players[1]);const releaseX=movingPass.players[1].x;
+movingPass.update(.2);
+assert.notEqual(movingPass.players[1].x,releaseX);
+close(movingPass.ball.flight.to.x,movingPass.players[1].x);
+close(movingPass.ball.flight.to.z,movingPass.players[1].z);
+
+// Calling THREE inside the arc finds a teammate, holds the spot and shoots on receipt.
+const catchThree=create();isolateShooter(catchThree,65);catchThree._roll=()=>.99;
+catchThree.players.slice(1,5).forEach(p=>{p.x=30;p.z=p.index===1?0:5;});
+assert.equal(catchThree.callPlay('three').ok,true);
+const catchIndex=catchThree.ball.flight.receiver,catchSpot={x:catchThree.players[catchIndex].x,z:catchThree.players[catchIndex].z};
+for(let i=0;i<20&&catchThree.phase==='pass';i++)catchThree.update(.05);
+assert.equal(catchThree.phase,'shot');assert.equal(catchThree.ball.flight.shooter,catchIndex);
+assert.equal(catchThree.ball.flight.points,3);
+close(catchThree.ball.flight.from.x,catchSpot.x);close(catchThree.ball.flight.from.z,catchSpot.z);
+assert.equal(catchThree.stats[0].passesCompleted,1);
+
 const intercepted=live(create());intercepted._roll=()=>0;
 intercepted._pass(intercepted.players[1]);intercepted.update(1);
 assert.equal(intercepted.possession,1);assert.equal(intercepted.stats[1].interceptions,1);
