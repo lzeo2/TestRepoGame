@@ -43,7 +43,6 @@ export function createProgression(map, saved = null) {
     state.completedJobs = [...saved.completedJobs];
   }
   const events = [];
-  const earnedThisRun = new Set();
   let context = null, serial = null;
   function result(ok, message, extra = {}, type = ok ? 'change' : 'error') {
     state.message = message;
@@ -77,7 +76,6 @@ export function createProgression(map, saved = null) {
     const job = jobs.find(item => item.id === id);
     if (!job) return result(false, 'Unknown job.');
     if (job.requires.some(required => !state.completedJobs.includes(required))) return result(false, 'Complete the earlier jobs to unlock this job.');
-    if (earnedThisRun.has(id)) return result(false, 'This job has already paid this run.');
     serial = ctx.respawnSerial;
     state.activeJob = { id, type: job.type, name: job.name, stage: 0, target: copy(job.stages[0]), remaining: job.time, reward: job.reward, elapsed: 0, clearTime: 0, sawWanted: ctx.wanted > 0 };
     return result(true, `Started ${job.name}. Reach ${state.activeJob.target.label}.`, { jobId: id }, 'job-started');
@@ -88,7 +86,6 @@ export function createProgression(map, saved = null) {
     result(true, `Next: ${active.target.label}.`, { jobId: job.id, stage: active.stage }, 'job-stage');
   }
   function complete(job) {
-    earnedThisRun.add(job.id);
     if (!state.completedJobs.includes(job.id)) state.completedJobs.push(job.id);
     state.cash = Math.min(MAX_CASH, state.cash + job.reward);
     state.activeJob = null;
@@ -128,6 +125,7 @@ export function createProgression(map, saved = null) {
     const car = CARS.find(item => item.id === id);
     if (!car || currentOwned(id)) return result(false, 'Vehicle unknown or already owned.');
     if (!spend(car.price)) return result(false, 'Not enough cash to buy this vehicle.');
+    rememberOwnedVehicle();
     const owned = { id, color: '#e7e6df', health: 100, stored: true };
     state.ownedVehicles.push(owned);
     return result(true, `${car.name} purchased and stored.`, { vehicle: copy(owned), cost: car.price });
@@ -162,12 +160,29 @@ export function createProgression(map, saved = null) {
     if (COLOR.test(context.vehicle.color)) car.color = context.vehicle.color.toLowerCase();
     return result(true, 'Vehicle stored. Retrieve it here through the garage.', { vehicle: copy(car), cost: garage.storeCost });
   }
+  function rememberOwnedVehicle() {
+    const live = currentOwned(context.vehicle?.modelId);
+    if (live && !context.vehicle.stolen) {
+      live.health = Math.max(0, Math.min(100, context.vehicleHealth));
+      const color = context.vehicle.color;
+      if (COLOR.test(color)) live.color = color.toLowerCase();
+      else if (Number.isInteger(color) && color >= 0 && color <= 0xffffff) live.color = `#${color.toString(16).padStart(6, '0')}`;
+    }
+  }
+  function retrieveVehicle(id) {
+    const blocked = garageGuard(); if (blocked) return blocked;
+    const car = currentOwned(id);
+    if (!car) return result(false, 'Only an owned vehicle can be retrieved.');
+    rememberOwnedVehicle();
+    car.stored = false;
+    return result(true, 'Owned vehicle retrieved at the garage.', { vehicle: copy(car) });
+  }
   function penalize(reason = 'Respawn') {
     state.activeJob = null;
     const cost = Math.min(250, state.cash); state.cash -= cost;
     return result(true, `${reason}: $${cost} deducted. Completed jobs kept.`, { cost }, 'penalty');
   }
-  return { state, jobs, garage, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, penalize,
+  return { state, jobs, garage, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
     serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs }); },
     drainEvents() { return events.splice(0); },
