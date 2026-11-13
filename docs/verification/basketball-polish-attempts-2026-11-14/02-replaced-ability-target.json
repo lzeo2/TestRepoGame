@@ -1,0 +1,105 @@
+{
+  "rendering": "system Chromium headless software WebGL; no hardware/sandbox acceptance",
+  "flags": [
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--enable-unsafe-swiftshader",
+    "--ignore-gpu-blocklist"
+  ],
+  "checks": [
+    {
+      "name": "desktop PLAY",
+      "pass": true
+    },
+    {
+      "name": "desktop affordable natural conveyor recruit",
+      "pass": true
+    },
+    {
+      "name": "album displays 100 identities",
+      "pass": true
+    },
+    {
+      "name": "desktop actual 5v5 match",
+      "pass": true
+    },
+    {
+      "name": "pause freezes match, avatar and economy",
+      "pass": true
+    },
+    {
+      "name": "resume advances live match",
+      "pass": true
+    }
+  ],
+  "observations": {
+    "desktop recruitment": {
+      "attempts": [
+        {
+          "offers": [
+            {
+              "id": "tyus-jones",
+              "cost": 50
+            },
+            {
+              "id": "grayson-allen",
+              "cost": 195
+            },
+            {
+              "id": "desmond-bane",
+              "cost": 1695
+            },
+            {
+              "id": "domantas-sabonis",
+              "cost": 2005
+            },
+            {
+              "id": "kareem-abdul-jabbar",
+              "cost": 2505
+            }
+          ],
+          "coins": 150,
+          "affordable": {
+            "id": "tyus-jones",
+            "cost": 50
+          },
+          "toast": "Tyus Jones signed"
+        }
+      ],
+      "panel": "market",
+      "text": "Sign a player with your coins. They join your home roster and start earning immediately.\n\nCommon\nGrayson Allen\n\nSG \u00b7 Power 41 \u00b7 2/s\n\n195 coins\n\nNEED MORE COINS\nRare\nDesmond Bane\n\nSG \u00b7 Power 65 \u00b7 9/s\n\n1,695 coins\n\nNEED MORE COINS\nEpic\nDomantas Sabonis\n\nC \u00b7 Power 69 \u00b7 11/s\n\n2,005 coins\n\nNEED MORE COINS\nIcon\nKareem Abdul-Jabbar\n\nC \u00b7 Power 77 \u00b7 14/s\n\n2,505 coins\n\nNEED MORE COINS"
+    },
+    "abilityAvailable": true
+  },
+  "console": [
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x185c00e11200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x185c00e11200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x185c00e11200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x185c00e11200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestFailures": [],
+  "httpErrors": [],
+  "externalRequests": [],
+  "status": "FAIL",
+  "error": "No visible target: [data-action=\"ability\"]:enabled",
+  "browserCleanupNotice": "Event loop is closed! Is Playwright already stopped?",
+  "elapsedSeconds": 55.67
+}
