@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 // Import authored browser ES module without changing the portal's Node module mode.
-const source = await readFile(new URL('../Games/Capital Drive/simulation.js', import.meta.url), 'utf8');
+const roadNetworkSource = await readFile(new URL('../Games/Capital Drive/road-network.js', import.meta.url), 'utf8');
+const roadNetworkUrl = `data:text/javascript;base64,${Buffer.from(roadNetworkSource).toString('base64')}`;
+let source = await readFile(new URL('../Games/Capital Drive/simulation.js', import.meta.url), 'utf8');
+source = source.replace("'./road-network.js'", JSON.stringify(roadNetworkUrl));
 const { buildRoadGraph, pointOnLane, createSimulation } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 const navigationSource = await readFile(new URL('../Games/Capital Drive/navigation.js', import.meta.url), 'utf8');
 const { findRoute } = await import(`data:text/javascript;base64,${Buffer.from(navigationSource).toString('base64')}`);
