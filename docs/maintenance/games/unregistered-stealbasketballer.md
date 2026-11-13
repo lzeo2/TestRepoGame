@@ -242,6 +242,27 @@ never satisfy browser/renderer identity. The live `/proc` reader passes on this
 host (zombie and both services present), and the offline suite is GREEN 79
 cases. No browser launch or game change; native remains unverified.
 
+## Native pass PASS (2026-11-13, approved 3- and 5-minute bounded passes)
+
+With operator approval for deadline extensions (3-minute, then 5-minute, same
+gates, one launch each), the corrected verifier carried a full bounded pass to
+**PASS**: "bounded native readiness/start/recruit/5v5/album/phone; not full
+match acceptance". All 12 gates accepted, including actual-proc browser
+identity, positive sandbox page, renderer NoNewPrivs=1/Seccomp=2 (PIDs
+3990528/3990560), desktop boot/PLAY, natural affordable recruit (Tyus Jones),
+real 5v5 live match (Q1, shotClock 23.4, 5 v 5), 100 unique album names, and
+phone boot/PLAY with the 390px capture. errors and external requests: none.
+Receipt `.tmp/basketball-native-readiness-filtered/receipt.json`; earlier
+HOLD receipts preserved alongside. Reader additions shipped with coverage
+(offline suite 80 cases): Debian Chromium single-element cmdline flag view
+(`expand_argv`), the build's own `--enable-unsafe-swiftshader` headless default
+classified as rendering (not sandbox), one same-launch reload on boot
+`ERR_NETWORK_CHANGED`, SwiftShader context loss/restore recorded as
+environment events, argv-hidden codex daemon parsed fail-closed, real-input
+clicks timed to the per-frame menu re-render, and in-game NPC thief defense
+before battle. Live receipt and capture retained; native scope closed for this
+pass. A separate rights decision is still required before any public build.
+
 ## Future outlook
 
 With fresh authorization, one diagnostic browser startup pass should capture
