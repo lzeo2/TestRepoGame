@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Bounded normal-input stores/pool review; software rendering, never a hardware benchmark."""
 import argparse
+from contextlib import ExitStack
 import functools
 import http.server
 import json
@@ -85,6 +86,8 @@ def main():
     def foot(p):
         if snap(p)['gameplay']['mode'] != 'foot':
             p.keyboard.press('e')
+            if snap(p)['gameplay']['mode'] != 'foot':
+                p.keyboard.press('e')
             p.wait_for_function('capitalDriveSnapshot().gameplay.mode==="foot"')
     def look(p, x, z, vertical=0):
         state = snap(p)
@@ -99,9 +102,11 @@ def main():
         p.mouse.up()
         p.wait_for_timeout(250)
     try:
-        with sync_playwright() as playwright:
+        with ExitStack() as stack:
+            playwright = stack.enter_context(sync_playwright())
             browser = playwright.chromium.launch(executable_path='/usr/bin/chromium', headless=True,
                 args=['--no-sandbox', '--disable-dev-shm-usage', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
+            stack.callback(browser.close)
             context = browser.new_context(viewport={'width':1280,'height':800})
             page = context.new_page()
             ready(page)
@@ -110,8 +115,7 @@ def main():
             page.keyboard.down('w')
             page.wait_for_timeout(1800)
             page.keyboard.up('w')
-            page.keyboard.press('e')
-            page.wait_for_function('capitalDriveSnapshot().gameplay.mode==="foot"', timeout=15000)
+            foot(page)
             after = snap(page)
             observations.append({'kind':'short normal road drive and stop/exit', 'before':initial, 'after':after})
             check(math.hypot(after['player']['x']-initial['player']['x'],after['player']['z']-initial['player']['z'])>1, 'Normal short road drive moves car')
@@ -220,8 +224,7 @@ def main():
         raise
     finally:
         signal.alarm(0)
-        if browser is not None:
-            browser.close()
+        # ExitStack closes the browser before the Playwright event loop exits.
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
