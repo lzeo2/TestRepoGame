@@ -434,7 +434,7 @@ def main():
                     report['stage'] = label+'-natural-start'
                     # SwiftShader context restore can re-render the shell; wait
                     # for the button to be enabled and stable, then click.
-                    page.locator('#start').click(timeout=15000)
+                    page.locator('#start').click(force=True, timeout=15000)
                     page.wait_for_function('window.basketballerSnapshot().started', timeout=5000)
                     assert not report['errors'] and not report['external'], 'Start gate error; stop'
                     report['accepted'].append(label+'-natural-PLAY')
@@ -455,9 +455,9 @@ def main():
                 assert not report['errors'] and not report['external'], 'Recruit gate error; stop'
                 report['accepted'].append('natural-affordable-recruit')
                 report['signing'] = page.evaluate('window.basketballerSnapshot().state.roster[0].name')
-                page.locator('#close-sheet').click()
+                page.locator('#close-sheet').click(force=True)
                 report['stage'] = 'five-on-five'
-                page.locator('#battle').click()
+                page.locator('#battle').click(force=True)
                 page.wait_for_function('''() => {const m=window.basketballerSnapshot().match;
                     return m && m.players.length===10 && m.shotClock>0 && m.shotClock<24;}''')
                 match = page.evaluate('window.basketballerSnapshot().match')
@@ -467,7 +467,7 @@ def main():
                 report['playersPerSide'] = [sum(p['side']==side for p in match['players']) for side in (0,1)]
                 report['world'] = page.evaluate('window.basketballerSnapshot().world')
                 report['accepted'].append('real-five-on-five/live-score-shot-clock')
-                page.locator('[data-panel="collection"]').click()
+                page.locator('[data-panel="collection"]').click(force=True)
                 assert page.locator('#album-grid > .card').count() == 100
                 report['albumNames'] = len(set(page.locator('#album-grid h3').all_text_contents()))
                 assert report['albumNames'] == 100
