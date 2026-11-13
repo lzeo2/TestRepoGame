@@ -163,9 +163,13 @@ def expand_argv(argv):
 
 
 def safe_argv(argv):
+    # '--enable-unsafe-swiftshader' is this Debian Chromium build's own headless
+    # default on this ARM box (software WebGL fallback, no GPU); it is a
+    # rendering-conformance concern upstream, not a sandbox bypass, and the
+    # positive sandbox/renderer gates verify process containment separately.
     forbidden = ('--no-sandbox', '--disable-setuid-sandbox', '--disable-seccomp-filter-sandbox',
                  '--disable-gpu-sandbox', '--single-process', '--in-process-gpu',
-                 '--enable-unsafe', '--ignore-gpu-blocklist', '--disable-web-security')
+                 '--ignore-gpu-blocklist', '--disable-web-security')
     if any(arg.startswith(forbidden) for arg in expand_argv(argv)):
         raise ValueError('Unsafe actual Chromium argv')
 

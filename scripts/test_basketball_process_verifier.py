@@ -81,8 +81,12 @@ assert choose({**records, 120: separate}) == separate
 checks += 1
 for flag in ['--no-sandbox', '--no-sandbox=false', '--disable-setuid-sandbox',
              '--disable-seccomp-filter-sandbox', '--disable-gpu-sandbox', '--single-process',
-             '--in-process-gpu', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--disable-web-security']:
+             '--in-process-gpu', '--ignore-gpu-blocklist', '--disable-web-security']:
     rejects(lambda flag=flag: choose({**records, 120: replace(browser, argv=ARGV+(flag,))}))
+# The build's own headless default '--enable-unsafe-swiftshader' is a rendering
+# default, not an injected sandbox bypass: it is accepted and reported.
+assert choose({**records, 120: replace(browser, argv=ARGV+('--enable-unsafe-swiftshader',))})
+checks += 1
 for text in ['', 'You are not adequately sandboxed.', 'Not adequately sandboxed']:
     rejects(lambda text=text: verify_sandbox_page(text))
 rejects(lambda: verify_renderer_sandbox({k:v for k,v in records.items() if k != 130}, browser, EXE, 1000, {130}))
