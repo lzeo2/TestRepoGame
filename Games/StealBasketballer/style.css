@@ -168,7 +168,7 @@ kbd{display:inline-block;padding:2px 4px;margin-left:6px;border:1px solid var(--
   .in-match .club-badge,.in-match .money{display:none}
   .in-match .hud-header{left:auto;width:44px;z-index:2}
   .in-match .pause-button{font-size:0;width:44px;padding:0}
-  .in-match .pause-button:before{content:'Ⅱ';font-size:18px}
+  .in-match .pause-button:before{content:'';display:inline-block;width:12px;height:16px;border-left:4px solid currentColor;border-right:4px solid currentColor;vertical-align:middle}
   .in-match .pause-button kbd{display:none}
   .score-strip{left:16px;transform:none;max-width:calc(100vw - 90px)}
   .first-signing{bottom:90px}
@@ -192,7 +192,7 @@ kbd{display:inline-block;padding:2px 4px;margin-left:6px;border:1px solid var(--
   .money>span{font-size:9px}
   .money b{margin-left:4px}
   .pause-button{font-size:0;width:44px;padding:0;flex:none}
-  .pause-button:before{content:'Ⅱ';font-size:18px}
+  .pause-button:before{content:'';display:inline-block;width:12px;height:16px;border-left:4px solid currentColor;border-right:4px solid currentColor;vertical-align:middle}
   .pause-button kbd{display:none}
   .mobile-menu{display:block;padding:8px;width:44px;flex:none}
   .actions{top:76px;left:8px;width:112px;gap:5px}

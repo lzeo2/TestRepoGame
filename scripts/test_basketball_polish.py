@@ -33,6 +33,7 @@ def main():
     parser.add_argument('--artifacts', type=Path)
     parser.add_argument('--port', type=int, default=0)
     parser.add_argument('--budget', type=int, default=470)
+    parser.add_argument('--phone-only',action='store_true',help='Run only the separate phone input/layout/visual pass')
     parser.add_argument('--followup',action='store_true',help='Test rest/restart and phone without repeating the separately recorded natural full match')
     args = parser.parse_args()
     if not 180 <= args.budget <= 480:
@@ -146,154 +147,155 @@ def main():
     try:
         with sync_playwright() as pw:
             browser = pw.chromium.launch(executable_path='/usr/bin/chromium', headless=True, args=FLAGS)
-            desktop = browser.new_context(viewport={'width':1440,'height':900}, color_scheme='light')
-            if args.followup:
-                page=prepare(desktop,'desktop followup')
-                recruit(page,'desktop followup')
-                battle(page,'desktop followup')
-                click(page,'[data-panel="match"]')
-                click(page,'[data-action="forfeit"]')
-                click(page,'[data-action="confirmForfeit"]')
-                result=snap(page)
-                check(result['report']['forfeit'] and result['state']['lastBattle']['reward']['total']==0,'forfeit gives a real zero-reward report')
-                click(page,'[data-action="leaveMatch"]')
-                check(snap(page)['match'] is None,'absent match remains explicit null in browser diagnostics')
-                rest_start=time.monotonic()
-                battle(page,'rested restart')
-                receipt['observations']['normalRestWaitSeconds']=round(time.monotonic()-rest_start,2)
-                click(page,'[data-panel="match"]')
-                click(page,'[data-action="forfeit"]')
-                click(page,'[data-action="confirmForfeit"]')
-                check(snap(page)['report']['forfeit'],'restarted match can finish through normal abandon controls')
-                click(page,'[data-action="leaveMatch"]')
-            else:
-                page = prepare(desktop, 'desktop')
-                capture(page, 'desktop-world')
-                recruit(page, 'desktop')
-                click(page, '[data-panel="collection"]')
-                check(page.locator('#album-grid .card').count() == 100, 'album displays 100 identities')
-                capture(page, 'desktop-album')
-                click(page, '#close-sheet')
-                click(page, '[data-panel="help"]')
-                page.locator('#low-graphics').check()
-                check(snap(page)['state']['settings']['lowGraphics'], 'low graphics selected through normal settings')
-                click(page, '#close-sheet')
-                s = battle(page, 'desktop')
-                receipt['observations']['initialMatchRendering'] = s['world']
-                initial_coins = s['state']['coins']
-                click(page, '#pause')
-                paused = snap(page)
-                wait(page, 1100)
-                still = snap(page)
-                check(paused['match'] == still['match'] and paused['world']['avatar'] == still['world']['avatar'] and paused['state']['coins'] == still['state']['coins'], 'pause freezes match, avatar and economy')
-                click(page, '#resume')
-                wait(page, 350)
-                check(snap(page)['match']['elapsed'] > paused['match']['elapsed'], 'resume advances live match')
-                capture(page, 'desktop-match-closeup')
-                click(page, '[data-panel="match"]')
-                available = page.locator('[data-action="ability"]:enabled')
-                receipt['observations']['abilityAvailable'] = available.count() > 0
-                control_attempts=[]
-                for _ in range(8):
-                    click(page, '[data-action="controlPlayer"]:enabled')
-                    before = snap(page)
-                    control_attempts.append({'phase':before['match']['phase'],'elapsed':before['match']['elapsed'],
-                                             'accepted':bool(before['match']['control']), 'toast':page.locator('#toast').inner_text()})
-                    if before['match']['control']:
-                        break
-                    wait(page,350)
-                receipt['observations']['controlAttempts']=control_attempts
-                check(bool(before['match']['control']), 'manual player control accepted')
-                page.keyboard.down('w')
-                wait(page, 950)
-                page.keyboard.up('w')
-                after = snap(page)
-                index = before['match']['control']['index']
-                player_before = before['match']['players'][index]
-                player_after = after['match']['players'][index]
-                check((player_before['x'], player_before['z']) != (player_after['x'], player_after['z']), 'WASD advances controlled player')
-                page.locator('#follow').select_option('pitch')
-                check(snap(page)['world']['camera']['mode'] == 'pitch', 'full court camera selected')
-                click(page, '#zoom-out')
-                capture(page, 'desktop-fullcourt')
-                page.locator('#follow').select_option('ball')
-                camera_before = snap(page)['world']['camera']
-                page.mouse.move(650, 480)
-                page.mouse.down()
-                page.mouse.move(750, 480, steps=6)
-                page.mouse.up()
-                page.mouse.wheel(0, -100)
-                wait(page, 250)
-                camera_after = snap(page)['world']['camera']
-                receipt['observations']['cameraAfterDragZoom'] = camera_after
-                check(camera_before['yaw'] != camera_after['yaw'] and camera_before['zoom'] != camera_after['zoom'], 'world drag orbit and wheel zoom')
-                capture(page, 'desktop-ball-follow')
-                page.locator('#follow').select_option('0')
-                for _ in range(4):
-                    click(page, '#zoom-in')
-                capture(page, 'desktop-player-detail')
-                receipt['observations']['renderingSnapshot'] = snap(page)['world']
-                page.locator('#follow').select_option('ball')
-                click(page, '[data-panel="subs"]')
-                receipt['observations']['substitutions'] = page.locator('#sheet-content').inner_text()
-                check(page.locator('[data-action="substitute"]').count() == 0, 'single natural recruit has no granted reserve')
-                click(page, '#close-sheet')
-                last_period = None
-                called = set()
-                receipt['observations']['playAttempts']=[]
-                ability_used = False
-                while True:
-                    s = snap(page)
-                    if s['report']:
-                        break
-                    m = s['match']
-                    if not ability_used and any(a['available'] for a in m['abilities']):
-                        page.keyboard.press('f')
-                        ability_result = snap(page)['match']
-                        ability_used = ability_result['cooldowns']['ability'] > 0
-                        receipt['observations']['abilityAfterF'] = ability_result['activeAbility']
-                    mode = 'attack' if m['possession'] == 0 else 'defense'
-                    play = 'drive' if mode == 'attack' else 'zone'
-                    if mode not in called and m['phase'] == 'live' and not m['ball'].get('flight') and any(p['id'] == play and p['available'] for p in m['callPlays']):
-                        toggle = page.locator('#match-controls [data-action="togglePlays"]')
-                        wanted = 'DEFENSE' if mode == 'defense' else 'ATTACK'
-                        if wanted in toggle.inner_text():
-                            click(page, '#match-controls [data-action="togglePlays"]')
-                        page.locator('#match-controls [data-action="play"][data-id="'+play+'"]').click()
-                        after_call=snap(page)
-                        receipt['observations']['playAttempts'].append({'play':play,'phaseBefore':m['phase'],
-                            'phaseAfter':after_call['match']['phase'],'cooldown':after_call['match']['cooldowns']['plays'],
-                            'toast':page.locator('#toast').inner_text()})
-                        if after_call['match']['cooldowns']['plays'] > 0:
-                            called.add(mode)
-                    period = s['match']['period']
-                    if period != last_period:
-                        print('LIVE ' + period + ' ' + str(s['match']['score']), flush=True)
-                        last_period = period
-                    wait(page, 250 if len(called)<2 else 5000)
-                receipt['observations']['abilityUsed'] = ability_used
-                receipt['observations']['completedMatch'] = {'report':s['report'],'lastBattle':s['state']['lastBattle'],'coins':s['state']['coins']}
-                check(called == {'attack', 'defense'}, 'valid attack and defense calls accepted')
-                check(not s['report'].get('forfeit'), 'natural full match report')
-                reward = s['state']['lastBattle']['reward']['total']
-                check(reward > 0 and s['state']['coins'] >= initial_coins + reward, 'actual match reward credited')
-                receipt['observations']['completedMatch'] = {'report':s['report'],'lastBattle':s['state']['lastBattle'],'coins':s['state']['coins']}
-                capture(page, 'desktop-report')
-                click(page, '[data-action="leaveMatch"]')
-                click(page, '[data-panel="help"]')
-                click(page, '[data-action="saveNow"]')
-                saved = snap(page)['state']
-                page.reload(wait_until='networkidle')
-                click(page, '#start')
-                restored = snap(page)['state']
-                check([p['uid'] for p in saved['roster']] == [p['uid'] for p in restored['roster']] and restored['coins'] >= saved['coins'], 'reward and roster survive save/reload')
-                battle(page, 'desktop restart')
-                click(page, '[data-panel="match"]')
-                click(page, '[data-action="forfeit"]')
-                click(page, '[data-action="confirmForfeit"]')
-                check(snap(page)['report']['forfeit'], 'restart match abandonment report')
-                click(page, '[data-action="leaveMatch"]')
-            desktop.close()
+            if not args.phone_only:
+                desktop = browser.new_context(viewport={'width':1440,'height':900}, color_scheme='light')
+                if args.followup:
+                    page=prepare(desktop,'desktop followup')
+                    recruit(page,'desktop followup')
+                    battle(page,'desktop followup')
+                    click(page,'[data-panel="match"]')
+                    click(page,'[data-action="forfeit"]')
+                    click(page,'[data-action="confirmForfeit"]')
+                    result=snap(page)
+                    check(result['report']['forfeit'] and result['state']['lastBattle']['reward']['total']==0,'forfeit gives a real zero-reward report')
+                    click(page,'[data-action="leaveMatch"]')
+                    check(snap(page)['match'] is None,'absent match remains explicit null in browser diagnostics')
+                    rest_start=time.monotonic()
+                    battle(page,'rested restart')
+                    receipt['observations']['normalRestWaitSeconds']=round(time.monotonic()-rest_start,2)
+                    click(page,'[data-panel="match"]')
+                    click(page,'[data-action="forfeit"]')
+                    click(page,'[data-action="confirmForfeit"]')
+                    check(snap(page)['report']['forfeit'],'restarted match can finish through normal abandon controls')
+                    click(page,'[data-action="leaveMatch"]')
+                else:
+                    page = prepare(desktop, 'desktop')
+                    capture(page, 'desktop-world')
+                    recruit(page, 'desktop')
+                    click(page, '[data-panel="collection"]')
+                    check(page.locator('#album-grid .card').count() == 100, 'album displays 100 identities')
+                    capture(page, 'desktop-album')
+                    click(page, '#close-sheet')
+                    click(page, '[data-panel="help"]')
+                    page.locator('#low-graphics').check()
+                    check(snap(page)['state']['settings']['lowGraphics'], 'low graphics selected through normal settings')
+                    click(page, '#close-sheet')
+                    s = battle(page, 'desktop')
+                    receipt['observations']['initialMatchRendering'] = s['world']
+                    initial_coins = s['state']['coins']
+                    click(page, '#pause')
+                    paused = snap(page)
+                    wait(page, 1100)
+                    still = snap(page)
+                    check(paused['match'] == still['match'] and paused['world']['avatar'] == still['world']['avatar'] and paused['state']['coins'] == still['state']['coins'], 'pause freezes match, avatar and economy')
+                    click(page, '#resume')
+                    wait(page, 350)
+                    check(snap(page)['match']['elapsed'] > paused['match']['elapsed'], 'resume advances live match')
+                    capture(page, 'desktop-match-closeup')
+                    click(page, '[data-panel="match"]')
+                    available = page.locator('[data-action="ability"]:enabled')
+                    receipt['observations']['abilityAvailable'] = available.count() > 0
+                    control_attempts=[]
+                    for _ in range(8):
+                        click(page, '[data-action="controlPlayer"]:enabled')
+                        before = snap(page)
+                        control_attempts.append({'phase':before['match']['phase'],'elapsed':before['match']['elapsed'],
+                                                 'accepted':bool(before['match']['control']), 'toast':page.locator('#toast').inner_text()})
+                        if before['match']['control']:
+                            break
+                        wait(page,350)
+                    receipt['observations']['controlAttempts']=control_attempts
+                    check(bool(before['match']['control']), 'manual player control accepted')
+                    page.keyboard.down('w')
+                    wait(page, 950)
+                    page.keyboard.up('w')
+                    after = snap(page)
+                    index = before['match']['control']['index']
+                    player_before = before['match']['players'][index]
+                    player_after = after['match']['players'][index]
+                    check((player_before['x'], player_before['z']) != (player_after['x'], player_after['z']), 'WASD advances controlled player')
+                    page.locator('#follow').select_option('pitch')
+                    check(snap(page)['world']['camera']['mode'] == 'pitch', 'full court camera selected')
+                    click(page, '#zoom-out')
+                    capture(page, 'desktop-fullcourt')
+                    page.locator('#follow').select_option('ball')
+                    camera_before = snap(page)['world']['camera']
+                    page.mouse.move(650, 480)
+                    page.mouse.down()
+                    page.mouse.move(750, 480, steps=6)
+                    page.mouse.up()
+                    page.mouse.wheel(0, -100)
+                    wait(page, 250)
+                    camera_after = snap(page)['world']['camera']
+                    receipt['observations']['cameraAfterDragZoom'] = camera_after
+                    check(camera_before['yaw'] != camera_after['yaw'] and camera_before['zoom'] != camera_after['zoom'], 'world drag orbit and wheel zoom')
+                    capture(page, 'desktop-ball-follow')
+                    page.locator('#follow').select_option('0')
+                    for _ in range(4):
+                        click(page, '#zoom-in')
+                    capture(page, 'desktop-player-detail')
+                    receipt['observations']['renderingSnapshot'] = snap(page)['world']
+                    page.locator('#follow').select_option('ball')
+                    click(page, '[data-panel="subs"]')
+                    receipt['observations']['substitutions'] = page.locator('#sheet-content').inner_text()
+                    check(page.locator('[data-action="substitute"]').count() == 0, 'single natural recruit has no granted reserve')
+                    click(page, '#close-sheet')
+                    last_period = None
+                    called = set()
+                    receipt['observations']['playAttempts']=[]
+                    ability_used = False
+                    while True:
+                        s = snap(page)
+                        if s['report']:
+                            break
+                        m = s['match']
+                        if not ability_used and any(a['available'] for a in m['abilities']):
+                            page.keyboard.press('f')
+                            ability_result = snap(page)['match']
+                            ability_used = ability_result['cooldowns']['ability'] > 0
+                            receipt['observations']['abilityAfterF'] = ability_result['activeAbility']
+                        mode = 'attack' if m['possession'] == 0 else 'defense'
+                        play = 'drive' if mode == 'attack' else 'zone'
+                        if mode not in called and m['phase'] == 'live' and not m['ball'].get('flight') and any(p['id'] == play and p['available'] for p in m['callPlays']):
+                            toggle = page.locator('#match-controls [data-action="togglePlays"]')
+                            wanted = 'DEFENSE' if mode == 'defense' else 'ATTACK'
+                            if wanted in toggle.inner_text():
+                                click(page, '#match-controls [data-action="togglePlays"]')
+                            page.locator('#match-controls [data-action="play"][data-id="'+play+'"]').click()
+                            after_call=snap(page)
+                            receipt['observations']['playAttempts'].append({'play':play,'phaseBefore':m['phase'],
+                                'phaseAfter':after_call['match']['phase'],'cooldown':after_call['match']['cooldowns']['plays'],
+                                'toast':page.locator('#toast').inner_text()})
+                            if after_call['match']['cooldowns']['plays'] > 0:
+                                called.add(mode)
+                        period = s['match']['period']
+                        if period != last_period:
+                            print('LIVE ' + period + ' ' + str(s['match']['score']), flush=True)
+                            last_period = period
+                        wait(page, 250 if len(called)<2 else 5000)
+                    receipt['observations']['abilityUsed'] = ability_used
+                    receipt['observations']['completedMatch'] = {'report':s['report'],'lastBattle':s['state']['lastBattle'],'coins':s['state']['coins']}
+                    check(called == {'attack', 'defense'}, 'valid attack and defense calls accepted')
+                    check(not s['report'].get('forfeit'), 'natural full match report')
+                    reward = s['state']['lastBattle']['reward']['total']
+                    check(reward > 0 and s['state']['coins'] >= initial_coins + reward, 'actual match reward credited')
+                    receipt['observations']['completedMatch'] = {'report':s['report'],'lastBattle':s['state']['lastBattle'],'coins':s['state']['coins']}
+                    capture(page, 'desktop-report')
+                    click(page, '[data-action="leaveMatch"]')
+                    click(page, '[data-panel="help"]')
+                    click(page, '[data-action="saveNow"]')
+                    saved = snap(page)['state']
+                    page.reload(wait_until='networkidle')
+                    click(page, '#start')
+                    restored = snap(page)['state']
+                    check([p['uid'] for p in saved['roster']] == [p['uid'] for p in restored['roster']] and restored['coins'] >= saved['coins'], 'reward and roster survive save/reload')
+                    battle(page, 'desktop restart')
+                    click(page, '[data-panel="match"]')
+                    click(page, '[data-action="forfeit"]')
+                    click(page, '[data-action="confirmForfeit"]')
+                    check(snap(page)['report']['forfeit'], 'restart match abandonment report')
+                    click(page, '[data-action="leaveMatch"]')
+                desktop.close()
             phone = browser.new_context(viewport={'width':390,'height':844}, device_scale_factor=1, is_mobile=True, has_touch=True, color_scheme='dark')
             page = prepare(phone, 'phone dark')
             layout(page, 'phone world')
@@ -312,6 +314,7 @@ def main():
             capture(page, 'phone-album-dark')
             click(page, '#close-sheet')
             battle(page, 'phone')
+            check(snap(page)['world']['camera']['mode']=='ball','portrait match defaults to readable ball-follow camera')
             layout(page, 'phone match')
             capture(page, 'phone-match-dark')
             page.emulate_media(color_scheme='light')

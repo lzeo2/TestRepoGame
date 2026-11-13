@@ -248,7 +248,7 @@ export class World {
     this.updateCrowd(state.stadiumLevel,!this.lowGraphics);
     const p=this.pitchPosition(this.pitchIndex);this.matchGroup.position.set(p.x,p.y,p.z);this.crowdGroup.position.set(p.x,p.y-.175,p.z);
     const players=(match.players||[]).slice(0,10);
-    const practice=match.isPractice===true||match.practice===true||players.filter(p=>p.side===1).every(p=>p.stats?.traitId==='practice');const key=players.map(a=>`${a.key||a.id}:${a.side}:${a.index}`).join('|')+practice;
+    const practice=match.isPractice===true||match.practice===true||players.filter(p=>p.side===1).every(p=>p.stats?.traitId==='practice');const key=players.map(a=>`${a.key||a.id}:${a.side}:${a.index}`).join('|')+practice+JSON.stringify(state.kit||{});
     if(key!==this.matchKey){this.matchActors.forEach(a=>{this.matchGroup.remove(a.root);this.factory.release(a);});this.matchActors=players.map(player=>{
       const def=player.def||this.data.players?.find(d=>d.id===player.id)||{name:player.name};const kit=player.side===0?(state.kit?.enabled?state.kit:{primary:'#246AC9',secondary:'#FAF4DD',shorts:'#172B52'}):practice?PRACTICE_KIT:{primary:'#C93549',secondary:'#FFF2D1',shorts:'#272A32'};const actor=this.factory.create(def,kit,{number:player.index+1});this.matchGroup.add(actor.root);return actor;});this.matchKey=key;}
     players.forEach((player,i)=>{const actor=this.matchActors[i];if(!actor)return;actor.root.position.set(finite(player.x),.035,finite(player.z));actor.root.rotation.y=-finite(player.angle)-Math.PI/2;this.factory.pose(actor,player.pose,this.time,finite(player.speed,1));});

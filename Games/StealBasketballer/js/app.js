@@ -209,7 +209,7 @@ function startBattle() {
   match=new Match(team,game.practiceTeam(),{data,formation:state.tactics.formation,mentality:state.tactics.mentality,kit:state.kit,practice:true,
     managerId:state.staff.slots.tactics,incomeRate:game.battleScaling.incomeRate,bench:game.ownedMembers().filter(p=>!selected.has(p.uid)).slice(0,7),seed:Math.floor(Math.random()*2**32)});
   matchState=match.snapshot();report=null;commentarySerial=-1;audioSerial=-1;captionQueue=[];captionUntil=0;beforeCelebration=null;celebrationSerial=null;
-  camera={...camera,mode:'pitch',index:0,yaw:0,pitchIndex:0,zoom:1};world.setCamera(camera);world.teleport(worldData.bases[0].pitch.spawn);closePanel();
+  camera={...camera,mode:canvas.clientWidth/canvas.clientHeight<.8?'ball':'pitch',index:0,yaw:0,pitchIndex:0,zoom:1};world.setCamera(camera);world.teleport(worldData.bases[0].pitch.spawn);closePanel();
   followKey='';syncFollow(matchState);callMode='attack';
   lastControlsKey='';updateMatchUI(performance.now());audio.start();audio.configure(state.settings.sound,true);updateHUD();
 }
