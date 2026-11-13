@@ -373,7 +373,7 @@ def main():
                 safe.close()
 
                 def attach(page):
-                    page.set_default_timeout(5000)
+                    page.set_default_timeout(15000)
                     page.on('pageerror', lambda error: report['errors'].append(clean(error)))
                     def console(message):
                         if message.text.startswith('BB_DIAG '):
