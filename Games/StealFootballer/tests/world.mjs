@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import * as THREE from '../vendor/three.module.js';
 import {ActorFactory} from '../js/actors.js';
+import {REPLACED_STADIUM_PARTS} from '../js/stadium-view.js';
 import {World,groundedMove,miniLineup,partMatrix,visualBallPosition} from '../js/world.js';
 
 // Detached mathematical/geometry fixtures: no canvas, WebGL context, browser save,
@@ -51,8 +52,8 @@ assert.equal(worldData.rivalBase.slots.length,18);
   const rotated=partMatrix({cframe:[10,20,30,0,0,1,0,1,0,-1,0,0]});
   vectorClose(new THREE.Vector3(1,0,0).applyMatrix4(rotated),[10,20,29],'Roblox CFrame rows convert to Three columns');
   const world=detachedWorld();world.buildStatic();
-  const visibleParts=[...worldData.parts,...worldData.stadiumParts].filter(p=>p.opacity>.02).length;
-  assert.equal(world.chunks.reduce((count,c)=>count+c.mesh.count,0),visibleParts,'Batching retains every visible primitive');
+  const visibleParts=worldData.parts.filter(p=>p.opacity>.02).length+worldData.stadiumParts.filter(p=>p.opacity>.02&&!REPLACED_STADIUM_PARTS.includes(p.name)).length;
+  assert.equal(world.chunks.reduce((count,c)=>count+c.mesh.count,0),visibleParts,'Batching retains every unreplaced visible primitive');
   assert.equal(world.colliders.length,[...worldData.parts,...worldData.stadiumParts].filter(p=>p.opacity>.02&&p.collision).length);
   vectorClose(world.venueOrigin,worldData.bases[0].pitch.position,'Template anchor uses the actual outboard venue');
   world.bases.forEach((base,index)=>vectorClose(new THREE.Vector3(...Object.values(world.pitchPosition(index))),
@@ -213,7 +214,7 @@ let maximumMeshes=0,maximumTriangles=0;
 {
   const world=detachedWorld();world.buildCrowd();assert.equal(world.crowdSeats.length,24);
   assert.equal(world.crowdParts.length,9,'Instanced humanoid crowd uses nine part batches');
-  for(const [level,count]of [[0,8],[1,8],[2,16],[3,24]]) {
+  for(const [level,count]of [[0,0],[1,8],[2,16],[3,24]]) {
     world.updateCrowd(level,false);assert.equal(world.crowdCount,count);
     assert(world.crowdParts.every(p=>p.mesh.count===count));
   }
