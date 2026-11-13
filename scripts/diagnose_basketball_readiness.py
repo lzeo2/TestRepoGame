@@ -478,7 +478,7 @@ def main():
                 probe = page.evaluate('window.basketballerSnapshot().match')
                 report['matchProbe'] = {k: probe[k] for k in ('players','shotClock') if k in probe} if probe else None
                 page.wait_for_function('''() => {const m=window.basketballerSnapshot().match;
-                    return m && m.players.length===10 && m.shotClock>0 && m.shotClock<24;}''', timeout=180000)
+                    return m && m.players.length===10 && m.shotClock>0 && m.shotClock<24;}''', timeout=180000, polling=2000)
                 match = page.evaluate('window.basketballerSnapshot().match')
                 assert [sum(p['side']==side for p in match['players']) for side in (0,1)] == [5,5]
                 assert not report['errors'] and not report['external'], 'Match gate error; stop'
