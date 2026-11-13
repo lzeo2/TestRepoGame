@@ -20,7 +20,9 @@ MODULES = (
     'script.js', 'simulation.js', 'navigation.js', 'map-projection.js',
     'world-view.js', 'neighbourhood.js', 'pedestrians.js', 'gameplay.js',
     'progression.js', 'actor-view.js', 'landmarks.js', 'landmarks-view.js',
-    'address-search.js', 'street-ui.js',
+    'address-search.js', 'street-ui.js', 'road-network.js', 'police.js',
+    'buses.js', 'bus-view.js', 'vehicle-occupants-view.js', 'districts.js',
+    'services.js', 'services-view.js',
 )
 SUITES = (
     'test_capital_drive.mjs', 'test_capital_pedestrians.mjs',
@@ -28,9 +30,11 @@ SUITES = (
     'test_capital_geodata.mjs', 'test_capital_map.mjs',
     'test_capital_gameplay.mjs', 'test_capital_progression.mjs',
     'test_capital_actors.mjs', 'test_capital_landmarks.mjs',
-    'test_capital_addresses.mjs',
+    'test_capital_addresses.mjs', 'test_capital_roads.mjs', 'test_capital_buses.mjs',
+    'test_capital_police.mjs', 'test_capital_occupants.mjs', 'test_capital_services.mjs',
+    'test_capital_services_view.mjs',
 )
-DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json')
+DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json')
 
 
 def run_command(command, timeout):
@@ -64,6 +68,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--browser', action='store_true', help='Also run the targeted real-input browser suite (600 second limit).')
     parser.add_argument('--output', type=Path, help='Explicit external directory for browser artifacts and runner report; required with --browser.')
+    parser.add_argument('--classic-browser', action='store_true', help='Use the retained earlier Street Life browser suite instead of the expansion suite.')
     parser.add_argument('--dry-run', action='store_true', help='List required files and exact commands without running them or creating directories.')
     args = parser.parse_args()
     if args.browser != (args.output is not None):
@@ -76,7 +81,7 @@ def main():
     required += [GAME / 'data' / filename for filename in DATA]
     required += [Path('scripts') / filename for filename in SUITES]
     if args.browser:
-        required.append(Path('scripts/test_capital_drive_browser.py'))
+        required.append(Path('scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py'))
     commands = [(['node', '--check', str(GAME / filename)], 120) for filename in MODULES]
     commands += [(['node', '--check', str(Path('scripts') / filename)], 120) for filename in SUITES]
     commands += [(['node', str(Path('scripts') / filename)] +
@@ -84,7 +89,8 @@ def main():
                  for filename in SUITES]
     commands.append((['git', 'diff', '--check'], 120))
     if args.browser:
-        commands.append(([sys.executable, '-B', 'scripts/test_capital_drive_browser.py', '--output', str(output)], 600))
+        suite = 'scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py'
+        commands.append(([sys.executable, '-B', suite, '--output', str(output)], 600))
     missing = [str(path) for path in required if not (ROOT / path).is_file()]
     if missing:
         for path in missing:

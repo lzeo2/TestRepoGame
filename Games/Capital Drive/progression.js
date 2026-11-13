@@ -1,3 +1,4 @@
+import {SERVICES} from './services.js';
 // Fictional job markers beside the mapped roads; these are not real businesses.
 const CARS = [
   { id: 'lantern', name: 'Neighbourhood saloon', price: 0 },
@@ -29,9 +30,13 @@ export function createProgression(map, saved = null) {
     { id: 'clear-the-search', name: 'Lose the search', type: 'getaway', reward: 650, time: 180, requires: ['crescent-parcel'], stages: [pickup, south], clearSeconds: 8 },
     { id: 'priority-parcel', name: 'Priority parcel', type: 'delivery', reward: 1000, time: 110, requires: ['crescent-circuit', 'wagon-recovery'], stages: [south, north] },
   ];
-  const state = { cash: 1000, ownedVehicles: [{ id: 'lantern', color: '#e7e6df', health: 100, stored: false }], completedJobs: [], activeJob: null, message: 'Career ready. Take the Crescent parcel job.' };
+  const state = { cash: 1000, ownedVehicles: [{ id: 'lantern', color: '#e7e6df', health: 100, stored: false }], completedJobs: [], activeJob: null,
+    equipment:{pistol:false},fitnessLevel:0,robberyCooldowns:{},activity:null,message: 'Career ready. Take the Crescent parcel job.' };
   if (saved !== null) {
-    if (!object(saved) || !exactKeys(saved, ['version', 'cash', 'ownedVehicles', 'completedJobs']) || saved.version !== 1 || !Number.isSafeInteger(saved.cash) || saved.cash < 0 || saved.cash > MAX_CASH || !Array.isArray(saved.ownedVehicles) || saved.ownedVehicles.length < 1 || saved.ownedVehicles.length > CARS.length || !Array.isArray(saved.completedJobs) || saved.completedJobs.length > jobs.length) throw new Error('Unsupported or corrupt career save.');
+    if (!object(saved) || !exactKeys(saved, ['version', 'cash', 'ownedVehicles', 'completedJobs','equipment','fitnessLevel','robberyCooldowns']) || saved.version !== 1 || !Number.isSafeInteger(saved.cash) || saved.cash < 0 || saved.cash > MAX_CASH || !Array.isArray(saved.ownedVehicles) || saved.ownedVehicles.length < 1 || saved.ownedVehicles.length > CARS.length || !Array.isArray(saved.completedJobs) || saved.completedJobs.length > jobs.length) throw new Error('Unsupported or corrupt career save.');
+    if(saved.equipment!==undefined&&(!object(saved.equipment)||!exactKeys(saved.equipment,['pistol'])||typeof saved.equipment.pistol!=='boolean'))throw new Error('Invalid saved equipment.');
+    if(saved.fitnessLevel!==undefined&&(!Number.isInteger(saved.fitnessLevel)||saved.fitnessLevel<0||saved.fitnessLevel>3))throw new Error('Invalid saved fitness.');
+    if(saved.robberyCooldowns!==undefined&&(!object(saved.robberyCooldowns)||!exactKeys(saved.robberyCooldowns,SERVICES.filter(s=>s.robbery).map(s=>s.id))||Object.values(saved.robberyCooldowns).some(v=>!Number.isFinite(v)||v<0||v>180)))throw new Error('Invalid saved shop cooldown.');
     const ids = new Set();
     for (const car of saved.ownedVehicles) {
       if (!object(car) || !exactKeys(car, ['id', 'color', 'health', 'stored']) || !CARS.some(item => item.id === car.id) || ids.has(car.id) || !COLOR.test(car.color) || !Number.isFinite(car.health) || car.health < 0 || car.health > 100 || typeof car.stored !== 'boolean') throw new Error('Invalid saved garage.');
@@ -41,6 +46,7 @@ export function createProgression(map, saved = null) {
     state.cash = saved.cash;
     state.ownedVehicles = copy(saved.ownedVehicles);
     state.completedJobs = [...saved.completedJobs];
+    state.equipment=copy(saved.equipment||{pistol:false});state.fitnessLevel=saved.fitnessLevel||0;state.robberyCooldowns=copy(saved.robberyCooldowns||{});
   }
   const events = [];
   let context = null, serial = null;
@@ -72,7 +78,7 @@ export function createProgression(map, saved = null) {
   }
   function startJob(id, ctx) {
     if (!remember(ctx)) return result(false, 'A valid player position is required.');
-    if (state.activeJob) return result(false, 'Finish or cancel the current job first.');
+    if (state.activeJob||state.activity) return result(false, 'Finish or cancel the current activity first.');
     const job = jobs.find(item => item.id === id);
     if (!job) return result(false, 'Unknown job.');
     if (job.requires.some(required => !state.completedJobs.includes(required))) return result(false, 'Complete the earlier jobs to unlock this job.');
@@ -95,6 +101,27 @@ export function createProgression(map, saved = null) {
     if (!Number.isFinite(dt) || dt < 0) throw new Error('Career dt must be finite and nonnegative.');
     if (!remember(ctx)) return;
     if (dt === 0) return;
+    for(const id of Object.keys(state.robberyCooldowns))state.robberyCooldowns[id]=Math.max(0,state.robberyCooldowns[id]-Math.min(dt,.25));
+    const activity=state.activity;
+    if(activity){
+      const site=SERVICES.find(s=>s.id===activity.serviceId);
+      if(ctx.respawnSerial!==activity.respawnSerial||ctx.recovering||!ctx.onFoot||!near(ctx.pose,site,site.radius)||
+        (activity.type==='robbery'?ctx.weapon!=='pistol':ctx.wanted>0)){
+        state.activity=null;result(false,'Activity interrupted.',{},'activity-ended');
+      }else{
+        activity.elapsed=Math.min(activity.duration,activity.elapsed+Math.min(dt,.05));activity.progress=activity.elapsed/activity.duration;
+        if(activity.elapsed>=activity.duration){
+          state.activity=null;
+          if(activity.type==='robbery'){
+            state.cash=Math.min(MAX_CASH,state.cash+site.robbery);state.robberyCooldowns[site.id]=180;
+            result(true,`Took $${site.robbery}. Leave the area.`,{reward:site.robbery,serviceId:site.id},'robbery-complete');
+          }else if(state.cash>=activity.cost){
+            state.cash-=activity.cost;state.fitnessLevel=Math.min(3,state.fitnessLevel+1);
+            result(true,`Fitness ${state.fitnessLevel}/3. Sprint improved.`,{cost:activity.cost},'workout-complete');
+          }else result(false,'Not enough cash for training.',{},'activity-ended');
+        }
+      }
+    }
     if (serial !== null && serial !== ctx.respawnSerial && state.activeJob) { serial = ctx.respawnSerial; fail('Job ended after respawn.'); return; }
     serial = ctx.respawnSerial;
     const active = state.activeJob;
@@ -178,13 +205,54 @@ export function createProgression(map, saved = null) {
     return result(true, 'Owned vehicle retrieved at the garage.', { vehicle: copy(car) });
   }
   function penalize(reason = 'Respawn') {
-    state.activeJob = null;
+    state.activeJob = null;state.activity=null;
     const cost = Math.min(250, state.cash); state.cash -= cost;
     return result(true, `${reason}: $${cost} deducted. Completed jobs kept.`, { cost }, 'penalty');
   }
-  return { state, jobs, garage, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,
+  function serviceGuard(id,ctx,{allowWanted=false}={}){
+    if(!remember(ctx)||ctx.sandbox||ctx.recovering)return result(false,'Activity unavailable.');
+    const site=SERVICES.find(s=>s.id===id);
+    if(!site||!near(ctx.pose,site,site.radius))return result(false,'Visit this location first.');
+    if(!ctx.onFoot)return result(false,'Step out of the car first.');
+    if(state.activity)return result(false,'Finish the current activity first.');
+    if(!allowWanted&&ctx.wanted>0)return result(false,'Lose the police first.');
+    return site;
+  }
+  function purchaseService(id,item,ctx){
+    const site=serviceGuard(id,ctx);if(!site.id)return site;
+    let cost,effect;
+    if(site.type==='food'&&item==='food'){
+      if(!Number.isFinite(ctx.health)||ctx.health>=100)return result(false,'Health is already full.');
+      cost=site.price;effect={heal:site.heal};
+    }else if(site.type==='arms'&&item==='pistol'){
+      if(state.equipment.pistol)return result(false,'You already own a pistol.');
+      cost=site.price;effect={pistol:true,ammo:24};
+    }else if(site.type==='arms'&&item==='ammo'){
+      if(!state.equipment.pistol||!Number.isFinite(ctx.reserveAmmo)||ctx.reserveAmmo>96)return result(false,'Ammo unavailable.');
+      cost=site.ammoPrice;effect={ammo:24};
+    }else return result(false,'Unknown purchase.');
+    if(!spend(cost))return result(false,'Not enough cash.');
+    if(effect.pistol)state.equipment.pistol=true;
+    return result(true,'Purchased.',{cost,...effect},'service-purchase');
+  }
+  function startActivity(id,type,ctx){
+    const site=serviceGuard(id,ctx,{allowWanted:type==='robbery'});if(!site.id)return site;
+    if(state.activeJob)return result(false,'Finish or cancel the job first.');
+    if(type==='robbery'){
+      if(!site.robbery||!state.equipment.pistol||ctx.weapon!=='pistol')return result(false,'Equip a pistol to threaten the till.');
+      if(state.robberyCooldowns[id]>0)return result(false,'The till is empty.');
+    }else if(type==='workout'){
+      if(site.type!=='gym'||state.fitnessLevel>=3)return result(false,'Training complete.');
+      if(state.cash<site.price*(state.fitnessLevel+1))return result(false,'Not enough cash.');
+    }else return result(false,'Unknown activity.');
+    state.activity={type,serviceId:id,name:type==='robbery'?'Taking the till':'Training',elapsed:0,duration:type==='robbery'?4:8,progress:0,
+      cost:type==='workout'?site.price*(state.fitnessLevel+1):0,respawnSerial:ctx.respawnSerial};
+    return result(true,type==='robbery'?'Stay near the till.':'Training started.',{serviceId:id,point:{x:site.x,z:site.z}},type+'-started');
+  }
+  return { state, jobs, garage,services:SERVICES, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,
+    cancelActivity(){if(!state.activity)return false;state.activity=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
-    serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs }); },
+    serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns }); },
     drainEvents() { return events.splice(0); },
   };
 }

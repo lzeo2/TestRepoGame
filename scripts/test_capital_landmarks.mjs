@@ -4,13 +4,15 @@ const dataURL = source => `data:text/javascript;base64,${Buffer.from(source).toS
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
 const threeURL = dataURL(await read('../assets/car-arcade/vendor/three.module.js'));
 const dataSource = await read('../Games/Capital Drive/landmarks.js'), landmarksURL = dataURL(dataSource);
-const { LANDMARKS, LANDMARK_CLEARINGS, replacedBuildingIds } = await import(landmarksURL);
+const { LANDMARKS, LANDMARK_CLEARINGS, MANUKA_POOL_BASIN, replacedBuildingIds } = await import(landmarksURL);
 const THREE = await import(threeURL);
 const source = (await read('../Games/Capital Drive/landmarks-view.js')).replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./landmarks.js', landmarksURL);
 const { createLandmarksView } = await import(dataURL(source));
 const map = JSON.parse(await read('../Games/Capital Drive/data/canberra.json'));
 const original = JSON.stringify(map), ids = replacedBuildingIds(map);
-assert.equal(ids.size, 12);
+assert.equal(ids.size, 13);
+assert.ok(ids.has('act-75267-0'),'only inspected pool block is replaced');
+for(const id of ['act-92000-0','act-95964-0','act-125329-0'])assert.ok(!ids.has(id),'neighbouring community outline retained');
 assert.equal(replacedBuildingIds({buildings:[{id:'nearby-house'}]}).size,0);
 assert.equal(JSON.stringify(map),original,'pure replacement lookup does not mutate source map');
 for(const site of LANDMARKS) {
@@ -20,7 +22,7 @@ for(const site of LANDMARKS) {
 }
 const scene = new THREE.Scene(), ground = (x,z) => 20+x*0.002+z*0.001;
 const view = createLandmarksView(scene,map,ground), root = scene.children[0];
-assert.equal(view.stats.landmarks,4);assert.equal(view.stats.meshes,8);
+assert.equal(view.stats.landmarks,5);assert.equal(view.stats.meshes,10);
 assert.ok(view.stats.triangles<16000,'bounded N100 geometry budget');
 let geometries=0,materials=0;const materialSet=new Set();
 root.traverse(object=>{
@@ -31,6 +33,21 @@ root.traverse(object=>{
 });
 for(const material of materialSet)material.addEventListener('dispose',()=>materials++);
 for(const site of LANDMARKS){const group=root.children.find(g=>g.name===site.name);assert.equal(group.position.y,ground(site.x,site.z));}
+const pool=root.children.find(g=>g.name==='Manuka Pool');
+assert.ok(Object.isFrozen(MANUKA_POOL_BASIN)&&MANUKA_POOL_BASIN.every(Object.isFrozen));
+assert.ok(LANDMARK_CLEARINGS.includes(MANUKA_POOL_BASIN),'pool water excludes generated trees');
+const poolSurface=pool.children[1].geometry.attributes.position;
+const poolTint=pool.children[1].geometry.attributes.color, water=new THREE.Color(0x57949e);
+const waterVertices=[];
+for(let i=0;i<poolSurface.count;i++)if(Math.abs(poolTint.getX(i)-water.r)<1e-6&&Math.abs(poolTint.getY(i)-water.g)<1e-6)waterVertices.push([poolSurface.getX(i)+pool.position.x,poolSurface.getY(i)+pool.position.y,poolSurface.getZ(i)+pool.position.z]);
+assert.equal(waterVertices.length,6,'basin remains two bounded water triangles');
+for(const [x,z] of MANUKA_POOL_BASIN)assert.ok(waterVertices.some(p=>Math.abs(p[0]-x)<1e-5&&Math.abs(p[2]-z)<1e-5),'exact projected water corner retained');
+assert.ok(waterVertices.every(p=>Math.abs(p[1]-waterVertices[0][1])<1e-6),'water is level across terrain');
+assert.ok(waterVertices.every(p=>p[1]>ground(p[0],p[2])),'basin clears sampled terrain');
+const nearShader={vertexShader:'#include <begin_vertex>',fragmentShader:'#include <color_fragment>'};
+pool.children[0].material.onBeforeCompile(nearShader);
+assert.ok(nearShader.fragmentShader.includes('grain * 0.055'),'original bounded near material grain');
+assert.equal(pool.children[0].material.customProgramCacheKey(),'capital-landmark-grain-v1');
 const parliament=root.children.find(g=>g.name==='Parliament House');
 assert.ok(Math.abs(parliament.rotation.y+0.615)<1e-8,'land axis faces northeast');
 const localMeshes=parliament.children.map(mesh=>new THREE.Mesh(mesh.geometry,mesh.material));
@@ -64,14 +81,14 @@ view.update(LANDMARKS[0]);assert.equal(view.stats.visibleNear,2);assert.ok(view.
 view.update({x:LANDMARKS[0].x-2500,z:LANDMARKS[0].z});assert.ok(parliament.visible);assert.equal(parliament.children[0].visible,false);
 assert.equal(parliament.children[1].material.fog,false,'distant skyline survives world fog');
 view.update({x:1e6,z:1e6});assert.equal(view.stats.visibleNear+view.stats.visibleDistant,0);assert.ok(root.children.every(group=>!group.visible));
-view.dispose();view.dispose();assert.equal(scene.children.length,0);assert.equal(geometries,8);assert.equal(materials,2);
+view.dispose();view.dispose();assert.equal(scene.children.length,0);assert.equal(geometries,10);assert.equal(materials,2);
 const empty = createLandmarksView(scene,{bounds:{minX:0,maxX:1,minZ:0,maxZ:1}},ground);assert.equal(empty.stats.landmarks,0);empty.dispose();
 // Exercise the actual world candidate filter: one exact clearing removes its
 // candidates while a distant polygon preserves identical generation/budgets.
-const worldSource=(await read('../Games/Capital Drive/world-view.js')).replace('../../assets/car-arcade/vendor/three.module.js',threeURL);
+const worldSource=(await read('../Games/Capital Drive/world-view.js')).replace('../../assets/car-arcade/vendor/three.module.js',threeURL).replace('./road-network.js',dataURL(await read('../Games/Capital Drive/road-network.js'))).replace('./districts.js',dataURL(await read('../Games/Capital Drive/districts.js')));
 const {createWorldView}=await import(dataURL(worldSource));
 const treeMap={bounds:{minX:0,maxX:200,minZ:0,maxZ:200},roads:[],buildings:[],areas:[{type:'park',points:[[0,0],[200,0],[200,200],[0,200]]}],landmarks:[]};
 const trees=createWorldView(scene,treeMap), baseline=trees.stats.trees;assert.ok(baseline>0);trees.dispose();
 const cleared=createWorldView(scene,{...treeMap,landmarkTreeExclusions:[[[-10,-10],[210,-10],[210,210],[-10,210]]]});assert.equal(cleared.stats.trees,0);cleared.dispose();
 const outside=createWorldView(scene,{...treeMap,landmarkTreeExclusions:[[[300,300],[400,300],[400,400],[300,400]]]});assert.equal(outside.stats.trees,baseline);outside.dispose();
-console.log(`PASS landmarks:4 sites,${view.stats.triangles} triangles, exact12 replacement IDs, projection, grounding,81m mast, LOD, fog, finite buffers and idempotent disposal`);
+console.log(`PASS landmarks:5 sites,${view.stats.triangles} triangles, exact13 replacement IDs, projection, grounding,81m mast, LOD, fog, finite buffers and idempotent disposal`);

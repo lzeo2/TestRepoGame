@@ -205,3 +205,39 @@ low front/back roof edges,18m central crest, zero-height outer lawn edge, white/
 flag geometry and finite buffers. Syntax and diff checks passed. Root owns the
 final recapture from the same Parliament approach; no new image PASS is claimed
 by this static geometry check.
+
+
+## Manuka Pool and material continuation, 14 November 2026
+
+The existing cached tile `osm-tile-1-1-2.json` has SHA256
+`d8ead176fd89c9420ba8e9711cb8736a475fe56f73a852981fe25a053b72c7ab`.
+OSM way58851110, version11, timestamp2024-04-18T09:56:58Z, is tagged
+`leisure=swimming_pool`, `name=Manuka Pool`, `length=30.5`, `location=outdoor`,
+`operator=ACT Government`. Its four source corners are:
+
+| Latitude | Longitude | Local x,z metres |
+| --- | --- | --- |
+| -35.3168694 |149.1356152 | -125.78,-125.86 |
+| -35.3169403 |149.1357385 | -114.58,-117.97 |
+| -35.3171668 |149.1355430 | -132.34,-92.75 |
+| -35.3170959 |149.1354197 | -143.54,-100.64 |
+
+OSM sports-centre way51677758, version7, timestamp2025-04-12T00:37:07Z, names
+the larger Manuka Swimming Pool site. Its full boundary is not the water surface.
+The source quad projects to roughly30.85 by13.70metres. Rendering replaces only
+ACT `act-75267-0`, the6.5m generic block occupying the basin. Nearby
+`act-92000-0`, `act-95964-0` and `act-125329-0` remain. A level water quad uses the
+maximum sampled corner terrain+.3m; one-metre coping, five lane guides and a small
+unbranded entrance marker are original approximate art, not measured architecture.
+The exact basin receives a procedural-tree exclusion. Source JSON is unchanged.
+
+The pool adds84triangles/two merged meshes: five sites now total5316triangles,
+ten meshes and the same two pooled materials. A bounded original near-material
+shader grain adds surface variation without new photographs, textures or lights.
+The distant material remains fog-free. Parliament entrance-glass raycast, low
+lawn edges/18m crest,81m mast, flag colours and grounding protections still pass.
+
+No additional pool panorama was inspected. The preceding recorded Street View
+observations inform architectural cues; the pool shape comes from licensed OSM
+geometry. This continuation makes no photogrammetry, survey or citywide imagery
+claim. Fresh browser evidence belongs to the expansion receipt.

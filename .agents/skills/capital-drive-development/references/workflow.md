@@ -11,7 +11,7 @@
    preserve the original selection and restore it after verification. Do not
    perform a full Games checkout.
 3. This is an existing owner-authorized original game, catalog 245. Read credits,
-   `docs/capital-drive-sources.md`, street-reference notes and data licenses before
+   `docs/capital-drive-sources.md`, expansion contract, street-reference notes and data licenses before
    changing source-derived content. Do not add runtime remote requests or assets.
 4. State concrete owned paths and the behavior being changed. For authorized
    parallel work, use disjoint modules and one exclusive index window per commit.
@@ -28,12 +28,12 @@ install them into this repository or vendor unrelated tooling.
 | Owner | Source/API boundary |
 | --- | --- |
 | Controller | `script.js`, `index.html`, `style.css`: input, camera, HUD/dialogs, mode guards, render loop, career/discovery storage and target display |
-| Simulation | `simulation.js`: directed left-lane graph, driving/traffic, claims, actor collision and building-obstructed sight |
-| Gameplay | `gameplay.js`: injected simulation/pedestrians callbacks, foot movement/combat, police pursuit/search, vehicle health, respawn serial |
-| Progression | `progression.js`: `createProgression(map,saved)`, jobs, owned cars, costs, validated serialize/load, drained events; no DOM/storage |
+| Simulation | `simulation.js`, `road-network.js`: profiled directed left-lane graph, cached access routes, driving/traffic, braking requests, claims, shared swept external vehicle/actor collision and building-obstructed sight |
+| Gameplay | `gameplay.js`, `police.js`: injected simulation/pedestrians/equipment callbacks, timed carjacking, foot combat, directed patrols/dismounted officers, recovery transition and single respawn callback |
+| Progression | `progression.js`, `services.js`: jobs/cash/garage, location/cost/weapon gates, food/ammo, timed fitness/robbery and saved till cooldowns; validated serialize/load, no DOM/storage |
 | Pedestrians | `pedestrians.js`: bounded sidewalk population, alert/strike/reactions, consumed offence events |
-| Rendering | `actor-view.js`, `landmarks-view.js`, `world-view.js`, `neighbourhood.js`: pooled local geometry, grounding, culling/disposal; no physics/RAF |
-| Geographic/navigation data | `data/canberra.json`, `navigation.js`, `map-projection.js`, `landmarks.js`, `address-search.js`, `data/addresses.json`: consistent projection, directed routes and offline lookup |
+| Rendering | `actor-view.js`, `vehicle-occupants-view.js`, `services-view.js`, `bus-view.js`, `landmarks-view.js`, `world-view.js`, `neighbourhood.js`: pooled local geometry, grounding, culling/disposal; no physics/RAF |
+| Geographic/navigation data | `data/canberra.json`, `navigation.js`, `map-projection.js`, `landmarks.js`, `address-search.js`, `data/addresses.json`, `data/road-profiles.json`, `districts.js`: consistent projection, source profiles/retail polygon, directed routes and offline lookup |
 
 Coordinates are metres: x east, z south. Yaw forward is
 `(-sin(yaw),-cos(yaw))`. Root supplies dt and context. `dt=0` freezes dynamics;
@@ -42,7 +42,11 @@ and no production gameplay setters. A new adapter must dispose pooled resources
 idempotently and must not mutate geographic source data.
 
 Gameplay context for progression is `{pose,onFoot,vehicle,wanted,vehicleHealth,
-respawnSerial}`. Jobs require real arrival, ordered checkpoints, the required
+respawnSerial,health,weapon,reserveAmmo,recovering,sandbox}`. Services require
+actual on-foot proximity, legal activity state, costs and equipment. Root applies
+only successful heal/ammo results. Gym and robbery advance on supplied active dt;
+leaving, recovery or invalid equipment interrupts them without completion.
+Robbery cooldowns persist through reload; no click awards cash. Jobs require real arrival, ordered checkpoints, the required
 stolen vehicle or a real wanted/clear interval, as appropriate. Clicks cannot
 award cash. Failure, cancellation and respawn cannot mark a job complete.
 Completed IDs survive penalties. Garage operations validate location, ownership
@@ -131,7 +135,7 @@ fresh source evidence; never edit expectations just to admit an accidental rebui
 Target remains N100/8GB with a capped 60 Hz simulation and 30/60 render options.
 Source-level budgets are guards, not hardware FPS acceptance. Keep traffic default 40,
 hard limit 56; police at most 4; pooled shots and pedestrians bounded. Current
-landmark suite requires four sites, eight merged meshes and fewer than 16000
+landmark suite requires five sites, ten merged meshes and fewer than 16000
 triangles with near detail 850 m and skyline 4200 m. Extend a budget only with a
 measured reason and explicit review. Actor view pools geometry/materials/effects;
 read its stats and suite before adding meshes. Avoid per-frame allocations across
@@ -145,14 +149,11 @@ python3 -B scripts/check_capital_drive.py --dry-run
 python3 -B scripts/check_capital_drive.py
 ```
 
-The runner requires these modules: `script.js`, `simulation.js`, `navigation.js`,
-`map-projection.js`, `world-view.js`, `neighbourhood.js`, `pedestrians.js`,
-`gameplay.js`, `progression.js`, `actor-view.js`, `landmarks.js`,
-`landmarks-view.js`, `address-search.js`. It checks their syntax and the syntax of
-all suites, then runs the exact `scripts/test_capital_` suites: `drive.mjs`
-(with actual map argument), `pedestrians.mjs`, `neighbourhood.mjs`, `world.mjs`,
-`geodata.mjs`, `map.mjs`, `gameplay.mjs`, `progression.mjs`, `actors.mjs`,
-`landmarks.mjs`, `addresses.mjs`, followed by `git diff --check`.
+The runner enumerates22 authored modules and17 pure suites in its `MODULES`
+and `SUITES` constants, including roads, buses, police, occupants and services.
+It checks every syntax entry, executes every suite (drive receives the actual map
+argument), then runs `git diff --check`:57 commands in the pure pass. Keep these
+explicit lists current when adding a required module; a missing file fails.
 Missing modules/data/suites fail; nothing silently skips. Each pure command has a
 120 second limit; total run is bounded to 900 seconds. Actual exit codes are printed.
 The first failure stops the run. Fix or report it; do not weaken a suite.
@@ -171,8 +172,13 @@ localhost server, shuts it down in `finally`, and writes results/screenshots the
 The runner has a 600 second browser limit, kills the test process group on timeout
 on the target Linux environment, and writes `runner-results.json` alongside the
 browser's `results.json`. A failed run is still failed if screenshots exist.
-The existing browser suite's coverage is whatever current assertions establish;
-do not label old 36-check evidence as complete Street Life acceptance.
+The default browser suite is `scripts/test_capital_expansion_browser.py`;
+`--classic-browser` selects the earlier retained suite. Optional `--walk-kiosk`
+is available on the expansion script directly. It must use actual keys and a
+clear route around the parked car, with path samples retained on failure. The
+earlier greedy-walk failure and later successful waypoint walk remain distinct
+results. Suite coverage is whatever its current assertions establish; old counts
+never become acceptance for new features.
 
 Use normal keys/mouse for positive proof: walk/sprint, stop/exit/enter a nearby
 vehicle, aim/fire/melee and reload, wanted sight/search/escape, nearby delivery,
@@ -201,3 +207,27 @@ inventory with `python3 -B scripts/check_maintenance_docs.py --refresh` and veri
 `python3 -B scripts/check_maintenance_docs.py`. Refresh is not a substitute for
 reviewed prose and must not be mixed into the runner. Publication remains a
 separate operator decision.
+
+
+## Road-profile reproducibility and new visual limits
+
+`python3 -B scripts/build_capital_road_profiles.py --cache <external-cache> --output <temporary-json>`
+rebuilds only the compact OSM service/access sidecar. Compare its bytes/hash before
+replacing the tracked file. The source map, addresses and terrain validation must
+stay unchanged for presentation/gameplay work. Runtime applies source tags to a
+new shallow map; road coordinates and the source database are retained.
+
+Register buses and patrol `car` descriptors with `simulation.setExternalVehicles`
+before movement, then update them as stable objects. All vehicle-sized movement
+uses `moveVehicle`; foot actors use `moveActor`. Never use a pedestrian circle for
+a ten-metre bus. Carjacking requests gradual braking before claiming, and displaced
+adult render callbacks do not manufacture witness state. Driver art must respect
+the inherited left-seat car cockpit; buses use original right-seat geometry.
+
+Buses run fictional circuits on real public roads. Food/gym/arms outlets are
+fictional; never present them as verified businesses. Pool water follows exact
+OSM corners, while coping/entrance art stays approximate. More natural original
+surface grain is not photogrammetry. At least one useful approach frame is needed
+for landmarks: teleporting to Parliament's centre can show a wall and does not
+establish visible-landmark quality. Use normal Free roam map input to an observed
+forecourt approach and mouse orbit, retaining the actual capture.

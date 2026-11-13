@@ -4,7 +4,9 @@ const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).t
 const threeURL = moduleURL(await readFile(new URL('../assets/car-arcade/vendor/three.module.js', import.meta.url), 'utf8'));
 const THREE = await import(threeURL);
 const source = await readFile(new URL('../Games/Capital Drive/world-view.js', import.meta.url), 'utf8');
-const { createWorldView } = await import(moduleURL(source.replace('../../assets/car-arcade/vendor/three.module.js', threeURL)));
+const districtsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/districts.js', import.meta.url), 'utf8'));
+const roadsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/road-network.js', import.meta.url), 'utf8'));
+const { createWorldView } = await import(moduleURL(source.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL)));
 globalThis.document = { createElement: () => ({ getContext: () => ({ createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), putImageData() {}, fillRect() {}, strokeRect() {}, fillText() {} }) }) };
 const polygons = [ [[20, 20], [60, 20], [60, 35], [40, 35], [40, 60], [20, 60]], [[100, 20], [130, 20], [130, 45], [100, 45]] ];
 const heights = [];
@@ -86,3 +88,34 @@ for (const road of schoolRoads) for (let i = 1; i < road.points.length; i++) {
 assert.ok((closest.x - arch.x) * arch.nx + (closest.z - arch.z) * arch.nz > closest.distance * 0.35, 'arched window normals face actual NSW Crescent');
 schoolView.dispose();
 console.log(`PASS actual ACT school: ${checkedSides} long facades have both window rows; ${schoolView.stats.windows} windows; arches face NSW Crescent`);
+
+const { inManukaRetail, MANUKA_RETAIL_POLYGON } = await import(districtsURL);
+const centre = MANUKA_RETAIL_POLYGON.reduce((sum, p) => [sum[0] + p[0] / 8, sum[1] + p[1] / 8], [0, 0]);
+assert(inManukaRetail(...centre), 'source Manuka retail centre is classified');
+assert(inManukaRetail(...MANUKA_RETAIL_POLYGON[0]), 'source polygon boundary is included');
+assert(!inManukaRetail(0, 0) && !inManukaRetail(NaN, 0), 'classification is bounded and rejects invalid positions');
+const westernShops = actual.buildings.filter(b => /^(commercial|retail)$/.test(b.type || '') && inManukaRetail(
+  b.points.reduce((n, p) => n + p[0], 0) / b.points.length,
+  b.points.reduce((n, p) => n + p[1], 0) / b.points.length));
+assert(westernShops.length > 10, 'real western shop blocks receive Manuka treatment');
+const drives = [0, 12].map((z, i) => ({ id: `drive-${i}`, type: 'service', width: 8.5, sourceTags: { service: 'driveway' }, points: [[0, z], [100, z]] }));
+const driveMap = { bounds: { minX: -20, maxX: 120, minZ: -20, maxZ: 32 }, roads: drives, buildings: [], areas: [] };
+const originalDrives = JSON.stringify(drives);
+const driveView = createWorldView(scene, driveMap);
+assert.equal(driveView.stats.roadSegments, 2, 'both parallel real road runs remain');
+let asphaltVertices = 0;
+scene.traverse(mesh => {
+  if (!mesh.isMesh) return;
+  assert.notEqual(mesh.name, 'Canberra pavement', 'private driveway adds no kerbs, footpaths or markings');
+  if (mesh.name !== 'Canberra road') return;
+  const p = mesh.geometry.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const z = p.getZ(i);
+    assert(Math.min(Math.abs(z), Math.abs(z - 12)) <= 1.601, 'asphalt and bend caps use the narrow shared drive width');
+    asphaltVertices++;
+  }
+});
+assert(asphaltVertices > 0);
+assert.equal(JSON.stringify(drives), originalDrives, 'rendering preserves geographic source');
+driveView.dispose();
+console.log(`PASS source Manuka polygon: ${westernShops.length} retail footprints; narrow parallel driveway ribbons/caps and no invented pavement`);

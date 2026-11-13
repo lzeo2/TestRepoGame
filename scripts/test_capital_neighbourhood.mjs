@@ -5,7 +5,9 @@ const threeSource = await readFile(new URL('../assets/car-arcade/vendor/three.mo
 const threeURL = moduleURL(threeSource);
 const THREE = await import(threeURL);
 const source = await readFile(new URL('../Games/Capital Drive/neighbourhood.js', import.meta.url), 'utf8');
-const { createNeighbourhoodDetails } = await import(moduleURL(source.replace('../../assets/car-arcade/vendor/three.module.js', threeURL)));
+const districtsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/districts.js', import.meta.url), 'utf8'));
+const roadsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/road-network.js', import.meta.url), 'utf8'));
+const { createNeighbourhoodDetails } = await import(moduleURL(source.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL)));
 const house = { id: 'house', type: 'house', height: 4, points: [[-6, 20], [6, 20], [6, 32], [-6, 32], [-6, 20]] };
 const base = { roads: [{ id: '1', name: 'Test Street', type: 'residential', width: 8, points: [[-100, 0], [100, 0]] }], buildings: [house], areas: [], landmarks: [], spawn: { x: 0, z: 0 } };
 const scene = new THREE.Scene();
@@ -35,7 +37,7 @@ assert.equal(empty.stats.frontages, 0); empty.dispose();
 console.log('PASS neighbourhood finite geometry, upward pavement, real frontage, park/building avoidance, culling and disposal');
 
 const shop = { ...house, id: 'shop', type: 'commercial' };
-const shoppingMap = { ...base, buildings: [shop], landmarks: [{ id: 'manuka', x: 0, z: 20, radius: 50 }] };
+const shoppingMap = { ...base, buildings: [shop], landmarks: [{ id: 'kingston', x: 0, z: 20, radius: 50 }] };
 const terrain = (x, z) => x * 0.015 + z * 0.03;
 function apronVertices(scene) {
   const vertices = [];
@@ -56,9 +58,9 @@ const retail = createNeighbourhoodDetails(scene, shoppingMap, terrain);
 assert.equal(retail.stats.retailAprons, 1, 'mapped commercial footprint in a shopping centre receives a broad apron');
 assert(retail.stats.pavedArea > 150, 'apron fills the broad setback rather than a narrow driveway');
 let paved = apronVertices(scene);
-assert(paved.some(p => Math.abs(p[1] - 5.45) < 1e-4), 'apron joins the derived sidewalk');
+assert(paved.some(p => Math.abs(p[1] - 5.5) < 1e-4), 'apron joins the derived sidewalk');
 assert(paved.some(p => p[1] > 19.8), 'apron reaches the facade');
-assert(paved.every(p => Math.abs(p[0]) <= 6.01 && p[1] >= 5.44 && p[1] < 20), 'apron remains within the real street-facing edge');
+assert(paved.every(p => Math.abs(p[0]) <= 6.01 && p[1] >= 5.49 && p[1] < 20), 'apron remains within the real street-facing edge');
 retail.dispose();
 const noResidentialPaving = createNeighbourhoodDetails(scene, { ...shoppingMap, buildings: [house] }, terrain);
 assert.equal(noResidentialPaving.stats.retailAprons, 0, 'shopping-centre proximity does not pave residential property');
@@ -91,3 +93,19 @@ for (const id of ['manuka', 'kingston']) {
 }
 console.log(`PASS actual map: ${actualDetails.stats.retailAprons} retail footprints, ${actualDetails.stats.apronTriangles} apron triangles, ${Math.round(actualDetails.stats.pavedArea)} square metres`);
 actualDetails.dispose();
+
+const { MANUKA_RETAIL_POLYGON, inManukaRetail } = await import(districtsURL);
+const western = actualMap.buildings.filter(b => /^(commercial|retail)$/.test(b.type || '') && inManukaRetail(
+  b.points.reduce((n, p) => n + p[0], 0) / b.points.length,
+  b.points.reduce((n, p) => n + p[1], 0) / b.points.length));
+const polygonOnly = createNeighbourhoodDetails(scene, { ...actualMap, landmarks: [], buildings: western }, terrain);
+assert(polygonOnly.stats.retailAprons > 5, 'western source retail blocks receive aprons without the misplaced Manuka anchor');
+const bounds = MANUKA_RETAIL_POLYGON.reduce((b, p) => ({ minX: Math.min(b.minX, p[0]), maxX: Math.max(b.maxX, p[0]), minZ: Math.min(b.minZ, p[1]), maxZ: Math.max(b.maxZ, p[1]) }), { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity });
+const westPaving = apronVertices(scene);
+assert(westPaving.some(([x, z]) => x > bounds.minX && x < bounds.maxX && z > bounds.minZ && z < bounds.maxZ));
+console.log(`PASS source-only western Manuka: ${polygonOnly.stats.retailAprons} retail aprons, ${polygonOnly.stats.apronTriangles} triangles`);
+polygonOnly.dispose();
+const privateDetails = createNeighbourhoodDetails(scene, { ...base, roads: [{ ...base.roads[0], type: 'service', sourceTags: { service: 'driveway' } }], buildings: [] }, () => 0);
+assert.equal(privateDetails.stats.lamps, 0, 'private access receives no street furniture');
+assert.equal(privateDetails.stats.stopPoles, 0);
+privateDetails.dispose();

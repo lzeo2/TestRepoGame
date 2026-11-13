@@ -1,5 +1,5 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
-import { LANDMARKS } from './landmarks.js';
+import { LANDMARKS, MANUKA_POOL_BASIN } from './landmarks.js';
 
 const NEAR_RANGE = 850, FAR_RANGE = 4200;
 const PALE = 0xd9d5c5, GRASS = 0x7e915d, GLASS = 0x526c72, METAL = 0xb9c1be;
@@ -8,6 +8,17 @@ const PALE = 0xd9d5c5, GRASS = 0x7e915d, GLASS = 0x526c72, METAL = 0xb9c1be;
 export function createLandmarksView(scene, map, heightAt) {
   const root = new THREE.Group(); root.name = 'Canberra landmarks'; scene.add(root);
   const nearMaterial = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+  // Original static metre-scale grain: pooled shader detail, no image or extra draw.
+  nearMaterial.onBeforeCompile = shader => {
+    shader.vertexShader = 'varying vec3 vLandmarkSurface;\n' + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvLandmarkSurface = position;');
+    shader.fragmentShader = 'varying vec3 vLandmarkSurface;\n' + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+      float grain = fract(sin(dot(floor(vLandmarkSurface * 18.0), vec3(12.9898,78.233,37.719))) * 43758.5453);
+      diffuseColor.rgb *= 0.965 + grain * 0.055;
+    `);
+  };
+  nearMaterial.customProgramCacheKey = () => 'capital-landmark-grain-v1';
   const farMaterial = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide, fog: false });
   const box = new THREE.BoxGeometry(1, 1, 1), cylinder = new THREE.CylinderGeometry(1, 1, 1, 8);
   const records = [], color = new THREE.Color(), v = new THREE.Vector3();
@@ -164,6 +175,33 @@ export function createLandmarksView(scene, map, heightAt) {
         quad([p[0]-ex,p[1],p[2]-ez],[p[0]+ex,p[1],p[2]+ez],[p[0]+ex,p[1]+1.45,p[2]+ez],[p[0]-ex,p[1]+1.45,p[2]-ez],0x292e2b);
         for (const y of [0.45,1.18]) quad([p[0],p[1]+y,p[2]],[q[0],q[1]+y,q[2]],[q[0],q[1]+y+0.07,q[2]],[p[0],p[1]+y+0.07,p[2]],0x292e2b);
       }
+    } else if (site.id === 'manuka-pool') {
+      // Water corners are source geometry; coping/lanes/entry are original approximations.
+      const corners = MANUKA_POOL_BASIN.map(([x,z]) => [x-site.x,z-site.z]);
+      const level = Math.max(...corners.map(([x,z]) => groundY(x,z))) + 0.3;
+      const point = (u,v,y=level) => [
+        corners[0][0]+(corners[1][0]-corners[0][0])*u+(corners[3][0]-corners[0][0])*v,
+        y,
+        corners[0][1]+(corners[1][1]-corners[0][1])*u+(corners[3][1]-corners[0][1])*v,
+      ];
+      quad(...corners.map(([x,z]) => [x,level,z]),0x57949e);
+      for(let i=0;i<4;i++) {
+        const a=corners[i],b=corners[(i+1)%4],dx=b[0]-a[0],dz=b[1]-a[1],length=Math.hypot(dx,dz);
+        const nx=dz/length,nz=-dx/length;
+        // One-metre rim sits outside the exact water polygon, with a low side foundation.
+        quad([a[0],level+0.08,a[1]],[b[0],level+0.08,b[1]],[b[0]+nx,level+0.08,b[1]+nz],[a[0]+nx,level+0.08,a[1]+nz],0xd4cdbb);
+        quad([a[0]+nx,groundY(a[0]+nx,a[1]+nz)-0.2,a[1]+nz],[b[0]+nx,groundY(b[0]+nx,b[1]+nz)-0.2,b[1]+nz],[b[0]+nx,level+0.08,b[1]+nz],[a[0]+nx,level+0.08,a[1]+nz],PALE);
+      }
+      detail=true;
+      for(let lane=1;lane<6;lane++) {
+        const u=lane/6,half=0.006;
+        quad(point(u-half,0.03,level+0.012),point(u+half,0.03,level+0.012),point(u+half,0.97,level+0.012),point(u-half,0.97,level+0.012),0x315d68);
+        for(const v of [0.06,0.94])quad(point(u-0.025,v-0.004,level+0.014),point(u+0.025,v-0.004,level+0.014),point(u+0.025,v+0.004,level+0.014),point(u-0.025,v+0.004,level+0.014),0x315d68);
+      }
+      // Small unbranded entrance marker, deliberately not a reconstructed building.
+      const yaw=-Math.atan2(corners[1][1]-corners[0][1],corners[1][0]-corners[0][0]);
+      for(const u of [0.35,0.65]) {const p=point(u,-0.075);block(p[0],groundY(p[0],p[2])+1.2,p[2],0.16,2.4,0.16,METAL);}
+      const entry=point(0.5,-0.075);block(entry[0],groundY(entry[0],entry[2])+2.15,entry[2],4.2,0.45,0.16,0xddd6bf,yaw);
     } else {
       block(0,4,0,28,16,50,0xa47553);
       block(0,13,0,29,2,51,0x77796f);

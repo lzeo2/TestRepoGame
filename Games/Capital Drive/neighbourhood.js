@@ -1,4 +1,6 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
+import { roadProfile } from './road-network.js';
+import { retailDistrict } from './districts.js';
 
 // Original procedural streetscape details, anchored to the supplied footprints.
 const CHUNK = 350;
@@ -102,7 +104,8 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
     for (let i = 1; i < road.points.length; i++) {
       const a = road.points[i - 1], b = road.points[i];
       if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 0.2) continue;
-      const item = { a, b, road, width: Number(road.width) || 7 };
+      const profile = roadProfile(road);
+      const item = { a, b, road, width: profile.driveWidth, profile };
       segments.push(item); indexItem(roadIndex, item, [a, b], 15);
     }
   }
@@ -175,7 +178,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
     const points = building.points;
     const cx = points.reduce((sum, p) => sum + p[0], 0) / points.length;
     const cz = points.reduce((sum, p) => sum + p[1], 0) / points.length;
-    if (!retailCentres.some(l => Math.hypot(cx - l.x, cz - l.z) < (l.radius || 120) + 25)) continue;
+    if (!retailDistrict(map, cx, cz, { aprons: true })) continue;
     if (String(building.id).startsWith('osm-') && nearby(buildingIndex, cx, cz).some(b => String(b.id).startsWith('act-') && inside(cx, cz, b.points))) continue;
     let added = false;
     for (let edge = 0; edge < points.length && stats.apronTriangles < APRON_LIMIT; edge++) {
@@ -199,8 +202,8 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
           const kerb = project(x, z, street.segment.a, street.segment.b);
           const d = kerb.distance;
           if (d < street.segment.width / 2 + 1.7 || d > 26) return null;
-          // Meet the outer half of the already-derived two-metre sidewalk.
-          const stop = street.segment.width / 2 + 1.45;
+          // Meet the outer portion of the shared profile sidewalk.
+          const stop = street.segment.width / 2 + (street.segment.profile.hasKerb ? 0.18 : 0) + street.segment.profile.pavementWidth * 0.8;
           const endX = kerb.x + (x - kerb.x) / d * stop;
           const endZ = kerb.z + (z - kerb.z) / d * stop;
           if (Math.hypot(endX - x, endZ - z) > 20) return null;
@@ -232,7 +235,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
     }
     if (added) stats.retailAprons++;
   }
-  const shopping = (x, z) => (map.landmarks || []).some(l => /^(manuka|kingston|griffith|narrabundah)$/.test(l.id) && Math.hypot(x - l.x, z - l.z) < (l.radius || 120));
+  const shopping = (x, z) => Boolean(retailDistrict(map, x, z));
   const shopLabels = ['CAFE', 'GROCER', 'BAKERY', 'BOOKS'];
   const shopSigns = [];
   const candidates = (map.buildings || []).filter(b => !/shed|garage|carport|roof|industrial|school|education|community|diplomatic|defence/.test(b.type || '')).map((b, i) => ({ b, seed: i })).sort((a, b) => hash(a.seed + 19) - hash(b.seed + 19));
@@ -330,13 +333,13 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
 
   // Furniture uses widely spaced verges, with benches restricted to park/shop edges.
   const furnitureCells = new Set();
-  const furnitureSegments = segments.filter(s => !/service|motorway|trunk|link/.test(s.road.type) && s.road.name).sort((a, b) => hash(Number(a.road.id) || a.a[0]) - hash(Number(b.road.id) || b.a[0]));
-  for (let i = 0; i < furnitureSegments.length && stats.lamps < 750; i++) {
+  const furnitureSegments = segments.filter(s => !/service|motorway|trunk|link/.test(s.road.type) && s.profile.hasKerb && s.profile.trafficAllowed && s.road.name).sort((a, b) => hash(Number(a.road.id) || a.a[0]) - hash(Number(b.road.id) || b.a[0]));
+  for (let i = 0; i < furnitureSegments.length && stats.lamps < 500; i++) {
     const s = furnitureSegments[i], length = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]);
     if (length < 12) continue;
     const nx = -(s.b[1] - s.a[1]) / length, nz = (s.b[0] - s.a[0]) / length;
-    const x = (s.a[0] + s.b[0]) / 2 + nx * (s.width / 2 + 3), z = (s.a[1] + s.b[1]) / 2 + nz * (s.width / 2 + 3);
-    const key = `${Math.floor(x / 70)},${Math.floor(z / 70)}`;
+    const x = (s.a[0] + s.b[0]) / 2 + nx * (s.width / 2 + s.profile.pavementWidth + 1.5), z = (s.a[1] + s.b[1]) / 2 + nz * (s.width / 2 + s.profile.pavementWidth + 1.5);
+    const key = `${Math.floor(x / 100)},${Math.floor(z / 100)}`;
     if (furnitureCells.has(key) || inRoad(x, z, 1) || inBuilding(x, z)) continue;
     furnitureCells.add(key);
     const y = heightAt(x, z), yaw = Math.atan2(nx, nz);

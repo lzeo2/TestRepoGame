@@ -224,3 +224,15 @@ body.on-foot .speed-row{opacity:.45}
 @media(max-width:800px){#career-hud{top:88px;right:16px;width:154px;padding:9px}#cash-value{font-size:14px}.vitals{font-size:9px}#job-hud{top:185px;left:16px;width:220px;padding:9px}.interaction-hint{bottom:200px;max-width:calc(100% - 32px);width:max-content;font-size:9px;padding:7px 10px}.intro{max-height:calc(100vh - 125px)}.intro h2{font-size:38px}.intro-facts{display:none}.topbar nav{gap:5px}#garage-button,#sound-button{display:none}#jobs-button{display:block}.map-search{padding:9px}.teleport-bar .button-row{flex-direction:column}.teleport-bar .button-row button{min-width:94px;padding:8px}}
 @media(pointer:coarse){body:not(.intro-open) #touch-actions{display:flex}}
 @media(max-width:480px){#job-hud{top:190px;width:190px}#career-hud{width:138px}.location{max-width:calc(100% - 170px)}.location h2{font-size:18px}.location p{font-size:10px}.mode-options{grid-template-columns:1fr}.mode-options span{font-size:9px}.mode-options button{padding:8px}.intro{padding:20px}.intro-copy{font-size:11px}.controls-line{font-size:9px}#career-hud p{font-size:9px}.teleport-bar{align-items:flex-start}}
+
+/* Activity feedback stays outside the world camera. */
+#recovery-screen{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:auto;color:#f6f1e8;text-align:center}
+#recovery-screen h2{font:bold clamp(38px,8vw,80px) Arial,sans-serif;letter-spacing:.08em;margin:0 0 18px}
+#recovery-screen p{font-size:15px;background:#10171bd9;padding:12px 20px;border-radius:4px}
+#wanted-level{font-family:Arial,sans-serif;font-size:24px;line-height:1.2;color:#edc16f;white-space:nowrap}
+#wanted-level[data-pursuit=search]{color:#d0d8de}
+.service-actions{flex-wrap:wrap}
+.service-actions button{font-size:12px}
+.pause-access{flex-wrap:wrap}
+body.intro-open #recovery-screen{display:none}
+@media(max-width:480px){#services-button{padding:6px;font-size:10px}.topbar .brand{flex-shrink:0}.brand p{display:none}.service-actions{display:grid;grid-template-columns:1fr 1fr}.service-actions button{padding:9px;font-size:11px}}
