@@ -132,6 +132,7 @@ const snapshot=window.basketballerSnapshot();
 assert.equal(snapshot.state.roster.length,0);assert.equal(snapshot.state.rivals.length,12);
 assert.equal(snapshot.world.camera.mode,'avatar');assert.equal(snapshot.world.camera.pitchIndex,0);
 assert.equal(snapshot.world.staticParts,3057);assert.ok(snapshot.world.batches>0);
+assert.equal(snapshot.match,null,'Absent match has a stable JSON null diagnostic');
 assert.equal(requests.sort().join(','),'./data/catalog.json,./data/world.json');
 console.log(`PASS source boot: ${ids.length} HTML IDs; actual app/Game/World/actors; 2 local JSONs; setCamera; exact readiness predicate true; 1 RAF queued, 0 frames run`);
 

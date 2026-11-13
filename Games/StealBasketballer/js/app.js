@@ -426,7 +426,7 @@ function frame(now) {
 }
 function deepFreeze(value){if(value&&typeof value==='object'){Object.freeze(value);for(const v of Object.values(value))deepFreeze(v);}return value;}
 // Detached read-only diagnostics for renderer and browser regression evidence.
-Object.defineProperty(window,'basketballerSnapshot',{value:()=>deepFreeze(clone({started,paused,panel,state:game?.snapshot(),world:world?.snapshot(),match:match?.snapshot(),report})),writable:false,configurable:false});
+Object.defineProperty(window,'basketballerSnapshot',{value:()=>deepFreeze(clone({started,paused,panel,state:game?.snapshot(),world:world?.snapshot(),match:match?.snapshot()??null,report:report??null})),writable:false,configurable:false});
 async function boot() {
   try {
     [data,worldData]=await Promise.all(['./data/catalog.json','./data/world.json'].map(async url=>{const response=await fetch(url);if(!response.ok)throw new Error('Could not load '+url);return response.json();}));
