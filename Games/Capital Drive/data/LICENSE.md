@@ -17,11 +17,10 @@ Source: the official OpenStreetMap v0.6 map API,
 `https://api.openstreetmap.org/api/0.6/map.json`, downloaded as eighteen adaptive
 bounding-box tiles and unioned by object type and ID. The enclosing extent is
 149.103 to 149.174 degrees east and -35.352 to -35.298 degrees north.
-312,757 unique OSM objects supplied the snapshot. Output retains 5,197 drivable
-road runs, 1,464 green/water polygons and 4,860 supplementary building outlines.
-
-The enriched output retains 4,886 OSM building outlines. The earlier 4,860 count
-below describes the first snapshot. Actual polygon-overlap checks now replace
+312,757 unique OSM objects supplied the snapshot. The enriched output retains
+5,197 drivable road runs, 1,464 green/water polygons and 4,886 supplementary OSM
+building outlines. The initial snapshot retained 4,860 OSM outlines.
+Actual polygon-overlap checks now replace
 the original fifteen-metre centre-distance heuristic, preserving distinct close
 neighbours and suppressing overlapping geometry from lower-priority sources.
 
@@ -30,9 +29,9 @@ extent. No road links are invented across clipped gaps. Source node IDs preserve
 junction topology. Coordinates are projected into local metres, rounded to two
 decimals. Widths, speeds and building heights use source tags where available
 and explicitly estimated defaults otherwise. Non-driving paths are omitted.
-OSM building outlines are omitted when their centre is within fifteen metres of
-an ACT footprint centre; this heuristic can leave overlaps or omit distinct
-small structures. Public accessibility and current road restrictions are not
+The initial snapshot omitted OSM building outlines when their centre was within
+fifteen metres of an ACT footprint centre. The enriched snapshot instead uses
+the polygon-overlap priority described below. Public accessibility and current road restrictions are not
 certified. This is a game map, not navigation or surveying data.
 
 ## ACT building footprints
@@ -120,8 +119,8 @@ and [data sources](https://github.com/tilezen/joerd/blob/master/docs/data-source
 
 ## Reproduction and integrity
 
-Run `python3 -B scripts/build_capital_drive_map.py --cache <external-cache> --fetch`
-from the repository root with Python, curl and Pillow available. Raw network
+Run `python3 -B scripts/build_capital_drive_map.py --cache <external-cache> --fetch --fetch-details`
+from the repository root with the developer dependencies listed below. Raw network
 responses stay outside the game directory. Rebuilding from a populated cache
 does not require network access. Re-fetching later may change upstream data.
 

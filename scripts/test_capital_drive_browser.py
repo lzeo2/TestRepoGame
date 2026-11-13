@@ -45,6 +45,20 @@ def main():
     def snap(page):
         return page.evaluate('capitalDriveSnapshot()')
 
+    def select_map_point(page, x, z, touch=False):
+        canvas = page.locator('#full-map')
+        canvas.scroll_into_view_if_needed()
+        rect = canvas.bounding_box()
+        view = snap(page)['mapView']
+        size = canvas.evaluate('(e) => ({width:e.width,height:e.height})')
+        px = ((x - view['x']) * view['scale'] + size['width'] / 2) / size['width']
+        py = ((z - view['z']) * view['scale'] + size['height'] / 2) / size['height']
+        cx, cy = rect['x'] + px * rect['width'], rect['y'] + py * rect['height']
+        if touch:
+            page.touchscreen.tap(cx, cy)
+        else:
+            page.mouse.click(cx, cy)
+
     def check(condition, message):
         assert condition, message
         checks.append(message)
@@ -88,6 +102,42 @@ def main():
             page.locator('#resume-button').click()
             page.keyboard.press('m')
             page.wait_for_selector('#map-dialog[open]')
+            parked = snap(page)['player']
+            check(not page.locator('#teleport-button').is_enabled(), 'map teleport waits for an explicit destination')
+            check(page.locator('#full-map').evaluate('(e) => Math.abs(e.width / e.height - e.clientWidth / e.clientHeight) < .01'),
+                  'map canvas preserves geographic aspect ratio')
+            page.get_by_role('button', name='Zoom in', exact=True).click()
+            check(snap(page)['mapView']['zoom'] > 1, 'map supports zooming for precise destination selection')
+            map_before = snap(page)['mapView']
+            rect = page.locator('#full-map').bounding_box()
+            page.mouse.move(rect['x'] + rect['width'] / 2, rect['y'] + rect['height'] / 2)
+            page.mouse.down()
+            page.mouse.move(rect['x'] + rect['width'] / 2 + 60, rect['y'] + rect['height'] / 2 + 20, steps=8)
+            page.mouse.up()
+            map_after = snap(page)['mapView']
+            check(map_after['x'] < map_before['x'] and map_after['z'] < map_before['z'] and snap(page)['mapSelection'] is None,
+                  'dragging pans the map without selecting or teleporting')
+            select_map_point(page, 160, -430)
+            check(math.hypot(snap(page)['mapSelection']['x'] - 160, snap(page)['mapSelection']['z'] + 430) < .01,
+                  'zoomed and panned map selection matches the world point')
+            page.screenshot(path=str(output / 'map-teleport.png'))
+            page.get_by_role('button', name='Zoom out', exact=True).click()
+            select_map_point(page, 160, -430)
+            selected = snap(page)['mapSelection']
+            check(math.hypot(selected['x'] - 160, selected['z'] + 430) < .01 and snap(page)['player'] == parked,
+                  'clicking the CSS-scaled map selects the correct world point without moving the car')
+            page.locator('#teleport-button').click()
+            arrived = snap(page)['player']
+            check(math.hypot(arrived['x'] - 160, arrived['z'] + 430) < .01 and abs(arrived['speed']) < .01,
+                  'teleport reaches a chosen off-road park point exactly and stops the vehicle')
+            check(abs(arrived['odometer'] - parked['odometer']) < .01, 'teleport preserves the driven trip distance')
+            page.keyboard.press('m')
+            select_map_point(page, 160, -430)
+            page.keyboard.press('ArrowRight')
+            check(abs(snap(page)['mapSelection']['x'] - 200) < .01, 'keyboard arrows move the map selection')
+            page.keyboard.press('Enter')
+            check(abs(snap(page)['player']['x'] - 200) < .01 and not page.locator('#map-dialog').is_visible(), 'Enter teleports from the focused map')
+            page.keyboard.press('m')
             page.locator('[data-place="redhill"]').get_by_role('button', name='Set route').click()
             check(snap(page)['routePoints'] > 10, 'Red Hill route follows the connected road graph')
             page.screenshot(path=str(output / 'canberra-map.png'))
@@ -151,6 +201,11 @@ def main():
                 rect = button.bounding_box()
                 check(rect and rect['width'] >= 44 and rect['height'] >= 44, 'touch driving target is at least 44 pixels')
             mobile.screenshot(path=str(output / 'phone-driving.png'))
+            mobile.get_by_role('button', name='Map', exact=True).click()
+            select_map_point(mobile, 160, -430, touch=True)
+            check(mobile.locator('#teleport-button').is_enabled(), 'a real touch tap selects a map teleport point')
+            mobile.locator('#teleport-button').click()
+            check(abs(snap(mobile)['player']['x'] - 160) < .01, 'touch map teleport reaches the selected park point')
             mobile.get_by_role('button', name='Pause').click()
             mobile.get_by_label('Appearance', exact=True).select_option('light')
             mobile.locator('#resume-button').click()

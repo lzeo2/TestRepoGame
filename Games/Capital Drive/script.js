@@ -5,6 +5,7 @@ import { createWorldView } from './world-view.js';
 import { findRoute } from './navigation.js';
 import { createPedestrians } from './pedestrians.js';
 import { createNeighbourhoodDetails } from './neighbourhood.js';
+import { createMapProjection, mapPointFromClient } from './map-projection.js';
 
 const $ = id => document.getElementById(id);
 const keys = new Set(), touch = new Set();
@@ -26,6 +27,9 @@ let cameraReady = false, raf = 0, frameCount = 0;
 let compatibility = false;
 const parkedResources = [];
 let pedestrians, neighbourhood;
+let carShadowGeometry, carShadowMaterial;
+let mapSelection = null, mapDrag = null;
+const mapView = { zoom: 1, x: null, z: null };
 const desiredCamera = new THREE.Vector3(), lookTarget = new THREE.Vector3();
 document.body.classList.add('intro-open');
 
@@ -54,13 +58,13 @@ function saveProgress() {
   catch (error) { savedError = `Progress could not be saved: ${error.message}`; $('save-status').textContent = savedError; notify('Browser storage is unavailable. You can keep driving.'); }
 }
 function paused() { return !started || dialogs.some(dialog => dialog.open) || document.hidden; }
-function clearInput() { keys.clear(); touch.clear(); dragging = false; pointer = null; }
+function clearInput() { keys.clear(); touch.clear(); dragging = false; pointer = null; mapDrag = null; }
 function openDialog(id) {
   if (!simulation || !started) return;
   clearInput();
   for (const d of dialogs) if (d.open) d.close();
   $(id).showModal();
-  if (id === 'map-dialog') drawMap($('full-map'), true);
+  if (id === 'map-dialog') { fitMapCanvas(); drawMap($('full-map'), true); }
 }
 function closeDialogs() { for (const dialog of dialogs) if (dialog.open) dialog.close(); clearInput(); }
 for (const button of document.querySelectorAll('[data-close]')) button.addEventListener('click', () => $(button.dataset.close).close());
@@ -98,9 +102,27 @@ function selectVehicle(id) {
   selectedCar = id;
   if (playerMesh) scene.remove(playerMesh);
   playerMesh = createCar(id, { color: selectedPaint });
+  addCarShadow(playerMesh);
   scene.add(playerMesh);
   $('car-label').textContent = vehicles.find(v => v.id === id).label;
   for (const button of $('car-options').children) button.setAttribute('aria-pressed', String(button.dataset.car === id));
+}
+function addCarShadow(mesh) {
+  if (compatibility) return;
+  if (!carShadowGeometry) {
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 64;
+    const context = canvas.getContext('2d'), image = context.createImageData(64, 64);
+    for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) {
+      const radius = Math.hypot((x - 31.5) / 31.5, (y - 31.5) / 31.5);
+      image.data[(y * 64 + x) * 4 + 3] = Math.round(Math.max(0, 1 - radius) ** 1.5 * 110);
+    }
+    context.putImageData(image, 0, 0);
+    const texture = new THREE.CanvasTexture(canvas);
+    carShadowGeometry = new THREE.PlaneGeometry(3.3, 6.2); carShadowGeometry.rotateX(-Math.PI / 2);
+    carShadowMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+    parkedResources.push(texture, carShadowGeometry, carShadowMaterial);
+  }
+  const shadow = new THREE.Mesh(carShadowGeometry, carShadowMaterial); shadow.position.y = -.01; mesh.add(shadow);
 }
 for (const vehicle of vehicles) {
   const button = document.createElement('button');
@@ -182,8 +204,9 @@ function drawMap(canvas, full) {
   if (!mapImage) return;
   const ctx = canvas.getContext('2d'), w = canvas.width, h = canvas.height, p = simulation.player, b = map.bounds;
   ctx.fillStyle = '#dfdfcc'; ctx.fillRect(0, 0, w, h);
-  const scale = full ? Math.min((w - 50) / (b.maxX - b.minX), (h - 50) / (b.maxZ - b.minZ)) : w / 760;
-  const cx = full ? (b.minX + b.maxX) / 2 : p.x, cz = full ? (b.minZ + b.maxZ) / 2 : p.z;
+  const projection = createMapProjection(b, w, h, { zoom: mapView.zoom, x: mapView.x ?? undefined, z: mapView.z ?? undefined });
+  const scale = full ? projection.scale : w / 760;
+  const cx = full ? projection.cx : p.x, cz = full ? projection.cz : p.z;
   const sx = x => (x - cx) * scale + w / 2, sz = z => (z - cz) * scale + h / 2;
   ctx.drawImage(mapImage, sx(b.minX), sz(b.minZ), (b.maxX - b.minX) * scale, (b.maxZ - b.minZ) * scale);
   ctx.strokeStyle = '#6d7d70'; ctx.lineWidth = 2; ctx.setLineDash([8, 6]); ctx.strokeRect(sx(b.minX), sz(b.minZ), (b.maxX - b.minX) * scale, (b.maxZ - b.minZ) * scale); ctx.setLineDash([]);
@@ -196,9 +219,95 @@ function drawMap(canvas, full) {
     ctx.beginPath(); ctx.arc(x, y, full ? 8 : 6, 0, Math.PI * 2); ctx.fillStyle = discovered.has(place.id) ? '#608467' : '#efb15e'; ctx.fill(); ctx.strokeStyle = '#fff8e7'; ctx.lineWidth = 2; ctx.stroke();
     if (full) { ctx.font = 'bold 16px Arial'; ctx.fillStyle = '#253a36'; ctx.fillText(place.name, x + 14, y + 5); }
   }
+  if (full && mapSelection) {
+    const x = sx(mapSelection.x), y = sz(mapSelection.z);
+    ctx.strokeStyle = '#a34624'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(x, y, 13, 0, Math.PI * 2); ctx.moveTo(x - 21, y); ctx.lineTo(x + 21, y); ctx.moveTo(x, y - 21); ctx.lineTo(x, y + 21); ctx.stroke();
+  }
   ctx.save(); ctx.translate(sx(p.x), sz(p.z)); ctx.rotate(-p.yaw);
   ctx.beginPath(); ctx.moveTo(0, -13); ctx.lineTo(9, 10); ctx.lineTo(0, 6); ctx.lineTo(-9, 10); ctx.closePath(); ctx.fillStyle = '#182d38'; ctx.fill(); ctx.strokeStyle = '#fff9e9'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
 }
+function fullMapProjection() {
+  return createMapProjection(map.bounds, $('full-map').width, $('full-map').height, {
+    zoom: mapView.zoom, x: mapView.x ?? undefined, z: mapView.z ?? undefined,
+  });
+}
+function fitMapCanvas() {
+  const canvas = $('full-map'), rect = canvas.getBoundingClientRect();
+  if (rect.width > 0 && rect.height > 0) { canvas.width = Math.round(rect.width); canvas.height = Math.round(rect.height); }
+}
+function selectMapPoint(point) {
+  mapSelection = point;
+  $('teleport-button').disabled = !point;
+  if (point) {
+    const road = simulation.nearestRoad(point.x, point.z);
+    const lat = map.meta.origin[1] - point.z / 111320;
+    const lon = map.meta.origin[0] + point.x / (111320 * Math.cos(map.meta.origin[1] * Math.PI / 180));
+    $('teleport-status').textContent = `${road?.road.name && road.distance < 50 ? 'Near ' + road.road.name : 'Selected ground'} · ${Math.abs(lat).toFixed(5)}° S, ${lon.toFixed(5)}° E`;
+  } else $('teleport-status').textContent = 'Choose a point inside the mapped boundary.';
+  drawMap($('full-map'), true);
+}
+function teleportSelected() {
+  if (!mapSelection) return;
+  const arrival = simulation.teleport(mapSelection);
+  if (!arrival.ok) { $('teleport-status').textContent = 'No clear ground at this point. Choose a nearby spot.'; return; }
+  pedestrians.resetPopulation(simulation.player);
+  cameraReady = false; accumulator = 0; clearInput();
+  if (destination) route = findRoute(simulation.graph, simulation.player, destination);
+  world.update(simulation.player); neighbourhood.update(simulation.player);
+  closeDialogs();
+  notify(arrival.adjusted ? `Teleported to clear ground ${Math.round(arrival.distance)} m from your selected point.` : 'Teleported to your selected point.');
+}
+function changeMapZoom(multiplier, point = null) {
+  const before = fullMapProjection(), next = THREE.MathUtils.clamp(mapView.zoom * multiplier, 1, 12);
+  if (point) {
+    mapView.x = THREE.MathUtils.clamp(point.x + (before.cx - point.x) * mapView.zoom / next, map.bounds.minX, map.bounds.maxX);
+    mapView.z = THREE.MathUtils.clamp(point.z + (before.cz - point.z) * mapView.zoom / next, map.bounds.minZ, map.bounds.maxZ);
+  }
+  mapView.zoom = next;
+  if (next === 1) { mapView.x = null; mapView.z = null; }
+  $('map-zoom-level').textContent = `${next.toFixed(next % 1 ? 1 : 0)}×`;
+  drawMap($('full-map'), true);
+}
+const mapCanvas = $('full-map');
+mapCanvas.addEventListener('pointerdown', event => {
+  if (!event.isPrimary || event.button !== 0 || mapDrag) return;
+  const projection = fullMapProjection(), rect = mapCanvas.getBoundingClientRect();
+  mapDrag = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY, x: projection.cx, z: projection.cz, moved: false, rect, scale: projection.scale };
+  mapCanvas.setPointerCapture(event.pointerId); mapCanvas.focus();
+});
+mapCanvas.addEventListener('pointermove', event => {
+  if (!mapDrag || event.pointerId !== mapDrag.pointerId) return;
+  const dx = event.clientX - mapDrag.clientX, dy = event.clientY - mapDrag.clientY;
+  if (Math.hypot(dx, dy) > 5) mapDrag.moved = true;
+  if (!mapDrag.moved) return;
+  mapView.x = THREE.MathUtils.clamp(mapDrag.x - dx * mapCanvas.width / mapDrag.rect.width / mapDrag.scale, map.bounds.minX, map.bounds.maxX);
+  mapView.z = THREE.MathUtils.clamp(mapDrag.z - dy * mapCanvas.height / mapDrag.rect.height / mapDrag.scale, map.bounds.minZ, map.bounds.maxZ);
+  drawMap(mapCanvas, true);
+});
+mapCanvas.addEventListener('pointerup', event => {
+  if (!mapDrag || event.pointerId !== mapDrag.pointerId) return;
+  if (!mapDrag.moved) selectMapPoint(mapPointFromClient(fullMapProjection(), mapCanvas.getBoundingClientRect(), event.clientX, event.clientY, map.bounds));
+  mapDrag = null;
+});
+for (const type of ['pointercancel', 'lostpointercapture']) mapCanvas.addEventListener(type, event => { if (event.pointerId === mapDrag?.pointerId) mapDrag = null; });
+mapCanvas.addEventListener('wheel', event => {
+  event.preventDefault();
+  changeMapZoom(event.deltaY < 0 ? 1.3 : 1 / 1.3, mapPointFromClient(fullMapProjection(), mapCanvas.getBoundingClientRect(), event.clientX, event.clientY, map.bounds));
+}, { passive: false });
+mapCanvas.addEventListener('keydown', event => {
+  if (event.code === 'Enter') { event.preventDefault(); teleportSelected(); return; }
+  const direction = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.code];
+  if (!direction) return;
+  event.preventDefault();
+  const current = mapSelection || simulation.player, step = (event.shiftKey ? 200 : 40) / mapView.zoom;
+  selectMapPoint({ x: THREE.MathUtils.clamp(current.x + direction[0] * step, map.bounds.minX + 2, map.bounds.maxX - 2),
+    z: THREE.MathUtils.clamp(current.z + direction[1] * step, map.bounds.minZ + 2, map.bounds.maxZ - 2) });
+});
+$('teleport-button').addEventListener('click', teleportSelected);
+$('map-zoom-in').addEventListener('click', () => changeMapZoom(1.5));
+$('map-zoom-out').addEventListener('click', () => changeMapZoom(1 / 1.5));
+$('map-recenter').addEventListener('click', () => { mapView.x = simulation.player.x; mapView.z = simulation.player.z; mapView.zoom = 4; $('map-zoom-level').textContent = '4×'; drawMap(mapCanvas, true); });
 function updatePlaces() {
   $('explored').textContent = `${discovered.size} / ${map.landmarks.length} places discovered`;
   for (const place of map.landmarks) {
@@ -287,6 +396,7 @@ function resize() {
   const w = window.innerWidth, h = window.innerHeight, scale = Math.min(1, (quality === 'low' ? 1100 : 1440) / w, (quality === 'low' ? 650 : 900) / h);
   renderer.setSize(Math.round(w * scale), Math.round(h * scale), false);
   camera.aspect = w / h; camera.updateProjectionMatrix(); cameraReady = false;
+  if ($('map-dialog').open) { fitMapCanvas(); drawMap($('full-map'), true); }
 }
 function createCompatibilityRenderer(canvas) {
   const context = canvas.getContext('2d');
@@ -366,7 +476,7 @@ function animate(time) {
   const renderDt = Math.min(.1, (time - (lastRender || time)) / 1000); lastRender = time;
   const p = simulation.player;
   pedestrians?.update(p, paused() ? 0 : renderDt, simulation.traffic);
-  placeCar(playerMesh, p, renderDt);
+  placeCar(playerMesh, p, paused() ? 0 : renderDt);
   for (let i = 0; i < simulation.traffic.length; i++) {
     const car = simulation.traffic[i], mesh = trafficMeshes[i];
     mesh.visible = Math.hypot(car.x - p.x, car.z - p.z) < 300;
@@ -415,7 +525,7 @@ async function boot() {
   neighbourhood = compatibility ? { update() {}, dispose() {}, stats: {} } : createNeighbourhoodDetails(scene, map, world.heightAt);
   neighbourhood.update(simulation.player);
   selectVehicle(selectedCar);
-  trafficMeshes = simulation.traffic.map(car => { const mesh = createCar(car.modelId, { color: car.color }); scene.add(mesh); return mesh; });
+  trafficMeshes = simulation.traffic.map(car => { const mesh = createCar(car.modelId, { color: car.color }); addCarShadow(mesh); scene.add(mesh); return mesh; });
   if (!compatibility) createParkedCars();
   createMapImage(); loadProgress(); populatePlaces(); resize(); updateHud();
   const viewCanvas = renderer.domElement;
@@ -428,6 +538,8 @@ async function boot() {
   window.capitalDriveSnapshot = () => Object.freeze({ ready: true, started, paused: paused(), player: Object.freeze({ ...simulation.player }),
     discovered: Object.freeze([...discovered]), roadCount: map.roads.length, buildings: map.buildings.length, traffic: simulation.traffic.length,
     visibleTraffic: trafficMeshes.filter(m => m.visible).length, destination: destination?.id ?? null, routePoints: route.length,
+    mapSelection: mapSelection ? Object.freeze({ ...mapSelection }) : null,
+    mapView: Object.freeze({ zoom: mapView.zoom, ...map.bounds, x: fullMapProjection().cx, z: fullMapProjection().cz, scale: fullMapProjection().scale }),
     rendering: Object.freeze({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, quality, compatibility }), world: Object.freeze({ ...world.stats }),
     pedestrians: Object.freeze({ ...pedestrians.stats, sample: Object.freeze(pedestrians.snapshot().slice(0, 8)) }), neighbourhood: Object.freeze({ ...neighbourhood.stats }) });
   raf = requestAnimationFrame(animate);
