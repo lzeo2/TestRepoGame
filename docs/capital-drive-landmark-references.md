@@ -26,7 +26,8 @@ source JSON is unchanged. Coordinates use its origin149.137E,-35.318S and its
 - [ACT: Manuka Oval lighting submission](https://www.cmtedd.act.gov.au/__data/assets/pdf_file/0003/1343586/2019-056.pdf):
   six towers,47m maximum height. [Supplier report](https://www.ukexportnews.co.uk/news/1687/Abacus-Lighting-Secures-Major-Contract-For-Manuka-Oval)
   gives six45m masts leaning9degrees towards the ground. Render uses six
-  approximately47m overall silhouettes, broad light banks, two simplified covered
+  approximately47m overall silhouettes, inward-bowed masts, bowed trapezoid
+  light banks with three pale lamp rows, two simplified covered
   grandstands and a170m by198m ground following terrain. Seats, exact stand
   arrangement and ground size are approximations. The source ACT outline circles
   the oval: replacing its generic ten-metre extrusion avoids a solid stadium drum.
@@ -60,7 +61,7 @@ National Gallery/Portrait Gallery are deferred from this bounded study.
 
 ## Runtime budget and verification
 
-Four sites, eight merged meshes, two pooled vertex-colour materials,5312triangles.
+Four sites, eight merged meshes, two pooled vertex-colour materials,5172triangles.
 No images, runtime fetch, animation loop or mutable global state. Local terrain
 sets each anchor; the oval and forecourt sample terrain. Main buildings use deep
 foundations where needed to close slopes. Detail disappears after850m plus site
@@ -70,7 +71,7 @@ Three.js depth testing still allows intervening terrain/buildings to occlude it.
 No opacity fade or per-frame allocation. update accepts x/z or position.x/z;
 time is currently unused because landmarks are static. Disposal is idempotent.
 
-`node scripts/test_capital_landmarks.mjs` passed: four sites,5312triangles,
+`node scripts/test_capital_landmarks.mjs` passed: four sites,5172triangles,
 12exact replacement IDs, pure lookup/projection, anchor grounding, orientation,
 81m mast above estimated roof deck, finite buffers, near/far culling, fog-aware
 skyline and eight geometry/two material disposals. Existing world regression and
@@ -101,6 +102,41 @@ These are original geometric interpretations of a single reported view, not
 photogrammetry or a current whole-building survey. No panorama image is bundled.
 
 The earlier A23 approach sample, imageryMay2024, showed an underpass rather than
-the house; it is not evidence for the facade. Old Parliament House, Manuka Oval
-and Kingston Powerhouse still rely on the public references above until root
-records their actual exterior samples.
+the house; it is not evidence for the facade.
+
+
+## Further Street View comparisons
+
+Root reported these actual inspections on13November2026. URLs below reproduce
+requested road points; later Google resolution may choose different panoramas.
+No new preview, near/distant rendering or hardware PASS is claimed here.
+
+| Site | Requested point and view | Actual panorama and label | Imagery date |
+| --- | --- | --- | --- |
+| Old Parliament House | [Request](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-35.3012358,149.129513&heading=170): -35.3012358,149.129513, heading170 | -35.301251,149.1295641;18King George Terrace | March2026 |
+| Manuka Oval | [Request](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-35.3193311,149.1354692&heading=320&pitch=2): -35.3193311,149.1354692, heading320,pitch2 | -35.3193672,149.13544;Manuka Circle | September2020 |
+| Kingston Powerhouse | [Request](https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=-35.3119305,149.1430886&heading=55): -35.3119305,149.1430886, heading55 | -35.3119202,149.1431044;11Wentworth Avenue | March2026 |
+
+Old Parliament observations: white two-storey exposed facade, red-brick plinth,
+stepped pale parapets, regular dark rectangular windows, central entry with
+scaffolding at that date, flag rows and paved forecourt/parking/bus bay. The model
+now shows two exposed window rows (the official three-storey overall plan remains
+correct), a red plinth following terrain and low stepped parapet slabs. Scaffolding
+and dated parking arrangements are not reconstructed. Exact proportions remain
+estimates rather than measured perspective correction.
+
+Manuka observations: tall slender curved grey masts, broad curved/trapezoid light
+heads with multiple horizontal rows, black picket perimeter, low stands behind
+mature trees, grass verge and concrete footpath. The model replaces straight
+single-segment masts and rectangular heads with four-section inward bows and bowed
+trapezoid banks carrying three lamp rows. The nearby batch has terrain-grounded
+black pickets and two rails; no new meshes/materials are needed. Stand arrangement
+remains an approximation; shared world trees/verges/footpaths remain in charge of
+the surroundings. The distant batch retains the distinctive bowed mast/head shape.
+
+Kingston observations: a tall conifer obscures much of the target, with grass
+verges, footpaths, a paved precinct and glimpses of the heritage hall roof. This
+is a limited exterior reference. It does not verify the chimney, hall dimensions,
+complete layout or orientation. The geometry remains based on the source footprint
+and public conservation/Glassworks/artwork references; it was not changed from
+this obstructed view. No proprietary imagery is bundled or used as a texture.

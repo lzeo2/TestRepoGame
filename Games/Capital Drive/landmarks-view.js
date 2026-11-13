@@ -88,7 +88,12 @@ export function createLandmarksView(scene, map, heightAt) {
       block(0,14,-40,47,1.1,18,PALE);
       beam([0,14,-40],[0,28,-40],0.22,METAL);
       detail = true;
-      windows(139,-42.2,1.3,30,3);
+      windows(139,-42.2,3,30,2,4);
+      for (let i=0;i<14;i++) {
+        const x0=-70+i*10,x1=x0+10,y0=groundY(x0,-42.4),y1=groundY(x1,-42.4);
+        quad([x0,y0-0.2,-42.4],[x1,y1-0.2,-42.4],[x1,y1+0.7,-42.4],[x0,y0+0.7,-42.4],0x995d45);
+      }
+      for (const x of [-45,45]) block(x,8.4,-37,38,0.7,12,PALE);
       for (let i=-3;i<=3;i++) block(i*4.8,7,-51,1,10,1.3,PALE);
       for (let i=0;i<7;i++) block(0,-1+i*0.3,-55-i*1.4,35+i*2,0.35,2,PALE);
       block(0,3,-51.5,6,5,0.3,0x716d58);
@@ -98,14 +103,34 @@ export function createLandmarksView(scene, map, heightAt) {
       for(let i=0;i<n;i++) { const a=i/n*Math.PI*2,b=(i+1)/n*Math.PI*2; tri(groundPoint(0,0,0.25),groundPoint(Math.cos(a)*85,Math.sin(a)*99,0.25),groundPoint(Math.cos(b)*85,Math.sin(b)*99,0.25),0x6c914f); }
       for (let i=0;i<6;i++) {
         const a=(i/6+0.08)*Math.PI*2,x=Math.cos(a)*104,z=Math.sin(a)*115;
-        beam([x,-3,z],[x*0.95,44,z*0.95],0.55,METAL);
-        block(x*0.95,44,z*0.95,12,5,1.4,0xd1d0b9,-a);
+        const inward = new THREE.Vector3(-Math.cos(a),0,-Math.sin(a));
+        const tangent = new THREE.Vector3(-Math.sin(a),0,Math.cos(a));
+        // Four low-sided sections make the inward bow legible against the sky.
+        for (let k=0;k<4;k++) {
+          const point = t => [x+inward.x*6*t*t,-3+47*t,z+inward.z*6*t*t];
+          beam(point(k/4),point((k+1)/4),0.55-k*0.07,METAL);
+        }
+        const head = (u,y) => [x+inward.x*(6+u*u*0.014)+tangent.x*u,y,z+inward.z*(6+u*u*0.014)+tangent.z*u];
+        for (let k=0;k<4;k++) {
+          const u=-8+k*4,w=u+4;
+          quad(head(u*0.78,42),head(w*0.78,42),head(w,47),head(u,47),0x6e7774);
+          for (let row=0;row<3;row++) {
+            const y=42.8+row*1.4,spread=0.8+row*0.09;
+            quad(head(u*spread,y),head(w*spread,y),head(w*spread,y+0.65),head(u*spread,y+0.65),0xd4d5c5);
+          }
+        }
       }
       for (const side of [-1,1]) { block(side*88,5,0,17,13,74,0xb6b8ad); block(side*88,13,-3,24,2,80,0x697a76); }
       detail=true;
       block(0,0.32,0,3.2,0.1,24,0xb8a379);
       for(const side of [-1,1]) for(let i=0;i<5;i++) block(side*(77+i*2.3),2+i*1.6,0,2,0.6,68,0x647e86);
-      for(let i=0;i<64;i++) { const a=i/64*Math.PI*2,b=(i+1)/64*Math.PI*2; beam([Math.cos(a)*88,1,Math.sin(a)*102],[Math.cos(b)*88,1,Math.sin(b)*102],0.12,0xdfd9c5); }
+      for(let i=0;i<192;i++) {
+        const a=i/192*Math.PI*2,b=(i+1)/192*Math.PI*2;
+        const p=groundPoint(Math.cos(a)*94,Math.sin(a)*109,0),q=groundPoint(Math.cos(b)*94,Math.sin(b)*109,0);
+        const dx=q[0]-p[0],dz=q[2]-p[2],length=Math.hypot(dx,dz),ex=dx/length*0.055,ez=dz/length*0.055;
+        quad([p[0]-ex,p[1],p[2]-ez],[p[0]+ex,p[1],p[2]+ez],[p[0]+ex,p[1]+1.45,p[2]+ez],[p[0]-ex,p[1]+1.45,p[2]-ez],0x292e2b);
+        for (const y of [0.45,1.18]) quad([p[0],p[1]+y,p[2]],[q[0],q[1]+y,q[2]],[q[0],q[1]+y+0.07,q[2]],[p[0],p[1]+y+0.07,p[2]],0x292e2b);
+      }
     } else {
       block(0,4,0,28,16,50,0xa47553);
       block(0,13,0,29,2,51,0x77796f);
