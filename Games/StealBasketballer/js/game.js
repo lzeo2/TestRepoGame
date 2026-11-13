@@ -32,8 +32,43 @@ const EVENTS = [
 ];
 const AXES = ['shooting','handling','passing','defense','rebounding','stamina'];
 const STADIUMS = [
-  {name:'Home Court',cost:0,recruits:0}, {name:'Practice Gym',cost:1200,recruits:3},
-  {name:'Club Arena',cost:4500,recruits:6}, {name:'Floodlit Arena',cost:12000,recruits:10}
+  {
+    "name": "Neighborhood Court",
+    "cost": 0,
+    "recruits": 0,
+    "features": [
+      "Regulation court",
+      "Hoops and apron"
+    ]
+  },
+  {
+    "name": "Club Court",
+    "cost": 1200,
+    "recruits": 3,
+    "features": [
+      "Bleachers",
+      "Team benches"
+    ]
+  },
+  {
+    "name": "Community Arena",
+    "cost": 4500,
+    "recruits": 6,
+    "features": [
+      "Larger stands",
+      "Live scoreboard"
+    ]
+  },
+  {
+    "name": "Floodlit Arena",
+    "cost": 12000,
+    "recruits": 10,
+    "features": [
+      "Canopies",
+      "Floodlights",
+      "Entrance gate"
+    ]
+  }
 ];
 const DEV_SQUAD = ['stephen-curry','michael-jordan','kevin-durant','lebron-james','shaquille-oneal','tyus-jones','alex-caruso','josh-hart','bobby-portis','isaiah-hartenstein','magic-johnson','kareem-abdul-jabbar'];
 const DEV_FIVE = DEV_SQUAD.slice(0,5);

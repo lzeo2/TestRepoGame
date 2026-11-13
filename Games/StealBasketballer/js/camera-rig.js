@@ -10,14 +10,14 @@ const normalized=p=>p.map(v=>v/length(p));
 const dot=(a,b)=>a.reduce((sum,v,i)=>sum+v*b[i],0);
 
 // Distance needed to contain the court and hoops, including at oblique orbit angles.
-export function courtFitDistance({aspect=1,fov=52,yaw=0}={}) {
+export function courtFitDistance({aspect=1,fov=52,yaw=0,halfLength=COURT.halfLength+2,halfWidth=COURT.halfWidth+2,height=12}={}) {
   aspect=clamp(finite(aspect,1),.2,5);fov=clamp(finite(fov,52),30,90);yaw=finite(yaw);
   const direction=[Math.sin(yaw)*.54,.84,Math.cos(yaw)*.54];
   const forward=normalized(direction),right=[Math.cos(yaw),0,-Math.sin(yaw)];
   const up=[-forward[1]*Math.sin(yaw),Math.hypot(forward[0],forward[2]),-forward[1]*Math.cos(yaw)];
   const tanV=Math.tan(fov*Math.PI/360),tanH=tanV*aspect;
   let distance=0;
-  for(const x of [-COURT.halfLength-2,COURT.halfLength+2])for(const z of [-COURT.halfWidth-2,COURT.halfWidth+2])for(const y of [0,12]) {
+  for(const x of [-halfLength,halfLength])for(const z of [-halfWidth,halfWidth])for(const y of [0,height]) {
     const p=[x,y-3,z];
     distance=Math.max(distance,dot(p,forward)+Math.abs(dot(p,right))/tanH,dot(p,forward)+Math.abs(dot(p,up))/tanV);
   }
@@ -38,7 +38,7 @@ export class CameraRig {
     let desired=[person[0],person[1]+3,person[2]],offset=[20,23,30],subject=null,key=mode;
     if(mode!=='avatar') {
       desired=[origin[0],origin[1]+3,origin[2]];
-      const fit=courtFitDistance({aspect,fov,yaw});offset=normalized([0,.84,.54]).map(v=>v*fit);
+      const fit=courtFitDistance({aspect,fov,yaw,...(mode==='venue'?{halfLength:65,halfWidth:58,height:22}:{})});offset=normalized([0,.84,.54]).map(v=>v*fit);
       if(['ball','player','celebration','icon'].includes(mode)&&match) {
         const players=match.players||[],celebration=match.celebration;
         if(mode==='ball') {

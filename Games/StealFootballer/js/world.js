@@ -273,6 +273,7 @@ export class World {
     const {mode,index,zoom}=this.cameraConfig;let target=new THREE.Vector3(this.avatar.x,this.avatar.y+3,this.avatar.z);let offset=new THREE.Vector3(20,23,30);
     if(mode!=='avatar'){
       const pitch=this.pitchPosition(this.pitchIndex);target.set(pitch.x,pitch.y,pitch.z);offset.set(0,155,135);
+      if(mode==='venue')offset.set(0,180,180).multiplyScalar(Math.max(1,1/this.camera.aspect));
       if(match&&(mode==='ball'||mode==='player'||mode==='celebration'||mode==='icon')){
         const celebration=match.celebration;const indexedScorer=Number.isInteger(celebration?.scorerIndex)?match.players?.[celebration.scorerIndex]:null;
         const scorer=indexedScorer||(celebration&&match.players?.find(p=>(p.name===celebration.scorer||p.id===celebration.scorer||p.key===celebration.scorer)&&p.side===celebration.side));
