@@ -4,11 +4,12 @@ description: Develop and verify the existing original StealBasketballer preview,
 ---
 
 Read repository `AGENTS.md`, `docs/CODE_QUALITY.md`, the maintenance index,
-`docs/maintenance/games/unregistered-stealbasketballer.md`, the game's
+`docs/maintenance/games/246-stealbasketballer.md`, the game's
 `PORT_CONTRACT.md`/`CREDITS.md` and the latest verification receipt. Check actual
 Git source/inventory; old native diagnostics and mockups are dated evidence.
-This is the existing unregistered original project. Do not allocate an ID,
-modify Footballer or migrate its saves. Follow the current user's push/merge
+This is the existing original project, registered as 246 after the owner
+reported its missing site listing. Do not allocate a second ID, modify Footballer
+or migrate its saves. Follow the current user's push/merge
 authorization; these checks do not grant new registration or identity rights.
 
 There is no build step or package installation. Keep dependencies local and raw
