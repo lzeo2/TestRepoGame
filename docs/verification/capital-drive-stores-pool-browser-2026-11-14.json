@@ -1,0 +1,3763 @@
+{
+  "checks": [
+    "Software WebGL available",
+    "Normal short road drive moves car",
+    "Short road pass ends clear without hospital transfer",
+    "Fresh Street Life pistol remains locked",
+    "Mapped parody registry integrated",
+    "Shops displays all mapped parody labels",
+    "Provenance business name absent from Shops copy",
+    "Remote fresh-career robberies disabled",
+    "Remote Shops inspection earns no cash",
+    "Street Life searches parody name",
+    "Street Life hides teleport",
+    "Street Life normal map Enter sets route without teleport",
+    "Free roam searches Coals",
+    "Mapped storefront visible near Coals",
+    "Free roam searches Paperback Chain",
+    "Mapped storefront visible near Paperback Chain",
+    "Source-name search resolves parody display label",
+    "Sandbox till actions disabled",
+    "Sandbox map travel earns no career cash",
+    "Requested map approach is in visible map bounds",
+    "Requested map approach is in visible map bounds",
+    "Traffic adapter stays within nineteen merged draw calls",
+    "Software WebGL available",
+    "Phone dark has no horizontal overflow",
+    "Software WebGL available",
+    "Phone light has no horizontal overflow",
+    "Software WebGL available",
+    "Isolated legacy v1 fixture accepts retired till cooldown IDs",
+    "Legacy missing equipment defaults to locked pistol",
+    "No page or console errors",
+    "No failed requests or HTTP errors",
+    "No external runtime requests"
+  ],
+  "errors": [],
+  "requests": [],
+  "external": [],
+  "observations": [
+    {
+      "kind": "short normal road drive and stop/exit",
+      "before": {
+        "ready": true,
+        "started": true,
+        "paused": false,
+        "gameMode": "street",
+        "player": {
+          "id": "player",
+          "modelId": "lantern",
+          "color": 13948883,
+          "active": true,
+          "x": -342.85,
+          "z": -393.6,
+          "yaw": -3.00713,
+          "speed": 0,
+          "vx": 0,
+          "vz": 0,
+          "steer": 0,
+          "odometer": 0,
+          "crashes": 0,
+          "lastImpactSpeed": 0,
+          "offroad": false
+        },
+        "focus": {
+          "id": "player",
+          "modelId": "lantern",
+          "color": 13948883,
+          "active": true,
+          "x": -342.85,
+          "z": -393.6,
+          "yaw": -3.00713,
+          "speed": 0,
+          "vx": 0,
+          "vz": 0,
+          "steer": 0,
+          "odometer": 0,
+          "crashes": 0,
+          "lastImpactSpeed": 0,
+          "offroad": false
+        },
+        "gameplay": {
+          "mode": "vehicle",
+          "actor": {
+            "x": -342.85,
+            "z": -393.6,
+            "yaw": -3.00713,
+            "speed": 0,
+            "jumpHeight": 0
+          },
+          "health": 100,
+          "vehicleHealth": 100,
+          "weapon": "unarmed",
+          "ammo": 0,
+          "reserveAmmo": 0,
+          "aiming": false,
+          "reloading": 0,
+          "attackTimer": 0,
+          "wanted": 0,
+          "pursuit": "clear",
+          "heat": 0,
+          "police": [],
+          "shots": [],
+          "respawnSerial": 0,
+          "vehicle": {
+            "modelId": "lantern",
+            "color": "#e7e6df",
+            "stolen": false
+          },
+          "carjacking": null,
+          "recovery": null,
+          "event": "",
+          "message": "",
+          "sandbox": false,
+          "arrestProgress": 0
+        },
+        "career": {
+          "version": 1,
+          "cash": 1000,
+          "ownedVehicles": [
+            {
+              "id": "lantern",
+              "color": "#e7e6df",
+              "health": 100,
+              "stored": false
+            }
+          ],
+          "completedJobs": [],
+          "equipment": {
+            "pistol": false
+          },
+          "fitnessLevel": 0,
+          "robberyCooldowns": {}
+        },
+        "totalPlaces": 19,
+        "places": [
+          {
+            "id": "telopea",
+            "name": "Telopea Park School",
+            "x": -237.98,
+            "z": -426.36,
+            "radius": 125,
+            "description": "Heritage school and the leafy Telopea Park streets.",
+            "lat": -35.31417,
+            "lon": 149.13438
+          },
+          {
+            "id": "manuka",
+            "name": "Manuka shops",
+            "x": -308.83,
+            "z": 250.47,
+            "radius": 120,
+            "description": "Franklin Street, Bougainville Street and the Manuka shopping streets.",
+            "lat": -35.32025,
+            "lon": 149.1336
+          },
+          {
+            "id": "kingston",
+            "name": "Kingston shops",
+            "x": 386.04,
+            "z": -233.77,
+            "radius": 110,
+            "description": "Green Square, Giles Street and the Kingston village blocks.",
+            "lat": -35.3159,
+            "lon": 149.14125
+          },
+          {
+            "id": "foreshore",
+            "name": "Kingston Foreshore",
+            "x": 600.98,
+            "z": -828.61,
+            "radius": 150,
+            "description": "Eastlake Parade and the lakeside apartment precinct.",
+            "lat": -35.3105565,
+            "lon": 149.1436164
+          },
+          {
+            "id": "redhill",
+            "name": "Red Hill",
+            "x": -599.49,
+            "z": 2148.48,
+            "radius": 180,
+            "description": "Leafy residential streets below the Red Hill reserve.",
+            "lat": -35.3373,
+            "lon": 149.1304
+          },
+          {
+            "id": "griffith",
+            "name": "Griffith shops",
+            "x": 381.5,
+            "z": 1079.8,
+            "radius": 100,
+            "description": "Barker Street and Griffith neighbourhood shops.",
+            "lat": -35.3277,
+            "lon": 149.1412
+          },
+          {
+            "id": "narrabundah",
+            "name": "Narrabundah",
+            "x": 1553.23,
+            "z": 1614.14,
+            "radius": 130,
+            "description": "Neighbourhood streets around Iluka Street and Boolimba Crescent.",
+            "lat": -35.3325,
+            "lon": 149.1541
+          },
+          {
+            "id": "parliament-house",
+            "name": "Parliament House",
+            "lat": -35.3081,
+            "lon": 149.1245,
+            "radius": 220,
+            "description": "Capital Hill, grass roof, curved pale walls and the central flag mast.",
+            "x": -1135.4027885841313,
+            "z": -1102.067999999409
+          },
+          {
+            "id": "old-parliament-house",
+            "name": "Old Parliament House",
+            "lat": -35.3021,
+            "lon": 149.1297,
+            "radius": 120,
+            "description": "The white stripped classical home of the Museum of Australian Democracy.",
+            "x": -663.075228532513,
+            "z": -1769.9879999994344
+          },
+          {
+            "id": "manuka-oval",
+            "name": "Manuka Oval",
+            "lat": -35.3183,
+            "lon": 149.1348,
+            "radius": 130,
+            "description": "Oval ground, grandstands and six tall floodlight towers.",
+            "x": -199.8308907898777,
+            "z": 33.396000000317656
+          },
+          {
+            "id": "manuka-pool",
+            "name": "Manuka Pool",
+            "lat": -35.3170181,
+            "lon": 149.1355791,
+            "radius": 40,
+            "description": "Walled outdoor pool, tiled deck, lawns and a cream heritage entrance with terracotta roofs.",
+            "x": -129.06350578399753,
+            "z": -109.30510799992362
+          },
+          {
+            "id": "kingston-powerhouse",
+            "name": "Kingston Powerhouse",
+            "lat": -35.3115975,
+            "lon": 149.1436952,
+            "radius": 65,
+            "description": "Historic industrial halls, now Canberra Glassworks, beside the former chimney base.",
+            "x": 608.1399000104491,
+            "z": -712.7263000000098
+          },
+          {
+            "id": "store-358293199",
+            "name": "Coals",
+            "aliases": [
+              "coals",
+              "Coles"
+            ],
+            "x": -296.307,
+            "z": 312.067,
+            "radius": 4.8,
+            "store": true,
+            "description": "Flinders Way \u00b7 parody store"
+          },
+          {
+            "id": "store-439239650",
+            "name": "Paperback Chain",
+            "aliases": [
+              "paperback chain",
+              "Paperchain"
+            ],
+            "x": -386.282,
+            "z": 216.462,
+            "radius": 4.8,
+            "store": true,
+            "description": "Franklin Street \u00b7 parody store"
+          },
+          {
+            "id": "store-439239719",
+            "name": "Newsweak",
+            "aliases": [
+              "newsweak",
+              "Manuka Newsagency"
+            ],
+            "x": -390,
+            "z": 212.15,
+            "radius": 4.8,
+            "store": true,
+            "description": "Franklin Street \u00b7 parody store"
+          },
+          {
+            "id": "store-6275666787",
+            "name": "Scoot Wholefoods",
+            "aliases": [
+              "scoot wholefoods",
+              "Scoop Wholefoods"
+            ],
+            "x": 313.271,
+            "z": -197.243,
+            "radius": 4.8,
+            "store": true,
+            "description": "Kennedy Street \u00b7 parody store"
+          },
+          {
+            "id": "store-12918449444",
+            "name": "The Book Moo",
+            "aliases": [
+              "the book moo",
+              "The Book Cow"
+            ],
+            "x": 481.374,
+            "z": -244.272,
+            "radius": 4.8,
+            "store": true,
+            "description": "Jardine Street \u00b7 parody store"
+          },
+          {
+            "id": "store-12918449448",
+            "name": "Toe Boots",
+            "aliases": [
+              "toe boots",
+              "Joe's Boots"
+            ],
+            "x": 466.492,
+            "z": -275.734,
+            "radius": 4.8,
+            "store": true,
+            "description": "Jardine Street \u00b7 parody store"
+          },
+          {
+            "id": "store-11906941518",
+            "name": "Super Expressive",
+            "aliases": [
+              "super expressive",
+              "Supa Express"
+            ],
+            "x": -513.997,
+            "z": 2594.825,
+            "radius": 4.8,
+            "store": true,
+            "description": "Discovery Street \u00b7 parody store"
+          }
+        ],
+        "addressCount": 3446,
+        "camera": {
+          "x": -344.2978246107521,
+          "y": 26.02441634236539,
+          "z": -404.30251390545703,
+          "orbit": 0,
+          "lookPitch": 0,
+          "footYaw": 0
+        },
+        "discovered": [
+          "telopea"
+        ],
+        "roadCount": 5197,
+        "buildings": 12572,
+        "traffic": 40,
+        "visibleTraffic": 11,
+        "trafficView": {
+          "visible": 11,
+          "drawCalls": 13,
+          "maxDrawCalls": 19,
+          "capacity": 56,
+          "models": 6,
+          "geometries": 19,
+          "materials": 4,
+          "templateTriangles": 39492,
+          "triangles": 71470,
+          "sourceDrawCalls": 88,
+          "disposed": false
+        },
+        "destination": null,
+        "routePoints": 0,
+        "mapSelection": null,
+        "mapView": {
+          "zoom": 1,
+          "minX": -3088.3,
+          "maxX": 3360.79,
+          "minZ": -2226.4,
+          "maxZ": 3784.88,
+          "x": 136.2449999999999,
+          "z": 779.24,
+          "scale": 0.14140083310043783
+        },
+        "rendering": {
+          "calls": 117,
+          "triangles": 384895,
+          "quality": "low",
+          "compatibility": false
+        },
+        "world": {
+          "buildings": 12549,
+          "trees": 9000,
+          "treesNearSpawn": 111,
+          "windows": 189400,
+          "roofFacets": 677743,
+          "texturedBuildings": 12549,
+          "signs": 85,
+          "roadSegments": 29899,
+          "triangles": 6485876,
+          "chunks": 420,
+          "meshes": 2178
+        },
+        "pedestrians": {
+          "count": 80,
+          "visible": 59,
+          "detailed": 20,
+          "paths": 3153,
+          "drawCalls": 8,
+          "triangles": 33786,
+          "recycled": 0,
+          "sample": [
+            {
+              "id": 0,
+              "x": -336.61242621254695,
+              "y": 19.975418467606094,
+              "z": -379.6060801053467,
+              "yaw": 0.34931586368252443,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 6.095937549018182,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            },
+            {
+              "id": 1,
+              "x": -344.6180263300525,
+              "y": 20.080638076426755,
+              "z": -373.35180079184835,
+              "yaw": 0.4329291519570635,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 9.015655033121101,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            },
+            {
+              "id": 2,
+              "x": -342.1373555441773,
+              "y": 19.851820120562866,
+              "z": -368.219703942852,
+              "yaw": 0.49999523001982116,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 4.023531246504895,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            },
+            {
+              "id": 3,
+              "x": -339.8887811976766,
+              "y": 19.6584175883596,
+              "z": -364.1036695458678,
+              "yaw": -2.641597423569972,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 5.581763747640704,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            },
+            {
+              "id": 4,
+              "x": -337.2585699605647,
+              "y": 19.43190418150005,
+              "z": -359.9733040644406,
+              "yaw": 0.6005924325037548,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 8.723195431422424,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            },
+            {
+              "id": 5,
+              "x": -334.2240972285473,
+              "y": 19.258494684283338,
+              "z": -355.5434613411943,
+              "yaw": 0.6005924325037282,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 5.827164956655693,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            },
+            {
+              "id": 6,
+              "x": -331.3004650859227,
+              "y": 19.098600573427866,
+              "z": -351.6532596464627,
+              "yaw": -2.491544209417843,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 4.144602564141658,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            },
+            {
+              "id": 7,
+              "x": -327.740107792789,
+              "y": 18.922963311895835,
+              "z": -346.9703094864966,
+              "yaw": 0.6500484441719054,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 5.351829091283673,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            }
+          ]
+        },
+        "neighbourhood": {
+          "frontages": 4200,
+          "driveways": 4200,
+          "hedges": 5382,
+          "fences": 2683,
+          "letterboxes": 4069,
+          "doors": 4200,
+          "verandahs": 1080,
+          "lamps": 500,
+          "benches": 6,
+          "bins": 117,
+          "stopPoles": 3,
+          "shopSigns": 26,
+          "retailAprons": 34,
+          "apronTriangles": 11618,
+          "pavedArea": 7839.1280126645825,
+          "chunks": 239,
+          "meshes": 249,
+          "triangles": 623176
+        },
+        "landmarks": {
+          "landmarks": 5,
+          "meshes": 10,
+          "triangles": 12790,
+          "visibleNear": 3,
+          "visibleDistant": 2,
+          "nearRange": 850,
+          "farRange": 4200
+        },
+        "actors": {
+          "police": 0,
+          "officers": 0,
+          "shots": 0,
+          "playerVisible": false,
+          "objectiveVisible": true,
+          "meshes": 52,
+          "triangles": 28668,
+          "drawCalls": 2,
+          "geometryCount": 24,
+          "materialCount": 24,
+          "disposed": false
+        },
+        "services": [
+          {
+            "aliases": [
+              "coals"
+            ],
+            "building": {
+              "height": 10,
+              "points": [
+                [
+                  -260.92,
+                  270.94
+                ],
+                [
+                  -222.16,
+                  283.05
+                ],
+                [
+                  -221.8,
+                  283.18
+                ],
+                [
+                  -221.45,
+                  283.34
+                ],
+                [
+                  -221.12,
+                  283.53
+                ],
+                [
+                  -220.8,
+                  283.74
+                ],
+                [
+                  -220.51,
+                  283.99
+                ],
+                [
+                  -220.23,
+                  284.25
+                ],
+                [
+                  -219.98,
+                  284.54
+                ],
+                [
+                  -219.76,
+                  284.85
+                ],
+                [
+                  -219.56,
+                  285.18
+                ],
+                [
+                  -219.39,
+                  285.52
+                ],
+                [
+                  -219.25,
+                  285.88
+                ],
+                [
+                  -219.14,
+                  286.25
+                ],
+                [
+                  -219.06,
+                  286.62
+                ],
+                [
+                  -219.01,
+                  287.01
+                ],
+                [
+                  -219,
+                  287.39
+                ],
+                [
+                  -219.02,
+                  287.77
+                ],
+                [
+                  -219.07,
+                  288.15
+                ],
+                [
+                  -223.94,
+                  315.64
+                ],
+                [
+                  -228.86,
+                  314.79
+                ],
+                [
+                  -229.98,
+                  321.11
+                ],
+                [
+                  -225.06,
+                  321.96
+                ],
+                [
+                  -235.72,
+                  382.14
+                ],
+                [
+                  -235.81,
+                  382.53
+                ],
+                [
+                  -235.93,
+                  382.9
+                ],
+                [
+                  -236.08,
+                  383.26
+                ],
+                [
+                  -236.26,
+                  383.61
+                ],
+                [
+                  -236.47,
+                  383.94
+                ],
+                [
+                  -236.71,
+                  384.25
+                ],
+                [
+                  -236.97,
+                  384.54
+                ],
+                [
+                  -237.26,
+                  384.81
+                ],
+                [
+                  -237.57,
+                  385.05
+                ],
+                [
+                  -237.9,
+                  385.26
+                ],
+                [
+                  -238.24,
+                  385.44
+                ],
+                [
+                  -238.6,
+                  385.59
+                ],
+                [
+                  -238.97,
+                  385.71
+                ],
+                [
+                  -239.35,
+                  385.8
+                ],
+                [
+                  -239.74,
+                  385.85
+                ],
+                [
+                  -240.13,
+                  385.87
+                ],
+                [
+                  -240.52,
+                  385.85
+                ],
+                [
+                  -240.91,
+                  385.8
+                ],
+                [
+                  -253.1,
+                  383.7
+                ],
+                [
+                  -253.01,
+                  383.21
+                ],
+                [
+                  -277.91,
+                  378.91
+                ],
+                [
+                  -277.76,
+                  378.03
+                ],
+                [
+                  -290.06,
+                  375.91
+                ],
+                [
+                  -290.31,
+                  377.29
+                ],
+                [
+                  -304.68,
+                  374.81
+                ],
+                [
+                  -290.89,
+                  296.97
+                ],
+                [
+                  -288.06,
+                  296.05
+                ],
+                [
+                  -285.32,
+                  294.9
+                ],
+                [
+                  -282.68,
+                  293.51
+                ],
+                [
+                  -280.17,
+                  291.9
+                ],
+                [
+                  -277.81,
+                  290.08
+                ],
+                [
+                  -275.61,
+                  288.07
+                ],
+                [
+                  -273.59,
+                  285.88
+                ],
+                [
+                  -271.76,
+                  283.52
+                ],
+                [
+                  -270.14,
+                  281.02
+                ],
+                [
+                  -268.74,
+                  278.39
+                ],
+                [
+                  -267.56,
+                  275.64
+                ],
+                [
+                  -266.62,
+                  272.81
+                ],
+                [
+                  -260.92,
+                  270.94
+                ]
+              ]
+            },
+            "buildingId": "act-87705-0",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Manuka",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 7,
+              "x": -293.865,
+              "yaw": 1.395,
+              "z": 312.5
+            },
+            "heal": 35,
+            "id": "store-358293199",
+            "name": "Coals",
+            "price": 35,
+            "publicApproach": {
+              "x": -303.659,
+              "z": 310.775
+            },
+            "radius": 4.8,
+            "road": "Flinders Way",
+            "roadId": "488671940-0",
+            "robbery": 220,
+            "source": {
+              "id": 358293199,
+              "lat": -35.320823,
+              "lon": 149.1341359,
+              "timestamp": "2026-01-03T06:18:47Z",
+              "type": "node",
+              "version": 9
+            },
+            "sourceName": "Coles",
+            "sourcePosition": {
+              "x": -260.153,
+              "z": 314.256
+            },
+            "type": "food",
+            "x": -296.307,
+            "z": 312.067
+          },
+          {
+            "aliases": [
+              "paperback chain"
+            ],
+            "building": {
+              "height": 6.4,
+              "points": [
+                [
+                  -386.13,
+                  219.95
+                ],
+                [
+                  -391.19,
+                  216.16
+                ],
+                [
+                  -415.92,
+                  240.44
+                ],
+                [
+                  -409.79,
+                  246.03
+                ],
+                [
+                  -408.13,
+                  244.59
+                ],
+                [
+                  -393.16,
+                  229.55
+                ],
+                [
+                  -386.13,
+                  219.95
+                ]
+              ]
+            },
+            "buildingId": "osm-940856911",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Manuka",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 3.477,
+              "x": -387.769,
+              "yaw": -0.643,
+              "z": 218.447
+            },
+            "heal": 35,
+            "id": "store-439239650",
+            "name": "Paperback Chain",
+            "price": 35,
+            "publicApproach": {
+              "x": -382.592,
+              "z": 213.181
+            },
+            "radius": 4.8,
+            "road": "Franklin Street",
+            "roadId": "661363463-0",
+            "robbery": 235,
+            "source": {
+              "id": 439239650,
+              "lat": -35.3199879,
+              "lon": 149.1327005,
+              "timestamp": "2022-03-26T23:21:58Z",
+              "type": "node",
+              "version": 8
+            },
+            "sourceName": "Paperchain",
+            "sourcePosition": {
+              "x": -390.533,
+              "z": 221.293
+            },
+            "type": "retail",
+            "x": -386.282,
+            "z": 216.462
+          },
+          {
+            "aliases": [
+              "newsweak"
+            ],
+            "building": {
+              "height": 3.8,
+              "points": [
+                [
+                  -426.34,
+                  232.49
+                ],
+                [
+                  -419.38,
+                  227.68
+                ],
+                [
+                  -419.44,
+                  227.61
+                ],
+                [
+                  -408.3,
+                  219.72
+                ],
+                [
+                  -408.24,
+                  219.79
+                ],
+                [
+                  -404.94,
+                  216.6
+                ],
+                [
+                  -395.1,
+                  209.57
+                ],
+                [
+                  -391.49,
+                  214.73
+                ],
+                [
+                  -415.26,
+                  238.22
+                ],
+                [
+                  -419.51,
+                  233.87
+                ],
+                [
+                  -422.31,
+                  236.64
+                ],
+                [
+                  -426.34,
+                  232.49
+                ]
+              ]
+            },
+            "buildingId": "act-93708-0",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Manuka",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 3.464,
+              "x": -392.032,
+              "yaw": -0.96,
+              "z": 213.572
+            },
+            "heal": 35,
+            "id": "store-439239719",
+            "name": "Newsweak",
+            "price": 35,
+            "publicApproach": {
+              "x": -387.263,
+              "z": 208.625
+            },
+            "radius": 4.8,
+            "road": "Franklin Street",
+            "roadId": "661363463-0",
+            "robbery": 250,
+            "source": {
+              "id": 439239719,
+              "lat": -35.3199384,
+              "lon": 149.1326513,
+              "timestamp": "2022-03-26T23:33:26Z",
+              "type": "node",
+              "version": 5
+            },
+            "sourceName": "Manuka Newsagency",
+            "sourcePosition": {
+              "x": -395.002,
+              "z": 215.783
+            },
+            "type": "retail",
+            "x": -390,
+            "z": 212.15
+          },
+          {
+            "aliases": [
+              "scoot wholefoods"
+            ],
+            "building": {
+              "height": 6.5,
+              "points": [
+                [
+                  300.26,
+                  -240.38
+                ],
+                [
+                  311.67,
+                  -232.03
+                ],
+                [
+                  306.42,
+                  -224.78
+                ],
+                [
+                  308.36,
+                  -223.37
+                ],
+                [
+                  310.45,
+                  -226.25
+                ],
+                [
+                  313.05,
+                  -224.35
+                ],
+                [
+                  314.08,
+                  -225.77
+                ],
+                [
+                  329.31,
+                  -214.63
+                ],
+                [
+                  328.04,
+                  -212.88
+                ],
+                [
+                  332.53,
+                  -209.59
+                ],
+                [
+                  321.59,
+                  -194.5
+                ],
+                [
+                  287.97,
+                  -219.11
+                ],
+                [
+                  287.37,
+                  -222.62
+                ],
+                [
+                  300.26,
+                  -240.38
+                ]
+              ]
+            },
+            "buildingId": "act-74936-0",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Kingston",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 7,
+              "x": 314.736,
+              "yaw": 2.51,
+              "z": -199.244
+            },
+            "heal": 35,
+            "id": "store-6275666787",
+            "name": "Scoot Wholefoods",
+            "price": 35,
+            "publicApproach": {
+              "x": 307.694,
+              "z": -189.701
+            },
+            "radius": 4.8,
+            "road": "Kennedy Street",
+            "roadId": "5117419-0",
+            "robbery": 265,
+            "source": {
+              "id": 6275666787,
+              "lat": -35.3162072,
+              "lon": 149.1405287,
+              "timestamp": "2025-06-16T23:10:24Z",
+              "type": "node",
+              "version": 3
+            },
+            "sourceName": "Scoop Wholefoods",
+            "sourcePosition": {
+              "x": 320.52,
+              "z": -199.574
+            },
+            "type": "food",
+            "x": 313.271,
+            "z": -197.243
+          },
+          {
+            "aliases": [
+              "the book moo"
+            ],
+            "building": {
+              "height": 3.8,
+              "points": [
+                [
+                  486.42,
+                  -239.91
+                ],
+                [
+                  481.21,
+                  -250.94
+                ],
+                [
+                  496.13,
+                  -258.06
+                ],
+                [
+                  500.37,
+                  -249.08
+                ],
+                [
+                  502.22,
+                  -249.96
+                ],
+                [
+                  498.77,
+                  -257.27
+                ],
+                [
+                  505.91,
+                  -260.67
+                ],
+                [
+                  510.34,
+                  -251.31
+                ],
+                [
+                  486.42,
+                  -239.91
+                ]
+              ]
+            },
+            "buildingId": "act-83689-0",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Kingston",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 6.709,
+              "x": 483.616,
+              "yaw": 2.012,
+              "z": -245.331
+            },
+            "heal": 35,
+            "id": "store-12918449444",
+            "name": "The Book Moo",
+            "price": 35,
+            "publicApproach": {
+              "x": 474.08,
+              "z": -240.897
+            },
+            "radius": 4.8,
+            "road": "Jardine Street",
+            "roadId": "706802482-0",
+            "robbery": 280,
+            "source": {
+              "id": 12918449444,
+              "lat": -35.3157853,
+              "lon": 149.1423646,
+              "timestamp": "2025-06-16T00:49:06Z",
+              "type": "node",
+              "version": 1
+            },
+            "sourceName": "The Book Cow",
+            "sourcePosition": {
+              "x": 487.279,
+              "z": -246.54
+            },
+            "type": "retail",
+            "x": 481.374,
+            "z": -244.272
+          },
+          {
+            "aliases": [
+              "toe boots"
+            ],
+            "building": {
+              "height": 3.8,
+              "points": [
+                [
+                  465.54,
+                  -284.07
+                ],
+                [
+                  473.33,
+                  -287.78
+                ],
+                [
+                  474.36,
+                  -285.6
+                ],
+                [
+                  490.49,
+                  -293.3
+                ],
+                [
+                  493.99,
+                  -285.9
+                ],
+                [
+                  474.8,
+                  -276.75
+                ],
+                [
+                  475.5,
+                  -275.28
+                ],
+                [
+                  470.76,
+                  -273.02
+                ],
+                [
+                  465.54,
+                  -284.07
+                ]
+              ]
+            },
+            "buildingId": "act-87807-0",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Kingston",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 6.722,
+              "x": 468.734,
+              "yaw": 2.012,
+              "z": -276.794
+            },
+            "heal": 35,
+            "id": "store-12918449448",
+            "name": "Toe Boots",
+            "price": 35,
+            "publicApproach": {
+              "x": 459.401,
+              "z": -272.454
+            },
+            "radius": 4.8,
+            "road": "Jardine Street",
+            "roadId": "706802482-0",
+            "robbery": 295,
+            "source": {
+              "id": 12918449448,
+              "lat": -35.3155037,
+              "lon": 149.1421881,
+              "timestamp": "2025-06-16T00:49:06Z",
+              "type": "node",
+              "version": 1
+            },
+            "sourceName": "Joe's Boots",
+            "sourcePosition": {
+              "x": 471.247,
+              "z": -277.888
+            },
+            "type": "retail",
+            "x": 466.492,
+            "z": -275.734
+          },
+          {
+            "aliases": [
+              "super expressive"
+            ],
+            "building": {
+              "height": 6.5,
+              "points": [
+                [
+                  -517.71,
+                  2588.87
+                ],
+                [
+                  -501.82,
+                  2566.36
+                ],
+                [
+                  -486.74,
+                  2577.09
+                ],
+                [
+                  -502.63,
+                  2599.6
+                ],
+                [
+                  -517.71,
+                  2588.87
+                ]
+              ]
+            },
+            "buildingId": "act-114794-0",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Red Hill",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 7,
+              "x": -512.56,
+              "yaw": 2.523,
+              "z": 2592.805
+            },
+            "heal": 35,
+            "id": "store-11906941518",
+            "name": "Super Expressive",
+            "price": 35,
+            "publicApproach": {
+              "x": -528.822,
+              "z": 2625.149
+            },
+            "radius": 4.8,
+            "road": "Discovery Street",
+            "roadId": "5026480-0",
+            "robbery": 310,
+            "source": {
+              "id": 11906941518,
+              "lat": -35.3412802,
+              "lon": 149.1313592,
+              "timestamp": "2024-05-15T11:48:57Z",
+              "type": "node",
+              "version": 1
+            },
+            "sourceName": "Supa Express",
+            "sourcePosition": {
+              "x": -512.366,
+              "z": 2591.552
+            },
+            "type": "food",
+            "x": -513.997,
+            "z": 2594.825
+          },
+          {
+            "id": "kingston-gym",
+            "name": "Kingston gym",
+            "type": "gym",
+            "x": 607.24,
+            "z": 39.78,
+            "radius": 8,
+            "road": "Kennedy Street",
+            "price": 120
+          },
+          {
+            "id": "canalside-supplies",
+            "name": "Canalside supplies",
+            "type": "arms",
+            "x": 567.32,
+            "z": -634.87,
+            "radius": 8,
+            "road": "Wentworth Avenue",
+            "price": 450,
+            "ammoPrice": 60
+          }
+        ],
+        "activity": null,
+        "buses": [
+          {
+            "id": "ambient-bus-0",
+            "kind": "bus",
+            "x": -421.76378668089706,
+            "z": -541.7282229703154,
+            "yaw": 0.9359218777603592,
+            "length": 10.6,
+            "width": 2.45,
+            "active": true,
+            "occupied": true,
+            "speed": 0.45833333333333315,
+            "color": 5534601,
+            "layover": 0,
+            "circuit": "fictional ambient circuit",
+            "routeEdgeIds": [
+              31346,
+              31347,
+              31047,
+              30896,
+              30897,
+              30898,
+              30899,
+              30900,
+              30901,
+              30902,
+              30903,
+              30904,
+              30905,
+              30928,
+              30929,
+              30930,
+              30931,
+              30895,
+              30888,
+              30889,
+              30890,
+              30891,
+              30892,
+              30893,
+              31084,
+              31085,
+              31086,
+              31087,
+              31088,
+              31082,
+              31083,
+              30973,
+              30485,
+              30952,
+              30953,
+              30954,
+              30955,
+              30956,
+              31452,
+              31453,
+              31454,
+              31455,
+              31456,
+              31457,
+              31458,
+              31459,
+              31460,
+              31461,
+              31015,
+              30709,
+              30710,
+              30711,
+              30712,
+              31030,
+              30478,
+              31031,
+              31032,
+              31033,
+              31629,
+              30168,
+              30166,
+              30164,
+              30162,
+              30160,
+              30158,
+              30156,
+              30204,
+              30202,
+              30200,
+              30198,
+              30945,
+              30943,
+              30941,
+              30939,
+              30937,
+              31056,
+              31057,
+              31058,
+              30925,
+              30926,
+              30927,
+              31348,
+              31349,
+              31350,
+              31351,
+              31352,
+              31353,
+              31354
+            ],
+            "waypoint": 1
+          },
+          {
+            "id": "ambient-bus-1",
+            "kind": "bus",
+            "x": -423.1237544690402,
+            "z": -283.6319733118114,
+            "yaw": -2.528918844094978,
+            "length": 10.6,
+            "width": 2.45,
+            "active": true,
+            "occupied": true,
+            "speed": 0,
+            "color": 12285000,
+            "layover": 1.6333333333333346,
+            "circuit": "fictional ambient circuit",
+            "routeEdgeIds": [
+              26107,
+              26109,
+              26111,
+              26113,
+              26115,
+              26117,
+              25726,
+              25728,
+              25730,
+              25732,
+              25734,
+              25736,
+              25738,
+              25740,
+              25742,
+              25744,
+              25746,
+              25748,
+              26724,
+              26725,
+              26726,
+              26727,
+              26728,
+              26729,
+              31262,
+              31264,
+              31266,
+              30221,
+              30223,
+              30225,
+              30227,
+              30229,
+              30231,
+              30233,
+              30235,
+              30237,
+              30239,
+              30241,
+              33089,
+              33090,
+              33091,
+              32212,
+              32213,
+              32214,
+              32215,
+              32216,
+              32217,
+              32218,
+              32219,
+              30581,
+              30582,
+              30583,
+              30584,
+              30585,
+              30586,
+              30587,
+              30588,
+              30589,
+              30590,
+              30591,
+              31788,
+              30718,
+              30719,
+              30720,
+              30721,
+              30280,
+              30278,
+              30276,
+              30274,
+              30272,
+              30270,
+              30268,
+              30266,
+              30921,
+              30922,
+              30923,
+              30924,
+              31046,
+              30906,
+              30907,
+              31059,
+              31060,
+              31061,
+              30887,
+              30885,
+              30883,
+              26097,
+              26099,
+              26101,
+              26103,
+              26105
+            ],
+            "waypoint": 1
+          }
+        ],
+        "busView": {
+          "buses": 2,
+          "drawCalls": 4,
+          "triangles": 2264,
+          "geometries": 4,
+          "materials": 2,
+          "disposed": false
+        },
+        "occupants": {
+          "drivers": 28,
+          "exits": 0,
+          "drawCalls": 1,
+          "driverLimit": 64,
+          "exitLimit": 12,
+          "geometryCount": 4,
+          "materialCount": 1,
+          "disposed": false
+        },
+        "serviceView": {
+          "sites": 2,
+          "visible": 0,
+          "drawCalls": 0,
+          "triangles": 56,
+          "geometryCount": 2,
+          "materialCount": 2,
+          "textureCount": 1,
+          "disposed": false
+        },
+        "storefronts": {
+          "sites": 7,
+          "visible": 0,
+          "drawCalls": 0,
+          "triangles": 1288,
+          "geometryCount": 2,
+          "materialCount": 2,
+          "textureCount": 1,
+          "cullDistance": 180,
+          "disposed": false
+        },
+        "poolGates": [
+          {
+            "id": "manuka-pool-main-gate",
+            "x": -134.1769057829516,
+            "z": -135.47087399951243,
+            "width": 2.6,
+            "clearWidth": 2.16,
+            "a": [
+              -133.4177285655961,
+              -136.52617014403697
+            ],
+            "b": [
+              -134.9360830003071,
+              -134.4155778549879
+            ],
+            "outside": [
+              -136.6122045780082,
+              -137.222821424179
+            ],
+            "inside": [
+              -129.30630819283834,
+              -131.96697915017933
+            ]
+          }
+        ],
+        "trafficSample": [
+          {
+            "id": "traffic:0",
+            "x": -398.1729225146702,
+            "z": -248.13530251425433,
+            "speed": 1.2833333333333334,
+            "active": true
+          },
+          {
+            "id": "traffic:1",
+            "x": -126.3795776020387,
+            "z": -547.5878036557979,
+            "speed": 1.2833333333333334,
+            "active": true
+          },
+          {
+            "id": "traffic:2",
+            "x": -477.4362221827604,
+            "z": -574.0037585336391,
+            "speed": 1.2833333333333334,
+            "active": true
+          },
+          {
+            "id": "traffic:3",
+            "x": -74.18473771932888,
+            "z": -612.9668435571252,
+            "speed": 1.2833333333333334,
+            "active": true
+          },
+          {
+            "id": "traffic:4",
+            "x": -528.0654184815066,
+            "z": -189.35478913199358,
+            "speed": 1.2833333333333334,
+            "active": true
+          },
+          {
+            "id": "traffic:5",
+            "x": -388.5422374370987,
+            "z": -700.6110416316899,
+            "speed": 1.2833333333333334,
+            "active": true
+          },
+          {
+            "id": "traffic:6",
+            "x": -476.2199706467881,
+            "z": -359.3408264998925,
+            "speed": 1.2833333333333334,
+            "active": true
+          },
+          {
+            "id": "traffic:7",
+            "x": -645.1493986768022,
+            "z": -416.2962803174839,
+            "speed": 1.2833333333333334,
+            "active": true
+          }
+        ]
+      },
+      "after": {
+        "ready": true,
+        "started": true,
+        "paused": false,
+        "gameMode": "street",
+        "player": {
+          "id": "player",
+          "modelId": "lantern",
+          "color": 13948883,
+          "active": true,
+          "x": -341.23555711994015,
+          "z": -381.66582147789745,
+          "yaw": -3.00713,
+          "speed": 0,
+          "vx": 0,
+          "vz": 0,
+          "steer": 0,
+          "odometer": 12.042883492352729,
+          "crashes": 0,
+          "lastImpactSpeed": 0,
+          "offroad": false
+        },
+        "focus": {
+          "x": -337.86624718674074,
+          "z": -382.1216181146157,
+          "yaw": -3.00713,
+          "speed": 0,
+          "jumpHeight": 0
+        },
+        "gameplay": {
+          "mode": "foot",
+          "actor": {
+            "x": -337.86624718674074,
+            "z": -382.1216181146157,
+            "yaw": -3.00713,
+            "speed": 0,
+            "jumpHeight": 0
+          },
+          "health": 100,
+          "vehicleHealth": 100,
+          "weapon": "unarmed",
+          "ammo": 0,
+          "reserveAmmo": 0,
+          "aiming": false,
+          "reloading": 0,
+          "attackTimer": 0,
+          "wanted": 0,
+          "pursuit": "clear",
+          "heat": 0,
+          "police": [],
+          "shots": [],
+          "respawnSerial": 0,
+          "vehicle": {
+            "modelId": "lantern",
+            "color": "#e7e6df",
+            "stolen": false
+          },
+          "carjacking": null,
+          "recovery": null,
+          "event": "exit",
+          "message": "On foot. E enters a nearby car.",
+          "sandbox": false,
+          "arrestProgress": 0
+        },
+        "career": {
+          "version": 1,
+          "cash": 1000,
+          "ownedVehicles": [
+            {
+              "id": "lantern",
+              "color": "#e7e6df",
+              "health": 100,
+              "stored": false
+            }
+          ],
+          "completedJobs": [],
+          "equipment": {
+            "pistol": false
+          },
+          "fitnessLevel": 0,
+          "robberyCooldowns": {}
+        },
+        "totalPlaces": 19,
+        "places": [
+          {
+            "id": "telopea",
+            "name": "Telopea Park School",
+            "x": -237.98,
+            "z": -426.36,
+            "radius": 125,
+            "description": "Heritage school and the leafy Telopea Park streets.",
+            "lat": -35.31417,
+            "lon": 149.13438
+          },
+          {
+            "id": "manuka",
+            "name": "Manuka shops",
+            "x": -308.83,
+            "z": 250.47,
+            "radius": 120,
+            "description": "Franklin Street, Bougainville Street and the Manuka shopping streets.",
+            "lat": -35.32025,
+            "lon": 149.1336
+          },
+          {
+            "id": "kingston",
+            "name": "Kingston shops",
+            "x": 386.04,
+            "z": -233.77,
+            "radius": 110,
+            "description": "Green Square, Giles Street and the Kingston village blocks.",
+            "lat": -35.3159,
+            "lon": 149.14125
+          },
+          {
+            "id": "foreshore",
+            "name": "Kingston Foreshore",
+            "x": 600.98,
+            "z": -828.61,
+            "radius": 150,
+            "description": "Eastlake Parade and the lakeside apartment precinct.",
+            "lat": -35.3105565,
+            "lon": 149.1436164
+          },
+          {
+            "id": "redhill",
+            "name": "Red Hill",
+            "x": -599.49,
+            "z": 2148.48,
+            "radius": 180,
+            "description": "Leafy residential streets below the Red Hill reserve.",
+            "lat": -35.3373,
+            "lon": 149.1304
+          },
+          {
+            "id": "griffith",
+            "name": "Griffith shops",
+            "x": 381.5,
+            "z": 1079.8,
+            "radius": 100,
+            "description": "Barker Street and Griffith neighbourhood shops.",
+            "lat": -35.3277,
+            "lon": 149.1412
+          },
+          {
+            "id": "narrabundah",
+            "name": "Narrabundah",
+            "x": 1553.23,
+            "z": 1614.14,
+            "radius": 130,
+            "description": "Neighbourhood streets around Iluka Street and Boolimba Crescent.",
+            "lat": -35.3325,
+            "lon": 149.1541
+          },
+          {
+            "id": "parliament-house",
+            "name": "Parliament House",
+            "lat": -35.3081,
+            "lon": 149.1245,
+            "radius": 220,
+            "description": "Capital Hill, grass roof, curved pale walls and the central flag mast.",
+            "x": -1135.4027885841313,
+            "z": -1102.067999999409
+          },
+          {
+            "id": "old-parliament-house",
+            "name": "Old Parliament House",
+            "lat": -35.3021,
+            "lon": 149.1297,
+            "radius": 120,
+            "description": "The white stripped classical home of the Museum of Australian Democracy.",
+            "x": -663.075228532513,
+            "z": -1769.9879999994344
+          },
+          {
+            "id": "manuka-oval",
+            "name": "Manuka Oval",
+            "lat": -35.3183,
+            "lon": 149.1348,
+            "radius": 130,
+            "description": "Oval ground, grandstands and six tall floodlight towers.",
+            "x": -199.8308907898777,
+            "z": 33.396000000317656
+          },
+          {
+            "id": "manuka-pool",
+            "name": "Manuka Pool",
+            "lat": -35.3170181,
+            "lon": 149.1355791,
+            "radius": 40,
+            "description": "Walled outdoor pool, tiled deck, lawns and a cream heritage entrance with terracotta roofs.",
+            "x": -129.06350578399753,
+            "z": -109.30510799992362
+          },
+          {
+            "id": "kingston-powerhouse",
+            "name": "Kingston Powerhouse",
+            "lat": -35.3115975,
+            "lon": 149.1436952,
+            "radius": 65,
+            "description": "Historic industrial halls, now Canberra Glassworks, beside the former chimney base.",
+            "x": 608.1399000104491,
+            "z": -712.7263000000098
+          },
+          {
+            "id": "store-358293199",
+            "name": "Coals",
+            "aliases": [
+              "coals",
+              "Coles"
+            ],
+            "x": -296.307,
+            "z": 312.067,
+            "radius": 4.8,
+            "store": true,
+            "description": "Flinders Way \u00b7 parody store"
+          },
+          {
+            "id": "store-439239650",
+            "name": "Paperback Chain",
+            "aliases": [
+              "paperback chain",
+              "Paperchain"
+            ],
+            "x": -386.282,
+            "z": 216.462,
+            "radius": 4.8,
+            "store": true,
+            "description": "Franklin Street \u00b7 parody store"
+          },
+          {
+            "id": "store-439239719",
+            "name": "Newsweak",
+            "aliases": [
+              "newsweak",
+              "Manuka Newsagency"
+            ],
+            "x": -390,
+            "z": 212.15,
+            "radius": 4.8,
+            "store": true,
+            "description": "Franklin Street \u00b7 parody store"
+          },
+          {
+            "id": "store-6275666787",
+            "name": "Scoot Wholefoods",
+            "aliases": [
+              "scoot wholefoods",
+              "Scoop Wholefoods"
+            ],
+            "x": 313.271,
+            "z": -197.243,
+            "radius": 4.8,
+            "store": true,
+            "description": "Kennedy Street \u00b7 parody store"
+          },
+          {
+            "id": "store-12918449444",
+            "name": "The Book Moo",
+            "aliases": [
+              "the book moo",
+              "The Book Cow"
+            ],
+            "x": 481.374,
+            "z": -244.272,
+            "radius": 4.8,
+            "store": true,
+            "description": "Jardine Street \u00b7 parody store"
+          },
+          {
+            "id": "store-12918449448",
+            "name": "Toe Boots",
+            "aliases": [
+              "toe boots",
+              "Joe's Boots"
+            ],
+            "x": 466.492,
+            "z": -275.734,
+            "radius": 4.8,
+            "store": true,
+            "description": "Jardine Street \u00b7 parody store"
+          },
+          {
+            "id": "store-11906941518",
+            "name": "Super Expressive",
+            "aliases": [
+              "super expressive",
+              "Supa Express"
+            ],
+            "x": -513.997,
+            "z": 2594.825,
+            "radius": 4.8,
+            "store": true,
+            "description": "Discovery Street \u00b7 parody store"
+          }
+        ],
+        "addressCount": 3446,
+        "camera": {
+          "x": -338.64378262584836,
+          "y": 22.712954466517665,
+          "z": -387.86926447125006,
+          "orbit": 0,
+          "lookPitch": 0,
+          "footYaw": -3.00713
+        },
+        "discovered": [
+          "telopea"
+        ],
+        "roadCount": 5197,
+        "buildings": 12572,
+        "traffic": 40,
+        "visibleTraffic": 11,
+        "trafficView": {
+          "visible": 11,
+          "drawCalls": 13,
+          "maxDrawCalls": 19,
+          "capacity": 56,
+          "models": 6,
+          "geometries": 19,
+          "materials": 4,
+          "templateTriangles": 39492,
+          "triangles": 71470,
+          "sourceDrawCalls": 88,
+          "disposed": false
+        },
+        "destination": null,
+        "routePoints": 0,
+        "mapSelection": null,
+        "mapView": {
+          "zoom": 1,
+          "minX": -3088.3,
+          "maxX": 3360.79,
+          "minZ": -2226.4,
+          "maxZ": 3784.88,
+          "x": 136.2449999999999,
+          "z": 779.24,
+          "scale": 0.14140083310043783
+        },
+        "rendering": {
+          "calls": 122,
+          "triangles": 374470,
+          "quality": "low",
+          "compatibility": false
+        },
+        "world": {
+          "buildings": 12549,
+          "trees": 9000,
+          "treesNearSpawn": 111,
+          "windows": 189400,
+          "roofFacets": 677743,
+          "texturedBuildings": 12549,
+          "signs": 85,
+          "roadSegments": 29899,
+          "triangles": 6485876,
+          "chunks": 420,
+          "meshes": 2178
+        },
+        "pedestrians": {
+          "count": 80,
+          "visible": 58,
+          "detailed": 20,
+          "paths": 3153,
+          "drawCalls": 8,
+          "triangles": 33228,
+          "recycled": 15,
+          "sample": [
+            {
+              "id": 0,
+              "x": -335.63794193971654,
+              "y": 19.900718101159722,
+              "z": -378.59195843635524,
+              "yaw": -2.7086635016327154,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0.45,
+              "stopped": false,
+              "phase": 25.408384409557506,
+              "health": 100,
+              "reaction": "flee",
+              "fear": 0.65,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 3.7501000000000007
+            },
+            {
+              "id": 1,
+              "x": -344.44610097337335,
+              "y": 20.060377059359126,
+              "z": -372.97980571405145,
+              "yaw": -2.7086635016327296,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 33.35975419758115,
+              "health": 100,
+              "reaction": "flee",
+              "fear": 0.65,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 4.233400000000003
+            },
+            {
+              "id": 2,
+              "x": -343.4537069141393,
+              "y": 19.953933754372702,
+              "z": -370.8325616285914,
+              "yaw": 0.4329291519570777,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 19.24483387259597,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            },
+            {
+              "id": 3,
+              "x": -338.6180393960396,
+              "y": 19.54737772312806,
+              "z": -361.95791105156957,
+              "yaw": -2.541000221086065,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 18.561110129859227,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            },
+            {
+              "id": 4,
+              "x": -338.8167796918533,
+              "y": 19.563922487326526,
+              "z": -362.2480399573056,
+              "yaw": 0.6005924325037282,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 23.060908054437864,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            },
+            {
+              "id": 5,
+              "x": -336.28137168331165,
+              "y": 19.370874828162513,
+              "z": -358.546751559294,
+              "yaw": 0.6005924325037464,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 24.756972239202724,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            },
+            {
+              "id": 6,
+              "x": -329.2670207241271,
+              "y": 18.98922198392934,
+              "z": -348.9786633025178,
+              "yaw": -2.491544209417843,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 21.615644233234903,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            },
+            {
+              "id": 7,
+              "x": -329.8957394717138,
+              "y": 19.021301841880696,
+              "z": -349.80561922777366,
+              "yaw": 0.650048444171925,
+              "roadId": "454766146-0",
+              "roadName": "New South Wales Crescent",
+              "sidewalkOffset": 4.95,
+              "escape": 0,
+              "stopped": false,
+              "phase": 23.872685424159474,
+              "health": 100,
+              "reaction": "calm",
+              "fear": 0,
+              "anger": 0,
+              "stun": 0,
+              "knockdown": 0,
+              "reactionTimer": 0
+            }
+          ]
+        },
+        "neighbourhood": {
+          "frontages": 4200,
+          "driveways": 4200,
+          "hedges": 5382,
+          "fences": 2683,
+          "letterboxes": 4069,
+          "doors": 4200,
+          "verandahs": 1080,
+          "lamps": 500,
+          "benches": 6,
+          "bins": 117,
+          "stopPoles": 3,
+          "shopSigns": 26,
+          "retailAprons": 34,
+          "apronTriangles": 11618,
+          "pavedArea": 7839.1280126645825,
+          "chunks": 239,
+          "meshes": 249,
+          "triangles": 623176
+        },
+        "landmarks": {
+          "landmarks": 5,
+          "meshes": 10,
+          "triangles": 12790,
+          "visibleNear": 2,
+          "visibleDistant": 3,
+          "nearRange": 850,
+          "farRange": 4200
+        },
+        "actors": {
+          "police": 0,
+          "officers": 0,
+          "shots": 0,
+          "playerVisible": true,
+          "objectiveVisible": true,
+          "meshes": 52,
+          "triangles": 28668,
+          "drawCalls": 12,
+          "geometryCount": 24,
+          "materialCount": 24,
+          "disposed": false
+        },
+        "services": [
+          {
+            "aliases": [
+              "coals"
+            ],
+            "building": {
+              "height": 10,
+              "points": [
+                [
+                  -260.92,
+                  270.94
+                ],
+                [
+                  -222.16,
+                  283.05
+                ],
+                [
+                  -221.8,
+                  283.18
+                ],
+                [
+                  -221.45,
+                  283.34
+                ],
+                [
+                  -221.12,
+                  283.53
+                ],
+                [
+                  -220.8,
+                  283.74
+                ],
+                [
+                  -220.51,
+                  283.99
+                ],
+                [
+                  -220.23,
+                  284.25
+                ],
+                [
+                  -219.98,
+                  284.54
+                ],
+                [
+                  -219.76,
+                  284.85
+                ],
+                [
+                  -219.56,
+                  285.18
+                ],
+                [
+                  -219.39,
+                  285.52
+                ],
+                [
+                  -219.25,
+                  285.88
+                ],
+                [
+                  -219.14,
+                  286.25
+                ],
+                [
+                  -219.06,
+                  286.62
+                ],
+                [
+                  -219.01,
+                  287.01
+                ],
+                [
+                  -219,
+                  287.39
+                ],
+                [
+                  -219.02,
+                  287.77
+                ],
+                [
+                  -219.07,
+                  288.15
+                ],
+                [
+                  -223.94,
+                  315.64
+                ],
+                [
+                  -228.86,
+                  314.79
+                ],
+                [
+                  -229.98,
+                  321.11
+                ],
+                [
+                  -225.06,
+                  321.96
+                ],
+                [
+                  -235.72,
+                  382.14
+                ],
+                [
+                  -235.81,
+                  382.53
+                ],
+                [
+                  -235.93,
+                  382.9
+                ],
+                [
+                  -236.08,
+                  383.26
+                ],
+                [
+                  -236.26,
+                  383.61
+                ],
+                [
+                  -236.47,
+                  383.94
+                ],
+                [
+                  -236.71,
+                  384.25
+                ],
+                [
+                  -236.97,
+                  384.54
+                ],
+                [
+                  -237.26,
+                  384.81
+                ],
+                [
+                  -237.57,
+                  385.05
+                ],
+                [
+                  -237.9,
+                  385.26
+                ],
+                [
+                  -238.24,
+                  385.44
+                ],
+                [
+                  -238.6,
+                  385.59
+                ],
+                [
+                  -238.97,
+                  385.71
+                ],
+                [
+                  -239.35,
+                  385.8
+                ],
+                [
+                  -239.74,
+                  385.85
+                ],
+                [
+                  -240.13,
+                  385.87
+                ],
+                [
+                  -240.52,
+                  385.85
+                ],
+                [
+                  -240.91,
+                  385.8
+                ],
+                [
+                  -253.1,
+                  383.7
+                ],
+                [
+                  -253.01,
+                  383.21
+                ],
+                [
+                  -277.91,
+                  378.91
+                ],
+                [
+                  -277.76,
+                  378.03
+                ],
+                [
+                  -290.06,
+                  375.91
+                ],
+                [
+                  -290.31,
+                  377.29
+                ],
+                [
+                  -304.68,
+                  374.81
+                ],
+                [
+                  -290.89,
+                  296.97
+                ],
+                [
+                  -288.06,
+                  296.05
+                ],
+                [
+                  -285.32,
+                  294.9
+                ],
+                [
+                  -282.68,
+                  293.51
+                ],
+                [
+                  -280.17,
+                  291.9
+                ],
+                [
+                  -277.81,
+                  290.08
+                ],
+                [
+                  -275.61,
+                  288.07
+                ],
+                [
+                  -273.59,
+                  285.88
+                ],
+                [
+                  -271.76,
+                  283.52
+                ],
+                [
+                  -270.14,
+                  281.02
+                ],
+                [
+                  -268.74,
+                  278.39
+                ],
+                [
+                  -267.56,
+                  275.64
+                ],
+                [
+                  -266.62,
+                  272.81
+                ],
+                [
+                  -260.92,
+                  270.94
+                ]
+              ]
+            },
+            "buildingId": "act-87705-0",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Manuka",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 7,
+              "x": -293.865,
+              "yaw": 1.395,
+              "z": 312.5
+            },
+            "heal": 35,
+            "id": "store-358293199",
+            "name": "Coals",
+            "price": 35,
+            "publicApproach": {
+              "x": -303.659,
+              "z": 310.775
+            },
+            "radius": 4.8,
+            "road": "Flinders Way",
+            "roadId": "488671940-0",
+            "robbery": 220,
+            "source": {
+              "id": 358293199,
+              "lat": -35.320823,
+              "lon": 149.1341359,
+              "timestamp": "2026-01-03T06:18:47Z",
+              "type": "node",
+              "version": 9
+            },
+            "sourceName": "Coles",
+            "sourcePosition": {
+              "x": -260.153,
+              "z": 314.256
+            },
+            "type": "food",
+            "x": -296.307,
+            "z": 312.067
+          },
+          {
+            "aliases": [
+              "paperback chain"
+            ],
+            "building": {
+              "height": 6.4,
+              "points": [
+                [
+                  -386.13,
+                  219.95
+                ],
+                [
+                  -391.19,
+                  216.16
+                ],
+                [
+                  -415.92,
+                  240.44
+                ],
+                [
+                  -409.79,
+                  246.03
+                ],
+                [
+                  -408.13,
+                  244.59
+                ],
+                [
+                  -393.16,
+                  229.55
+                ],
+                [
+                  -386.13,
+                  219.95
+                ]
+              ]
+            },
+            "buildingId": "osm-940856911",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Manuka",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 3.477,
+              "x": -387.769,
+              "yaw": -0.643,
+              "z": 218.447
+            },
+            "heal": 35,
+            "id": "store-439239650",
+            "name": "Paperback Chain",
+            "price": 35,
+            "publicApproach": {
+              "x": -382.592,
+              "z": 213.181
+            },
+            "radius": 4.8,
+            "road": "Franklin Street",
+            "roadId": "661363463-0",
+            "robbery": 235,
+            "source": {
+              "id": 439239650,
+              "lat": -35.3199879,
+              "lon": 149.1327005,
+              "timestamp": "2022-03-26T23:21:58Z",
+              "type": "node",
+              "version": 8
+            },
+            "sourceName": "Paperchain",
+            "sourcePosition": {
+              "x": -390.533,
+              "z": 221.293
+            },
+            "type": "retail",
+            "x": -386.282,
+            "z": 216.462
+          },
+          {
+            "aliases": [
+              "newsweak"
+            ],
+            "building": {
+              "height": 3.8,
+              "points": [
+                [
+                  -426.34,
+                  232.49
+                ],
+                [
+                  -419.38,
+                  227.68
+                ],
+                [
+                  -419.44,
+                  227.61
+                ],
+                [
+                  -408.3,
+                  219.72
+                ],
+                [
+                  -408.24,
+                  219.79
+                ],
+                [
+                  -404.94,
+                  216.6
+                ],
+                [
+                  -395.1,
+                  209.57
+                ],
+                [
+                  -391.49,
+                  214.73
+                ],
+                [
+                  -415.26,
+                  238.22
+                ],
+                [
+                  -419.51,
+                  233.87
+                ],
+                [
+                  -422.31,
+                  236.64
+                ],
+                [
+                  -426.34,
+                  232.49
+                ]
+              ]
+            },
+            "buildingId": "act-93708-0",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Manuka",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 3.464,
+              "x": -392.032,
+              "yaw": -0.96,
+              "z": 213.572
+            },
+            "heal": 35,
+            "id": "store-439239719",
+            "name": "Newsweak",
+            "price": 35,
+            "publicApproach": {
+              "x": -387.263,
+              "z": 208.625
+            },
+            "radius": 4.8,
+            "road": "Franklin Street",
+            "roadId": "661363463-0",
+            "robbery": 250,
+            "source": {
+              "id": 439239719,
+              "lat": -35.3199384,
+              "lon": 149.1326513,
+              "timestamp": "2022-03-26T23:33:26Z",
+              "type": "node",
+              "version": 5
+            },
+            "sourceName": "Manuka Newsagency",
+            "sourcePosition": {
+              "x": -395.002,
+              "z": 215.783
+            },
+            "type": "retail",
+            "x": -390,
+            "z": 212.15
+          },
+          {
+            "aliases": [
+              "scoot wholefoods"
+            ],
+            "building": {
+              "height": 6.5,
+              "points": [
+                [
+                  300.26,
+                  -240.38
+                ],
+                [
+                  311.67,
+                  -232.03
+                ],
+                [
+                  306.42,
+                  -224.78
+                ],
+                [
+                  308.36,
+                  -223.37
+                ],
+                [
+                  310.45,
+                  -226.25
+                ],
+                [
+                  313.05,
+                  -224.35
+                ],
+                [
+                  314.08,
+                  -225.77
+                ],
+                [
+                  329.31,
+                  -214.63
+                ],
+                [
+                  328.04,
+                  -212.88
+                ],
+                [
+                  332.53,
+                  -209.59
+                ],
+                [
+                  321.59,
+                  -194.5
+                ],
+                [
+                  287.97,
+                  -219.11
+                ],
+                [
+                  287.37,
+                  -222.62
+                ],
+                [
+                  300.26,
+                  -240.38
+                ]
+              ]
+            },
+            "buildingId": "act-74936-0",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Kingston",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 7,
+              "x": 314.736,
+              "yaw": 2.51,
+              "z": -199.244
+            },
+            "heal": 35,
+            "id": "store-6275666787",
+            "name": "Scoot Wholefoods",
+            "price": 35,
+            "publicApproach": {
+              "x": 307.694,
+              "z": -189.701
+            },
+            "radius": 4.8,
+            "road": "Kennedy Street",
+            "roadId": "5117419-0",
+            "robbery": 265,
+            "source": {
+              "id": 6275666787,
+              "lat": -35.3162072,
+              "lon": 149.1405287,
+              "timestamp": "2025-06-16T23:10:24Z",
+              "type": "node",
+              "version": 3
+            },
+            "sourceName": "Scoop Wholefoods",
+            "sourcePosition": {
+              "x": 320.52,
+              "z": -199.574
+            },
+            "type": "food",
+            "x": 313.271,
+            "z": -197.243
+          },
+          {
+            "aliases": [
+              "the book moo"
+            ],
+            "building": {
+              "height": 3.8,
+              "points": [
+                [
+                  486.42,
+                  -239.91
+                ],
+                [
+                  481.21,
+                  -250.94
+                ],
+                [
+                  496.13,
+                  -258.06
+                ],
+                [
+                  500.37,
+                  -249.08
+                ],
+                [
+                  502.22,
+                  -249.96
+                ],
+                [
+                  498.77,
+                  -257.27
+                ],
+                [
+                  505.91,
+                  -260.67
+                ],
+                [
+                  510.34,
+                  -251.31
+                ],
+                [
+                  486.42,
+                  -239.91
+                ]
+              ]
+            },
+            "buildingId": "act-83689-0",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Kingston",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 6.709,
+              "x": 483.616,
+              "yaw": 2.012,
+              "z": -245.331
+            },
+            "heal": 35,
+            "id": "store-12918449444",
+            "name": "The Book Moo",
+            "price": 35,
+            "publicApproach": {
+              "x": 474.08,
+              "z": -240.897
+            },
+            "radius": 4.8,
+            "road": "Jardine Street",
+            "roadId": "706802482-0",
+            "robbery": 280,
+            "source": {
+              "id": 12918449444,
+              "lat": -35.3157853,
+              "lon": 149.1423646,
+              "timestamp": "2025-06-16T00:49:06Z",
+              "type": "node",
+              "version": 1
+            },
+            "sourceName": "The Book Cow",
+            "sourcePosition": {
+              "x": 487.279,
+              "z": -246.54
+            },
+            "type": "retail",
+            "x": 481.374,
+            "z": -244.272
+          },
+          {
+            "aliases": [
+              "toe boots"
+            ],
+            "building": {
+              "height": 3.8,
+              "points": [
+                [
+                  465.54,
+                  -284.07
+                ],
+                [
+                  473.33,
+                  -287.78
+                ],
+                [
+                  474.36,
+                  -285.6
+                ],
+                [
+                  490.49,
+                  -293.3
+                ],
+                [
+                  493.99,
+                  -285.9
+                ],
+                [
+                  474.8,
+                  -276.75
+                ],
+                [
+                  475.5,
+                  -275.28
+                ],
+                [
+                  470.76,
+                  -273.02
+                ],
+                [
+                  465.54,
+                  -284.07
+                ]
+              ]
+            },
+            "buildingId": "act-87807-0",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Kingston",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 6.722,
+              "x": 468.734,
+              "yaw": 2.012,
+              "z": -276.794
+            },
+            "heal": 35,
+            "id": "store-12918449448",
+            "name": "Toe Boots",
+            "price": 35,
+            "publicApproach": {
+              "x": 459.401,
+              "z": -272.454
+            },
+            "radius": 4.8,
+            "road": "Jardine Street",
+            "roadId": "706802482-0",
+            "robbery": 295,
+            "source": {
+              "id": 12918449448,
+              "lat": -35.3155037,
+              "lon": 149.1421881,
+              "timestamp": "2025-06-16T00:49:06Z",
+              "type": "node",
+              "version": 1
+            },
+            "sourceName": "Joe's Boots",
+            "sourcePosition": {
+              "x": 471.247,
+              "z": -277.888
+            },
+            "type": "retail",
+            "x": 466.492,
+            "z": -275.734
+          },
+          {
+            "aliases": [
+              "super expressive"
+            ],
+            "building": {
+              "height": 6.5,
+              "points": [
+                [
+                  -517.71,
+                  2588.87
+                ],
+                [
+                  -501.82,
+                  2566.36
+                ],
+                [
+                  -486.74,
+                  2577.09
+                ],
+                [
+                  -502.63,
+                  2599.6
+                ],
+                [
+                  -517.71,
+                  2588.87
+                ]
+              ]
+            },
+            "buildingId": "act-114794-0",
+            "buildingMatch": {
+              "distance": 0,
+              "method": "containing footprint"
+            },
+            "district": "Red Hill",
+            "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+            "frontage": {
+              "width": 7,
+              "x": -512.56,
+              "yaw": 2.523,
+              "z": 2592.805
+            },
+            "heal": 35,
+            "id": "store-11906941518",
+            "name": "Super Expressive",
+            "price": 35,
+            "publicApproach": {
+              "x": -528.822,
+              "z": 2625.149
+            },
+            "radius": 4.8,
+            "road": "Discovery Street",
+            "roadId": "5026480-0",
+            "robbery": 310,
+            "source": {
+              "id": 11906941518,
+              "lat": -35.3412802,
+              "lon": 149.1313592,
+              "timestamp": "2024-05-15T11:48:57Z",
+              "type": "node",
+              "version": 1
+            },
+            "sourceName": "Supa Express",
+            "sourcePosition": {
+              "x": -512.366,
+              "z": 2591.552
+            },
+            "type": "food",
+            "x": -513.997,
+            "z": 2594.825
+          },
+          {
+            "id": "kingston-gym",
+            "name": "Kingston gym",
+            "type": "gym",
+            "x": 607.24,
+            "z": 39.78,
+            "radius": 8,
+            "road": "Kennedy Street",
+            "price": 120
+          },
+          {
+            "id": "canalside-supplies",
+            "name": "Canalside supplies",
+            "type": "arms",
+            "x": 567.32,
+            "z": -634.87,
+            "radius": 8,
+            "road": "Wentworth Avenue",
+            "price": 450,
+            "ammoPrice": 60
+          }
+        ],
+        "activity": null,
+        "buses": [
+          {
+            "id": "ambient-bus-0",
+            "kind": "bus",
+            "x": -424.7755365511246,
+            "z": -543.9466994993346,
+            "yaw": 0.9359218777603585,
+            "length": 10.6,
+            "width": 2.45,
+            "active": true,
+            "occupied": true,
+            "speed": 3.083333333333338,
+            "color": 5534601,
+            "layover": 0,
+            "circuit": "fictional ambient circuit",
+            "routeEdgeIds": [
+              31346,
+              31347,
+              31047,
+              30896,
+              30897,
+              30898,
+              30899,
+              30900,
+              30901,
+              30902,
+              30903,
+              30904,
+              30905,
+              30928,
+              30929,
+              30930,
+              30931,
+              30895,
+              30888,
+              30889,
+              30890,
+              30891,
+              30892,
+              30893,
+              31084,
+              31085,
+              31086,
+              31087,
+              31088,
+              31082,
+              31083,
+              30973,
+              30485,
+              30952,
+              30953,
+              30954,
+              30955,
+              30956,
+              31452,
+              31453,
+              31454,
+              31455,
+              31456,
+              31457,
+              31458,
+              31459,
+              31460,
+              31461,
+              31015,
+              30709,
+              30710,
+              30711,
+              30712,
+              31030,
+              30478,
+              31031,
+              31032,
+              31033,
+              31629,
+              30168,
+              30166,
+              30164,
+              30162,
+              30160,
+              30158,
+              30156,
+              30204,
+              30202,
+              30200,
+              30198,
+              30945,
+              30943,
+              30941,
+              30939,
+              30937,
+              31056,
+              31057,
+              31058,
+              30925,
+              30926,
+              30927,
+              31348,
+              31349,
+              31350,
+              31351,
+              31352,
+              31353,
+              31354
+            ],
+            "waypoint": 1
+          },
+          {
+            "id": "ambient-bus-1",
+            "kind": "bus",
+            "x": -423.04827824026705,
+            "z": -283.52459593342013,
+            "yaw": -2.5289188578165205,
+            "length": 10.6,
+            "width": 2.45,
+            "active": true,
+            "occupied": true,
+            "speed": 0.5624999999999999,
+            "color": 12285000,
+            "layover": 0,
+            "circuit": "fictional ambient circuit",
+            "routeEdgeIds": [
+              26107,
+              26109,
+              26111,
+              26113,
+              26115,
+              26117,
+              25726,
+              25728,
+              25730,
+              25732,
+              25734,
+              25736,
+              25738,
+              25740,
+              25742,
+              25744,
+              25746,
+              25748,
+              26724,
+              26725,
+              26726,
+              26727,
+              26728,
+              26729,
+              31262,
+              31264,
+              31266,
+              30221,
+              30223,
+              30225,
+              30227,
+              30229,
+              30231,
+              30233,
+              30235,
+              30237,
+              30239,
+              30241,
+              33089,
+              33090,
+              33091,
+              32212,
+              32213,
+              32214,
+              32215,
+              32216,
+              32217,
+              32218,
+              32219,
+              30581,
+              30582,
+              30583,
+              30584,
+              30585,
+              30586,
+              30587,
+              30588,
+              30589,
+              30590,
+              30591,
+              31788,
+              30718,
+              30719,
+              30720,
+              30721,
+              30280,
+              30278,
+              30276,
+              30274,
+              30272,
+              30270,
+              30268,
+              30266,
+              30921,
+              30922,
+              30923,
+              30924,
+              31046,
+              30906,
+              30907,
+              31059,
+              31060,
+              31061,
+              30887,
+              30885,
+              30883,
+              26097,
+              26099,
+              26101,
+              26103,
+              26105
+            ],
+            "waypoint": 1
+          }
+        ],
+        "busView": {
+          "buses": 2,
+          "drawCalls": 4,
+          "triangles": 2264,
+          "geometries": 4,
+          "materials": 2,
+          "disposed": false
+        },
+        "occupants": {
+          "drivers": 26,
+          "exits": 0,
+          "drawCalls": 1,
+          "driverLimit": 64,
+          "exitLimit": 12,
+          "geometryCount": 4,
+          "materialCount": 1,
+          "disposed": false
+        },
+        "serviceView": {
+          "sites": 2,
+          "visible": 0,
+          "drawCalls": 0,
+          "triangles": 56,
+          "geometryCount": 2,
+          "materialCount": 2,
+          "textureCount": 1,
+          "disposed": false
+        },
+        "storefronts": {
+          "sites": 7,
+          "visible": 0,
+          "drawCalls": 0,
+          "triangles": 1288,
+          "geometryCount": 2,
+          "materialCount": 2,
+          "textureCount": 1,
+          "cullDistance": 180,
+          "disposed": false
+        },
+        "poolGates": [
+          {
+            "id": "manuka-pool-main-gate",
+            "x": -134.1769057829516,
+            "z": -135.47087399951243,
+            "width": 2.6,
+            "clearWidth": 2.16,
+            "a": [
+              -133.4177285655961,
+              -136.52617014403697
+            ],
+            "b": [
+              -134.9360830003071,
+              -134.4155778549879
+            ],
+            "outside": [
+              -136.6122045780082,
+              -137.222821424179
+            ],
+            "inside": [
+              -129.30630819283834,
+              -131.96697915017933
+            ]
+          }
+        ],
+        "trafficSample": [
+          {
+            "id": "traffic:0",
+            "x": -392.2609372881329,
+            "z": -239.7245291288138,
+            "speed": 7.5,
+            "active": true
+          },
+          {
+            "id": "traffic:1",
+            "x": -125.08570251510176,
+            "z": -549.402900030323,
+            "speed": 0.4249605112199703,
+            "active": true
+          },
+          {
+            "id": "traffic:2",
+            "x": -483.64125879763554,
+            "z": -565.565398640367,
+            "speed": 8.633333333333345,
+            "active": true
+          },
+          {
+            "id": "traffic:3",
+            "x": -78.4891911538031,
+            "z": -608.8298092038017,
+            "speed": 8.633333333333345,
+            "active": true
+          },
+          {
+            "id": "traffic:4",
+            "x": -534.0604382559767,
+            "z": -197.94310543766215,
+            "speed": 8.633333333333345,
+            "active": true
+          },
+          {
+            "id": "traffic:5",
+            "x": -394.50613904750514,
+            "z": -692.0010871228733,
+            "speed": 8.633333333333345,
+            "active": true
+          },
+          {
+            "id": "traffic:6",
+            "x": -472.9148504424713,
+            "z": -348.80858252134544,
+            "speed": 8.14166666666667,
+            "active": true
+          },
+          {
+            "id": "traffic:7",
+            "x": -653.8351148445187,
+            "z": -410.4040496943556,
+            "speed": 8.633333333333345,
+            "active": true
+          }
+        ]
+      }
+    },
+    {
+      "kind": "normal map click arrival",
+      "requested": {
+        "x": -136.6122045780082,
+        "z": -137.222821424179
+      },
+      "actual": {
+        "id": "player",
+        "modelId": "lantern",
+        "color": 13948883,
+        "active": true,
+        "x": -136.61224455545116,
+        "z": -137.22283109255096,
+        "yaw": -3.00713,
+        "speed": 0,
+        "vx": 0,
+        "vz": 0,
+        "steer": 0,
+        "odometer": 0,
+        "crashes": 0,
+        "lastImpactSpeed": 0,
+        "offroad": false
+      }
+    },
+    {
+      "kind": "normal map click arrival",
+      "requested": {
+        "x": -129.30630819283834,
+        "z": -131.96697915017933
+      },
+      "actual": {
+        "id": "player",
+        "modelId": "lantern",
+        "color": 13948883,
+        "active": true,
+        "x": -128.88752062663644,
+        "z": -131.665453445015,
+        "yaw": -3.00713,
+        "speed": 0,
+        "vx": 0,
+        "vz": 0,
+        "steer": 0,
+        "odometer": 0,
+        "crashes": 0,
+        "lastImpactSpeed": 0,
+        "offroad": true
+      }
+    },
+    {
+      "kind": "software-only renderer observations",
+      "rendering": {
+        "calls": 108,
+        "triangles": 311680,
+        "quality": "low",
+        "compatibility": false
+      },
+      "trafficView": {
+        "visible": 3,
+        "drawCalls": 10,
+        "maxDrawCalls": 19,
+        "capacity": 56,
+        "models": 6,
+        "geometries": 19,
+        "materials": 4,
+        "templateTriangles": 39492,
+        "triangles": 19866,
+        "sourceDrawCalls": 24,
+        "disposed": false
+      },
+      "storefronts": {
+        "sites": 7,
+        "visible": 0,
+        "drawCalls": 0,
+        "triangles": 1288,
+        "geometryCount": 2,
+        "materialCount": 2,
+        "textureCount": 1,
+        "cullDistance": 180,
+        "disposed": false
+      }
+    },
+    {
+      "kind": "software browser RAF intervals ms; observer only, not native FPS benchmark",
+      "samples": [
+        -12.499999999257852,
+        83.30000000000291,
+        100,
+        83.30000000000291,
+        66.59999999999854,
+        83.40000000000146,
+        83.39999999999418,
+        83.30000000000291,
+        66.59999999999854,
+        83.40000000000146,
+        83.30000000000291,
+        83.29999999999563,
+        83.40000000000146,
+        83.30000000000291,
+        83.39999999999418,
+        83.30000000000291,
+        83.30000000000291,
+        66.59999999999854,
+        83.29999999999563,
+        83.40000000000146,
+        83.30000000000291,
+        100,
+        66.59999999999854,
+        83.5,
+        83.30000000000291,
+        83.29999999999563,
+        83.30000000000291,
+        83.29999999999563,
+        66.70000000000437,
+        83.29999999999563
+      ]
+    },
+    {
+      "kind": "isolated legacy load fixture only",
+      "input": {
+        "version": 1,
+        "cash": 1234,
+        "ownedVehicles": [
+          {
+            "id": "lantern",
+            "color": "#e7e6df",
+            "health": 87,
+            "stored": false
+          }
+        ],
+        "completedJobs": [],
+        "robberyCooldowns": {
+          "crescent-kiosk": 27,
+          "manuka-store": 31
+        }
+      },
+      "loaded": {
+        "version": 1,
+        "cash": 1234,
+        "ownedVehicles": [
+          {
+            "id": "lantern",
+            "color": "#e7e6df",
+            "health": 87,
+            "stored": false
+          }
+        ],
+        "completedJobs": [],
+        "equipment": {
+          "pistol": false
+        },
+        "fitnessLevel": 0,
+        "robberyCooldowns": {
+          "crescent-kiosk": 27,
+          "manuka-store": 31
+        }
+      }
+    }
+  ],
+  "elapsedSeconds": 133.29,
+  "screenshots": [
+    "frontage-coals.png",
+    "frontage-paperback-chain.png",
+    "phone-dark.png",
+    "phone-light.png",
+    "pool-gate-inside-entrance.png",
+    "pool-gate-inside.png",
+    "pool-gate-outside.png",
+    "street-stores-route.png"
+  ],
+  "limitations": [
+    "Software WebGL only; N100/native FPS unmeasured.",
+    "Short road pass is not long-duration driving-tuning proof.",
+    "Police, hospital tuning and robbery authority require pure suites; no positive wallet/wanted grants.",
+    "Screenshots require human review for sign legibility and pool enclosure quality.",
+    "Legacy save is an isolated validation fixture, not naturally earned gameplay."
+  ]
+}

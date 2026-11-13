@@ -70,8 +70,11 @@ def main():
     parser.add_argument('--browser', action='store_true', help='Also run the targeted real-input browser suite (600 second limit).')
     parser.add_argument('--output', type=Path, help='Explicit external directory for browser artifacts and runner report; required with --browser.')
     parser.add_argument('--classic-browser', action='store_true', help='Use the retained earlier Street Life browser suite instead of the expansion suite.')
+    parser.add_argument('--expansion-browser', action='store_true', help='Use the retained earlier expansion browser suite.')
     parser.add_argument('--dry-run', action='store_true', help='List required files and exact commands without running them or creating directories.')
     args = parser.parse_args()
+    if args.classic_browser and args.expansion_browser:parser.error('Choose one earlier browser suite')
+    browser_suite='scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py' if args.expansion_browser else 'scripts/test_capital_stores_pool_browser.py'
     if args.browser != (args.output is not None):
         parser.error('--browser and --output must be used together')
     output = args.output.expanduser().resolve() if args.output else None
@@ -82,7 +85,7 @@ def main():
     required += [GAME / 'data' / filename for filename in DATA]
     required += [Path('scripts') / filename for filename in SUITES]
     if args.browser:
-        required.append(Path('scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py'))
+        required.append(Path(browser_suite))
     commands = [(['node', '--check', str(GAME / filename)], 120) for filename in MODULES]
     commands += [(['node', '--check', str(Path('scripts') / filename)], 120) for filename in SUITES]
     commands += [(['node', str(Path('scripts') / filename)] +
@@ -90,7 +93,7 @@ def main():
                  for filename in SUITES]
     commands.append((['git', 'diff', '--check'], 120))
     if args.browser:
-        suite = 'scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py'
+        suite = browser_suite
         commands.append(([sys.executable, '-B', suite, '--output', str(output)], 600))
     missing = [str(path) for path in required if not (ROOT / path).is_file()]
     if missing:

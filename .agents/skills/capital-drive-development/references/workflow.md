@@ -11,7 +11,7 @@
    preserve the original selection and restore it after verification. Do not
    perform a full Games checkout.
 3. This is an existing owner-authorized original game, catalog 245. Read credits,
-   `docs/capital-drive-sources.md`, expansion contract, street-reference notes and data licenses before
+   `docs/capital-drive-sources.md`, expansion/store-pool contracts, street-reference notes and data licenses before
    changing source-derived content. Do not add runtime remote requests or assets.
 4. State concrete owned paths and the behavior being changed. For authorized
    parallel work, use disjoint modules and one exclusive index window per commit.
@@ -28,11 +28,11 @@ install them into this repository or vendor unrelated tooling.
 | Owner | Source/API boundary |
 | --- | --- |
 | Controller | `script.js`, `index.html`, `style.css`: input, camera, HUD/dialogs, mode guards, render loop, career/discovery storage and target display |
-| Simulation | `simulation.js`, `road-network.js`: profiled directed left-lane graph, cached access routes, driving/traffic, braking requests, claims, shared swept external vehicle/actor collision and building-obstructed sight |
+| Simulation | `simulation.js`, `road-network.js`: indexed parked/static barriers and profiled directed left-lane graph, cached access routes, driving/traffic, braking requests, claims, shared swept external vehicle/actor collision and building-obstructed sight |
 | Gameplay | `gameplay.js`, `police.js`: injected simulation/pedestrians/equipment callbacks, timed carjacking, foot combat, directed patrols/dismounted officers, recovery transition and single respawn callback |
-| Progression | `progression.js`, `services.js`: jobs/cash/garage, location/cost/weapon gates, food/ammo, timed fitness/robbery and saved till cooldowns; validated serialize/load, no DOM/storage |
+| Progression | `progression.js`, `services.js`, `stores.js`: mapped parody stores and jobs/cash/garage, location/cost/weapon gates, food/ammo, timed fitness/robbery and saved till cooldowns; validated serialize/load, no DOM/storage |
 | Pedestrians | `pedestrians.js`: bounded sidewalk population, alert/strike/reactions, consumed offence events |
-| Rendering | `actor-view.js`, `vehicle-occupants-view.js`, `services-view.js`, `bus-view.js`, `landmarks-view.js`, `world-view.js`, `neighbourhood.js`: pooled local geometry, grounding, culling/disposal; no physics/RAF |
+| Rendering | `actor-view.js`, `vehicle-occupants-view.js`, `traffic-view.js`, `storefronts-view.js`, `services-view.js`, `bus-view.js`, `landmarks-view.js`, `world-view.js`, `neighbourhood.js`: pooled local geometry, grounding, culling/disposal; no physics/RAF |
 | Geographic/navigation data | `data/canberra.json`, `navigation.js`, `map-projection.js`, `landmarks.js`, `address-search.js`, `data/addresses.json`, `data/road-profiles.json`, `districts.js`: consistent projection, source profiles/retail polygon, directed routes and offline lookup |
 
 Coordinates are metres: x east, z south. Yaw forward is
@@ -149,10 +149,10 @@ python3 -B scripts/check_capital_drive.py --dry-run
 python3 -B scripts/check_capital_drive.py
 ```
 
-The runner enumerates22 authored modules and17 pure suites in its `MODULES`
+The runner enumerates25 authored modules and21 pure suites in its `MODULES`
 and `SUITES` constants, including roads, buses, police, occupants and services.
 It checks every syntax entry, executes every suite (drive receives the actual map
-argument), then runs `git diff --check`:57 commands in the pure pass. Keep these
+argument), then runs `git diff --check`:68 commands in the pure pass. Keep these
 explicit lists current when adding a required module; a missing file fails.
 Missing modules/data/suites fail; nothing silently skips. Each pure command has a
 120 second limit; total run is bounded to 900 seconds. Actual exit codes are printed.
@@ -172,7 +172,8 @@ localhost server, shuts it down in `finally`, and writes results/screenshots the
 The runner has a 600 second browser limit, kills the test process group on timeout
 on the target Linux environment, and writes `runner-results.json` alongside the
 browser's `results.json`. A failed run is still failed if screenshots exist.
-The default browser suite is `scripts/test_capital_expansion_browser.py`;
+The default browser suite is `scripts/test_capital_stores_pool_browser.py`;
+`--expansion-browser` selects the prior expansion suite, while
 `--classic-browser` selects the earlier retained suite. Optional `--walk-kiosk`
 is available on the expansion script directly. It must use actual keys and a
 clear route around the parked car, with path samples retained on failure. The
@@ -224,10 +225,44 @@ a ten-metre bus. Carjacking requests gradual braking before claiming, and displa
 adult render callbacks do not manufacture witness state. Driver art must respect
 the inherited left-seat car cockpit; buses use original right-seat geometry.
 
-Buses run fictional circuits on real public roads. Food/gym/arms outlets are
-fictional; never present them as verified businesses. Pool water follows exact
+Buses run fictional circuits on real public roads. Mapped store coordinates use verified OSM retail nodes with original parody
+labels. Door/frontage placement is estimated; gym/arms activities stay fictional. Pool water follows exact
 OSM corners, while coping/entrance art stays approximate. More natural original
 surface grain is not photogrammetry. At least one useful approach frame is needed
 for landmarks: teleporting to Parliament's centre can show a wall and does not
 establish visible-landmark quality. Use normal Free roam map input to an observed
 forecourt approach and mouse orbit, retaining the actual capture.
+
+
+## Mapped stores, pool contacts and forgiving response
+
+Rebuild with explicit external paths and compare both generated files:
+
+```sh
+python3 -B scripts/build_capital_stores.py --cache <external-cache> --output <temporary-json> --module-output <temporary-js>
+node scripts/test_capital_stores.mjs --cache <external-cache>
+```
+
+The selection is bounded to source-verified retail POIs with a clear public
+frontage. Exclude ambiguous back doors rather than inventing an entrance.
+Game-facing text uses parody names; actual names are provenance/search inputs.
+Keep retired shop cooldown IDs valid and new tills independent. Root injects
+building sight checks into Progression, including during timed activities.
+No remote or sandbox action can pay career cash.
+
+Pool barriers/gates and basin are exported from landmarks.js and added only to
+the runtime map. Skip the exact obsolete basin ACT collider, preserve nearby
+buildings and source files. Test the actual-map gate walk, fence contacts and
+water blocker in test_capital_sites.mjs before claiming physical enclosure.
+
+Traffic-view batches preserve the six factory silhouettes, colors and glass;
+only its owned clones/materials/instance buffers may be disposed. Keep the
+player car full detail and seated occupants visible. Static collider and parked
+queries must remain spatially bounded; performance claims distinguish traffic
+draws from total frame time and software rendering from N100 hardware.
+
+Wrecks are disabled vehicles, not character knockouts. Root blocks their driving
+input and permits E exit. Impact velocity governs damage; health-only knockout
+starts medical transfer. Reckless pedestrian reports require actual close
+vehicle danger and a cooldown; normal50km/h driving or foot movement must stay
+clear. Pass a stable speed0 foot focus and the actual witness sight callback.

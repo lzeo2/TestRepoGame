@@ -25,11 +25,14 @@ artwork or branded vehicle assets are used.
   condition-preserving retrieval, food/gun/ammo purchases, timed fitness/robbery,
   cooldowns and strict legacy-compatible career-save validation.
 - `street-ui.js`: jobs/garage/shops, five-star HUD and recovery feedback; no clock
-  or storage owner. `services.js` defines four fictional activity sites.
+  or storage owner. `services.js` combines seven mapped parody stores with fictional gym/arms sites.
+  `stores.js`/`data/stores.json` pin source nodes and estimated public frontages.
+  `storefronts-view.js` presents seven facades in two batches.
 - `actor-view.js`: original articulated adult, generic patrol cars, pooled brief
   effects/objective marker and dismounted officers. `vehicle-occupants-view.js`
   presents up to 64 seated drivers and 12 displaced adults; `services-view.js`
-  presents four small original signs. Supplied dt and bounded resources.
+  presents two small generic activity signs. `traffic-view.js` instances the
+  six traffic models in at most19draws rather than up to320separate draws. Supplied dt and bounded resources.
 - `world-view.js`, `neighbourhood.js`: bilinear terrain, road/footpath ribbons,
   chunked architecture, 9,000 trees, 4,200 frontages and clipped retail paving.
 - `landmarks.js`, `landmarks-view.js`: real anchors and dedicated Parliament
@@ -47,7 +50,7 @@ artwork or branded vehicle assets are used.
 - `data/canberra.json`: unchanged 12,572 sourced outlines, 5,197 road runs and
   513 x 513 ACT contour terrain. `data/addresses.json`:3,446 explicit OSM address
   records; some positions are approximate way centroids. Five extra landmark
-  anchors are merged at runtime; the geographic source snapshot is not rewritten.
+  anchors and seven parody store approaches are merged at runtime; the geographic source snapshot is not rewritten.
 
 ## Gameplay and controls
 
@@ -78,13 +81,23 @@ last-seen ground; hiding cools the search. Arrest or defeat deducts up to $250,
 transfers through a 3.4 second fade/recovery sequence, restores the player at a
 bounded road approach and preserves completed jobs. The penalty is applied once.
 
-Four fictional service points can be routed to from Shops. Visit on foot: food
+Nine service points can be routed to from Shops, including seven actual mapped
+parody stores such as Coals. Visit a clear storefront approach on foot: food
 costs $35 for 35 health, the supplies dealer sells a $450 pistol and $60 ammunition,
 and eight-second gym sessions cost $120 per current upgrade step to improve
 sprinting through three levels. Taking a shop till requires an equipped owned
 pistol and four uninterrupted nearby seconds; the witnessed offence raises
 wanted level. Each till pays once and retains its 180 active-second empty cooldown
-through reload. Free roam cannot purchase, train or earn robbery cash.
+through reload. Store interactions also require building-unobstructed sight.
+Retired fictional food-marker cooldown keys remain valid in older saves. Free
+roam cannot purchase, train or earn robbery cash. See [store sources](../../capital-drive-store-sources.md).
+
+Minor scrapes below8m/s cause no wear; body injury starts only with severe
+impacts at18m/s. A wrecked car stops and allows E exit without hospital recovery.
+Medical transfer occurs when character health reaches zero. Reckless reports
+require close danger, sustained exposure or actual contact, with an eight-second
+report cooldown; normal50km/h road travel near a footpath is covered by a clear
+regression. Gunfire/assault retain their own immediate rules.
 
 ## State and persistence
 
@@ -93,7 +106,7 @@ blur/hidden tabs clear held input and pause clocks. `pagehide` saves valid caree
 state and releases loop/audio/graphics; adapters own no second RAF.
 
 `capital-drive-v1` still stores validated discovered IDs. It accepts the original
-seven IDs plus the five runtime landmark IDs. `capital-drive-career-v1` separately
+seven IDs plus five runtime landmark IDs and seven mapped store IDs. `capital-drive-career-v1` separately
 stores version 1, cash, owned vehicles (paint/condition/stored flag), completed
 job IDs, pistol ownership, fitness level and till cooldowns. The three new fields
 are optional on legacy v1 input and strictly validated when present. Ammunition
@@ -127,6 +140,27 @@ browser/geodata tooling stay outside the repository.
 
 ## Audit findings
 
+### Mapped stores, pool enclosure and forgiving driving, 14 November 2026
+
+The owner requested real store locations/parody names, an enclosed Manuka Pool,
+and relief from lag, early medical transfers and overly sensitive reckless
+reports. The [new receipt](../../verification/capital-drive-stores-pool-2026-11-14.md)
+separates source/interaction evidence and retained harness failures. Seven stores
+use exact cached OSM nodes and matched footprints, with estimated public-facing
+doors. Pool fences/walls follow the exact80vertex site; a2.16m gate is physically
+passable, water/fence spans block movement and the heritage entrance is original
+approximate art. The pool-only old ACT block collision is replaced.
+
+Traffic reuses the same six models in instanced batches: a40car all-visible
+fixture falls from320to19draws (94.1% fewer traffic draws, not overall FPS).
+Parked-car broad-phase queries stop sweeps scanning the entire city; a2000far-car
+regression records zero distant predicates. Ordinary foot movement cannot be
+reported as vehicle contact, and witness checks receive actual line of sight.
+Medical recovery now requires character KO; a disabled car allows exit. Damage
+and reckless thresholds/cooldowns are described above and tested independently.
+Geographic/address/terrain JSON and the shared car factory remain unchanged.
+
+
 ### Street-life expansion, 14 November 2026
 
 See the [expansion contract](../../capital-drive-expansion-contract.md) and
@@ -148,9 +182,10 @@ authority regressions; they are not claimed as naturally earned browser sessions
   contour samples. These are numerical consistency, not independent survey error;
   kerbs, road cuts and local extrema remain approximate.
 - Intel N100 / 8 GB performance is unmeasured. Software WebGL checks prove functioning
-  shaders/interactions, not hardware 30/60 FPS. Actor adapter worst case 52 draws / 28,668 triangles; five landmarks total 5,316 triangles
+  shaders/interactions, not hardware 30/60 FPS. Actor adapter worst case 52 draws / 28,668 triangles; five landmarks total 12,790 triangles
   in 10 meshes / two materials. Buses add 4 draws / 2,264 triangles; occupants use at most
-  four draws; service signs use 2 draws / 112 triangles. These are bounded geometry,
+  four draws; generic signs use 2 draws /56triangles; mapped facades add2draws/1288triangles.
+  Instanced traffic is at most19draws for40cars, preserving original models. These are bounded geometry,
   not hardware-performance measurements.
 - Traffic keeps directed left-hand routing and bounded clearance, with simplified
   overtaking/anger. Signals are scenic. Patrols use directed legal roads, bounded
@@ -185,7 +220,7 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The reusable runner checks 22 authored modules and 17 pure suites (57 commands), fails
+The reusable runner checks25authored modules and21pure suites (68commands), fails
 on missing files or actual command errors and bounds subprocess lifetimes. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
 unavailable WebGL, denied storage and hidden teleport guards. Actual-map physics
