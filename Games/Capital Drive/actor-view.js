@@ -105,6 +105,24 @@ export function createActorView(scene, heightAt) {
     const lightMesh = batchStatic(lights, lightMaterial);
     car.visible = false; root.add(car); return { car, lightMesh };
   });
+  // Five instanced parts articulate all officers with a fixed five-draw budget.
+  const navy = material(0x25354d), badge = material(0xc8c4a4);
+  const officerParts = [];
+  for (const [name, specs] of [
+    ['Officer torso', [[navy,[0,1.23,0],[.46,.57,.27]], [palette.pants,[0,.91,0],[.39,.16,.25]], [palette.skin,[0,1.62,0],[.16,.15,.16]], [palette.skin,[0,1.74,0],[.27,.31,.25]], [navy,[0,1.91,0],[.30,.08,.29]], [badge,[-.12,1.4,-.144],[.065,.08,.016]]]],
+    ['Officer left leg', [[navy,[0,-.37,0],[.17,.74,.19]], [palette.shoe,[0,-.83,-.055],[.18,.12,.30]]]],
+    ['Officer right leg', [[navy,[0,-.37,0],[.17,.74,.19]], [palette.shoe,[0,-.83,-.055],[.18,.12,.30]]]],
+    ['Officer left arm', [[navy,[0,-.25,0],[.16,.50,.19]], [palette.skin,[0,-.55,0],[.11,.13,.12]]]],
+    ['Officer right arm', [[navy,[0,-.25,0],[.16,.50,.19]], [palette.skin,[0,-.55,0],[.11,.13,.12]]]],
+  ]) {
+    const template = new THREE.Group(); template.name = name;
+    for (const [mat, pos, size] of specs) piece(template,name,mat,pos,size);
+    const merged = batchStatic(template);
+    const instances = new THREE.InstancedMesh(merged.geometry, batchMaterial, POLICE_LIMIT);
+    instances.name = name; instances.frustumCulled = false; instances.visible = false;
+    root.add(instances); officerParts.push(instances);
+  }
+  const officerWorld = new THREE.Object3D(), officerLimb = new THREE.Object3D(), officerMatrix = new THREE.Matrix4();
   const streaks = new THREE.InstancedMesh(box, palette.yellow, SHOT_LIMIT);
   const impacts = new THREE.InstancedMesh(sphere, palette.yellow, SHOT_LIMIT);
   streaks.name = 'Brief shot streaks'; impacts.name = 'Non-graphic impacts';
@@ -119,8 +137,8 @@ export function createActorView(scene, heightAt) {
   const arrow = piece(marker, 'Objective arrow', palette.marker, [0, 3.2, 0], [1, 1, 1], arrowGeometry); arrow.rotation.x = Math.PI;
   marker.visible = false; actor.visible = false;
   let phase = 0, clock = 0, disposed = false;
-  const counters = { police: 0, shots: 0, playerVisible: false, objectiveVisible: false, meshes: 0, triangles: 0, drawCalls: 0 };
-  root.traverse(object => { if (object.isMesh) { counters.meshes++; counters.triangles += (object.geometry.index?.count || object.geometry.attributes.position.count) / 3 * (object.isInstancedMesh ? SHOT_LIMIT : 1); } });
+  const counters = { police: 0, officers: 0, shots: 0, playerVisible: false, objectiveVisible: false, meshes: 0, triangles: 0, drawCalls: 0 };
+  root.traverse(object => { if (object.isMesh) { counters.meshes++; counters.triangles += (object.geometry.index?.count || object.geometry.attributes.position.count) / 3 * (object.isInstancedMesh ? object.instanceMatrix.count : 1); } });
   function ground(x, z) { return finite(heightAt(x, z)); }
   function near(value, focus, radius = CULL_DISTANCE) { return value && Number.isFinite(value.x) && Number.isFinite(value.z) && Math.hypot(value.x - focus.x, value.z - focus.z) < radius; }
   function update(state, { dt = 0, focus = state.actor, objective = null } = {}) {
@@ -151,11 +169,26 @@ export function createActorView(scene, heightAt) {
       if (finite(state.reloading) > 0) { arms[1].rotation.x = .65; elbows[1].rotation.x = 1.2; arms[0].rotation.x = .9; }
       if (finite(state.attackTimer) > 0 && state.weapon === 'unarmed') { arms[1].rotation.x = 1.1 + Math.sin(clamp(state.attackTimer / .3, 0, 1) * Math.PI) * .9; elbows[1].rotation.x = -.25; body.rotation.y = -.22; } else body.rotation.y = 0;
     }
-    counters.police = 0;
+    counters.police = 0; counters.officers = 0;
     police.forEach((view, i) => {
-      const item = state.police?.[i]; view.car.visible = !!item && item.active !== false && finite(item.health, 100) > 0 && near(item, center);
+      const item = state.police?.[i], carPose = item?.car || item;
+      const active = !!item && item.active !== false && finite(item.health, 100) > 0;
+      if (active && item.mode === 'foot' && near(item, center)) {
+        officerWorld.position.set(item.x, ground(item.x,item.z) + .035, item.z);
+        officerWorld.rotation.set(0, finite(item.yaw), 0); officerWorld.updateMatrix();
+        const stride = Math.sin(clock * 8 + i) * Math.min(.58, Math.abs(finite(item.speed)) * .18);
+        for (let part = 0; part < officerParts.length; part++) {
+          const leg = part === 1 || part === 2, arm = part > 2, side = part === 1 || part === 3 ? -1 : 1;
+          officerLimb.position.set(leg ? side*.115 : arm ? side*.30 : 0, leg ? .91 : arm ? 1.46 : 0, 0);
+          officerLimb.rotation.set((leg ? 1 : arm ? -.7 : 0) * stride * side,0,arm ? -side*.08 : 0);
+          officerLimb.updateMatrix(); officerMatrix.multiplyMatrices(officerWorld.matrix,officerLimb.matrix);
+          officerParts[part].setMatrixAt(counters.officers,officerMatrix);
+        }
+        counters.officers++;
+      }
+      view.car.visible = active && carPose?.active !== false && near(carPose, center);
       if (!view.car.visible) return;
-      counters.police++; view.car.position.set(item.x, ground(item.x, item.z), item.z); view.car.rotation.y = finite(item.yaw);
+      counters.police++; view.car.position.set(carPose.x, ground(carPose.x, carPose.z), carPose.z); view.car.rotation.y = finite(carPose.yaw);
       const colors = view.lightMesh.geometry.attributes.color;
       const redOn = Math.sin(clock * 15 + i) > 0;
       // Base has24 vertices, followed by each24-vertex lens. Geometry is local.
@@ -166,6 +199,7 @@ export function createActorView(scene, heightAt) {
       }
       colors.needsUpdate = true;
     });
+    for (const part of officerParts) { part.count = counters.officers; part.visible = counters.officers > 0; part.instanceMatrix.needsUpdate = true; }
     counters.shots = 0;
     for (const shot of state.shots || []) {
       if (counters.shots >= SHOT_LIMIT) break;
@@ -198,7 +232,7 @@ export function createActorView(scene, heightAt) {
       root.traverse(object => { if (object.isInstancedMesh) object.dispose(); });
       for (const geometry of geometries) geometry.dispose();
       for (const value of materials) value.dispose();
-      counters.drawCalls = counters.police = counters.shots = 0; counters.playerVisible = counters.objectiveVisible = false;
+      counters.drawCalls = counters.police = counters.officers = counters.shots = 0; counters.playerVisible = counters.objectiveVisible = false;
     },
   };
 }
