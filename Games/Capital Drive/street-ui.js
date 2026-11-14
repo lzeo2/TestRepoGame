@@ -1,6 +1,6 @@
 // DOM adapter only. World movement, career time and persistence belong to the controller.
 export function createStreetUI({ gameplay, progression, simulation, vehicles, notify,
-  openDialog, closeDialogs, onVehicleSelected, onRoute, saveCareer, isSandbox }) {
+  openDialog, closeDialogs, onVehicleSelected, onRoute, saveCareer, isSandbox,campaign,isCampaign=()=>false,onJobs,interactionHint=()=>null }) {
   const byId = id => document.getElementById(id);
   const cleanups = [];
   const sandbox = () => Boolean(isSandbox());
@@ -110,7 +110,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
     text('garage-description', sandbox() ? 'Choose any original fictional vehicle and paint.' : `Visit ${progression.garage.name} to buy, retrieve, repair, store or paint a vehicle.`);
   }
   function refresh() {
-    const state = gameplay.state, active = progression.state.activeJob,activity=progression.state.activity;
+    const state = gameplay.state, mission=isCampaign()?campaign?.state.active:null,active = mission||progression.state.activeJob,activity=progression.state.activity;
     text('cash-value', sandbox() ? 'Free roam' : money(progression.state.cash));
     text('health-value', Math.ceil(state.health)); text('car-health-value', Math.ceil(state.vehicleHealth));
     text('wanted-level','★'.repeat(state.wanted)+'☆'.repeat(5-state.wanted));
@@ -119,19 +119,19 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
     text('weapon-label', state.weapon === 'pistol' ? state.reloading > 0 ? 'Pistol · reloading' : `Pistol · ${state.ammo}/${state.reserveAmmo}` : 'Fists');
     text('job-title', activity?.name||active?.name||'');
     text('job-description', activity?progression.services.find(s=>s.id===activity.serviceId)?.name:active?.target.label||'');
-    const job = active && progression.jobs.find(item => item.id === active.id);
-    text('job-progress',activity?`${Math.round(activity.progress*100)}%`:active ? `Stage ${active.stage + 1}/${job?.stages.length || 1} · ${Math.ceil(active.remaining)}s · ${money(active.reward)}` : '');
+    const job = active && (mission?campaign.chapters:progression.jobs).find(item => item.id === active.id);
+    text('job-progress',mission?`Stage ${mission.stage+1}/${job.stages.length} · ${Math.ceil(mission.remaining)}s`:activity?`${Math.round(activity.progress*100)}%`:active ? `Stage ${active.stage + 1}/${job?.stages.length || 1} · ${Math.ceil(active.remaining)}s · ${money(active.reward)}` : '');
     const jobHud = byId('job-hud'); if (jobHud) jobHud.hidden = sandbox()||(!active&&!activity);
     let hint;
     if (state.mode === 'vehicle') hint = Math.abs(simulation.player.speed) > 1.2 ? 'E stop · WASD drive · Shift boost' : 'E step out · WASD drive';
     else {
       const pose = gameplay.focus();
       const nearby = simulation.nearbyVehicles(pose.x, pose.z, 7).some(car => simulation.hasLineOfSight(pose, car));
-      const service=progression.services.find(s=>Math.hypot(s.x-pose.x,s.z-pose.z)<=s.radius);
+      const service=progression.services.find(s=>Math.hypot(s.x-pose.x,s.z-pose.z)<=s.radius&&progression.canUseService(s,context()));
       hint=state.carjacking?`Taking vehicle · ${Math.round(state.carjacking.progress*100)}%`:activity?`${activity.name} · stay nearby`:service?`E ${service.name}`:`${nearby?'E enter car · ':''}WASD walk · Shift sprint`;
     }
     if(state.mode==='vehicle'&&state.vehicleHealth<=0)hint='Vehicle disabled · E to step out';
-    text('interaction-hint', hint);
+    text('interaction-hint', interactionHint()||hint);
     const recovery=state.recovery,screen=byId('recovery-screen');
     if(screen){screen.hidden=!recovery;if(recovery){
       screen.style.backgroundColor=`rgba(10,15,18,${recovery.phase==='out'?Math.min(.96,recovery.elapsed/1.8):Math.max(.12,.96-(recovery.elapsed-1.8)*.5)})`;
@@ -142,13 +142,13 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
   function renderServices(){
     const container=byId('services-list');if(!container)return;container.replaceChildren();
     const ctx=context();
-    for(const site of progression.services){
+    for(const site of [...progression.services].sort((a,b)=>Math.hypot(a.x-ctx.pose.x,a.z-ctx.pose.z)-Math.hypot(b.x-ctx.pose.x,b.z-ctx.pose.z))){
       const entry=document.createElement('article');entry.className='job-option';entry.dataset.serviceId=site.id;
       const title=document.createElement('h3');title.textContent=site.name;
       const detail=document.createElement('p');detail.textContent=`${site.road} · ${Math.round(Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z))} m`;
       const row=document.createElement('div');row.className='button-row service-actions';
       const route=actionButton('Route',()=>{onRoute(site);closeDialogs();});route.dataset.serviceRoute=site.id;row.append(route);
-      const available=!sandbox()&&ctx.onFoot&&!ctx.recovering&&Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)<=site.radius&&!progression.state.activity;
+      const available=!sandbox()&&ctx.onFoot&&!ctx.recovering&&Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)<=site.radius&&!progression.state.activity&&progression.canUseService(site,ctx);
       const purchase=(label,item,cost,blocked=false)=>{
         const b=actionButton(label,()=>{
           const r=progression.purchaseService(site.id,item,context());
@@ -176,7 +176,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
   }
   listen('services-button','click',()=>{renderServices();openDialog('services-dialog');});
   listen('pause-services-button','click',()=>{renderServices();openDialog('services-dialog');});
-  listen('jobs-button', 'click', () => { renderJobs(); openDialog('jobs-dialog'); });
+  listen('jobs-button', 'click', () => { if(onJobs)onJobs();else{renderJobs();openDialog('jobs-dialog');} });
   listen('garage-button', 'click', () => { renderGarage(); openDialog('garage-dialog'); });
   listen('cancel-job-button', 'click', () => { feedback(progression.cancelJob()); renderJobs(); });
   listen('garage-route-button', 'click', () => { onRoute(progression.garage); closeDialogs(); });

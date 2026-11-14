@@ -236,3 +236,12 @@ body.on-foot .speed-row{opacity:.45}
 .pause-access{flex-wrap:wrap}
 body.intro-open #recovery-screen{display:none}
 @media(max-width:480px){#services-button{padding:6px;font-size:10px}.topbar .brand{flex-shrink:0}.brand p{display:none}.service-actions{display:grid;grid-template-columns:1fr 1fr}.service-actions button{padding:9px;font-size:11px}}
+
+.mode-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.campaign-chapters { padding-left: 1.5rem; line-height: 1.7; }
+.campaign-chapters [aria-current="step"] { font-weight: 800; color: var(--ink); }
+#campaign-status { font-weight: 700; }
+@media (max-width: 620px) { .mode-options { grid-template-columns: 1fr; } .mode-options button { padding: .65rem .8rem; } }
+
+body.on-foot .driving-hud { display: none; }
+body.indoors .minimap-wrap { display: none; }

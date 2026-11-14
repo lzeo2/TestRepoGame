@@ -35,8 +35,8 @@ for(let i=0;i<MAPPED_STORES.length;i++) {
     const dx=positions.getX(v)-f.x,dz=positions.getZ(v)-f.z;
     const localX=Math.cos(angle)*dx-Math.sin(angle)*dz;
     const out=Math.sin(angle)*dx+Math.cos(angle)*dz;
-    assert(Math.abs(localX)<=5.10,'bounded facade width');
-    assert(out>=.019 && out<=.631,'all details lie just outside source-facing facade');
+    assert(Math.abs(localX)<=Math.min(5.1,f.width/2),'facades and awnings stay within allocated neighbouring units');
+    assert(out>=.019 && out<=.921,'all details lie just outside source-facing facade');
     minY=Math.min(minY,positions.getY(v));maxY=Math.max(maxY,positions.getY(v));
   }
   assert(Math.abs(minY-ground)<.0002,'facade rests on supplied terrain');
@@ -79,3 +79,6 @@ view.dispose();view.dispose();view.update(MAPPED_STORES[0]);
 assert.equal(scene.children.length,0);assert.equal(geometries,2);assert.equal(materials,2);assert.equal(textures,1);
 assert.equal(view.stats.disposed,true);assert.equal(view.stats.visible,0);
 console.log(`Capital storefronts PASS: ${MAPPED_STORES.length} registry-matched facades, ${view.stats.triangles} triangles, two batches, oriented atlas, 180m culling and idempotent disposal`);
+
+const managed=createStorefrontsView(scene,heightAt,{excludeIds:['store-5656111023']});
+assert.equal(managed.stats.sites,MAPPED_STORES.length-1);managed.update(MAPPED_STORES.find(s=>s.id==='store-5656111023'));assert.equal(managed.stats.visible,0,'dedicated northern restaurant has no duplicate generic frontage');managed.dispose();

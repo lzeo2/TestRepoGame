@@ -1,6 +1,8 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
+import { createTerrainSampler } from './terrain.js';
 import { roadProfile } from './road-network.js';
 import { retailDistrict } from './districts.js';
+import { suburbCharacter } from './suburb-character.js';
 
 // Metres, with east = +x and south = +z. All art is generated locally.
 const CHUNK_SIZE = 350;
@@ -12,6 +14,15 @@ const COLORS = {
   roof: 0x8e5643, metal: 0x737975, trunk: 0x796b57, green: 0x537158,
 };
 
+// Positions/UVs stay float32. Static lighting inputs need only bounded byte
+// precision; Three normalizes these attributes before the shader uses them.
+function compactAttribute(values, itemSize, signed = false) {
+  const scale = signed ? 127 : 255;
+  const output = signed ? new Int8Array(values.length) : new Uint8Array(values.length);
+  for (let i = 0; i < values.length; i++) output[i] = Math.round(Math.max(signed ? -1 : 0, Math.min(1, values[i])) * scale);
+  return new THREE.BufferAttribute(output, itemSize, true);
+}
+
 export function createWorldView(scene, map) {
   const root = new THREE.Group();
   root.name = 'Canberra streets';
@@ -22,7 +33,7 @@ export function createWorldView(scene, map) {
   const temporaryGeometry = [];
   const textures = [];
   const materials = [];
-  const counters = { buildings: 0, trees: 0, treesNearSpawn: 0, windows: 0, roofFacets: 0, texturedBuildings: 0, signs: 0, roadSegments: 0, triangles: 0, chunks: 0, meshes: 0 };
+  const counters = { buildings: 0, trees: 0, treesNearSpawn: 0, windows: 0, roofFacets: 0, texturedBuildings: 0, balconies: 0, signs: 0, roadSegments: 0, triangles: 0, chunks: 0, meshes: 0 };
   const color = new THREE.Color();
   const matrix = new THREE.Matrix4();
   const normalMatrix = new THREE.Matrix3();
@@ -32,8 +43,17 @@ export function createWorldView(scene, map) {
   const scale = new THREE.Vector3();
   const vertex = new THREE.Vector3();
   const normal = new THREE.Vector3();
+  const edgeAB = new THREE.Vector3(), edgeAC = new THREE.Vector3();
+  const tintCache = new Map();
+  function setTint(tint) {
+    if (typeof tint !== 'number') { color.set(tint); return; }
+    if (!tintCache.has(tint)) tintCache.set(tint, new THREE.Color(tint));
+    color.copy(tintCache.get(tint));
+  }
   const opaque = new THREE.MeshLambertMaterial({ vertexColors: true });
   materials.push(opaque);
+  const waterMaterial=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.3,metalness:.18});
+  materials.push(waterMaterial);
   const glazing = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.28, metalness: 0.15 });
   materials.push(glazing);
   let roadMaterial = opaque;
@@ -98,17 +118,7 @@ export function createWorldView(scene, map) {
   const shadowMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false });
   materials.push(shadowMaterial);
 
-  function heightAt(x, z) {
-    if (!terrain || terrain.cols < 2 || terrain.rows < 2 || !terrain.heights?.length) return 0;
-    const tx = THREE.MathUtils.clamp((x - terrain.minX) / (terrain.maxX - terrain.minX), 0, 1) * (terrain.cols - 1);
-    const tz = THREE.MathUtils.clamp((z - terrain.minZ) / (terrain.maxZ - terrain.minZ), 0, 1) * (terrain.rows - 1);
-    const ix = Math.min(terrain.cols - 2, Math.floor(tx));
-    const iz = Math.min(terrain.rows - 2, Math.floor(tz));
-    const fx = tx - ix, fz = tz - iz;
-    const at = (a, b) => Number(terrain.heights[b * terrain.cols + a]) || 0;
-    return THREE.MathUtils.lerp(THREE.MathUtils.lerp(at(ix, iz), at(ix + 1, iz), fx),
-      THREE.MathUtils.lerp(at(ix, iz + 1), at(ix + 1, iz + 1), fx), fz);
-  }
+  const {heightAt,groundHeightAt}=createTerrainSampler(map);
 
   function chunkAt(x, z) {
     const cx = Math.floor(x / CHUNK_SIZE), cz = Math.floor(z / CHUNK_SIZE);
@@ -129,10 +139,10 @@ export function createWorldView(scene, map) {
   }
 
   function triangle(batch, a, b, c, tint, uv) {
-    const ab = new THREE.Vector3(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
-    const ac = new THREE.Vector3(c[0] - a[0], c[1] - a[1], c[2] - a[2]);
-    normal.crossVectors(ab, ac).normalize();
-    color.set(tint);
+    edgeAB.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    edgeAC.set(c[0] - a[0], c[1] - a[1], c[2] - a[2]);
+    normal.crossVectors(edgeAB, edgeAC).normalize();
+    setTint(tint);
     for (const p of [a, b, c]) {
       batch.positions.push(...p);
       batch.normals.push(normal.x, normal.y, normal.z);
@@ -174,7 +184,7 @@ export function createWorldView(scene, map) {
     normalMatrix.getNormalMatrix(matrix);
     const p = geometry.attributes.position;
     const n = geometry.attributes.normal;
-    color.set(tint);
+    setTint(tint);
     for (let i = 0; i < p.count; i++) {
       vertex.fromBufferAttribute(p, i).applyMatrix4(matrix);
       normal.fromBufferAttribute(n, i).applyMatrix3(normalMatrix).normalize();
@@ -195,30 +205,45 @@ export function createWorldView(scene, map) {
   const trunk = geometry(new THREE.CylinderGeometry(0.65, 1, 1, 5));
   const crown = geometry(new THREE.IcosahedronGeometry(1, 0));
   const leafCrown = geometry(new THREE.IcosahedronGeometry(1, 1));
+  // Radial normals smooth the existing low-poly crowns without extra vertices.
+  for (const foliage of [crown, leafCrown]) {
+    const p = foliage.attributes.position, n = foliage.attributes.normal;
+    for (let i = 0; i < p.count; i++) {
+      normal.fromBufferAttribute(p, i).normalize(); n.setXYZ(i, normal.x, normal.y, normal.z);
+    }
+  }
 
   function hash(n) {
     const a = Math.sin(n * 127.1 + 311.7) * 43758.5453;
     return a - Math.floor(a);
   }
 
-  function groundPolygon(points, tint, lift = 0.018) {
-    if (!points || points.length < 3) return;
-    const level = Math.min(...points.map(p => heightAt(...p))) + lift;
-    const shape = points.map(p => new THREE.Vector2(p[0], p[1]));
-    const faces = THREE.ShapeUtils.triangulateShape(shape, []);
-    const batch = batchAt(points[0][0], points[0][1]);
-    for (const face of faces) {
-      const p = face.map(i => [points[i][0], level, points[i][1]]);
-      if ((p[1][0] - p[0][0]) * (p[2][2] - p[0][2]) - (p[1][2] - p[0][2]) * (p[2][0] - p[0][0]) > 0) p.reverse();
-      triangle(batch, ...p, tint);
+  function groundPolygon(area, tint, lift = 0.018) {
+    const openRing=ring=>ring.length>1&&ring[0][0]===ring.at(-1)[0]&&ring[0][1]===ring.at(-1)[1]?ring.slice(0,-1):ring;
+    const points=area.points&&openRing(area.points);
+    if(!points||points.length<3)return;
+    const lake=area.id==='osm-relation-3400115-0';
+    const level=lake?(map.lakeWaterLevel??5.93):Math.min(...points.map(p=>groundHeightAt(...p)))+lift;
+    const rings=(area.innerRings||[]).map(r=>openRing(r.points||r)).filter(r=>r.length>=3);
+    const flat=[...points,...rings.flat()];
+    const faces=THREE.ShapeUtils.triangulateShape(points.map(p=>new THREE.Vector2(...p)),rings.map(r=>r.map(p=>new THREE.Vector2(...p))));
+    function tile(a,b,c,depth=0){
+      const edges=[[a,b,c],[b,c,a],[c,a,b]].sort((u,v)=>Math.hypot(v[0][0]-v[1][0],v[0][1]-v[1][1])-Math.hypot(u[0][0]-u[1][0],u[0][1]-u[1][1]));
+      const [p,q,r]=edges[0];
+      if(depth<10&&Math.hypot(p[0]-q[0],p[1]-q[1])>180){const mid=[(p[0]+q[0])/2,(p[1]+q[1])/2];tile(p,mid,r,depth+1);tile(mid,q,r,depth+1);return;}
+      const vertices=[a,b,c].map(p=>[p[0],level,p[1]]);
+      if((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])>0)vertices.reverse();
+      const x=(a[0]+b[0]+c[0])/3,z=(a[1]+b[1]+c[1])/3;
+      triangle(batchAt(x,z,'water'),...vertices,tint);
     }
+    for(const face of faces)tile(...face.map(i=>flat[i]));
   }
 
   // Match bilinear terrain cells. Adaptive subdivision bounds the difference
   // between the rendered triangles and heightAt to under eight centimetres.
   function terrainTile(x, z, dx, dz) {
     const shade = new THREE.Color(COLORS.grass).multiplyScalar(0.98 + hash(x + z * 0.3) * 0.04);
-    const point = (px, pz) => [px, heightAt(px, pz) - 0.18, pz];
+    const point = (px, pz) => [px, groundHeightAt(px, pz) - 0.18, pz];
     const a = point(x, z), b = point(x, z + dz), c = point(x + dx, z + dz), d = point(x + dx, z);
     surfaceTriangle(x, z, a, b, c, shade, 3); surfaceTriangle(x, z, a, c, d, shade, 3);
   }
@@ -227,19 +252,28 @@ export function createWorldView(scene, map) {
     const dz = (terrain.maxZ - terrain.minZ) / (terrain.rows - 1);
     for (let iz = 0; iz < terrain.rows - 1; iz++) for (let ix = 0; ix < terrain.cols - 1; ix++) {
       const x = terrain.minX + ix * dx, z = terrain.minZ + iz * dz;
-      const mixed = Math.abs(heightAt(x, z) + heightAt(x + dx, z + dz) - heightAt(x + dx, z) - heightAt(x, z + dz));
+      const mixed = Math.abs(groundHeightAt(x, z) + groundHeightAt(x + dx, z + dz) - groundHeightAt(x + dx, z) - groundHeightAt(x, z + dz));
       const divisions = Math.max(Math.max(dx, dz) > 28 ? 2 : 1, Math.ceil(Math.sqrt(mixed / 0.28)));
       for (let j = 0; j < divisions; j++) for (let i = 0; i < divisions; i++) terrainTile(x + i * dx / divisions, z + j * dz / divisions, dx / divisions, dz / divisions);
     }
   } else {
     for (let z = bounds.minZ; z < bounds.maxZ; z += 35) for (let x = bounds.minX; x < bounds.maxX; x += 35) terrainTile(x, z, 35, 35);
   }
+  for(const tile of map.terrainTiles||[]){
+    const dx=(tile.maxX-tile.minX)/(tile.cols-1),dz=(tile.maxZ-tile.minZ)/(tile.rows-1);
+    for(let iz=0;iz<tile.rows-1;iz++)for(let ix=0;ix<tile.cols-1;ix++){
+      const x=tile.minX+ix*dx,z=tile.minZ+iz*dz;
+      if(terrain&&z>=terrain.minZ)continue;
+      const end=Math.min(z+dz,terrain?.minZ??z+dz);
+      if(end>z)terrainTile(x,z,dx,end-z);
+    }
+  }
   for (let z = bounds.minZ - 245; z < bounds.maxZ + 245; z += 35) for (let x = bounds.minX - 245; x < bounds.maxX + 245; x += 35) {
     if (x < bounds.minX || z < bounds.minZ || x >= bounds.maxX || z >= bounds.maxZ) terrainTile(x, z, 35, 35);
   }
   // Grass polygons cannot be draped with boundary-only triangles on a hill.
   // Terrain already supplies grass; reserve overlays for the water itself.
-  for (const area of map.areas || []) if (/water|lake|basin/.test(area.type)) groundPolygon(area.points, 0x658b8f, -0.12);
+  for (const area of map.areas || []) if (/water|lake|basin/.test(area.type)) groundPolygon(area, 0x547b82, -0.12);
 
   // Spatial indices keep avenue placement linear in the size of the map.
   const roadCells = new Map(), buildingCells = new Map();
@@ -417,10 +451,27 @@ export function createWorldView(scene, map) {
     const floorHeights = points.map(p => heightAt(...p));
     const base = (isSchool ? floorHeights.reduce((a, b) => a + b, 0) / points.length : Math.max(...floorHeights)) + 0.12;
     const footing = Math.min(...floorHeights) - 0.3;
+    if(building.type==='roof'){
+      const faces=THREE.ShapeUtils.triangulateShape(points.map(p=>new THREE.Vector2(...p)),[]);
+      for(const face of faces){
+        const p=face.map(i=>[points[i][0],base+height,points[i][1]]);
+        if((p[1][0]-p[0][0])*(p[2][2]-p[0][2])-(p[1][2]-p[0][2])*(p[2][0]-p[0][0])>0)p.reverse();
+        triangle(batchAt(x,z),...p,0x85887d);
+        triangle(batchAt(x,z),...p.slice().reverse(),0xaaa99a);
+      }
+      for(let i=0;i<points.length;i+=Math.max(1,Math.ceil(points.length/6))){
+        const p=points[i],ground=groundHeightAt(...p);
+        primitive(box,p[0],ground+(base+height-ground)/2,p[1],.16,base+height-ground,.16,0xaaa99a);
+      }
+      counters.buildings++;return;
+    }
+
     const signedArea = points.reduce((sum, p, i) => { const q = points[(i + 1) % points.length]; return sum + p[0] * q[1] - q[0] * p[1]; }, 0);
     const reverse = signedArea > 0;
-    const walls = isSchool ? 0xe0d2b4 : lowShop ? 0xd6c9ae : building.color || (residential ? [0xa97860, 0xc8b598, 0xddd4bd, 0x996e59, 0xbca68a][index % 5] : 0xc4bca9);
-    const roofColor = isSchool ? 0x9f5943 : residential ? [0x92604b, 0x686964, 0xa26e53, 0x726558][index % 4] : 0x777d79;
+    const character = suburbCharacter(map, x, z);
+    const apartment = /apartments/.test(building.type || '');
+    const walls = isSchool ? 0xe0d2b4 : lowShop ? 0xd6c9ae : building.color || (residential ? character.walls[index % character.walls.length] : 0xc4bca9);
+    const roofColor = isSchool ? 0x9f5943 : residential ? character.roofs[index % character.roofs.length] : 0x777d79;
     const wallKind = isSchool || index % 3 === 0 || !residential ? 1 : 0;
     const pitched = !utility && (isSchool || residential && height < 10) && building.roof !== 'flat';
     const batch = batchAt(x, z);
@@ -487,6 +538,12 @@ export function createWorldView(scene, map) {
         bay(u, y + hh * 0.57, hw, hh * 0.18, 0.058, 0x8ba0a0);
         bay(u, y, 0.035, hh, 0.065, 0xc6c6b9);
         if (isSchool) bay(u, y - 0.08, hw, 0.035, 0.068, 0xc9cbbb);
+        if (apartment && row > 0 && col % 2 === 0 && length > 6 && counters.balconies < 3000) {
+          // Slab and opaque rail planes suggest recessed balcony rhythm cheaply.
+          bay(u, y - hh - 0.12, hw + 0.22, 0.07, 0.32, 0xbab4a5);
+          bay(u, y - hh + 0.32, hw + 0.22, 0.3, 0.38, 0x8a938b);
+          counters.balconies++;
+        }
         counters.windows++;
       }
       if (lowShop && length > 7 && length < 70) {
@@ -727,13 +784,13 @@ export function createWorldView(scene, map) {
       if (!batch.positions.length) continue;
       const meshGeometry = new THREE.BufferGeometry();
       meshGeometry.setAttribute('position', new THREE.Float32BufferAttribute(batch.positions, 3));
-      meshGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(batch.normals, 3));
+      meshGeometry.setAttribute('normal', compactAttribute(batch.normals, 3, true));
       if (kind === 'sign') meshGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uvs, 2));
       else {
-        meshGeometry.setAttribute('color', new THREE.Float32BufferAttribute(batch.colors, kind === 'shadow' ? 4 : 3));
+        meshGeometry.setAttribute('color', compactAttribute(batch.colors, kind === 'shadow' ? 4 : 3));
         if (kind === 'surface') {
           meshGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uvs, 2));
-          meshGeometry.setAttribute('surfaceKind', new THREE.Float32BufferAttribute(batch.kinds, 1));
+          meshGeometry.setAttribute('surfaceKind', new THREE.Uint8BufferAttribute(batch.kinds, 1));
         }
         if (kind === 'road') {
           const uv = [];
@@ -742,7 +799,7 @@ export function createWorldView(scene, map) {
         }
       }
       meshGeometry.computeBoundingSphere();
-      const mesh = new THREE.Mesh(meshGeometry, kind === 'sign' ? signMaterial : kind === 'road' ? roadMaterial : kind === 'surface' ? surfaceMaterial : kind === 'shadow' ? shadowMaterial : kind === 'glass' ? glazing : opaque);
+      const mesh = new THREE.Mesh(meshGeometry, kind === 'sign' ? signMaterial : kind === 'road' ? roadMaterial : kind === 'surface' ? surfaceMaterial : kind === 'shadow' ? shadowMaterial : kind === 'glass' ? glazing : kind==='water'?waterMaterial:opaque);
       mesh.name = `Canberra ${kind}`;
       mesh.receiveShadow = false;
       mesh.castShadow = false;
@@ -780,5 +837,5 @@ export function createWorldView(scene, map) {
     chunks.clear();
   }
   update(map.spawn || { x: 0, z: 0 });
-  return { heightAt, update, dispose, stats };
+  return { heightAt,groundHeightAt, update, dispose, stats };
 }

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {applyMapExpansion} from '../Games/Capital Drive/map-expansion.js';
 import {createSimulation} from '../Games/Capital Drive/simulation.js';
 import {createProgression} from '../Games/Capital Drive/progression.js';
 import {createAddressSearch} from '../Games/Capital Drive/address-search.js';
@@ -7,7 +8,9 @@ import {MAPPED_STORES} from '../Games/Capital Drive/stores.js';
 import {POOL_BARRIERS,POOL_GATE_APPROACHES,MANUKA_POOL_BASIN} from '../Games/Capital Drive/landmarks.js';
 const source=await readFile(new URL('../Games/Capital Drive/data/canberra.json',import.meta.url),'utf8'),map=JSON.parse(source);
 const before=JSON.stringify(map);
-const runtime={...map,barriers:POOL_BARRIERS,collisionReplacedBuildingIds:['act-75267-0'],areas:[...map.areas,{type:'water',points:MANUKA_POOL_BASIN}]};
+const north=JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra-north.json',import.meta.url),'utf8'));
+const expanded=applyMapExpansion(map,north);
+const runtime={...expanded,barriers:POOL_BARRIERS,collisionReplacedBuildingIds:['act-75267-0'],areas:[...expanded.areas,{type:'water',points:MANUKA_POOL_BASIN}]};
 const simulation=createSimulation(runtime,{trafficCount:0}),gate=POOL_GATE_APPROACHES[0];
 const actor={x:gate.outside[0],z:gate.outside[1]};assert(!simulation.moveActor(actor,0,0,.45).blocked);
 for(let i=0;i<40;i++)assert(!simulation.moveActor(actor,(gate.inside[0]-actor.x)/(40-i),(gate.inside[1]-actor.z)/(40-i),.45).blocked,'source enclosure gate remains physically passable');
@@ -35,4 +38,4 @@ for(const store of MAPPED_STORES){
 const storeMap={...map,landmarks:MAPPED_STORES.map(s=>({...s,store:true,aliases:[...s.aliases,s.sourceName]}))},search=createAddressSearch(storeMap);
 for(const query of ['Coals','Coles']){const hit=search.search(query)[0];assert.equal(hit.label,'Coals');assert.equal(hit.kind,'store');}
 assert(JSON.stringify(map)===before,'runtime site additions leave source database unchanged');
-console.log('PASS sites: actual source pool gate/water, foot/car fences, local parked broad phase, seven physical mapped approaches/tills/occlusion/cooldowns, parody search aliases and source preservation.');
+console.log('PASS sites: actual source pool gate/water, foot/car fences, local parked broad phase, twenty-one physical mapped approaches/tills/occlusion/cooldowns, parody search aliases and source preservation.');

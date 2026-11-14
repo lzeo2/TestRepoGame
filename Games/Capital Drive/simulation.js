@@ -99,6 +99,15 @@ function polygonContact(x, z, points, radius) {
   return { nx, nz, depth: inside ? radius + closest.distance : radius - closest.distance };
 }
 
+function insideRing(x,z,points){
+  let inside=false;
+  for(let i=0,j=points.length-1;i<points.length;j=i++){
+    const a=points[j],b=points[i];
+    if((a[1]>z)!==(b[1]>z)&&x<(b[0]-a[0])*(z-a[1])/(b[1]-a[1])+a[0])inside=!inside;
+  }
+  return inside;
+}
+
 export function createSimulation(map, options = {}) {
   const graph = buildRoadGraph(map.roads || []);
   const roadIndex = new SpatialGrid(80), buildingIndex = new SpatialGrid(48), waterIndex = new SpatialGrid(128), barrierIndex = new SpatialGrid(32);
@@ -107,7 +116,7 @@ export function createSimulation(map, options = {}) {
     Math.min(segment.a[0], segment.b[0]), Math.min(segment.a[1], segment.b[1]),
     Math.max(segment.a[0], segment.b[0]), Math.max(segment.a[1], segment.b[1]));
   for (const building of map.buildings || []) {
-    if (!building.points?.length||replacedColliders.has(building.id)) continue;
+    if (!building.points?.length||building.type==='roof'||replacedColliders.has(building.id)) continue;
     buildingIndex.insert(building, Math.min(...building.points.map(p => p[0])), Math.min(...building.points.map(p => p[1])),
       Math.max(...building.points.map(p => p[0])), Math.max(...building.points.map(p => p[1])));
   }
@@ -119,6 +128,36 @@ export function createSimulation(map, options = {}) {
   for(const barrier of map.barriers||[]){
     if(!barrier.points?.length)continue;
     barrierIndex.insert(barrier,Math.min(...barrier.points.map(p=>p[0])),Math.min(...barrier.points.map(p=>p[1])),Math.max(...barrier.points.map(p=>p[0])),Math.max(...barrier.points.map(p=>p[1])));
+  }
+  const waterEdges=new SpatialGrid(128),waterMask=new WeakMap();
+  for(const area of map.areas||[]){
+    if(area.type!=='water')continue;
+    for(const ring of [area.points,...(area.innerRings||[]).map(r=>r.points||r)]){
+      if(!ring)continue;
+      for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+        const a=ring[j],b=ring[i];
+        waterEdges.insert({area},Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0]),Math.max(a[1],b[1]));
+      }
+    }
+  }
+  function physicalContact(index,polygon,x,z,radius){
+    if(index!==waterIndex)return polygonContact(x,z,polygon.points,radius);
+    if(options.isOnBridge?.(x,z,radius))return null;
+    const holes=(polygon.innerRings||[]).map(r=>r.points||r);
+    const cx=Math.floor(x/128),cz=Math.floor(z/128),key=`${cx},${cz}`;
+    if(!waterMask.has(polygon))waterMask.set(polygon,new Map());
+    const cache=waterMask.get(polygon);
+    let mask=cache.get(key);
+    if(mask===undefined){
+      const px=(cx+.5)*128,pz=(cz+.5)*128;
+      const boundary=[...waterEdges.query(px,pz,96)].some(edge=>edge.area===polygon);
+      mask=boundary?'edge':insideRing(px,pz,polygon.points)&&!holes.some(r=>insideRing(px,pz,r))?'water':'land';
+      cache.set(key,mask);
+    }
+    if(mask==='land')return null;
+    if(mask==='water')return {nx:1,nz:0,depth:radius};
+    for(const ring of holes)if([[0,0],[radius,0],[-radius,0],[0,radius],[0,-radius]].every(([dx,dz])=>insideRing(x+dx,z+dz,ring)))return null;
+    return polygonContact(x,z,polygon.points,radius);
   }
   const parkedCars = [], abandonedCars = [];
   let externalVehicles = [];
@@ -152,7 +191,7 @@ export function createSimulation(map, options = {}) {
       const x = pose.x - Math.sin(pose.yaw) * offset, z = pose.z - Math.cos(pose.yaw) * offset;
       if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return false;
       for (const index of [buildingIndex, barrierIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
-        if (polygonContact(x, z, polygon.points, radius)) return false;
+        if (physicalContact(index,polygon,x,z,radius)) return false;
       }
     }
     return ![player, ...traffic, ...parkedIndex.query(pose.x,pose.z,Math.hypot(length,width)/2+4), ...abandonedCars, ...externalVehicles].some(car =>
@@ -233,7 +272,7 @@ export function createSimulation(map, options = {}) {
     function blockerAt(candidate) {
       for (const [index, reason] of [[buildingIndex, 'building'], [barrierIndex, 'fence'], [waterIndex, 'water']]) {
         for (const polygon of index.query(candidate.x, candidate.z, 1.8)) {
-          const contact = polygonContact(candidate.x, candidate.z, polygon.points, 1.8);
+          const contact = physicalContact(index,polygon,candidate.x,candidate.z,1.8);
           if (contact) return { ...contact, reason };
         }
       }
@@ -527,7 +566,7 @@ export function createSimulation(map, options = {}) {
     function clear(x, z) {
       if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return false;
       for (const index of [buildingIndex, barrierIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
-        if (polygonContact(x, z, polygon.points, radius)) return false;
+        if (physicalContact(index,polygon,x,z,radius)) return false;
       }
       return ![player, ...traffic, ...parkedIndex.query(x,z,radius+3), ...abandonedCars, ...externalVehicles].some(car => {
         if (car === actor || car.id === actor.id || car.active === false) return false;

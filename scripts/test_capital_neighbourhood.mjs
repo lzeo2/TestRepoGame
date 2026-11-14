@@ -6,8 +6,10 @@ const threeURL = moduleURL(threeSource);
 const THREE = await import(threeURL);
 const source = await readFile(new URL('../Games/Capital Drive/neighbourhood.js', import.meta.url), 'utf8');
 const districtsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/districts.js', import.meta.url), 'utf8'));
+const characterURL = moduleURL(await readFile(new URL('../Games/Capital Drive/suburb-character.js', import.meta.url), 'utf8'));
 const roadsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/road-network.js', import.meta.url), 'utf8'));
-const { createNeighbourhoodDetails } = await import(moduleURL(source.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL)));
+const loadNeighbourhood = async text => import(moduleURL(text.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL).replace('./suburb-character.js', characterURL)));
+const { createNeighbourhoodDetails } = await loadNeighbourhood(source);
 const house = { id: 'house', type: 'house', height: 4, points: [[-6, 20], [6, 20], [6, 32], [-6, 32], [-6, 20]] };
 const base = { roads: [{ id: '1', name: 'Test Street', type: 'residential', width: 8, points: [[-100, 0], [100, 0]] }], buildings: [house], areas: [], landmarks: [], spawn: { x: 0, z: 0 } };
 const scene = new THREE.Scene();
@@ -15,16 +17,29 @@ const details = createNeighbourhoodDetails(scene, base, () => 0);
 assert.equal(details.stats.frontages, 1, 'a real footprint receives frontage details');
 assert.equal(details.stats.driveways, 1);
 assert.equal(details.stats.doors, 1);
+assert.equal(details.entries.length, 1);
+assert.equal(details.entries[0].buildingId, 'house');
+assert(Math.abs(details.entries[0].z - 19.84) < 0.001, 'entry descriptor matches rendered door, facing actual public street');
+assert(details.entries[0].nz > 0.99);
+assert(Object.isFrozen(details.entries) && Object.isFrozen(details.entries[0]));
+assert.equal(details.stats.backyards, 1);
+let gardenVertices = [];
+scene.traverse(o => { if (o.name === 'Neighbourhood garden') gardenVertices.push(...Array.from(o.geometry.attributes.position.array).filter((_, i) => i % 3 === 2)); });
+assert(gardenVertices.length > 0 && Math.min(...gardenVertices) > 32.5, 'garden lies behind farthest footprint edge, away from public road');
 scene.traverse(object => {
   if (!object.isMesh) return;
   for (const attribute of Object.values(object.geometry.attributes)) for (const n of attribute.array) assert.ok(Number.isFinite(n));
 });
-const first = scene.children[0].children[0].children[0].geometry;
-assert.ok(first.attributes.normal.array[1] > 0, 'driveway front face points upwards');
+let first; scene.traverse(o => { if (!first && o.isMesh && o.name === 'Neighbourhood solid') first = o.geometry; });
+assert.ok(first.attributes.normal.getY(0) > 0, 'driveway front face points upwards');
 details.update({ x: 1e6, z: 1e6 });
 assert.ok(scene.children[0].children.every(chunk => !chunk.visible));
 details.update(base.spawn);
 assert.ok(scene.children[0].children.some(chunk => chunk.visible));
+details.update({ x: 650, z: 0 });
+assert(scene.children[0].children.some(chunk => chunk.visible), 'base frontage remains visible beyond backyard range');
+let gardenCulled = false; scene.traverse(o => { if (o.name === 'Nearby gardens') { gardenCulled = true; assert.equal(o.visible, false); } });
+assert(gardenCulled, 'rear furniture uses the closer detail range');
 details.dispose(); details.dispose(); assert.equal(scene.children.length, 0);
 const park = { type: 'park', points: [[-20, 5], [20, 5], [20, 18], [-20, 18]] };
 const protectedPark = createNeighbourhoodDetails(scene, { ...base, areas: [park] }, () => 0);
@@ -91,6 +106,10 @@ for (const id of ['manuka', 'kingston']) {
   const centre = actualMap.landmarks.find(l => l.id === id);
   assert(actualPaving.some(p => Math.hypot(p[0] - centre.x, p[1] - centre.z) < 80), `${id} central retail streets receive paving`);
 }
+console.log('MEASURED neighbourhood', JSON.stringify(actualDetails.stats));
+assert(actualDetails.stats.backyards > 100);
+assert(actualDetails.stats.backyardTriangles <= 60000);
+assert(actualDetails.stats.triangles < 700000, 'whole-map detail increase remains below 13 percent of 622900 baseline');
 console.log(`PASS actual map: ${actualDetails.stats.retailAprons} retail footprints, ${actualDetails.stats.apronTriangles} apron triangles, ${Math.round(actualDetails.stats.pavedArea)} square metres`);
 actualDetails.dispose();
 
@@ -109,3 +128,50 @@ const privateDetails = createNeighbourhoodDetails(scene, { ...base, roads: [{ ..
 assert.equal(privateDetails.stats.lamps, 0, 'private access receives no street furniture');
 assert.equal(privateDetails.stats.stopPoles, 0);
 privateDetails.dispose();
+
+const managed = createNeighbourhoodDetails(scene, { ...shoppingMap, shoppingManagedBuildingIds: ['shop'] }, () => 0);
+assert.equal(managed.stats.frontages, 0, 'managed shopping geometry suppresses generic doors/signs');
+assert.equal(managed.stats.retailAprons, 0); managed.dispose();
+const rearPark = { type: 'park', points: [[-20, 33], [20, 33], [20, 48], [-20, 48]] };
+const protectedRear = createNeighbourhoodDetails(scene, { ...base, areas: [rearPark] }, () => 0);
+assert.equal(protectedRear.stats.backyards, 0, 'public rear park cannot become private garden'); protectedRear.dispose();
+const rearRoad = { id: 'rear', name: 'Rear access', type: 'service', points: [[-100, 40], [100, 40]] };
+const roadBehind = createNeighbourhoodDetails(scene, { ...base, roads: [...base.roads, rearRoad] }, () => 0);
+assert.equal(roadBehind.stats.backyards, 0, 'second road blocks an inferred garden'); roadBehind.dispose();
+const apartmentDetails = createNeighbourhoodDetails(scene, { ...base, buildings: [{ ...house, type: 'apartments' }] }, () => 0);
+assert.equal(apartmentDetails.stats.backyards, 0, 'apartment footprint never receives a detached-house backyard');
+assert.equal(apartmentDetails.stats.apartmentEntries, 1); apartmentDetails.dispose();
+const { suburbCharacter, rearGarden } = await import(characterURL);
+assert.equal(suburbCharacter({ landmarks: [{ id: 'redhill', x: 0, z: 0 }] }, 20, 20).id, 'redhill');
+assert.equal(suburbCharacter({ landmarks: [{ id: 'redhill', x: 0, z: 0 }] }, 2000, 20).id, 'residential');
+assert.equal(rearGarden(house, { nx: 0, nz: 1 }, suburbCharacter({}, 0, 0), () => false), null);
+console.log('PASS source-frontage entries, bounded rear gardens, public-land/road rejection, managed shops, apartment entries and appearance limits');
+
+const schoolBuilding = { ...house, id: 'school', type: 'education' };
+const schoolFixture = { ...base, buildings: [schoolBuilding], landmarks: [{ id: 'telopea', x: 0, z: 26, radius: 100 }] };
+const oldSchool = createNeighbourhoodDetails(scene, schoolFixture, () => 0);
+const managedSchool = createNeighbourhoodDetails(scene, { ...schoolFixture, campusBuildingIds: ['school'] }, () => 0);
+assert(oldSchool.stats.triangles > managedSchool.stats.triangles + 500, 'source campus renderer suppresses the old short frontage fence');
+oldSchool.dispose(); managedSchool.dispose();
+console.log('PASS managed campus suppresses legacy school fence');
+
+const floatSource = source.replace(/function compactAttribute\([\s\S]*?\n}\n/, 'function compactAttribute(values, itemSize) { return new THREE.Float32BufferAttribute(values, itemSize); }\n');
+assert.notEqual(floatSource, source);
+const { createNeighbourhoodDetails: createFloatDetails } = await loadNeighbourhood(floatSource);
+const compactScene = new THREE.Scene(), floatScene = new THREE.Scene();
+const compact = createNeighbourhoodDetails(compactScene, base, terrain), reference = createFloatDetails(floatScene, base, terrain);
+const meshes = scene => { const result=[]; scene.traverse(o => { if(o.isMesh) result.push(o); }); return result; };
+const compactMeshes = meshes(compactScene), floatMeshes = meshes(floatScene);
+assert.equal(compactMeshes.length,floatMeshes.length);
+let compactBytes=0,floatBytes=0;
+for(let m=0;m<compactMeshes.length;m++)for(const [name,attribute] of Object.entries(compactMeshes[m].geometry.attributes)) {
+  const other=floatMeshes[m].geometry.attributes[name]; compactBytes+=attribute.array.byteLength;floatBytes+=other.array.byteLength;
+  assert.equal(attribute.count,other.count); assert.equal(attribute.itemSize,other.itemSize);
+  if(name==='normal'||name==='color') {
+    assert(attribute.array instanceof (name==='normal'?Int8Array:Uint8Array)); assert.equal(attribute.normalized,true);
+    for(let i=0;i<attribute.count;i++)for(let c=0;c<attribute.itemSize;c++) assert(Math.abs(attribute.getComponent(i,c)-other.getComponent(i,c)) <= .5/(name==='normal'?127:255)+1e-7);
+  } else assert.deepEqual(Array.from(attribute.array),Array.from(other.array),`${name} remains exact`);
+}
+assert(compactBytes<floatBytes*.6); assert.equal(compact.stats.triangles,reference.stats.triangles);
+assert.deepEqual(compact.entries,reference.entries); compact.dispose();reference.dispose();
+console.log(`PASS compact neighbourhood: exact positions/entries/triangles, bounded normals/colors, ${floatBytes}→${compactBytes} bytes`);

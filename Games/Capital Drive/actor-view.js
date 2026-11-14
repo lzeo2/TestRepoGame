@@ -7,7 +7,8 @@ const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallbac
 const clamp = (value, min, max) => Math.max(min, Math.min(max, finite(value)));
 
 // Original procedural adult. The adapter owns its resources, never gameplay state.
-export function createActorView(scene, heightAt) {
+export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } = {}) {
+  policeLimit = Math.max(0, Math.min(POLICE_LIMIT, Math.floor(policeLimit)));
   const root = new THREE.Group(); root.name = 'Street Life actors'; scene.add(root);
   const geometries = new Set(), materials = new Set();
   const ownGeometry = geometry => { geometries.add(geometry); return geometry; };
@@ -87,7 +88,7 @@ export function createActorView(scene, heightAt) {
 
   // Clone pooled factory resources so disposing this view cannot break other cars.
   const carGeometries = new Map(), carMaterials = new Map();
-  const police = Array.from({ length: POLICE_LIMIT }, (_, i) => {
+  const police = Array.from({ length: policeLimit }, (_, i) => {
     const car = createCar('relay', { color: '#e5e6df' }); car.name = `Generic patrol ${i + 1}`;
     car.traverse(object => {
       if (!object.isMesh) return;
@@ -118,7 +119,7 @@ export function createActorView(scene, heightAt) {
     const template = new THREE.Group(); template.name = name;
     for (const [mat, pos, size] of specs) piece(template,name,mat,pos,size);
     const merged = batchStatic(template);
-    const instances = new THREE.InstancedMesh(merged.geometry, batchMaterial, POLICE_LIMIT);
+    const instances = new THREE.InstancedMesh(merged.geometry, batchMaterial, Math.max(1, policeLimit));
     instances.name = name; instances.frustumCulled = false; instances.visible = false;
     root.add(instances); officerParts.push(instances);
   }
