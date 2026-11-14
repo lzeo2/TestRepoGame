@@ -550,7 +550,7 @@ export function createSimulation(map, options = {}) {
     if (![x, z, radius].every(Number.isFinite) || radius < 0) return [];
     return [player, ...traffic, ...parkedIndex.query(x,z,radius), ...abandonedCars].filter(car => car.active !== false &&
       Math.hypot(x - car.x, z - car.z) <= radius).map(car => ({ id: car.id, x: car.x, z: car.z, yaw: car.yaw,
-        modelId: car.modelId, color: car.color, active: true, occupied: traffic.includes(car), speed: car.speed || 0 }));
+        modelId: car.modelId, color: car.color, active: true, occupied: traffic.includes(car), unlocked: car === player || abandonedCars.includes(car), speed: car.speed || 0 }));
   }
   function claimVehicle(id) {
     if (id === 'player') return { ok: true, vehicle: { ...nearbyVehicles(player.x, player.z, 0)[0] }, stolen: false, reason: 'current' };

@@ -86,7 +86,7 @@ export function createVehicleChallenge() {
     if (s.phase === 'failed') return `${s.reason} Press E to retry.`;
     if (s.phase === 'cancelled') return 'Lock challenge cancelled.';
     const label = LABELS[s.sequence[s.index]];
-    return `${s.kind === 'car' ? 'CAR LOCK' : 'LEMON HACK'}: ${s.phase === 'cue' ? `Press ${label} now!` : `Release keys. Wait for ${label}.`} ${s.index}/${s.sequence.length}. ${s.mistakes}/${RULES[s.kind].maxMistakes} mistakes. Escape cancels.`;
+    return `${s.kind === 'car' ? 'CAR LOCK' : 'LEMON HACK'}: ${s.phase === 'cue' ? `Press ${label} now!` : `Release keys. Wait for ${label}.`} ${s.index}/${s.sequence.length}. ${s.mistakes}/${RULES[s.kind].maxMistakes} mistakes. E cancels.`;
   }
   function snapshot() {
     const s = session, rules = s ? RULES[s.kind] : null;

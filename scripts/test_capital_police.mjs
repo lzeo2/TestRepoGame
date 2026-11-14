@@ -62,8 +62,14 @@ simulation.nearbyVehicles=()=>[{id:'traffic:fixture',x:3,z:0,yaw:0,speed:moving,
 simulation.requestVehicleStop=()=>{stops++;};
 simulation.claimVehicle=()=>{claimed++;return {ok:true,vehicle:{modelId:'relay'},stolen:true};};
 assert.equal(armed.interact(),false);for(let i=0;i<150;i++)armed.step(1/60);assert.equal(claimed,0);assert(stops>100);
-moving=0;for(let i=0;i<60;i++)armed.step(1/60);assert.equal(claimed,0);assert(armed.state.carjacking.progress>0);
-for(let i=0;i<60;i++)armed.step(1/60);assert.equal(claimed,1);assert.equal(exits.length,1);assert.equal(exits[0].x,5);
+moving=0;armed.step(1/60);assert.equal(claimed,0);assert.equal(armed.state.carjacking.challenge.sequence.length,8);
+for(let key=0;key<8;key++){
+ for(let i=0;i<100&&armed.state.carjacking?.challenge.phase!=='cue';i++)armed.step(1/60,{challenge:{}});
+ const challenge=armed.state.carjacking?.challenge;assert.equal(challenge?.phase,'cue');
+ armed.step(1/60,{challenge:{[challenge.expectedKey]:true}});
+ armed.step(1/60,{challenge:{}});
+}
+assert.equal(claimed,1);assert.equal(exits.length,1);assert.equal(exits[0].x,5);
 simulation.nearbyVehicles=originalNear;simulation.claimVehicle=originalClaim;
 armed.state.health=0;const before={x:simulation.player.x,z:simulation.player.z};armed.step(1/60);
 assert.equal(armed.state.recovery.phase,'out');assert.deepEqual({x:simulation.player.x,z:simulation.player.z},before);assert.equal(penalties.length,0);
@@ -71,7 +77,7 @@ assert.equal(armed.interact(),false);assert.equal(armed.setWeapon('unarmed'),fal
 for(let i=0;i<100;i++)armed.step(1/60,{fire:true});assert.equal(penalties.length,0);
 for(let i=0;i<20;i++)armed.step(1/60);assert.equal(penalties.length,1);assert.equal(armed.state.recovery.phase,'in');
 for(let i=0;i<100;i++)armed.step(1/60);assert.equal(armed.state.recovery,null);assert.equal(penalties.length,1);
-console.log('Capital police: directed turn/brake inertia, persistent patrol/dismount/reboard, polygon LOS/cooling, gated ammo, timed occupied carjacking and single delayed recovery PASS');
+console.log('Capital police: directed turn/brake inertia, persistent patrol/dismount/reboard, polygon LOS/cooling, gated ammo, eight-cue occupied carjacking and single delayed recovery PASS');
 // Exact source geography/profiles and the real swept collision API, including patrol blockers.
 const {applyRoadProfiles,roadProfile}=await load('../Games/Capital Drive/road-network.js');
 const actualSource=JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra.json',import.meta.url),'utf8'));

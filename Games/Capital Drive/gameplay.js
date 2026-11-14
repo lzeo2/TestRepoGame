@@ -74,7 +74,7 @@ export function createGameplay(map, simulation, options = {}) {
     const target = simulation.nearbyVehicles(state.actor.x, state.actor.z, 7)
       .filter(v => visible(state.actor, v)).sort((a, b) => distance(a, state.actor) - distance(b, state.actor))[0];
     if (!target) { emit('no-vehicle', 'Move closer to a car.'); return false; }
-    if (target.id !== 'player' && target.owned !== true) {
+    if (target.id !== 'player' && target.owned !== true && target.unlocked !== true) {
       clearTheftChallenge();
       if (target.occupied) simulation.requestVehicleStop(target.id, 5);
       state.carjacking = { id: target.id, phase: 'waiting', elapsed: 0, waited: 0, duration: 20, progress: 0, challenge: null };
