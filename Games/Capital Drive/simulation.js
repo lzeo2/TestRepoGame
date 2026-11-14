@@ -186,7 +186,90 @@ export function createSimulation(map, options = {}) {
     return polygonContact(x,z,polygon.points,radius);
   }
   const parkedCars = [], abandonedCars = [];
-  let externalVehicles = [];
+  let externalVehicles = [], peopleIndex = new SpatialGrid(8);
+  const peopleStats = { count: 0, cells: 0, queries: 0, lastCandidates: 0, maxCandidates: 0, blocked: 0 };
+  function blockedByPeople() { peopleStats.blocked++; return false; }
+  // Geometry is refreshed once by the controller, never by per-car snapshots.
+  // Down adults remain bodies; their state owner explicitly marks absent bodies inactive.
+  function setExternalPeople(list = []) {
+    peopleIndex = new SpatialGrid(8);
+    let count = 0;
+    for (const person of Array.isArray(list) ? list : []) {
+      if (count >= 256) break;
+      if (!person || typeof person.id !== 'string' || person.active === false ||
+        ![person.x, person.z].every(Number.isFinite)) continue;
+      const radius = person.radius === undefined ? 0.35 : person.radius;
+      if (!Number.isFinite(radius) || radius < 0.1 || radius > 2 ||
+        person.x < bounds.minX - radius || person.x > bounds.maxX + radius ||
+        person.z < bounds.minZ - radius || person.z > bounds.maxZ + radius) continue;
+      const body = { id: person.id, x: person.x, z: person.z, radius };
+      peopleIndex.insert(body, body.x - radius, body.z - radius, body.x + radius, body.z + radius);
+      count++;
+    }
+    peopleStats.count = count; peopleStats.cells = peopleIndex.cells.size; peopleStats.lastCandidates = 0;
+    return count;
+  }
+  function personLocal(person, pose) {
+    const dx = person.x - pose.x, dz = person.z - pose.z;
+    return { x: Math.cos(pose.yaw) * dx - Math.sin(pose.yaw) * dz,
+      z: -Math.sin(pose.yaw) * dx - Math.cos(pose.yaw) * dz };
+  }
+  function boxDistance(point, halfWidth, halfLength) {
+    const x = Math.abs(point.x) - halfWidth, z = Math.abs(point.z) - halfLength;
+    return Math.hypot(Math.max(0, x), Math.max(0, z)) + Math.min(0, Math.max(x, z));
+  }
+  // Exact minimum distance from a segment to the full rectangle, including corners.
+  function segmentBoxDistance(a, b, halfWidth, halfLength) {
+    let lo = 0, hi = 1;
+    for (const [start, delta, extent] of [[a.x, b.x-a.x, halfWidth], [a.z, b.z-a.z, halfLength]]) {
+      if (Math.abs(delta) < 1e-12) { if (Math.abs(start) > extent) { lo = 1; hi = 0; break; } }
+      else {
+        const u = (-extent-start)/delta, v = (extent-start)/delta;
+        lo = Math.max(lo, Math.min(u,v)); hi = Math.min(hi, Math.max(u,v));
+      }
+    }
+    if (lo <= hi) return 0;
+    let distance = Math.min(boxDistance(a,halfWidth,halfLength),boxDistance(b,halfWidth,halfLength));
+    for (const x of [-halfWidth,halfWidth]) for (const z of [-halfLength,halfLength]) {
+      distance = Math.min(distance,projectSegment(x,z,[a.x,a.z],[b.x,b.z]).distance);
+    }
+    return distance;
+  }
+  function peopleVehicleClear(pose, length, width, fromPose, ignorePersonId) {
+    const travel = fromPose ? Math.hypot(pose.x-fromPose.x,pose.z-fromPose.z) : 0;
+    if (fromPose && (![fromPose.x,fromPose.z,fromPose.yaw].every(Number.isFinite) || travel > 64)) return blockedByPeople();
+    const turn = fromPose ? angleDelta(fromPose.yaw,pose.yaw) : 0, corner = Math.hypot(length,width)/2;
+    const queryX = fromPose ? (pose.x+fromPose.x)/2 : pose.x, queryZ = fromPose ? (pose.z+fromPose.z)/2 : pose.z;
+    const people = peopleIndex.query(queryX,queryZ,travel/2+corner+2);
+    peopleStats.queries++; peopleStats.lastCandidates = people.size;
+    peopleStats.maxCandidates = Math.max(peopleStats.maxCandidates,people.size);
+    for (const person of people) {
+      if (person.id === ignorePersonId) continue;
+      const end = personLocal(person,pose), endDepth = person.radius-boxDistance(end,width/2,length/2);
+      if (!fromPose) { if (endDepth > 1e-9) return blockedByPeople(); continue; }
+      const prior = personLocal(person,fromPose);
+      let priorDepth = person.radius-boxDistance(prior,width/2,length/2);
+      if (Math.abs(turn) < 1e-10) {
+        if (priorDepth > 1e-9) {
+          // Permit only travel directly out of an existing body contact, never through it.
+          const epsilon = 1e-5, near = {x:prior.x+(end.x-prior.x)*epsilon,z:prior.z+(end.z-prior.z)*epsilon};
+          if (endDepth >= priorDepth-1e-9 || boxDistance(near,width/2,length/2) < boxDistance(prior,width/2,length/2)-1e-10) return blockedByPeople();
+        } else if (segmentBoxDistance(prior,end,width/2,length/2) < person.radius-1e-9) return blockedByPeople();
+        continue;
+      }
+      // Bound each swept corner arc to 2cm. The inflated clear-body test covers
+      // the intervening rotation too, rather than checking only sampled headings.
+      const steps = Math.max(1,Math.ceil((travel+Math.abs(turn)*corner)/0.02));
+      const margin = (travel+Math.abs(turn)*corner)/steps/2;
+      for (let i=1;i<=steps;i++) {
+        const t=i/steps, sample = {x:fromPose.x+(pose.x-fromPose.x)*t,z:fromPose.z+(pose.z-fromPose.z)*t,yaw:fromPose.yaw+turn*t};
+        const local=personLocal(person,sample), depth=person.radius-boxDistance(local,width/2,length/2);
+        if (Math.max(priorDepth,depth)+margin > 1e-9) return blockedByPeople();
+        priorDepth=depth;
+      }
+    }
+    return true;
+  }
   const stopRequests = new Map();
   function setExternalVehicles(list = []) {
     externalVehicles = list.filter(car => car && typeof car.id === 'string' &&
@@ -224,10 +307,11 @@ export function createSimulation(map, options = {}) {
     }
     return true;
   }
-  function canOccupy(pose, { ignoreId = pose?.id, ...options } = {}) {
+  function canOccupy(pose, { ignoreId = pose?.id, fromPose, ignorePersonId, ...options } = {}) {
     let { length, width } = vehicleSize(pose, options);
     if (!staticVehicleClear(pose, { length, width })) return false;
     length = clamp(length, 1, 16); width = clamp(width, 0.5, 4);
+    if (!peopleVehicleClear(pose,length,width,fromPose,ignorePersonId)) return false;
     return ![player, ...traffic, ...parkedIndex.query(pose.x,pose.z,Math.hypot(length,width)/2+4), ...abandonedCars, ...externalVehicles].some(car =>
       car !== pose && car.id !== ignoreId && car.active !== false && vehicleOverlap(pose, length, width, car));
   }
@@ -240,7 +324,7 @@ export function createSimulation(map, options = {}) {
     let blocked = scale < 1;
     for (let i = 0; i < steps; i++) {
       const pose = { x: vehicle.x + dx / steps, z: vehicle.z + dz / steps, yaw: vehicle.yaw };
-      if (!canOccupy(pose, { length, width, ignoreId: vehicle.id })) { blocked = true; break; }
+      if (!canOccupy(pose, { length, width, ignoreId: vehicle.id, fromPose: vehicle })) { blocked = true; break; }
       vehicle.x = pose.x; vehicle.z = pose.z;
     }
     const distance = Math.hypot(vehicle.x - startX, vehicle.z - startZ);
@@ -553,14 +637,18 @@ export function createSimulation(map, options = {}) {
         for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
           const nextPose = { x: car.x, z: car.z, yaw: car.yaw + turn / turnSteps,
             modelId: car.modelId, length: car.length, width: car.width };
-          if (!canOccupy(nextPose, { ignoreId: car.id })) break;
+          if (!canOccupy(nextPose, { ignoreId: car.id, fromPose: car })) break;
           car.yaw = nextPose.yaw;
         }
       }
     }
   }
   function resolveImpact(nx, nz, depth) {
-    player.x += nx * depth; player.z += nz * depth;
+    const correction = { x: player.x + nx * depth, z: player.z + nz * depth, yaw: player.yaw };
+    const body = vehicleSize(player);
+    if (peopleVehicleClear(correction,body.length,body.width,player)) {
+      player.x = correction.x; player.z = correction.z;
+    }
     const impact = player.vx * nx + player.vz * nz;
     if (impact < 0) {
       player.vx -= impact * nx * 1.15; player.vz -= impact * nz * 1.15;
@@ -594,7 +682,7 @@ export function createSimulation(map, options = {}) {
     for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
       const nextPose = { x: player.x, z: player.z, yaw: player.yaw + turn / turnSteps,
         modelId: player.modelId, length: player.length, width: player.width };
-      if (!canOccupy(nextPose, { ignoreId: player.id })) break;
+      if (!canOccupy(nextPose, { ignoreId: player.id, fromPose: player })) break;
       player.yaw = nextPose.yaw;
     }
     player.yaw = Math.atan2(Math.sin(player.yaw), Math.cos(player.yaw));
@@ -715,6 +803,7 @@ export function createSimulation(map, options = {}) {
     return true;
   }
   return { player, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, nearestRoad, setParkedCars,
-    setExternalVehicles, canOccupy, moveVehicle, requestVehicleStop,
+    setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop,
+    get peopleContacts() { return Object.freeze({ ...peopleStats }); },
     setPlayerVehicle, nearbyVehicles, claimVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
 }
