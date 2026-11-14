@@ -166,7 +166,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       };
       const activity=(label,type,blocked=false)=>{
         const b=actionButton(label,()=>{const r=feedback(progression.startActivity(site.id,type,context()));if(r.ok)closeDialogs();else renderServices();});
-        b.dataset.serviceActivity=type;b.disabled=!available||!!progression.state.activeJob||blocked;row.append(b);
+        b.dataset.serviceActivity=type;b.disabled=!available||!!progression.state.activeJob||blocked;b.dataset.reason=!available?reason:progression.state.activeJob?'Finish your active job first.':blocked?(progression.state.robberyCooldowns[site.id]>0?'The till is recovering.':'Equip an owned firearm first.'):'';b.title=b.dataset.reason;row.append(b);
       };
       if(site.type==='food'||site.type==='retail'){
         if(site.type==='food')purchase(`Food ${money(site.price)} · +${site.heal} health`,'food',site.price,ctx.health>=100?'Health is full.':'');
