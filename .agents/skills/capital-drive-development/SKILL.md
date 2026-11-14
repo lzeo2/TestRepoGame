@@ -14,7 +14,8 @@ Read repository `AGENTS.md`, `docs/CODE_QUALITY.md`,
 `docs/capital-drive-precinct-character-contract.md` and
 `docs/capital-drive-district-sources.md`,
 `docs/capital-drive-living-interiors-contract.md` and
-`docs/capital-drive-living-sources.md`.
+`docs/capital-drive-living-sources.md` and
+`docs/capital-drive-unlock-contract.md`.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -99,3 +100,11 @@ station and session, and writes through the existing career save. No passive
 workout timer or Free-roam activity may bank progression. X+Y held with timed
 ArrowUp presses controls the six-rep bench. Q starts the nearby task; T opens
 the hire phone. The active room's people and geometry must dispose on leave.
+
+
+Vehicle unlock changes use `vehicle-challenges.js` for supplied clocks/edges and
+the normal gameplay/controller owners for admission, claims and offences. Run
+the focused `--browser --theft-browser --output` flow for visible cues and actual
+scooter/car inputs. `--dev-browser` retains a bounded pause-entry regression; do
+not publish configured inputs in UI/help/receipts. The full source runner includes
+the new challenge, car and scooter-controller authority suites.

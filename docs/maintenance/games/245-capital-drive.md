@@ -19,7 +19,7 @@ artwork or branded vehicle assets are used.
   reactive traffic cars (cap 56), bounded overtaking/road rage, vehicle claims,
   parked/abandoned descriptors, polygon line of sight and safe teleport.
 - `gameplay.js`: foot/sprint/jump, car entry/theft, fists/pistol/aim/reload,
-  health, witnessed offences, timed carjacking and delayed recovery. `police.js`
+  health, witnessed offences, eight-cue car locks and delayed recovery. `police.js`
   owns up to four road patrols, dismounted officers, sight/search/escape and arrest.
 - `progression.js`: recurring ordered jobs, costs/rewards/unlocks, owned garage,
   condition-preserving retrieval, food/gun/ammo purchases, playable fitness/paid work, timed robbery,
@@ -57,7 +57,9 @@ artwork or branded vehicle assets are used.
 Choose Campaign, Street Life or Free roam, then start beside Telopea Park School. WASD or
 arrows drive/walk, Shift boosts/sprints, Space handbrakes/jumps. **E** stops then
 exits a moving car, enters a nearby empty car, or starts taking an occupied car.
-An occupied car must brake and stay close through the 1.8 second taking action.
+Unfamiliar parked and occupied cars require an eight-key timed unlock sequence.
+Occupied drivers must stop first; remain close and visible throughout. Cars you
+have already driven stay unlocked for immediate re-entry. **E** cancels an attempt.
 **1/2** chooses fists/owned pistol; purchase the pistol at the supplies outlet first;
 right mouse aims, left mouse attacks/fires, F melees and R reloads on foot.
 **Q** starts the nearby interior mini-game or paid shop task; **T** opens the
@@ -144,6 +146,36 @@ OFL font remain. All runtime data/imports/assets are local; developer caches and
 browser/geodata tooling stay outside the repository.
 
 ## Audit findings
+
+### Visible cues and distributed vehicle locks, 14 November 2026
+
+The later [unlock contract](../../capital-drive-unlock-contract.md) and
+[verification receipt](../../verification/capital-drive-unlocks-2026-11-14.md) supersede the
+three-stand fleet and automatic taking timer below. Every mini-game exposes its
+full sequence, completed/current tiles, a large current-key cue and response-time
+bar. Stock sequences remain visible while repeating. Bench still requires held
+X+Y with timed ArrowUp; Q starts indoor games. E cancels; P/Esc pauses.
+
+The phone offers the nearest eight rides. Scooters may be hired or hacked through
+four 1.4-second cues; unfamiliar cars need eight 1-second cues with a stricter
+mistake limit. Time/held-key spam cannot unlock anything. The controller requires
+the exact live completion session/target, close visible reach and the correct
+mode before making a one-time claim. Interrupted, failed, moving, remote or
+recovery attempts cannot claim a vehicle. Theft uses existing witnessed offences;
+Free roam remains a sandbox. A used car's unlocked descriptor permits re-entry.
+
+Lemons now total56 physical assets across33 deterministic points in ten areas,
+including Manuka, Kingston, Griffith, Narrabundah, Red Hill, Barton and Civic/lake
+approaches. Source-derived footpath estimates avoid lanes, buildings, water,
+restricted/sensitive areas and known approaches. These are fictional placements,
+not actual fleet coordinates. Nearest24 within180m render in at most5 batches;
+vehicles are parked singly/in pairs rather than on large docks.
+
+Pause also has a collapsed optional developer entry. Its configured value is not
+advertised in UI or these instructions. Input is masked/cleared; the existing
+capped wallet and save writer own changes. Invalid inputs and sandbox/recovery
+cannot alter it; reload preserves valid state without replacing career progress.
+The focused browser check observes the actual form action, not mission earnings.
 
 ### Living interiors, hire rides and paid work, 14 November 2026
 
@@ -308,7 +340,7 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The reusable runner checks44authored modules and36pure suites (117commands), fails
+The reusable runner checks45authored modules and40pure suites (126commands), fails
 on missing files or actual command errors and bounds subprocess lifetimes. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
 unavailable WebGL, denied storage and hidden teleport guards. Actual-map physics
