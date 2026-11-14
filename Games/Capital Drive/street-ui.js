@@ -1,6 +1,6 @@
 // DOM adapter only. World movement, career time and persistence belong to the controller.
 export function createStreetUI({ gameplay, progression, simulation, vehicles, notify,
-  openDialog, closeDialogs, onVehicleSelected, onRoute, saveCareer, isSandbox,campaign,isCampaign=()=>false,onJobs,interactionHint=()=>null }) {
+  openDialog, closeDialogs, onVehicleSelected, onRoute, saveCareer, isSandbox,campaign,isCampaign=()=>false,onJobs,interactionHint=()=>null,onWorkout }) {
   const byId = id => document.getElementById(id);
   const cleanups = [];
   const sandbox = () => Boolean(isSandbox());
@@ -166,7 +166,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       }else if(site.type==='gym'){
         const price=site.price*(progression.state.fitnessLevel+1);
         detail.textContent+=` · Fitness ${progression.state.fitnessLevel}/3`;
-        activity(`Train ${money(price)} · 8s`,'workout',ctx.wanted>0||progression.state.fitnessLevel>=3||progression.state.cash<price);
+        const train=actionButton('Use the bench',()=>onWorkout?.());train.disabled=sandbox()||!available||ctx.wanted>0;row.append(train);
       }else{
         purchase(`Pistol ${money(site.price)}`,'pistol',site.price,progression.state.equipment.pistol);
         purchase(`24 rounds ${money(site.ammoPrice)}`,'ammo',site.ammoPrice,!progression.state.equipment.pistol||ctx.reserveAmmo>96);

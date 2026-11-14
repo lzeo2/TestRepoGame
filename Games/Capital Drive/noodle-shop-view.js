@@ -35,31 +35,33 @@ export function createNoodleShopView(scene,heightAt) {
     const points=[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]].map(p=>{const q=point(x+p[0],0,out+p[1]);return Object.freeze([q.x,q.z]);});
     obstacles.push(Object.freeze({id:`noodle-furniture-${obstacles.length}`,kind:'cafe-furniture',height:.8,points:Object.freeze(points)}));
   }
-  // A shallow exterior set remains in front of the exact Civic footprint.
-  box(0xd2b485,0,1.46,.075,width,2.92,.10);
-  box(0x6b251f,0,3.22,.16,width, .62,.22);
-  box(0x9f3d2c,0,2.87,.71,width+.06,.13,1.34);
-  box(0x3c3029,0,2.96,.10,width,.08,.12);
-  box(0xb98a55,0,3.58,.15,width+.05,.12,.18);
+  // Canberra EG11C photo: charcoal surround, oxblood fascia, cream transom,
+  // black glazing frames and a flush soffit. Door alignment remains source-derived.
+  box(0x303236,0,1.46,.075,width,2.92,.10);
+  box(0x551d25,0,3.13,.16,width,.48,.22);
+  box(0x292b2e,0,2.87,.17,width,.09,.24);
+  box(0xd3bb85,0,3.47,.15,width-.16,.20,.18);
+  box(0x27292b,0,3.61,.15,width+.05,.06,.18);
   for(const side of [-1,1]) {
     const x=side*(width/2-.14);
-    box(0x9c6f42,x,1.48,.18,.24,2.96,.22);
-    for(let k=0;k<4;k++)box(0xd1ad72,x+(k-1.5)*.04,1.48,.301,.018,2.84,.028);
+    box(0x34373a,x,1.48,.18,.24,2.96,.22);
+    for(let k=0;k<10;k++)box(0x262a2d,x, .17+k*.28,.301,.24,.012,.015);
   }
-  // Two display bays suggest the inspected warm timber/orange/blue interior palette.
+  // Full-height black-framed glazing reveals warm timber; the left bay contains
+  // the pale preparation counter seen in the Canberra chef display window.
   const bayWidth=(width-1.65)/2;
   for(const side of [-1,1]) {
     const x=side*(.78+bayWidth/2);
-    box(0x283639,x,1.48,.19,bayWidth,2.32,.16);
-    box(0xc5a46e,x,1.49,.282,bayWidth-.12,2.14,.025);
-    box(0xe7d8b7,x,1.71,.30,bayWidth-.2,1.50,.018,glowing);
-    box(0xb98650,x,2.32,.324,bayWidth-.16,.11,.035);
-    box(0xcd6732,x,.63,.34,bayWidth-.20,.48,.06);
-    box(0x8e552f,x,.34,.34,bayWidth-.18,.10,.08);
-    for(let k=0;k<7;k++)box(0xa57945,x-bayWidth/2+.18+k*(bayWidth-.36)/6,1.77,.329,.035,1.02,.025);
-    box(0x304c60,x,.49,.37,.43,.11,.08);
-    box(0x304b50,x,1.46,.40,.045,2.20,.045);
-    box(0x829c91,x,1.73,.411,bayWidth-.18,.035,.012,glowing);
+    box(0x25292c,x,1.48,.19,bayWidth,2.60,.16);
+    box(0xa58c61,x,1.49,.282,bayWidth-.12,2.45,.025);
+    box(0xb9ac83,x,1.69,.30,bayWidth-.2,1.94,.018,glowing);
+    box(0xe2c17b,x,2.58,.324,bayWidth-.16,.045,.035,glowing);
+    box(side<0?0x9baba7:0xca743e,x,.69,.34,bayWidth-.20,.68,.06);
+    box(side<0?0xc5cdca:0x9c784f,x,1.05,.34,bayWidth-.18,.065,.08);
+    for(let k=0;k<7;k++)box(0xad915f,x-bayWidth/2+.18+k*(bayWidth-.36)/6,2.12,.329,.030,.83,.025);
+    box(0x243a4a,x,.49,.37,.43,.11,.08);
+    box(0x292d2f,x,1.46,.40,.045,2.55,.045);
+    box(0xc3d0c5,x,1.73,.411,bayWidth-.18,.025,.012,glowing);
   }
   // Central glass double door stays visually clear; E performs the separate room transition.
   box(0x283639,0,1.39,.26,1.34,2.78,.16);
@@ -113,8 +115,8 @@ export function createNoodleShopView(scene,heightAt) {
     }
     lettering.push(g);
   }
-  text(0,0,3.22,.279,width-.26,.53);
-  text(1,0,2.88,1.389,width-.45,.11);
+  text(0,0,3.13,.279,width-.26,.40);
+  text(1,0,2.87,.299,width-.45,.075);
   text(2,-width/2+.55,1.85,.491,.45,.19);
   text(3,width/2-.55,1.85,.491,.45,.19);
   text(4,.43,.66,.421,.26,.17);

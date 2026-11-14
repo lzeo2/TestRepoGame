@@ -6,7 +6,7 @@ const threeURL=url(await read('../assets/car-arcade/vendor/three.module.js'));
 const THREE=await import(threeURL);
 const utilsURL=url((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace("'./three.module.js'",JSON.stringify(threeURL)));
 const storesURL=url(await read('../Games/Capital Drive/stores.js'));
-const servicesURL=url((await read('../Games/Capital Drive/services.js')).replace("'./stores.js'",JSON.stringify(storesURL)));
+const servicesURL=url((await read('../Games/Capital Drive/services.js')).replace("'./stores.js'",JSON.stringify(storesURL)).replace("'./civic-extras.js'",JSON.stringify(url(await read('../Games/Capital Drive/civic-extras.js')))));
 const {GENERIC_SERVICES:SERVICES}=await import(servicesURL);
 const {createServicesView}=await import(url((await read('../Games/Capital Drive/services-view.js'))
   .replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL))

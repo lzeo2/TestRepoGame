@@ -304,3 +304,34 @@ Use `--browser --priority-shop-browser --output <fresh-external-directory>` for
 source search, normal E entry, restaurant detail/counter/exit, sandbox denial,
 culling, errors and a fresh corrected Civic-sign frame. This focused flow does
 not replace the full district or hardware checks.
+
+
+## Living Civic and paid work
+
+Read `docs/capital-drive-living-sources.md` before changing the restaurant, five
+Civic extras or skate park. Rebuild Civic extras twice using the pinned north
+OSM and ACT caches, external outputs and `build_capital_civic_extras.py`; compare
+JSON and module bytes. Exact ACT park boundaries govern both facade/roof cuts and
+physics; ramp height and rail descriptors are shared with rendering. Test a car
+near an inner boundary as well as walking clearance: resolving towards the old
+outer facade can throw a stationary car across the building.
+
+Every lazy room has frozen furniture-linked activity stations. Keep mini-game
+clocks and input in `interior-activities.js`, bounded active NPCs in
+`interior-people.js`, and cash in Progression. Start a paid noodle/stock shift only
+after the real activity session starts. Completion must verify its exact live
+room, station, session, player reach and terminal result. Cancel, respawn, wanted,
+leaving and sandbox mode cannot pay. Bank the event once through the existing
+career writer. Rental fees similarly use a synchronous validated one-time payment
+callback, never an independent wallet. Pickup requires the real nearby asset;
+movement uses the normal collision path and stopping ends the ride in place.
+
+Run `test_capital_work_jobs.mjs` and `test_capital_skate_opening.mjs` for these
+boundaries; the main runner includes both. For a full new interior/rental player
+flow use `check_capital_drive.py --browser --living-browser --output` with a fresh
+external directory. The suite uses read-only diagnostics for observation, normal
+Free-roam map controls for travel and actual keyboard/mouse input for play.
+Paid career guard regressions do not substitute for native career-play evidence.
+Keep optional actor.y distinct from measured terrain; an absent optional field
+can serialize as null and is not alone proof of a height failure. Inspect actual
+rendering and a finite ground sampler before changing terrain.

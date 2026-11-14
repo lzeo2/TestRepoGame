@@ -29,6 +29,7 @@ for(const mesh of root.children) {
   const dx=p.getX(i)-f.x,dz=p.getZ(i)-f.z,x=dx*tx+dz*tz,out=dx*nx+dz*nz;
   assert(Math.abs(x)<=f.width/2+.001,'all geometry stays inside allocated nonoverlapping unit');
   assert(out>=.018&&out<1.90,'small exterior overlay stays wholly outside source wall');
+  if(p.getY(i)>ground+2.80)assert(out<.35,'inspected Canberra header stays flush rather than becoming a projecting awning');
   assert(!contains(p.getX(i),p.getZ(i),building.points),'actual source Civic footprint never buries the facade');
   assert(p.getY(i)>=ground-.051&&p.getY(i)<ground+3.65,'bounded facade and pavement height');
  }

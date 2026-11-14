@@ -141,7 +141,23 @@ export function createSimulation(map, options = {}) {
     }
   }
   function physicalContact(index,polygon,x,z,radius){
-    if(index!==waterIndex)return polygonContact(x,z,polygon.points,radius);
+    if(index!==waterIndex){
+      for(const hole of polygon.innerRings||[]){
+        const ring=hole.points||hole;
+        if(!insideRing(x,z,ring))continue;
+        let contact=null;
+        for(let i=0;i<ring.length;i++){
+          const edge=projectSegment(x,z,ring[i],ring[(i+1)%ring.length]);
+          if(edge.distance>=radius||!insideRing(edge.x,edge.z,polygon.points))continue;
+          const d=Math.max(edge.distance,1e-9);
+          if(!contact||radius-edge.distance>contact.depth)contact={nx:(x-edge.x)/d,nz:(z-edge.z)/d,depth:radius-edge.distance};
+        }
+        // A courtyard contact resolves towards its open interior, rather than
+        // towards the original building's distant outer facade.
+        return contact;
+      }
+      return polygonContact(x,z,polygon.points,radius);
+    }
     if(options.isOnBridge?.(x,z,radius))return null;
     const holes=(polygon.innerRings||[]).map(r=>r.points||r);
     const cx=Math.floor(x/128),cz=Math.floor(z/128),key=`${cx},${cz}`;
@@ -502,7 +518,7 @@ export function createSimulation(map, options = {}) {
       player.vx *= 0.4; player.vz *= 0.4;
     }
     for (const building of [...buildingIndex.query(player.x, player.z, 2),...barrierIndex.query(player.x,player.z,2)]) {
-      const contact = polygonContact(player.x, player.z, building.points, 1.55);
+      const contact = physicalContact(buildingIndex,building,player.x,player.z,1.55);
       if (contact) resolveImpact(contact.nx, contact.nz, contact.depth + 0.02);
     }
     for (const car of [...parkedIndex.query(player.x, player.z, 1.55), ...abandonedCars]) {
@@ -592,7 +608,7 @@ export function createSimulation(map, options = {}) {
     if (distance > 1500) return false;
     const polygons = buildingIndex.query((a.x + b.x) / 2, (a.z + b.z) / 2, distance / 2 + 1);
     for (const polygon of polygons) {
-      if (polygonContact(a.x, a.z, polygon.points, 0.001) || polygonContact(b.x, b.z, polygon.points, 0.001)) return false;
+      if (physicalContact(buildingIndex,polygon,a.x,a.z,.001) || physicalContact(buildingIndex,polygon,b.x,b.z,.001)) return false;
       for (let i = 0, j = polygon.points.length - 1; i < polygon.points.length; j = i++) {
         const p = polygon.points[j], q = polygon.points[i];
         const rx = b.x - a.x, rz = b.z - a.z, sx = q[0] - p[0], sz = q[1] - p[1];
@@ -600,7 +616,7 @@ export function createSimulation(map, options = {}) {
         if (Math.abs(cross) < 1e-9) continue;
         const tx = p[0] - a.x, tz = p[1] - a.z;
         const t = (tx * sz - tz * sx) / cross, u = (tx * rz - tz * rx) / cross;
-        if (t >= 0 && t <= 1 && u >= 0 && u <= 1) return false;
+        if (t >= 0 && t <= 1 && u >= 0 && u <= 1 && !(polygon.innerRings||[]).some(h=>insideRing(a.x+rx*t,a.z+rz*t,h.points||h))) return false;
       }
     }
     return true;

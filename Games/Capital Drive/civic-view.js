@@ -1,3 +1,4 @@
+import {SKATE_BUILDING_OPENING,carveSkatePolygon,splitSkateSegment} from './civic-extras.js';
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { roadProfile } from './road-network.js';
 
@@ -58,11 +59,16 @@ export function createCivicView(scene,map,heightAt) {
     const base=Math.max(...points.map(p=>finiteHeight(...p)))+.12;
     const connector=building.id==='osm-584970595',low=base+(connector?3.2:0),top=base+building.height;
     for(const face of THREE.ShapeUtils.triangulateShape(points.map(p=>new THREE.Vector2(...p)),[])) {
-      const p=face.map(i=>[points[i][0],top,points[i][1]]);tri(body,p[2],p[1],p[0],0xb0b4af);
+      const flat=face.map(i=>points[i]);
+      const pieces=building.id===SKATE_BUILDING_OPENING.buildingId?carveSkatePolygon(flat):[flat];
+      for(const piece of pieces)for(const f of THREE.ShapeUtils.triangulateShape(piece.map(p=>new THREE.Vector2(...p)),[])){const p=f.map(i=>[piece[i][0],top,piece[i][1]]);tri(body,p[2],p[1],p[0],0xb0b4af);}
+      const p=face.map(i=>[points[i][0],top,points[i][1]]);
       if(connector)tri(body,[p[0][0],low,p[0][2]],[p[1][0],low,p[1][2]],[p[2][0],low,p[2][2]],0x868b84);
     }
     for(let i=0;i<points.length;i++) {
-      const a=points[i],b=points[(i+1)%points.length],length=Math.hypot(b[0]-a[0],b[1]-a[1]);if(length<.02)continue;
+      const spans=building.id===SKATE_BUILDING_OPENING.buildingId?splitSkateSegment(points[i],points[(i+1)%points.length]):[[points[i],points[(i+1)%points.length]]];
+      for(const [a,b] of spans){
+      const length=Math.hypot(b[0]-a[0],b[1]-a[1]);if(length<.02)continue;
       const tx=(b[0]-a[0])/length,tz=(b[1]-a[1])/length,nx=tz,nz=-tx;
       wall(body,a,b,connector?low:Math.min(finiteHeight(...a),finiteHeight(...b))-.15,connector?low:Math.min(finiteHeight(...a),finiteHeight(...b))-.15,top,top,0xcac6b8);
       const offset=(p,d)=>[p[0]+nx*d,p[1]+nz*d],u=offset(a,.04),v=offset(b,.04);
@@ -81,6 +87,7 @@ export function createCivicView(scene,map,heightAt) {
         }
         facadeSpans++;
       }
+    }
     }
     if(building.id==='osm-46081156') {
       sign(approachEdge[0],approachEdge[1],base+3.65,0,16);
