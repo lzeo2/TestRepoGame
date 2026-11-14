@@ -185,7 +185,9 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
         }
       }
       if(site.dealer){const tag=document.createElement('span');tag.className='eyebrow';tag.textContent='Street contact';entry.append(tag);}
-      entry.append(title,detail,status,row);container.append(entry);
+      if(site.type==='arms'){const navigation=document.createElement('div');navigation.className='button-row';navigation.append(route);entry.append(title,detail,status,navigation,row);}
+      else entry.append(title,detail,status,row);
+      container.append(entry);
     }
   }
   listen('services-filter','change',renderServices);

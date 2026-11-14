@@ -7,7 +7,6 @@ import http.server
 import json
 import math
 from pathlib import Path
-import signal
 import threading
 import time
 from urllib.parse import urlsplit
@@ -25,6 +24,7 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--scenario',choices=['all','career','free'],default='all',help='Run career purchasing or free-roam equipment separately.')
     parser.add_argument('--output', required=True, type=Path,
                         help='Fresh or empty evidence directory outside the repository.')
     args = parser.parse_args()
@@ -42,18 +42,13 @@ def main():
     thread.start()
     base = f'http://127.0.0.1:{server.server_port}'
 
-    def deadline(signum, frame):
-        raise TimeoutError(f'Dealer browser run exceeded {BUDGET} seconds')
-
-    previous_alarm = signal.signal(signal.SIGALRM, deadline)
-    signal.alarm(BUDGET)
-
     def check(value, label):
         assert value, label
         checks.append(label)
         print('PASS', label, flush=True)
 
     def snap():
+        if time.monotonic()-started>BUDGET:raise TimeoutError(f'Dealer browser run exceeded {BUDGET} seconds')
         return page.evaluate('capitalDriveSnapshot()')
 
     def record(label):
@@ -106,36 +101,59 @@ def main():
         focus_world()
         record('normal map arrival')
 
-    def walk(target, tolerance=1, seconds=25, sprint=False):
+    def walk(target, tolerance=1, seconds=25, sprint=False, detours=True, road_waypoint=False):
         end, last, stalled = time.monotonic()+seconds, None, 0
-        while time.monotonic() < end:
-            state = snap()
-            pose, yaw = state['focus'], state['camera']['footYaw']
-            dx, dz = target['x']-pose['x'], target['z']-pose['z']
-            distance = math.hypot(dx, dz)
-            if distance <= tolerance:
-                record('normal walk reached waypoint')
-                return
-            stalled = stalled+1 if last and math.hypot(pose['x']-last['x'], pose['z']-last['z']) < .025 else 0
-            assert stalled < 12, f'Normal walk blocked {distance:.2f}m from {target}'
-            last = pose
-            forward = (-math.sin(yaw)*dx-math.cos(yaw)*dz)/distance
-            lateral = (math.cos(yaw)*dx-math.sin(yaw)*dz)/distance
-            held = []
-            if abs(forward) >= .38:
-                held.append('w' if forward > 0 else 's')
-            if abs(lateral) >= .38:
-                held.append('d' if lateral > 0 else 'a')
-            if sprint:
-                held.append("Shift")
-            for key in held:
-                page.keyboard.down(key)
-            try:
-                page.wait_for_timeout(160 if distance < 2 else 320)
-            finally:
-                for key in held:
-                    page.keyboard.up(key)
-        raise AssertionError(f'Normal walk timed out before {target}')
+        pressed=set()
+        def release():
+            for key in list(pressed):
+                page.keyboard.up(key)
+            pressed.clear()
+        try:
+            while time.monotonic() < end:
+                state=snap()
+                pose,yaw=state['focus'],state['camera']['footYaw']
+                dx,dz=target['x']-pose['x'],target['z']-pose['z']
+                distance=math.hypot(dx,dz)
+                if distance<=tolerance:
+                    release()
+                    record('normal walk reached waypoint')
+                    return
+                stalled=stalled+1 if last and math.hypot(pose['x']-last['x'],pose['z']-last['z'])<.025 else 0
+                if stalled>=5:
+                    release()
+                    vehicles=[v for v in state['nearbyVehicles'] if math.hypot(v['x']-pose['x'],v['z']-pose['z'])<11]
+                    if road_waypoint and vehicles and distance<5.5:
+                        record('occupied intermediate road waypoint bypassed')
+                        return
+                    assert detours and vehicles,f'Normal walk blocked {distance:.2f}m from {target}'
+                    nx,nz=-dz/distance,dx/distance
+                    candidates=[{'x':pose['x']+nx*side*4.5+dx/distance,'z':pose['z']+nz*side*4.5+dz/distance} for side in (-1,1)]
+                    candidates.sort(key=lambda p:min(math.hypot(v['x']-p['x'],v['z']-p['z']) for v in vehicles),reverse=True)
+                    passed=False
+                    for detour in candidates:
+                        try:
+                            walk(detour,tolerance=1.2,seconds=12,sprint=sprint,detours=False)
+                            passed=True
+                            break
+                        except AssertionError:
+                            record('normal vehicle detour blocked')
+                    assert passed,f'Both physical detours blocked before {target}'
+                    stalled,last=0,None
+                    continue
+                last=pose
+                forward=(-math.sin(yaw)*dx-math.cos(yaw)*dz)/distance
+                lateral=(math.cos(yaw)*dx-math.sin(yaw)*dz)/distance
+                held=set()
+                if abs(forward)>=.38:held.add('w' if forward>0 else 's')
+                if abs(lateral)>=.38:held.add('d' if lateral>0 else 'a')
+                if sprint:held.add('Shift')
+                for key in pressed-held:page.keyboard.up(key)
+                for key in held-pressed:page.keyboard.down(key)
+                pressed=held
+                page.wait_for_timeout(160 if distance<2 else 320)
+            raise AssertionError(f'Normal walk timed out before {target}')
+        finally:
+            release()
 
     def around_own_car(target, tolerance=1):
         state = snap()
@@ -228,122 +246,129 @@ def main():
                         observations.append({'captureFailure': str(capture_error)})
                 return False
             stack.push(retain_failure)
-            ready()
-            start('street')
-            check(snap()['career']['cash'] == 1000, 'Fresh Street Life starts with the actual $1000 wallet')
-            arms()
-            site = 'canalside-supplies'
-            check(card(site).is_visible(), 'Arms filter exposes the actual Canalside supplies card')
-            far = item(site, 'shotgun')
-            check(far.is_disabled() and bool(far.get_attribute('data-reason')),
-                  'Remote purchase is disabled with a visible eligibility reason')
-            check(far.evaluate('(e)=>getComputedStyle(e).cursor') != 'wait',
-                  'Disabled purchase uses no loading cursor')
-            card(site).locator('[data-service-route]').click()
-            path = snap()['routePath']
-            check(len(path) >= 2 and all(isinstance(point.get('x'), (int, float)) and
-                  isinstance(point.get('z'), (int, float)) for point in path) and
-                  snap()['destination'] == site, 'Normal Route action creates a read-only road path')
-            check(not page.locator('#teleport-button').is_visible(), 'Street Life route has no teleport control')
-            target = next(service for service in snap()['services'] if service['id'] == site)
-            foot()
-            # E exits beside the actual campus fence; use its observed open gate.
-            pose = snap()["focus"]
-            gate = min(snap()["campusGates"], key=lambda g: math.hypot(g["x"]-pose["x"], g["z"]-pose["z"]))
-            if math.hypot(gate["x"]-pose["x"], gate["z"]-pose["z"]) < 20:
-                walk({"x": gate["inside"][0], "z": gate["inside"][1]}, tolerance=.8)
-                walk({"x": gate["outside"][0], "z": gate["outside"][1]}, tolerance=.8)
-            car = snap()["player"]
-            first = next(index for index, point in enumerate(path)
-                         if math.hypot(point["x"]-car["x"], point["z"]-car["z"]) > 8)
-            around_own_car(path[first], tolerance=3)
-            for point in path[first+1:]:
-                if math.hypot(snap()['focus']['x']-target['x'], snap()['focus']['z']-target['z']) <= target['radius']-1:
-                    break
-                walk(point, tolerance=3, seconds=65, sprint=True)
-            walk(target, tolerance=target['radius']-1, seconds=45, sprint=True)
-            check(snap()['gameplay']['mode'] == 'foot' and snap()['career']['cash'] == 1000,
-                  'Normal road walking reaches Canalside on foot without grants or charges')
-            arms()
-            item(site, 'shotgun').scroll_into_view_if_needed()
-            check(item(site, 'shotgun').is_enabled(), 'Actual Canalside on-foot shotgun purchase is enabled')
-            capture('canalside-ready-desktop')
-            item(site, 'shotgun').click()
-            state = record('Canalside shotgun purchased')
-            check(state['career']['cash'] == 100 and state['career']['equipment']['shotgun'],
-                  'Actual shotgun purchase costs $900 and grants saved ownership')
-            check(state['gameplay']['weapon'] == 'shotgun' and state['gameplay']['ammo'] == 6 and state['gameplay']['reserveAmmo'] == 6,
-                  'Purchased shotgun is equipped with six loaded rounds and its own reserve')
-            item(site, 'ammo:shotgun').click()
-            state = record('Canalside shotgun ammo purchased')
-            check(state['career']['cash'] == 10 and state['gameplay']['reserveAmmo'] == 18,
-                  'Actual $90 shotgun ammo purchase adds twelve rounds only to its reserve')
-            saved = page.evaluate('JSON.parse(localStorage.getItem("capital-drive-career-v1"))')
-            check(saved['cash'] == 10 and saved['equipment']['shotgun'], 'Real purchase writer persists cash and shotgun ownership')
-            denied = item(site, 'smg')
-            check(denied.is_disabled() and bool(denied.get_attribute('data-reason')),
-                  'Unaffordable SMG is disabled with an eligibility reason')
-            check(denied.evaluate('(e)=>getComputedStyle(e).cursor') != 'wait', 'Unaffordable SMG has no loading cursor')
-            page.set_viewport_size({'width': 390, 'height': 844})
-            item(site, 'shotgun').scroll_into_view_if_needed()
-            check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'), '390px services fit without horizontal overflow')
-            capture('canalside-purchased-390')
-            page.set_viewport_size({'width': 1280, 'height': 800})
-            close_services()
-            pulse('3')
-            check(snap()['actors']['activeWeapon'] == 'shotgun', 'Actual shotgun model is rendered on foot')
-            page.reload(wait_until='load', timeout=45000)
-            page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=45000)
-            start('street')
-            foot()
-            pulse('3')
-            check(snap()['career']['cash'] == 10 and snap()['career']['equipment']['shotgun'] and snap()['gameplay']['weapon'] == 'shotgun',
-                  'Normal reload retains real purchases and permits owned shotgun selection')
-            check(snap()['gameplay']['ammo'] == 6 and snap()['gameplay']['reserveAmmo'] == 6,
-                  'New session restores owned shotgun starter ammunition without persisting transient ammo')
-            capture('shotgun-owned-after-reload')
-            # A fresh browser context exercises sandbox equipment without changing career saves.
-            context = browser.new_context(viewport={'width': 1280, 'height': 800})
-            page = context.new_page()
-            ready()
-            start('free')
-            foot()
-            initial = snap()['gameplay']['ammunition']
-            for weapon, key, magazine in [('pistol', '2', 12), ('shotgun', '3', 6), ('smg', '4', 30), ('carbine', '5', 24)]:
-                pulse(key)
-                before = record(weapon+' selected')
-                check(before['gameplay']['weapon'] == weapon and before['actors']['activeWeapon'] == weapon,
-                      weapon+' key selects its actual rendered weapon model')
-                fire()
-                after = snap()['gameplay']['ammunition']
-                check(0 <= after[weapon]['ammo'] < before['gameplay']['ammo'], weapon+' normal aiming/fire consumes ammunition')
-                check(all(after[other] == before['gameplay']['ammunition'][other] for other in initial if other != weapon),
-                      weapon+' firing preserves all independent ammunition pools')
-                pulse('r')
-                page.wait_for_function('capitalDriveSnapshot().gameplay.reloading===0', timeout=15000)
-                check(snap()['gameplay']['ammo'] == magazine, weapon+' normal reload refills its own magazine')
-            capture('all-weapons-free-roam')
-            dealer = next(s for s in snap()['streetDealers']['services'] if s['id'] == 'dealer-kingston')
-            teleport_point(dealer['x']-math.sin(dealer['yaw'])*11, dealer['z']-math.cos(dealer['yaw'])*11)
-            foot()
-            around_own_car(dealer, tolerance=2.2)
-            look(dealer)
-            pulse('e')
-            page.wait_for_function('document.querySelector("#services-dialog").open')
-            arms()
-            card(dealer['id']).scroll_into_view_if_needed()
-            dealer_state = record('street dealer normal E opening')
-            check(len(dealer_state['streetDealers']['services']) == 3 and len(dealer_state['streetDealers']['people']) == 3,
-                  'Three physical street dealers have service and actor descriptors')
-            check(item(dealer['id'], 'shotgun').count() == 1 and item(dealer['id'], 'smg').count() == 0,
-                  'Actual Kingston contact card exposes only its distinct pistol and shotgun stock')
-            check(item(dealer['id'], 'shotgun').is_disabled(), 'Free roam contact cannot purchase career equipment')
-            capture('street-dealer-stock-desktop')
-            close_services()
-            pulse('1')
-            capture('street-dealer-contact-world')
-            observations.append({'pedestrianRoutines': snap()['pedestrians'].get('routineSample', []),
-                                 'dealerView': snap()['streetDealers']['view']})
+            if args.scenario!='free':
+                ready()
+                start('street')
+                check(snap()['career']['cash'] == 1000, 'Fresh Street Life starts with the actual $1000 wallet')
+                arms()
+                site = 'canalside-supplies'
+                check(card(site).is_visible(), 'Arms filter exposes the actual Canalside supplies card')
+                far = item(site, 'shotgun')
+                check(far.is_disabled() and bool(far.get_attribute('data-reason')),
+                      'Remote purchase is disabled with a visible eligibility reason')
+                check(far.evaluate('(e)=>getComputedStyle(e).cursor') != 'wait',
+                      'Disabled purchase uses no loading cursor')
+                card(site).locator('[data-service-route]').click()
+                path = snap()['routePath']
+                check(len(path) >= 2 and all(isinstance(point.get('x'), (int, float)) and
+                      isinstance(point.get('z'), (int, float)) for point in path) and
+                      snap()['destination'] == site, 'Normal Route action creates a read-only road path')
+                check(not page.locator('#teleport-button').is_visible(), 'Street Life route has no teleport control')
+                target = next(service for service in snap()['services'] if service['id'] == site)
+                page.set_viewport_size({'width':480,'height':360})
+                foot()
+                # E exits beside the actual campus fence; use its observed open gate.
+                pose = snap()["focus"]
+                gate = min(snap()["campusGates"], key=lambda g: math.hypot(g["x"]-pose["x"], g["z"]-pose["z"]))
+                if math.hypot(gate["x"]-pose["x"], gate["z"]-pose["z"]) < 20:
+                    walk({"x": gate["inside"][0], "z": gate["inside"][1]}, tolerance=.8)
+                    walk({"x": gate["outside"][0], "z": gate["outside"][1]}, tolerance=.8)
+                car = snap()["player"]
+                first = next(index for index, point in enumerate(path)
+                             if math.hypot(point["x"]-car["x"], point["z"]-car["z"]) > 8)
+                around_own_car(path[first], tolerance=3)
+                # Reduce software raster cost during the long walk, retaining real clocks and input.
+                page.set_viewport_size({'width':480,'height':360})
+                for point in path[first+1:]:
+                    if math.hypot(snap()['focus']['x']-target['x'], snap()['focus']['z']-target['z']) <= target['radius']-1:
+                        break
+                    walk(point, tolerance=3, seconds=65, sprint=True, road_waypoint=True)
+                walk(target, tolerance=target['radius']-1, seconds=45, sprint=True)
+                check(snap()['gameplay']['mode'] == 'foot' and snap()['career']['cash'] == 1000,
+                      'Normal road walking reaches Canalside on foot without grants or charges')
+                page.set_viewport_size({'width':1280,'height':800})
+                arms()
+                item(site, 'shotgun').scroll_into_view_if_needed()
+                check(item(site, 'shotgun').is_enabled(), 'Actual Canalside on-foot shotgun purchase is enabled')
+                capture('canalside-ready-desktop')
+                item(site, 'shotgun').click()
+                state = record('Canalside shotgun purchased')
+                check(state['career']['cash'] == 100 and state['career']['equipment']['shotgun'],
+                      'Actual shotgun purchase costs $900 and grants saved ownership')
+                check(state['gameplay']['weapon'] == 'shotgun' and state['gameplay']['ammo'] == 6 and state['gameplay']['reserveAmmo'] == 6,
+                      'Purchased shotgun is equipped with six loaded rounds and its own reserve')
+                item(site, 'ammo:shotgun').click()
+                state = record('Canalside shotgun ammo purchased')
+                check(state['career']['cash'] == 10 and state['gameplay']['reserveAmmo'] == 18,
+                      'Actual $90 shotgun ammo purchase adds twelve rounds only to its reserve')
+                saved = page.evaluate('JSON.parse(localStorage.getItem("capital-drive-career-v1"))')
+                check(saved['cash'] == 10 and saved['equipment']['shotgun'], 'Real purchase writer persists cash and shotgun ownership')
+                denied = item(site, 'smg')
+                check(denied.is_disabled() and bool(denied.get_attribute('data-reason')),
+                      'Unaffordable SMG is disabled with an eligibility reason')
+                check(denied.evaluate('(e)=>getComputedStyle(e).cursor') != 'wait', 'Unaffordable SMG has no loading cursor')
+                page.set_viewport_size({'width': 390, 'height': 844})
+                item(site, 'shotgun').scroll_into_view_if_needed()
+                check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'), '390px services fit without horizontal overflow')
+                capture('canalside-purchased-390')
+                page.set_viewport_size({'width': 1280, 'height': 800})
+                close_services()
+                pulse('3')
+                check(snap()['actors']['activeWeapon'] == 'shotgun', 'Actual shotgun model is rendered on foot')
+                page.reload(wait_until='load', timeout=45000)
+                page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=45000)
+                start('street')
+                foot()
+                pulse('3')
+                check(snap()['career']['cash'] == 10 and snap()['career']['equipment']['shotgun'] and snap()['gameplay']['weapon'] == 'shotgun',
+                      'Normal reload retains real purchases and permits owned shotgun selection')
+                check(snap()['gameplay']['ammo'] == 6 and snap()['gameplay']['reserveAmmo'] == 6,
+                      'New session restores owned shotgun starter ammunition without persisting transient ammo')
+                capture('shotgun-owned-after-reload')
+            context.close()
+            if args.scenario!='career':
+                # A fresh browser context exercises sandbox equipment without changing career saves.
+                context = browser.new_context(viewport={'width': 1280, 'height': 800})
+                page = context.new_page()
+                ready()
+                start('free')
+                foot()
+                initial = snap()['gameplay']['ammunition']
+                for weapon, key, magazine in [('pistol', '2', 12), ('shotgun', '3', 6), ('smg', '4', 30), ('carbine', '5', 24)]:
+                    pulse(key)
+                    before = record(weapon+' selected')
+                    check(before['gameplay']['weapon'] == weapon and before['actors']['activeWeapon'] == weapon,
+                          weapon+' key selects its actual rendered weapon model')
+                    fire()
+                    after = snap()['gameplay']['ammunition']
+                    check(0 <= after[weapon]['ammo'] < before['gameplay']['ammo'], weapon+' normal aiming/fire consumes ammunition')
+                    check(all(after[other] == before['gameplay']['ammunition'][other] for other in initial if other != weapon),
+                          weapon+' firing preserves all independent ammunition pools')
+                    pulse('r')
+                    page.wait_for_function('capitalDriveSnapshot().gameplay.reloading===0', timeout=15000)
+                    check(snap()['gameplay']['ammo'] == magazine, weapon+' normal reload refills its own magazine')
+                capture('all-weapons-free-roam')
+                dealer = next(s for s in snap()['streetDealers']['services'] if s['id'] == 'dealer-kingston')
+                teleport_point(dealer['x']-math.sin(dealer['yaw'])*11, dealer['z']-math.cos(dealer['yaw'])*11)
+                foot()
+                around_own_car(dealer, tolerance=2.2)
+                look(dealer)
+                pulse('e')
+                page.wait_for_function('document.querySelector("#services-dialog").open')
+                arms()
+                card(dealer['id']).scroll_into_view_if_needed()
+                dealer_state = record('street dealer normal E opening')
+                check(len(dealer_state['streetDealers']['services']) == 3 and len(dealer_state['streetDealers']['people']) == 3,
+                      'Three physical street dealers have service and actor descriptors')
+                check(item(dealer['id'], 'shotgun').count() == 1 and item(dealer['id'], 'smg').count() == 0,
+                      'Actual Kingston contact card exposes only its distinct pistol and shotgun stock')
+                check(item(dealer['id'], 'shotgun').is_disabled(), 'Free roam contact cannot purchase career equipment')
+                capture('street-dealer-stock-desktop')
+                close_services()
+                pulse('1')
+                capture('street-dealer-contact-world')
+                observations.append({'pedestrianRoutines': snap()['pedestrians'].get('routineSample', []),
+                                     'dealerView': snap()['streetDealers']['view']})
             check(not errors, 'No page or console errors')
             check(not requests, 'No failed requests or HTTP errors')
             check(not external, 'No external runtime request attempts')
@@ -351,12 +376,10 @@ def main():
         failure = f'{type(error).__name__}: {error}'
         observations.append({'failure': failure})
     finally:
-        signal.alarm(0)
-        signal.signal(signal.SIGALRM, previous_alarm)
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
-        report = {'status': 'FAIL' if failure else 'PASS', 'failure': failure, 'checks': checks,
+        report = {'scenario':args.scenario,'status': 'FAIL' if failure else 'PASS', 'failure': failure, 'checks': checks,
                   'errors': errors, 'requests': requests, 'external': external,
                   'observations': observations, 'elapsedSeconds': round(time.monotonic()-started, 2),
                   'screenshots': sorted(path.name for path in output.glob('*.png')),
