@@ -85,7 +85,8 @@ const scene = new THREE.Scene(), view = createRideServiceView(scene, () => 0);
 view.update({ car: { ...rage.ride.vehicles[0], active: true }, driver: { ...d, active: true } },
   { focus: d, job: { type: 'ride', stage: 0, target: { ...d, x: d.x + 3 } } });
 assert.equal(view.stats.drivers, 1); assert.equal(view.stats.waiting, 1);
-assert.equal(view.stats.batches, 3); assert.equal(view.stats.driverBatches, 0, 'driver reuses bounded waiting-adult batch');
-assert.equal(scene.getObjectByName('Waiting fare adult').count, 2);
+assert.equal(view.stats.batches, 5); assert.equal(view.stats.driverBatches, 1, 'driver has a fixed shared-model palette batch');
+assert.equal(scene.getObjectByName('Waiting fare adult').count, 1);
+assert.equal(scene.getObjectByName('Cancelled Yoober driver').count, 1);
 view.dispose(); view.dispose(); assert.equal(scene.children.length, 0);
 console.log(`PASS Yoober driving: actual534m ${benchmark.seconds.toFixed(2)}s / ${benchmark.slowSeconds.toFixed(2)}s slow vs legacy135.15s /32.88s; corner/body clearance, bus/car yields, red/amber movement cap, pause; bounded nearby-cancel adult, cooldown/attribution/hits and safe exclusions`);

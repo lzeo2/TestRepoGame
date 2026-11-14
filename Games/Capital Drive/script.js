@@ -101,6 +101,8 @@ let mapSelection = null, mapDrag = null;
 const mapView = { zoom: 1, x: null, z: null };
 const pedestrianFocus={id:'player',x:0,z:0,yaw:0,speed:0};
 const occupantPoses=new Map(),occupantInputs=[];
+const pedestrianContacts=[],externalPeopleContacts=[],auxiliaryContacts=[];
+const playerContact={id:'player-body',x:0,z:0,radius:.35};
 const desiredCamera = new THREE.Vector3(), lookTarget = new THREE.Vector3();
 function freezeCopy(value) {
   const copy = JSON.parse(JSON.stringify(value));
@@ -1158,6 +1160,29 @@ function updateCareer() {
 function syncExternalVehicles(){
   simulation.setExternalVehicles([...(buses?.vehicles||[]),...(rideService?.vehicles||[]),...gameplay.state.police.filter(p=>p.health>0&&p.car).map(p=>p.car)]);
 }
+function syncExternalPeople(){
+  externalPeopleContacts.length=0;
+  let count=0;
+  const add=(person,radius)=>{
+    const body=auxiliaryContacts[count]||(auxiliaryContacts[count]={});count++;
+    body.id=person.id;body.x=person.x;body.z=person.z;body.radius=radius;body.active=person.active!==false;
+    externalPeopleContacts.push(body);
+  };
+  for(const person of pedestrians.writeContacts(pedestrianContacts))externalPeopleContacts.push(person);
+  for(const person of streetDealers.snapshot())add(person,.34);
+  for(const person of rideService?.people||[])if(person.active)add(person,.38);
+  for(const officer of gameplay.state.police)if(officer.health>0&&officer.mode==='foot')add(officer,.35);
+  const job=progression.state.activeJob;
+  if(job?.type==='ride'&&job.stage===0&&!job.passenger){
+    const pose=job.waitingPose||job.target;
+    if(pose)add({id:'waiting-fare',x:pose.x,z:pose.z},.32);
+  }
+  if(!interiors.active&&gameplay.state.mode==='foot'&&!gameplay.state.passenger&&!gameplay.state.recovery){
+    playerContact.x=gameplay.state.actor.x;playerContact.z=gameplay.state.actor.z;
+    externalPeopleContacts.push(playerContact);
+  }
+  simulation.setExternalPeople(externalPeopleContacts);
+}
 function animate(time) {
   if (disposed) return;
   raf = requestAnimationFrame(animate);
@@ -1168,9 +1193,10 @@ function animate(time) {
     while (accumulator >= 1 / 60) {
       const walking = gameplay.state.mode === 'foot';
       syncExternalVehicles();
+      syncExternalPeople();
       simulation.step(1 / 60, tracking||walking||gameplay.state.recovery||gameplay.state.vehicleHealth<=0 ? { brake: true } : input(), focus());
       gameplay.step(1 / 60, {...walkingInput(),challenge:miniInput()});
-      syncExternalVehicles();buses?.step(1/60,busContext());
+      syncExternalVehicles();syncExternalPeople();buses?.step(1/60,busContext());
       if(rideService?.vehicles[0].active)rideService.step(1/60,rideContext());
       equipment?.step(1/60,careerContext());
       if (!isSandbox()) progression.update(1 / 60, careerContext());
@@ -1205,14 +1231,14 @@ function animate(time) {
   busView?.update(buses.vehicles,p);servicesView?.update(p);signalsView?.update(simulation.trafficLights.heads,p);
   equipmentView?.update(equipment.snapshot(),p);
   occupantInputs.length=0;
-  const seated=(car,occupied,modelId=car.modelId)=>{
+  const seated=(car,occupied,modelId=car.modelId,personId=car.personId??car.id)=>{
     let pose=occupantPoses.get(car.id);if(!pose){pose={id:car.id};occupantPoses.set(car.id,pose);}
-    pose.x=car.x;pose.z=car.z;pose.yaw=car.yaw;pose.modelId=modelId;pose.active=car.active;pose.occupied=occupied;occupantInputs.push(pose);
+    pose.x=car.x;pose.z=car.z;pose.yaw=car.yaw;pose.modelId=modelId;pose.personId=personId;pose.active=car.active;pose.occupied=occupied;occupantInputs.push(pose);
   };
-  seated(simulation.player,gameplay.state.mode==='vehicle');
+  seated(simulation.player,gameplay.state.mode==='vehicle',simulation.player.modelId,'player');
   for(const car of simulation.traffic)seated(car,true);
-  for(const officer of gameplay.state.police)if(officer.health>0&&officer.car)seated(officer.car,officer.mode==='vehicle','relay');
-  for(const car of rideService?.vehicles||[])if(car.active)seated(car,car.occupied!==false);
+  for(const officer of gameplay.state.police)if(officer.health>0&&officer.car)seated(officer.car,officer.mode==='vehicle','relay','police');
+  for(const car of rideService?.vehicles||[])if(car.active)seated(car,car.occupied!==false,car.modelId,'yoober-driver-npc');
   occupantsView?.update(activeDt,{focus:p,cars:occupantInputs});
   if (++frameCount % 8 === 0) {
     world.update(p, time / 1000); neighbourhood?.update(p); landmarkView?.update(p, time / 1000);storefrontsView?.update(p);shoppingView?.update(p);campusView?.update(p);civicView?.update(p);noodleShopView?.update(p);civicExtrasView?.update(p);
@@ -1420,7 +1446,7 @@ async function boot() {
     pedestrians: Object.freeze({ ...pedestrians.stats, sample: Object.freeze(pedestrians.snapshot().slice(0,8)),routineSample:freezeCopy(pedestrians.snapshot().filter(p=>['coffee','work'].includes(p.ambient)).slice(0,12)) }), neighbourhood: Object.freeze({ ...neighbourhood.stats }),
     landmarks: Object.freeze({ ...landmarkView.stats }), actors: Object.freeze({ ...actorView.stats }),
     services:freezeCopy(progression.services),activity:freezeCopy(progression.state.activity),
-    buses:freezeCopy(buses.snapshot()),busView:Object.freeze({...busView.stats}),occupants:Object.freeze({...occupantsView.stats}),
+    buses:freezeCopy(buses.snapshot()),busView:Object.freeze({...busView.stats}),occupants:Object.freeze({...occupantsView.stats}),peopleContacts:simulation.peopleContacts,
     serviceView:Object.freeze({...servicesView.stats}),storefronts:Object.freeze({...storefrontsView.stats}),poolGates:freezeCopy(POOL_GATE_APPROACHES),campus:freezeCopy(campusView.stats),campusGates:freezeCopy(CAMPUS_GATES),shopping:freezeCopy(shoppingView.stats),civic:freezeCopy(civicView.stats),civicExtras:freezeCopy(civicExtrasView.stats),noodleShop:freezeCopy(noodleShopView.stats),interiorView:freezeCopy(interiorView.stats),
     trafficSample: freezeCopy(simulation.traffic.slice(0, 8).map(({ id, x, z, speed, active, behaviour, honkCount }) => ({ id, x, z, speed, active, behaviour, honkCount }))) });
   raf = requestAnimationFrame(animate);

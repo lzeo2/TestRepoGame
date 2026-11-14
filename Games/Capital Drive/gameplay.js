@@ -247,7 +247,8 @@ export function createGameplay(map, simulation, options = {}) {
       event.sessionId === action.challenge.sessionId && event.targetId === action.id);
     if (completed && action.challenge.phase === 'complete' && ready) {
       // Claim only this live target once; a parked car has no adult to displace.
-      const displaced = target.occupied ? { id: `exit:${target.id}`, x: target.x + Math.cos(target.yaw || 0) * 2,
+      const displaced = target.occupied ? { id: `exit:${target.id}`, personId: target.personId ?? target.id,
+        x: target.x + Math.cos(target.yaw || 0) * 2,
         z: target.z - Math.sin(target.yaw || 0) * 2, yaw: target.yaw || 0 } : null;
       state.carjacking = null; clearTheftChallenge();
       if (enterVehicle(target) && displaced) options.onCarjacked?.(displaced);

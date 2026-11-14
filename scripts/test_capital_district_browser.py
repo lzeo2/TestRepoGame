@@ -253,6 +253,8 @@ def main():
                     capture(page,'lambzhou-1919-frontage');state=snap(page)
                     check(state['noodleShop']['visible'] and state['noodleShop']['drawCalls']<=3,'Dedicated restaurant exterior visible within three draws')
                     check(state['noodleShop']['triangles']<=5000,'Restaurant exterior stays within geometry budget')
+                    check(state['pedestrians']['seated']==0 and state['pedestrians']['drawCalls']<=10,'Outdoor coffee adults use no arbitrary pavement chairs')
+                    check(0<state['peopleContacts']['count']<=256 and state['peopleContacts']['queries']>0,'Native controller supplies bounded people contacts to vehicle collision queries')
                     check(state['storefronts']['sites']==20,'Dedicated facade does not duplicate the twenty generic storefronts')
                     around_car_to_door(page,door)
                     plan=enter(page,'shop')
@@ -267,6 +269,14 @@ def main():
                     walk(page,room_point(plan,0,7.7),tolerance=.4)
                     target=room_point(plan,0,11);look(page,target['x'],target['z'])
                     capture(page,'lambzhou-open-kitchen')
+                    # Return along the clear central aisle to the live counter,
+                    # rather than treating the rear dining viewpoint as a till.
+                    counter=plan['counter'];origin=plan['origin']
+                    counter_z=math.sin(origin['yaw'])*(counter['x']-origin['x'])+math.cos(origin['yaw'])*(counter['z']-origin['z'])
+                    walk(page,room_point(plan,0,counter_z),tolerance=.25)
+                    walk(page,counter,tolerance=.25)
+                    pose=record(page,'normal walk reached actual noodle counter')['focus']
+                    check(math.hypot(pose['x']-counter['x'],pose['z']-counter['z'])<=counter['radius'],'Actual noodle counter is within its supplied interaction radius')
                     page.keyboard.press('e')
                     check(page.locator('#services-dialog').is_visible(),'E at the restaurant counter opens shop actions')
                     check('Lambzhou 1919' in page.locator('#services-list article').first.inner_text(),'Current indoor restaurant is first in the shop list')

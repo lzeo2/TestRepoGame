@@ -19,6 +19,7 @@ Read repository `AGENTS.md`, `docs/CODE_QUALITY.md`,
 `docs/capital-drive-arms-and-streets-contract.md` and
 `docs/capital-drive-yoober-contract.md` and
 `docs/capital-drive-signals-transport-crime-contract.md`.
+Shared street/vehicle character work also reads `docs/capital-drive-people-contract.md`.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -160,3 +161,19 @@ The road-guidance view is presentation only: use the current route and live manu
 driver pose, shared terrain and checked left-lane placement. Hide on foot/indoors/
 passenger/arrival/off-route; never mutate the route, vehicle or career. Keep three
 pooled world arrows/two draws and test actual forward poses plus native framing.
+
+Street and vehicle people use person-model.js for rounded shapes, dimensions and
+deterministic appearances. Keep personId separate from vehicle/exit IDs and
+capture it before a claim; player, police and Yoober identities are supplied by
+the controller. Retain bounded instancing and cockpit fits, with no frame-time
+geometry creation or factory-resource mutation. The --people-browser flow
+separates actual Free-roam input from labelled component art evidence; never
+describe the component's addExit action as a native carjacking completion.
+
+Moving cars must also test current adult bodies: refresh Simulation's bounded
+setExternalPeople index before vehicle movement and after foot movement before
+external transport. Keep explicit passenger/driver self exemptions limited to
+foot-clearance probes, never car movement. Test both directions, continuous
+translation/turns, existing-contact escape, live descriptor refresh and local
+query bounds. Coffee routines must not create detached chairs along arbitrary
+sidewalks; actual cafe/interior furniture retains its own sourced geometry.

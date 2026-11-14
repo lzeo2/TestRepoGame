@@ -76,7 +76,10 @@ export function createPolice(simulation, options = {}) {
       route.reversing=Math.max(0,route.reversing-dt);desired=-1.8;
     }
     car.speed += clamp(desired-car.speed,-7*dt,3.5*dt);
-    if (car.speed>0.05) car.yaw += clamp(turn,-1.1*dt,1.1*dt)*Math.min(1,car.speed/2);
+    if (car.speed>0.05) {
+      const next={...car,yaw:car.yaw+clamp(turn,-1.1*dt,1.1*dt)*Math.min(1,car.speed/2)};
+      if(simulation.canOccupy(next,{length:car.length,width:car.width,ignoreId:car.id,fromPose:car})) car.yaw=next.yaw;
+    }
     const before={x:car.x,z:car.z};
     simulation.moveVehicle(car,-Math.sin(car.yaw)*car.speed*dt,-Math.cos(car.yaw)*car.speed*dt,{length:car.length,width:car.width});
     const travelled=gap(before,car);

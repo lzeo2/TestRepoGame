@@ -1,6 +1,7 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
 import { createCar } from '../../assets/car-arcade/models.js';
+import { appearanceForPerson, createPersonGeometries, PERSON_MODEL } from './person-model.js';
 
 const POLICE_LIMIT = 4, SHOT_LIMIT = 8, CULL_DISTANCE = 380;
 const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallback;
@@ -16,12 +17,14 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
     const value = luminous ? new THREE.MeshBasicMaterial({ color }) : new THREE.MeshLambertMaterial({ color });
     materials.add(value); return value;
   };
-  const box = ownGeometry(new THREE.BoxGeometry(1, 1, 1));
-  const sphere = ownGeometry(new THREE.SphereGeometry(1, 10, 7));
+  const shapes = createPersonGeometries();
+  const box = ownGeometry(shapes.box), sphere = ownGeometry(shapes.sphere), capsule = ownGeometry(shapes.capsule);
+  const playerAppearance = appearanceForPerson('player'), policeAppearance = appearanceForPerson('police');
+  const dimensions = PERSON_MODEL;
   const palette = {
-    jacket: material(0xb47442), seam: material(0x68472e), shirt: material(0xd9d4bd),
-    pants: material(0x354351), shoe: material(0x292a28), sole: material(0xc5bba8),
-    skin: material(0xba8662), hair: material(0x342b26), eye: material(0x222222),
+    jacket: material(playerAppearance.shirt), seam: material(0x68472e), shirt: material(0xd9d4bd),
+    pants: material(playerAppearance.trousers), shoe: material(playerAppearance.shoes), sole: material(0xc5bba8),
+    skin: material(playerAppearance.skin), hair: material(playerAppearance.hair), eye: material(0x222222),
     gun: material(0x353a3c), red: material(0xff3039, true), blue: material(0x3385ff, true),
     yellow: material(0xffda78, true), marker: material(0xf6be38, true),
   };
@@ -33,33 +36,35 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
     const group = new THREE.Group(); group.name = name; group.position.set(x, y, z); parent.add(group); return group;
   }
   const actor = joint(root, 'Adult player', 0, 0, 0);
+  actor.scale.setScalar(playerAppearance.height);
   const body = joint(actor, 'Torso', 0, 0, 0);
-  piece(body, 'Jacket', palette.jacket, [0, 1.23, 0], [.46, .57, .27]);
-  piece(body, 'Shirt and collar', palette.shirt, [0, 1.45, -.145], [.17, .18, .025]);
-  piece(body, 'Jacket zip', palette.seam, [0, 1.21, -.143], [.018, .39, .015]);
-  piece(body, 'Waist', palette.pants, [0, .91, 0], [.39, .16, .25]);
-  piece(body, 'Neck', palette.skin, [0, 1.57, 0], [.15, .15, .15]);
-  const head = joint(body, 'Head', 0, 1.73, 0);
-  piece(head, 'Face', palette.skin, [0, 0, 0], [.145, .19, .13], sphere);
-  piece(head, 'Hair', palette.hair, [0, .11, .018], [.151, .105, .137], sphere);
+  const torso = dimensions.torso, face = dimensions.head, hair = dimensions.hair;
+  piece(body, 'Jacket', palette.jacket, [torso.x, torso.y, torso.z], [torso.sx, torso.sy, torso.sz], capsule);
+  piece(body, 'Shirt and collar', palette.shirt, [0, 1.35, -.145], [.17, .18, .025]);
+  piece(body, 'Jacket zip', palette.seam, [0, 1.11, -.151], [.018, .39, .015]);
+  piece(body, 'Waist', palette.pants, [0, .83, 0], [.19, .045, .125], capsule);
+  piece(body, 'Neck', palette.skin, [0, 1.46, 0], [.075, .05, .075], capsule);
+  const head = joint(body, 'Head', face.x, face.y, face.z);
+  piece(head, 'Face', palette.skin, [0, 0, 0], [face.sx, face.sy, face.sz], sphere);
+  piece(head, 'Hair', palette.hair, [hair.x - face.x, hair.y - face.y, hair.z - face.z], [hair.sx, hair.sy, hair.sz], sphere);
   piece(head, 'Nose', palette.skin, [0, -.006, -.139], [.04, .06, .044]);
   for (const side of [-1, 1]) {
     piece(head, 'Eye', palette.eye, [side * .057, .035, -.121], [.022, .019, .012]);
-    piece(head, 'Ear', palette.skin, [side * .143, -.005, 0], [.026, .054, .033], sphere);
+    piece(head, 'Ear', palette.skin, [side * .133, -.005, 0], [.026, .054, .033], sphere);
   }
   const legs = [], knees = [], arms = [], elbows = [];
   for (const side of [-1, 1]) {
-    const leg = joint(actor, 'Hip', side * .115, .91, 0); legs.push(leg);
-    piece(leg, 'Trouser thigh', palette.pants, [0, -.205, 0], [.175, .41, .205]);
-    const knee = joint(leg, 'Knee', 0, -.41, 0); knees.push(knee);
-    piece(knee, 'Trouser shin', palette.pants, [0, -.19, 0], [.151, .38, .18]);
-    piece(knee, 'Shoe', palette.shoe, [0, -.435, -.055], [.18, .12, .30]);
-    piece(knee, 'Sole', palette.sole, [0, -.487, -.055], [.185, .026, .305]);
-    const arm = joint(body, 'Shoulder', side * .30, 1.46, 0); arms.push(arm);
-    piece(arm, 'Sleeve upper', palette.jacket, [0, -.16, 0], [.16, .32, .19]);
-    const elbow = joint(arm, 'Elbow', 0, -.31, 0); elbows.push(elbow);
-    piece(elbow, 'Sleeve cuff', palette.jacket, [0, -.13, 0], [.135, .26, .16]);
-    piece(elbow, 'Hand', palette.skin, [0, -.30, 0], [.11, .13, .12]);
+    const leg = joint(actor, 'Hip', side * dimensions.legs.x, .81, 0); legs.push(leg);
+    piece(leg, 'Trouser thigh', palette.pants, [0, -.18, 0], [dimensions.legs.sx, .12, dimensions.legs.sz], capsule);
+    const knee = joint(leg, 'Knee', 0, -.36, 0); knees.push(knee);
+    piece(knee, 'Trouser shin', palette.pants, [0, -.17, 0], [.0755, .34 / 3, .085], capsule);
+    piece(knee, 'Shoe', palette.shoe, [0, -.395, dimensions.shoes.z], [dimensions.shoes.sx, dimensions.shoes.sy, dimensions.shoes.sz]);
+    piece(knee, 'Sole', palette.sole, [0, -.438, dimensions.shoes.z], [.175, .026, .285]);
+    const arm = joint(body, 'Shoulder', side * dimensions.arms.x, 1.35, 0); arms.push(arm);
+    piece(arm, 'Sleeve upper', palette.jacket, [0, -.15, 0], [dimensions.arms.sx, .10, dimensions.arms.sz], capsule);
+    const elbow = joint(arm, 'Elbow', 0, -.30, 0); elbows.push(elbow);
+    piece(elbow, 'Sleeve cuff', palette.jacket, [0, -.12, 0], [.0675, .08, .075], capsule);
+    piece(elbow, 'Hand', palette.skin, [0, -.28, 0], [dimensions.hands.sx, dimensions.hands.sy, dimensions.hands.sz], sphere);
   }
   // Original box silhouettes share the same hand socket and one draw each.
   const weapons = Object.create(null);
@@ -93,7 +98,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
       ['stock heel', [0, -.025, .43], [.09, .18, .055]],
     ]],
   ]) {
-    const weapon = joint(elbows[1], name, 0, -.32, -.08);
+    const weapon = joint(elbows[1], name, 0, -.28, -.08);
     weapon.rotation.x = -Math.PI / 2; weapon.visible = false;
     for (const [part, position, size] of parts) piece(weapon, `${name} ${part}`, palette.gun, position, size);
     weapons[id] = weapon;
@@ -141,17 +146,19 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
     car.visible = false; root.add(car); return { car, lightMesh };
   });
   // Five instanced parts articulate all officers with a fixed five-draw budget.
-  const navy = material(0x25354d), badge = material(0xc8c4a4);
+  const navy = material(policeAppearance.shirt), policePants = material(policeAppearance.trousers);
+  const policeSkin = material(policeAppearance.skin), policeHair = material(policeAppearance.hair), policeShoes = material(policeAppearance.shoes);
+  const badge = material(0xc8c4a4);
   const officerParts = [];
   for (const [name, specs] of [
-    ['Officer torso', [[navy,[0,1.23,0],[.46,.57,.27]], [palette.pants,[0,.91,0],[.39,.16,.25]], [palette.skin,[0,1.62,0],[.16,.15,.16]], [palette.skin,[0,1.74,0],[.27,.31,.25]], [navy,[0,1.91,0],[.30,.08,.29]], [badge,[-.12,1.4,-.144],[.065,.08,.016]]]],
-    ['Officer left leg', [[navy,[0,-.37,0],[.17,.74,.19]], [palette.shoe,[0,-.83,-.055],[.18,.12,.30]]]],
-    ['Officer right leg', [[navy,[0,-.37,0],[.17,.74,.19]], [palette.shoe,[0,-.83,-.055],[.18,.12,.30]]]],
-    ['Officer left arm', [[navy,[0,-.25,0],[.16,.50,.19]], [palette.skin,[0,-.55,0],[.11,.13,.12]]]],
-    ['Officer right arm', [[navy,[0,-.25,0],[.16,.50,.19]], [palette.skin,[0,-.55,0],[.11,.13,.12]]]],
+    ['Officer torso', [[navy,[torso.x,torso.y,torso.z],[torso.sx,torso.sy,torso.sz],capsule], [policePants,[0,.83,0],[.19,.045,.125],capsule], [policeSkin,[0,1.46,0],[.075,.05,.075],capsule], [policeSkin,[face.x,face.y,face.z],[face.sx,face.sy,face.sz],sphere], [policeHair,[hair.x,hair.y,hair.z],[hair.sx,hair.sy,hair.sz],sphere], [navy,[0,1.79,0],[.29,.06,.28]], [badge,[-.12,1.3,-.152],[.065,.08,.016]]]],
+    ['Officer left leg', [[policePants,[0,-.37,0],[dimensions.legs.sx,.74/3,dimensions.legs.sz],capsule], [policeShoes,[0,-.755,dimensions.shoes.z],[dimensions.shoes.sx,dimensions.shoes.sy,dimensions.shoes.sz]]]],
+    ['Officer right leg', [[policePants,[0,-.37,0],[dimensions.legs.sx,.74/3,dimensions.legs.sz],capsule], [policeShoes,[0,-.755,dimensions.shoes.z],[dimensions.shoes.sx,dimensions.shoes.sy,dimensions.shoes.sz]]]],
+    ['Officer left arm', [[navy,[0,-.25,0],[dimensions.arms.sx,.50/3,dimensions.arms.sz],capsule], [policeSkin,[0,-.55,0],[dimensions.hands.sx,dimensions.hands.sy,dimensions.hands.sz],sphere]]],
+    ['Officer right arm', [[navy,[0,-.25,0],[dimensions.arms.sx,.50/3,dimensions.arms.sz],capsule], [policeSkin,[0,-.55,0],[dimensions.hands.sx,dimensions.hands.sy,dimensions.hands.sz],sphere]]],
   ]) {
     const template = new THREE.Group(); template.name = name;
-    for (const [mat, pos, size] of specs) piece(template,name,mat,pos,size);
+    for (const [mat, pos, size, geometry] of specs) piece(template,name,mat,pos,size,geometry);
     const merged = batchStatic(template);
     const instances = new THREE.InstancedMesh(merged.geometry, batchMaterial, Math.max(1, policeLimit));
     instances.name = name; instances.frustumCulled = false; instances.visible = false;
@@ -215,11 +222,11 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
       const active = !!item && item.active !== false && finite(item.health, 100) > 0;
       if (active && item.mode === 'foot' && near(item, center)) {
         officerWorld.position.set(item.x, ground(item.x,item.z) + .035, item.z);
-        officerWorld.rotation.set(0, finite(item.yaw), 0); officerWorld.updateMatrix();
+        officerWorld.rotation.set(0, finite(item.yaw), 0); officerWorld.scale.setScalar(policeAppearance.height); officerWorld.updateMatrix();
         const stride = Math.sin(clock * 8 + i) * Math.min(.58, Math.abs(finite(item.speed)) * .18);
         for (let part = 0; part < officerParts.length; part++) {
           const leg = part === 1 || part === 2, arm = part > 2, side = part === 1 || part === 3 ? -1 : 1;
-          officerLimb.position.set(leg ? side*.115 : arm ? side*.30 : 0, leg ? .91 : arm ? 1.46 : 0, 0);
+          officerLimb.position.set(leg ? side*dimensions.legs.x : arm ? side*dimensions.arms.x : 0, leg ? .81 : arm ? 1.35 : 0, 0);
           officerLimb.rotation.set((leg ? 1 : arm ? -.7 : 0) * stride * side,0,arm ? -side*.08 : 0);
           officerLimb.updateMatrix(); officerMatrix.multiplyMatrices(officerWorld.matrix,officerLimb.matrix);
           officerParts[part].setMatrixAt(counters.officers,officerMatrix);

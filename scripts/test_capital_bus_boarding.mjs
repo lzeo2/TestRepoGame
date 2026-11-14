@@ -17,6 +17,13 @@ const map = { bounds: { minX: -500, maxX: 1000, minZ: -500, maxZ: 1000 }, roads,
   ] } };
 const sim = createSimulation(map, { trafficCount: 0 }), buses = createBuses(map, sim);
 sim.setExternalVehicles(buses.vehicles);
+const originalCanOccupy = sim.canOccupy;
+let busTurnSweeps = 0;
+sim.canOccupy = (pose, options) => {
+  const from = options?.fromPose;
+  if (from && pose.x === from.x && pose.z === from.z && Math.abs(pose.yaw - from.yaw) > 1e-8) busTurnSweeps++;
+  return originalCanOccupy(pose, options);
+};
 const bus = buses.vehicles[0];
 const door = () => buses.nearest(bus);
 const context = () => ({ pose: door(), onFoot: true, recovering: false, sandbox: false, indoors: false, busy: false });
@@ -37,7 +44,13 @@ sim.canOccupy = (pose, options) => options?.ignoreId === bus.id ? false : canOcc
 assert.equal(buses.interact(context()).ok, false); assert.equal(buses.passenger, false);
 sim.canOccupy = canOccupy;
 assert.equal(buses.interact({ ...context(), pose: { ...door(), x: door().x + 8 } }).ok, false, 'stopped boarding needs actual door reach');
+const doorPlayer = { ...door(), id: 'player-body', radius: .35 };
+sim.setExternalPeople([doorPlayer, { ...doorPlayer, id: 'other-adult' }]);
+assert.equal(buses.interact(context()).ok, false, 'another adult at the public door blocks boarding');
+sim.setExternalPeople([doorPlayer]);
+assert(!sim.canOccupy(doorPlayer, { length: 1, width: .8, ignoreId: bus.id }), 'the foot player remains a physical registered body');
 const boarding = buses.interact(context());
+sim.setExternalPeople([]);
 assert(boarding.ok && boarding.boarded); assert.equal(boarding.fare, 0); assert(buses.passenger); assert(bus.playerAboard);
 assert.equal(buses.seatPose, bus, 'seat attachment is the stable physical bus descriptor');
 const initial = buses.snapshot(); buses.step(0); buses.step(NaN); buses.step(Infinity);
@@ -51,7 +64,14 @@ assert(Math.hypot(bus.x - beforeStop.x, bus.z - beforeStop.z) < 8, 'bounded phys
 sim.canOccupy = () => false;
 assert.equal(buses.interact(context()).ok, false); assert(buses.passenger, 'blocked exit retains attachment');
 sim.canOccupy = canOccupy;
-const exit = buses.interact(context()); assert(exit.ok && exit.exited); assert.equal(buses.passenger, false); assert.equal(bus.playerAboard, false);
+const blockedPublicDoor = door(), insidePlayer = { id: 'player-body', radius: .35,
+  x: blockedPublicDoor.x + Math.cos(bus.yaw) * 1.1, z: blockedPublicDoor.z - Math.sin(bus.yaw) * 1.1 };
+sim.setExternalPeople([insidePlayer, { ...blockedPublicDoor, id: 'door-adult', radius: .35 }]);
+assert.equal(buses.interact(context()).ok, false, 'other adults block the entire bus door exit sweep');
+assert(buses.passenger);
+sim.setExternalPeople([insidePlayer]);
+const exit = buses.interact(context()); assert(exit.ok && exit.exited, 'exit ignores only its passenger own body');
+sim.setExternalPeople([]); assert.equal(buses.passenger, false); assert.equal(bus.playerAboard, false);
 assert.equal(buses.seatPose, null); assert([exit.exitPose.x, exit.exitPose.z, exit.exitPose.yaw].every(Number.isFinite));
 assert(sim.canOccupy(exit.exitPose, { length: 1, width: .8 }), 'exit destination is outside the physical bus');
 assert(Math.hypot(exit.exitPose.x - door().x, exit.exitPose.z - door().z) < 1, 'exit stays at the public front-left door');
@@ -82,6 +102,7 @@ const signalClock = sim.trafficLights.elapsed;
 advance(35); assert.equal(sim.trafficLights.elapsed, signalClock);
 assert(bus.speed < .01); assert(sim.trafficLights.stopDistance(bus, { length: 10.6 }) <= .3);
 assert(bus.x + 10.6 / 2 < 178, 'full bus nose remains before the amber stop line');
+assert(busTurnSweeps>0, 'bus turn checks retain the old yaw for angular people sweeps');
 const amberPosition = bus.x;
 sim.trafficLights.step(sim.trafficLights.timing.amber + .1); advance(3);
 assert(Math.abs(bus.x - amberPosition) < .01, 'red holds the physical bus');
@@ -110,9 +131,12 @@ assert(actualExit.exited); assert(actualSim.canOccupy(actualExit.exitPose, { len
 const threeURL = moduleURL(await read('../assets/car-arcade/vendor/three.module.js'));
 const THREE = await import(threeURL);
 const utilsURL = moduleURL((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace("'./three.module.js'", JSON.stringify(threeURL)));
+const personURL = moduleURL((await read('../Games/Capital Drive/person-model.js')).replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL)));
+const { appearanceForPerson } = await import(personURL);
 const { createBusView } = await import(moduleURL((await read('../Games/Capital Drive/bus-view.js'))
   .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL))
-  .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))));
+  .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
+  .replace("'./person-model.js'", JSON.stringify(personURL))));
 buses.reset();
 const scene = new THREE.Scene(), view = createBusView(scene, () => 12);
 view.update(buses.vehicles, bus); assert.equal(view.stats.drawCalls, 4); assert.equal(view.stats.passengers, 0);
@@ -121,8 +145,19 @@ view.update(buses.vehicles, bus); assert.equal(view.stats.drawCalls, 5); assert.
 assert.deepEqual(buses.snapshot(), authoritative, 'view owns no passenger authority');
 const passengerMesh = scene.children[0].children.find(child => child.isInstancedMesh);
 assert(passengerMesh); assert.equal(passengerMesh.count, 1);
+assert.deepEqual(passengerMesh.userData.appearance,appearanceForPerson('player'));
+passengerMesh.geometry.computeBoundingBox();
+assert(passengerMesh.geometry.boundingBox.max.y < 2.84,'shared rounded player head stays below bus roof');
+assert(passengerMesh.geometry.boundingBox.min.y > 1.39,'shared player shoes stay above the bus floor');
+assert(passengerMesh.geometry.index.count > 36*11,'rounded shared passenger replaces box art');
 const geometry = passengerMesh.geometry, material = passengerMesh.material, buffer = passengerMesh.instanceMatrix.array;
-for (let i = 0; i < 10; i++) view.update(buses.vehicles, bus);
+const nodes = []; scene.traverse(object => nodes.push(object));
+for (let i = 0; i < 2000; i++) {
+  view.update(buses.vehicles, bus);
+  assert(view.stats.drawCalls<=5 && view.stats.geometries===5 && view.stats.materials===2);
+}
+const repeatedNodes = []; scene.traverse(object => repeatedNodes.push(object));
+assert.deepEqual(repeatedNodes,nodes,'boarding frames retain the same pooled nodes');
 assert.equal(passengerMesh.geometry, geometry); assert.equal(passengerMesh.material, material); assert.equal(passengerMesh.instanceMatrix.array, buffer);
 assert(buffer.every(Number.isFinite)); assert.equal(view.stats.geometries, 5); assert.equal(view.stats.materials, 2);
 buses.reset(); view.update(buses.vehicles, bus); assert.equal(view.stats.passengers, 0); assert.equal(passengerMesh.count, 0);

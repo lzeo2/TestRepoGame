@@ -17,7 +17,8 @@ artwork or branded vehicle assets are used.
   and abandoned meshes, storage and module integration.
 - `simulation.js`: indexed car/actor collision, directed OSM graph, 40 nearby
   reactive traffic cars (cap 56), bounded overtaking/road rage, vehicle claims,
-  parked/abandoned descriptors, polygon line of sight and safe teleport.
+  parked/abandoned descriptors, polygon line of sight and safe teleport. A bounded
+  live adult-body index checks moving cars as well as people walking into cars.
 - `ride-service.js`/`ride-service-view.js`: one physical NPC-driven Yoober car,
   quoted phone bookings, single boarding debit, clear stopped exits and pooled
   driver-fare waiting/seated passengers. Progression owns repeatable paid fares.
@@ -36,6 +37,9 @@ artwork or branded vehicle assets are used.
   presents up to 64 seated drivers and 12 displaced adults; `services-view.js`
   presents two small generic activity signs. `traffic-view.js` instances the
   six traffic models in at most19draws rather than up to320separate draws. Supplied dt and bounded resources.
+- `person-model.js`: shared rounded adult dimensions/geometry and deterministic
+  appearances for street people, occupants, transit, the player and police.
+  Vehicle claims preserve the person's identity independently of exit event IDs.
 - `world-view.js`, `neighbourhood.js`: bilinear terrain, road/footpath ribbons,
   chunked architecture, 9,000 trees, 4,200 frontages and clipped retail paving.
 - `landmarks.js`, `landmarks-view.js`: real anchors and dedicated Parliament
@@ -46,7 +50,7 @@ artwork or branded vehicle assets are used.
 - `buses.js`/`bus-view.js`: two original unbranded buses, fictional ambient
   circuits on the actual public-road graph and bounded rendering.
 - `districts.js`: exact source Manuka retail polygon, shared appearance classifier.
-- `pedestrians.js`:80 suburban /160 nearby Civic instanced fictional adults, safe sidewalk walking,
+- `pedestrians.js`:36 suburban /64 nearby Civic instanced fictional adults, safe sidewalk walking,
   panic/anger/knockdown/recovery swept player contacts/yielding and causally attributed witness events.
 - `navigation.js`, `map-projection.js`, `address-search.js`: directed road routes,
   shared map transform and bounded offline landmark/street/address matching.
@@ -152,6 +156,27 @@ OFL font remain. All runtime data/imports/assets are local; developer caches and
 browser/geodata tooling stay outside the repository.
 
 ## Audit findings
+
+### Shared street and vehicle people, 14 November 2026
+
+The [shared-people contract](../../capital-drive-people-contract.md) records the
+single rounded model family, stable person identities and bounded adapters.
+Drivers retain their appearance when displaced or when a Yoober driver steps out.
+The player keeps the warm jacket across foot, driving and passenger poses;
+police retain navy uniforms. Existing crowd routines, collisions, health,
+witnesses and career owners remain authoritative. The
+[verification receipt](../../verification/capital-drive-people-2026-11-14.md)
+distinguishes normal-input loading/movement from the labelled component comparison.
+Moving vehicles now check live adult circles through continuous full-body sweeps;
+traffic, buses and rides share the same contact owner. Foot clearance only exempts
+the querying passenger's own circle. The controller supplies current street
+people and its on-foot player before movement, without changing health or cash.
+
+The Lambzhou report reproduced an unrelated brown chair from a pedestrian coffee
+routine, not a missing restaurant shell. Arbitrary sidewalk chairs are removed;
+coffee adults stand holding cups. The arranged restaurant apron furniture and
+entered dining/kitchen room remain. Actual-source ray/culling checks and a normal
+entry/counter/exit browser flow cover the restaurant separately.
 
 ### Signals, full contacts, transport and hold-ups, 14 November 2026
 
@@ -413,9 +438,9 @@ authority regressions; they are not claimed as naturally earned browser sessions
   contour samples. These are numerical consistency, not independent survey error;
   kerbs, road cuts and local extrema remain approximate.
 - Intel N100 / 8 GB performance is unmeasured. Software WebGL checks prove functioning
-  shaders/interactions, not hardware 30/60 FPS. Actor adapter worst case 52 draws / 28,668 triangles; five landmarks total 12,790 triangles
-  in 10 meshes / two materials. Buses add 4 draws / 2,264 triangles; occupants use at most
-  four draws; generic signs use 2 draws /56triangles; mapped facades add2draws/1288triangles.
+  shaders/interactions, not hardware 30/60 FPS. Actor adapter tested maximum 55 meshes / 31,398 triangles, with twelve normal foot draws; five landmarks total 12,790 triangles
+  in 10 meshes / two materials. Buses use at most 5 draws / 3,998 template triangles including a passenger; occupants use at most
+  seven pooled draws; generic signs use 2 draws /56triangles; mapped facades add2draws/1288triangles.
   Instanced traffic is at most19draws for40cars, preserving original models. These are bounded geometry,
   not hardware-performance measurements.
 - Traffic keeps directed left-hand routing and bounded clearance, with simplified
@@ -452,7 +477,7 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The reusable runner checks 57 authored modules and 65 pure suites (188 commands), fails
+The reusable runner checks 58 authored modules and 67 pure suites (193 commands), fails
 on missing files or actual command errors and bounds subprocess lifetimes. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
 unavailable WebGL, denied storage and hidden teleport guards. Actual-map physics

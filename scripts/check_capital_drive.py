@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 GAME = Path('Games/Capital Drive')
 MODULES = (
     'script.js', 'simulation.js', 'navigation.js', 'map-projection.js', 'navigation-guidance.js', 'road-guidance-view.js', 'traffic-lights.js', 'traffic-lights-view.js', 'equipment.js', 'equipment-view.js',
-    'world-view.js', 'neighbourhood.js', 'pedestrians.js', 'gameplay.js', 'ride-service.js', 'ride-service-view.js',
+    'world-view.js', 'neighbourhood.js', 'person-model.js', 'pedestrians.js', 'gameplay.js', 'ride-service.js', 'ride-service-view.js',
     'progression.js', 'actor-view.js', 'landmarks.js', 'landmarks-view.js',
     'address-search.js', 'street-ui.js', 'road-network.js', 'police.js',
     'buses.js', 'bus-view.js', 'vehicle-occupants-view.js', 'districts.js',
@@ -28,7 +28,7 @@ MODULES = (
 )
 SUITES = (
     'test_capital_drive.mjs', 'test_capital_pedestrians.mjs', 'test_capital_spawn.mjs', 'test_capital_starter.mjs', 'test_capital_signals.mjs', 'test_capital_signals_view.mjs', 'test_capital_guidance.mjs', 'test_capital_road_guidance_view.mjs', 'test_capital_traffic_body_clearance.mjs', 'test_capital_ambient_routes.mjs', 'test_capital_ride_driving.mjs', 'test_capital_bus_boarding.mjs', 'test_capital_equipment.mjs', 'test_capital_vehicle_contacts.mjs', 'test_capital_hold_ups.mjs', 'test_capital_crime_people.mjs',
-    'test_capital_neighbourhood.mjs', 'test_capital_world.mjs',
+    'test_capital_neighbourhood.mjs', 'test_capital_world.mjs', 'test_capital_person_model.mjs', 'test_capital_vehicle_people.mjs',
     'test_capital_geodata.mjs', 'test_capital_map.mjs',
     'test_capital_gameplay.mjs', 'test_capital_progression.mjs',
     'test_capital_actors.mjs', 'test_capital_landmarks.mjs', 'test_capital_ride_service.mjs', 'test_capital_ride_view.mjs', 'test_capital_yoober_economy.mjs', 'test_capital_low_detail.mjs',
@@ -84,11 +84,12 @@ def main():
     parser.add_argument('--yoober-browser',action='store_true',help='Use the normal-input Yoober passenger and driver flows with --browser.')
     parser.add_argument('--signals-browser',action='store_true',help='Use the native signals, GPS, tracking and transport flow with --browser.')
     parser.add_argument('--crime-browser',action='store_true',help='Use the normal-input career mugging and shop employee hold-up flow with --browser.')
+    parser.add_argument('--people-browser',action='store_true',help='Use native loading/input and shared-person component evidence with --browser.')
     parser.add_argument('--dry-run', action='store_true', help='List required files and exact commands without running them or creating directories.')
     args = parser.parse_args()
-    if sum([args.classic_browser,args.expansion_browser,args.priority_shop_browser,args.living_browser,args.dev_browser,args.theft_browser,args.dealers_browser,args.store_browser,args.yoober_browser,args.signals_browser,args.crime_browser])>1:parser.error('Choose one browser flow')
-    if (args.priority_shop_browser or args.living_browser or args.dev_browser or args.theft_browser or args.dealers_browser or args.store_browser or args.yoober_browser or args.signals_browser or args.crime_browser) and not args.browser:parser.error('Browser flow options require --browser')
-    browser_suite='scripts/test_capital_crime_browser.py' if args.crime_browser else 'scripts/test_capital_signals_browser.py' if args.signals_browser else 'scripts/test_capital_yoober_browser.py' if args.yoober_browser else 'scripts/test_capital_dealers_browser.py' if (args.dealers_browser or args.store_browser) else 'scripts/test_capital_dev_browser.py' if args.dev_browser else 'scripts/test_capital_theft_browser.py' if args.theft_browser else 'scripts/test_capital_living_browser.py' if args.living_browser else 'scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py' if args.expansion_browser else 'scripts/test_capital_district_browser.py'
+    if sum([args.classic_browser,args.expansion_browser,args.priority_shop_browser,args.living_browser,args.dev_browser,args.theft_browser,args.dealers_browser,args.store_browser,args.yoober_browser,args.signals_browser,args.crime_browser,args.people_browser])>1:parser.error('Choose one browser flow')
+    if (args.priority_shop_browser or args.living_browser or args.dev_browser or args.theft_browser or args.dealers_browser or args.store_browser or args.yoober_browser or args.signals_browser or args.crime_browser or args.people_browser) and not args.browser:parser.error('Browser flow options require --browser')
+    browser_suite='scripts/test_capital_people_browser.py' if args.people_browser else 'scripts/test_capital_crime_browser.py' if args.crime_browser else 'scripts/test_capital_signals_browser.py' if args.signals_browser else 'scripts/test_capital_yoober_browser.py' if args.yoober_browser else 'scripts/test_capital_dealers_browser.py' if (args.dealers_browser or args.store_browser) else 'scripts/test_capital_dev_browser.py' if args.dev_browser else 'scripts/test_capital_theft_browser.py' if args.theft_browser else 'scripts/test_capital_living_browser.py' if args.living_browser else 'scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py' if args.expansion_browser else 'scripts/test_capital_district_browser.py'
     if args.browser != (args.output is not None):
         parser.error('--browser and --output must be used together')
     output = args.output.expanduser().resolve() if args.output else None

@@ -1,12 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const threeSource = await readFile(new URL('../assets/car-arcade/vendor/three.module.js', import.meta.url), 'utf8');
-const threeURL = `data:text/javascript;base64,${Buffer.from(threeSource).toString('base64')}`;
-const THREE = await import(threeURL);
-const source = (await readFile(new URL('../Games/Capital Drive/pedestrians.js', import.meta.url), 'utf8'))
-  .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL));
-const { createPedestrians } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import { createPedestrians } from '../Games/Capital Drive/pedestrians.js';
 const fixture = { bounds: { minX: -600, maxX: 600, minZ: -200, maxZ: 200 },
   roads: [{ id: 'public', name: 'Public Street', type: 'residential', width: 8, points: [[-550, 0], [550, 0]] }],
   spawn: { x: 0, z: -30, yaw: Math.PI / 2 }, buildings: [], areas: [], landmarks: [] };
@@ -16,7 +12,7 @@ const people = createPedestrians(scene, fixture, () => 0);
 const batch = name => scene.children[0].children.find(mesh => mesh.name === `Pedestrian ${name}`);
 assert.equal(people.stats.capacity, 64);
 assert.equal(people.snapshot().length, 36);
-assert.equal(scene.children[0].children.length, 11);
+assert.equal(scene.children[0].children.length, 10);
 const initial = people.snapshot();
 for (const p of initial) for (const other of initial) {
   if (p.id < other.id) assert(Math.hypot(p.x - other.x, p.z - other.z) >= 2, 'arrival bodies are spaced apart');
@@ -24,38 +20,57 @@ for (const p of initial) for (const other of initial) {
 const coffee = initial.filter(p => p.routine === 'coffee');
 assert(coffee.length > 0 && coffee.length <= 6);
 assert(initial.some(p => p.routine === 'work') && initial.some(p => p.routine === 'phone') && initial.some(p => p.routine === 'wait'));
-assert.equal(batch('chairs').count, coffee.length * 6, 'every seated adult has a real six-part chair');
-assert.equal(batch('cups').count, coffee.length * 2, 'seated coffee includes a cup and visible drink');
+assert.equal(batch('chairs'), undefined, 'ambient routines never create roadside chairs');
+assert.equal(people.stats.seated, 0);
+assert.equal(people.stats.drinking, coffee.length);
+assert(initial.every(p => p.seat === null), 'standing coffee does not publish fictional seats');
+const matrix = new THREE.Matrix4(),position = new THREE.Vector3();
+function positions(mesh) {
+ return Array.from({length:mesh.count},(_,i)=>{mesh.getMatrixAt(i,matrix);return position.setFromMatrixPosition(matrix).clone();});
+}
+const torsos=positions(batch('torso')),cups=positions(batch('cups'));
+for(const person of coffee) {
+ const height=person.appearance.height;
+ assert(torsos.some(p=>Math.hypot(p.x-person.x,p.z-person.z)<.001&&Math.abs(p.y-person.y-1.12*height)<.001),'coffee retains the shared standing torso height');
+ for(const y of [1.20,1.245]) {
+  const x=person.x+(.28*Math.cos(person.yaw)-.32*Math.sin(person.yaw))*height;
+  const z=person.z+(-.28*Math.sin(person.yaw)-.32*Math.cos(person.yaw))*height;
+  assert(cups.some(p=>Math.hypot(p.x-x,p.z-z,p.y-person.y-y*height)<.001),'each cup part stays in the standing adult hand pose');
+ }
+}
+
+assert.equal(batch('cups').count, coffee.length * 2, 'standing coffee includes a cup and visible drink');
 for (const p of initial.filter(p => p.routineSite)) {
   assert.equal(p.routineSite.roadId, 'public');
   assert(Math.abs(p.routineSite.z) >= 5.2, 'work and coffee sites are off asphalt');
   assert(Object.isFrozen(p.routineSite));
 }
-const seated = coffee[0];
-assert(people.clipMovement({ x: seated.x, z: seated.z + 2 }, 0, -4).blocked, 'seated adults retain swept body contacts');
+const drinker = coffee[0];
+assert(people.clipMovement({ x: drinker.x, z: drinker.z + 2 }, 0, -4).blocked, 'standing coffee adults retain swept body contacts');
 people.resetPopulation(fixture.spawn);
 const phaseBefore = people.snapshot();
 for (let i = 0; i < 4; i++) people.update(far, 0);
 assert.deepEqual(people.snapshot(), phaseBefore, 'pause freezes every routine clock and phase');
 people.update(far, 0.1);
-assert(people.snapshot().find(p => p.id === seated.id).routineClock < seated.routineClock);
+assert(people.snapshot().find(p => p.id === drinker.id).routineClock < drinker.routineClock);
 people.resetPopulation(fixture.spawn);
-people.alert({ x: seated.x, z: seated.z, radius: 1, kind: 'firearm' });
-assert.equal(people.snapshot().find(p => p.id === seated.id).routine, 'interrupted');
+people.alert({ x: drinker.x, z: drinker.z, radius: 1, kind: 'firearm' });
+assert.equal(people.snapshot().find(p => p.id === drinker.id).routine, 'interrupted');
 people.update(far, 0.1);
-assert.equal(people.snapshot().find(p => p.id === seated.id).reaction, 'flee');
+assert.equal(people.snapshot().find(p => p.id === drinker.id).reaction, 'flee');
 assert.equal(batch('cups').count, people.snapshot().filter(p => p.routine === 'coffee' && Math.hypot(p.x - far.x, p.z - far.z) < 180).length * 2, 'panic puts the drink away and distant props are culled');
-const fleeStart = people.snapshot().find(p => p.id === seated.id);
+assert.equal(batch('chairs'), undefined, 'panic and leaving a routine site cannot leave a chair behind');
+const fleeStart = people.snapshot().find(p => p.id === drinker.id);
 for (let i = 0; i < 10; i++) people.update(far, 0.1);
-const fleeEnd = people.snapshot().find(p => p.id === seated.id);
+const fleeEnd = people.snapshot().find(p => p.id === drinker.id);
 assert(Math.hypot(fleeEnd.x - fleeStart.x, fleeEnd.z - fleeStart.z) > 1.8, 'fear produces an actual run');
 let resumed = false;
 for (let i = 0; i < 700; i++) {
   people.update(far, 0.1);
-  const p = people.snapshot().find(p => p.id === seated.id);
+  const p = people.snapshot().find(p => p.id === drinker.id);
   if (p.reaction === 'calm' && p.routine === 'coffee') { resumed = true; break; }
 }
-assert(resumed, 'recovered adults walk back to the seat before resuming coffee');
+assert(resumed, 'recovered adults walk back to their sidewalk site before resuming coffee');
 people.resetPopulation(fixture.spawn);
 const assertive = people.snapshot().find(p => p.personality === 'assertive');
 const assault = { x: assertive.x, z: assertive.z + 1, yaw: 0, range: 1.3, damage: 10 };
@@ -82,19 +97,27 @@ const separated = people.snapshot();
 for (const p of separated) for (const other of separated) {
   if (p.id < other.id) assert(Math.hypot(p.x - other.x, p.z - other.z) >= 0.64, 'walking and routine returns keep physical bodies apart');
 }
-assert(people.stats.seated <= 6 && people.stats.working <= 6 && people.stats.drawCalls <= 11);
+assert(people.stats.seated === 0 && people.stats.drinking <= 6 && people.stats.working <= 6 && people.stats.drawCalls <= 10);
 const avoid = createPedestrians(new THREE.Scene(), fixture, () => 0, { entrances: initial.map(p => ({ x: p.x, z: p.z })) });
-assert(avoid.snapshot().filter(p => p.routineSite).every(p => initial.every(door => Math.hypot(p.routineSite.x - door.x, p.routineSite.z - door.z) >= 3)), 'relocated chairs and work sites preserve known public door approaches');
+assert(avoid.snapshot().filter(p => p.routineSite).every(p => initial.every(door => Math.hypot(p.routineSite.x - door.x, p.routineSite.z - door.z) >= 3)), 'standing coffee and work sites preserve known public door approaches');
 avoid.dispose();
 const wet = createPedestrians(new THREE.Scene(), { ...fixture, areas: [{ type: 'water', points: [[-600, 4.6], [600, 4.6], [600, 10], [-600, 10]] }] }, () => 0);
 assert(wet.snapshot().every(p => p.z < 0), 'source water excludes sidewalk and routine placements');
 wet.dispose();
 const privateRoad = createPedestrians(new THREE.Scene(), { ...fixture, roads: [{ ...fixture.roads[0], sourceTags: { access: 'private' } }] }, () => 0);
-assert.equal(privateRoad.stats.count, 0, 'private access never creates ambient jobs or seats');
+assert.equal(privateRoad.stats.count, 0, 'private access never creates ambient jobs or coffee sites');
 privateRoad.dispose();
+const ownedGeometry=new Set(scene.children[0].children.map(mesh=>mesh.geometry));
+const ownedMaterials=new Set(scene.children[0].children.map(mesh=>mesh.material));
+let geometryDisposals=0,materialDisposals=0;
+assert.equal(ownedGeometry.size,4,'shared adults and cups use four geometries');
+for(const geometry of ownedGeometry)geometry.addEventListener('dispose',()=>geometryDisposals++);
+for(const material of ownedMaterials)material.addEventListener('dispose',()=>materialDisposals++);
 people.dispose(); people.dispose();
+assert.equal(geometryDisposals,4,'shared geometry disposes once');
+assert.equal(materialDisposals,1,'shared material disposes once');
 assert.equal(scene.children.length, 0);
-console.log('PASS quieter separated adults, seated chair/cup contacts, source/door/water-safe routines, pause and return, personality/LOS retaliation, pellet cooldown, caps and disposal');
+console.log('PASS quieter separated adults, standing coffee/cup contacts, source/door/water-safe routines, pause and return, personality/LOS retaliation, pellet cooldown, caps and disposal');
 
 // Match the real boot map and its generated house-door exclusions. Axis-aligned
 // fixtures alone miss the narrow diagonal pavements used throughout Canberra.
@@ -142,9 +165,9 @@ for (const [label, focus] of [['NSW Crescent', actualMap.spawn], ['Kingston/Gile
   ['Civic', actualMap.landmarks.find(place => place.id === 'canberra-centre')]]) {
   adults.resetPopulation(focus);
   const arrival = adults.snapshot();
-  assert(adults.stats.seated >= 1 && adults.stats.working >= 1, `${label} really renders coffee and work routines`);
-  assert(actualBatch('chairs').count >= 6 && actualBatch('cups').count >= 2 && actualBatch('tools').count >= 1);
-  assert(adults.stats.drawCalls <= 11 && adults.stats.seated <= 6 && adults.stats.working <= 6);
+  assert(adults.stats.drinking >= 1 && adults.stats.working >= 1, `${label} really renders coffee and work routines`);
+  assert(actualBatch('chairs') === undefined && actualBatch('cups').count >= 2 && actualBatch('tools').count >= 1);
+  assert(adults.stats.drawCalls <= 10 && adults.stats.seated === 0 && adults.stats.drinking <= 6 && adults.stats.working <= 6);
   for (const role of ['coffee', 'work']) {
     assert(arrival.some(p => p.routine === role && Math.hypot(p.x - focus.x, p.z - focus.z) < 75), `${label} has a nearby ${role} adult`);
   }
@@ -152,7 +175,7 @@ for (const [label, focus] of [['NSW Crescent', actualMap.spawn], ['Kingston/Gile
     const site = p.routineSite, road = sourceRoads.get(site.roadId);
     assert(road && !['private', 'no'].includes(road.sourceTags?.access) && road.sourceTags?.foot !== 'no');
     assert(actualEntrances.every(door => Math.hypot(site.x - door.x, site.z - door.z) >= 3), `${label} keeps public doors and contacts clear`);
-    // Check the actual rendered chair corners, rotated with the source path.
+    // Standing body clearance still includes the complete source-path footprint.
     for (const x of [-0.28, 0.28]) for (const z of [-0.28, 0.28]) {
       const yaw = p.seat?.yaw ?? p.yaw;
       const corner = { x: site.x + x * Math.cos(yaw) + z * Math.sin(yaw), z: site.z - x * Math.sin(yaw) + z * Math.cos(yaw) };
@@ -176,13 +199,13 @@ for (const [label, focus] of [['NSW Crescent', actualMap.spawn], ['Kingston/Gile
   const panicked = adults.snapshot().find(p => p.id === first.id);
   assert.equal(panicked.routine, 'interrupted');
   assert.equal(panicked.reaction, 'flee');
-  assert.equal(actualBatch('cups').count, (adults.stats.seated) * 2, `${label} interrupted adults put their cup away`);
+  assert.equal(actualBatch('cups').count, adults.stats.drinking * 2, `${label} interrupted adults put their cup away`);
   let returned = false;
   for (let i = 0; i < 1200; i++) {
     adults.update(focus, 0.1);
     if (adults.snapshot().find(p => p.id === first.id).routine === 'coffee') { returned = true; break; }
   }
-  assert(returned, `${label} actual adult resumes seated coffee after fleeing and returning`);
+  assert(returned, `${label} actual adult resumes standing coffee after fleeing and returning`);
   samples.push(`${label}: ${arrival.filter(p => p.routine === 'coffee').length} coffee/${arrival.filter(p => p.routine === 'work').length} work`);
 }
 assert.equal(JSON.stringify(actualMap), sourceBefore, 'routines never rewrite the supplied map');

@@ -1,8 +1,9 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
+import { appearanceForPerson, createPersonGeometries, emitPersonParts, PERSON_MODEL } from './person-model.js';
 
 const POPULATION = 36;
 const MAX_POPULATION = 64;
-const SEATED_CAP = 6;
+const COFFEE_CAP = 6;
 const WORKER_CAP = 6;
 const PERSON_RADIUS = 0.32;
 const PEOPLE_CELL = 8;
@@ -10,10 +11,6 @@ const VIEW_DISTANCE = 180;
 const DETAIL_COUNT = 20;
 const PAVEMENT_LIFT = 0.05;
 const CELL = 32;
-const SHIRTS = [0x425d79, 0xa44d3c, 0xd5ba76, 0x789477, 0xddd6c3, 0x655574, 0x393d48];
-const TROUSERS = [0x343d4a, 0x656452, 0x293548, 0x807566];
-const SKIN = [0xe0b490, 0xad7958, 0x79513c, 0xc99673, 0x593e32];
-const HAIR = [0x302923, 0x655040, 0xa38c67, 0xaaa6a0];
 
 function indexBoxes(items) {
   const cells = new Map();
@@ -129,7 +126,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
     if (distance < 3 || distance > path.length - 3) return false;
     const p = pointAlong(path, distance);
     if (doors.some(door => Math.hypot(p.x - door.x, p.z - door.z) < 3)) return false;
-    // The chair/body occupy a 0.4m-radius footprint. Sample a slightly larger
+    // Standing routines retain a clear body footprint. Sample a slightly larger
     // circle: an axis-aligned square rejects diagonal pavements unnecessarily.
     if (!safe(p.x, p.z)) return false;
     for (let i = 0; i < 16; i++) {
@@ -161,15 +158,13 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
   group.name = 'Capital Drive sidewalk pedestrians';
   scene.add(group);
   const material = new THREE.MeshLambertMaterial({ color: 0xffffff });
-  const capsule = new THREE.CapsuleGeometry(1, 1, 2, 5);
-  const sphere = new THREE.SphereGeometry(1, 6, 4);
-  const box = new THREE.BoxGeometry(1, 1, 1);
+  const { capsule, sphere, box } = createPersonGeometries();
   const cup = new THREE.CylinderGeometry(1, 0.8, 1, 7);
   const batches = {};
   for (const [name, geometry, capacity] of [['torso', capsule, MAX_POPULATION], ['head', sphere, MAX_POPULATION],
     ['hair', sphere, MAX_POPULATION], ['arms', capsule, MAX_POPULATION * 2], ['legs', capsule, MAX_POPULATION * 2],
-    ['shoes', box, MAX_POPULATION * 2], ['hands', sphere, DETAIL_COUNT * 2], ['bags', box, DETAIL_COUNT], ['chairs', box, SEATED_CAP * 6],
-    ['cups', cup, SEATED_CAP * 2], ['tools', box, MAX_POPULATION]]) {
+    ['shoes', box, MAX_POPULATION * 2], ['hands', sphere, DETAIL_COUNT * 2], ['bags', box, DETAIL_COUNT],
+    ['cups', cup, COFFEE_CAP * 2], ['tools', box, MAX_POPULATION]]) {
     const mesh = new THREE.InstancedMesh(geometry, material, capacity);
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     mesh.frustumCulled = false;
@@ -178,8 +173,8 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
     group.add(mesh); batches[name] = mesh;
   }
   const stats = { count: paths.length ? POPULATION : 0, visible: 0, detailed: 0, paths: paths.length,
-    drawCalls: 0, triangles: 0, recycled: 0, capacity: MAX_POPULATION, collisionCandidates: 0, collisionQueries: 0, localPathCandidates: 0, seated: 0, working: 0, routineSites: 0,
-    seatedCapacity: SEATED_CAP, workerCapacity: WORKER_CAP };
+    drawCalls: 0, triangles: 0, recycled: 0, capacity: MAX_POPULATION, collisionCandidates: 0, collisionQueries: 0, localPathCandidates: 0, seated: 0, drinking: 0, working: 0, routineSites: 0,
+    seatedCapacity: 0, drinkingCapacity: COFFEE_CAP, workerCapacity: WORKER_CAP };
   const spawn = map.spawn || { x: 0, z: 0, yaw: 0 };
   const anchors = (map.landmarks || []).filter(p => ['manuka', 'kingston', 'telopea'].includes(p.id));
   const civic = (map.landmarks || []).find(p => p.id === 'canberra-centre');
@@ -235,12 +230,14 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
     person.returning = false;
   }
   for (let i = 0; i < (paths.length ? MAX_POPULATION : 0); i++) {
-    residents.push({ id: i, direction: random() < 0.5 ? -1 : 1, speed: 0.85 + random() * 0.6,
-      phase: random() * Math.PI * 2, height: 0.92 + random() * 0.2,
+    const direction = random() < 0.5 ? -1 : 1, speed = 0.85 + random() * 0.6, phase = random() * Math.PI * 2;
+    // Keep the legacy height/palette/bag draws so crowd movement keeps its random stream.
+    for (let draw = 0; draw < 6; draw++) random();
+    const appearance = appearanceForPerson(i);
+    residents.push({ ...appearance, id: i, appearance, direction, speed, phase,
       personality: i % 5 === 0 ? 'assertive' : i % 3 === 0 ? 'wary' : 'reserved',
       ambient: i % 12 === 0 ? 'coffee' : i % 12 === 1 ? 'work' : i % 12 === 2 ? 'phone' : i % 12 === 3 ? 'wait' : 'walk',
-      shirt: SHIRTS[Math.floor(random() * SHIRTS.length)], trousers: TROUSERS[Math.floor(random() * TROUSERS.length)],
-      skin: SKIN[Math.floor(random() * SKIN.length)], hair: HAIR[Math.floor(random() * HAIR.length)], bag: random() < 0.45 });
+    });
   }
   for (const p of residents) p.initialDirection = p.direction;
   function resetPopulation(player) {
@@ -321,50 +318,50 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
     for (const mesh of Object.values(batches)) mesh.count = 0;
     const visible = pool.filter(p => Math.hypot(p.x - player.x, p.z - player.z) < VIEW_DISTANCE)
       .sort((a, b) => Math.hypot(a.x - player.x, a.z - player.z) - Math.hypot(b.x - player.x, b.z - player.z));
-    stats.seated = 0; stats.working = 0;
+    stats.seated = 0; stats.drinking = 0; stats.working = 0;
     stats.routineSites = pool.filter(p => p.site).length;
-    for (const p of pool) {
-      if (p.ambient !== 'coffee' || !p.site || Math.hypot(p.site.x - player.x, p.site.z - player.z) >= VIEW_DISTANCE) continue;
-      const sitePerson = { ...p, ...p.site, y: heightAt(p.site.x, p.site.z) + PAVEMENT_LIFT, height: 1, knockdown: 0, stun: 0 };
-      rootRotation.setFromAxisAngle(axis, sitePerson.yaw);
-      part('chairs', sitePerson, 0, 0.47, 0, 0.56, 0.09, 0.52, 0x75624b);
-      part('chairs', sitePerson, 0, 0.78, 0.24, 0.56, 0.55, 0.07, 0x75624b);
-      for (const side of [-1, 1]) for (const end of [-1, 1]) {
-        part('chairs', sitePerson, side * 0.22, 0.23, end * 0.2, 0.055, 0.46, 0.055, 0x494a46);
-      }
-    }
     for (let i = 0; i < visible.length; i++) {
       const p = visible[i], detailed = i < DETAIL_COUNT;
       const coerced = p.crimePhase && p.health > 0;
-      const sitting = !coerced && p.routine === 'coffee' && p.reaction === 'calm';
+      const drinking = !coerced && p.routine === 'coffee' && p.reaction === 'calm';
       const working = !coerced && p.routine === 'work' && p.reaction === 'calm';
       const phone = !coerced && p.routine === 'phone' && p.reaction === 'calm';
-      const lower = sitting ? 1.12 - 0.83 / p.height : 0;
-      stats.seated += Number(sitting); stats.working += Number(working);
+      stats.drinking += Number(drinking); stats.working += Number(working);
       const swing = p.stopped ? 0 : Math.sin(p.phase) * (p.reaction === 'flee' ? 0.85 : 0.5);
-      const yaw = sitting ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0);
+      const yaw = drinking ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0);
       rootRotation.setFromAxisAngle(axis, yaw);
-      part('torso', p, 0, 1.12 - lower, 0, 0.23, 0.21, 0.15, p.shirt);
-      part('head', p, 0, 1.62 - lower, 0, 0.135, 0.17, 0.13, p.skin);
-      part('hair', p, 0, 1.72 - lower, 0.015, 0.139, 0.09, 0.13, p.hair);
-      for (const side of [-1, 1]) {
-        const armAction = coerced ? (p.crimePhase === 'intimidation' ? -2.4 : p.crimePhase === 'emptying' ? -0.65 : -1.4) : sitting || phone ? -1.1 : working ? -0.8 + Math.sin(p.phase) * 0.25 : null;
-        part('arms', p, side * 0.29, 1.06 - lower, armAction !== null ? -0.13 : -Math.sin(swing * side) * 0.12, 0.075, 0.19, 0.075, p.shirt, coerced ? armAction : p.reaction === 'angry' ? -1.1 : p.reaction === 'panic' ? -2.1 : armAction ?? -swing * side);
-        const footLocalZ = sitting ? -0.39 : Math.sin(swing * side) * 0.22 - 0.045;
-        const footX = p.x + (Math.cos(yaw) * side * 0.105 + Math.sin(yaw) * footLocalZ) * p.height;
-        const footZ = p.z + (-Math.sin(yaw) * side * 0.105 + Math.cos(yaw) * footLocalZ) * p.height;
-        const ground = (heightAt(footX, footZ) + PAVEMENT_LIFT - p.y) / p.height;
-        part('legs', p, side * 0.105, sitting ? 0.48 : 0.43 + ground, sitting ? -0.17 : Math.sin(swing * side) * 0.13, 0.085, 0.235, 0.085, p.trousers, sitting ? -1.4 : swing * side);
-        part('shoes', p, side * 0.105, 0.055 + ground, sitting ? -0.39 : footLocalZ, 0.17, 0.11, 0.28, 0x303030);
-        if (detailed) part('hands', p, side * 0.3, coerced ? (p.crimePhase === 'intimidation' ? 1.59 : p.crimePhase === 'emptying' ? 0.86 : 1.12) : 0.76 - lower, armAction !== null ? -0.32 : -Math.sin(swing * side) * 0.22, 0.062, 0.075, 0.065, p.skin);
-      }
-      if (sitting) {
-        part('cups', p, 0.28, 0.9 - lower, -0.32, 0.065, 0.085, 0.065, 0xf1e7d1);
-        part('cups', p, 0.28, 0.98 - lower, -0.32, 0.05, 0.008, 0.05, 0x65412d);
+      const armAction = coerced ? (p.crimePhase === 'intimidation' ? -2.4 : p.crimePhase === 'emptying' ? -0.65 : -1.4) : phone ? -1.1 : working ? -0.8 + Math.sin(p.phase) * 0.25 : null;
+      emitPersonParts(p.appearance, { kind: 'standing', stride: swing }, (name, x, y, z, sx, sy, sz, tint, rotation = 0) => {
+        const side = x < 0 ? -1 : 1;
+        if (name === 'hands' && !detailed) return;
+        if (name === 'arms') {
+          if (drinking && side > 0) { z = -0.13; rotation = -1.1; }
+          if (armAction !== null) z = -0.13;
+          rotation = coerced ? armAction : p.reaction === 'angry' ? -1.1 : p.reaction === 'panic' ? -2.1 : armAction ?? rotation;
+        }
+        if (name === 'hands') {
+          if (coerced) y = p.crimePhase === 'intimidation' ? 1.59 : p.crimePhase === 'emptying' ? 0.86 : PERSON_MODEL.torso.y;
+          if (drinking && side > 0) { y = 1.15; z = -0.32; }
+          if (armAction !== null) z = -0.32;
+        }
+        if (name === 'legs' || name === 'shoes') {
+          const footLocalZ = Math.sin(swing * side) * 0.22 + PERSON_MODEL.shoes.z;
+          const footX = p.x + (Math.cos(yaw) * side * PERSON_MODEL.legs.x + Math.sin(yaw) * footLocalZ) * p.height;
+          const footZ = p.z + (-Math.sin(yaw) * side * PERSON_MODEL.legs.x + Math.cos(yaw) * footLocalZ) * p.height;
+          const ground = (heightAt(footX, footZ) + PAVEMENT_LIFT - p.y) / p.height;
+          if (name === 'legs') {
+            y += ground;
+          } else { y += ground; z = footLocalZ; }
+        }
+        part(name, p, x, y, z, sx, sy, sz, tint, rotation);
+      });
+      if (drinking) {
+        part('cups', p, 0.28, 1.20, -0.32, 0.065, 0.085, 0.065, 0xf1e7d1);
+        part('cups', p, 0.28, 1.245, -0.32, 0.05, 0.008, 0.05, 0x65412d);
       }
       if (coerced && p.crimePhase === 'handover') part('tools', p, 0.28, 1.05, -0.35, 0.18, 0.2, 0.12, 0x9e8159);
       if (phone || working) part('tools', p, 0.28, working ? 0.96 : 1.23, -0.28, working ? 0.2 : 0.075, working ? 0.28 : 0.14, 0.025, working ? 0xc9b796 : 0x242a32);
-      if (detailed && (p.bag || p.ambient === 'work')) part('bags', p, 0, 1.13 - lower, 0.19, 0.31, 0.39, 0.15, 0x544b3e);
+      if (detailed && (p.bag || p.ambient === 'work')) part('bags', p, 0, 1.13, 0.19, 0.31, 0.39, 0.15, 0x544b3e);
     }
     stats.visible = visible.length; stats.detailed = Math.min(DETAIL_COUNT, visible.length);
     stats.drawCalls = 0; stats.triangles = 0;
@@ -602,14 +599,26 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
       ? { targetId: String(activity.targetId), phase: activity.phase } : null;
     for (const p of pool) p.crimePhase = p.health > 0 && crime?.targetId === `ped:${p.id}` ? crime.phase : null;
   }
+  // Reuse caller-owned records for the simulation broad phase. Internal people
+  // and their appearance/routine state never cross this position-only boundary.
+  function writeContacts(target = []) {
+    const count = disposed ? 0 : pool.length;
+    for (let i = 0; i < count; i++) {
+      const p = pool[i], record = target[i] || (target[i] = {});
+      record.id = p.appearance.id; record.x = p.x; record.z = p.z;
+      record.radius = PERSON_RADIUS; record.active = true;
+    }
+    target.length = count;
+    return target;
+  }
   resetPopulation(spawn);
-  return { update, resetPopulation, clipMovement, stats, alert, strike, setCrime, getCrimeTarget,
+  return { update, resetPopulation, clipMovement, writeContacts, stats, alert, strike, setCrime, getCrimeTarget,
     drainEvents() { return events.splice(0); },
-    snapshot() { return Object.freeze(pool.map(p => Object.freeze({ id: p.id, x: p.x, y: p.y, z: p.z,
+    snapshot() { return Object.freeze(pool.map(p => Object.freeze({ id: p.id, appearanceKey: p.appearance.key, appearance: p.appearance, x: p.x, y: p.y, z: p.z,
       yaw: p.routine === 'coffee' && p.reaction === 'calm' ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0), roadId: p.path.roadId, roadName: p.path.name,
       sidewalkOffset: p.path.offset, yieldTimer: p.yieldTimer, escape: p.escape, stopped: p.stopped, phase: p.phase,
       routine: p.routine, ambient: p.ambient, routineClock: p.routineClock, returning: p.returning, personality: p.personality,
-      seat: p.ambient === 'coffee' && p.site ? Object.freeze({ x: p.site.x, z: p.site.z, yaw: p.site.yaw }) : null,
+      seat: null,
       routineSite: p.site ? Object.freeze({ x: p.site.x, z: p.site.z, roadId: p.path.roadId }) : null,
       threatened: p.playerHitTimer > 0, lastPlayerHit: p.playerHitTimer > 0, crimePhase: p.health > 0 ? p.crimePhase : null,
       health: p.health, reaction: p.reaction, fear: p.fear, anger: p.anger,

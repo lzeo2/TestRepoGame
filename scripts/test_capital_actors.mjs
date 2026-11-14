@@ -13,14 +13,45 @@ const modelsURL = dataURL((await read('../assets/car-arcade/models.js'))
   .replace("'./vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
   .replace("'./fleet.js'", JSON.stringify(fleetURL)));
 const { createCar, disposeCars } = await import(modelsURL);
+const personURL = dataURL((await read('../Games/Capital Drive/person-model.js'))
+  .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL)));
+const { appearanceForPerson, PERSON_MODEL, createPersonGeometries } = await import(personURL);
 const actorURL = dataURL((await read('../Games/Capital Drive/actor-view.js'))
   .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL))
   .replace("'../../assets/car-arcade/models.js'", JSON.stringify(modelsURL))
+  .replace("'./person-model.js'", JSON.stringify(personURL))
   .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL)));
 const { createActorView } = await import(actorURL);
 const scene = new THREE.Scene(), heightAt = (x, z) => x * .002 + z * .001;
 const view = createActorView(scene, heightAt), root = scene.children[0];
 const find = name => root.getObjectByName(name);
+// Compare rendered merged vertices with the same rounded torso used by civilians.
+const playerAppearance = appearanceForPerson('player'), officerAppearance = appearanceForPerson('police');
+const torsoMesh = find('Torso').children.find(object => object.isMesh);
+function verticesWithColor(mesh, hex) {
+  const expected = new THREE.Color(hex), positions = mesh.geometry.attributes.position, colors = mesh.geometry.attributes.color;
+  const result = [];
+  for (let i = 0; i < positions.count; i++) {
+    if (Math.abs(colors.getX(i) - expected.r) < 1e-6 && Math.abs(colors.getY(i) - expected.g) < 1e-6 && Math.abs(colors.getZ(i) - expected.b) < 1e-6) {
+      result.push(positions.getX(i), positions.getY(i), positions.getZ(i));
+    }
+  }
+  return result;
+}
+const sharedShapes = createPersonGeometries(), torso = PERSON_MODEL.torso;
+const expectedTorso = sharedShapes.capsule.clone().scale(torso.sx, torso.sy, torso.sz).translate(torso.x, torso.y, torso.z);
+const jacketVertices = verticesWithColor(torsoMesh, playerAppearance.shirt);
+assert.equal(jacketVertices.length, expectedTorso.attributes.position.array.length, 'player jacket uses the shared capsule, not a box shell');
+for (let i = 0; i < jacketVertices.length; i++) assert(Math.abs(jacketVertices[i] - expectedTorso.attributes.position.array[i]) < 1e-6, 'player torso shares civilian proportions');
+expectedTorso.dispose(); Object.values(sharedShapes).forEach(geometry => geometry.dispose());
+assert.equal(find('Head').position.y, PERSON_MODEL.head.y, 'player head uses civilian standing height');
+assert.deepEqual(find('Adult player').scale.toArray(), Array(3).fill(playerAppearance.height), 'standing player retains shared identity height');
+assert(verticesWithColor(find('Head').children.find(object => object.isMesh), playerAppearance.hair).length > 0, 'shared player hair color survives batching');
+for (const name of ['Hip', 'Shoulder']) assert.equal(find(name).children.find(object => object.isMesh).geometry.type, 'CapsuleGeometry', `${name} retains rounded articulated limb`);
+const officerTorso = find('Officer torso');
+for (const hex of [officerAppearance.shirt, officerAppearance.trousers, officerAppearance.skin, officerAppearance.hair]) {
+  assert(verticesWithColor(officerTorso, hex).length > 0, 'officer identity palette survives instanced batching');
+}
 const state = {
   mode: 'foot', actor: { x: 2, z: 3, yaw: .3, speed: 0, jumpHeight: 0 },
   weapon: 'unarmed', aiming: false, attackTimer: 0, reloading: 0,
@@ -110,4 +141,4 @@ assert.equal(instanceDisposals, 7, 'instance GPU buffers released exactly once')
 assert.equal(borrowedDisposals, 0, 'view disposal preserves shared factory cars');
 assert(view.stats.disposed && view.stats.drawCalls === 0);
 disposeCars();
-console.log(`PASS original adult articulation/grounding, aim/reload/melee/jump, bounded police/effects, pause/culling, finite transforms, disposal; ${stats.meshes} max draws, ${normalFootDraws} normal foot draws, ${stats.triangles} triangles, ${ownedGeometries.size} geometry resources`);
+console.log(`PASS shared rounded adult/police identity and proportions, articulation/grounding, aim/reload/melee/jump, bounded police/effects, pause/culling, finite transforms, disposal; ${stats.meshes} max draws, ${normalFootDraws} normal foot draws, ${stats.triangles} triangles, ${ownedGeometries.size} geometry resources`);
