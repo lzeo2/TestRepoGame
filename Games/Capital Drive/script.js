@@ -321,6 +321,8 @@ function interiorHint(){
   const contact=streetDealers?.nearest(pose);if(contact)return `E trade with ${contact.name}`;
   const lemon=micromobility?.offers(pose)[0];
   if(lemon?.available&&lemon.distance<=2.8)return 'T hire or hack Lemon ride';
+  const service=progression?.services.find(site=>!site.buildingId&&!site.dealer&&site.type==='arms'&&Math.hypot(site.x-pose.x,site.z-pose.z)<=site.radius);
+  if(service)return `E open ${service.name}`;
   const entry=interiors?.findEntry(pose);
   return entry?`E enter ${entry.name}`:null;
 }
