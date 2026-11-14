@@ -1106,8 +1106,8 @@ async function boot() {
   civicExtrasView=compatibility?emptyView():createCivicExtrasView(scene,map,ground);
   world.update(simulation.player, 0);
   neighbourhood = compatibility ? { update() {}, dispose() {}, stats: {} } : createNeighbourhoodDetails(scene, map, world.heightAt);
-  pedestrians=createPedestrians(scene,map,world.heightAt,{entrances:[...ALL_STORES.map(s=>s.frontage).filter(Boolean),...CIVIC_INTERIOR_ENTRIES,...CAMPUS_GATES,...(neighbourhood.entries||[])]});
   streetDealers=createStreetDealers(map,{avoidPoints:micromobility.snapshot().assets});dealerView=compatibility?emptyView():createStreetDealersView(scene,world.heightAt);
+  pedestrians=createPedestrians(scene,map,world.heightAt,{entrances:[...ALL_STORES.map(s=>s.frontage).filter(Boolean),...CIVIC_INTERIOR_ENTRIES,...CAMPUS_GATES,...(neighbourhood.entries||[]),...streetDealers.services]});
   map.landmarks.push(...streetDealers.services.map(site=>({...site,aliases:['street dealer','arms dealer','weapons contact'],description:'Fictional street contact'})));
   neighbourhood.update(simulation.player);
   landmarkView = compatibility ? { update() {}, dispose() {}, stats: {} } : createLandmarksView(scene, map, world.heightAt);
@@ -1198,7 +1198,7 @@ async function boot() {
     mapSelection: mapSelection ? Object.freeze({ ...mapSelection }) : null,
     mapView: Object.freeze({ zoom: mapView.zoom, ...map.bounds, x: fullMapProjection().cx, z: fullMapProjection().cz, scale: fullMapProjection().scale }),
     rendering: Object.freeze({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, quality, compatibility }), world: Object.freeze({ ...world.stats }),
-    pedestrians: Object.freeze({ ...pedestrians.stats, sample: Object.freeze(pedestrians.snapshot().slice(0,8)),routineSample:freezeCopy(pedestrians.snapshot().filter(p=>p.routine!=='walk').slice(0,12)) }), neighbourhood: Object.freeze({ ...neighbourhood.stats }),
+    pedestrians: Object.freeze({ ...pedestrians.stats, sample: Object.freeze(pedestrians.snapshot().slice(0,8)),routineSample:freezeCopy(pedestrians.snapshot().filter(p=>['coffee','work'].includes(p.ambient)).slice(0,12)) }), neighbourhood: Object.freeze({ ...neighbourhood.stats }),
     landmarks: Object.freeze({ ...landmarkView.stats }), actors: Object.freeze({ ...actorView.stats }),
     services:freezeCopy(progression.services),activity:freezeCopy(progression.state.activity),
     buses:freezeCopy(buses.snapshot()),busView:Object.freeze({...busView.stats}),occupants:Object.freeze({...occupantsView.stats}),

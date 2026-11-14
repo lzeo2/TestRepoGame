@@ -370,8 +370,10 @@ def main():
                 pose=snap()['focus'];yaw=snap()['camera']['footYaw']
                 look({'x':pose['x']+math.cos(yaw)*5,'z':pose['z']-math.sin(yaw)*5})
                 capture('street-dealer-contact-world')
-                observations.append({'pedestrianRoutines': snap()['pedestrians'].get('routineSample', []),
-                                     'dealerView': snap()['streetDealers']['view']})
+                adults=snap()['pedestrians'];routines=adults.get('routineSample',[])
+                check({'coffee','work'} <= {person.get('ambient') for person in routines},'Actual mapped street population includes coffee and work routines')
+                check(adults['seated']>0 and adults['working']>0,'Real coffee sitters and workers occupy visible instance batches')
+                observations.append({'pedestrianRoutines':routines,'dealerView':snap()['streetDealers']['view']})
             check(not errors, 'No page or console errors')
             check(not requests, 'No failed requests or HTTP errors')
             check(not external, 'No external runtime request attempts')
