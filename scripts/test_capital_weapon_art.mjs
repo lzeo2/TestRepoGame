@@ -13,14 +13,20 @@ const modelsURL = dataURL((await read('../assets/car-arcade/models.js'))
   .replace("'./vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
   .replace("'./fleet.js'", JSON.stringify(fleetURL)));
 const { createCar, disposeCars } = await import(modelsURL);
+const personURL = dataURL((await read('../Games/Capital Drive/person-model.js'))
+  .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL)));
+const { appearanceForPerson, PERSON_MODEL } = await import(personURL);
 const actorURL = dataURL((await read('../Games/Capital Drive/actor-view.js'))
   .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL))
   .replace("'../../assets/car-arcade/models.js'", JSON.stringify(modelsURL))
+  .replace("'./person-model.js'", JSON.stringify(personURL))
   .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL)));
 const { createActorView } = await import(actorURL);
 const scene = new THREE.Scene();
 const view = createActorView(scene, () => 2, { policeLimit: 0 });
 const root = scene.children[0], actor = root.getObjectByName('Adult player');
+assert.equal(actor.getObjectByName('Head').position.y, PERSON_MODEL.head.y, 'weapon rig retains shared adult head height');
+assert.equal(actor.scale.y, appearanceForPerson('player').height, 'weapon rig uses the same identity scale as seated player');
 const names = { pistol: 'Pistol', shotgun: 'Shotgun', smg: 'SMG', carbine: 'Carbine' };
 const state = { mode: 'foot', actor: { x: 0, z: 0, yaw: 0, speed: 0 }, weapon: 'unarmed', aiming: false, attackTimer: 0, reloading: 0, shots: [] };
 const options = { dt: 1 / 60, focus: state.actor };
@@ -53,6 +59,9 @@ for (const id of Object.keys(weapons)) {
   root.updateMatrixWorld(true);
   const direction = new THREE.Vector3(0, 0, -1).transformDirection(weapons[id].matrixWorld);
   assert(direction.z < -.9 && Math.abs(direction.y) < .15, `${id} aims forward`);
+  const weaponBounds = new THREE.Box3().setFromObject(weapons[id]);
+  const handPosition = elbows[1].getWorldPosition(new THREE.Vector3());
+  assert(weaponBounds.max.y > handPosition.y - .4 && weaponBounds.min.y < handPosition.y + .2, `${id} stays at the articulated hand`);
   const aiming = elbows[1].rotation.x;
   state.reloading = 1; view.update(state, options);
   assert(shoulders[1].rotation.x < 1 && elbows[1].rotation.x > aiming, `${id} reload toward chest`);
