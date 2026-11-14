@@ -22,7 +22,8 @@ Read repository `AGENTS.md`, `docs/CODE_QUALITY.md`,
 Shared street/vehicle character work also reads `docs/capital-drive-people-contract.md`.
 Three-character, gym, indoor encounter and sourced street-detail work also reads
 `docs/capital-drive-canberra-life-contract.md` and
-`docs/capital-drive-canberra-life-sources.md`.
+`docs/capital-drive-canberra-life-sources.md` and
+`docs/capital-drive-story-and-streaming-contract.md`.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -81,7 +82,9 @@ road travel and foot movement must not generate reckless vehicle reports.
 
 Campaign is a third mode with three separately ordered introductions, a shared
 meeting and the retained six chapters. Its strict v2 save preserves v1 progress;
-do not replay old rewards or teleport during a mid-session character selection.
+permit switching between any missions while preserving independent partial intro
+prefixes. Lock switching only during an active mission (plus invalid/recovery
+context guards); do not replay rewards or teleport on mid-session selection.
 Only an initial start uses character-start.js and checked separate car/foot poses.
 Its completion and rewards
 share the career save write; active missions remain transient. No sandbox travel
@@ -187,3 +190,14 @@ foot-clearance probes, never car movement. Test both directions, continuous
 translation/turns, existing-contact escape, live descriptor refresh and local
 query bounds. Coffee routines must not create detached chairs along arbitrary
 sidewalks; actual cafe/interior furniture retains its own sourced geometry.
+
+
+Exterior performance work preserves source/collision/navigation metadata while
+streaming actual nearby geometry allocations. Hidden meshes alone do not reduce
+resident buffers. Use the actual-map world/neighbourhood streaming regressions,
+compare every rebuilt attribute and door descriptor, and check bounded idle queues,
+eviction and disposal. Report buffer bytes separately from RAM and device FPS.
+Mission guides target the same door/station descriptors as collision and rendering.
+New school, home and robbery outcomes require the matching live terminal owner and
+fresh serial; no caller boolean, stale receipt or caption timer grants completion.
+Ground allies remain outdoors and never teleport or board cars implicitly.

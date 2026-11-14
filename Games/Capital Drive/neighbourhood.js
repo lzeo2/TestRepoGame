@@ -18,17 +18,22 @@ function compactAttribute(values, itemSize, signed = false) {
   return new THREE.BufferAttribute(output, itemSize, true);
 }
 
-export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics = false } = {}) {
+export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics = false, streaming = false } = {}) {
   const root = new THREE.Group();
   root.name = 'Neighbourhood details';
   scene.add(root);
   const chunks = new Map(), roadIndex = new Map(), buildingIndex = new Map(), parkIndex = new Map();
   const materials = [], textures = [], entries = [];
+  // Planning stores source recipes and spatial keys, never distant vertex buffers.
+  const sources = new Map(), gardenPlans = new Map();
+  let planning = streaming, replaying = false, recipe = null, targetKey = null;
+  const MAX_RESIDENT = 49, LOAD_RANGE = 525, EVICT_RANGE = 900;
+  let queue = [], disposed = false;
   const managedShops = new Set(map.shoppingManagedBuildingIds || []);
   const managedCampus = new Set(map.campusBuildingIds || []);
   const gardenIndex = new Map(), drivewayIndex = new Map();
   const BACKYARD_TRIANGLE_LIMIT = 60000;
-  const stats = { lowGraphics, bufferBytes: 0, backyards: 0, backyardTriangles: 0, gardenBeds: 0, gardenSeats: 0, sheds: 0, apartmentEntries: 0, frontages: 0, driveways: 0, hedges: 0, fences: 0, letterboxes: 0, doors: 0, verandahs: 0, lamps: 0, benches: 0, bins: 0, stopPoles: 0, shopSigns: 0, retailAprons: 0, apronTriangles: 0, pavedArea: 0, chunks: 0, meshes: 0, triangles: 0 };
+  const stats = { lowGraphics, streaming, residentBytes: 0, residentTriangles: 0, peakResidentBytes: 0, residentChunks: 0, loads: 0, evictions: 0, queue: 0, sourceChunks: 0, bufferBytes: 0, backyards: 0, backyardTriangles: 0, gardenBeds: 0, gardenSeats: 0, sheds: 0, apartmentEntries: 0, frontages: 0, driveways: 0, hedges: 0, fences: 0, letterboxes: 0, doors: 0, verandahs: 0, lamps: 0, benches: 0, bins: 0, stopPoles: 0, shopSigns: 0, retailAprons: 0, apronTriangles: 0, pavedArea: 0, chunks: 0, meshes: 0, triangles: 0 };
   const material = new THREE.MeshLambertMaterial({ vertexColors: true });
   materials.push(material);
   const box = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
@@ -44,6 +49,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
   const nearby = (index, x, z) => index.get(cellKey(x, z)) || [];
 
   function indexItem(index, item, points, margin = 0) {
+    if (replaying) return;
     const minX = Math.min(...points.map(p => p[0])) - margin, maxX = Math.max(...points.map(p => p[0])) + margin;
     const minZ = Math.min(...points.map(p => p[1])) - margin, maxZ = Math.max(...points.map(p => p[1])) + margin;
     for (let x = Math.floor(minX / CELL); x <= Math.floor(maxX / CELL); x++) for (let z = Math.floor(minZ / CELL); z <= Math.floor(maxZ / CELL); z++) {
@@ -71,6 +77,8 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
   const inRoad = (x, z, margin = 0) => nearby(roadIndex, x, z).some(s => project(x, z, s.a, s.b).distance < s.width / 2 + margin);
   function batchAt(x, z, kind = 'solid') {
     const cx = Math.floor(x / CHUNK), cz = Math.floor(z / CHUNK), key = `${cx},${cz}`;
+    if (planning) { recipe?.keys.add(key); return null; }
+    if (streaming && targetKey !== key) return null;
     if (!chunks.has(key)) {
       const group = new THREE.Group();
       group.name = `Frontages ${key}`;
@@ -85,6 +93,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     return chunk.batches.get(kind);
   }
   function triangle(batch, a, b, c, tint) {
+    if (!batch) { stats.triangles++; return; }
     edgeAB.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
     edgeAC.set(c[0] - a[0], c[1] - a[1], c[2] - a[2]);
     normal.crossVectors(edgeAB, edgeAC).normalize(); color.set(tint);
@@ -93,6 +102,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
   }
   function solid(source, x, y, z, sx, sy, sz, tint, yaw = 0, kind = 'solid') {
     const batch = batchAt(x, z, kind);
+    if (!batch) { stats.triangles += source.attributes.position.count / 3; return; }
     matrix.compose(position.set(x, y, z), rotation.setFromAxisAngle(axis, yaw), size.set(sx, sy, sz));
     normalMatrix.getNormalMatrix(matrix); color.set(tint);
     const p = source.attributes.position, n = source.attributes.normal;
@@ -116,6 +126,19 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
       const q = [p(x0 - nx, z0 - nz), p(x1 - nx, z1 - nz), p(x1 + nx, z1 + nz), p(x0 + nx, z0 + nz)];
       const batch = batchAt(x0, z0); triangle(batch, q[0], q[2], q[1], tint); triangle(batch, q[0], q[3], q[2], tint);
     }
+  }
+  function planSource(build) {
+    if (!streaming) { build(); return; }
+    // Only these counters decide whether source detail is admitted. Replay uses
+    // its original budget position, independent of the player's travel order.
+    const before = { backyards: stats.backyards, backyardTriangles: stats.backyardTriangles, apronTriangles: stats.apronTriangles };
+    const item = { build, before, keys: new Set() };
+    recipe = item; build(); recipe = null;
+    for (const key of item.keys) {
+      if (!sources.has(key)) sources.set(key, []);
+      sources.get(key).push(item);
+    }
+    item.keys.clear();
   }
   const segments = [];
   for (const road of map.roads || []) {
@@ -192,12 +215,12 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     return Math.min(...retailCentres.map(l => Math.hypot(x - l.x, z - l.z)));
   };
   retailBuildings.sort((a, b) => centreDistance(a) - centreDistance(b));
-  for (const building of retailBuildings) {
+  function retailApron(building) {
     const points = building.points;
     const cx = points.reduce((sum, p) => sum + p[0], 0) / points.length;
     const cz = points.reduce((sum, p) => sum + p[1], 0) / points.length;
-    if (!retailDistrict(map, cx, cz, { aprons: true })) continue;
-    if (String(building.id).startsWith('osm-') && nearby(buildingIndex, cx, cz).some(b => String(b.id).startsWith('act-') && inside(cx, cz, b.points))) continue;
+    if (!retailDistrict(map, cx, cz, { aprons: true })) return;
+    if (String(building.id).startsWith('osm-') && nearby(buildingIndex, cx, cz).some(b => String(b.id).startsWith('act-') && inside(cx, cz, b.points))) return;
     let added = false;
     for (let edge = 0; edge < points.length && stats.apronTriangles < APRON_LIMIT; edge++) {
       const a = points[edge], b = points[(edge + 1) % points.length];
@@ -253,15 +276,15 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     }
     if (added) stats.retailAprons++;
   }
+  for (const building of retailBuildings) planSource(() => retailApron(building));
   const shopping = (x, z) => Boolean(retailDistrict(map, x, z));
   const shopLabels = ['CAFE', 'GROCER', 'BAKERY', 'BOOKS'];
   const shopSigns = [];
   const candidates = (map.buildings || []).filter(b => !managedShops.has(b.id) && !managedCampus.has(b.id) && !/shed|garage|carport|roof|industrial|school|education|community|diplomatic|defence/.test(b.type || '')).map((b, i) => ({ b, seed: i })).sort((a, b) => hash(a.seed + 19) - hash(b.seed + 19));
-  for (const { b: building, seed } of candidates) {
-    if (stats.frontages >= MAX_FRONTAGES) break;
+  function buildingFrontage(building, seed) {
     const f = frontage(building);
-    if (!f) continue;
-    if (String(building.id).startsWith('osm-') && nearby(buildingIndex, f.x, f.z).some(b => String(b.id).startsWith('act-') && inside(f.x, f.z, b.points))) continue;
+    if (!f) return;
+    if (String(building.id).startsWith('osm-') && nearby(buildingIndex, f.x, f.z).some(b => String(b.id).startsWith('act-') && inside(f.x, f.z, b.points))) return;
     const isShop = shopping(f.x, f.z) && /commercial|retail|yes|apartments/.test(building.type || '');
     const character = suburbCharacter(map, f.x, f.z, building);
     const apartment = /apartments/.test(building.type || '');
@@ -279,14 +302,14 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     solid(box, dx, floor + 1.06, dz, 1.13, 2.16, 0.12, PALETTE.frame, yaw);
     solid(box, dx - f.nx * 0.08, floor + 1.02, dz - f.nz * 0.08, 0.88, 1.98, 0.13, [0x667465, 0x876651, 0x596f76][seed % 3], yaw);
     stats.doors++;
-    entries.push(Object.freeze({ id: building.id, buildingId: building.id, x: dx - f.nx * 0.08, z: dz - f.nz * 0.08, nx: f.nx, nz: f.nz, width: 0.88 }));
+    if (!replaying) entries.push(Object.freeze({ id: building.id, buildingId: building.id, x: dx - f.nx * 0.08, z: dz - f.nz * 0.08, nx: f.nx, nz: f.nz, width: 0.88 }));
     if (apartment && !isShop) {
       solid(box, dx - f.nx * 0.65, floor + 2.7, dz - f.nz * 0.65, 2.5, 0.16, 1.4, 0x72776f, yaw);
       stats.apartmentEntries++;
     }
     if (isShop) {
       solid(box, dx - f.nx * 0.6, floor + 2.65, dz - f.nz * 0.6, 3.6, 0.18, 1.3, 0x414b48, yaw);
-      shopSigns.push({ x: dx - f.nx * 0.24, z: dz - f.nz * 0.24, y: floor + 3.1, yaw, label: seed % shopLabels.length });
+      if (!replaying) shopSigns.push({ x: dx - f.nx * 0.24, z: dz - f.nz * 0.24, y: floor + 3.1, yaw, label: seed % shopLabels.length });
       if (!lowGraphics && seed % 2 === 0) {
         const px = dx - f.nx * 2 + tangentX * 2.1, pz = dz - f.nz * 2 + tangentZ * 2.1;
         if (!inRoad(px, pz, 2.3) && !inBuilding(px, pz)) {
@@ -333,8 +356,10 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
         !nearby(gardenIndex, x, z).some(a => inside(x, z, a.points)) &&
         !(map.landmarkTreeExclusions || []).some(points => inside(x, z, points)) &&
         (!map.bounds || (x > map.bounds.minX && x < map.bounds.maxX && z > map.bounds.minZ && z < map.bounds.maxZ));
-      const garden = rearGarden(building, f, character, clear);
-      if (garden && !overlapsOutline(garden.corners, garden.corners, buildingIndex) && !overlapsOutline(garden.corners, garden.corners, parkIndex)) {
+      let garden = replaying ? gardenPlans.get(building) : rearGarden(building, f, character, clear);
+      if (!replaying && garden && (overlapsOutline(garden.corners, garden.corners, buildingIndex) || overlapsOutline(garden.corners, garden.corners, parkIndex))) garden = null;
+      if (planning) gardenPlans.set(building, garden);
+      if (garden) {
         const before = stats.triangles;
         const gardenBox = (u, v, sx, sy, sz, tint, lift = 0) => {
           const [x, z] = garden.point(u, v);
@@ -363,13 +388,17 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     }
     stats.frontages++;
   }
+  for (const { b: building, seed } of candidates) {
+    if (stats.frontages >= MAX_FRONTAGES) break;
+    planSource(() => buildingFrontage(building, seed));
+  }
 
   // Public reference observations place a fenced setback and parking apron
   // in front of the heritage school. This is bounded by its real frontage.
   const school = (map.landmarks || []).find(l => l.id === 'telopea');
   const campus = school && (map.buildings || []).filter(b => /education|school/.test(b.type || '') && b.points?.length && Math.hypot(b.points[0][0] - school.x, b.points[0][1] - school.z) < 220).sort((a, b) => b.points.length - a.points.length)[0];
   const schoolFront = campus && !managedCampus.has(campus.id) && frontage(campus);
-  if (schoolFront) {
+  if (schoolFront) planSource(() => {
     const f = schoolFront, tx = f.nz, tz = -f.nx, setback = f.street.segment.width / 2 + 5.5;
     const cx = f.street.x + f.nx * setback, cz = f.street.z + f.nz * setback, yaw = Math.atan2(f.nx, f.nz);
     for (let u = -17; u <= 17; u += 0.6) {
@@ -388,18 +417,18 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
         if (!inBuilding(ax, az) && !inBuilding(bx, bz) && !inPark(ax, az) && !inPark(bx, bz)) groundStrip([ax, az], [bx, bz], 2.02, 0x848983);
       }
     }
-  }
+  });
 
   // Furniture uses widely spaced verges, with benches restricted to park/shop edges.
   const furnitureCells = new Set();
   const furnitureSegments = segments.filter(s => !/service|motorway|trunk|link/.test(s.road.type) && s.profile.hasKerb && s.profile.trafficAllowed && s.road.name).sort((a, b) => hash(Number(a.road.id) || a.a[0]) - hash(Number(b.road.id) || b.a[0]));
-  for (let i = 0; i < furnitureSegments.length && stats.lamps < 500; i++) {
-    const s = furnitureSegments[i], length = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]);
-    if (length < 12) continue;
+  function streetFurniture(s, i) {
+    const length = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]);
+    if (length < 12) return;
     const nx = -(s.b[1] - s.a[1]) / length, nz = (s.b[0] - s.a[0]) / length;
     const x = (s.a[0] + s.b[0]) / 2 + nx * (s.width / 2 + s.profile.pavementWidth + 1.5), z = (s.a[1] + s.b[1]) / 2 + nz * (s.width / 2 + s.profile.pavementWidth + 1.5);
     const key = `${Math.floor(x / 100)},${Math.floor(z / 100)}`;
-    if (furnitureCells.has(key) || inRoad(x, z, 1) || inBuilding(x, z) || nearby(drivewayIndex, x, z).some(d => project(x, z, d.a, d.b).distance < 2.1)) continue;
+    if ((!replaying && furnitureCells.has(key)) || inRoad(x, z, 1) || inBuilding(x, z) || nearby(drivewayIndex, x, z).some(d => project(x, z, d.a, d.b).distance < 2.1)) return;
     furnitureCells.add(key);
     const y = heightAt(x, z), yaw = Math.atan2(nx, nz);
     solid(box, x, y + 2.6, z, 0.09, 5.2, 0.09, PALETTE.pole);
@@ -421,6 +450,9 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
       }
     }
   }
+  for (let i = 0; i < furnitureSegments.length && stats.lamps < 500; i++) {
+    planSource(() => streetFurniture(furnitureSegments[i], i));
+  }
   if (shopSigns.length && typeof document !== 'undefined') {
     const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 256;
     const ctx = canvas.getContext('2d'); ctx.fillStyle = '#d0c6ab'; ctx.fillRect(0, 0, 512, 256); ctx.fillStyle = '#33483d';
@@ -428,15 +460,15 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     shopLabels.forEach((text, i) => ctx.fillText(text, 256, i * 64 + 32));
     const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace; textures.push(texture);
     const signs = new THREE.MeshLambertMaterial({ map: texture, side: THREE.DoubleSide }); materials.push(signs);
-    for (const p of shopSigns) {
+    for (const p of shopSigns) planSource(() => {
       const batch = batchAt(p.x, p.z, 'sign'), tx = Math.cos(p.yaw) * 1.5, tz = -Math.sin(p.yaw) * 1.5;
       const a = [p.x - tx, p.y - 0.25, p.z - tz], b = [p.x + tx, p.y - 0.25, p.z + tz], c = [b[0], p.y + 0.25, b[2]], d = [a[0], p.y + 0.25, a[2]];
       triangle(batch, a, b, c, 0xffffff); triangle(batch, a, c, d, 0xffffff);
       const v1 = 1 - p.label / 4, v0 = v1 - 0.25;
-      batch.uvs.push(0, v0, 1, v0, 1, v1, 0, v0, 1, v1, 0, v1); stats.shopSigns++;
-    }
+      if (batch) batch.uvs.push(0, v0, 1, v0, 1, v1, 0, v0, 1, v1, 0, v1); stats.shopSigns++;
+    });
   }
-  for (const chunk of chunks.values()) {
+  function finishChunk(chunk) {
     for (const [kind, batch] of chunk.batches) {
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.Float32BufferAttribute(batch.positions, 3));
@@ -444,6 +476,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
       if (kind === 'sign') geometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uvs, 2));
       else geometry.setAttribute('color', compactAttribute(batch.colors, 3));
       geometry.computeBoundingSphere();
+      stats.residentTriangles += geometry.attributes.position.count / 3;
       for (const attribute of Object.values(geometry.attributes)) stats.bufferBytes += attribute.array.byteLength;
       const mesh = new THREE.Mesh(geometry, kind === 'sign' ? materials.at(-1) : material);
       mesh.name = `Neighbourhood ${kind}`;
@@ -451,24 +484,88 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     }
     chunk.batches.clear();
   }
-  for (const source of geometrySources) source.dispose();
-  stats.chunks = chunks.size;
-  Object.freeze(stats);
+  planning = false;
+  for (const chunk of chunks.values()) finishChunk(chunk);
+  if (!streaming) for (const source of geometrySources) source.dispose();
+  stats.chunks = streaming ? sources.size : chunks.size;
+  stats.sourceChunks = stats.chunks;
+  stats.residentBytes = stats.bufferBytes;
+  stats.peakResidentBytes = stats.bufferBytes;
+  stats.residentChunks = chunks.size;
+  // Feature counts/triangles describe the complete source plan. Buffer/mesh
+  // counters above describe only resident geometry when streaming is enabled.
+  const sourceStats = Object.freeze(Object.fromEntries(Object.entries(stats).filter(([key]) =>
+    !['bufferBytes', 'residentBytes', 'residentTriangles', 'peakResidentBytes', 'residentChunks', 'loads', 'evictions', 'queue', 'meshes'].includes(key))));
+  function evict(key) {
+    const chunk = chunks.get(key);
+    if (!chunk) return;
+    let bytes = 0, meshes = 0;
+    chunk.group.traverse(o => {
+      if (!o.isMesh) return;
+      for (const attribute of Object.values(o.geometry.attributes)) bytes += attribute.array.byteLength;
+      stats.residentTriangles -= o.geometry.attributes.position.count / 3;
+      o.geometry.dispose(); meshes++;
+    });
+    chunk.group.removeFromParent(); chunks.delete(key);
+    stats.bufferBytes -= bytes; stats.residentBytes = stats.bufferBytes;
+    stats.meshes -= meshes; stats.residentChunks = chunks.size; stats.evictions++;
+  }
+  function load(key) {
+    const current = { ...stats };
+    targetKey = key; replaying = true;
+    for (const item of sources.get(key) || []) {
+      Object.assign(stats, item.before); item.build();
+    }
+    replaying = false; targetKey = null;
+    Object.assign(stats, current);
+    const chunk = chunks.get(key);
+    if (chunk) finishChunk(chunk);
+    stats.residentBytes = stats.bufferBytes;
+    stats.peakResidentBytes = Math.max(stats.peakResidentBytes, stats.residentBytes);
+    stats.residentChunks = chunks.size; stats.loads++;
+  }
+  function distance(key, x, z) {
+    const [cx, cz] = key.split(',').map(Number);
+    return Math.max(Math.abs((cx + 0.5) * CHUNK - x), Math.abs((cz + 0.5) * CHUNK - z));
+  }
+  function streamAround(x, z) {
+    for (const key of chunks.keys()) if (distance(key, x, z) > EVICT_RANGE) evict(key);
+    const wanted = [];
+    // A bounded grid lookup avoids scanning every source on a moving frame.
+    for (let cx = Math.floor((x - LOAD_RANGE) / CHUNK); cx <= Math.floor((x + LOAD_RANGE) / CHUNK); cx++) {
+      for (let cz = Math.floor((z - LOAD_RANGE) / CHUNK); cz <= Math.floor((z + LOAD_RANGE) / CHUNK); cz++) {
+        const key = `${cx},${cz}`;
+        if (sources.has(key) && !chunks.has(key)) wanted.push(key);
+      }
+    }
+    queue = wanted.sort((a, b) => distance(a, x, z) - distance(b, x, z) || a.localeCompare(b));
+    if (queue.length) {
+      if (chunks.size >= MAX_RESIDENT) {
+        const farthest = [...chunks.keys()].sort((a, b) => distance(b, x, z) - distance(a, x, z))[0];
+        evict(farthest);
+      }
+      load(queue.shift());
+    }
+    stats.queue = queue.length;
+  }
   function update(player) {
+    if (disposed) return;
     const x = player.x ?? player.position?.x ?? 0, z = player.z ?? player.position?.z ?? 0;
+    if (streaming) streamAround(x, z);
     for (const chunk of chunks.values()) {
       const range = lowGraphics ? 420 : 650, gardenRange = lowGraphics ? 180 : 260;
       chunk.group.visible = Math.abs(chunk.x - x) < range + CHUNK / 2 && Math.abs(chunk.z - z) < range + CHUNK / 2;
       if (chunk.detail) chunk.detail.visible = Math.abs(chunk.x - x) < gardenRange + CHUNK / 2 && Math.abs(chunk.z - z) < gardenRange + CHUNK / 2;
     }
   }
-  let disposed = false;
   function dispose() {
     if (disposed) return; disposed = true;
     root.traverse(o => { if (o.isMesh) o.geometry.dispose(); });
     for (const m of materials) m.dispose(); for (const t of textures) t.dispose();
-    root.removeFromParent(); chunks.clear();
+    if (streaming) for (const source of geometrySources) source.dispose();
+    root.clear(); root.removeFromParent(); chunks.clear(); sources.clear(); gardenPlans.clear(); queue = [];
+    stats.bufferBytes = 0; stats.residentBytes = 0; stats.residentChunks = 0; stats.residentTriangles = 0; stats.meshes = 0; stats.queue = 0;
   }
   update(map.spawn || { x: 0, z: 0 });
-  return { update, stats, entries: Object.freeze(entries), dispose };
+  return { update, stats, sourceStats, entries: Object.freeze(entries), dispose };
 }

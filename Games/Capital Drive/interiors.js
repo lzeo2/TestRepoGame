@@ -74,6 +74,50 @@ export function createGymEntry(map, service) {
   return best ? freeze(best) : null;
 }
 
+// ACT education body retained by CAMPUS_BUILDING_IDS in campus.js. The public
+// approach uses its existing estimated gate 11; no real interior/door survey.
+const SCHOOL_BUILDING_ID = 'act-101001-0';
+const SCHOOL_GATE = Object.freeze({ id: 'telopea-gate-11', x: -337.1471913484226, z: -385.02882626688034 });
+export function createSchoolEntry(map) {
+  const building = (map?.buildings || []).find(b => b.id === SCHOOL_BUILDING_ID && b.type === 'education');
+  if (!building?.points?.length) return null;
+  const width = 12, depth = 16;
+  let best = null, bestDistance = Infinity;
+  const nearby = (map.buildings || []).filter(b => b.points?.some(([x, z]) => Math.hypot(x - SCHOOL_GATE.x, z - SCHOOL_GATE.z) < 150));
+  const clear = p => !nearby.some(b => b.points?.length &&
+    (insideOutline(p.x, p.z, b.points) || b.points.some((a, i) =>
+      distance(p, projectSegment(p.x, p.z, a, b.points[(i + 1) % b.points.length])) < .55)));
+  for (let i = 0; i < building.points.length - 1; i++) {
+    const a = building.points[i], b = building.points[i + 1];
+    const dx = b[0] - a[0], dz = b[1] - a[1], length = Math.hypot(dx, dz);
+    if (length < width + 2) continue;
+    const p = projectSegment(SCHOOL_GATE.x, SCHOOL_GATE.z, a, b, .35, .65);
+    let nx = -dz / length, nz = dx / length;
+    if (!insideOutline(p.x + nx * .35, p.z + nz * .35, building.points)) { nx = -nx; nz = -nz; }
+    const origin = { ...p, yaw: Math.atan2(nx, nz) };
+    // Keep this original playable room within the retained body.
+    if (![-width / 2, 0, width / 2].every(x => [.3, depth / 2, depth].every(z => {
+      const q = worldPoint(origin, x, z); return insideOutline(q.x, q.z, building.points);
+    }))) continue;
+    const approach = worldPoint(origin, 0, -1.6);
+    let accessible = true;
+    const steps = Math.ceil(distance(SCHOOL_GATE, approach) / .35);
+    for (let step = 1; step <= steps; step++) {
+      const t = step / steps, q = { x: SCHOOL_GATE.x + (approach.x - SCHOOL_GATE.x) * t,
+        z: SCHOOL_GATE.z + (approach.z - SCHOOL_GATE.z) * t };
+      if (!clear(q)) { accessible = false; break; }
+    }
+    const d = distance(SCHOOL_GATE, approach);
+    if (accessible && d < bestDistance) {
+      bestDistance = d;
+      best = { id: 'interior-telopea-school', schoolId: 'telopea-school', type: 'school',
+        name: 'Telopea after-hours wing', buildingId: building.id, ...origin, width, depth,
+        gateId: SCHOOL_GATE.id, approach, estimated: true };
+    }
+  }
+  return best ? freeze(best) : null;
+}
+
 // IDs refer to retained source shops, never a name substring or doorway width.
 const STORE_ARCHETYPES = Object.freeze({
   'store-358293199': 'grocery', 'store-6275666787': 'grocery',
@@ -106,7 +150,7 @@ function mallDimensions(entry, building) {
 export function createInteriors(map, { heightAt = () => 0, stores = [], publicEntries = [] } = {}) {
   const buildings = new Map((map.buildings || []).map(b => [String(b.id), b]));
   const entries = [], index = new Map(), identities = new Set();
-  const occupiedBuildings = new Set([...stores, ...publicEntries.filter(e => ['gym', 'mall'].includes(e.type))].map(s => String(s.buildingId)));
+  const occupiedBuildings = new Set([...stores, ...publicEntries.filter(e => ['gym', 'mall', 'school'].includes(e.type))].map(s => String(s.buildingId)));
   function add(entry) {
     if (!validPoint(entry) || !Number.isFinite(entry.yaw) || identities.has(entry.id)) return;
     const y = heightAt(entry.x, entry.z);
@@ -139,17 +183,17 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
   }
   for (const entry of publicEntries) {
     const building = buildings.get(String(entry.buildingId));
-    if (!['mall', 'gym'].includes(entry.type) || !entry.id || !validPoint(entry) || !building?.points?.length) continue;
+    if (!['mall', 'gym', 'school'].includes(entry.type) || !entry.id || !validPoint(entry) || !building?.points?.length) continue;
     // Public entries must be tied to a real exterior edge, never a map-only travel target.
     const onFacade = building.points.some((a, i, points) => {
       const b = points[(i + 1) % points.length], dx = b[0] - a[0], dz = b[1] - a[1];
       const t = clamp(((entry.x - a[0]) * dx + (entry.z - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1);
       return Math.hypot(entry.x - a[0] - t * dx, entry.z - a[1] - t * dz) < 0.4;
     });
-    if (!onFacade) continue;
+    if (!onFacade || entry.type === 'school' && (entry.id !== 'interior-telopea-school' || building.id !== SCHOOL_BUILDING_ID)) continue;
     add({ id: entry.id, buildingId: building.id, type: entry.type, name: entry.name || (entry.type === 'gym' ? 'Kingston gym' : 'Shopping concourse'),
-      ...(entry.type === 'gym' ? { serviceId: entry.serviceId } : {}),
-      x: entry.x, z: entry.z, yaw: entry.yaw, ...(entry.type === 'mall' ? mallDimensions(entry, building) : { width: 14, depth: 16 }) });
+      ...(entry.type === 'gym' ? { serviceId: entry.serviceId } : entry.type === 'school' ? { schoolId: 'telopea-school' } : {}),
+      x: entry.x, z: entry.z, yaw: entry.yaw, ...(entry.type === 'mall' ? mallDimensions(entry, building) : { width: entry.type === 'school' ? 12 : 14, depth: 16 }) });
   }
   Object.freeze(entries);
   let active = null, outside = null, generatedPlans = 0;
@@ -169,6 +213,11 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
   }
   function build(entry) {
     const { width, depth } = entry, floorY = entry.y + 0.14;
+    // Story homes are bound after exterior descriptors exist. Read the binding
+    // only on entry, so ordinary houses keep their original lazy room plans.
+    const home = map.storyHomes?.basement;
+    const storyHome = entry.type === 'house' && home?.roomId === entry.id &&
+      String(home.buildingId) === String(entry.buildingId) ? home : null;
     const origin = { x: entry.x, z: entry.z, yaw: entry.yaw };
     const walls = [], furniture = [], doors = [], rooms = [], details = [], activities = [];
     function box(list, kind, x, z, w, d, h, color, y = 0, yaw = 0) {
@@ -233,6 +282,11 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       station('television', 'tv', 'Watch the television', -1.65, 1.4, Math.PI);
       station('cooking', 'cooking', 'Cook at the kitchen bench', 3.6, 3.1, Math.PI / 2);
       station('rest', 'rest', 'Rest beside the bed', -1.65, 9.3, -Math.PI / 2);
+      if (storyHome) {
+        // Fictional mission furniture at the hall end, clear of all four doors.
+        furnish('ledger-case', 0, depth - .7, .65, .5, .68, 0x5c7067);
+        station('stash', 'stock', 'Pack the ledger case', 0, depth - 1.75, 0, 1.2);
+      }
     } else if (entry.type === 'mall') {
       const hall = 10, unitWidth = (width - hall) / 2, unitDepth = (depth - 6) / 2, unitGap = 5;
       const centres = [3 + unitDepth / 2, 3 + unitDepth * 1.5];
@@ -263,6 +317,27 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
         for (const z of [3, depth / 2, depth - 3]) wall(centreX, z, unitWidth, 0.16);
         box(furniture, 'bench', side * 3.8, depth / 2, 0.75, 2.6, 0.65, 0x938268);
       }
+    } else if (entry.type === 'school') {
+      // Original small after-hours wing, never a copy of a private school plan.
+      rooms.push({ kind: 'school-corridor', ...worldPoint(origin, 0, 8), width: 3.2, depth },
+        { kind: 'classroom', ...worldPoint(origin, -3.8, 8), width: 4.4, depth },
+        { kind: 'staff-area', ...worldPoint(origin, 3.8, 8), width: 4.4, depth });
+      for (const side of [-1, 1]) {
+        wall(side * 1.6, 2.25, .14, 4.5);
+        wall(side * 1.6, 11.25, .14, 9.5);
+        door(side < 0 ? 'classroom' : 'staff-area', side * 1.6, 5.5, 2);
+      }
+      for (const z of [3.3, 9.5, 12.7]) {
+        box(furniture, 'school-desk', -4.1, z, 2.1, .85, .76, 0xb5a17d);
+        box(furniture, 'padded-chair', -4.1, z + .9, .5, .5, .84, 0x6b7d75);
+      }
+      box(furniture, 'classroom-board', -4, 15.6, 3, .14, 1.2, 0x4b625c, .95);
+      box(furniture, 'office-desk', 4.2, 11, 2, 1, .76, 0xb5a17d);
+      box(furniture, 'padded-chair', 4.2, 12, .55, .55, .84, 0x6b7d75);
+      box(furniture, 'lockers', 5.5, 3.4, .65, 3.4, 1.95, 0xa3aba2);
+      // Stylised fictional prop and simple game-key task, without device details.
+      box(furniture, 'alarm-panel', 1.43, 9, .18, .48, .48, 0xb8493f, 1.05);
+      station('alarm', 'alarm', 'School fire alarm', .5, 9, Math.PI / 2, 1.25);
     } else if (entry.type === 'gym') {
       rooms.push({ kind: 'gym-floor', ...worldPoint(origin, 0, depth / 2), width, depth });
       box(furniture, 'counter', 3.8, 3.1, 2.2, 0.8, 1.05, 0xaaa18a);
@@ -338,9 +413,9 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       rooms.push({ kind: 'shop', ...worldPoint(origin, 0, depth / 2), width, depth });
       station('stock', 'stock', 'Sort the shelf stock', width / 2 - 1.55, 3.8, Math.PI / 2);
     }
-    return freeze({ id: entry.id, buildingId: entry.buildingId, ...(['mall', 'gym'].includes(entry.type) ? {} : { storeId: entry.storeId || null }),
-      ...(entry.serviceId ? { serviceId: entry.serviceId } : {}),
-      type: entry.type, ...(entry.variant ? { variant: entry.variant } : {}), name: entry.name, origin, width, depth, floorY, spawn, exit, counter,
+    return freeze({ id: entry.id, buildingId: entry.buildingId, ...(['mall', 'gym', 'school'].includes(entry.type) ? {} : { storeId: entry.storeId || null }),
+      ...(entry.serviceId ? { serviceId: entry.serviceId } : {}), ...(entry.schoolId ? { schoolId: entry.schoolId } : {}),
+      type: entry.type, ...(entry.variant ? { variant: entry.variant } : {}), name: typeof storyHome?.name === 'string' && storyHome.name.trim() ? storyHome.name : entry.name, origin, width, depth, floorY, spawn, exit, counter,
       walls, doors, furniture, rooms, activities, ...(noodleCook ? { noodleCook, boothGuest } : {}),
       ...(entry.type === 'mall' ? { levels: [{ y: floorY, label: 'Ground floor' }], sourceExtent: entry.sourceExtent, reference: 'Monaro Mall 1963 materials; original partial ground-floor wing. Tenancies and corridors are interpreted.' } : {}), ...(exercise ? { exercise } : {}), ...(details.length ? { details } : {}), layoutNote: 'Original plausible layout; not a surveyed interior.' });
   }

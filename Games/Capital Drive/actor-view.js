@@ -173,7 +173,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
     const lightMesh = batchStatic(lights, lightMaterial);
     car.visible = false; root.add(car); return { car, lightMesh };
   });
-  // Five instanced parts articulate all officers with a fixed five-draw budget.
+  // Sidearms share the right-arm batch; aiming preserves the fixed five body draws.
   const navy = material(policeAppearance.shirt), policePants = material(policeAppearance.trousers);
   const policeSkin = material(policeAppearance.skin), policeHair = material(policeAppearance.hair), policeShoes = material(policeAppearance.shoes);
   const badge = material(0xc8c4a4);
@@ -183,7 +183,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
     ['Officer left leg', [[policePants,[0,-.37,0],[dimensions.legs.sx,.74/3,dimensions.legs.sz],capsule], [policeShoes,[0,-.755,dimensions.shoes.z],[dimensions.shoes.sx,dimensions.shoes.sy,dimensions.shoes.sz]]]],
     ['Officer right leg', [[policePants,[0,-.37,0],[dimensions.legs.sx,.74/3,dimensions.legs.sz],capsule], [policeShoes,[0,-.755,dimensions.shoes.z],[dimensions.shoes.sx,dimensions.shoes.sy,dimensions.shoes.sz]]]],
     ['Officer left arm', [[navy,[0,-.25,0],[dimensions.arms.sx,.50/3,dimensions.arms.sz],capsule], [policeSkin,[0,-.55,0],[dimensions.hands.sx,dimensions.hands.sy,dimensions.hands.sz],sphere]]],
-    ['Officer right arm', [[navy,[0,-.25,0],[dimensions.arms.sx,.50/3,dimensions.arms.sz],capsule], [policeSkin,[0,-.55,0],[dimensions.hands.sx,dimensions.hands.sy,dimensions.hands.sz],sphere]]],
+    ['Officer right arm', [[navy,[0,-.25,0],[dimensions.arms.sx,.50/3,dimensions.arms.sz],capsule], [policeSkin,[0,-.55,0],[dimensions.hands.sx,dimensions.hands.sy,dimensions.hands.sz],sphere], [palette.gun,[0,-.67,-.035],[.085,.28,.10]], [palette.gun,[0,-.55,.035],[.07,.12,.14]]]],
   ]) {
     const template = new THREE.Group(); template.name = name;
     for (const [mat, pos, size, geometry] of specs) piece(template,name,mat,pos,size,geometry);
@@ -192,6 +192,8 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
     instances.name = name; instances.frustumCulled = false; instances.visible = false;
     root.add(instances); officerParts.push(instances);
   }
+  const muzzleMatrices=Array.from({length:policeLimit},()=>new THREE.Matrix4());
+  const muzzlePose=new THREE.Object3D();
   const officerWorld = new THREE.Object3D(), officerLimb = new THREE.Object3D(), officerMatrix = new THREE.Matrix4();
   const streaks = new THREE.InstancedMesh(box, palette.yellow, SHOT_LIMIT);
   const impacts = new THREE.InstancedMesh(sphere, palette.yellow, SHOT_LIMIT);
@@ -260,7 +262,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
         knees[other].rotation.x += .10*Math.sin(elapsed*Math.PI);
       }
     }
-    counters.police = 0; counters.officers = 0;
+    counters.police = 0; counters.officers = 0;let muzzleCount=0;
     police.forEach((view, i) => {
       const item = state.police?.[i], carPose = item?.car || item;
       const active = !!item && item.active !== false && finite(item.health, 100) > 0;
@@ -272,7 +274,12 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
           const leg = part === 1 || part === 2, arm = part > 2, side = part === 1 || part === 3 ? -1 : 1;
           officerLimb.position.set(leg ? side*dimensions.legs.x : arm ? side*dimensions.arms.x : 0, leg ? .81 : arm ? 1.35 : 0, 0);
           officerLimb.rotation.set((leg ? 1 : arm ? -.7 : 0) * stride * side,0,arm ? -side*.08 : 0);
+          if(arm && item.aiming) officerLimb.rotation.set(part===4?Math.PI/2:1.18,0,part===4?0:.5);
           officerLimb.updateMatrix(); officerMatrix.multiplyMatrices(officerWorld.matrix,officerLimb.matrix);
+          if(part===4 && item.shotTimer>0) {
+            muzzlePose.position.set(0,-.83,-.035);muzzlePose.scale.set(.08,.11,.08);muzzlePose.rotation.set(0,0,0);muzzlePose.updateMatrix();
+            muzzlePose.matrix.premultiply(officerMatrix);muzzleMatrices[muzzleCount++].copy(muzzlePose.matrix);
+          }
           officerParts[part].setMatrixAt(counters.officers,officerMatrix);
         }
         counters.officers++;
@@ -307,8 +314,10 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
       effectPose.updateMatrix(); impacts.setMatrixAt(counters.shots, effectPose.matrix);
       counters.shots++;
     }
-    streaks.count = impacts.count = counters.shots;
-    streaks.visible = impacts.visible = counters.shots > 0;
+    let impactCount=counters.shots;
+    for(let i=0;i<muzzleCount && impactCount<SHOT_LIMIT;i++) impacts.setMatrixAt(impactCount++,muzzleMatrices[i]);
+    streaks.count=counters.shots;impacts.count=impactCount;
+    streaks.visible=counters.shots>0;impacts.visible=impactCount>0;
     streaks.instanceMatrix.needsUpdate = impacts.instanceMatrix.needsUpdate = true;
     marker.visible = near(objective, center, 850);
     if (marker.visible) { marker.position.set(objective.x, ground(objective.x, objective.z), objective.z); arrow.position.y = 3.2 + Math.sin(clock * 2) * .15; }

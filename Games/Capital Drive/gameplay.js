@@ -34,7 +34,8 @@ export function createGameplay(map, simulation, options = {}) {
   let retaliationCooldown = 0, crashCooldown = 0, recklessCooldown = 0;
   const theftChallenge = createVehicleChallenge();
   function clearTheftChallenge() { theftChallenge.clear(); theftChallenge.drainEvents(); }
-  const policeController = createPolice(simulation, { onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
+  const policeEvents=[];
+  const policeController = createPolice(simulation, { getAllies:options.getAllies, onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
   const passengerPose=()=>{const pose=options.passengerPose?.();return pose&&Number.isFinite(pose.x)&&Number.isFinite(pose.z)?pose:null;};
   Object.defineProperty(state,'passenger',{enumerable:true,get:()=>!!passengerPose()});
   const focus = () => passengerPose()||(state.mode === 'foot' ? state.actor : simulation.player);
@@ -147,6 +148,7 @@ export function createGameplay(map, simulation, options = {}) {
     return Math.max(0, lo - 0.05);
   }
   function attack(kind) {
+    if(options.canAttack?.()===false) return;
     const weapon = weaponById(kind), actor = state.actor;
     if (weapon && (!ownsWeapon(kind) || fireCooldown > 0 || state.reloading > 0)) return;
     if (!weapon && meleeCooldown > 0) return;
@@ -266,6 +268,19 @@ export function createGameplay(map, simulation, options = {}) {
     if (pool.reserveAmmo >= weapon.reserveCap) return false;
     pool.reserveAmmo = clamp(pool.reserveAmmo + quantity, 0, weapon.reserveCap); return true;
   }
+  function addShot(from,to,kind) {
+    const range=distance(from,to);
+    state.shots.push({x:from.x,z:from.z,endX:to.x,endZ:to.z,
+      yaw:yawFor(to.x-from.x,to.z-from.z),range,life:.13,kind,hit:true});
+    if(state.shots.length>MAX_SHOT_TRACES) state.shots.splice(0,state.shots.length-MAX_SHOT_TRACES);
+  }
+  function strikePolice({from,targetId,damage,range}={}) {
+    if(state.recovery || !from || ![from.x,from.z,damage,range].every(Number.isFinite) || damage<=0 || range<=0) return false;
+    const unit=state.police.find(person=>person.id===targetId && person.health>0 && person.active!==false && person.mode==='foot');
+    if(!unit || distance(from,unit)>Math.min(28,range) || !visible(from,unit)) return false;
+    unit.health=Math.max(0,unit.health-clamp(damage,1,12));
+    addShot(from,unit,'pistol');return true;
+  }
   function heal(amount) {
     if (state.recovery || !Number.isFinite(amount) || amount <= 0 || state.health >= 100) return false;
     state.health = clamp(state.health + amount, 0, 100); return true;
@@ -352,6 +367,13 @@ export function createGameplay(map, simulation, options = {}) {
     }
     if (!state.sandbox && state.health <= 0) { beginRecovery('knockout'); return; }
     policeController.step(dt, state, focus());
+    for(const event of policeController.drainEvents()) {
+      addShot(event.from,event.to,'pistol');
+      if(event.targetId==='player') state.health=Math.max(0,state.health-event.damage);
+      else policeEvents.push(event);
+    }
+    if(policeEvents.length>16) policeEvents.splice(0,policeEvents.length-16);
+    if(!state.sandbox && state.health<=0) beginRecovery('knockout');
   }
   function reset({ sandbox = state.sandbox,startPose,onFoot=false } = {}) {
     clearTheftChallenge();
@@ -365,12 +387,12 @@ export function createGameplay(map, simulation, options = {}) {
       aiming: false, reloading: 0, attackTimer: 0, attackSerial:0, wanted: 0, pursuit: 'clear', heat: 0, sandbox: Boolean(sandbox),
       event: '', message: '', arrestProgress: 0, recovery: null, carjacking: null });
     state.police.length = 0; state.shots.length = 0;
-    policeController.reset(); clearAmmo(state.sandbox); shotSerial = 0;
+    policeEvents.length=0;policeController.reset(); clearAmmo(state.sandbox); shotSerial = 0;
     fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0; crashCooldown = 0; recklessCooldown = 0; jumpVelocity = 0; witnessCooldown = 0;
     previousCrashes = simulation.player.crashes || 0;
     options.pedestrians?.drainEvents?.();
   }
   reset();
-  return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, reset, addAmmo, getAmmo, heal,
+  return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, reset, addAmmo, getAmmo, heal, strikePolice, drainPoliceEvents:()=>policeEvents.splice(0),
     snapshot: () => freeze(JSON.parse(JSON.stringify(state))) };
 }

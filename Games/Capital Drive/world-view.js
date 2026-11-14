@@ -23,13 +23,17 @@ function compactAttribute(values, itemSize, signed = false) {
   return new THREE.BufferAttribute(output, itemSize, true);
 }
 
-export function createWorldView(scene, map, { lowGraphics = false } = {}) {
+export function createWorldView(scene, map, { lowGraphics = false, streaming = false } = {}) {
   const root = new THREE.Group();
   root.name = 'Canberra streets';
   scene.add(root);
   const bounds = map.bounds;
   const terrain = map.terrain;
   const chunks = new Map();
+  // Sources contain references/primitive transforms only, never expanded vertices.
+  // Eviction drops both renderer resources and the only typed-buffer references.
+  const sources = new Map();
+  let preparing = streaming, targetKey = null, targetBounds = null;
   const temporaryGeometry = [];
   const textures = [];
   const materials = [];
@@ -120,6 +124,25 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
 
   const {heightAt,groundHeightAt}=createTerrainSampler(map);
 
+  const keyAt = (x, z) => `${Math.floor(x / CHUNK_SIZE)},${Math.floor(z / CHUNK_SIZE)}`;
+  function deferSource(x, z, draw, extent) {
+    if (!streaming || !preparing) { draw(); return; }
+    const box = extent || [x, z, x, z];
+    for (let cx = Math.floor(box[0] / CHUNK_SIZE); cx <= Math.floor(box[2] / CHUNK_SIZE); cx++) {
+      for (let cz = Math.floor(box[1] / CHUNK_SIZE); cz <= Math.floor(box[3] / CHUNK_SIZE); cz++) {
+        const key = `${cx},${cz}`;
+        if (!sources.has(key)) sources.set(key, []);
+        sources.get(key).push(draw);
+      }
+    }
+  }
+  const owns = (x, z) => !streaming || keyAt(x, z) === targetKey;
+  function gridRange(origin, step, count, axis) {
+    if (!targetBounds) return [0, count];
+    return [Math.max(0, Math.floor((targetBounds[axis] - origin) / step)),
+      Math.min(count, Math.ceil((targetBounds[axis + 2] - origin) / step))];
+  }
+
   function chunkAt(x, z) {
     const cx = Math.floor(x / CHUNK_SIZE), cz = Math.floor(z / CHUNK_SIZE);
     const key = `${cx},${cz}`;
@@ -133,12 +156,14 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
   }
 
   function batchAt(x, z, kind = 'solid') {
+    if (streaming && !owns(x, z)) return null;
     const chunk = chunkAt(x, z);
     if (!chunk.batches.has(kind)) chunk.batches.set(kind, { positions: [], normals: [], colors: [], uvs: [], kinds: [] });
     return chunk.batches.get(kind);
   }
 
   function triangle(batch, a, b, c, tint, uv) {
+    if (!batch) return;
     edgeAB.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
     edgeAC.set(c[0] - a[0], c[1] - a[1], c[2] - a[2]);
     normal.crossVectors(edgeAB, edgeAC).normalize();
@@ -159,12 +184,15 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
 
   function surfaceTriangle(x, z, a, b, c, tint, kind, uv) {
     const batch = batchAt(x, z, 'surface');
+    if (!batch) return;
     triangle(batch, a, b, c, tint, uv || [a[0] / 3, a[2] / 3, b[0] / 3, b[2] / 3, c[0] / 3, c[2] / 3]);
     batch.kinds.push(kind, kind, kind);
   }
   function softShadow(x, z, rx, rz, strength = 0.12) {
     if (lowGraphics) return;
+    if (preparing) { deferSource(x, z, () => softShadow(x, z, rx, rz, strength)); return; }
     const batch = batchAt(x, z, 'shadow');
+    if (!batch) return;
     for (let i = 0; i < 10; i++) {
       const points = [[x, z], [x + Math.cos(i / 10 * Math.PI * 2) * rx, z + Math.sin(i / 10 * Math.PI * 2) * rz],
         [x + Math.cos((i + 1) / 10 * Math.PI * 2) * rx, z + Math.sin((i + 1) / 10 * Math.PI * 2) * rz]];
@@ -177,7 +205,9 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
   }
 
   function primitive(geometry, x, y, z, sx, sy, sz, tint, yaw = 0) {
+    if (preparing) { deferSource(x, z, () => primitive(geometry, x, y, z, sx, sy, sz, tint, yaw)); return; }
     const batch = batchAt(x, z);
+    if (!batch) return;
     position.set(x, y, z);
     scale.set(sx, sy, sz);
     quaternion.setFromAxisAngle(up, yaw);
@@ -229,6 +259,7 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
     const flat=[...points,...rings.flat()];
     const faces=THREE.ShapeUtils.triangulateShape(points.map(p=>new THREE.Vector2(...p)),rings.map(r=>r.map(p=>new THREE.Vector2(...p))));
     function tile(a,b,c,depth=0){
+      if (targetBounds && (Math.max(a[0],b[0],c[0]) < targetBounds[0] || Math.min(a[0],b[0],c[0]) >= targetBounds[2] || Math.max(a[1],b[1],c[1]) < targetBounds[1] || Math.min(a[1],b[1],c[1]) >= targetBounds[3])) return;
       const edges=[[a,b,c],[b,c,a],[c,a,b]].sort((u,v)=>Math.hypot(v[0][0]-v[1][0],v[0][1]-v[1][1])-Math.hypot(u[0][0]-u[1][0],u[0][1]-u[1][1]));
       const [p,q,r]=edges[0];
       if(depth<10&&Math.hypot(p[0]-q[0],p[1]-q[1])>180){const mid=[(p[0]+q[0])/2,(p[1]+q[1])/2];tile(p,mid,r,depth+1);tile(mid,q,r,depth+1);return;}
@@ -248,33 +279,48 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
     const a = point(x, z), b = point(x, z + dz), c = point(x + dx, z + dz), d = point(x + dx, z);
     surfaceTriangle(x, z, a, b, c, shade, 3); surfaceTriangle(x, z, a, c, d, shade, 3);
   }
-  if (terrain?.cols > 1 && terrain?.rows > 1) {
-    const dx = (terrain.maxX - terrain.minX) / (terrain.cols - 1);
-    const dz = (terrain.maxZ - terrain.minZ) / (terrain.rows - 1);
-    for (let iz = 0; iz < terrain.rows - 1; iz++) for (let ix = 0; ix < terrain.cols - 1; ix++) {
-      const x = terrain.minX + ix * dx, z = terrain.minZ + iz * dz;
-      const mixed = Math.abs(groundHeightAt(x, z) + groundHeightAt(x + dx, z + dz) - groundHeightAt(x + dx, z) - groundHeightAt(x, z + dz));
-      const divisions = Math.max(Math.max(dx, dz) > 28 ? 2 : 1, Math.ceil(Math.sqrt(mixed / 0.28)));
-      for (let j = 0; j < divisions; j++) for (let i = 0; i < divisions; i++) terrainTile(x + i * dx / divisions, z + j * dz / divisions, dx / divisions, dz / divisions);
+  function drawTerrain() {
+    if (terrain?.cols > 1 && terrain?.rows > 1) {
+      const dx = (terrain.maxX - terrain.minX) / (terrain.cols - 1);
+      const dz = (terrain.maxZ - terrain.minZ) / (terrain.rows - 1);
+      const [ix0, ix1] = gridRange(terrain.minX, dx, terrain.cols - 1, 0);
+      const [iz0, iz1] = gridRange(terrain.minZ, dz, terrain.rows - 1, 1);
+      for (let iz = iz0; iz < iz1; iz++) for (let ix = ix0; ix < ix1; ix++) {
+        const x = terrain.minX + ix * dx, z = terrain.minZ + iz * dz;
+        const mixed = Math.abs(groundHeightAt(x, z) + groundHeightAt(x + dx, z + dz) - groundHeightAt(x + dx, z) - groundHeightAt(x, z + dz));
+        const divisions = Math.max(Math.max(dx, dz) > 28 ? 2 : 1, Math.ceil(Math.sqrt(mixed / 0.28)));
+        for (let j = 0; j < divisions; j++) for (let i = 0; i < divisions; i++) terrainTile(x + i * dx / divisions, z + j * dz / divisions, dx / divisions, dz / divisions);
+      }
+    } else {
+      const [ix0, ix1] = gridRange(bounds.minX, 35, Math.ceil((bounds.maxX - bounds.minX) / 35), 0);
+      const [iz0, iz1] = gridRange(bounds.minZ, 35, Math.ceil((bounds.maxZ - bounds.minZ) / 35), 1);
+      for (let iz = iz0; iz < iz1; iz++) for (let ix = ix0; ix < ix1; ix++) terrainTile(bounds.minX + ix * 35, bounds.minZ + iz * 35, 35, 35);
     }
-  } else {
-    for (let z = bounds.minZ; z < bounds.maxZ; z += 35) for (let x = bounds.minX; x < bounds.maxX; x += 35) terrainTile(x, z, 35, 35);
-  }
-  for(const tile of map.terrainTiles||[]){
-    const dx=(tile.maxX-tile.minX)/(tile.cols-1),dz=(tile.maxZ-tile.minZ)/(tile.rows-1);
-    for(let iz=0;iz<tile.rows-1;iz++)for(let ix=0;ix<tile.cols-1;ix++){
-      const x=tile.minX+ix*dx,z=tile.minZ+iz*dz;
-      if(terrain&&z>=terrain.minZ)continue;
-      const end=Math.min(z+dz,terrain?.minZ??z+dz);
-      if(end>z)terrainTile(x,z,dx,end-z);
+    for(const tile of map.terrainTiles||[]){
+      const dx=(tile.maxX-tile.minX)/(tile.cols-1),dz=(tile.maxZ-tile.minZ)/(tile.rows-1);
+      const [ix0, ix1] = gridRange(tile.minX, dx, tile.cols - 1, 0);
+      const [iz0, iz1] = gridRange(tile.minZ, dz, tile.rows - 1, 1);
+      for(let iz=iz0;iz<iz1;iz++)for(let ix=ix0;ix<ix1;ix++){
+        const x=tile.minX+ix*dx,z=tile.minZ+iz*dz;
+        if(terrain&&z>=terrain.minZ)continue;
+        const end=Math.min(z+dz,terrain?.minZ??z+dz);
+        if(end>z)terrainTile(x,z,dx,end-z);
+      }
+    }
+    const [outerX0, outerX1] = gridRange(bounds.minX - 245, 35, Math.ceil((bounds.maxX - bounds.minX + 490) / 35), 0);
+    const [outerZ0, outerZ1] = gridRange(bounds.minZ - 245, 35, Math.ceil((bounds.maxZ - bounds.minZ + 490) / 35), 1);
+    for (let iz = outerZ0; iz < outerZ1; iz++) for (let ix = outerX0; ix < outerX1; ix++) {
+      const x = bounds.minX - 245 + ix * 35, z = bounds.minZ - 245 + iz * 35;
+      if (x < bounds.minX || z < bounds.minZ || x >= bounds.maxX || z >= bounds.maxZ) terrainTile(x, z, 35, 35);
     }
   }
-  for (let z = bounds.minZ - 245; z < bounds.maxZ + 245; z += 35) for (let x = bounds.minX - 245; x < bounds.maxX + 245; x += 35) {
-    if (x < bounds.minX || z < bounds.minZ || x >= bounds.maxX || z >= bounds.maxZ) terrainTile(x, z, 35, 35);
-  }
+  if (!streaming) drawTerrain();
   // Grass polygons cannot be draped with boundary-only triangles on a hill.
   // Terrain already supplies grass; reserve overlays for the water itself.
-  for (const area of map.areas || []) if (/water|lake|basin/.test(area.type)) groundPolygon(area, 0x547b82, -0.12);
+  for (const area of map.areas || []) if (/water|lake|basin/.test(area.type) && area.points?.length) {
+    const p = area.points, xs = p.map(v => v[0]), zs = p.map(v => v[1]);
+    deferSource(p[0][0], p[0][1], () => groundPolygon(area, 0x547b82, -0.12), [Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)]);
+  }
 
   // Spatial indices keep avenue placement linear in the size of the map.
   const roadCells = new Map(), buildingCells = new Map();
@@ -358,12 +404,13 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
       const x1 = THREE.MathUtils.lerp(a[0], b[0], t1), z1 = THREE.MathUtils.lerp(a[1], b[1], t1);
       const p = (x, z, d) => [x + nx * d, heightAt(x + nx * d, z + nz * d) + lift, z + nz * d];
       const batch = batchAt(x0, z0, tint === COLORS.asphalt ? 'road' : 'pavement');
+      if (!batch) continue;
       const pa = p(x0, z0, right), pb = p(x1, z1, right), pc = p(x1, z1, left), pd = p(x0, z0, left);
       drapedTriangle(batch, pa, pb, pc, tint, lift);
       drapedTriangle(batch, pa, pc, pd, tint, lift);
     }
   }
-  for (const s of roadSegments) {
+  function drawRoad(s) {
     const half = s.width / 2;
     // Side strips avoid hidden duplicate pavement under the entire carriageway.
     const residentialPath = s.road.type === 'residential';
@@ -394,28 +441,36 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
     }
     counters.roadSegments++;
   }
+  for (const s of roadSegments) {
+    const margin = s.width + s.profile.pavementWidth + 6;
+    deferSource(s.a[0], s.a[1], () => drawRoad(s), [Math.min(s.a[0],s.b[0])-margin, Math.min(s.a[1],s.b[1])-margin, Math.max(s.a[0],s.b[0])+margin, Math.max(s.a[1],s.b[1])+margin]);
+  }
 
   // A small apron joins consecutive road segments at every bend, including
   // nodes on a single named way, rather than only named intersections.
   for (const node of nodes.values()) {
-    const radius = node.width / 2;
-    const batch = batchAt(node.x, node.z, 'road');
-    for (let i = 0; i < 10; i++) {
-      const p = a => [node.x + Math.cos(a) * radius, heightAt(node.x + Math.cos(a) * radius, node.z + Math.sin(a) * radius) + 0.09, node.z + Math.sin(a) * radius];
-      drapedTriangle(batch, [node.x, heightAt(node.x, node.z) + 0.09, node.z], p((i + 1) / 10 * Math.PI * 2), p(i / 10 * Math.PI * 2), COLORS.asphalt, 0.09);
-    }
+    deferSource(node.x, node.z, () => {
+      const radius = node.width / 2;
+      const batch = batchAt(node.x, node.z, 'road');
+      for (let i = 0; i < 10; i++) {
+        const p = a => [node.x + Math.cos(a) * radius, heightAt(node.x + Math.cos(a) * radius, node.z + Math.sin(a) * radius) + 0.09, node.z + Math.sin(a) * radius];
+        drapedTriangle(batch, [node.x, heightAt(node.x, node.z) + 0.09, node.z], p((i + 1) / 10 * Math.PI * 2), p(i / 10 * Math.PI * 2), COLORS.asphalt, 0.09);
+      }
+    });
   }
   const intersections = [...nodes.values()].filter(n => n.roads.size > 1);
   // Keep junction fill inside the widest participating carriageway; enlarged
   // discs used to turn small access junctions into broad asphalt plazas.
   for (const node of intersections) {
-    const radius = node.width / 2;
-    const batch = batchAt(node.x, node.z, 'road');
-    for (let i = 0; i < 12; i++) {
-      const a = i / 12 * Math.PI * 2, b = (i + 1) / 12 * Math.PI * 2;
-      const p = angle => [node.x + Math.cos(angle) * radius, heightAt(node.x + Math.cos(angle) * radius, node.z + Math.sin(angle) * radius) + 0.115, node.z + Math.sin(angle) * radius];
-      drapedTriangle(batch, [node.x, heightAt(node.x, node.z) + 0.115, node.z], p(b), p(a), COLORS.asphalt, 0.115);
-    }
+    deferSource(node.x, node.z, () => {
+      const radius = node.width / 2;
+      const batch = batchAt(node.x, node.z, 'road');
+      for (let i = 0; i < 12; i++) {
+        const a = i / 12 * Math.PI * 2, b = (i + 1) / 12 * Math.PI * 2;
+        const p = angle => [node.x + Math.cos(angle) * radius, heightAt(node.x + Math.cos(angle) * radius, node.z + Math.sin(angle) * radius) + 0.115, node.z + Math.sin(angle) * radius];
+        drapedTriangle(batch, [node.x, heightAt(node.x, node.z) + 0.115, node.z], p(b), p(a), COLORS.asphalt, 0.115);
+      }
+    });
   }
 
   for (const anchor of (map.landmarks || []).filter(l => /^(manuka|kingston)$/.test(l.id))) {
@@ -423,16 +478,18 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
     if (!node) continue;
     const segment = roadSegments.find(s => Math.hypot(s.a[0] - node.x, s.a[1] - node.z) < 3 && s.length > 28);
     if (!segment) continue;
-    const dx = (segment.b[0] - segment.a[0]) / segment.length, dz = (segment.b[1] - segment.a[1]) / segment.length;
-    const cx = node.x + dx * 15, cz = node.z + dz * 15, half = segment.width / 2 - 0.5;
-    ribbon([cx - dx * 1.9, cz - dz * 1.9], [cx + dx * 1.9, cz + dz * 1.9], -half, half, 0x986f58, 0.135);
-    for (let side = -half + 0.3; side < half; side += 0.8) {
-      ribbon([cx - dx * 1.5, cz - dz * 1.5], [cx + dx * 1.5, cz + dz * 1.5], side - 0.23, side + 0.23, COLORS.paint, 0.15);
-    }
-    const ix = node.x + dx * 7, iz = node.z + dz * 7, iy = heightAt(ix, iz);
-    primitive(box, ix, iy + 0.15, iz, 0.85, 0.3, 3.2, COLORS.kerb, Math.atan2(dx, dz));
-    primitive(box, ix, iy + 0.8, iz, 0.16, 1.2, 0.16, 0xe5e4d5);
-    primitive(box, ix, iy + 1.28, iz, 0.45, 0.45, 0.1, 0x527d94, Math.atan2(dx, dz));
+    deferSource(node.x, node.z, () => {
+      const dx = (segment.b[0] - segment.a[0]) / segment.length, dz = (segment.b[1] - segment.a[1]) / segment.length;
+      const cx = node.x + dx * 15, cz = node.z + dz * 15, half = segment.width / 2 - 0.5;
+      ribbon([cx - dx * 1.9, cz - dz * 1.9], [cx + dx * 1.9, cz + dz * 1.9], -half, half, 0x986f58, 0.135);
+      for (let side = -half + 0.3; side < half; side += 0.8) {
+        ribbon([cx - dx * 1.5, cz - dz * 1.5], [cx + dx * 1.5, cz + dz * 1.5], side - 0.23, side + 0.23, COLORS.paint, 0.15);
+      }
+      const ix = node.x + dx * 7, iz = node.z + dz * 7, iy = heightAt(ix, iz);
+      primitive(box, ix, iy + 0.15, iz, 0.85, 0.3, 3.2, COLORS.kerb, Math.atan2(dx, dz));
+      primitive(box, ix, iy + 0.8, iz, 0.16, 1.2, 0.16, 0xe5e4d5);
+      primitive(box, ix, iy + 1.28, iz, 0.45, 0.45, 0.1, 0x527d94, Math.atan2(dx, dz));
+    }, [node.x - 50, node.z - 50, node.x + 50, node.z + 50]);
   }
 
   const school = (map.landmarks || []).find(l => l.id === 'telopea');
@@ -551,7 +608,8 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
         bay(u, y + hh * 0.57, hw, hh * 0.18, 0.058, 0x8ba0a0);
         bay(u, y, 0.035, hh, 0.065, 0xc6c6b9);
         if (isSchool) bay(u, y - 0.08, hw, 0.035, 0.068, 0xc9cbbb);
-        if (apartment && row > 0 && col % 2 === 0 && length > 6 && counters.balconies < 3000) {
+        // Streamed facade detail cannot depend on which districts loaded first.
+        if (apartment && row > 0 && col % 2 === 0 && length > 6 && (streaming || counters.balconies < 3000)) {
           // Slab and opaque rail planes suggest recessed balcony rhythm cheaply.
           bay(u, y - hh - 0.12, hw + 0.22, 0.07, 0.32, 0xbab4a5);
           bay(u, y - hh + 0.32, hw + 0.22, 0.3, 0.38, 0x8a938b);
@@ -636,7 +694,27 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
   }
   const landmarkBuildingIds = new Set(map.landmarkBuildingIds || []);
   (map.buildings || []).forEach((building, index) => {
-    if (!landmarkBuildingIds.has(building.id)) buildingView(building, index);
+    if (landmarkBuildingIds.has(building.id) || !building.points?.length) return;
+    const p = building.points, xs = p.map(v => v[0]), zs = p.map(v => v[1]);
+    const points = p.length > 3 && p[0][0] === p.at(-1)[0] && p[0][1] === p.at(-1)[1] ? p.slice(0, -1) : p;
+    const x = points.reduce((sum, v) => sum + v[0], 0) / points.length;
+    const z = points.reduce((sum, v) => sum + v[1], 0) / points.length;
+    deferSource(x, z, () => {
+      const before = { ...counters };
+      buildingView(building, index);
+      if (!owns(x, z)) for (const name of ['buildings', 'windows', 'roofFacets', 'texturedBuildings', 'balconies']) counters[name] = before[name];
+    }, [Math.min(...xs)-2, Math.min(...zs)-2, Math.max(...xs)+2, Math.max(...zs)+2]);
+  });
+
+  // Signs are indexed before streamed bodies are built. Resolve source campus
+  // presence now so a later district's load order cannot add extra sign posts.
+  if (streaming && school) schoolDetailed = (map.buildings || []).some(building => {
+    if (landmarkBuildingIds.has(building.id) || !building.points?.length || /residential|house|apartment|diplomatic/.test(building.type || '')) return false;
+    let points = building.points;
+    if (points.length > 3 && points[0][0] === points.at(-1)[0] && points[0][1] === points.at(-1)[1]) points = points.slice(0, -1);
+    const x = points.reduce((sum, p) => sum + p[0], 0) / points.length;
+    const z = points.reduce((sum, p) => sum + p[1], 0) / points.length;
+    return Math.hypot(x - school.x, z - school.z) < (school.radius || 140);
   });
 
   // Each canopy is a small faceted crown, avoiding thousands of transparent leaves.
@@ -663,6 +741,10 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
         h * 0.23, h * 0.22, h * 0.24, new THREE.Color(foliage).multiplyScalar(0.94 + i * 0.07), a);
     }
     softShadow(x + leanX * 0.5, z + leanZ * 0.5, h * 0.4, h * 0.34, 0.13);
+    if (preparing) deferSource(x, z, () => {
+      counters.trees++;
+      if (map.spawn && Math.hypot(x - map.spawn.x, z - map.spawn.z) < 250) counters.treesNearSpawn++;
+    });
     counters.trees++;
     if (map.spawn && Math.hypot(x - map.spawn.x, z - map.spawn.z) < 250) counters.treesNearSpawn++;
     treeCells.set(treeKey, true);
@@ -782,17 +864,19 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
     materials.push(signMaterial);
     for (const p of signPlacements) {
       if (p.label === undefined) continue;
-      const dx = Math.cos(p.yaw) * p.width / 2, dz = Math.sin(p.yaw) * p.width / 2;
-      const a = [p.x - dx, p.y - p.height / 2, p.z - dz], b = [p.x + dx, p.y - p.height / 2, p.z + dz];
-      const c = [b[0], p.y + p.height / 2, b[2]], d = [a[0], p.y + p.height / 2, a[2]];
-      const u0 = (p.label % 4) / 4, u1 = u0 + 0.25;
-      const v1 = 1 - Math.floor(p.label / 4) / 32, v0 = v1 - 1 / 32;
-      quad(batchAt(p.x, p.z, 'sign'), a, b, c, d, 0xffffff, [[u0, v0], [u1, v0], [u1, v1], [u0, v1]]);
-      counters.signs++;
+      deferSource(p.x, p.z, () => {
+        const dx = Math.cos(p.yaw) * p.width / 2, dz = Math.sin(p.yaw) * p.width / 2;
+        const a = [p.x - dx, p.y - p.height / 2, p.z - dz], b = [p.x + dx, p.y - p.height / 2, p.z + dz];
+        const c = [b[0], p.y + p.height / 2, b[2]], d = [a[0], p.y + p.height / 2, a[2]];
+        const u0 = (p.label % 4) / 4, u1 = u0 + 0.25;
+        const v1 = 1 - Math.floor(p.label / 4) / 32, v0 = v1 - 1 / 32;
+        quad(batchAt(p.x, p.z, 'sign'), a, b, c, d, 0xffffff, [[u0, v0], [u1, v0], [u1, v1], [u0, v1]]);
+        counters.signs++;
+      });
     }
   }
 
-  for (const chunk of chunks.values()) {
+  function compileChunk(chunk) {
     for (const [kind, batch] of chunk.batches) {
       if (!batch.positions.length) continue;
       const meshGeometry = new THREE.BufferGeometry();
@@ -825,13 +909,81 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
     // Release the temporary JavaScript arrays after uploading typed buffers.
     chunk.batches.clear();
   }
-  for (const g of temporaryGeometry) g.dispose();
+  if (!streaming) {
+    for (const chunk of chunks.values()) compileChunk(chunk);
+    for (const g of temporaryGeometry) g.dispose();
+  } else {
+    preparing = false;
+    for (const key of Object.keys(counters)) if (key !== 'lowGraphics') counters[key] = 0;
+    // The acceptance grids are construction-only. Rebuilds use the stable source recipes.
+    treeCells.clear(); treeChunks.clear();
+  }
   counters.chunks = chunks.size;
-  const stats = Object.freeze(counters);
-  let disposed = false;
+  let peakResidentBytes = counters.bufferBytes, loads = 0, evictions = 0;
+  let queue = [], lastCellX = NaN, lastCellZ = NaN, disposed = false;
+  const MAX_RESIDENT = 36, LOAD_RADIUS = 575, EVICT_RADIUS = 1050;
+  const countKeys = Object.keys(counters).filter(key => key !== 'lowGraphics' && key !== 'chunks');
+  function loadChunk(key) {
+    const [cx, cz] = key.split(',').map(Number);
+    targetKey = key;
+    targetBounds = [cx * CHUNK_SIZE, cz * CHUNK_SIZE, (cx + 1) * CHUNK_SIZE, (cz + 1) * CHUNK_SIZE];
+    const before = { ...counters };
+    // Empty source districts still contain terrain, so there are no blank holes.
+    const chunk = chunkAt(targetBounds[0], targetBounds[1]);
+    drawTerrain();
+    for (const draw of sources.get(key) || []) draw();
+    compileChunk(chunk);
+    chunk.counts = Object.fromEntries(countKeys.map(name => [name, counters[name] - before[name]]));
+    targetKey = targetBounds = null;
+    loads++;
+    peakResidentBytes = Math.max(peakResidentBytes, counters.bufferBytes);
+    counters.chunks = chunks.size;
+  }
+  function evictChunk(key) {
+    const chunk = chunks.get(key);
+    if (!chunk) return;
+    for (const mesh of chunk.group.children) mesh.geometry.dispose();
+    chunk.group.clear(); chunk.group.removeFromParent();
+    for (const name of countKeys) counters[name] -= chunk.counts[name];
+    chunks.delete(key);
+    counters.chunks = chunks.size;
+    evictions++;
+  }
+  function refreshQueue(x, z) {
+    const wanted = [];
+    const cx = Math.floor(x / CHUNK_SIZE), cz = Math.floor(z / CHUNK_SIZE);
+    for (let ix = cx - 3; ix <= cx + 3; ix++) for (let iz = cz - 3; iz <= cz + 3; iz++) {
+      const minX = ix * CHUNK_SIZE, minZ = iz * CHUNK_SIZE;
+      if (minX > bounds.maxX + 245 || minX + CHUNK_SIZE < bounds.minX - 245 || minZ > bounds.maxZ + 245 || minZ + CHUNK_SIZE < bounds.minZ - 245) continue;
+      const dx = Math.max(minX - x, 0, x - minX - CHUNK_SIZE), dz = Math.max(minZ - z, 0, z - minZ - CHUNK_SIZE);
+      if (Math.hypot(dx, dz) <= LOAD_RADIUS) wanted.push({ key: `${ix},${iz}`, distance: Math.hypot(minX + CHUNK_SIZE / 2 - x, minZ + CHUNK_SIZE / 2 - z) });
+    }
+    wanted.sort((a, b) => a.distance - b.distance);
+    queue = wanted.filter(item => !chunks.has(item.key)).map(item => item.key);
+  }
+  const statsSnapshot = () => Object.freeze({ ...counters, streaming, residentBytes: counters.bufferBytes,
+    peakResidentBytes, residentChunks: chunks.size, queuedChunks: queue.length, evictions, loads });
   function update(player) {
+    if (disposed) return;
     const x = player.x ?? player.position?.x ?? 0;
     const z = player.z ?? player.position?.z ?? 0;
+    if (streaming) {
+      // Re-sort only after 80m movement. An idle update allocates no geometry.
+      const cellX = Math.floor(x / CELL_SIZE), cellZ = Math.floor(z / CELL_SIZE);
+      if (cellX !== lastCellX || cellZ !== lastCellZ) {
+        lastCellX = cellX; lastCellZ = cellZ;
+        for (const [key, chunk] of chunks) if (Math.hypot(chunk.x - x, chunk.z - z) > EVICT_RADIUS) evictChunk(key);
+        refreshQueue(x, z);
+      }
+      for (let budget = 0; budget < 2 && queue.length; budget++) {
+        if (chunks.size >= MAX_RESIDENT) {
+          let farthest = null, distance = -1;
+          for (const [key, chunk] of chunks) { const d = Math.hypot(chunk.x - x, chunk.z - z); if (d > distance) { farthest = key; distance = d; } }
+          evictChunk(farthest);
+        }
+        loadChunk(queue.shift());
+      }
+    }
     for (const chunk of chunks.values()) {
       const distance = Math.hypot(chunk.x - x, chunk.z - z);
       chunk.group.visible = distance < (lowGraphics ? 500 : VISIBILITY) + CHUNK_SIZE * 0.71;
@@ -845,11 +997,21 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
     if (disposed) return;
     disposed = true;
     root.traverse(object => { if (object.isMesh) object.geometry.dispose(); });
+    if (streaming) for (const g of temporaryGeometry) g.dispose();
     for (const material of materials) material.dispose();
     for (const texture of textures) texture.dispose();
-    root.removeFromParent();
-    chunks.clear();
+    root.clear(); root.removeFromParent();
+    chunks.clear(); sources.clear(); queue.length = 0;
+    temporaryGeometry.length = materials.length = textures.length = 0;
+    counters.bufferBytes = counters.meshes = counters.chunks = counters.triangles = 0;
+  }
+  if (streaming) {
+    const spawn = map.spawn || { x: 0, z: 0 };
+    refreshQueue(spawn.x, spawn.z);
+    // Build the opening district and all surrounding districts before first render.
+    while (queue.length) loadChunk(queue.shift());
+    lastCellX = Math.floor(spawn.x / CELL_SIZE); lastCellZ = Math.floor(spawn.z / CELL_SIZE);
   }
   update(map.spawn || { x: 0, z: 0 });
-  return { heightAt,groundHeightAt, update, dispose, stats };
+  return { heightAt,groundHeightAt, update, dispose, get stats() { return statsSnapshot(); } };
 }

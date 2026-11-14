@@ -110,5 +110,24 @@ for (const material of materials) material.addEventListener('dispose', () => mat
 view.dispose(); view.dispose(); view.update(state, options);
 assert.equal(geometryDisposals, geometries.size); assert.equal(materialDisposals, materials.size);
 assert.equal(view.stats.activeWeapon, null); assert.equal(scene.children.length, 0);
+// Police sidearms stay in the existing right-arm batch and reuse the impact pool for muzzle flashes.
+const patrolView=createActorView(scene,()=>0,{policeLimit:1});
+const patrolRoot=scene.children[0],rightArm=patrolRoot.getObjectByName('Officer right arm');
+rightArm.geometry.computeBoundingBox();
+assert(rightArm.geometry.boundingBox.min.y<-.8,'readable sidearm barrel extends past the officer hand');
+const officer={id:'armed-patrol',x:0,z:0,yaw:0,speed:0,health:100,mode:'foot',aiming:true,shotTimer:.13,
+  car:{x:1000,z:1000,active:true,yaw:0}};
+const patrolState={mode:'vehicle',actor:{x:0,z:0},weapon:'unarmed',shots:[],police:[officer]};
+patrolView.update(patrolState,{dt:1/60,focus:{x:0,z:0}});
+const armMatrix=new THREE.Matrix4();rightArm.getMatrixAt(0,armMatrix);
+const barrelDirection=new THREE.Vector3(0,-1,0).transformDirection(armMatrix);
+assert(barrelDirection.z<-.99,'raised officer sidearm aims horizontally forward');
+const pooledImpacts=patrolRoot.getObjectByName('Non-graphic impacts');
+assert.equal(pooledImpacts.count,1,'officer muzzle flash reuses the bounded impact pool');
+const patrolBudget=[patrolView.stats.meshes,patrolView.stats.geometryCount,patrolView.stats.materialCount];
+for(let i=0;i<100;i++){officer.aiming=!!(i%2);officer.shotTimer=i%3?.1:0;patrolView.update(patrolState,{dt:1/60,focus:{x:0,z:0}});}
+assert.deepEqual([patrolView.stats.meshes,patrolView.stats.geometryCount,patrolView.stats.materialCount],patrolBudget);
+officer.shotTimer=0;patrolView.update(patrolState,{dt:0,focus:{x:0,z:0}});assert.equal(pooledImpacts.count,0);
+patrolView.dispose();assert.equal(scene.children.length,0);
 disposeCars();
 console.log(`PASS four distinct original firearm silhouettes; selected visibility, aim/reload, all shot kinds, fists, finite/cull, bounded resources and exact disposal; ${initialResources.join('/')} meshes/geometries/materials/triangles`);

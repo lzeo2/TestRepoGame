@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createInteriorActivities, WORKOUT_KINDS, isWorkoutKind } from '../Games/Capital Drive/interior-activities.js';
 
-const kinds = [...WORKOUT_KINDS, 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade', 'presentation'];
+const kinds = [...WORKOUT_KINDS, 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade', 'presentation', 'alarm'];
 assert(Object.isFrozen(WORKOUT_KINDS));
 assert.deepEqual(WORKOUT_KINDS, ['bench', 'treadmill', 'curls', 'rower']);
 for (const kind of WORKOUT_KINDS) assert.equal(isWorkoutKind(kind), true);
@@ -397,4 +397,67 @@ for (const [extra, reason] of [[{ recovering: true }, 'recovery'], [{ pose: { x:
   tick(game, ctx, { x: true }); tick(game, ctx, { x: true, y: true });
   assert.equal(game.snapshot().index, 0); assert.equal(game.snapshot().mistakes, 1, 'previous edit key must release before the next edit');
 }
-console.log('PASS interior activities: eleven playable kinds; four distinct workouts; controlled bench, twelve cadence steps, six curls and six rowing strokes; fresh-key/grip/early/late/repeat/spam guards; PowerPunt three edits and paused 1.2s sync with once-only immutable outage; recovery/reach/visibility/mode cancellation; exact session identity and retries.');
+console.log('PASS interior activities: twelve playable kinds; four distinct workouts; controlled bench, twelve cadence steps, six curls and six rowing strokes; fresh-key/grip/early/late/repeat/spam guards; PowerPunt three edits and paused 1.2s sync with once-only immutable outage; recovery/reach/visibility/mode cancellation; exact session identity and retries.');
+
+// This game-only sequence is bound to its actual station and cannot use held keys.
+const alarmContext = () => context('alarm', { health: 100, visible: true });
+function alarmFixture() {
+  const game = createInteriorActivities(), ctx = alarmContext(); game.load(plan);
+  assert(game.start('alarm', ctx)); return { game, ctx };
+}
+function armAlarm(game, ctx) {
+  tick(game, ctx); tick(game, ctx, { x: true });
+  for (let i = 0; i < 14; i++) tick(game, ctx, { x: true });
+  assert.equal(game.snapshot().phase, 'release');
+  tick(game, ctx); assert.equal(game.snapshot().phase, 'confirm');
+}
+{
+  const { game, ctx } = alarmFixture();
+  tick(game, ctx, { x: true }, 1); tick(game, ctx, { x: true }, 1);
+  assert.equal(game.snapshot().phase, 'ready', 'carried held input cannot begin a session');
+  armAlarm(game, ctx); assert.equal(game.snapshot().outcome, null);
+  tick(game, ctx, { y: true });
+  const event = assertSingleResult(game, 'complete');
+  assert.equal(event.outcome, 'triggered'); assert.equal(event.kind, 'alarm');
+  assert.equal(event.stationId, 'alarm'); assert.equal(event.planId, plan.id);
+  assert.equal(event.sessionId, game.snapshot().sessionId); assert.equal(event.sandbox, false);
+  assert(Object.isFrozen(event) && Object.isFrozen(event.station));
+  tick(game, ctx, { y: true }, 50); assert.deepEqual(game.drainEvents(), []);
+  assert(game.start('alarm', ctx)); assert(game.snapshot().sessionId > event.sessionId);
+  assert.equal(game.snapshot().outcome, null); assert.equal(game.snapshot().progress, 0);
+}
+for (const [extra, reason] of [[{ recovering: true }, 'recovery'], [{ health: 0 }, 'health'],
+  [{ health: NaN }, 'health'], [{ visible: false }, 'occluded'],
+  [{ sandbox: true }, 'sandbox'], [{ onFoot: false }, 'not-on-foot'], [{ wanted: 1 }, 'wanted'],
+  [{ pose: { x: 999, z: 999 } }, 'left-station']]) {
+  const game = createInteriorActivities(); game.load(plan);
+  assert.equal(game.start('alarm', { ...alarmContext(), ...extra }), false, `alarm admission ${reason}`);
+  const { game: live, ctx } = alarmFixture(); armAlarm(live, ctx);
+  tick(live, { ...ctx, ...extra }, { y: true });
+  const event = assertSingleResult(live, 'cancel'); assert.equal(event.reason, reason); assert.equal(event.outcome, null);
+}
+{
+  const { game, ctx } = alarmFixture(); armAlarm(game, ctx);
+  const state = game.snapshot();
+  tick(game, ctx, { y: true }, 0);
+  tick(game, { ...ctx, paused: true }, { y: true }, 2);
+  assert.deepEqual(game.snapshot(), state, 'paused clocks freeze the sequence and consume held key edges');
+  tick(game, ctx, { y: true }); assert.equal(game.snapshot().outcome, null, 'holding Y through pause is not a fresh confirmation');
+  tick(game, ctx); tick(game, ctx, { y: true }); assert.equal(assertSingleResult(game, 'complete').outcome, 'triggered');
+  const idle = createInteriorActivities(); idle.load(plan);
+  assert.equal(idle.start('alarm', { ...ctx, paused: true }), false);
+}
+for (const change of ['clear', 'load', 'cancel']) {
+  const { game, ctx } = alarmFixture(); armAlarm(game, ctx);
+  if (change === 'clear') game.clear(); else if (change === 'load') game.load({ id: 'other', activities: [] }); else game.cancel();
+  assert.equal(assertSingleResult(game, 'cancel').outcome, null);
+}
+{
+  const { game, ctx } = alarmFixture();
+  tick(game, ctx); tick(game, ctx, { x: true }); tick(game, ctx);
+  assert.equal(game.snapshot().mistakes, 1, 'early X release is not a successful hold');
+  armAlarm(game, ctx); tick(game, ctx, { x: true, y: true });
+  assert.equal(game.snapshot().mistakes, 2, 'simultaneous confirmation spam cannot trigger');
+  assert.equal(game.snapshot().outcome, null); assert.deepEqual(game.drainEvents(), []);
+}
+console.log('PASS fictional alarm: fresh neutral/X hold/release/Y, supplied active time, immutable exact station/plan/session event once, no sandbox or cancelled/occluded/unhealthy credit; frozen paused clocks and consumed pause edges');

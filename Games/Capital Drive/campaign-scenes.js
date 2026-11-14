@@ -1,6 +1,9 @@
 // Transient original cast. Campaign remains the sole owner of stages and rewards.
 const HEROES = Object.freeze(['student','corporate','basement']);
 const EMPTY = Object.freeze([]), RADIUS = .32;
+const ALLY_RANGE = 28, ALLY_DAMAGE = 12, ALLY_COOLDOWN = 1.1, SHOT_LIMIT = 4;
+const gap = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
+const frozenPoint = p => Object.freeze({x:p.x,z:p.z});
 const LINES = Object.freeze({
   student: 'Kit: These delivery stickers all carry the same depot code.',
   corporate: 'Rowan: My missing presentation has finally produced useful paperwork.',
@@ -19,8 +22,88 @@ export function createCampaignScenes(map, simulation) {
     if(['private','no'].includes(road.sourceTags?.access)||road.sourceTags?.foot==='no'||!['residential','tertiary','secondary','living_street','service','footway','path','pedestrian'].includes(road.type))continue;
     for(let i=1;i<road.points.length;i++)segments.push({road,a:road.points[i-1],b:road.points[i]});
   }
-  let people=EMPTY, dialogueLines=EMPTY, signature='', elapsed=0;
-  function clear(){people=EMPTY;dialogueLines=EMPTY;signature='';elapsed=0;}
+  let people=EMPTY, dialogueLines=EMPTY, signature='', elapsed=0, allies=[], events=[], disposed=false, active=false;
+  function clear(){people=EMPTY;dialogueLines=EMPTY;signature='';elapsed=0;allies=[];events=[];active=false;}
+  function publishAllies(hidden=false) {
+    people=hidden?EMPTY:Object.freeze(allies.map(person=>Object.freeze({...person,shot:person.shot?Object.freeze({...person.shot}):null})));
+  }
+  function sight(a,b,ctx={}) {
+    const test=typeof ctx.hasLOS==='function'?ctx.hasLOS:simulation.hasLineOfSight;
+    return point(a)&&point(b)&&typeof test==='function'&&test(a,b)===true;
+  }
+  function moveAlly(ally,goal,step) {
+    const distance=gap(ally,goal), amount=Math.min(Math.max(0,distance-1.6),3.8*step);
+    ally.speed=0;
+    if(amount<=0)return;
+    const heading=Math.atan2(goal.z-ally.z,goal.x-ally.x), before={...ally};
+    let best=null,bestScore=-Infinity;
+    // Each local attempt uses the real world sweep, then the indexed swept adult
+    // body test. The fixed fan cannot seek or teleport to a distant clear point.
+    for(const offset of [0,.65,-.65,1.2,-1.2,1.57,-1.57]) {
+      const direction=heading+offset, candidate={...before,yaw:Math.atan2(-Math.cos(direction),-Math.sin(direction))};
+      const clipped=clipMovement(candidate,Math.cos(direction)*amount,Math.sin(direction)*amount,.65,allies);
+      simulation.moveActor(candidate,clipped.dx,clipped.dz,RADIUS);
+      if(!simulation.canOccupy(candidate,{length:1,width:.8,ignorePersonId:ally.id,fromPose:before}))continue;
+      const travelled=gap(before,candidate),score=travelled-.2*gap(candidate,goal);
+      if(travelled>1e-5&&score>bestScore){best=candidate;bestScore=score;}
+      if(offset===0&&travelled>=amount*.95)break;
+    }
+    if(best){ally.x=best.x;ally.z=best.z;ally.yaw=best.yaw;ally.speed=gap(before,best)/step;}
+  }
+  function updateAllies(ctx,dt) {
+    const mission=ctx.mission, heroes=HEROES.filter(id=>id!==ctx.character&&mission.companions.includes(id)).slice(0,2);
+    if(!heroes.length){clear();return;}
+    active=!ctx.interior&&!ctx.paused&&Number.isFinite(dt)&&dt>0;
+    if(ctx.interior){events=[];publishAllies(true);return;}
+    if(!active)return;
+    const key=`allies:${mission.id}:${ctx.character}:${heroes.join(':')}`;
+    if(signature!==key) {
+      clear();signature=key;
+      const goal=mission.target;
+      if(point(goal)&&!ctx.interior)for(const hero of heroes) {
+        const id=`campaign-ally:${hero}`;
+        const candidate=candidates({...goal,radius:24}).find(p=>allies.every(other=>gap(p,other)>=1.2)&&(!point(ctx.pose)||gap(p,ctx.pose)>=1)&&clearPosition(p,id));
+        if(candidate)allies.push({...candidate,id,appearanceId:`player:${hero}`,radius:RADIUS,active:true,armed:true,health:100,mode:'following',speed:0,gesturePhase:0,cooldown:.3+allies.length*.25,hitPhase:0,shot:null});
+      }
+      publishAllies();
+    }
+    active=true;
+    const step=Math.min(.1,dt);elapsed+=step;
+    const hostiles=(Array.isArray(ctx.hostiles)?ctx.hostiles:[]).slice(0,4);
+    for(let index=0;index<allies.length;index++) {
+      const ally=allies[index];if(ally.health<=0)continue;
+      ally.cooldown=Math.max(0,ally.cooldown-step);ally.hitPhase=Math.max(0,ally.hitPhase-step);ally.gesturePhase=elapsed;
+      if(ally.shot){ally.shot.remaining-=step;if(ally.shot.remaining<=0)ally.shot=null;}
+      let target=null,distance=ALLY_RANGE;
+      for(const hostile of hostiles) {
+        if(typeof hostile?.id!=='string'||!hostile.id.startsWith('police:')||hostile.mode!=='foot'||hostile.active===false||!Number.isFinite(hostile.health)||hostile.health<=0||!point(hostile))continue;
+        const d=gap(ally,hostile);
+        if(d<distance&&sight(ally,hostile,ctx)){target=hostile;distance=d;}
+      }
+      if(target) {
+        ally.mode='combat';ally.speed=0;ally.yaw=Math.atan2(-(target.x-ally.x),-(target.z-ally.z));
+        if(ally.cooldown===0&&events.length<SHOT_LIMIT) {
+          const from=frozenPoint(ally),to=frozenPoint(target);
+          events.push(Object.freeze({kind:'ally-shot',type:'ally-shot',actorId:ally.id,targetId:target.id,from,to,damage:ALLY_DAMAGE,range:ALLY_RANGE}));
+          ally.shot={from,to,remaining:.12};ally.cooldown=ALLY_COOLDOWN;
+        }
+      } else {
+        ally.mode='following';
+        if(point(ctx.pose)&&ctx.playerMode!=='passenger') {
+          const yaw=Number.isFinite(ctx.pose.yaw)?ctx.pose.yaw:0,side=index===0?-1:1;
+          moveAlly(ally,{x:ctx.pose.x+Math.sin(yaw)*2+Math.cos(yaw)*side*1.2,z:ctx.pose.z+Math.cos(yaw)*2-Math.sin(yaw)*side*1.2},step);
+        } else ally.speed=0;
+      }
+    }
+    publishAllies();
+  }
+  function receiveHit(event) {
+    const ally=allies.find(person=>person.id===event?.targetId);
+    if(disposed||!active||!ally||ally.health<=0||event?.kind!=='shot'||!point(event.from)||!point(event.to)||!Number.isFinite(event.damage)||event.damage<=0||event.damage>30||gap(event.to,ally)>1||gap(event.from,ally)>60||!sight(event.from,ally))return false;
+    ally.health=Math.max(0,ally.health-event.damage);ally.hitPhase=.25;
+    if(ally.health===0){ally.mode='down';ally.active=false;ally.armed=false;ally.speed=0;ally.shot=null;}
+    publishAllies();return true;
+  }
   function candidates(goal) {
     const found=[];
     for(const {road,a,b} of segments) {
@@ -72,6 +155,10 @@ export function createCampaignScenes(map, simulation) {
   }
   function update(ctx={},dt=0) {
     const mission=ctx.mission, goal=mission?.target;
+    if(disposed)return;
+    if(ctx.mode!=='campaign'||ctx.recovery||ctx.recovering||ctx.health<=0||!mission||!HEROES.includes(ctx.character)){clear();return;}
+    if(Array.isArray(mission.companions)&&mission.companions.length){updateAllies(ctx,dt);return;}
+    if(allies.length)clear();
     if(ctx.mode!=='campaign'||ctx.recovery||ctx.recovering||ctx.interior||mission?.id!=='three-receipts'||mission.stage!==0||!HEROES.includes(ctx.character)||!point(goal)||!point(kingston)||Math.hypot(goal.x-kingston.x,goal.z-kingston.z)>80){clear();return;}
     if(ctx.paused)return;
     const key=`${ctx.character}:${goal.x}:${goal.z}`;
@@ -88,14 +175,14 @@ export function createCampaignScenes(map, simulation) {
     elapsed+=Math.min(.1,dt);
     people=Object.freeze(people.map(person=>Object.freeze({...person,gesturePhase:elapsed})));
   }
-  function clipMovement(actor,dx,dz,radius=.45) {
+  function clipMovement(actor,dx,dz,radius=.45,contacts=people) {
     if(![actor?.x,actor?.z,dx,dz,radius].every(Number.isFinite))return {dx:0,dz:0,blocked:false};
     const reach=Math.max(0,Math.min(4,radius))+RADIUS+.02;
     let x=actor.x,z=actor.z,rx=dx,rz=dz,blocked=false;
     for(let iteration=0;iteration<4;iteration++) {
       const length2=rx*rx+rz*rz;if(length2<1e-12)break;
       let first=1,hit=null;
-      for(const person of people) {
+      for(const person of contacts) {
         if(person.id===actor.id||person.active===false)continue;
         const ox=x-person.x,oz=z-person.z,dot=ox*rx+oz*rz,c=ox*ox+oz*oz-reach*reach;
         if(dot>=0)continue;
@@ -111,5 +198,5 @@ export function createCampaignScenes(map, simulation) {
     }
     return {dx:x-actor.x,dz:z-actor.z,blocked};
   }
-  return {update,clear,clipMovement,meetingPoint,get people(){return people;},get dialogueLines(){return dialogueLines;}};
+  return {update,clear,clipMovement,meetingPoint,receiveHit,getPeople:()=>people,drainEvents:()=>events.splice(0),dispose(){if(disposed)return;clear();disposed=true;},get people(){return people;},get dialogueLines(){return dialogueLines;}};
 }

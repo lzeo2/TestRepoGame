@@ -37,7 +37,7 @@ export function createInteriorView(scene) {
     for (const room of plan.rooms || []) {
       const color = { living: 0xaa9c84, kitchen: 0xb8b6a4, bedroom: 0x9b9e90, bathroom: 0xb2c1bb,
         shop: 0xb3b1a0, grocery: 0xc1c4b1, 'fast-food-dining': 0xbda78c, 'cafe-dining': 0xc4b49a, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e,
-        'noodle-dining': 0xc9baa0, 'noodle-kitchen': 0xb3bbb0, 'gym-floor': 0x777e79 }[room.kind];
+        'noodle-dining': 0xc9baa0, 'noodle-kitchen': 0xb3bbb0, 'gym-floor': 0x777e79, 'school-corridor': 0xaeb9ab, classroom: 0xc1baa4, 'staff-area': 0xb6b6a5 }[room.kind];
       box(room.x, plan.floorY + 0.006, room.z, room.width - 0.12, 0.012, room.depth - 0.12, o.yaw, color);
     }
     for (const wall of plan.walls) {
@@ -109,12 +109,20 @@ export function createInteriorView(scene) {
       } else if (item.kind === 'bench') {
         detail(item, 0, h - 0.09, 0, w, 0.18, d, color);
         for (const end of [-1, 1]) detail(item, 0, (h - 0.18) / 2, end * (d / 2 - 0.3), w * 0.65, h - 0.18, 0.15, 0x5e6458);
-      } else if (/table/.test(item.kind) || item.kind === 'office-desk') {
+      } else if (/table/.test(item.kind) || item.kind === 'office-desk' || item.kind === 'school-desk') {
         detail(item, 0, h - 0.05, 0, w, 0.1, d, color);
         for (const x of [-1, 1]) for (const z of [-1, 1]) detail(item, x * (w / 2 - 0.09), h / 2,
           z * (d / 2 - 0.09), 0.09, h - 0.1, 0.09, color);
       } else detail(item, 0, h / 2, 0, w, h, d, color);
-      if (item.kind === 'office-desk') {
+      if (item.kind === 'ledger-case') {
+        detail(item, 0, h - .07, 0, w + .02, .06, d + .02, 0x8a9a83);
+        detail(item, 0, h * .57, -d / 2 - .015, .22, .12, .025, 0xd1bb7b);
+        for (const x of [-.2, .2]) detail(item, x, h * .58, -d / 2 - .03, .04, .22, .03, 0x394c48);
+        detail(item, 0, h + .035, 0, .23, .07, .08, 0x394c48);
+      } else if (item.kind === 'alarm-panel') {
+        detail(item, -w / 2 - .012, h / 2, 0, .025, .3, .3, 0xead9ae);
+        detail(item, -w / 2 - .03, h * .72, 0, .025, .035, .2, 0x97362e);
+      } else if (item.kind === 'office-desk') {
         detail(item, 0, h + 0.1, 0.2, 0.4, 0.15, 0.3, 0x4e5a57);
         detail(item, 0, h + 0.48, 0.25, 1.05, 0.65, 0.08, 0x354440);
         detail(item, 0, h + 0.48, 0.2, 0.9, 0.5, 0.025, 0xaec4b2);
