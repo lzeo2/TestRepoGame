@@ -63,6 +63,32 @@ for (const occupied of [false, true]) {
   assert(f.game.interact()); assert(f.game.interact(), 'current player car re-entry stays instant');
   assert.equal(f.game.state.carjacking, null); assert.equal(f.stats.claims, 2);
 }
+// Taking B leaves the previously controlled A unlocked for instant, lawful re-entry.
+for (const occupied of [false, true]) {
+  const f = fixture({ occupied });
+  const original = { x: f.simulation.player.x, z: f.simulation.player.z,
+    modelId: f.simulation.player.modelId, color: f.simulation.player.color };
+  begin(f); complete(f);
+  assert.equal(f.stats.claims, 1);
+  const theftReports = f.stats.events.filter(event => event.offence === 'vehicle theft').length;
+  const displaced = f.stats.exits.length;
+  assert.equal(theftReports, 1);
+  assert(f.game.interact(), 'leave the newly taken B through normal interaction');
+  Object.assign(f.game.state.actor, { x: original.x + 2, z: original.z });
+  const prior = f.simulation.nearbyVehicles(f.game.state.actor.x, f.game.state.actor.z, 7)
+    .find(car => car.id.startsWith('abandoned:') && car.x === original.x && car.z === original.z);
+  assert(prior, 'actual simulation retains the prior player car A');
+  assert.equal(prior.unlocked, true, 'previously controlled cars expose their unlocked state');
+  assert(f.game.interact(), 'normal interaction re-enters prior A without another challenge');
+  assert.equal(f.game.state.mode, 'vehicle'); assert.equal(f.game.state.carjacking, null);
+  assert.equal(f.stats.claims, 2);
+  assert.equal(f.simulation.player.x, original.x); assert.equal(f.simulation.player.z, original.z);
+  assert.equal(f.game.state.vehicle.modelId, original.modelId); assert.equal(f.game.state.vehicle.color, original.color);
+  assert.equal(f.game.state.vehicle.stolen, false);
+  assert.equal(f.stats.events.filter(event => event.offence === 'vehicle theft').length, theftReports,
+    'reclaiming prior A never reports another theft');
+  assert.equal(f.stats.exits.length, displaced, 'prior A has no driver to displace');
+}
 // Waiting has its own eight-second limit and never contributes unlock progress.
 {
   const f = fixture({ occupied: true }); f.source.speed = 4; begin(f); tick(f, 7.4);
@@ -123,4 +149,4 @@ for (const reason of ['lost', 'far', 'moving', 'occluded', 'cancel', 'recovery',
   const f = fixture({ sandbox: true }); begin(f); complete(f);
   assert.equal(f.game.state.wanted, 0); assert.equal(f.stats.events.filter(event => event.offence === 'vehicle theft').length, 0);
 }
-console.log('Capital car theft: actual parked/occupied claims, eight cue presses, independent stop wait, input lock, pause, mistakes/timeouts, final-target guards, cancel/reset/recovery, re-entry and sandbox PASS');
+console.log('Capital car theft: actual parked/occupied claims, eight cue presses, independent stop wait, input lock, pause, mistakes/timeouts, final-target guards, cancel/reset/recovery, current/prior-car re-entry and sandbox PASS');
