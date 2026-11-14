@@ -28,6 +28,14 @@ export function createProgression(map, saved = null, options = {}) {
     { id: 'crescent-circuit', name: 'Crescent checkpoint run', type: 'race', reward: 550, time: 100, requires: ['crescent-parcel'], stages: [pickup, north, south, pickup] },
     { id: 'wagon-recovery', name: 'Wagon theft', type: 'theft', reward: 750, time: 180, requires: ['crescent-parcel'], modelId: 'orchard', stages: [point(-298, -325.27, 'Acquire a stolen family wagon'), garage] },
     { id: 'clear-the-search', name: 'Lose the search', type: 'getaway', reward: 650, time: 180, requires: ['crescent-parcel'], stages: [pickup, south], clearSeconds: 8 },
+    // Public road pickup/drop markers, using vertices from the pinned Canberra map.
+    { id: 'franklin-delivery', name: 'Franklin Street delivery', type: 'delivery', legitimate: true, reward: 400, time: 150, requires: [], stages: [pickup,
+      { ...point(-412.29, 160.2, 'Franklin Street pickup'), roadId: '488671941-0' },
+      { ...point(-297.93, 240.71, 'Franklin Street drop'), roadId: '488671941-0' }] },
+    { id: 'kennedy-delivery', name: 'Kennedy Street delivery', type: 'delivery', legitimate: true, reward: 450, time: 180, requires: [], stages: [
+      { ...point(263.85, -215.82, 'Kennedy Street pickup'), roadId: '5117419-0' },
+      { ...point(411.48, -107.54, 'Kennedy Street checkpoint'), roadId: '5117419-0' },
+      { ...point(707.93, 106.77, 'Kennedy Street drop'), roadId: '673311537-0' }] },
     { id: 'priority-parcel', name: 'Priority parcel', type: 'delivery', reward: 1000, time: 110, requires: ['crescent-circuit', 'wagon-recovery'], stages: [south, north] },
   ];
   const state = { cash: 1000, ownedVehicles: [{ id: 'lantern', color: '#e7e6df', health: 100, stored: false }], completedJobs: [], activeJob: null,
@@ -51,7 +59,7 @@ export function createProgression(map, saved = null, options = {}) {
   const serviceSite = source => source && ({ ...source, ...(options.servicePosition?.(source) || {}) });
   const serviceAllowed = (site, ctx) => !options.canUseService || options.canUseService(site, ctx);
   const events = [];
-  let context = null, serial = null;
+  let context = null, serial = null, shiftPlan = null;
   function result(ok, message, extra = {}, type = ok ? 'change' : 'error') {
     state.message = message;
     events.push({ type, message, ...extra });
@@ -80,9 +88,11 @@ export function createProgression(map, saved = null, options = {}) {
   }
   function startJob(id, ctx) {
     if (!remember(ctx)) return result(false, 'A valid player position is required.');
+    if (ctx.sandbox || ctx.recovering) return result(false, 'Jobs are unavailable here.');
     if (state.activeJob||state.activity) return result(false, 'Finish or cancel the current activity first.');
     const job = jobs.find(item => item.id === id);
     if (!job) return result(false, 'Unknown job.');
+    if (job.legitimate && (ctx.wanted > 0 || ctx.vehicle?.stolen)) return result(false, 'Use a legal vehicle and lose the police before this delivery.');
     if (job.requires.some(required => !state.completedJobs.includes(required))) return result(false, 'Complete the earlier jobs to unlock this job.');
     serial = ctx.respawnSerial;
     state.activeJob = { id, type: job.type, name: job.name, stage: 0, target: copy(job.stages[0]), remaining: job.time, reward: job.reward, elapsed: 0, clearTime: 0, sawWanted: ctx.wanted > 0 };
@@ -102,14 +112,20 @@ export function createProgression(map, saved = null, options = {}) {
   function update(dt, ctx) {
     if (!Number.isFinite(dt) || dt < 0) throw new Error('Career dt must be finite and nonnegative.');
     if (!remember(ctx)) return;
-    if (dt === 0) return;
+    if (dt === 0 && state.activity?.type !== 'work') return;
     for(const id of Object.keys(state.robberyCooldowns))state.robberyCooldowns[id]=Math.max(0,state.robberyCooldowns[id]-Math.min(dt,.25));
     const activity=state.activity;
-    if(activity){
+    if(activity?.type==='work'){
+      const work=workContext(activity,ctx);
+      if(!work){state.activity=null;shiftPlan=null;result(false,'Shift interrupted. No pay earned.',{},'activity-ended');}
+      else activity.progress=work.session.progress;
+    }else if(activity){
       const site=serviceSite(SERVICES.find(s=>s.id===activity.serviceId));
       if(ctx.respawnSerial!==activity.respawnSerial||ctx.recovering||!ctx.onFoot||!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx)||!serviceAllowed(site,ctx)||
         (activity.type==='robbery'?ctx.weapon!=='pistol':ctx.wanted>0)){
         state.activity=null;result(false,'Activity interrupted.',{},'activity-ended');
+      }else if(activity.type==='workout'&&options.interactiveWorkouts){
+        // Completion is owned by the exercise input state machine.
       }else{
         activity.elapsed=Math.min(activity.duration,activity.elapsed+Math.min(dt,.05));activity.progress=activity.elapsed/activity.duration;
         if(activity.elapsed>=activity.duration){
@@ -124,10 +140,12 @@ export function createProgression(map, saved = null, options = {}) {
         }
       }
     }
+    if (dt === 0) return;
     if (serial !== null && serial !== ctx.respawnSerial && state.activeJob) { serial = ctx.respawnSerial; fail('Job ended after respawn.'); return; }
     serial = ctx.respawnSerial;
     const active = state.activeJob;
     if (!active) return;
+    if(ctx.sandbox||ctx.recovering){fail('Job interrupted.');return;}
     const job = jobs.find(item => item.id === active.id);
     active.elapsed += dt;
     active.remaining = Math.max(0, active.remaining - dt);
@@ -144,7 +162,7 @@ export function createProgression(map, saved = null, options = {}) {
         active.clearTime = ctx.wanted === 0 && driving && near(ctx.pose, active.target) ? active.clearTime + dt : 0;
         if (active.clearTime >= job.clearSeconds) complete(job);
       }
-    } else if (driving && near(ctx.pose, active.target)) {
+    } else if (driving && (!job.legitimate || (ctx.wanted===0 && ctx.vehicle.stolen!==true)) && near(ctx.pose, active.target)) {
       if (active.stage < job.stages.length - 1) advance(job, active);
       else if (active.elapsed >= 2) complete(job);
     }
@@ -252,8 +270,62 @@ export function createProgression(map, saved = null, options = {}) {
       cost:type==='workout'?site.price*(state.fitnessLevel+1):0,respawnSerial:ctx.respawnSerial};
     return result(true,type==='robbery'?'Stay near the till.':'Training started.',{serviceId:id,point:{x:site.x,z:site.z}},type+'-started');
   }
-  return { state, jobs, garage,get services(){return SERVICES.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,
-    cancelActivity(){if(!state.activity)return false;state.activity=null;return true;},
+  function payRental(amount,ctx){
+    if(!validContext(ctx)||ctx.sandbox||ctx.recovering||!ctx.onFoot||ctx.wanted>0||![20,30].includes(amount))return result(false,'Hire unavailable.');
+    if(!spend(amount))return result(false,'Not enough cash for this ride.');
+    return result(true,`Ride hired for $${amount}.`,{cost:amount},'rental-started');
+  }
+  function workStation(serviceId){
+    const work=options.workSession?.(),plan=work?.plan,session=work?.session;
+    const source=SERVICES.find(site=>site.id===serviceId&&site.source);
+    if(!source||!plan||!Object.isFrozen(plan)||!Array.isArray(plan.activities)||!Object.isFrozen(plan.activities)||plan.storeId!==serviceId||plan.type!=='shop'||
+      !session||session.planId!==plan.id||!Number.isSafeInteger(session.sessionId)||session.sessionId<1||session.sandbox)return null;
+    const station=plan.activities.find(item=>item.id===session.station?.id&&['noodle','stock'].includes(item.kind));
+    if(!station||!Object.isFrozen(station)||!Number.isFinite(station.radius)||station.radius<=0||
+      session.kind!==station.kind||!['id','kind','label','x','z','yaw','radius'].every(key=>session.station[key]===station[key]))return null;
+    return {plan,session,station,site:{...serviceSite(source),id:source.id}};
+  }
+  function workContext(active,ctx){
+    if(!validContext(ctx)||ctx.sandbox||ctx.recovering||!ctx.onFoot||ctx.wanted>0||ctx.respawnSerial!==active.respawnSerial)return null;
+    const work=workStation(active.serviceId);
+    if(!work||work.plan!==shiftPlan||work.plan.id!==active.planId||work.session.sessionId!==active.sessionId||
+      work.station.id!==active.station.id||!near(ctx.pose,active.station,active.station.radius)||
+      !clearApproach(active.station,ctx)||!serviceAllowed(work.site,ctx)||
+      !(work.session.active||work.session.phase==='complete'))return null;
+    return work;
+  }
+  function startShift(serviceId,ctx){
+    if(!remember(ctx)||ctx.sandbox||ctx.recovering||!ctx.onFoot||ctx.wanted>0)return result(false,'Shift unavailable.');
+    if(state.activeJob||state.activity)return result(false,'Finish or cancel the current activity first.');
+    const work=workStation(serviceId);
+    if(!work?.session.active||!near(ctx.pose,work.station,work.station.radius)||!clearApproach(work.station,ctx)||!serviceAllowed(work.site,ctx))return result(false,'Start a shop task at its work station first.');
+    shiftPlan=work.plan;
+    const reward=work.station.kind==='noodle'?60:45;
+    state.activity={type:'work',serviceId,name:work.station.kind==='noodle'?'Noodle shift':'Stock shift',reward,progress:0,
+      station:Object.freeze({...work.station}),planId:work.plan.id,sessionId:work.session.sessionId,respawnSerial:ctx.respawnSerial};
+    return result(true,`Shift started. Complete the task to earn $${reward}.`,{serviceId,reward},'work-started');
+  }
+  function finishShift(ctx,success){
+    const active=state.activity;
+    if(active?.type!=='work')return result(false,'No paid shift is active.');
+    const work=workContext(active,ctx);
+    state.activity=null;shiftPlan=null;
+    if(success!==true||!work||work.session.active||work.session.phase!=='complete')return result(false,'Shift ended without a completed task. No pay earned.',{},'activity-ended');
+    state.cash=Math.min(MAX_CASH,state.cash+active.reward);
+    return result(true,`Shift complete. Earned $${active.reward}.`,{serviceId:active.serviceId,reward:active.reward},'work-complete');
+  }
+  function finishWorkout(ctx,success){
+    const active=state.activity;
+    if(!active||active.type!=='workout'||!options.interactiveWorkouts)return result(false,'No exercise session is active.');
+    update(0,ctx);
+    const site=serviceSite(SERVICES.find(s=>s.id===active.serviceId));
+    state.activity=null;
+    if(!success||!validContext(ctx)||ctx.sandbox||ctx.recovering||ctx.respawnSerial!==active.respawnSerial||ctx.wanted>0||!ctx.onFoot||!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx)||!serviceAllowed(site,ctx))return result(false,'Exercise ended without a completed set.',{},'activity-ended');
+    if(state.fitnessLevel>=3||!spend(active.cost))return result(false,'Training is unavailable.',{},'activity-ended');
+    state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{cost:active.cost},'workout-complete');
+  }
+  return { state, jobs, garage,get services(){return SERVICES.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,finishWorkout,payRental,startShift,finishShift,
+    cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
     serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns }); },
     drainEvents() { return events.splice(0); },
