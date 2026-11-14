@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
-const { createInteriors, createGymEntry } = await import(moduleURL(await read('../Games/Capital Drive/interiors.js')));
+const { createInteriors, createGymEntry, createSchoolEntry } = await import(moduleURL(await read('../Games/Capital Drive/interiors.js')));
 function assertActivitiesReachable(interiors, plan) {
   assert(Object.isFrozen(plan.activities) && plan.activities.length > 0, `${plan.type} has immutable activities`);
   const ids = new Set();
@@ -12,7 +12,7 @@ function assertActivitiesReachable(interiors, plan) {
   const step = 0.35, queue = [[0, 0]], visited = new Set(['0,0']), reached = new Set();
   for (const station of plan.activities) {
     assert(Object.isFrozen(station)); assert(!ids.has(station.id)); ids.add(station.id);
-    assert(['bench', 'treadmill', 'curls', 'rower', 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade', 'presentation'].includes(station.kind));
+    assert(['bench', 'treadmill', 'curls', 'rower', 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade', 'presentation', 'alarm'].includes(station.kind));
     assert(station.label && [station.x, station.z, station.yaw, station.radius].every(Number.isFinite));
     assert(station.radius > 0 && station.radius <= 2);
     const pose = { x: station.x, z: station.z };
@@ -432,3 +432,55 @@ assert.equal(guest.seatHeight, .55);
 assert(noodlePlan.walls.some(w => w.kind === 'window-sill') && noodlePlan.walls.some(w => w.kind === 'window-lintel'));
 allView.dispose(); assert.equal(allScene.children.length, 0); assert.equal(all.stats.activePlans, 0);
 console.log('PASS all 26 source-tied shops: visible/reachable counters and activities, bounded sweeps, grocery/fast-food/cafe/retail distinction, actual noodle window/booth clearance, elevated floor return and lazy one-draw disposal');
+
+// The school opens one original wing inside the exact campus education body.
+{
+  const campusURL = moduleURL(await read('../Games/Capital Drive/campus.js'));
+  const { CAMPUS_BUILDING_IDS, CAMPUS_BARRIERS, CAMPUS_GATES } = await import(campusURL);
+  const { createSimulation } = await import('../Games/Capital Drive/simulation.js');
+  const { createCampusView } = await import(moduleURL((await read('../Games/Capital Drive/campus-view.js'))
+    .replace('../../assets/car-arcade/vendor/three.module.js', threeURL)
+    .replace('../../assets/car-arcade/vendor/BufferGeometryUtils.js', utilsURL).replace('./campus.js', campusURL)));
+  assert.equal(createSchoolEntry({ buildings: [] }), null);
+  assert.equal(createSchoolEntry({ buildings: [{ ...house, id: 'act-101001-0' }] }), null, 'private house cannot become the school');
+  const schoolDoor = createSchoolEntry(actualMap);
+  assert(schoolDoor && Object.isFrozen(schoolDoor));
+  assert.equal(schoolDoor.id, 'interior-telopea-school'); assert.equal(schoolDoor.schoolId, 'telopea-school');
+  assert.equal(schoolDoor.buildingId, 'act-101001-0'); assert(CAMPUS_BUILDING_IDS.includes(schoolDoor.buildingId));
+  assert.deepEqual(createSchoolEntry(actualMap), schoolDoor);
+  const scene = new THREE.Scene(), campus = createCampusView(scene, actualMap, () => 0);
+  const sim = createSimulation({ ...actualMap, barriers: [...CAMPUS_BARRIERS, ...campus.obstacles] }, { trafficCount: 0, parkedCount: 0 });
+  const gate = CAMPUS_GATES.find(g => g.id === schoolDoor.gateId);
+  const visitor = { x: gate.outside[0], z: gate.outside[1], y: 0, yaw: schoolDoor.yaw };
+  function walk(target) {
+    const n = Math.ceil(Math.hypot(target.x - visitor.x, target.z - visitor.z) / .3);
+    const dx = (target.x - visitor.x) / n, dz = (target.z - visitor.z) / n;
+    for (let i = 0; i < n; i++) assert.equal(sim.moveActor(visitor, dx, dz, .45).blocked, false, 'real fence/gate/landscaping and source buildings permit the public approach');
+    assert(Math.hypot(visitor.x - target.x, visitor.z - target.z) < 1e-6);
+  }
+  walk({ x: gate.inside[0], z: gate.inside[1] }); walk(schoolDoor.approach);
+  const school = createInteriors(actualMap, { publicEntries: [schoolDoor] });
+  assert.equal(school.stats.generatedPlans, 0);
+  const descriptor = school.findEntry(visitor); assert.equal(descriptor.type, 'school');
+  const before = { ...visitor }, plan = school.enter(descriptor, visitor);
+  assertActivitiesReachable(school, plan);
+  assert.equal(plan.id, 'interior-telopea-school'); assert.equal(plan.schoolId, 'telopea-school');
+  assert.equal(plan.counter, null); assert(!('storeId' in plan));
+  assert.deepEqual(plan.rooms.map(r => r.kind), ['school-corridor', 'classroom', 'staff-area']);
+  const alarm = plan.activities.find(s => s.kind === 'alarm');
+  assert(alarm && plan.furniture.some(f => f.kind === 'alarm-panel'));
+  const sine = Math.sin(plan.origin.yaw), cosine = Math.cos(plan.origin.yaw);
+  const p = (x, z) => ({ x: plan.origin.x + cosine * x + sine * z, z: plan.origin.z - sine * x + cosine * z });
+  for (let x = -5.8; x < 6; x += 1) for (let z = .2; z < 16; z += 1)
+    assert(inside(p(x, z), actualMap.buildings.find(b => b.id === schoolDoor.buildingId).points), 'original school room stays inside retained education body');
+  assert(school.hasLineOfSight(visitor, alarm), 'alarm station is visible down the corridor');
+  const wallTester = { ...p(0, 3) }; assert(school.moveActor(wallTester, cosine * 4, -sine * 4).blocked);
+  assert(!school.hasLineOfSight(p(0, 3), p(4, 3)), 'school partitions share sight and physical boundaries');
+  const view = createInteriorView(scene); view.load(plan);
+  assert.equal(view.stats.draws, 1); assert.equal(view.stats.meshes, 1); assert(view.stats.triangles < 2500);
+  scene.traverse(mesh => { if (mesh.isMesh) for (const attr of Object.values(mesh.geometry.attributes)) assert(attr.array.every(Number.isFinite)); });
+  assert(school.nearExit(visitor)); assert(school.leave(visitor)); view.clear();
+  assert.deepEqual(visitor, { ...before, speed: 0 }); assert.equal(school.stats.activePlans, 0);
+  view.dispose(); campus.dispose(); assert.equal(scene.children.length, 0);
+  console.log('PASS Telopea original school wing: exact source body, retained gate11/rocks/fence public approach, finite lazy one-draw room, reachable alarm, classroom/staff partitions and exit disposal');
+}
