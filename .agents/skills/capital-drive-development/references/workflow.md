@@ -32,6 +32,7 @@ install them into this repository or vendor unrelated tooling.
 | Gameplay | `gameplay.js`, `police.js`: injected simulation/pedestrians/equipment callbacks, timed carjacking, foot combat, directed patrols/dismounted officers, recovery transition and single respawn callback |
 | Progression | `progression.js`, `services.js`, `stores.js`: mapped parody stores and jobs/cash/garage, location/cost/weapon gates, food/ammo, timed fitness/robbery and saved till cooldowns; validated serialize/load, no DOM/storage |
 | Pedestrians | `pedestrians.js`: bounded sidewalk population, alert/strike/reactions, consumed offence events |
+| Shared people | `person-model.js`: deterministic appearance and rounded body dimensions; views own pooled geometry and poses, Simulation receives copied contact circles |
 | Rendering | `actor-view.js`, `vehicle-occupants-view.js`, `traffic-view.js`, `storefronts-view.js`, `services-view.js`, `bus-view.js`, `landmarks-view.js`, `world-view.js`, `neighbourhood.js`: pooled local geometry, grounding, culling/disposal; no physics/RAF |
 | Geographic/navigation data | `data/canberra.json`, `navigation.js`, `map-projection.js`, `landmarks.js`, `address-search.js`, `data/addresses.json`, `data/road-profiles.json`, `districts.js`: consistent projection, source profiles/retail polygon, directed routes and offline lookup |
 
