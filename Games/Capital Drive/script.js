@@ -4,6 +4,7 @@ import { createSimulation, projectSegment } from './simulation.js';
 import { createWorldView } from './world-view.js';
 import { findRoute } from './navigation.js';
 import {createRouteGuidance} from './navigation-guidance.js';
+import {createRoadGuidanceView} from './road-guidance-view.js';
 import {createTrafficLightsView} from './traffic-lights-view.js';
 import {createEquipment} from './equipment.js';
 import {createEquipmentView} from './equipment-view.js';
@@ -70,6 +71,7 @@ let map, simulation, world, renderer, scene, camera, playerMesh, route = [], des
 let streetDealers,dealerView;
 let rideService,rideView;
 let signalsView,equipment,equipmentView;
+let roadGuidanceView;
 const guidance=createRouteGuidance();
 let guidanceRoute=null,guideState=null,followYoober=false;
 let trafficView,storefrontsView,shoppingView,campusView,civicView,noodleShopView,civicExtrasView;
@@ -1224,6 +1226,7 @@ function animate(time) {
   document.body.classList.toggle('indoors',!!interiors.active);
   $('aim-reticle').hidden = !onFoot || !gameplay.state.aiming || paused();
   const objective = isSandbox() ? destination : campaign.state.active?.target || progression.state.activeJob?.target || progression.garage;
+  roadGuidanceView?.update(route,p,{enabled:started&&gameplay.state.mode==='vehicle'&&!gameplay.state.passenger&&!interiors.active&&!!destination,guidance:guidanceRoute===route?guideState:null});
   if(!interiors.active)actorView?.update(micromobility?.snapshot().active||gameplay.state.passenger?{...gameplay.state,mode:'vehicle'}:gameplay.state, { dt: activeDt, time: time / 1000, focus: p, objective });
   rideView?.update({car:rideService.vehicles[0],passenger:rideService.passenger},{focus:p,playerCar:{...simulation.player,modelId:gameplay.state.vehicle.modelId},job:progression.state.activeJob,dt:activeDt});
   roomPeopleView?.update(roomPeople.snapshot(),activeDt,{activity:activities.snapshot()});
@@ -1298,6 +1301,13 @@ async function boot() {
   map.barriers.push(...(civicView.barriers||[]),...(noodleShopView.obstacles||[]));
   simulation=createSimulation(map,{isOnBridge:terrainSampler.isOnBridge});
   signalsView=compatibility?emptyView():createTrafficLightsView(scene,world.heightAt);
+  roadGuidanceView=compatibility?emptyView():createRoadGuidanceView(scene,(x,z)=>world.heightAt(x,z),{
+    placePoint:(point,yaw)=>{
+      const road=simulation.nearestRoad(point.x,point.z),width=road?roadProfile(road.road).driveWidth:8,offset=Math.min(2.3,width*.23);
+      return {x:point.x-Math.cos(yaw)*offset,z:point.z+Math.sin(yaw)*offset};
+    },
+    isClear:(x,z,yaw)=>simulation.canOccupy({x,z,yaw},{length:1,width:.5})
+  });
   micromobility=createMicromobility(map);microView=compatibility?emptyView():createMicromobilityView(scene,(x,z)=>world.heightAt(x,z));
   const ground=world.heightAt;world.heightAt=(x,z)=>ground(x,z)+skateHeightOffset(x,z);
   civicExtrasView=compatibility?emptyView():createCivicExtrasView(scene,map,ground);
@@ -1399,6 +1409,7 @@ async function boot() {
     gameplay: gameplay.snapshot(),rentalHack:freezeCopy(rentalHack.snapshot()),nearbyVehicles:freezeCopy(simulation.nearbyVehicles(focus().x,focus().z,40)),miniGame:freezeCopy(activities.snapshot()),roomPeople:freezeCopy(roomPeople.snapshot()),roomPeopleView:freezeCopy(roomPeopleView.stats),rentals:freezeCopy(micromobility.snapshot()),microView:freezeCopy(microView.stats),gymEntry:freezeCopy(gymEntry),campaign:campaign.snapshot(),interiors:freezeCopy({...interiors.snapshot(),entrySample:interiors.entries.slice(0,8),publicEntries:CIVIC_INTERIOR_ENTRIES,active:interiors.active}),career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
     activeJob:freezeCopy(progression.state.activeJob),rideService:rideService.snapshot(),rideView:freezeCopy(rideView.stats),
     guidance:guidance.snapshot(),rideTracking:freezeCopy(rideTracking()),signals:freezeCopy({elapsed:simulation.trafficLights.elapsed,sourceCount:map.trafficSignals.signals.length,groupCount:simulation.trafficLights.groups.length,heads:simulation.trafficLights.heads,view:signalsView.stats}),equipment:freezeCopy({flares:equipment.snapshot(),view:equipmentView.stats}),busPassenger:!!buses.passenger,
+    roadGuidance:freezeCopy(roadGuidanceView.stats),
     places: Object.freeze(map.landmarks.map(place => Object.freeze({ ...place }))), addressCount: addressData.addresses.length,
     camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch,footYaw:footCameraYaw }),
     discovered: Object.freeze([...discovered]), roadCount: map.roads.length, buildings: map.buildings.length, traffic: simulation.traffic.length,
@@ -1420,7 +1431,7 @@ window.addEventListener('pagehide', () => {
   if (audio) audio.context.close().catch(error => console.warn('Could not release audio:', error.message));
   for (const resource of parkedResources) resource.dispose();
   streetUI?.dispose(); actorView?.dispose(); landmarkView?.dispose();busView?.dispose();occupantsView?.dispose();servicesView?.dispose();trafficView?.dispose();storefrontsView?.dispose();
-  dealerView?.dispose();rideView?.dispose();rideService?.reset();signalsView?.dispose();equipmentView?.dispose();equipment?.reset();
+  dealerView?.dispose();rideView?.dispose();rideService?.reset();signalsView?.dispose();roadGuidanceView?.dispose();equipmentView?.dispose();equipment?.reset();
   stopMini();roomPeopleView?.dispose();microView?.dispose();civicExtrasView?.dispose();
   shoppingView?.dispose();campusView?.dispose();civicView?.dispose();noodleShopView?.dispose();interiorView?.dispose();indoorActorView?.dispose();
   pedestrians?.dispose(); neighbourhood?.dispose(); world?.dispose(); disposeCars(); renderer?.dispose();
