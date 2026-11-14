@@ -56,12 +56,17 @@ for (const bus of actualBuses.snapshot()) {
 const threeURL = url(await read('../assets/car-arcade/vendor/three.module.js'));
 const THREE = await import(threeURL);
 const utilsURL = url((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace("'./three.module.js'", JSON.stringify(threeURL)));
+const personURL = url((await read('../Games/Capital Drive/person-model.js')).replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL)));
+const { appearanceForPerson } = await import(personURL);
 const { createBusView } = await import(url((await read('../Games/Capital Drive/bus-view.js'))
   .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL))
-  .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))));
+  .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
+  .replace("'./person-model.js'", JSON.stringify(personURL))));
 const scene = new THREE.Scene(), view = createBusView(scene, () => 12);
 view.update(buses.vehicles, first);
 assert.equal(view.stats.buses, 2); assert.equal(view.stats.drawCalls, 4); assert(view.stats.triangles < 5000);
+assert.equal(view.stats.geometries,5);
+for (let i=0;i<2;i++) assert.deepEqual(scene.children[0].children[i].userData.driverAppearance,appearanceForPerson(`city-bus-driver-${i}`));
 const snapshot = buses.snapshot(); view.update(buses.vehicles, first); assert.deepEqual(buses.snapshot(), snapshot, 'rendering is read-only');
 let released = 0, releasedMaterials = 0; const ownedMaterials = new Set(); scene.traverse(object => { if (object.isMesh) {
   assert([...object.geometry.attributes.position.array].every(Number.isFinite));
@@ -70,6 +75,6 @@ let released = 0, releasedMaterials = 0; const ownedMaterials = new Set(); scene
 } });
 ownedMaterials.forEach(material => material.addEventListener('dispose', () => releasedMaterials++));
 view.update(buses.vehicles, { x: 10000, z: 10000 }); assert.equal(view.stats.buses, 0);
-view.dispose(); view.dispose(); assert.equal(released, 4); assert.equal(releasedMaterials, 2); assert.equal(scene.children.length, 0); assert(view.stats.disposed);
+view.dispose(); view.dispose(); assert.equal(released, 5); assert.equal(releasedMaterials, 2); assert.equal(scene.children.length, 0); assert(view.stats.disposed);
 assert.equal(buildRoadGraph(roads).edges.length, 8);
 console.log(`PASS buses: legal actual-map circuits, one-way closure, bounded turns/movement, pause/reset/front blockers; renderer ${view.stats.triangles} triangles/4 draws, finite geometry and idempotent disposal`);

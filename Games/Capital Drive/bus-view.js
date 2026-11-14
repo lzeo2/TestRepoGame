@@ -1,5 +1,6 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
+import { PERSON_MODEL, appearanceForPerson, createPersonGeometries, emitPersonParts } from './person-model.js';
 
 // Original unbranded low-floor city buses. Metres, adult-scale cabin and driver.
 export function createBusView(scene, heightAt) {
@@ -8,7 +9,17 @@ export function createBusView(scene, heightAt) {
   const bodyMaterial = new THREE.MeshLambertMaterial({ vertexColors: true });
   const glassMaterial = new THREE.MeshLambertMaterial({ color: 0x79939c, transparent: true, opacity: .34, depthWrite: false });
   materials.add(bodyMaterial); materials.add(glassMaterial);
-  const buses = [];
+  const buses = [], personShapes = createPersonGeometries(), partPose = new THREE.Object3D();
+  function personParts(parts, appearance, kind, x, y, z, fit = 1) {
+    emitPersonParts(appearance,{kind,stride:0},(name,px,py,pz,sx,sy,sz,color,rx = 0) => {
+      const shape = personShapes[PERSON_MODEL.shapes[name]].clone();
+      partPose.position.set(x+px*fit,y+py*fit,z+pz*fit); partPose.rotation.set(rx,0,0);
+      partPose.scale.set(sx*fit,sy*fit,sz*fit); partPose.updateMatrix(); shape.applyMatrix4(partPose.matrix);
+      const shade = new THREE.Color(color), colors = new Float32Array(shape.attributes.position.count*3);
+      for (let i=0; i<colors.length; i+=3) shade.toArray(colors,i);
+      shape.setAttribute('color',new THREE.BufferAttribute(colors,3)); parts.push(shape);
+    });
+  }
   function build(index) {
     const group = new THREE.Group(); group.name = `Original city bus ${index + 1}`; root.add(group);
     const solid = [], glazing = [];
@@ -54,10 +65,9 @@ export function createBusView(scene, heightAt) {
     piece('Front centre pillar', 0x30383c, 0, 2.2, -5.24, .07, 1.35, .035);
     piece('Dashboard', 0x353c40, .5, 1.65, -4.83, 1.28, .28, .55);
     piece('Driver seat', 0x354a58, .68, 1.71, -4.03, .52, .68, .2);
-    piece('Seated adult torso', 0x777a6a, .68, 2.0, -4.22, .42, .55, .25);
-    piece('Adult head', 0xb88766, .68, 2.43, -4.24, .27, .34, .26);
-    piece('Adult hair', 0x39352e, .68, 2.58, -4.22, .28, .08, .26);
-    for (const x of [.42, .94]) piece('Driver arm', 0xb88766, x, 1.98, -4.48, .13, .15, .45);
+    const driverAppearance = appearanceForPerson(`city-bus-driver-${index}`);
+    personParts(solid,driverAppearance,'driver',.68,2.48,-4.3,.9);
+    group.userData.driverAppearance = driverAppearance;
     piece('Wheel', 0x282c2e, .68, 1.99, -4.72, .38, .06, .32);
     for (let z = -2.6; z < 4.6; z += 1.35) for (const x of [-.77, .77]) {
       piece('Seat', 0x4e6771, x, 1.65, z, .54, .17, .55);
@@ -75,27 +85,16 @@ export function createBusView(scene, heightAt) {
   function passengerBatch() {
     if (passenger) return passenger;
     const parts = [];
-    function part(color, x, y, z, w, h, d) {
-      const shape = new THREE.BoxGeometry(w, h, d).translate(x, y, z);
-      const shade = new THREE.Color(color), colors = new Float32Array(shape.attributes.position.count * 3);
-      for (let i = 0; i < colors.length; i += 3) shade.toArray(colors, i);
-      shape.setAttribute('color', new THREE.BufferAttribute(colors, 3)); parts.push(shape);
-    }
-    part(0x435b7a, -.77, 2.06, -2.6, .43, .58, .28);
-    part(0xb88766, -.77, 2.51, -2.62, .28, .34, .27);
-    part(0x39352e, -.77, 2.67, -2.6, .29, .08, .27);
-    for (const x of [-.91, -.63]) {
-      part(0x303b47, x, 1.65, -2.85, .18, .18, .61);
-      part(0x303b47, x, 1.4, -3.06, .17, .48, .17);
-      part(0xb88766, x === -.91 ? -1.03 : -.51, 1.98, -2.79, .13, .15, .42);
-    }
+    const appearance = appearanceForPerson('player');
+    personParts(parts,appearance,'passenger',-.77,2.58,-2.6);
     const merged = mergeGeometries(parts, false); parts.forEach(shape => shape.dispose()); geometry.add(merged);
-    passenger = new THREE.InstancedMesh(merged, bodyMaterial, 1); passenger.name = 'Seated bus player passenger';
+    passenger = new THREE.InstancedMesh(merged, bodyMaterial, 1); passenger.name = 'Seated bus player passenger'; passenger.userData.appearance = appearance;
     passenger.count = 0; passenger.visible = false; passenger.frustumCulled = false;
     passenger.instanceMatrix.setUsage(THREE.DynamicDrawUsage); root.add(passenger);
-    stats.geometries = geometry.size; stats.triangles += merged.index.count / 3;
     return passenger;
   }
+  passengerBatch();
+  for (const shape of Object.values(personShapes)) shape.dispose();
   let disposed = false;
   const stats = { buses: 0, passengers: 0, drawCalls: 0, maxDrawCalls: 5, triangles: 0, geometries: geometry.size, materials: materials.size, disposed: false };
   geometry.forEach(value => { stats.triangles += value.index ? value.index.count / 3 : value.attributes.position.count / 3; });

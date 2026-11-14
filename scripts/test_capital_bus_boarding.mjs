@@ -110,9 +110,12 @@ assert(actualExit.exited); assert(actualSim.canOccupy(actualExit.exitPose, { len
 const threeURL = moduleURL(await read('../assets/car-arcade/vendor/three.module.js'));
 const THREE = await import(threeURL);
 const utilsURL = moduleURL((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace("'./three.module.js'", JSON.stringify(threeURL)));
+const personURL = moduleURL((await read('../Games/Capital Drive/person-model.js')).replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL)));
+const { appearanceForPerson } = await import(personURL);
 const { createBusView } = await import(moduleURL((await read('../Games/Capital Drive/bus-view.js'))
   .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL))
-  .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))));
+  .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
+  .replace("'./person-model.js'", JSON.stringify(personURL))));
 buses.reset();
 const scene = new THREE.Scene(), view = createBusView(scene, () => 12);
 view.update(buses.vehicles, bus); assert.equal(view.stats.drawCalls, 4); assert.equal(view.stats.passengers, 0);
@@ -121,8 +124,19 @@ view.update(buses.vehicles, bus); assert.equal(view.stats.drawCalls, 5); assert.
 assert.deepEqual(buses.snapshot(), authoritative, 'view owns no passenger authority');
 const passengerMesh = scene.children[0].children.find(child => child.isInstancedMesh);
 assert(passengerMesh); assert.equal(passengerMesh.count, 1);
+assert.deepEqual(passengerMesh.userData.appearance,appearanceForPerson('player'));
+passengerMesh.geometry.computeBoundingBox();
+assert(passengerMesh.geometry.boundingBox.max.y < 2.84,'shared rounded player head stays below bus roof');
+assert(passengerMesh.geometry.boundingBox.min.y > 1.39,'shared player shoes stay above the bus floor');
+assert(passengerMesh.geometry.index.count > 36*11,'rounded shared passenger replaces box art');
 const geometry = passengerMesh.geometry, material = passengerMesh.material, buffer = passengerMesh.instanceMatrix.array;
-for (let i = 0; i < 10; i++) view.update(buses.vehicles, bus);
+const nodes = []; scene.traverse(object => nodes.push(object));
+for (let i = 0; i < 2000; i++) {
+  view.update(buses.vehicles, bus);
+  assert(view.stats.drawCalls<=5 && view.stats.geometries===5 && view.stats.materials===2);
+}
+const repeatedNodes = []; scene.traverse(object => repeatedNodes.push(object));
+assert.deepEqual(repeatedNodes,nodes,'boarding frames retain the same pooled nodes');
 assert.equal(passengerMesh.geometry, geometry); assert.equal(passengerMesh.material, material); assert.equal(passengerMesh.instanceMatrix.array, buffer);
 assert(buffer.every(Number.isFinite)); assert.equal(view.stats.geometries, 5); assert.equal(view.stats.materials, 2);
 buses.reset(); view.update(buses.vehicles, bus); assert.equal(view.stats.passengers, 0); assert.equal(passengerMesh.count, 0);
