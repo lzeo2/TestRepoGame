@@ -13,6 +13,7 @@ const MAX_CASH = 1000000000;
 const RIDE_MODELS = ['lantern', 'orchard', 'gravel', 'relay'];
 const RIDE_STOP_SECONDS = 2;
 const RIDE_STOP_SPEED = .8;
+const MUGGING_ID = /^ped:(?:0|[1-9]\d?|1[0-5]\d)$/;
 const copy = value => JSON.parse(JSON.stringify(value));
 const near = (a, b, radius = 17) => a && Math.hypot(a.x - b.x, a.z - b.z) <= radius;
 const point = (x, z, label) => ({ x, z, label });
@@ -61,13 +62,14 @@ export function createProgression(map, saved = null, options = {}) {
     { id: 'priority-parcel', name: 'Priority parcel', type: 'delivery', reward: 1000, time: 110, requires: ['crescent-circuit', 'wagon-recovery'], stages: [south, north] },
   ];
   const state = { cash: 1000, ownedVehicles: [{ id: 'lantern', color: '#e7e6df', health: 100, stored: false }], completedJobs: [], activeJob: null,
-    equipment:{pistol:false},gear:{scanner:false,flares:0},fitnessLevel:0,robberyCooldowns:{},activity:null,message: 'Career ready. Take the Crescent parcel job.' };
+    equipment:{pistol:false},gear:{scanner:false,flares:0},fitnessLevel:0,robberyCooldowns:{},muggingCooldowns:{},activity:null,message: 'Career ready. Take the Crescent parcel job.' };
   if (saved !== null) {
-    if (!object(saved) || !exactKeys(saved, ['version', 'cash', 'ownedVehicles', 'completedJobs','equipment','gear','fitnessLevel','robberyCooldowns']) || saved.version !== 1 || !Number.isSafeInteger(saved.cash) || saved.cash < 0 || saved.cash > MAX_CASH || !Array.isArray(saved.ownedVehicles) || saved.ownedVehicles.length < 1 || saved.ownedVehicles.length > CARS.length || !Array.isArray(saved.completedJobs) || saved.completedJobs.length > jobs.length) throw new Error('Unsupported or corrupt career save.');
+    if (!object(saved) || !exactKeys(saved, ['version', 'cash', 'ownedVehicles', 'completedJobs','equipment','gear','fitnessLevel','robberyCooldowns','muggingCooldowns']) || saved.version !== 1 || !Number.isSafeInteger(saved.cash) || saved.cash < 0 || saved.cash > MAX_CASH || !Array.isArray(saved.ownedVehicles) || saved.ownedVehicles.length < 1 || saved.ownedVehicles.length > CARS.length || !Array.isArray(saved.completedJobs) || saved.completedJobs.length > jobs.length) throw new Error('Unsupported or corrupt career save.');
     if(saved.equipment!==undefined&&(!object(saved.equipment)||!exactKeys(saved.equipment,WEAPON_IDS)||typeof saved.equipment.pistol!=='boolean'||Object.values(saved.equipment).some(value=>typeof value!=='boolean')))throw new Error('Invalid saved equipment.');
     if(saved.gear!==undefined&&(!object(saved.gear)||!exactKeys(saved.gear,['scanner','flares'])||typeof saved.gear.scanner!=='boolean'||!Number.isInteger(saved.gear.flares)||saved.gear.flares<0||saved.gear.flares>12))throw new Error('Invalid saved gear.');
     if(saved.fitnessLevel!==undefined&&(!Number.isInteger(saved.fitnessLevel)||saved.fitnessLevel<0||saved.fitnessLevel>3))throw new Error('Invalid saved fitness.');
     if(saved.robberyCooldowns!==undefined&&(!object(saved.robberyCooldowns)||!exactKeys(saved.robberyCooldowns,[...services.filter(s=>s.robbery).map(s=>s.id),...LEGACY_SHOP_IDS])||Object.values(saved.robberyCooldowns).some(v=>!Number.isFinite(v)||v<0||v>180)))throw new Error('Invalid saved shop cooldown.');
+    if(saved.muggingCooldowns!==undefined&&(!object(saved.muggingCooldowns)||Object.keys(saved.muggingCooldowns).some(id=>!MUGGING_ID.test(id))||Object.values(saved.muggingCooldowns).some(v=>!Number.isFinite(v)||v<0||v>180)))throw new Error('Invalid saved mugging cooldown.');
     const ids = new Set();
     for (const car of saved.ownedVehicles) {
       if (!object(car) || !exactKeys(car, ['id', 'color', 'health', 'stored']) || !CARS.some(item => item.id === car.id) || ids.has(car.id) || !COLOR.test(car.color) || !Number.isFinite(car.health) || car.health < 0 || car.health > 100 || typeof car.stored !== 'boolean') throw new Error('Invalid saved garage.');
@@ -79,6 +81,7 @@ export function createProgression(map, saved = null, options = {}) {
     state.completedJobs = [...saved.completedJobs];
     state.equipment=copy(saved.equipment||{pistol:false});state.fitnessLevel=saved.fitnessLevel||0;state.robberyCooldowns=copy(saved.robberyCooldowns||{});
     state.gear=copy(saved.gear||{scanner:false,flares:0});
+    state.muggingCooldowns=copy(saved.muggingCooldowns||{});
   }
   const serviceSite = source => source && ({ ...source, ...(options.servicePosition?.(source) || {}) });
   const serviceAllowed = (site, ctx) => !options.canUseService || options.canUseService(site, ctx);
@@ -150,19 +153,38 @@ export function createProgression(map, saved = null, options = {}) {
   function update(dt, ctx) {
     if (!Number.isFinite(dt) || dt < 0) throw new Error('Career dt must be finite and nonnegative.');
     if (!remember(ctx)) {
+      if(state.activity?.interactive){state.activity=null;result(false,'Hold-up interrupted. No money taken.',{},'activity-ended');}
       if (state.activeJob?.type === 'ride') {
         if (state.activeJob.passenger) fail('Fare interrupted. No pay earned.');
         else state.activeJob.stopTime = 0;
       }
       return;
     }
-    if (dt === 0 && state.activity?.type !== 'work' && state.activeJob?.type !== 'ride') return;
+    if (dt === 0 && state.activity?.type !== 'work' && !state.activity?.interactive && state.activeJob?.type !== 'ride') return;
     for(const id of Object.keys(state.robberyCooldowns))state.robberyCooldowns[id]=Math.max(0,state.robberyCooldowns[id]-Math.min(dt,.25));
+    for(const id of Object.keys(state.muggingCooldowns))state.muggingCooldowns[id]=Math.max(0,state.muggingCooldowns[id]-Math.min(dt,.25));
     const activity=state.activity;
     if(activity?.type==='work'){
       const work=workContext(activity,ctx);
       if(!work){state.activity=null;shiftPlan=null;result(false,'Shift interrupted. No pay earned.',{},'activity-ended');}
       else activity.progress=work.session.progress;
+    }else if(activity?.interactive){
+      const target=liveCrimeTarget(activity.targetId,activity.type==='robbery'?'employee':'pedestrian');
+      const site=activity.type==='robbery'&&serviceSite(services.find(s=>s.id===activity.serviceId));
+      const reason=crimePlayerReason(ctx,true)||ctx.respawnSerial!==activity.respawnSerial||
+        (activity.type==='robbery'?employeeReason(site,target,ctx)||target?.roomId!==activity.roomId:pedestrianReason(target,ctx));
+      if(reason){state.activity=null;result(false,'Hold-up interrupted. No money taken.',{targetId:activity.targetId},'activity-ended');}
+      else{
+        activity.elapsed=Math.min(activity.duration,activity.elapsed+Math.min(dt,.05));activity.progress=activity.elapsed/activity.duration;
+        activity.phase=activity.elapsed<1?'intimidation':activity.elapsed<activity.duration-1?'emptying':'handover';
+        if(activity.elapsed+1e-9>=activity.duration){
+          state.activity=null;
+          const reward=activity.type==='robbery'?site.robbery:muggingReward(activity.targetId);
+          state.cash=Math.min(MAX_CASH,state.cash+reward);
+          if(activity.type==='robbery')state.robberyCooldowns[site.id]=180;else state.muggingCooldowns[activity.targetId]=180;
+          result(true,`Took $${reward}. Leave the area.`,{reward,targetId:activity.targetId,...(site?{serviceId:site.id}:{})},activity.type+'-complete');
+        }
+      }
     }else if(activity){
       const site=serviceSite(services.find(s=>s.id===activity.serviceId));
       if(!site||ctx.sandbox||ctx.respawnSerial!==activity.respawnSerial||ctx.recovering||!ctx.onFoot||!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx)||!serviceAllowed(site,ctx)||
@@ -299,6 +321,50 @@ export function createProgression(map, saved = null, options = {}) {
     return site;
   }
   function equippedFirearm(ctx){return WEAPON_IDS.includes(ctx.weapon)&&state.equipment[ctx.weapon]===true;}
+  function liveCrimeTarget(id,kind){
+    const target=options.crimeTarget?.(id);
+    return target&&target.id===id&&target.kind===kind&&Number.isFinite(target.x)&&Number.isFinite(target.z)&&Number.isFinite(target.health)&&target.health>0?target:null;
+  }
+  function crimePlayerReason(ctx,active=false){
+    if(!validContext(ctx)||ctx.sandbox||ctx.recovering||!ctx.onFoot||ctx.passenger)return 'Hold-ups require being on foot.';
+    if(state.activeJob||(!active&&state.activity))return 'Finish or cancel the current activity first.';
+    return '';
+  }
+  function threatened(target,ctx){return equippedFirearm(ctx)||target?.threatened===true;}
+  function employeeReason(site,target,ctx){
+    if(!site?.robbery||!target||target.storeId!==site.id||typeof target.roomId!=='string'||!target.roomId||
+      ctx.interior?.storeId!==site.id||ctx.interior?.roomId!==target.roomId)return 'Approach this shop employee inside the shop.';
+    if(!near(ctx.pose,site,4)||!serviceAllowed(site,ctx)||!clearApproach(site,ctx)||!near(ctx.pose,target,4)||!clearApproach(target,ctx))return 'Stay close to the employee with a clear view.';
+    if(!threatened(target,ctx))return 'Equip an owned firearm or confront this employee first.';
+    return '';
+  }
+  function pedestrianReason(target,ctx){
+    if(ctx.interior||!target||!MUGGING_ID.test(target.id))return 'Approach a pedestrian outside.';
+    if(!near(ctx.pose,target,2.6)||!clearApproach(target,ctx))return 'Stay close to the pedestrian with a clear view.';
+    if(!threatened(target,ctx))return 'Equip an owned firearm or confront this pedestrian first.';
+    return '';
+  }
+  function robberyEligibility(id,ctx){
+    const reason=crimePlayerReason(ctx);if(reason)return reason;
+    const site=serviceSite(services.find(s=>s.id===id));
+    if(!site?.robbery)return 'This shop has no till.';
+    if(state.robberyCooldowns[id]>0)return 'The till is empty.';
+    if(!options.interactiveRobbery){
+      if(!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx)||!serviceAllowed(site,ctx))return 'Visit this storefront first.';
+      return equippedFirearm(ctx)?'':'Equip an owned firearm first.';
+    }
+    const source=options.robberyTarget?.(id);
+    return employeeReason(site,source&&liveCrimeTarget(source.id,'employee'),ctx);
+  }
+  function muggingReward(id){let hash=0;for(const char of id)hash=(hash*31+char.charCodeAt(0))>>>0;return 30+hash%71;}
+  function startMugging(id,ctx){
+    const target=liveCrimeTarget(id,'pedestrian');
+    const reason=crimePlayerReason(ctx)||pedestrianReason(target,ctx);
+    if(reason)return result(false,reason);
+    if(state.muggingCooldowns[id]>0)return result(false,'This pedestrian has no more cash.');
+    state.activity={type:'mugging',interactive:true,targetId:id,name:'Holding up pedestrian',phase:'intimidation',elapsed:0,duration:4,progress:0,respawnSerial:ctx.respawnSerial};
+    return result(true,'Stay close while the pedestrian hands over cash.',{targetId:id,point:{x:target.x,z:target.z}},'mugging-started');
+  }
   function purchaseService(id,item,ctx){
     const site=serviceGuard(id,ctx,{allowWanted:true});if(!site.id)return site;
     let cost,effect;
@@ -335,6 +401,13 @@ export function createProgression(map, saved = null, options = {}) {
     return result(true,'Purchased.',{cost,...effect},'service-purchase');
   }
   function startActivity(id,type,ctx){
+    if(type==='robbery'&&options.interactiveRobbery){
+      const reason=robberyEligibility(id,ctx);if(reason)return result(false,reason);
+      const source=options.robberyTarget(id),target=source&&liveCrimeTarget(source.id,'employee');
+      const blocked=employeeReason(serviceSite(services.find(s=>s.id===id)),target,ctx);if(blocked)return result(false,blocked);
+      state.activity={type:'robbery',interactive:true,serviceId:id,targetId:target.id,roomId:target.roomId,name:'Holding up employee',phase:'intimidation',elapsed:0,duration:5,progress:0,respawnSerial:ctx.respawnSerial};
+      return result(true,'Stay close while the employee empties the till.',{serviceId:id,targetId:target.id,point:{x:target.x,z:target.z}},'robbery-started');
+    }
     const site=serviceGuard(id,ctx,{allowWanted:type==='robbery'});if(!site.id)return site;
     if(state.activeJob)return result(false,'Finish or cancel the job first.');
     if(type==='robbery'){
@@ -426,10 +499,10 @@ export function createProgression(map, saved = null, options = {}) {
     if(state.fitnessLevel>=3||!spend(active.cost))return result(false,'Training is unavailable.',{},'activity-ended');
     state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{cost:active.cost},'workout-complete');
   }
-  return { state, jobs, garage,get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,finishWorkout,payRental,payRide,consumeFlare,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
+  return { state, jobs, garage,get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,startMugging,robberyEligibility,finishWorkout,payRental,payRide,consumeFlare,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
     cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
-    serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,gear:state.gear,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns }); },
+    serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,gear:state.gear,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns,muggingCooldowns:state.muggingCooldowns }); },
     drainEvents() { return events.splice(0); },
   };
 }
