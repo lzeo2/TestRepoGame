@@ -5,8 +5,9 @@ const threeURL = moduleURL(await readFile(new URL('../assets/car-arcade/vendor/t
 const THREE = await import(threeURL);
 const source = await readFile(new URL('../Games/Capital Drive/world-view.js', import.meta.url), 'utf8');
 const districtsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/districts.js', import.meta.url), 'utf8'));
+const characterURL = moduleURL(await readFile(new URL('../Games/Capital Drive/suburb-character.js', import.meta.url), 'utf8'));
 const roadsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/road-network.js', import.meta.url), 'utf8'));
-const { createWorldView } = await import(moduleURL(source.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL)));
+const { createWorldView } = await import(moduleURL(source.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL).replace('./suburb-character.js', characterURL)));
 globalThis.document = { createElement: () => ({ getContext: () => ({ createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), putImageData() {}, fillRect() {}, strokeRect() {}, fillText() {} }) }) };
 const polygons = [ [[20, 20], [60, 20], [60, 35], [40, 35], [40, 60], [20, 60]], [[100, 20], [130, 20], [130, 45], [100, 45]] ];
 const heights = [];
@@ -119,3 +120,12 @@ assert(asphaltVertices > 0);
 assert.equal(JSON.stringify(drives), originalDrives, 'rendering preserves geographic source');
 driveView.dispose();
 console.log(`PASS source Manuka polygon: ${westernShops.length} retail footprints; narrow parallel driveway ribbons/caps and no invented pavement`);
+
+const apartmentView = createWorldView(scene, { ...map, buildings: [{ ...map.buildings[1], type: 'apartments', height: 12 }] });
+assert(apartmentView.stats.balconies > 0, 'source apartment type and upper storeys receive balcony rhythm');
+assert(apartmentView.stats.balconies <= 3000, 'balconies share a fixed citywide allowance');
+apartmentView.dispose();
+const detachedView = createWorldView(scene, { ...map, buildings: [{ ...map.buildings[1], type: 'house', height: 4 }] });
+assert.equal(detachedView.stats.balconies, 0, 'ordinary houses retain their own facade treatment');
+detachedView.dispose();
+console.log('PASS apartment upper-storey balcony rhythm, fixed allowance and detached-house exclusion');

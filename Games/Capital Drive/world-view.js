@@ -1,6 +1,7 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { roadProfile } from './road-network.js';
 import { retailDistrict } from './districts.js';
+import { suburbCharacter } from './suburb-character.js';
 
 // Metres, with east = +x and south = +z. All art is generated locally.
 const CHUNK_SIZE = 350;
@@ -22,7 +23,7 @@ export function createWorldView(scene, map) {
   const temporaryGeometry = [];
   const textures = [];
   const materials = [];
-  const counters = { buildings: 0, trees: 0, treesNearSpawn: 0, windows: 0, roofFacets: 0, texturedBuildings: 0, signs: 0, roadSegments: 0, triangles: 0, chunks: 0, meshes: 0 };
+  const counters = { buildings: 0, trees: 0, treesNearSpawn: 0, windows: 0, roofFacets: 0, texturedBuildings: 0, balconies: 0, signs: 0, roadSegments: 0, triangles: 0, chunks: 0, meshes: 0 };
   const color = new THREE.Color();
   const matrix = new THREE.Matrix4();
   const normalMatrix = new THREE.Matrix3();
@@ -195,6 +196,13 @@ export function createWorldView(scene, map) {
   const trunk = geometry(new THREE.CylinderGeometry(0.65, 1, 1, 5));
   const crown = geometry(new THREE.IcosahedronGeometry(1, 0));
   const leafCrown = geometry(new THREE.IcosahedronGeometry(1, 1));
+  // Radial normals smooth the existing low-poly crowns without extra vertices.
+  for (const foliage of [crown, leafCrown]) {
+    const p = foliage.attributes.position, n = foliage.attributes.normal;
+    for (let i = 0; i < p.count; i++) {
+      normal.fromBufferAttribute(p, i).normalize(); n.setXYZ(i, normal.x, normal.y, normal.z);
+    }
+  }
 
   function hash(n) {
     const a = Math.sin(n * 127.1 + 311.7) * 43758.5453;
@@ -419,8 +427,10 @@ export function createWorldView(scene, map) {
     const footing = Math.min(...floorHeights) - 0.3;
     const signedArea = points.reduce((sum, p, i) => { const q = points[(i + 1) % points.length]; return sum + p[0] * q[1] - q[0] * p[1]; }, 0);
     const reverse = signedArea > 0;
-    const walls = isSchool ? 0xe0d2b4 : lowShop ? 0xd6c9ae : building.color || (residential ? [0xa97860, 0xc8b598, 0xddd4bd, 0x996e59, 0xbca68a][index % 5] : 0xc4bca9);
-    const roofColor = isSchool ? 0x9f5943 : residential ? [0x92604b, 0x686964, 0xa26e53, 0x726558][index % 4] : 0x777d79;
+    const character = suburbCharacter(map, x, z);
+    const apartment = /apartments/.test(building.type || '');
+    const walls = isSchool ? 0xe0d2b4 : lowShop ? 0xd6c9ae : building.color || (residential ? character.walls[index % character.walls.length] : 0xc4bca9);
+    const roofColor = isSchool ? 0x9f5943 : residential ? character.roofs[index % character.roofs.length] : 0x777d79;
     const wallKind = isSchool || index % 3 === 0 || !residential ? 1 : 0;
     const pitched = !utility && (isSchool || residential && height < 10) && building.roof !== 'flat';
     const batch = batchAt(x, z);
@@ -487,6 +497,12 @@ export function createWorldView(scene, map) {
         bay(u, y + hh * 0.57, hw, hh * 0.18, 0.058, 0x8ba0a0);
         bay(u, y, 0.035, hh, 0.065, 0xc6c6b9);
         if (isSchool) bay(u, y - 0.08, hw, 0.035, 0.068, 0xc9cbbb);
+        if (apartment && row > 0 && col % 2 === 0 && length > 6 && counters.balconies < 3000) {
+          // Slab and opaque rail planes suggest recessed balcony rhythm cheaply.
+          bay(u, y - hh - 0.12, hw + 0.22, 0.07, 0.32, 0xbab4a5);
+          bay(u, y - hh + 0.32, hw + 0.22, 0.3, 0.38, 0x8a938b);
+          counters.balconies++;
+        }
         counters.windows++;
       }
       if (lowShop && length > 7 && length < 70) {

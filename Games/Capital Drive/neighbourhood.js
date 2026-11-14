@@ -1,6 +1,7 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { roadProfile } from './road-network.js';
 import { retailDistrict } from './districts.js';
+import { suburbCharacter, rearGarden } from './suburb-character.js';
 
 // Original procedural streetscape details, anchored to the supplied footprints.
 const CHUNK = 350;
@@ -13,8 +14,12 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
   root.name = 'Neighbourhood details';
   scene.add(root);
   const chunks = new Map(), roadIndex = new Map(), buildingIndex = new Map(), parkIndex = new Map();
-  const materials = [], textures = [];
-  const stats = { frontages: 0, driveways: 0, hedges: 0, fences: 0, letterboxes: 0, doors: 0, verandahs: 0, lamps: 0, benches: 0, bins: 0, stopPoles: 0, shopSigns: 0, retailAprons: 0, apronTriangles: 0, pavedArea: 0, chunks: 0, meshes: 0, triangles: 0 };
+  const materials = [], textures = [], entries = [];
+  const managedShops = new Set(map.shoppingManagedBuildingIds || []);
+  const managedCampus = new Set(map.campusBuildingIds || []);
+  const gardenIndex = new Map();
+  const BACKYARD_TRIANGLE_LIMIT = 60000;
+  const stats = { backyards: 0, backyardTriangles: 0, gardenBeds: 0, gardenSeats: 0, sheds: 0, apartmentEntries: 0, frontages: 0, driveways: 0, hedges: 0, fences: 0, letterboxes: 0, doors: 0, verandahs: 0, lamps: 0, benches: 0, bins: 0, stopPoles: 0, shopSigns: 0, retailAprons: 0, apronTriangles: 0, pavedArea: 0, chunks: 0, meshes: 0, triangles: 0 };
   const material = new THREE.MeshLambertMaterial({ vertexColors: true });
   materials.push(material);
   const box = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
@@ -63,6 +68,9 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
       chunks.set(key, { x: (cx + 0.5) * CHUNK, z: (cz + 0.5) * CHUNK, group, batches: new Map() });
     }
     const chunk = chunks.get(key);
+    if (kind === 'garden' && !chunk.detail) {
+      chunk.detail = new THREE.Group(); chunk.detail.name = 'Nearby gardens'; chunk.group.add(chunk.detail);
+    }
     if (!chunk.batches.has(kind)) chunk.batches.set(kind, { positions: [], normals: [], colors: [], uvs: [] });
     return chunk.batches.get(kind);
   }
@@ -73,8 +81,8 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
     for (const p of [a, b, c]) { batch.positions.push(...p); batch.normals.push(normal.x, normal.y, normal.z); batch.colors.push(color.r, color.g, color.b); }
     stats.triangles++;
   }
-  function solid(source, x, y, z, sx, sy, sz, tint, yaw = 0) {
-    const batch = batchAt(x, z);
+  function solid(source, x, y, z, sx, sy, sz, tint, yaw = 0, kind = 'solid') {
+    const batch = batchAt(x, z, kind);
     matrix.compose(position.set(x, y, z), rotation.setFromAxisAngle(axis, yaw), size.set(sx, sy, sz));
     normalMatrix.getNormalMatrix(matrix); color.set(tint);
     const p = source.attributes.position, n = source.attributes.normal;
@@ -167,7 +175,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
   const retailCentres = (map.landmarks || []).filter(l => /^(manuka|kingston)$/.test(l.id));
   const APRON_LIMIT = 18000;
   const apronColors = [0x9b7965, 0xa17e68, 0x95745f, 0xa48370];
-  const retailBuildings = (map.buildings || []).filter(b => /^(commercial|retail)$/.test(b.type || '') && b.points?.length);
+  const retailBuildings = (map.buildings || []).filter(b => !managedShops.has(b.id) && /^(commercial|retail)$/.test(b.type || '') && b.points?.length);
   const centreDistance = building => {
     const x = building.points.reduce((sum, p) => sum + p[0], 0) / building.points.length;
     const z = building.points.reduce((sum, p) => sum + p[1], 0) / building.points.length;
@@ -238,13 +246,15 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
   const shopping = (x, z) => Boolean(retailDistrict(map, x, z));
   const shopLabels = ['CAFE', 'GROCER', 'BAKERY', 'BOOKS'];
   const shopSigns = [];
-  const candidates = (map.buildings || []).filter(b => !/shed|garage|carport|roof|industrial|school|education|community|diplomatic|defence/.test(b.type || '')).map((b, i) => ({ b, seed: i })).sort((a, b) => hash(a.seed + 19) - hash(b.seed + 19));
+  const candidates = (map.buildings || []).filter(b => !managedShops.has(b.id) && !managedCampus.has(b.id) && !/shed|garage|carport|roof|industrial|school|education|community|diplomatic|defence/.test(b.type || '')).map((b, i) => ({ b, seed: i })).sort((a, b) => hash(a.seed + 19) - hash(b.seed + 19));
   for (const { b: building, seed } of candidates) {
     if (stats.frontages >= MAX_FRONTAGES) break;
     const f = frontage(building);
     if (!f) continue;
     if (String(building.id).startsWith('osm-') && nearby(buildingIndex, f.x, f.z).some(b => String(b.id).startsWith('act-') && inside(f.x, f.z, b.points))) continue;
     const isShop = shopping(f.x, f.z) && /commercial|retail|yes|apartments/.test(building.type || '');
+    const character = suburbCharacter(map, f.x, f.z);
+    const apartment = /apartments/.test(building.type || '');
     const yaw = Math.atan2(f.nx, f.nz), tangentX = f.nz, tangentZ = -f.nx;
     const roadEdge = f.street.segment.width / 2;
     const gardenDistance = Math.min(f.distance - 2, roadEdge + 6.5);
@@ -258,6 +268,11 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
     solid(box, dx, floor + 1.06, dz, 1.13, 2.16, 0.12, PALETTE.frame, yaw);
     solid(box, dx - f.nx * 0.08, floor + 1.02, dz - f.nz * 0.08, 0.88, 1.98, 0.13, [0x667465, 0x876651, 0x596f76][seed % 3], yaw);
     stats.doors++;
+    entries.push(Object.freeze({ id: building.id, buildingId: building.id, x: dx - f.nx * 0.08, z: dz - f.nz * 0.08, nx: f.nx, nz: f.nz, width: 0.88 }));
+    if (apartment && !isShop) {
+      solid(box, dx - f.nx * 0.65, floor + 2.7, dz - f.nz * 0.65, 2.5, 0.16, 1.4, 0x72776f, yaw);
+      stats.apartmentEntries++;
+    }
     if (isShop) {
       solid(box, dx - f.nx * 0.6, floor + 2.65, dz - f.nz * 0.6, 3.6, 0.18, 1.3, 0x414b48, yaw);
       shopSigns.push({ x: dx - f.nx * 0.24, z: dz - f.nz * 0.24, y: floor + 3.1, yaw, label: seed % shopLabels.length });
@@ -282,9 +297,9 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
         const px = gx + tangentX * side * 4.1, pz = gz + tangentZ * side * 4.1;
         if (inPark(px, pz) || inRoad(px, pz, 2.5) || inBuilding(px, pz, building)) continue;
         if (seed % 3) {
-          groundBox(px, pz, 4.6, 1.35 + hash(seed) * 0.4, 0.95, PALETTE.hedge, yaw); stats.hedges++;
+          groundBox(px, pz, 4.6, character.id === 'redhill' ? 1.3 : 0.85 + hash(seed) * 0.25, 0.95, PALETTE.hedge, yaw); stats.hedges++;
         } else {
-          groundBox(px, pz, 4.5, 0.75, 0.2, seed % 2 ? 0xc7c1ab : 0xa29279, yaw);
+          groundBox(px, pz, 4.5, character.fenceHeight, 0.2, seed % 2 ? 0xc7c1ab : 0xa29279, yaw);
           for (const end of [-1, 1]) groundBox(px + tangentX * end * 2.2, pz + tangentZ * end * 2.2, 0.25, 0.8, 0.25, PALETTE.timber);
           stats.fences++;
         }
@@ -302,6 +317,32 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
         solid(box, mx, heightAt(mx, mz) + 0.9, mz, 0.42, 0.3, 0.28, [0x8d6654, 0x647362, 0x999c8d][seed % 3], yaw); stats.letterboxes++;
       }
     }
+    if (!isShop && !apartment && /^(house|residential|detached|yes)$/.test(building.type || '') && stats.backyards < 650 && stats.backyardTriangles < BACKYARD_TRIANGLE_LIMIT - 140) {
+      const clear = (x, z) => !inRoad(x, z, 2.5) && !inPark(x, z) && !inBuilding(x, z) &&
+        !nearby(gardenIndex, x, z).some(a => inside(x, z, a.points)) &&
+        !(map.landmarkTreeExclusions || []).some(points => inside(x, z, points)) &&
+        (!map.bounds || (x > map.bounds.minX && x < map.bounds.maxX && z > map.bounds.minZ && z < map.bounds.maxZ));
+      const garden = rearGarden(building, f, character, clear);
+      if (garden && !overlapsOutline(garden.corners, garden.corners, buildingIndex) && !overlapsOutline(garden.corners, garden.corners, parkIndex)) {
+        const before = stats.triangles;
+        const gardenBox = (u, v, sx, sy, sz, tint, lift = 0) => {
+          const [x, z] = garden.point(u, v);
+          solid(box, x, heightAt(x, z) + lift + sy / 2, z, sx, sy, sz, tint, yaw, 'garden');
+        };
+        // Three low rear/side spans leave the house side and its return route open.
+        gardenBox(0, garden.depth, garden.width, character.fenceHeight, 0.16, PALETTE.timber);
+        for (const side of [-1, 1]) gardenBox(side * garden.width / 2, garden.depth / 2, 0.16, character.fenceHeight, garden.depth, PALETTE.timber);
+        gardenBox(-garden.width * 0.25, garden.depth - 1, garden.width * 0.4, 0.25, 0.8, 0x92775d); stats.gardenBeds++;
+        gardenBox(garden.width * 0.2, 1.5, 1.6, 0.48, 0.5, PALETTE.timber);
+        gardenBox(garden.width * 0.2, 1.7, 1.6, 0.8, 0.1, PALETTE.timber); stats.gardenSeats++;
+        if (seed % 4 === 0 && garden.width > 7) {
+          gardenBox(garden.width * 0.3, garden.depth - 1.2, 1.3, 1.7, 1.3, 0x8b9182);
+          gardenBox(garden.width * 0.3, garden.depth - 1.2, 1.5, 0.12, 1.5, 0x646e65, 1.7); stats.sheds++;
+        }
+        indexItem(gardenIndex, { points: garden.corners }, garden.corners, 1);
+        stats.backyards++; stats.backyardTriangles += stats.triangles - before;
+      }
+    }
     stats.frontages++;
   }
 
@@ -309,7 +350,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
   // in front of the heritage school. This is bounded by its real frontage.
   const school = (map.landmarks || []).find(l => l.id === 'telopea');
   const campus = school && (map.buildings || []).filter(b => /education|school/.test(b.type || '') && b.points?.length && Math.hypot(b.points[0][0] - school.x, b.points[0][1] - school.z) < 220).sort((a, b) => b.points.length - a.points.length)[0];
-  const schoolFront = campus && frontage(campus);
+  const schoolFront = campus && !managedCampus.has(campus.id) && frontage(campus);
   if (schoolFront) {
     const f = schoolFront, tx = f.nz, tz = -f.nx, setback = f.street.segment.width / 2 + 5.5;
     const cx = f.street.x + f.nx * setback, cz = f.street.z + f.nz * setback, yaw = Math.atan2(f.nx, f.nz);
@@ -387,7 +428,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
       geometry.computeBoundingSphere();
       const mesh = new THREE.Mesh(geometry, kind === 'sign' ? materials.at(-1) : material);
       mesh.name = `Neighbourhood ${kind}`;
-      mesh.matrixAutoUpdate = false; mesh.updateMatrix(); chunk.group.add(mesh); stats.meshes++;
+      mesh.matrixAutoUpdate = false; mesh.updateMatrix(); (kind === 'garden' ? chunk.detail : chunk.group).add(mesh); stats.meshes++;
     }
     chunk.batches.clear();
   }
@@ -396,7 +437,10 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
   Object.freeze(stats);
   function update(player) {
     const x = player.x ?? player.position?.x ?? 0, z = player.z ?? player.position?.z ?? 0;
-    for (const chunk of chunks.values()) chunk.group.visible = Math.abs(chunk.x - x) < 650 + CHUNK / 2 && Math.abs(chunk.z - z) < 650 + CHUNK / 2;
+    for (const chunk of chunks.values()) {
+      chunk.group.visible = Math.abs(chunk.x - x) < 650 + CHUNK / 2 && Math.abs(chunk.z - z) < 650 + CHUNK / 2;
+      if (chunk.detail) chunk.detail.visible = Math.abs(chunk.x - x) < 260 + CHUNK / 2 && Math.abs(chunk.z - z) < 260 + CHUNK / 2;
+    }
   }
   let disposed = false;
   function dispose() {
@@ -406,5 +450,5 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
     root.removeFromParent(); chunks.clear();
   }
   update(map.spawn || { x: 0, z: 0 });
-  return { update, stats, dispose };
+  return { update, stats, entries: Object.freeze(entries), dispose };
 }
