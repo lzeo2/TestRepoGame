@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { createInteriorActivities, WORKOUT_KINDS, isWorkoutKind } from '../Games/Capital Drive/interior-activities.js';
 
-const kinds = [...WORKOUT_KINDS, 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade'];
+const kinds = [...WORKOUT_KINDS, 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade', 'presentation'];
 assert(Object.isFrozen(WORKOUT_KINDS));
 assert.deepEqual(WORKOUT_KINDS, ['bench', 'treadmill', 'curls', 'rower']);
 for (const kind of WORKOUT_KINDS) assert.equal(isWorkoutKind(kind), true);
-for (const value of [null, undefined, {}, 'rest', 'BENCH']) assert.equal(isWorkoutKind(value), false);
+for (const value of [null, undefined, {}, 'rest', 'presentation', 'BENCH']) assert.equal(isWorkoutKind(value), false);
 const stations = kinds.map((kind, i) => ({ id: kind, kind, label: `Play ${kind}`, x: i * 10, z: 2, yaw: 0, radius: 1.8 }));
 const plan = { id: 'test-room', activities: stations };
 const recipe = { noodle: ['x', 'y', 'up', 'x', 'up', 'y'], cooking: ['x', 'x', 'y', 'up', 'y', 'up'], stock: ['x', 'up', 'y', 'x'] };
@@ -338,4 +338,63 @@ for (const kind of ['treadmill', 'curls']) {
   assert.equal(game.snapshot().reps, kind === 'curls' ? 0 : 1);
   assert.equal(game.snapshot().mistakes, 2, 'fresh spam or early release during movement is rejected');
 }
-console.log('PASS interior activities: ten playable kinds; four distinct workouts; controlled bench, twelve cadence steps, six curls and six held/released rowing strokes; fresh-key/grip/early/late/repeat/spam guards; pause/recovery/reach/mode cancellation; sequences and clear instructions; exact session identity, once-only results and retries.');
+// The authored PowerPunt outage requires real edits followed by supplied active sync time.
+{
+  const { game, ctx } = fixture('presentation');
+  assert.deepEqual(game.snapshot().sequence, ['x', 'y', 'x']);
+  assert.equal(game.snapshot().exercisePose, null); assert.equal(game.snapshot().outcome, null);
+  for (const [i, key] of ['x', 'y', 'x'].entries()) {
+    const state = game.snapshot();
+    assert.equal(state.expectedKey, key); assert.equal(state.acceptsInput, true);
+    assert.match(state.instruction, new RegExp(`edit ${i + 1}/3: press ${key.toUpperCase()} once`));
+    press(game, ctx, key);
+  }
+  assert.equal(game.snapshot().phase, 'sync'); assert.equal(game.snapshot().expectedKey, null);
+  assert.equal(game.snapshot().acceptsInput, false); assert.equal(game.snapshot().outcome, null);
+  const sync = game.snapshot();
+  for (let i = 0; i < 50; i++) tick(game, ctx, { x: true, y: true }, 0);
+  assert.deepEqual(game.snapshot(), sync, 'pause freezes sync and cannot create an outage');
+  tick(game, ctx, {}, 1.19);
+  assert.equal(game.snapshot().phase, 'sync'); assert.deepEqual(game.drainEvents(), []);
+  tick(game, ctx, {}, .01);
+  assert.equal(game.snapshot().phase, 'complete'); assert.equal(game.snapshot().outcome, 'outage');
+  const event = assertSingleResult(game, 'complete');
+  assert(Object.isFrozen(event)); assert(Object.isFrozen(event.station));
+  assert.equal(event.outcome, 'outage'); assert.equal(event.kind, 'presentation');
+  assert.equal(event.planId, plan.id); assert.equal(event.stationId, 'presentation');
+  assert.equal(event.sessionId, game.snapshot().sessionId); assert.equal(event.score, 0);
+  assert.equal(game.snapshot().progress, 1);
+  tick(game, ctx, {}, 5); assert.deepEqual(game.drainEvents(), [], 'outage emits once per actual session');
+}
+{
+  const { game, ctx } = fixture('presentation');
+  tick(game, ctx, { x: true });
+  for (let i = 0; i < 50; i++) tick(game, ctx, { x: true });
+  assert.equal(game.snapshot().index, 1, 'held X cannot perform a later edit');
+  press(game, ctx, 'x'); press(game, ctx, 'up'); press(game, ctx, 'y');
+  const event = assertSingleResult(game, 'failed'); assert.equal(event.outcome, null);
+  assert.equal(game.snapshot().outcome, null, 'wrong edit failure is not the scripted outage');
+}
+for (const [extra, reason] of [[{ recovering: true }, 'recovery'], [{ pose: { x: 999, z: 999 } }, 'left-station'],
+  [{ visible: false }, 'occluded'], [{ onFoot: false }, 'not-on-foot'], [{ wanted: 1 }, 'wanted'], [{ sandbox: true }, 'mode-changed']]) {
+  const { game, ctx } = fixture('presentation');
+  for (const key of ['x', 'y', 'x']) press(game, ctx, key);
+  tick(game, { ...ctx, ...extra }, {}, 2);
+  const event = assertSingleResult(game, 'cancel');
+  assert.equal(event.reason, reason); assert.equal(event.outcome, null);
+  assert.equal(game.snapshot().outcome, null, 'invalid sync context cannot create an outage');
+}
+{
+  const { game, ctx } = fixture('presentation');
+  game.cancel(); assertSingleResult(game, 'cancel');
+  assert.equal(game.start('presentation', { ...ctx, visible: false }), false);
+  assert(game.start('presentation', ctx));
+  tick(game, ctx, { x: true, y: true });
+  assert.equal(game.snapshot().index, 0); assert.equal(game.snapshot().mistakes, 1, 'simultaneous edit spam is invalid');
+}
+{
+  const { game, ctx } = fixture('presentation');
+  tick(game, ctx, { x: true }); tick(game, ctx, { x: true, y: true });
+  assert.equal(game.snapshot().index, 0); assert.equal(game.snapshot().mistakes, 1, 'previous edit key must release before the next edit');
+}
+console.log('PASS interior activities: eleven playable kinds; four distinct workouts; controlled bench, twelve cadence steps, six curls and six rowing strokes; fresh-key/grip/early/late/repeat/spam guards; PowerPunt three edits and paused 1.2s sync with once-only immutable outage; recovery/reach/visibility/mode cancellation; exact session identity and retries.');
