@@ -13,8 +13,8 @@ const scene = new THREE.Scene();
 const pedestrians = createPedestrians(scene, fixture, heightAt);
 assert.equal(pedestrians.stats.count, 36);
 assert(pedestrians.stats.visible >= 20, 'population appears near the initial player');
-assert.equal(scene.children[0].children.length, 11, 'body parts share eleven instanced body/prop batches');
-assert(pedestrians.stats.drawCalls <= 11);
+assert.equal(scene.children[0].children.length, 10, 'body parts share ten instanced body/prop batches');
+assert(pedestrians.stats.drawCalls <= 10);
 assert(pedestrians.stats.detailed <= 20);
 function checkFixture() {
   for (const p of pedestrians.snapshot()) {
@@ -51,8 +51,20 @@ const near = pedestrians.snapshot().find(p => p.ambient === 'walk');
 pedestrians.update({ x: near.x, z: near.z, speed: 0 }, 0.1);
 const reacted = pedestrians.snapshot().find(p => p.id === near.id);
 assert(reacted.stopped && reacted.escape > 0, 'nearby car stops walkers and they retreat into the pavement');
+const contactsOut=[];
+assert.equal(pedestrians.writeContacts(contactsOut),contactsOut,'contact output reuses its caller array');
+const copy=pedestrians.snapshot(),records=contactsOut.slice();
+assert.deepEqual(contactsOut,copy.map(p=>({id:`ped:${p.id}`,x:p.x,z:p.z,radius:.32,active:true})),'contacts copy every physical adult position');
+contactsOut[0].x=999999;
+assert.notEqual(pedestrians.snapshot()[0].x,999999,'external contact edits cannot mutate people');
+pedestrians.writeContacts(contactsOut);
+assert(contactsOut.every((record,i)=>record===records[i]),'steady updates reuse bounded contact records');
+pedestrians.resetPopulation(fixture.spawn);
+pedestrians.writeContacts(contactsOut);
+assert.deepEqual(contactsOut,pedestrians.snapshot().map(p=>({id:`ped:${p.id}`,x:p.x,z:p.z,radius:.32,active:true})),'reset refreshes contacts from current physical positions');
 pedestrians.dispose(); pedestrians.dispose();
 assert.equal(scene.children.length, 0, 'dispose removes all pedestrian batches');
+assert.equal(pedestrians.writeContacts([{}]).length, 0, 'disposed pedestrians clear caller contact records');
 console.log('PASS deterministic sidewalk offsets, building avoidance, terrain, walking, car response, pause and disposal');
 
 const map = JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra.json', import.meta.url), 'utf8'));
@@ -124,7 +136,7 @@ for (const p of actual.snapshot()) {
   const gap = Math.hypot(p.x - far.x, p.z - far.z);
   assert(gap > 180, 'recycled pedestrians enter outside the visible radius');
 }
-console.log(`PASS actual Canberra map: ${actual.stats.count} adults, ${actual.stats.paths} safe paths, ${actual.stats.recycled} recycled, ${initialStats.visible} initially visible, ${initialStats.triangles} initial triangles, <=11 draws`);
+console.log(`PASS actual Canberra map: ${actual.stats.count} adults, ${actual.stats.paths} safe paths, ${actual.stats.recycled} recycled, ${initialStats.visible} initially visible, ${initialStats.triangles} initial triangles, <=10 draws`);
 actual.alert({ x: far.x, z: far.z, radius: 100, kind: 'gunshot' });
 for (let i = 0; i < 120; i++) actual.update(far, 1 / 30);
 checkActual();
@@ -141,6 +153,7 @@ const hit = combat.strike(attack);
 assert.equal(hit.hits, 1, 'forward close melee hits only the nearby adult');
 assert.equal(hit.people[0].health, 60);
 assert.equal(combat.snapshot()[0].reaction, 'knockdown');
+assert(combat.writeContacts().some(p=>p.id===`ped:${target.id}`&&p.active),'down adults remain physical contact bodies');
 assert.equal(combat.strike(attack).hits, 0, 'hit cooldown prevents repeated same-frame damage');
 const witnesses = combat.drainEvents();
 assert(witnesses.some(event => event.type === 'witness'), 'nearby adults witness the strike');
@@ -280,7 +293,7 @@ const busy = createPedestrians(civicScene, expanded, heightAt);
 busy.resetPopulation({ ...civicAnchor, yaw: 0 });
 assert.equal(busy.stats.count, 64, 'Civic increases the bounded adult pool');
 assert(busy.stats.visible >= 35, 'Civic has a substantially busier immediate pavement population');
-assert(busy.stats.drawCalls <= 11 && busy.stats.detailed <= 20 && busy.stats.triangles < 100000,
+assert(busy.stats.drawCalls <= 10 && busy.stats.detailed <= 20 && busy.stats.triangles < 100000,
   'Civic retains the same instanced draw and detail caps');
 const expandedRoads = new Map(expanded.roads.map(r => [r.id, r]));
 assert(busy.snapshot().some(p => expandedRoads.get(p.roadId).type === 'living_street'), 'Bunda shared-street edges support walkers');
@@ -290,12 +303,15 @@ for (const p of busy.snapshot()) {
     'even shared-street pedestrians occupy safe edges outside the asphalt');
   assert(!expanded.buildings.some(b => insideOutline(p, b.points)), 'busy Civic avoids all retained source building outlines');
 }
+const contactCapacity=[];
+assert.equal(busy.writeContacts(contactCapacity).length,64,'contact output includes the bounded Civic pool');
 const civicPopulation = busy.snapshot();
 busy.resetPopulation(civicAnchor);
 assert.equal(new Set(busy.snapshot().map(p => p.id)).size, 64, 'Civic keeps stable unique IDs');
 busy.resetPopulation(map.spawn);
 assert.equal(busy.stats.count, 36, 'suburbs return to the quieter population without new batches');
-assert.equal(civicScene.children[0].children.length, 11);
+assert.equal(busy.writeContacts(contactCapacity).length,36,'suburban reset truncates stale Civic contacts');
+assert.equal(civicScene.children[0].children.length, 10);
 for (let i = 0; i < 11; i++) busy.update(civicAnchor, 0.1);
 assert.equal(busy.stats.count, 64, 'normal travel activates the Civic population without a teleport');
 assert.equal(new Set(busy.snapshot().map(p => p.id)).size, 64, 'adaptive activation never duplicates an ID');
@@ -305,4 +321,4 @@ busy.resetPopulation(civicAnchor);
 assert.deepEqual(busy.snapshot(), civicPopulation, 'Civic arrivals remain deterministic');
 assert.equal(JSON.stringify({ map, north }), sourceBytes, 'population does not rewrite the geographic sources');
 busy.dispose();
-console.log('PASS Civic64/suburban36 adaptation, source Bunda edges, stable IDs, offscreen activation and eleven draw calls');
+console.log('PASS Civic64/suburban36 adaptation, source Bunda edges, stable IDs, offscreen activation and ten draw calls');
