@@ -41,3 +41,23 @@ assert.equal(poor.startActivity(gym.id,'workout',ctx(gym)).ok,false);
 assert.equal(p.startActivity(p.services.find(s=>s.type==='retail').id,'robbery',ctx(p.services.find(s=>s.type==='retail'),{weapon:'pistol'})).ok,true);
 p.penalize('Hospital');assert.equal(p.state.activity,null);assert.equal(p.state.completedJobs.length,0);
 console.log('PASS services: location/on-foot/wanted/sandbox/cost gates; food/gun/ammo; timed fitness/robbery; single payouts/cooldown reload; legacy v1 and strict new fields.');
+// Controller-resolved counters must remain authoritative during a timed robbery.
+let inside=false;
+const counters=createProgression(map,legacy,{
+ servicePosition:s=>s.id===food.id&&inside?{x:food.x+5,z:food.z+8,radius:1.6}:null,
+ canUseService:s=>s.id!==food.id||inside,
+ hasLineOfSight:()=>true,
+});
+const wallet=counters.state.cash;
+assert.equal(counters.purchaseService(food.id,'food',ctx(food)).ok,false,'mapped outside facade is not an indoor counter');
+assert.equal(counters.state.cash,wallet);
+inside=true;
+const counter=counters.services.find(s=>s.id===food.id);
+assert.equal(counters.purchaseService(food.id,'food',ctx(counter)).ok,true);
+counters.state.equipment.pistol=true;
+assert.equal(counters.startActivity(food.id,'robbery',ctx(counter,{weapon:'pistol'})).ok,true);
+inside=false;
+counters.update(.05,ctx(counter,{weapon:'pistol'}));
+assert.equal(counters.state.activity,null,'leaving the room interrupts the till action');
+assert.equal(counters.state.cash,wallet-food.price);
+console.log('PASS indoor service authority: resolved counter, exterior denial and leave-room interruption');

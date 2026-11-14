@@ -23,6 +23,8 @@ MODULES = (
     'address-search.js', 'street-ui.js', 'road-network.js', 'police.js',
     'buses.js', 'bus-view.js', 'vehicle-occupants-view.js', 'districts.js',
     'services.js', 'services-view.js', 'stores.js', 'storefronts-view.js', 'traffic-view.js',
+    'shopping-precincts.js','shopping-view.js','suburb-character.js','campus.js','campus-view.js',
+    'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js',
 )
 SUITES = (
     'test_capital_drive.mjs', 'test_capital_pedestrians.mjs',
@@ -34,8 +36,10 @@ SUITES = (
     'test_capital_police.mjs', 'test_capital_occupants.mjs', 'test_capital_services.mjs',
     'test_capital_services_view.mjs', 'test_capital_stores.mjs', 'test_capital_storefronts.mjs',
     'test_capital_traffic_view.mjs', 'test_capital_sites.mjs',
+    'test_capital_shopping.mjs','test_capital_campus.mjs','test_capital_interiors.mjs',
+    'test_capital_campaign.mjs','test_capital_north.mjs','test_capital_terrain.mjs','test_capital_civic.mjs','test_capital_crossings.mjs',
 )
-DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json')
+DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json','shopping-precincts.json','canberra-north.json','north-terrain.json')
 
 
 def run_command(command, timeout):

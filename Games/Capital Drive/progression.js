@@ -48,6 +48,8 @@ export function createProgression(map, saved = null, options = {}) {
     state.completedJobs = [...saved.completedJobs];
     state.equipment=copy(saved.equipment||{pistol:false});state.fitnessLevel=saved.fitnessLevel||0;state.robberyCooldowns=copy(saved.robberyCooldowns||{});
   }
+  const serviceSite = source => source && ({ ...source, ...(options.servicePosition?.(source) || {}) });
+  const serviceAllowed = (site, ctx) => !options.canUseService || options.canUseService(site, ctx);
   const events = [];
   let context = null, serial = null;
   function result(ok, message, extra = {}, type = ok ? 'change' : 'error') {
@@ -104,8 +106,8 @@ export function createProgression(map, saved = null, options = {}) {
     for(const id of Object.keys(state.robberyCooldowns))state.robberyCooldowns[id]=Math.max(0,state.robberyCooldowns[id]-Math.min(dt,.25));
     const activity=state.activity;
     if(activity){
-      const site=SERVICES.find(s=>s.id===activity.serviceId);
-      if(ctx.respawnSerial!==activity.respawnSerial||ctx.recovering||!ctx.onFoot||!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx)||
+      const site=serviceSite(SERVICES.find(s=>s.id===activity.serviceId));
+      if(ctx.respawnSerial!==activity.respawnSerial||ctx.recovering||!ctx.onFoot||!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx)||!serviceAllowed(site,ctx)||
         (activity.type==='robbery'?ctx.weapon!=='pistol':ctx.wanted>0)){
         state.activity=null;result(false,'Activity interrupted.',{},'activity-ended');
       }else{
@@ -212,8 +214,8 @@ export function createProgression(map, saved = null, options = {}) {
   function clearApproach(site,ctx){return !options.hasLineOfSight||options.hasLineOfSight(ctx.pose,{x:site.x,z:site.z});}
   function serviceGuard(id,ctx,{allowWanted=false}={}){
     if(!remember(ctx)||ctx.sandbox||ctx.recovering)return result(false,'Activity unavailable.');
-    const site=SERVICES.find(s=>s.id===id);
-    if(!site||!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx))return result(false,'Visit this storefront first.');
+    const site=serviceSite(SERVICES.find(s=>s.id===id));
+    if(!site||!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx)||!serviceAllowed(site,ctx))return result(false,'Visit this storefront first.');
     if(!ctx.onFoot)return result(false,'Step out of the car first.');
     if(state.activity)return result(false,'Finish the current activity first.');
     if(!allowWanted&&ctx.wanted>0)return result(false,'Lose the police first.');
@@ -250,7 +252,7 @@ export function createProgression(map, saved = null, options = {}) {
       cost:type==='workout'?site.price*(state.fitnessLevel+1):0,respawnSerial:ctx.respawnSerial};
     return result(true,type==='robbery'?'Stay near the till.':'Training started.',{serviceId:id,point:{x:site.x,z:site.z}},type+'-started');
   }
-  return { state, jobs, garage,services:SERVICES, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,
+  return { state, jobs, garage,get services(){return SERVICES.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,
     cancelActivity(){if(!state.activity)return false;state.activity=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
     serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns }); },

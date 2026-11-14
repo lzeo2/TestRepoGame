@@ -13,7 +13,7 @@ export function createCampaign(map, saved = null) {
   if (!finitePoint(map.spawn) || !finitePoint(shop)) throw new Error('Campaign requires the mapped spawn and Coals.');
   const centre = place('canberra-centre', { x: -456, z: -4500, name: 'Canberra Centre' });
   const kingston = place('kingston', { x: 923, z: 285, name: 'Kingston' });
-  const redHill = place('red-hill', { x: -1770, z: 1740, name: 'Red Hill' });
+  const redHill = place('redhill', { x: -1770, z: 1740, name: 'Red Hill' });
   const bridge = place('commonwealth-bridge', { x: -1230, z: -2840, name: 'Commonwealth Avenue Bridge' });
   const target = (point, label, kind = 'drive', extra = {}) => ({ x: point.x, z: point.z, label, kind, radius: 26, hold: 1, ...extra });
   const chapters = freeze([
@@ -57,7 +57,7 @@ export function createCampaign(map, saved = null) {
     if (state.active) return { ok: false, message: 'Mission already active.' };
     const chapter = current();
     if (!chapter) return { ok: false, message: 'Campaign complete.' };
-    state.active = { id: chapter.id, stage: 0, target: clone(chapter.stages[0]), remaining: chapter.time, elapsed: 0, held: 0, serial: ctx.respawnSerial, sawWanted: ctx.wanted > 0 };
+    state.active = { id: chapter.id,name:chapter.name,reward:chapter.reward, stage: 0, target: clone(chapter.stages[0]), remaining: chapter.time, elapsed: 0, held: 0, serial: ctx.respawnSerial, sawWanted: ctx.wanted > 0 };
     state.failed = false; state.message = chapter.briefing;
     events.push({ type: 'started', id: chapter.id, incident: Boolean(chapter.incident) });
     return { ok: true, message: chapter.name };

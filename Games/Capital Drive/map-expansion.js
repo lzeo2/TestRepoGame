@@ -4,6 +4,25 @@ function pointKey(point) {
   return `${point[0]},${point[1]}`;
 }
 
+export function expansionPlaces(map){
+  const sites=[['commonwealth-bridge','Commonwealth Avenue Bridge','way/4878920'],['kings-bridge','Kings Avenue Bridge','way/4878927']];
+  const places=[];
+  for(const [id,name,sourceId] of sites){
+    const road=map.roads.find(r=>r.sourceId===sourceId);
+    if(!road)continue;
+    const lengths=road.points.slice(1).map((p,i)=>Math.hypot(p[0]-road.points[i][0],p[1]-road.points[i][1]));
+    let remaining=lengths.reduce((a,b)=>a+b,0)/2;
+    for(let i=0;i<lengths.length;i++){
+      if(remaining>lengths[i]){remaining-=lengths[i];continue;}
+      const a=road.points[i],b=road.points[i+1],t=remaining/(lengths[i]||1);
+      places.push({id,name,x:a[0]+(b[0]-a[0])*t,z:a[1]+(b[1]-a[1])*t,radius:90,sourceId,description:'Public bridge viewpoint on the mapped road.'});break;
+    }
+  }
+  const bridge=places.find(p=>p.id==='commonwealth-bridge');
+  if(bridge)places.push({...bridge,id:'lake-burley-griffin',name:'Lake Burley Griffin',radius:230,description:'Lake viewpoint from Commonwealth Avenue Bridge.'});
+  return places;
+}
+
 function segmentKey(road, index) {
   const a = pointKey(road.points[index]), b = pointKey(road.points[index + 1]);
   // Exact coordinates also catch a duplicated OSM way under another source ID.
