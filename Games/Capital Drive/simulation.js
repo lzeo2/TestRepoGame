@@ -430,6 +430,24 @@ export function createSimulation(map, options = {}) {
       for (const obstacle of [...parkedIndex.query(car.x,car.z,28), ...abandonedCars, ...traffic, ...externalVehicles]) {
         if (obstacle === car || obstacle.active === false) continue;
         const dx = obstacle.x - car.x, dz = obstacle.z - car.z;
+        if (obstacle.edge && traffic[obstacle.slot] === obstacle) {
+          const alignment = edge.dx * obstacle.edge.dx + edge.dz * obstacle.edge.dz;
+          if (Math.abs(alignment) < 0.65) {
+            // Crossing cars need approach priority, rather than a following gap.
+            // Limit straight-line prediction to these nearby segments and their turn mouths.
+            const cross = edge.dx * obstacle.edge.dz - edge.dz * obstacle.edge.dx;
+            const ownDistance = (dx * obstacle.edge.dz - dz * obstacle.edge.dx) / cross;
+            const otherDistance = (dx * edge.dz - dz * edge.dx) / cross;
+            const bothInside = ownDistance < 3 && otherDistance < 3;
+            const otherFirst = bothInside ? obstacle.slot < car.slot : otherDistance < 3 ||
+              ownDistance > 3 && (otherDistance < ownDistance - 2 || Math.abs(otherDistance - ownDistance) <= 2 && obstacle.slot < car.slot);
+            if (ownDistance > 0 && ownDistance < 24 && otherDistance > -3 && otherDistance < 24 &&
+              ownDistance < remaining + 4 && otherDistance < obstacle.edge.length - obstacle.position + 4 && otherFirst) {
+              target = Math.min(target, Math.max(0, (ownDistance - 6) * 0.8));
+            }
+            continue;
+          }
+        }
         const ahead = dx * edge.dx + dz * edge.dz;
         if (ahead > 0 && ahead < 24 && Math.abs(dx * edge.dz - dz * edge.dx - (car.overtake > 0 ? -Math.min(3.2, edge.laneOffset * 1.5) : 0)) < 1.5 + (obstacle.width || 1.8) / 2) {
           target = Math.min(target, Math.max(0, (ahead - 3 - (obstacle.length || 4.5) / 2) * 0.8));
