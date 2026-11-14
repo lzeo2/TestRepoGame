@@ -88,7 +88,7 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
     for(const p of list) {if (count>=LIMIT) break;if(!valid(p))continue;person(p);count++;}
     const bench=plan.exercise;
     if (valid(bench)) {
-      const exercising=activity?.kind==='bench';
+      const exercising=activity?.active===true&&activity?.kind==='bench';
       if(exercising) {
       person({x:bench.x,z:bench.z,y:plan.floorY+finite(bench.height)+.13,yaw:finite(bench.yaw),palette:0,hair:0,phase:0,lift:activity.lift,gesture:'bench'},true);
       }

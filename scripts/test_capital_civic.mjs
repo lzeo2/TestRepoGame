@@ -7,7 +7,7 @@ const roadURL=url(await read('../Games/Capital Drive/road-network.js'));
 const source=await read('../Games/Capital Drive/civic-view.js');
 const {createCivicView,CIVIC_BUILDING_IDS,CIVIC_LANDMARKS,CIVIC_INTERIOR_ENTRIES}=await import(url(source
  .replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL))
- .replace("'./road-network.js'",JSON.stringify(roadURL))));
+ .replace("'./road-network.js'",JSON.stringify(roadURL)).replace("'./civic-extras.js'",JSON.stringify(url(await read('../Games/Capital Drive/civic-extras.js'))))));
 const north=JSON.parse(await read('../Games/Capital Drive/data/canberra-north.json'));
 const original=JSON.stringify(north),heightAt=(x,z)=>20+x*.0001+z*.0002;
 const scene=new THREE.Scene(),view=createCivicView(scene,north,heightAt),root=scene.children[0];

@@ -79,10 +79,10 @@ for(const plan of plans) {
   function matrices(){for(const mesh of root.children)assert(mesh.instanceMatrix.array.every(Number.isFinite),'finite transforms');}
   matrices();
   if(plan.exercise) {
-    const original=pool.snapshot();view.update(original,0,{activity:{kind:'bench',lift:1,reps:3}});matrices();
+    const original=pool.snapshot();view.update(original,0,{activity:{active:true,kind:'bench',lift:1,reps:3}});matrices();
     assert.equal(root.children[0].count,original.length+1,'temporary lying player');assert(view.stats.drawCalls<=6);
     assert.deepEqual(pool.snapshot(),original,'visual exercise never changes simulation');
-    view.update(original,0);assert.equal(root.children[0].count,original.length,'regular view resumes');
+    view.update(original,0,{activity:{active:false,kind:'bench',lift:0,reps:6}});assert.equal(root.children[0].count,original.length,'completed bench removes the temporary lying player');
     assert(root.children[5].count>=3,'resting racked bar remains visible');
   }
   view.clear();assert.equal(scene.children.length,0);assert.equal(view.stats.geometryCount,0);

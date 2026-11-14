@@ -111,6 +111,13 @@ const clearance=Math.min(...open.map((a,i)=>projectSegment(edgeWalker.x,edgeWalk
 assert(clearance>=.45-1e-6,'hole edge respects actor radius');
 assert(!walk(edgeWalker,inside),'actor can retreat from retained opening edge');
 
+const parked=skateLocalPoint(.2,10);
+const carSim=createSimulation(runtime,{trafficCount:0});
+carSim.reset({x:parked[0],z:parked[2],yaw:0});
+carSim.step(1/60,{});
+assert(Math.hypot(carSim.player.x-parked[0],carSim.player.z-parked[2])<2,'courtyard car contact resolves only its local radius penetration');
+assert(pointInSkateOpening(carSim.player.x,carSim.player.z),'car stays in open park rather than jumping to the distant outer facade');
+
 for(const rail of SKATE_BARRIERS) {
   const barrier=runtime.barriers.find(b=>b.id===rail.id);
   assert(barrier?.points.length===4,'root turns the rendered rail into physical barrier width');

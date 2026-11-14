@@ -225,7 +225,7 @@ export function createProgression(map, saved = null, options = {}) {
     return result(true, 'Owned vehicle retrieved at the garage.', { vehicle: copy(car) });
   }
   function penalize(reason = 'Respawn') {
-    state.activeJob = null;state.activity=null;
+    state.activeJob = null;state.activity=null;shiftPlan=null;
     const cost = Math.min(250, state.cash); state.cash -= cost;
     return result(true, `${reason}: $${cost} deducted. Completed jobs kept.`, { cost }, 'penalty');
   }

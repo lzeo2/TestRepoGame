@@ -245,3 +245,8 @@ body.intro-open #recovery-screen{display:none}
 
 body.on-foot .driving-hud { display: none; }
 body.indoors .minimap-wrap { display: none; }
+
+#activity-panel{position:absolute;left:50%;bottom:68px;transform:translateX(-50%);width:min(560px,calc(100% - 28px));padding:16px;z-index:4;color:var(--ink)}
+#activity-panel p{margin:8px 0;line-height:1.4}#activity-progress{width:100%;height:15px;accent-color:var(--accent)}
+[data-mini]{min-width:54px}#rental-offers{display:grid;gap:10px}#rental-offers button{text-align:left}
+@media(max-width:620px){#activity-panel{bottom:185px;font-size:12px}.topbar nav{gap:3px}.topbar nav button{padding:6px}}
