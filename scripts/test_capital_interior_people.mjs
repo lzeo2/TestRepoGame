@@ -23,6 +23,13 @@ for(const plan of plans) {
   if(plan.variant==='noodles') {
     for(const role of ['cook','cashier','diner']) assert(before.some(p=>p.role===role),`restaurant ${role}`);
     assert(before.filter(p=>p.seated).length>=3);
+    if(plan.noodleCook) {
+      const cook=before.find(p=>p.character==='noodle-puller'),guest=before.find(p=>p.character==='booth-guest');
+      assert(cook&&guest,'authored markers populate kitchen window and actual corner booth');
+      assert.equal(cook.gesture,'pull-noodles');assert(guest.earmuffs&&guest.seated);
+      assert.equal(cook.x,plan.noodleCook.x);assert.equal(cook.z,plan.noodleCook.z);
+      assert.equal(guest.x,plan.boothGuest.x);assert.equal(guest.z,plan.boothGuest.z);
+    }
     const pass=plan.furniture.find(f=>f.kind==='kitchen-pass');
     for(const p of before) {
       const c=Math.cos(plan.origin.yaw),s=Math.sin(plan.origin.yaw),localX=c*(p.x-plan.origin.x)-s*(p.z-plan.origin.z);
@@ -30,7 +37,7 @@ for(const plan of plans) {
       else {
         const passX=c*(pass.x-plan.origin.x)-s*(pass.z-plan.origin.z);
         assert(localX<passX-pass.width/2-p.radius,'staff stay behind the left service pass');
-        assert(Math.abs(p.yaw-plan.origin.yaw-Math.PI/2)<1e-6,'staff face the public aisle');
+        assert(Math.abs(p.yaw-(p.gesture==='pull-noodles'?plan.noodleCook.yaw:plan.origin.yaw+Math.PI/2))<1e-6,'staff face their work station');
         for(const box of plan.furniture) {
           const bc=Math.cos(box.yaw),bs=Math.sin(box.yaw),x=bc*(p.x-box.x)-bs*(p.z-box.z),z=bs*(p.x-box.x)+bc*(p.z-box.z);
           assert(Math.hypot(Math.max(0,Math.abs(x)-box.width/2),Math.max(0,Math.abs(z)-box.depth/2))>=p.radius,'staff do not overlap kitchen solids');
@@ -60,9 +67,62 @@ for(const plan of plans) {
   pool.load(plan);assert.deepEqual(pool.snapshot(),before,'visits reset deterministic population');
 }
 assert.deepEqual(pool.clipMovement({x:0,z:0},NaN,0),{dx:0,dz:0,blocked:true});
+// Explicit anchor fixture also covers older room plans without the new optional markers.
+const encounterPlan=structuredClone(make('shop','noodles',-.4,6.2));
+const origin=encounterPlan.origin;
+const world=(x,z)=>({x:origin.x+Math.cos(origin.yaw)*x+Math.sin(origin.yaw)*z,z:origin.z-Math.sin(origin.yaw)*x+Math.cos(origin.yaw)*z});
+encounterPlan.noodleCook={...world(-2.15,2.1),yaw:origin.yaw+Math.PI};
+encounterPlan.boothGuest={...world(encounterPlan.width/2-.48,10.6),yaw:origin.yaw-Math.PI/2};
+const rear=encounterPlan.furniture.find(f=>f.kind==='noodle-table'&&Math.hypot(f.x-world(2.05,10.6).x,f.z-world(2.05,10.6).z)<.1);
+if(rear)Object.assign(rear,world(1.8,10.6));
+pool.load(encounterPlan);
+const cook=pool.snapshot().find(p=>p.character==='noodle-puller'),guest=pool.snapshot().find(p=>p.character==='booth-guest');
+assert(cook&&guest,'window cook and actual booth guest spawn');
+assert.equal(cook.gesture,'pull-noodles');assert(guest.seated&&guest.earmuffs);assert.equal(guest.seatHeight,.55);
+const actor={...world(encounterPlan.width/2-.48,9.4)},seen=()=>true,blocked=()=>false;
+const context={actor,hasLineOfSight:seen};
+assert.equal(pool.nearestDialogue(actor,{hasLineOfSight:blocked}),null);
+assert.equal(pool.nearestDialogue({x:0,z:-100},{hasLineOfSight:seen}),null);
+assert.equal(pool.nearestDialogue(actor),null,'dialogue requires a live visibility check');
+assert.equal(pool.startDialogue('missing',context).ok,false);
+assert.equal(pool.encounter.serial,0);
+const dialogue=pool.startDialogue(guest.id,context);assert(dialogue.ok&&Object.isFrozen(dialogue.dialogue));
+assert(pool.startDialogue(guest.id,context).ok,'reopening resumes the same pending dialogue');
+assert.equal(pool.encounter.serial,0,'pending resume never completes an encounter');assert.equal(pool.drainEvents().length,0);
+assert.equal(pool.nearestDialogue(actor,{hasLineOfSight:seen}).id,guest.id);
+assert.equal(pool.nearestDialogue(actor,{hasLineOfSight:blocked}),null);
+assert.equal(pool.startDialogue(guest.id,{actor,hasLineOfSight:blocked}).ok,false,'occluded pending dialogue cannot resume');
+assert.equal(pool.startDialogue(guest.id,{actor:{x:0,z:-100},hasLineOfSight:seen}).ok,false,'remote pending dialogue cannot resume');
+assert.equal(pool.encounter.phase,'dialogue');assert.equal(pool.encounter.serial,0);
+assert.equal(pool.respondDialogue(guest.id,'invalid',context).ok,false);
+assert.equal(pool.respondDialogue(guest.id,'apologise',{actor,hasLineOfSight:blocked}).ok,false);
+assert(pool.respondDialogue(guest.id,'apologise',context).ok);
+assert.equal(pool.encounter.serial,1);assert.equal(pool.encounter.outcome,'peaceful');
+assert.equal(pool.respondDialogue(guest.id,'confront',context).ok,false);
+assert.deepEqual(pool.drainEvents().map(e=>e.type),['encounter-complete'],'talking creates no offence or money');
+pool.load(encounterPlan);assert.equal(pool.encounter.serial,1,'visit clear cannot rewind serial');
+assert(pool.startDialogue(guest.id,context).ok);assert(pool.respondDialogue(guest.id,'confront',context).ok);
+const frozen=pool.snapshot();pool.update(0,context);assert.deepEqual(pool.snapshot(),frozen);
+for(let i=0;i<12;i++)pool.update(.1,{actor,hasLineOfSight:blocked});
+assert.equal(pool.drainEvents().length,0,'walls prevent retaliation and completion');assert.equal(pool.encounter.serial,1);
+pool.update(.1,context);const fight=pool.drainEvents();
+assert.deepEqual(fight.map(e=>e.type),['retaliation','encounter-complete']);
+assert.equal(fight[0].damage,5);assert.equal(pool.encounter.serial,2);assert.equal(pool.encounter.outcome,'confrontation');
+const punch=pool.snapshot().find(p=>p.id===guest.id);assert.equal(punch.attackTimer,.65);assert.equal(punch.attackSerial,1);
+pool.update(0,context);assert.equal(pool.snapshot().find(p=>p.id===guest.id).attackTimer,.65,'pause freezes the emitted punch');
+pool.update(.1,context);assert.equal(pool.snapshot().find(p=>p.id===guest.id).attackTimer,.55);
+
+for(let i=0;i<10;i++)pool.update(.1,context);assert.equal(pool.drainEvents().length,0,'retaliation cooldown');
+for(let i=0;i<15;i++)pool.update(.1,{actor:{x:actor.x+100,z:actor.z},hasLineOfSight:seen});assert.equal(pool.drainEvents().length,0,'distance rechecked live');
+const strikeOrigin={x:guest.x,z:guest.z-1,yaw:Math.PI};
+assert(pool.strike({...strikeOrigin,damage:100,range:2,hasLineOfSight:seen}).hits>0);
+assert.equal(pool.snapshot().find(p=>p.id===guest.id).attackTimer,0,'a hit/death cancels the current punch pose');
+for(let i=0;i<15;i++)pool.update(.1,context);assert.equal(pool.drainEvents().filter(e=>e.type==='retaliation').length,0,'dead guest cannot retaliate');
+plans.push(encounterPlan);
 const threeURL=url(await read('../assets/car-arcade/vendor/three.module.js')),THREE=await import(threeURL);
 const utilsURL=url((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace('./three.module.js',threeURL));
-const {createInteriorPeopleView}=await import(url((await read('../Games/Capital Drive/interior-people-view.js'))
+const modelURL=url((await read('../Games/Capital Drive/person-model.js')).replace('../../assets/car-arcade/vendor/three.module.js',threeURL));
+const {createInteriorPeopleView}=await import(url((await read('../Games/Capital Drive/interior-people-view.js')).replace('./person-model.js',modelURL)
  .replace('../../assets/car-arcade/vendor/three.module.js',threeURL).replace('../../assets/car-arcade/vendor/BufferGeometryUtils.js',utilsURL)));
 const scene=new THREE.Scene(),view=createInteriorPeopleView(scene,()=>3);
 assert.equal(scene.children.length,0,'no inactive geometry');assert.equal(view.stats.geometryCount,0);
@@ -78,15 +138,90 @@ for(const plan of plans) {
   root.children[0].material.addEventListener('dispose',()=>disposedMaterial++);
   function matrices(){for(const mesh of root.children)assert(mesh.instanceMatrix.array.every(Number.isFinite),'finite transforms');}
   matrices();
+  for(const mesh of root.children)assert(mesh.count<=mesh.instanceMatrix.count,'bounded instance capacity');
+  assert(view.stats.sharedModel);assert.equal(view.stats.noodleSegmentLimit,36);
+  if(plan.noodleCook) {
+    const people=pool.snapshot(),accessories=root.children[5],before=Array.from(accessories.instanceMatrix.array);
+    view.update(people.map(p=>({...p,phase:p.phase+.7})),.1);matrices();
+    assert.notDeepEqual(Array.from(accessories.instanceMatrix.array),before,'supplied phase animates hand-pulled strands');
+    const calmCount=accessories.count;
+    view.update(people.map(p=>p.character==='noodle-puller'?{...p,reaction:'stunned',stun:1}:p),.1);
+    assert.equal(accessories.count,calmCount-36,'stun hides noodle strands');
+  }
   if(plan.exercise) {
-    const original=pool.snapshot();view.update(original,0,{activity:{active:true,kind:'bench',lift:1,reps:3}});matrices();
+    const original=pool.snapshot();view.update(original,0,{activity:{active:true,kind:'bench',exercisePose:'bench',station:plan.activities.find(s=>s.kind==='bench'),lift:1,reps:3}});matrices();
     assert.equal(root.children[0].count,original.length+1,'temporary lying player');assert(view.stats.drawCalls<=6);
     assert.deepEqual(pool.snapshot(),original,'visual exercise never changes simulation');
     view.update(original,0,{activity:{active:false,kind:'bench',lift:0,reps:6}});assert.equal(root.children[0].count,original.length,'completed bench removes the temporary lying player');
     assert(root.children[5].count>=3,'resting racked bar remains visible');
   }
+  if(plan.type==='gym') {
+    const original=pool.snapshot();
+    for(const kind of ['bench','treadmill','curls','rower']) {
+      const station=plan.activities.find(s=>s.kind===kind);assert(station,`actual ${kind} station`);
+      const activity={active:true,kind,exercisePose:kind,station,lift:0,reps:0};
+      view.update(original,0,{activity});matrices();
+      assert.equal(root.children[0].count,original.length+1,`${kind} shows one participating player`);
+      assert(Object.isFrozen(view.exerciseFocus));
+      const focus=view.exerciseFocus,equipment=plan.furniture.find(f=>f.kind===kind);
+      if(equipment)assert(Math.hypot(focus.x-equipment.x,focus.z-equipment.z)<.35,`${kind} participant anchored on actual equipment`);
+      if(kind==='curls')assert.equal(root.children[5].count,9,'two dumbbells share six prop slots plus racked bar');
+      if(kind==='rower') {
+        assert.equal(root.children[5].count,4,'one moving handle plus racked bar');
+        const handle=new THREE.Matrix4();root.children[5].getMatrixAt(0,handle);
+        const position=new THREE.Vector3().setFromMatrixPosition(handle),yaw=equipment.yaw;
+        assert(Math.abs(position.x-(equipment.x+Math.sin(yaw)*.64))<1e-5);
+        assert(Math.abs(position.z-(equipment.z+Math.cos(yaw)*.64))<1e-5);
+        assert(Math.abs(position.y-(plan.floorY+.78))<1e-5,'resting grip matches actual machine handle');
+      }
+      const arms=Array.from(root.children[4].instanceMatrix.array),props=Array.from(root.children[5].instanceMatrix.array),legs=Array.from(root.children[3].instanceMatrix.array);
+      view.update(original,0,{activity});assert.deepEqual(Array.from(root.children[4].instanceMatrix.array),arms,'renderer dt cannot invent workout motion');
+      view.update(original,.1,{activity:{...activity,lift:1}});matrices();
+      if(kind==='treadmill')assert.notDeepEqual(Array.from(root.children[3].instanceMatrix.array),legs,'supplied cadence moves belt strides');
+      else assert.notDeepEqual(Array.from(root.children[4].instanceMatrix.array),arms,`${kind} supplied lift moves hands`);
+      if(['bench','curls','rower'].includes(kind))assert.notDeepEqual(Array.from(root.children[5].instanceMatrix.array),props,`${kind} gear follows supplied hand movement`);
+      for(const mesh of root.children)assert(mesh.count<=mesh.instanceMatrix.count,'participant stays inside fixed pools');
+      assert(view.stats.drawCalls<=6);
+      view.update(original,.1,{activity:{...activity,active:false}});assert.equal(root.children[0].count,original.length,'cancel/failure/grip loss removes participant');assert.equal(view.exerciseFocus,null);
+      view.update(original,.1,{activity:{...activity,station:{...station,id:'foreign-station'}}});assert.equal(root.children[0].count,original.length,'foreign station cannot create participant');
+    }
+    const max=Array.from({length:16},(_,i)=>({...original[0],id:`bounded-${i}`,x:plan.origin.x+i*.01,earmuffs:i===0,apron:true,gesture:i===1?'pull-noodles':'idle',reaction:'calm'}));
+    const station=plan.activities.find(s=>s.kind==='curls');
+    view.update(max,.1,{activity:{active:true,kind:'curls',exercisePose:'curls',station,lift:.5}});
+    assert.equal(root.children[0].count,17,'16 NPCs plus one player remain bounded');
+    for(const mesh of root.children)assert(mesh.count<=mesh.instanceMatrix.count);matrices();
+  }
+  if(plan.boothGuest) {
+    const people=pool.snapshot(),guest=people.find(p=>p.character==='booth-guest');
+    const pose=timer=>people.map(p=>p.id===guest.id?{...p,reaction:'angry',attackTimer:timer,attackSerial:1}:p);
+    view.update(pose(.65),0);const windup=Array.from(root.children[4].instanceMatrix.array);
+    view.update(pose(.30),0);assert.notDeepEqual(Array.from(root.children[4].instanceMatrix.array),windup,'emitted punch timer drives actual extension');
+    view.update(pose(.30),1);const frozen=Array.from(root.children[4].instanceMatrix.array);view.update(pose(.30),1);assert.deepEqual(Array.from(root.children[4].instanceMatrix.array),frozen,'view has no independent attack clock');
+  }
   view.clear();assert.equal(scene.children.length,0);assert.equal(view.stats.geometryCount,0);
 }
 assert.equal(disposedGeometry,plans.length*6);assert.equal(disposedMaterial,plans.length);assert.equal(disposedMesh,plans.length*6);
+// Hero changes recolour only the temporary participant, including changes made before a load.
+const {appearanceForPerson}=await import(modelURL),gym=plans.find(p=>p.type==='gym');
+assert(view.setPlayerAppearance('player:student'));view.load(gym);pool.load(gym);
+const live=pool.snapshot(),station=gym.activities.find(s=>s.kind==='curls'),activity={active:true,kind:'curls',exercisePose:'curls',station,lift:.5};
+view.update(live,0,{activity});
+const shirts=scene.children[0].children[0],geometry=shirts.geometry,buffer=shirts.instanceMatrix.array,colors=shirts.instanceColor.array;
+const npcColors=Array.from(colors.slice(0,live.length*3));
+function shirtMatches(id) {
+  const actual=new THREE.Color();shirts.getColorAt(live.length,actual);const expected=new THREE.Color(appearanceForPerson(id).shirt);
+  assert(Math.abs(actual.r-expected.r)+Math.abs(actual.g-expected.g)+Math.abs(actual.b-expected.b)<1e-6,`${id} workout shirt matches shared hero palette`);
+}
+shirtMatches('player:student');
+for(const id of ['player:corporate','player:basement','player']) {
+  assert(view.setPlayerAppearance(id));view.update(live,0,{activity});shirtMatches(id);
+  assert.equal(shirts.geometry,geometry);assert.equal(shirts.instanceMatrix.array,buffer);assert.equal(shirts.instanceColor.array,colors);
+  assert.deepEqual(Array.from(colors.slice(0,live.length*3)),npcColors,'NPC colours keep their identities');
+}
+assert.equal(view.setPlayerAppearance('unknown'),false);view.update(live,0,{activity});shirtMatches('player');
+assert(view.setPlayerAppearance('player:basement'));view.clear();view.load(gym);view.update(live,0,{activity});
+const retained=new THREE.Color();scene.children[0].children[0].getColorAt(live.length,retained);const wanted=new THREE.Color(appearanceForPerson('player:basement').shirt);
+assert(Math.abs(retained.r-wanted.r)+Math.abs(retained.g-wanted.g)+Math.abs(retained.b-wanted.b)<1e-6,'hero preset survives room lifecycle');
+view.clear();
 view.dispose();view.dispose();view.load(plans[0]);view.update([],1);assert(view.stats.disposed);assert.equal(scene.children.length,0);
-console.log('PASS active-only adult roles, seated dining, protected doors/counters/aisles, short walking paths, swept contacts, dt0 pause, six lazy draws, bench poses/bar, finite transforms and exact disposal');
+console.log('PASS active adult roles, real booth/window anchors, authoritative peaceful/hostile encounters, live LOS/health/radius/cooldown gates, swept contacts, pause, shared rounded parts, 36 moving noodle segments, six lazy draws, four equipment-linked workout poses, emitted NPC punch poses and exact disposal');

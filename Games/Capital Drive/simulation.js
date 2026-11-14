@@ -484,15 +484,32 @@ export function createSimulation(map, options = {}) {
     }
     return nearby;
   }
-  const initialEdges = nearbyEdges(350);
+  // Segment count favours finely mapped side streets. Weight local road length
+  // and source road class instead, without enlarging the fixed ambient fleet.
+  function spawnPool(edges, focus = focusPoint || player) {
+    let total = 0;
+    return edges.map(edge => {
+      const profile = roadProfile(edge.road), distance = projectSegment(focus.x, focus.z, edge.segment.a, edge.segment.b).distance;
+      const demand = profile.major ? 3 + Math.min(3, profile.lanes) + ((edge.road.speed || 50) >= 70 ? 1 : 0) : 1;
+      total += edge.length * demand / (1 + distance / 300);
+      return { edge, cumulative: total };
+    });
+  }
+  function pickSpawn(pool) {
+    const target = random() * pool[pool.length - 1].cumulative;
+    let low = 0, high = pool.length - 1;
+    while (low < high) { const middle = (low + high) >>> 1; if (target < pool[middle].cumulative) high = middle; else low = middle + 1; }
+    return pool[low].edge;
+  }
+  const initialEdges = spawnPool(nearbyEdges(350)), fallbackEdges = spawnPool(candidates);
   const trafficCount = Math.max(0, Math.min(options.trafficCount ?? 40, 56));
   for (let i = 0; i < trafficCount && candidates.length; i++) {
     const car = { id: `traffic:${i}`, slot: i, active: true, anger: 0, honks: 0, honkCooldown: 0, overtake: 0, overtakeCooldown: 0, aggressive: i % 3 !== 0, x: 0, z: 0, yaw: 0, speed: 0, modelId: models[i % models.length], color: colors[i % colors.length],
       cruiseFactor: 0.78 + random() * 0.2 };
     let valid = false;
     for (let attempt = 0; attempt < 80; attempt++) {
-      const pool = initialEdges.length && attempt < 60 ? initialEdges : candidates;
-      const edge = pool[Math.floor(random() * pool.length)];
+      const pool = initialEdges.length && attempt < 60 ? initialEdges : fallbackEdges;
+      const edge = pickSpawn(pool);
       if (!trafficEdgeClear(edge, car)) continue;
       placeTraffic(car, edge, random() * edge.length);
       const spawnDistance = Math.hypot(car.x - player.x, car.z - player.z);
@@ -506,13 +523,13 @@ export function createSimulation(map, options = {}) {
   function refreshTrafficArea() {
     if (elapsed < nextTrafficRefresh) return;
     nextTrafficRefresh = elapsed + 2;
-    const localEdges = nearbyEdges(650);
+    const localEdges = spawnPool(nearbyEdges(650));
     if (!localEdges.length) return;
     for (const car of traffic) {
       const focus = focusPoint || player;
       if (Math.hypot(car.x - focus.x, car.z - focus.z) <= (car.active ? 850 : 330)) continue;
       for (let attempt = 0; attempt < 40; attempt++) {
-        const edge = localEdges[Math.floor(random() * localEdges.length)];
+        const edge = pickSpawn(localEdges);
         if (!trafficEdgeClear(edge, car)) continue;
         const position = random() * edge.length, pose = pointOnLane(edge, position);
         const gap = Math.hypot(pose.x - focus.x, pose.z - focus.z);

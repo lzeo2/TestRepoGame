@@ -5,7 +5,7 @@ const url = text => `data:text/javascript;base64,${Buffer.from(text).toString('b
 const networkURL = url(await read('../Games/Capital Drive/road-network.js'));
 import {createSimulation,buildRoadGraph} from '../Games/Capital Drive/simulation.js';
 const { roadProfile } = await import(networkURL);
-const { createBuses } = await import(url((await read('../Games/Capital Drive/buses.js')).replace("'./road-network.js'", JSON.stringify(networkURL))));
+const { createBuses } = await import('../Games/Capital Drive/buses.js');
 const road = (id, points, nodes, oneway = 1) => ({ id, points, nodes, oneway, width: 11, type: 'residential' });
 const roads = [road('a', [[0, 0], [180, 0]], [1, 2]), road('b', [[180, 0], [180, 180]], [2, 3]),
   road('c', [[180, 180], [0, 180]], [3, 4]), road('d', [[0, 180], [0, 0]], [4, 1]),
@@ -67,6 +67,22 @@ view.update(buses.vehicles, first);
 assert.equal(view.stats.buses, 2); assert.equal(view.stats.drawCalls, 4); assert(view.stats.triangles < 5000);
 assert.equal(view.stats.geometries,5);
 for (let i=0;i<2;i++) assert.deepEqual(scene.children[0].children[i].userData.driverAppearance,appearanceForPerson(`city-bus-driver-${i}`));
+const passenger=scene.children[0].getObjectByName('Seated bus player passenger');
+const driversBefore=scene.children[0].children.slice(0,2).map(group=>[...group.children[0].geometry.attributes.color.array]);
+const heroGeometry=passenger.geometry, heroPositions=heroGeometry.attributes.position.array, heroColors=heroGeometry.attributes.color.array;
+for (const id of ['player:student','player:corporate','player:basement','player']) {
+  const appearance=appearanceForPerson(id); assert(view.setPlayerAppearance(id));
+  assert.deepEqual(passenger.userData.appearance,appearance,'seated hero retains the selected standing identity');
+  const expected=new THREE.Color(appearance.shirt);
+  for(let vertex=0;vertex<30;vertex++) {
+    assert(Math.abs(heroGeometry.attributes.color.getX(vertex)-expected.r)<1e-6);
+    assert(Math.abs(heroGeometry.attributes.color.getY(vertex)-expected.g)<1e-6);
+    assert(Math.abs(heroGeometry.attributes.color.getZ(vertex)-expected.b)<1e-6);
+  }
+  assert.equal(passenger.geometry,heroGeometry); assert.equal(heroGeometry.attributes.position.array,heroPositions); assert.equal(heroGeometry.attributes.color.array,heroColors,'hero swap reuses colour storage');
+}
+assert(!view.setPlayerAppearance('unknown'));
+assert.deepEqual(scene.children[0].children.slice(0,2).map(group=>[...group.children[0].geometry.attributes.color.array]),driversBefore,'player changes preserve bus drivers and livery');
 const snapshot = buses.snapshot(); view.update(buses.vehicles, first); assert.deepEqual(buses.snapshot(), snapshot, 'rendering is read-only');
 let released = 0, releasedMaterials = 0; const ownedMaterials = new Set(); scene.traverse(object => { if (object.isMesh) {
   assert([...object.geometry.attributes.position.array].every(Number.isFinite));

@@ -1,10 +1,8 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
+import {PERSON_MODEL, appearanceForPerson} from './person-model.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
 
-const LIMIT = 16;
-const PALETTES = [0x31516a,0x9d543b,0x627b52,0x895975,0xc3a45f,0x506d78];
-const SKINS = [0xd6a17a,0xa96f4f,0xe1b892,0x78503e,0xbb8966,0x926045];
-const HAIR = [0x302a26,0x76513b,0x1d2226,0xaaa498];
+const LIMIT = 16, NOODLE_SEGMENTS = 36, ACCESSORY_CAPACITY = LIMIT+10+NOODLE_SEGMENTS+8+6;
 const finite = n => Number.isFinite(n) ? n : 0;
 const valid = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 
@@ -12,10 +10,17 @@ const valid = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 export function createInteriorPeopleView(scene,heightAt = () => 0) {
   let root = null, plan = null, material = null, meshes = [], disposed = false;
   const body = new THREE.Object3D(), part = new THREE.Object3D(), matrix = new THREE.Matrix4(), color = new THREE.Color();
-  let count = 0, draws = 0;
+  let count = 0, draws = 0, exerciseFocus = null;
+  const appearances=new Map();
+  let playerAppearance=appearanceForPerson('player');
+  function setPlayerAppearance(personId) {
+    if(disposed || !['player','player:student','player:corporate','player:basement'].includes(personId))return false;
+    playerAppearance=appearanceForPerson(personId);appearances.delete('player');return true;
+  }
   function geometry(parts) {
-    const sources = parts.map(([size,position,tint=0xffffff]) => {
-      const g = new THREE.BoxGeometry(...size); g.translate(...position);
+    const sources = parts.map(([size,position,tint=0xffffff,shape='box']) => {
+      const g = shape==='sphere' ? new THREE.SphereGeometry(1,6,4) : shape==='capsule' ? new THREE.CapsuleGeometry(1,1,2,5) : new THREE.BoxGeometry(1,1,1);
+      g.scale(...size);g.translate(...position);
       const colors = new Float32Array(g.attributes.position.count*3),rgb = new THREE.Color(tint);
       for (let i=0;i<colors.length;i+=3) rgb.toArray(colors,i);
       g.setAttribute('color',new THREE.BufferAttribute(colors,3));return g;
@@ -30,20 +35,27 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
     clear();if (disposed || !value || !Number.isFinite(value.floorY)) return;
     plan=value;root=new THREE.Group();root.name='Active interior adults';scene.add(root);
     material=new THREE.MeshLambertMaterial({vertexColors:true});
-    batch('Adult shirts',[[[.43,.54,.25],[0,1.18,0]],[[.56,.15,.26],[0,1.36,0]]],LIMIT+1);
-    batch('Adult faces',[[[.26,.29,.24],[0,1.66,0]],[[.04,.035,.015],[-.065,1.69,.127],0x171b1b],[[.04,.035,.015],[.065,1.69,.127],0x171b1b]],LIMIT+1);
-    batch('Adult hair',[[[.28,.09,.25],[0,1.82,-.005]],[[.28,.17,.06],[0,1.72,-.108]]],LIMIT+1);
+    const shape=(name,kind)=>{const d=PERSON_MODEL[name];return [[d.sx,d.sy,d.sz],[d.x,d.y,d.z],0xffffff,kind];};
+    batch('Adult shirts',[shape('torso','capsule')],LIMIT+1);
+    batch('Adult faces',[shape('head','sphere'),[[.035,.03,.015],[-.06,1.65,.126],0x171b1b],[[.035,.03,.015],[.06,1.65,.126],0x171b1b]],LIMIT+1);
+    batch('Adult hair',[shape('hair','sphere')],LIMIT+1);
     batch('Adult trouser limbs',[[[1,1,1],[0,0,0]]],(LIMIT+1)*6);
-    batch('Adult arm limbs',[[[1,1,1],[0,0,0]]],(LIMIT+1)*4);
-    batch('Aprons and exercise bar',[[[1,1,1],[0,0,0]]],LIMIT+10);
+    batch('Adult arm limbs',[[[1/2,1/3,1/2],[0,0,0],0xffffff,'capsule']],(LIMIT+1)*4);
+    batch('Aprons and exercise bar',[[[1,1,1],[0,0,0]]],ACCESSORY_CAPACITY);
   }
   function put(index,position,rotation,scale,tint) {
-    const mesh=meshes[index],i=mesh.count++;
+    const mesh=meshes[index];if(mesh.count>=mesh.instanceMatrix.count)return;const i=mesh.count++;
     part.position.set(...position);part.rotation.set(...rotation);part.scale.set(...scale);part.updateMatrix();
     matrix.multiplyMatrices(body.matrix,part.matrix);mesh.setMatrixAt(i,matrix);mesh.setColorAt(i,color.setHex(tint));
   }
+  function limb(a,b,tint) {
+    const dy=b[1]-a[1],dz=b[2]-a[2];
+    put(4,[(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2],[Math.atan2(dz,dy),0,0],[.12,Math.hypot(dy,dz),.13],tint);
+  }
   function person(p,lying=false) {
-    const index=Math.abs(Math.trunc(finite(p.palette)))%6,skin=SKINS[index],shirt=PALETTES[index];
+    let appearance=appearances.get(p.id);
+    if(!appearance){appearance=p.id==='player'?playerAppearance:appearanceForPerson(p.id||'player');if(appearances.size<LIMIT+1)appearances.set(p.id,appearance);}
+    const skin=appearance.skin,shirt=appearance.shirt;
     const phase=finite(p.phase),coerced=p.health>0 && p.crimePhase,down=finite(p.knockdown)>0 || p.health===0;
     const moving=!coerced && finite(p.speed)>0,gesture=p.gesture || 'idle',seated=!coerced && !down && Boolean(p.seated);
     body.position.set(p.x,Number.isFinite(p.y)?p.y:finite(heightAt(p.x,p.z)),p.z);
@@ -57,16 +69,33 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
     body.updateMatrix();
     put(0,[0,0,0],[0,0,0],[1,1,1],shirt);
     put(1,[0,0,0],[0,0,0],[1,1,1],skin);
-    put(2,[0,0,0],[0,0,0],[1,1+Math.abs(Math.trunc(finite(p.hair)))%3*.2,1],HAIR[Math.abs(Math.trunc(finite(p.hair)))%4]);
+    put(2,[0,0,0],[0,0,0],[1,1,1],appearance.hair);
+    if(p.earmuffs) {
+      put(5,[0,1.58,-.10],[0,0,0],[.27,.30,.08],appearance.hair);
+      for(const sign of [-1,1]) {
+        put(5,[sign*.17,1.65,0],[0,0,0],[.09,.15,.14],0xe892bd);
+        put(5,[sign*.13,1.79,0],[0,0,-sign*.4],[.035,.16,.035],0xe892bd);
+      }
+      put(5,[0,1.85,0],[0,0,0],[.22,.035,.035],0xe892bd);
+    }
+    const pulling=gesture==='pull-noodles' && !coerced && !down && p.reaction==='calm';
+    const spread=.25+(Math.sin(phase*2)+1)*.10,handY=1.23+Math.cos(phase*2)*.10;
+    if(pulling) {
+      for(let strand=0;strand<6;strand++) for(let segment=0;segment<6;segment++) {
+        const a=segment/6,b=(segment+1)/6,sag=.15+strand*.012;
+        const ax=(a*2-1)*spread,bx=(b*2-1)*spread,ay=handY-Math.sin(a*Math.PI)*sag,by=handY-Math.sin(b*Math.PI)*sag;
+        put(5,[(ax+bx)/2,(ay+by)/2,.40+(strand-2.5)*.009],[0,0,Math.atan2(by-ay,bx-ax)],[Math.hypot(bx-ax,by-ay)+.006,.009,.009],0xead8a4);
+      }
+    }
     for(let side=0;side<2;side++) {
-      const sign=side?1:-1,stride=moving?Math.sin(phase*8)*.21*sign:0;
+      const sign=side?1:-1,stride=gesture==='treadmill' ? finite(p.lift)*.30*sign*(p.reps%2?-1:1) : moving?Math.sin(phase*8)*.21*sign:0;
       if (seated) {
-        put(3,[sign*.115,.91,.20],[0,0,0],[.17,.17,.42],0x364452);
-        put(3,[sign*.115,.90-finite(p.seatHeight)/2,.39],[0,0,0],[.15,Math.max(.20,finite(p.seatHeight)-.12),.16],0x364452);
-        put(3,[sign*.115,.96-finite(p.seatHeight),.45],[0,0,0],[.19,.11,.29],0x252b2d);
+        put(3,[sign*.115,.91,.20],[0,0,0],[.17,.17,.42],appearance.trousers);
+        put(3,[sign*.115,gesture==='rower'?.75:.90-finite(p.seatHeight)/2,gesture==='rower'?.60:.39],[0,0,0],[.15,gesture==='rower'?.32:Math.max(.20,finite(p.seatHeight)-.12),.16],appearance.trousers);
+        put(3,[sign*.115,gesture==='rower'?.62:.96-finite(p.seatHeight),gesture==='rower'?.60:.45],[0,0,0],[.19,.11,.29],0x252b2d);
       } else {
-        put(3,[sign*.115,.49,0],[stride,0,0],[.17,.83,.19],0x364452);
-        put(3,[sign*.115,.07,.055],[0,0,0],[.19,.13,.30],0x252b2d);
+        put(3,[sign*.115,.49,0],[stride,0,0],[.17,.83,.19],appearance.trousers);
+        put(3,[sign*.115,.07,gesture==='treadmill'?stride*.55:.055],[0,0,0],[.19,.13,.30],0x252b2d);
       }
       if (coerced && !down && !lying) {
         if (p.crimePhase==='intimidation') {
@@ -80,8 +109,38 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
         }
         continue;
       }
+      const amount=Math.max(0,Math.min(1,finite(p.lift)));
+      if(gesture==='curls') {
+        const curling=(p.reps%2===side),lift=curling?amount:0;
+        const hand=[sign*.29,.86+lift*.48,.12+Math.sin(lift*Math.PI)*.22];
+        limb([sign*.29,1.34,0],[sign*.29,1.03,.06],skin);limb([sign*.29,1.03,.06],hand,skin);
+        put(5,hand,[0,0,0],[.30,.045,.045],0xaeb6b7);
+        for(const end of [-1,1])put(5,[hand[0]+end*.14,hand[1],hand[2]],[0,0,0],[.09,.18,.18],0x343a3e);
+        continue;
+      }
+      if(gesture==='rower') {
+        const handZ=.94-amount*.55,handY=1.15;
+        limb([sign*.29,1.34,0],[sign*.29,1.20,.38-amount*.17],skin);
+        limb([sign*.29,1.20,.38-amount*.17],[sign*.23,handY,handZ],skin);
+        if(side===0)put(5,[0,handY,handZ],[0,0,0],[.65,.045,.045],0xaeb6b7);
+        continue;
+      }
+      const attacking=!coerced&&!down&&p.stun<=0&&p.reaction==='angry'&&finite(p.attackTimer)>0;
+      if(attacking) {
+        const progress=1-Math.min(1,p.attackTimer/.65),extension=progress<.25 ? -.10*progress/.25 : progress<.55 ? (progress-.25)/.30 : (1-progress)/.45;
+        const punch=(p.attackSerial%2===side),reach=punch?.27+extension*.43:.22;
+        limb([sign*.29,1.34,0],[sign*.29,1.28,.16+Math.max(0,extension)*.13],skin);
+        limb([sign*.29,1.28,.16+Math.max(0,extension)*.13],[sign*.23,1.35,reach],skin);
+        continue;
+      }
       let reach=0,lift=0;
-      if (gesture==='eat') {reach=.18;lift=.06+Math.sin(phase*2+side)*.09;}
+      if(pulling) {
+        put(4,[sign*.29,1.32,.15],[.6,0,sign*.25],[.13,.36,.14],skin);
+        put(4,[sign*spread,handY,.33],[Math.PI/2,0,0],[.12,.25,.13],skin);
+        continue;
+      }
+      if(p.reaction==='angry' && !down) {reach=.22;lift=.22;}
+      else if (gesture==='eat') {reach=.18;lift=.06+Math.sin(phase*2+side)*.09;}
       else if (gesture==='serve'||gesture==='prepare'||gesture==='browse') {reach=.18;lift=Math.sin(phase*2+side)*.06;}
       else if (gesture==='exercise'||gesture==='coach') {lift=.16+Math.sin(phase*2)*.15;}
       else if (lying) {reach=.20;lift=.25;}
@@ -103,11 +162,29 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
     count=0;
     const list=Array.isArray(people)?people:people?.snapshot?.() || [];
     for(const p of list) {if (count>=LIMIT) break;if(!valid(p))continue;person(p);count++;}
+    exerciseFocus=null;
+    const station=activity?.active===true && (plan.activities||[]).find(s=>s.id===activity.station?.id && s.kind===activity.kind && s.kind===activity.exercisePose);
+    const workout=station && ['bench','treadmill','curls','rower'].includes(station.kind) ? station.kind : null;
+    if(workout && workout!=='bench') {
+      const equipment=(plan.furniture||[]).find(f=>f.kind===workout);
+      if(workout==='curls'||equipment) {
+        let x=station.x,z=station.z,y=plan.floorY,yaw=finite(station.yaw)+Math.PI;
+        if(equipment) {
+          const offset=workout==='rower'?-.3:-.1;
+          yaw=finite(equipment.yaw);x=equipment.x+Math.sin(yaw)*offset;z=equipment.z+Math.cos(yaw)*offset;
+          y+=workout==='treadmill'?.31:0;
+        }
+        person({id:'player',x,z,y,yaw,phase:0,lift:activity.lift,reps:activity.reps||0,gesture:workout,
+          seated:workout==='rower',seatHeight:workout==='rower'?.53:0});
+        exerciseFocus=Object.freeze({x,z,y:plan.floorY+1});
+      }
+    }
     const bench=plan.exercise;
     if (valid(bench)) {
-      const exercising=activity?.active===true&&activity?.kind==='bench';
+      const exercising=workout==='bench';
       if(exercising) {
-      person({x:bench.x,z:bench.z,y:plan.floorY+finite(bench.height)+.13,yaw:finite(bench.yaw),palette:0,hair:0,phase:0,lift:activity.lift,gesture:'bench'},true);
+      exerciseFocus=Object.freeze({x:bench.x,z:bench.z,y:plan.floorY+1});
+      person({id:'player',x:bench.x,z:bench.z,y:plan.floorY+finite(bench.height)+.13,yaw:finite(bench.yaw),palette:0,hair:0,phase:0,lift:activity.lift,gesture:'bench'},true);
       }
       body.position.set(bench.x,plan.floorY+(exercising ? finite(bench.height)+.60+Math.max(0,Math.min(1,finite(activity.lift)))*.38 : 1.48),bench.z);
       body.rotation.set(0,finite(bench.yaw),0);body.updateMatrix();
@@ -119,8 +196,8 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
   }
   function clear() {
     if(root) {scene.remove(root);for(const mesh of meshes){mesh.dispose();mesh.geometry.dispose();}material.dispose();}
-    root=null;plan=null;material=null;meshes=[];count=draws=0;
+    root=null;plan=null;material=null;meshes=[];count=draws=0;appearances.clear();exerciseFocus=null;
   }
-  return {load,update,clear,get stats(){return Object.freeze({active:plan?.id || null,people:count,limit:LIMIT,drawCalls:draws,geometryCount:meshes.length,materialCount:material?1:0,disposed});},
+  return {load,update,clear,setPlayerAppearance,get exerciseFocus(){return exerciseFocus;},get stats(){return Object.freeze({active:plan?.id || null,people:count,limit:LIMIT,drawCalls:draws,geometryCount:meshes.length,materialCount:material?1:0,disposed,accessoryCapacity:ACCESSORY_CAPACITY,noodleSegmentLimit:NOODLE_SEGMENTS,sharedModel:true,exerciseFocus});},
     dispose(){if(disposed)return;clear();disposed=true;}};
 }

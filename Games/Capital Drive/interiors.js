@@ -74,6 +74,35 @@ export function createGymEntry(map, service) {
   return best ? freeze(best) : null;
 }
 
+// IDs refer to retained source shops, never a name substring or doorway width.
+const STORE_ARCHETYPES = Object.freeze({
+  'store-358293199': 'grocery', 'store-6275666787': 'grocery',
+  'store-318857045': 'fast-food', 'store-4069724219': 'fast-food', 'store-9470234894': 'fast-food',
+  'store-318857112': 'cafe', 'store-318857132': 'cafe', 'store-330163582': 'cafe',
+  'store-4069716453': 'cafe', 'store-4069716454': 'cafe', 'store-4069717184': 'cafe',
+  'store-4069717215': 'cafe', 'store-4115262967': 'cafe', 'store-4926066423': 'cafe',
+  'store-8196052995': 'cafe', 'store-2161998101': 'cafe', 'store-11906941518': 'grocery',
+});
+// A playable portion of the retained wing, tested inside its source outline.
+// This is not a reconstruction of Canberra Centre's tenancy/corridor plan.
+function mallDimensions(entry, building) {
+  const points = building.points.map(([x, z]) => localPoint(entry, { x, z }));
+  const extent = { width: Math.max(...points.map(p => p.x)) - Math.min(...points.map(p => p.x)),
+    depth: Math.max(...points.map(p => p.z)) - Math.min(...points.map(p => p.z)) };
+  let width = 24, depth = 26;
+  for (let candidate = 26; candidate <= 78; candidate += 2) {
+    if ([-candidate / 2, candidate / 2].every(x => [0.3, 13, 26].every(z => {
+      const p = worldPoint(entry, x, z); return insideOutline(p.x, p.z, building.points);
+    }))) width = candidate; else break;
+  }
+  for (let candidate = 28; candidate <= 58; candidate += 2) {
+    if ([-width / 2, 0, width / 2].every(x => [candidate - 1, candidate].every(z => {
+      const p = worldPoint(entry, x, z); return insideOutline(p.x, p.z, building.points);
+    }))) depth = candidate; else break;
+  }
+  return { width, depth, sourceExtent: extent };
+}
+
 export function createInteriors(map, { heightAt = () => 0, stores = [], publicEntries = [] } = {}) {
   const buildings = new Map((map.buildings || []).map(b => [String(b.id), b]));
   const entries = [], index = new Map(), identities = new Set();
@@ -105,7 +134,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
     const noodles = store.interiorType === 'noodle-shop';
     add({ id: `interior-${store.id}`, buildingId: store.buildingId, storeId: store.id,
       type: 'shop', name: store.name, x: f.x, z: f.z, yaw: f.yaw,
-      ...(noodles ? { variant: 'noodles' } : {}),
+      variant: noodles ? 'noodles' : STORE_ARCHETYPES[store.id] || 'retail',
       width: noodles ? clamp(f.width || 6.5, 6.2, 7) : clamp((f.width || 7) * 0.9, 5.4, 12), depth: noodles ? 12 : 10 });
   }
   for (const entry of publicEntries) {
@@ -120,7 +149,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
     if (!onFacade) continue;
     add({ id: entry.id, buildingId: building.id, type: entry.type, name: entry.name || (entry.type === 'gym' ? 'Kingston gym' : 'Shopping concourse'),
       ...(entry.type === 'gym' ? { serviceId: entry.serviceId } : {}),
-      x: entry.x, z: entry.z, yaw: entry.yaw, width: entry.type === 'gym' ? 12 : 24, depth: entry.type === 'gym' ? 14 : 26 });
+      x: entry.x, z: entry.z, yaw: entry.yaw, ...(entry.type === 'mall' ? mallDimensions(entry, building) : { width: 14, depth: 16 }) });
   }
   Object.freeze(entries);
   let active = null, outside = null, generatedPlans = 0;
@@ -155,14 +184,20 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       doors.push(point); return point;
     };
     const gap = entry.variant === 'noodles' ? 2 : 1.5, sideWidth = (width - gap) / 2;
-    wall(-(width + gap) / 4, 0, sideWidth, 0.16);
+    if (entry.variant === 'noodles') {
+      const centre = -(width + gap) / 4;
+      box(walls, 'window-sill', centre, 0, sideWidth, 0.16, 0.85, 0xd6ccba);
+      box(walls, 'window-lintel', centre, 0, sideWidth, 0.16, 0.4, 0xd6ccba, 2.25);
+      for (const side of [-1, 1]) box(walls, 'window-post', centre + side * (sideWidth / 2 - 0.07), 0,
+        0.14, 0.16, 1.4, 0xd6ccba, 0.85);
+    } else wall(-(width + gap) / 4, 0, sideWidth, 0.16);
     wall((width + gap) / 4, 0, sideWidth, 0.16);
     wall(-width / 2, depth / 2, 0.16, depth);
     wall(width / 2, depth / 2, 0.16, depth);
     wall(0, depth, width, 0.16);
     const exit = door('exit', 0, 0.9, gap);
     const spawn = { ...worldPoint(origin, 0, 1.65), y: floorY, yaw: origin.yaw + Math.PI };
-    let counter = null, exercise = null;
+    let counter = null, exercise = null, noodleCook = null, boothGuest = null;
     if (entry.type === 'house') {
       const hall = 1.9, split = depth / 2, roomWidth = (width - hall) / 2;
       // The central hall reaches every room through a 1.5m wall opening.
@@ -199,43 +234,54 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       station('cooking', 'cooking', 'Cook at the kitchen bench', 3.6, 3.1, Math.PI / 2);
       station('rest', 'rest', 'Rest beside the bed', -1.65, 9.3, -Math.PI / 2);
     } else if (entry.type === 'mall') {
-      const hall = 6, unitWidth = (width - hall) / 2, unitDepth = 11, unitGap = 3;
+      const hall = 10, unitWidth = (width - hall) / 2, unitDepth = (depth - 6) / 2, unitGap = 5;
+      const centres = [3 + unitDepth / 2, 3 + unitDepth * 1.5];
       rooms.push({ kind: 'concourse', ...worldPoint(origin, 0, depth / 2), width: hall, depth });
       for (const side of [-1, 1]) {
         const wallX = side * hall / 2, centreX = side * (hall / 2 + unitWidth / 2);
-        for (const centreZ of [7.5, 18.5]) {
-          const unitId = `unit-${side < 0 ? 'west' : 'east'}-${centreZ < 13 ? 'front' : 'rear'}`;
+        for (const [i, centreZ] of centres.entries()) {
+          const unitId = `unit-${side < 0 ? 'west' : 'east'}-${i}`;
           rooms.push({ id: unitId, kind: 'mall-unit', ...worldPoint(origin, centreX, centreZ), width: unitWidth, depth: unitDepth });
           const segmentLength = (unitDepth - unitGap) / 2;
           wall(wallX, centreZ - (unitDepth + unitGap) / 4, 0.16, segmentLength);
           wall(wallX, centreZ + (unitDepth + unitGap) / 4, 0.16, segmentLength);
           door('unit', wallX, centreZ, unitGap);
-          // Every unit has a clear entrance and turning space between its shelves and till.
-          box(furniture, 'shelves', side * (width / 2 - 0.6), centreZ - 0.5, 0.7, 6.5, 1.75, 0x8e8d73);
-          box(furniture, 'counter', centreX, centreZ + 3.8, 2.4, 0.9, 1.05, 0xa08a68);
-          station(`${unitId}-stock`, 'stock', 'Sort the shop stock', centreX, centreZ + 2.6);
-          if (side < 0 && centreZ < 13) {
+          box(furniture, 'shelves', side * (width / 2 - 0.8), centreZ, 0.7, Math.min(unitDepth - 3, 8), 1.75, 0x8e8d73);
+          box(furniture, 'counter', centreX, centreZ + unitDepth / 2 - 2, 2.4, 0.9, 1.05, 0xa08a68);
+          station(`${unitId}-stock`, 'stock', 'Sort the shop stock', centreX, centreZ + unitDepth / 2 - 3.2);
+          if (side < 0 && i === 1) {
+            // Fictional office corner for the campaign, not an actual centre tenant.
+            box(furniture, 'office-desk', centreX - 3, centreZ, 2, 1, 0.76, 0xaa9473);
+            box(furniture, 'chair', centreX - 3, centreZ + 1, 0.6, 0.6, 0.85, 0x65736f);
+            station('powerpunt', 'presentation', 'PowerPunt workstation', centreX - 3, centreZ - 1.3, 0, 1.25);
+          }
+          if (side < 0 && i === 0) {
             box(furniture, 'arcade', centreX - 1.9, centreZ + 2, 0.85, 0.85, 1.65, 0x766a86);
             station('arcade', 'arcade', 'Play the arcade cabinet', centreX - 1.9, centreZ + 0.9);
           }
         }
-        for (const z of [2, 13, 24]) wall(centreX, z, unitWidth, 0.16);
-        box(furniture, 'bench', side * 1.85, 13, 0.75, 2.6, 0.65, 0x938268);
+        for (const z of [3, depth / 2, depth - 3]) wall(centreX, z, unitWidth, 0.16);
+        box(furniture, 'bench', side * 3.8, depth / 2, 0.75, 2.6, 0.65, 0x938268);
       }
     } else if (entry.type === 'gym') {
-      rooms.push({ kind: 'gym-floor', ...worldPoint(origin, 0, 7), width, depth });
+      rooms.push({ kind: 'gym-floor', ...worldPoint(origin, 0, depth / 2), width, depth });
       box(furniture, 'counter', 3.8, 3.1, 2.2, 0.8, 1.05, 0xaaa18a);
       counter = { ...worldPoint(origin, 3.8, 2.05), y: floorY, yaw: origin.yaw, radius: 1.4 };
       const bench = box(furniture, 'exercise-bench', -2.4, 7.1, 0.68, 2.2, 0.52, 0x496b7b);
       for (const side of [-1, 1]) box(furniture, 'bench-rack', -2.4 + side * 1.05, 7.85, 0.16, 0.6, 1.65, 0x606b6d);
       box(furniture, 'weight-rack', -4.9, 11.1, 0.8, 3.3, 1.25, 0x6b7472);
-      box(furniture, 'treadmill', 3.5, 8.4, 1.2, 2.4, 1.35, 0x626c6e);
-      box(furniture, 'exercise-mat', 3.5, 11.6, 1.2, 1.8, 0.04, 0x718477);
-      box(furniture, 'lockers', 0, 13.3, 3.8, 0.7, 2, 0xa8b1a8);
+      box(furniture, 'treadmill', 4.8, 7.1, 1.2, 2.4, 1.35, 0x626c6e);
+      box(furniture, 'exercise-mat', 4.8, 13.3, 1.2, 1.8, 0.04, 0x718477);
+      box(furniture, 'lockers', 0, 15.3, 3.8, 0.7, 2, 0xa8b1a8);
       const approach = worldPoint(origin, -0.8, 7.1);
       exercise = { x: bench.x, z: bench.z, y: floorY + bench.height, yaw: bench.yaw,
         width: bench.width, depth: bench.depth, height: bench.height, approachX: approach.x, approachZ: approach.z };
       station('bench', 'bench', 'Bench press: six controlled reps', -0.8, 7.1, -Math.PI / 2, 1.25);
+      station('treadmill', 'treadmill', 'Treadmill: alternate your steps', 3.1, 7.1, Math.PI / 2, 1.25);
+      box(furniture, 'curl-rack', -3.1, 13.3, 1.5, 0.7, 1.1, 0x606b6d);
+      station('curls', 'curls', 'Dumbbells: controlled alternating curls', -3.1, 12.1, Math.PI, 1.25);
+      box(furniture, 'rower', 1.6, 11.5, 0.85, 2.8, 0.75, 0x626c6e);
+      station('rower', 'rower', 'Rowing machine: drive and return', 0.1, 11.5, Math.PI / 2, 1.25);
     } else if (entry.variant === 'noodles') {
       // Official Canberra interior references establish relative sides, not a surveyed floorplan.
       const kitchenWidth = width / 2 - 1.125;
@@ -253,17 +299,41 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       box(furniture, 'banquette', width / 2 - 0.42, 10.3, 0.7, 2.9, 0.92, 0xda713b, 0, Math.PI);
       for (const z of [3.4, 5.9, 8.3, 10.6]) {
         const communal = z === 8.3;
-        const table = box(furniture, communal ? 'communal-table' : 'noodle-table', 2.05, z, 0.95, communal ? 1.8 : 1.1, communal ? 1.02 : 0.76, 0xc8ab78);
+        const tableX = z === 10.6 ? 1.8 : 2.05;
+        const table = box(furniture, communal ? 'communal-table' : 'noodle-table', tableX, z, 0.95, communal ? 1.8 : 1.1, communal ? 1.02 : 0.76, 0xc8ab78);
         box(furniture, communal ? 'stool' : 'padded-chair', 1.3, z, 0.46, 0.5, communal ? 0.76 : 0.84, 0x3d5674, 0, Math.PI / 2);
         if (communal) box(furniture, 'stool', 1.3, z + 0.65, 0.46, 0.5, 0.76, 0x3d5674, 0, Math.PI / 2);
-        box(details, 'noodle-bowl', 2.05, z - 0.2, 0.29, 0.29, 0.14, 0xe9e1ca, table.height);
-        box(details, 'chopsticks', 1.9, z + 0.04, 0.17, 0.025, 0.015, 0xb1814a, table.height + 0.02);
-        box(details, 'condiments', 2.05, z + 0.33, 0.25, 0.15, 0.2, 0x815239, table.height);
+        box(details, 'noodle-bowl', tableX, z - 0.2, 0.29, 0.29, 0.14, 0xe9e1ca, table.height);
+        box(details, 'chopsticks', tableX - 0.15, z + 0.04, 0.17, 0.025, 0.015, 0xb1814a, table.height + 0.02);
+        box(details, 'condiments', tableX, z + 0.33, 0.25, 0.15, 0.2, 0x815239, table.height);
       }
+      noodleCook = { ...worldPoint(origin, -2.15, 2.8), yaw: origin.yaw + Math.PI };
+      boothGuest = { ...worldPoint(origin, width / 2 - 0.48, 10.6), yaw: origin.yaw - Math.PI / 2, seatHeight: 0.55 };
+    } else if (entry.variant === 'fast-food' || entry.variant === 'cafe') {
+      const fast = entry.variant === 'fast-food';
+      rooms.push({ kind: fast ? 'fast-food-dining' : 'cafe-dining', ...worldPoint(origin, 0, depth / 2), width, depth });
+      box(furniture, 'counter', -width / 2 + 0.7, 6.6, 0.8, 3.6, 1.05, fast ? 0x977045 : 0x927b5e);
+      box(furniture, fast ? 'grill' : 'coffee-machine', -width / 2 + 0.65, 9, 0.8, 1.1, 1.45, 0x8a9290);
+      box(furniture, 'pickup-counter', -width / 2 + 0.7, 3.7, 0.8, 1.1, 1.05, 0xb49c78);
+      counter = { ...worldPoint(origin, -width / 2 + 1.75, 5.8), y: floorY, yaw: origin.yaw - Math.PI / 2, radius: 1.6 };
+      station('stock', 'stock', fast ? 'Prepare the pickup orders' : 'Prepare the cafe orders', -width / 2 + 1.75, 3.7, -Math.PI / 2);
+      for (const z of [3.4, 7.4]) {
+        const x = width / 2 - 0.75;
+        box(furniture, fast ? 'booth' : 'chair', x, z, 0.8, 1.4, 0.85, fast ? 0x9b503e : 0x677360);
+        box(furniture, 'dining-table', x - 1.05, z, 0.7, 0.9, 0.76, 0xb49c78);
+      }
+    } else if (entry.variant === 'grocery') {
+      rooms.push({ kind: 'grocery', ...worldPoint(origin, 0, depth / 2), width, depth });
+      box(furniture, 'counter', width / 2 - 0.65, 7.8, 0.8, 2.1, 1.05, 0x8b8069);
+      counter = { ...worldPoint(origin, width / 2 - 1.75, 7.8), y: floorY, yaw: origin.yaw + Math.PI / 2, radius: 1.6 };
+      for (const side of [-1, 1]) box(furniture, 'shelves', side * (width / 2 - 0.55), 3.6, 0.65, 3.2, 1.75, 0x8e8d73);
+      box(furniture, 'fridge', -width / 2 + 0.55, 8, 0.7, 2.6, 1.9, 0xb8c4bd);
+      if (width > 8) box(furniture, 'shelves', 0, 4.8, 0.75, 3.2, 1.4, 0x8e8d73);
+      station('stock', 'stock', 'Restock the grocery aisle', -width / 2 + 1.7, 3.6, -Math.PI / 2);
     } else {
       box(furniture, 'counter', width / 2 - 1.15, depth - 2.2, 1.7, 1, 1.05, 0x9a7e59);
-      counter = { ...worldPoint(origin, width / 2 - 1.15, depth - 3.15), y: floorY, yaw: origin.yaw, radius: 1.6 };
-      for (const side of [-1, 1]) box(furniture, 'shelves', side * (width / 2 - 0.55), depth / 2 - 0.7, 0.65, 4, 1.75, 0x8e8d73);
+      counter = { ...worldPoint(origin, width / 2 - 1.15, depth - 3.3), y: floorY, yaw: origin.yaw, radius: 1.6 };
+      for (const side of [-1, 1]) box(furniture, 'shelves', side * (width / 2 - 0.55), depth / 2 - 0.7, 0.65, 3.2, 1.75, 0x8e8d73);
       if (width > 7) box(furniture, 'shelves', -0.7, depth / 2, 0.85, 2.8, 1.4, 0x8e8d73);
       rooms.push({ kind: 'shop', ...worldPoint(origin, 0, depth / 2), width, depth });
       station('stock', 'stock', 'Sort the shelf stock', width / 2 - 1.55, 3.8, Math.PI / 2);
@@ -271,7 +341,8 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
     return freeze({ id: entry.id, buildingId: entry.buildingId, ...(['mall', 'gym'].includes(entry.type) ? {} : { storeId: entry.storeId || null }),
       ...(entry.serviceId ? { serviceId: entry.serviceId } : {}),
       type: entry.type, ...(entry.variant ? { variant: entry.variant } : {}), name: entry.name, origin, width, depth, floorY, spawn, exit, counter,
-      walls, doors, furniture, rooms, activities, ...(exercise ? { exercise } : {}), ...(details.length ? { details } : {}), layoutNote: 'Original plausible layout; not a surveyed interior.' });
+      walls, doors, furniture, rooms, activities, ...(noodleCook ? { noodleCook, boothGuest } : {}),
+      ...(entry.type === 'mall' ? { levels: [{ y: floorY, label: 'Ground floor' }], sourceExtent: entry.sourceExtent, reference: 'Monaro Mall 1963 materials; original partial ground-floor wing. Tenancies and corridors are interpreted.' } : {}), ...(exercise ? { exercise } : {}), ...(details.length ? { details } : {}), layoutNote: 'Original plausible layout; not a surveyed interior.' });
   }
   function enter(entry, actor) {
     if (active || !actor || !entries.includes(entry) || findEntry(actor) !== entry) return false;

@@ -4,11 +4,12 @@ const read=p=>readFile(new URL(p,import.meta.url),'utf8'),url=s=>`data:text/java
 const threeURL=url(await read('../assets/car-arcade/vendor/three.module.js')),THREE=await import(threeURL);
 const utilsURL=url((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace("'./three.module.js'",JSON.stringify(threeURL)));
 const storesURL=url(await read('../Games/Capital Drive/stores.js')),{MAPPED_STORES}=await import(storesURL);
+const personURL=url((await read('../Games/Capital Drive/person-model.js')).replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL)));
 const source=await read('../Games/Capital Drive/noodle-shop-view.js');
 const {createNoodleShopView,NOODLE_SHOP_ID}=await import(url(source
  .replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL))
  .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'",JSON.stringify(utilsURL))
- .replace("'./stores.js'",JSON.stringify(storesURL))));
+ .replace("'./stores.js'",JSON.stringify(storesURL)).replace("'./person-model.js'",JSON.stringify(personURL))));
 const store=MAPPED_STORES.find(s=>s.id===NOODLE_SHOP_ID);assert(store,'actual mapped source node5656111023 required');
 assert.equal(store.source.id,5656111023);assert.equal(store.buildingId,'osm-584970594');
 const north=JSON.parse(await read('../Games/Capital Drive/data/canberra-north.json'));
@@ -18,11 +19,11 @@ const distance=(x,z,a,b)=>{const dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min
 const original=JSON.stringify(MAPPED_STORES),scene=new THREE.Scene(),heightAt=(x,z)=>25+x*.001+z*.0005;
 const view=createNoodleShopView(scene,heightAt),root=scene.children[0],f=store.frontage,angle=f.yaw+Math.PI;
 const tx=Math.cos(angle),tz=-Math.sin(angle),nx=Math.sin(angle),nz=Math.cos(angle),ground=heightAt(f.x,f.z);
-assert.equal(root.children.length,3);assert.equal(view.stats.sites,1);assert.equal(view.stats.storeId,store.id);
+assert.equal(root.children.length,5);assert.equal(view.stats.sites,1);assert.equal(view.stats.storeId,store.id);
 assert.equal(view.stats.drawCalls,0);assert.equal(view.stats.cullDistance,200);assert(view.stats.triangles<=5000);
 assert(view.stats.atlasWidth<=512&&view.stats.atlasHeight<=512);assert.equal(view.stats.entranceClearWidth,1.8);
 assert(!source.includes('requestAnimationFrame')&&!source.includes('PointLight'),'static colour lighting and root clock');
-for(const mesh of root.children) {
+for(const mesh of root.children.filter(m=>!m.isInstancedMesh)) {
  const p=mesh.geometry.attributes.position;
  assert(p.array.every(Number.isFinite));assert(mesh.geometry.attributes.normal.array.every(Number.isFinite));
  for(let i=0;i<p.count;i++) {
@@ -60,14 +61,23 @@ for(const obstacle of view.obstacles) {
   assert(!north.roads.some(r=>r.points.slice(1).some((b,i)=>distance(...p,r.points[i],b)<r.width/2+.15)),'cafe furniture remains outside source driving lanes');
  }
 }
-view.update(store);assert.equal(view.stats.drawCalls,3);assert.equal(root.visible,true);
+view.update(store);assert.equal(view.stats.drawCalls,5);assert.equal(root.visible,true);
 const versions=root.children.map(m=>m.geometry.attributes.position.version);view.update(store);
 assert.deepEqual(root.children.map(m=>m.geometry.attributes.position.version),versions,'stationary focus never uploads geometry');
+const phase=view.stats.cookPhase, moving=root.children.filter(m=>m.isInstancedMesh), matrices=moving.map(m=>Array.from(m.instanceMatrix.array));
+view.update(store,.1);assert(view.stats.cookPhase>phase);assert.notDeepEqual(Array.from(moving[1].instanceMatrix.array),matrices[1],'36 pooled noodle strands follow the supplied phase');
+assert.equal(view.stats.noodleSegments,36);assert(view.stats.sharedCookModel);assert(Object.isFrozen(view.cookDisplay));
+const rayCook=new THREE.Raycaster(new THREE.Vector3(view.cookDisplay.x+nx*3,ground+1.65,view.cookDisplay.z+nz*3),new THREE.Vector3(-nx,0,-nz),0,5);
+root.updateMatrixWorld(true);const cookHits=rayCook.intersectObject(root.children[0]);assert(cookHits.length);
+const hitOut=(cookHits[0].point.x-f.x)*nx+(cookHits[0].point.z-f.z)*nz;
+assert(hitOut>.5&&hitOut<.65,'street ray reaches rounded cook head ahead of the opaque source wall and backing');
+view.update({x:f.x+50,z:f.z},.1);assert.equal(view.stats.drawCalls,3);const pausedPhase=view.stats.cookPhase;view.update({x:f.x+50,z:f.z},.1);assert.equal(view.stats.cookPhase,pausedPhase);
+view.update(store,0);assert.equal(view.stats.cookPhase,pausedPhase,'paused supplied dt leaves the cook unchanged');
 view.update({x:f.x+201,z:f.z});assert.equal(view.stats.drawCalls,0);assert.equal(root.visible,false);
 view.update({x:NaN,z:Infinity});assert.equal(view.stats.drawCalls,0);
 assert.equal(JSON.stringify(MAPPED_STORES),original,'source store registry unchanged');
-let geometries=0,materials=0,textures=0;for(const mesh of root.children){mesh.geometry.addEventListener('dispose',()=>geometries++);mesh.material.addEventListener('dispose',()=>materials++);}atlas.addEventListener('dispose',()=>textures++);
-view.dispose();view.dispose();view.update(store);assert.equal(scene.children.length,0);assert.equal(geometries,3);assert.equal(materials,3);assert.equal(textures,1);assert.equal(view.stats.disposed,true);
+let geometries=0,materials=0,textures=0;for(const mesh of root.children)mesh.geometry.addEventListener('dispose',()=>geometries++);for(const material of new Set(root.children.map(m=>m.material)))material.addEventListener('dispose',()=>materials++);atlas.addEventListener('dispose',()=>textures++);
+view.dispose();view.dispose();view.update(store);assert.equal(scene.children.length,0);assert.equal(geometries,5);assert.equal(materials,3);assert.equal(textures,1);assert.equal(view.stats.disposed,true);
 // Exercise the retained source composition used by the default Low runtime. The
 // frontage is an overlay; the separately managed Civic mesh must supply its wall.
 const {applyRoadProfiles}=await import(url(await read('../Games/Capital Drive/road-network.js')));
@@ -96,4 +106,4 @@ for(let cycle=0;cycle<2;cycle++) {
  assert.equal(actualScene.children.length,0,'repeated scene lifecycle leaves no facade or source shell behind');
 }
 assert.equal(JSON.stringify(runtime),runtimeSource,'source composition and terrain stay immutable');
-console.log(`Capital noodle shop PASS: source5656111023 facade and actual-map Civic shell, exterior-readable signs, 1.8m clear door, ${view.stats.triangles} triangles / three draws, ${view.stats.atlasWidth}x${view.stats.atlasHeight} original atlas, 200m culling and owned disposal`);
+console.log(`Capital noodle shop PASS: source5656111023 facade and actual-map Civic shell, exterior-readable signs, 1.8m clear door, ${view.stats.triangles} triangles / five near draws, three distant draws, ${view.stats.atlasWidth}x${view.stats.atlasHeight} original atlas, 200m culling and owned disposal`);

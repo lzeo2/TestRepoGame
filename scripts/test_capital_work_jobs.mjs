@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createProgression } from '../Games/Capital Drive/progression.js';
 import { createInteriors } from '../Games/Capital Drive/interiors.js';
-import { createInteriorActivities } from '../Games/Capital Drive/interior-activities.js';
+import { createInteriorActivities, isWorkoutKind } from '../Games/Capital Drive/interior-activities.js';
 import { SERVICES } from '../Games/Capital Drive/services.js';
 
 const map = JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra.json', import.meta.url), 'utf8'));
@@ -40,12 +40,12 @@ const controllerSource=await readFile(new URL('../Games/Capital Drive/script.js'
 const startFunction=controllerSource.match(/function beginMini\(id\)\{[\s\S]*?\n\}/)?.[0];
 assert(startFunction,'production activity controller is present');
 const {bind}=await import('data:text/javascript;base64,'+Buffer.from(`export function bind(env){
-  const {interiors,activities,progression,paused,focus,careerContext,isSandbox,notify,clearInput}=env;
+  const {interiors,activities,progression,paused,focus,careerContext,isSandbox,notify,clearInput,isWorkoutKind,visible}=env;
   ${startFunction}
  return beginMini;}`).toString('base64'));
 for(const kind of ['noodle','stock']){
   const f=fixture(kind);
-  const begin=bind({...f,paused:()=>false,focus:()=>f.ctx.pose,careerContext:()=>f.ctx,isSandbox:()=>false,notify(){},clearInput(){}});
+  const begin=bind({...f,isWorkoutKind,visible:(a,b)=>f.interiors.hasLineOfSight(a,b),paused:()=>false,focus:()=>f.ctx.pose,careerContext:()=>f.ctx,isSandbox:()=>false,notify(){},clearInput(){}});
   begin();assert.equal(f.progression.state.activity?.type,'work');
   const session=f.activities.snapshot().sessionId;
   begin();assert.equal(f.activities.snapshot().sessionId,session,'repeated Q retains the active playable session');

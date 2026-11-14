@@ -10,7 +10,7 @@ export function createBusView(scene, heightAt) {
   const glassMaterial = new THREE.MeshLambertMaterial({ color: 0x79939c, transparent: true, opacity: .34, depthWrite: false });
   materials.add(bodyMaterial); materials.add(glassMaterial);
   const buses = [], personShapes = createPersonGeometries(), partPose = new THREE.Object3D();
-  function personParts(parts, appearance, kind, x, y, z, fit = 1) {
+  function personParts(parts, appearance, kind, x, y, z, fit = 1, ranges = null) {
     emitPersonParts(appearance,{kind,stride:0},(name,px,py,pz,sx,sy,sz,color,rx = 0) => {
       const shape = personShapes[PERSON_MODEL.shapes[name]].clone();
       partPose.position.set(x+px*fit,y+py*fit,z+pz*fit); partPose.rotation.set(rx,0,0);
@@ -18,6 +18,7 @@ export function createBusView(scene, heightAt) {
       const shade = new THREE.Color(color), colors = new Float32Array(shape.attributes.position.count*3);
       for (let i=0; i<colors.length; i+=3) shade.toArray(colors,i);
       shape.setAttribute('color',new THREE.BufferAttribute(colors,3)); parts.push(shape);
+      ranges?.push(shape.attributes.position.count);
     });
   }
   function build(index) {
@@ -81,12 +82,13 @@ export function createBusView(scene, heightAt) {
   }
   for (let i = 0; i < 2; i++) buses.push(build(i));
   let passenger = null;
+  const passengerRanges = [], passengerShade = new THREE.Color();
   const passengerPose = new THREE.Object3D();
   function passengerBatch() {
     if (passenger) return passenger;
     const parts = [];
     const appearance = appearanceForPerson('player');
-    personParts(parts,appearance,'passenger',-.77,2.58,-2.6);
+    personParts(parts,appearance,'passenger',-.77,2.58,-2.6,1,passengerRanges);
     const merged = mergeGeometries(parts, false); parts.forEach(shape => shape.dispose()); geometry.add(merged);
     passenger = new THREE.InstancedMesh(merged, bodyMaterial, 1); passenger.name = 'Seated bus player passenger'; passenger.userData.appearance = appearance;
     passenger.count = 0; passenger.visible = false; passenger.frustumCulled = false;
@@ -126,5 +128,17 @@ export function createBusView(scene, heightAt) {
     stats.buses = 0; stats.passengers = 0; stats.drawCalls = 0; stats.disposed = true;
   }
   update([], null);
-  return { update, stats, dispose };
+  function setPlayerAppearance(personId) {
+    if (disposed || !['player','player:student','player:corporate','player:basement'].includes(personId)) return false;
+    if (passenger.userData.appearance.id === personId) return true;
+    const appearance = appearanceForPerson(personId), colors = passenger.geometry.attributes.color;
+    let offset = 0, partIndex = 0;
+    emitPersonParts(appearance,{kind:'passenger'},(name,x,y,z,sx,sy,sz,color) => {
+      const count = passengerRanges[partIndex++]; passengerShade.setHex(color);
+      for (let i=offset;i<offset+count;i++) passengerShade.toArray(colors.array,i*3);
+      offset += count;
+    });
+    colors.needsUpdate = true; passenger.userData.appearance = appearance; return true;
+  }
+  return { update, stats, dispose, setPlayerAppearance };
 }

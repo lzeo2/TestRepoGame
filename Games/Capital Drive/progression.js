@@ -1,5 +1,6 @@
 import {SERVICES,LEGACY_SHOP_IDS} from './services.js';
 import {WEAPON_IDS,weaponById} from './weapons.js';
+import {isWorkoutKind} from './interior-activities.js';
 // Fictional job markers beside the mapped roads; these are not real businesses.
 const CARS = [
   { id: 'lantern', name: 'Neighbourhood saloon', price: 0 },
@@ -86,7 +87,7 @@ export function createProgression(map, saved = null, options = {}) {
   const serviceSite = source => source && ({ ...source, ...(options.servicePosition?.(source) || {}) });
   const serviceAllowed = (site, ctx) => !options.canUseService || options.canUseService(site, ctx);
   const events = [];
-  let context = null, serial = null, shiftPlan = null;
+  let context = null, serial = null, shiftPlan = null, workoutPlan = null;
   function result(ok, message, extra = {}, type = ok ? 'change' : 'error') {
     state.message = message;
     events.push({ type, message, ...extra });
@@ -153,6 +154,7 @@ export function createProgression(map, saved = null, options = {}) {
   function update(dt, ctx) {
     if (!Number.isFinite(dt) || dt < 0) throw new Error('Career dt must be finite and nonnegative.');
     if (!remember(ctx)) {
+      if(state.activity?.type==='workout'&&options.interactiveWorkouts){state.activity=null;workoutPlan=null;result(false,'Exercise interrupted. No training charged.',{},'activity-ended');}
       if(state.activity?.interactive){state.activity=null;result(false,'Hold-up interrupted. No money taken.',{},'activity-ended');}
       if (state.activeJob?.type === 'ride') {
         if (state.activeJob.passenger) fail('Fare interrupted. No pay earned.');
@@ -160,7 +162,7 @@ export function createProgression(map, saved = null, options = {}) {
       }
       return;
     }
-    if (dt === 0 && state.activity?.type !== 'work' && !state.activity?.interactive && state.activeJob?.type !== 'ride') return;
+    if (dt === 0 && state.activity?.type !== 'work' && !(state.activity?.type==='workout'&&options.interactiveWorkouts) && !state.activity?.interactive && state.activeJob?.type !== 'ride') return;
     for(const id of Object.keys(state.robberyCooldowns))state.robberyCooldowns[id]=Math.max(0,state.robberyCooldowns[id]-Math.min(dt,.25));
     for(const id of Object.keys(state.muggingCooldowns))state.muggingCooldowns[id]=Math.max(0,state.muggingCooldowns[id]-Math.min(dt,.25));
     const activity=state.activity;
@@ -168,6 +170,10 @@ export function createProgression(map, saved = null, options = {}) {
       const work=workContext(activity,ctx);
       if(!work){state.activity=null;shiftPlan=null;result(false,'Shift interrupted. No pay earned.',{},'activity-ended');}
       else activity.progress=work.session.progress;
+    }else if(activity?.type==='workout'&&options.interactiveWorkouts){
+      const workout=workoutContext(activity,ctx);
+      if(!workout){state.activity=null;workoutPlan=null;result(false,'Exercise interrupted. No training charged.',{},'activity-ended');}
+      else activity.progress=workout.session.progress;
     }else if(activity?.interactive){
       const target=liveCrimeTarget(activity.targetId,activity.type==='robbery'?'employee':'pedestrian');
       const site=activity.type==='robbery'&&serviceSite(services.find(s=>s.id===activity.serviceId));
@@ -190,8 +196,6 @@ export function createProgression(map, saved = null, options = {}) {
       if(!site||ctx.sandbox||ctx.respawnSerial!==activity.respawnSerial||ctx.recovering||!ctx.onFoot||!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx)||!serviceAllowed(site,ctx)||
         (activity.type==='robbery'?!equippedFirearm(ctx):ctx.wanted>0)){
         state.activity=null;result(false,'Activity interrupted.',{},'activity-ended');
-      }else if(activity.type==='workout'&&options.interactiveWorkouts){
-        // Completion is owned by the exercise input state machine.
       }else{
         activity.elapsed=Math.min(activity.duration,activity.elapsed+Math.min(dt,.05));activity.progress=activity.elapsed/activity.duration;
         if(activity.elapsed>=activity.duration){
@@ -306,7 +310,7 @@ export function createProgression(map, saved = null, options = {}) {
     return result(true, 'Owned vehicle retrieved at the garage.', { vehicle: copy(car) });
   }
   function penalize(reason = 'Respawn') {
-    state.activeJob = null;state.activity=null;shiftPlan=null;
+    state.activeJob = null;state.activity=null;shiftPlan=null;workoutPlan=null;
     const cost = Math.min(250, state.cash); state.cash -= cost;
     return result(true, `${reason}: $${cost} deducted. Completed jobs kept.`, { cost }, 'penalty');
   }
@@ -401,6 +405,7 @@ export function createProgression(map, saved = null, options = {}) {
     return result(true,'Purchased.',{cost,...effect},'service-purchase');
   }
   function startActivity(id,type,ctx){
+    if(type==='workout'&&options.interactiveWorkouts)return startWorkout(id,ctx);
     if(type==='robbery'&&options.interactiveRobbery){
       const reason=robberyEligibility(id,ctx);if(reason)return result(false,reason);
       const source=options.robberyTarget(id),target=source&&liveCrimeTarget(source.id,'employee');
@@ -489,18 +494,65 @@ export function createProgression(map, saved = null, options = {}) {
     state.cash=Math.min(MAX_CASH,state.cash+active.reward);
     return result(true,`Shift complete. Earned $${active.reward}.`,{serviceId:active.serviceId,reward:active.reward},'work-complete');
   }
+  function workoutStation(serviceId){
+    const work=options.workSession?.(),plan=work?.plan,session=work?.session;
+    const source=services.find(site=>site.id===serviceId&&site.type==='gym');
+    if(!source||!plan||!Object.isFrozen(plan)||plan.type!=='gym'||plan.serviceId!==serviceId||typeof plan.id!=='string'||!plan.id||
+      !Array.isArray(plan.activities)||!Object.isFrozen(plan.activities)||!session||session.planId!==plan.id||
+      !Number.isSafeInteger(session.sessionId)||session.sessionId<1||session.sandbox!==false)return null;
+    const station=plan.activities.find(item=>item.id===session.station?.id&&isWorkoutKind(item.kind));
+    if(!station||!Object.isFrozen(station)||!Number.isFinite(station.x)||!Number.isFinite(station.z)||!Number.isFinite(station.yaw)||
+      !Number.isFinite(station.radius)||station.radius<=0||session.kind!==station.kind||
+      !['id','kind','label','x','z','yaw','radius'].every(key=>session.station[key]===station[key]))return null;
+    return {plan,session,station,site:serviceSite(source)};
+  }
+  const workoutRunning=session=>session.active===true&&['grip','prepare','cue','lift','drive','stride','release','return'].includes(session.phase);
+  function workoutAdmission(serviceId,ctx){
+    if(!validContext(ctx)||ctx.sandbox||ctx.recovering)return {reason:'Training is unavailable here.'};
+    if(!ctx.onFoot)return {reason:'Step out of the car first.'};
+    if(ctx.wanted>0)return {reason:'Lose the police first.'};
+    if(state.activeJob||state.activity)return {reason:'Finish or cancel the current activity first.'};
+    const site=serviceSite(services.find(item=>item.id===serviceId&&item.type==='gym'));
+    if(!site||!serviceAllowed(site,ctx))return {reason:'Enter this gym first.'};
+    if(state.fitnessLevel>=3)return {reason:'Training complete.'};
+    const cost=site.price*(state.fitnessLevel+1);
+    if(!Number.isSafeInteger(cost)||cost<=0)return {reason:'Training is unavailable here.'};
+    if(state.cash<cost)return {reason:'Not enough cash.'};
+    const work=workoutStation(serviceId);
+    if(!work||!workoutRunning(work.session))return {reason:'Start an exercise at its equipment first.'};
+    if(!near(ctx.pose,work.station,work.station.radius)||!clearApproach(work.station,ctx))return {reason:'Stay close to the exercise equipment with a clear view.'};
+    return {reason:'',work,cost};
+  }
+  function workoutEligibility(serviceId,ctx){return workoutAdmission(serviceId,ctx).reason;}
+  function startWorkout(serviceId,ctx){
+    const admission=workoutAdmission(serviceId,ctx);
+    if(admission.reason)return result(false,admission.reason);
+    const {work,cost}=admission;
+    remember(ctx);workoutPlan=work.plan;
+    state.activity={type:'workout',serviceId,name:work.station.label,elapsed:0,progress:0,cost,
+      station:Object.freeze({...work.station}),planId:work.plan.id,sessionId:work.session.sessionId,respawnSerial:ctx.respawnSerial};
+    return result(true,'Training started. Complete the set to pay for training.',{serviceId,cost,point:{x:work.station.x,z:work.station.z}},'workout-started');
+  }
+  function workoutContext(active,ctx){
+    if(!validContext(ctx)||ctx.sandbox||ctx.recovering||!ctx.onFoot||ctx.wanted>0||ctx.respawnSerial!==active.respawnSerial)return null;
+    const work=workoutStation(active.serviceId);
+    if(!work||work.plan!==workoutPlan||work.plan.id!==active.planId||work.session.sessionId!==active.sessionId||
+      !['id','kind','label','x','z','yaw','radius'].every(key=>work.station[key]===active.station[key])||
+      !near(ctx.pose,work.station,work.station.radius)||!clearApproach(work.station,ctx)||!serviceAllowed(work.site,ctx)||
+      !(workoutRunning(work.session)||work.session.active===false&&work.session.phase==='complete'))return null;
+    return work;
+  }
   function finishWorkout(ctx,success){
     const active=state.activity;
     if(!active||active.type!=='workout'||!options.interactiveWorkouts)return result(false,'No exercise session is active.');
-    update(0,ctx);
-    const site=serviceSite(services.find(s=>s.id===active.serviceId));
-    state.activity=null;
-    if(!success||!validContext(ctx)||ctx.sandbox||ctx.recovering||ctx.respawnSerial!==active.respawnSerial||ctx.wanted>0||!ctx.onFoot||!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx)||!serviceAllowed(site,ctx))return result(false,'Exercise ended without a completed set.',{},'activity-ended');
+    const work=workoutContext(active,ctx);
+    state.activity=null;workoutPlan=null;
+    if(success!==true||!work||work.session.active||work.session.phase!=='complete')return result(false,'Exercise ended without a completed set. No training charged.',{},'activity-ended');
     if(state.fitnessLevel>=3||!spend(active.cost))return result(false,'Training is unavailable.',{},'activity-ended');
-    state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{cost:active.cost},'workout-complete');
+    state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{serviceId:active.serviceId,cost:active.cost,kind:active.station.kind},'workout-complete');
   }
-  return { state, jobs, garage,get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,startMugging,robberyEligibility,finishWorkout,payRental,payRide,consumeFlare,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
-    cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;return true;},
+  return { state, jobs, garage,get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,startMugging,robberyEligibility,workoutEligibility,finishWorkout,payRental,payRide,consumeFlare,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
+    cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;workoutPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
     serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,gear:state.gear,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns,muggingCooldowns:state.muggingCooldowns }); },
     drainEvents() { return events.splice(0); },

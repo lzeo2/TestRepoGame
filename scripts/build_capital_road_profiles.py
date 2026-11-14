@@ -12,19 +12,28 @@ def main():
     parser.add_argument('--cache', required=True, type=Path)
     parser.add_argument('--output', type=Path, default=ROOT / 'Games/Capital Drive/data/road-profiles.json')
     args = parser.parse_args()
+    map_path = ROOT / 'Games/Capital Drive/data/canberra.json'
+    map_bytes = map_path.read_bytes()
+    mapped = json.loads(map_bytes)
+    expected = mapped['meta']['sourceHashes']
     sources = []
     ways = {}
-    for source in sorted(args.cache.glob('osm-tile-*.json')):
+    for name, digest in sorted(expected.items()):
+        if not name.startswith('osm-tile-') or not name.endswith('.json'):
+            continue
+        source = args.cache / name
         raw = source.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != digest:
+            raise ValueError('Pinned source hash mismatch: ' + name)
         elements = json.loads(raw)['elements']
         sources.append({'file': source.name, 'sha256': hashlib.sha256(raw).hexdigest()})
         for item in elements:
             if item.get('type') == 'way':
                 ways[str(item['id'])] = item.get('tags', {})
-    map_path = ROOT / 'Games/Capital Drive/data/canberra.json'
-    map_bytes = map_path.read_bytes()
-    roads = json.loads(map_bytes)['roads']
-    keys = ('service', 'access', 'vehicle', 'motor_vehicle', 'bus', 'width')
+    roads = mapped['roads']
+    keys = ('service', 'access', 'vehicle', 'motor_vehicle', 'bus', 'width', 'lanes',
+        'lanes:forward', 'lanes:backward', 'maxspeed', 'sidewalk', 'sidewalk:left', 'sidewalk:right',
+        'cycleway', 'cycleway:left', 'cycleway:right', 'barrier', 'guard_rail')
     profiles = {}
     matched = 0
     for road in roads:

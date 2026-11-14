@@ -12,7 +12,7 @@ function assertActivitiesReachable(interiors, plan) {
   const step = 0.35, queue = [[0, 0]], visited = new Set(['0,0']), reached = new Set();
   for (const station of plan.activities) {
     assert(Object.isFrozen(station)); assert(!ids.has(station.id)); ids.add(station.id);
-    assert(['bench', 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade'].includes(station.kind));
+    assert(['bench', 'treadmill', 'curls', 'rower', 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade', 'presentation'].includes(station.kind));
     assert(station.label && [station.x, station.z, station.yaw, station.radius].every(Number.isFinite));
     assert(station.radius > 0 && station.radius <= 2);
     const pose = { x: station.x, z: station.z };
@@ -194,6 +194,9 @@ assert.equal(mall.enter({ ...mallEntry }, visitor), false);
 const mallPlan = mall.enter(mallEntry, visitor);
 assertActivitiesReachable(mall, mallPlan);
 assert(mallPlan.activities.some(s => s.kind === 'arcade'));
+assert(mallPlan.activities.some(s => s.kind === 'presentation' && s.label === 'PowerPunt workstation'));
+assert(mallPlan.furniture.some(s => s.kind === 'office-desk'));
+assert.equal(visitor.y, mallPlan.floorY);
 assert.equal(mallPlan.counter, null, 'original mall fixtures do not expose a paid service counter');
 assert(!('storeId' in mallPlan)); assert(!('siteId' in mallPlan));
 assert.equal(mallPlan.rooms.filter(r => r.kind === 'mall-unit').length, 4);
@@ -201,24 +204,32 @@ assert.equal(mallPlan.doors.filter(d => d.kind === 'unit').length, 4);
 assert.equal(mallPlan.furniture.filter(f => f.kind === 'shelves').length, 4);
 assert.equal(mallPlan.furniture.filter(f => f.kind === 'counter').length, 4);
 assert.equal(mallPlan.furniture.filter(f => f.kind === 'bench').length, 2);
-assert(mall.hasLineOfSight(point(0, 2), point(0, 25)), 'concourse remains open past the benches');
+assert(mall.hasLineOfSight(point(0, 2), point(0, mallPlan.depth - 2)), 'concourse remains open past the benches');
 function walkTo(x, z) {
   const target = point(x, z), dx = target.x - visitor.x, dz = target.z - visitor.z;
   const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.35));
   for (let i = 0; i < steps; i++) assert.equal(mall.moveActor(visitor, dx / steps, dz / steps).blocked, false, `mall route to ${x},${z} stays clear`);
   assert(Math.hypot(visitor.x - target.x, visitor.z - target.z) < 1e-6);
+  assert.equal(visitor.y, mallPlan.floorY, 'mall movement uses its only exposed floor');
 }
-for (const z of [7.5, 18.5]) for (const side of [-1, 1]) {
-  walkTo(0, z); walkTo(side * 7.5, z); walkTo(side * 7.5, z + 2);
+for (const door of mallPlan.doors.filter(d => d.kind === 'unit')) {
+  const localX = mc * (door.x - publicDoor.x) - ms * (door.z - publicDoor.z);
+  const localZ = ms * (door.x - publicDoor.x) + mc * (door.z - publicDoor.z);
+  walkTo(0, localZ); walkTo(localX * 1.5, localZ);
   assert(!mall.nearExit(visitor), 'a side unit cannot accidentally trigger the public exit');
-  walkTo(side * 7.5, z); walkTo(0, z);
+  walkTo(0, localZ);
 }
 const partitionTester = { ...point(0, 4) };
 assert(mall.moveActor(partitionTester, mc * 7, -ms * 7).blocked, 'unit walls are solid away from their doors');
 assert(!mall.hasLineOfSight(point(0, 4), point(7.5, 4)), 'mall partition occludes sight outside the doorway');
+assert.equal(mallPlan.levels.length, 1, 'current interpretation exposes the ground floor only');
+assert(mallPlan.sourceExtent.width > mallPlan.width && mallPlan.sourceExtent.depth > mallPlan.depth);
+assert(mallPlan.reference.includes('partial ground-floor'));
+for (let x = -mallPlan.width / 2 + .2; x < mallPlan.width / 2; x += 2) for (let z = .2; z < mallPlan.depth; z += 2)
+  assert(inside(point(x, z), north.buildings.find(b => b.id === mallPlan.buildingId).points), 'playable mall floor remains inside retained source building');
 walkTo(0, 1.65); assert(mall.nearExit(visitor));
 mallView.load(mallPlan);
-assert(mallView.stats.draws <= 4 && mallView.stats.triangles < 3000);
+assert(mallView.stats.draws <= 4 && mallView.stats.triangles < 5000);
 const mallTriangles = mallView.stats.triangles;
 let mallDisposed = 0;
 mallScene.children[0].children[0].geometry.addEventListener('dispose', () => mallDisposed++);
@@ -357,7 +368,7 @@ const gymPlan = gym.enter(gym.findEntry(athlete), athlete);
 assert.equal(gymPlan.type, 'gym'); assert.equal(gymPlan.serviceId, 'kingston-gym');
 assert(!('storeId' in gymPlan)); assert(gymPlan.counter && gymPlan.exercise);
 assertActivitiesReachable(gym, gymPlan);
-assert.equal(gymPlan.activities[0].kind, 'bench');
+assert.deepEqual(gymPlan.activities.map(s => s.kind), ['bench', 'treadmill', 'curls', 'rower']);
 for (const kind of ['exercise-bench', 'bench-rack', 'weight-rack', 'treadmill', 'exercise-mat', 'lockers']) assert(gymPlan.furniture.some(f => f.kind === kind));
 assert(Math.hypot(gymPlan.exercise.approachX - gymPlan.activities[0].x, gymPlan.exercise.approachZ - gymPlan.activities[0].z) < 1e-8);
 const gymScene = new THREE.Scene(), gymView = createInteriorView(gymScene);
@@ -373,3 +384,51 @@ const gymRevisit = gym.enter(gym.findEntry(athlete), athlete); assert.notEqual(g
 gymView.load(gymRevisit); gym.reset(athlete); gymView.dispose(); gymView.dispose();
 assert.equal(gymScene.children.length, 0);
 console.log(`PASS purposeful interiors: every house/shop/mall/noodle/gym station reachable with player clearance; actual Kingston source door approach; gym ${gymTriangles} triangles / 1 draw; deterministic lazy disposal`);
+
+// Include every runtime store, not only the original JSON's twenty-one shops.
+const civicExtras = JSON.parse(await read('../Games/Capital Drive/data/civic-extras.json'));
+const allStores = [...actualStores, ...civicExtras.stores];
+const allBuildings = [...actualMap.buildings, ...north.buildings];
+for (const store of allStores) if (!allBuildings.some(b => b.id === store.buildingId)) allBuildings.push({ id: store.buildingId, ...store.building });
+const all = createInteriors({ buildings: allBuildings }, { stores: allStores, heightAt: () => 3.25 });
+assert.equal(all.entries.length, 26, 'all twenty-six retained storefronts have interiors');
+const allScene = new THREE.Scene(), allView = createInteriorView(allScene), layouts = new Map();
+for (const entry of all.entries) {
+  const s = Math.sin(entry.yaw), c = Math.cos(entry.yaw);
+  const visitor = { x: entry.x - s * 1.5, z: entry.z - c * 1.5, y: 3.25, yaw: .45 };
+  const saved = { ...visitor }, plan = all.enter(all.findEntry(visitor), visitor);
+  assert(plan && Object.isFrozen(plan));
+  assert.equal(visitor.y, 3.39);
+  assertActivitiesReachable(all, plan);
+  assert(all.hasLineOfSight(visitor, plan.counter), `${entry.name} counter is visible from the door`);
+  const counterStation = Object.freeze({ id: `${entry.id}-counter-check`, kind: 'stock', label: 'Counter approach', ...plan.counter });
+  assertActivitiesReachable(all, { ...plan, activities: Object.freeze([counterStation]) });
+  const sweep = all.moveActor(visitor, s * 1e5, c * 1e5);
+  assert(sweep.blocked && sweep.distance <= 8.001, `${entry.name} sweep is bounded`);
+  allView.load(plan);
+  assert.equal(allView.stats.draws, 1); assert(allView.stats.triangles < 3000);
+  allScene.traverse(mesh => {
+    if (!mesh.isMesh) return;
+    for (const attr of Object.values(mesh.geometry.attributes)) assert(attr.array.every(Number.isFinite));
+  });
+  layouts.set(plan.storeId, { variant: plan.variant, kinds: new Set(plan.furniture.map(f => f.kind)), triangles: allView.stats.triangles });
+  assert(all.leave(visitor)); allView.clear(); assert.deepEqual({ x: visitor.x, z: visitor.z, y: visitor.y, yaw: visitor.yaw }, saved);
+}
+const coals = layouts.get('store-358293199'), mac = layouts.get('store-318857045');
+assert.equal(coals.variant, 'grocery'); assert(coals.kinds.has('fridge') && coals.kinds.has('shelves'));
+assert.equal(mac.variant, 'fast-food'); assert(mac.kinds.has('grill') && mac.kinds.has('booth') && mac.kinds.has('pickup-counter'));
+assert(!mac.kinds.has('shelves')); assert.notEqual(coals.triangles, mac.triangles);
+assert.equal(layouts.get('store-4069716453').variant, 'cafe');
+assert(layouts.get('store-4069716453').kinds.has('coffee-machine'));
+assert.equal(layouts.get('store-14065555895').variant, 'retail');
+assert(Object.isFrozen(noodlePlan.noodleCook) && Object.isFrozen(noodlePlan.boothGuest));
+const guest = noodlePlan.boothGuest;
+for (const solid of noodlePlan.furniture.filter(f => f.kind !== 'banquette')) {
+  const yaw = solid.yaw, c = Math.cos(yaw), s = Math.sin(yaw), dx = guest.x - solid.x, dz = guest.z - solid.z;
+  const x = c * dx - s * dz, z = s * dx + c * dz;
+  assert(Math.hypot(Math.max(0, Math.abs(x) - solid.width / 2), Math.max(0, Math.abs(z) - solid.depth / 2)) >= .28, 'booth adult clears every other fixture');
+}
+assert.equal(guest.seatHeight, .55);
+assert(noodlePlan.walls.some(w => w.kind === 'window-sill') && noodlePlan.walls.some(w => w.kind === 'window-lintel'));
+allView.dispose(); assert.equal(allScene.children.length, 0); assert.equal(all.stats.activePlans, 0);
+console.log('PASS all 26 source-tied shops: visible/reachable counters and activities, bounded sweeps, grocery/fast-food/cafe/retail distinction, actual noodle window/booth clearance, elevated floor return and lazy one-draw disposal');

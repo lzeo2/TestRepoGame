@@ -39,7 +39,7 @@ export function createAddressSearch(map, addresses = []) {
     add({ id: `street:${road.id}`, label: road.name, x: point[0], z: point[1], kind: 'street',
       detail: 'Street location, no house number' }, road.name, road.name);
   }
-  for (const landmark of map.landmarks || []) {
+  for (const landmark of [...(map.landmarks || []),...(map.searchPlaces || [])]) {
     add({ id: `landmark:${landmark.id}`, label: landmark.name, x: landmark.x, z: landmark.z,
       kind: landmark.store?'store':'landmark', detail: landmark.description || 'Mapped landmark' }, [landmark.name,...(landmark.aliases||[])].join(' '), landmark.name);
   }

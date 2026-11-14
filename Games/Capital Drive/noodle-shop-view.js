@@ -1,6 +1,7 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
 import { MAPPED_STORES } from './stores.js';
+import { createPersonGeometries, emitPersonParts, appearanceForPerson } from './person-model.js';
 
 export const NOODLE_SHOP_ID='store-5656111023';
 const RANGE=200;
@@ -14,7 +15,7 @@ export function createNoodleShopView(scene,heightAt) {
   const store=MAPPED_STORES.find(s=>s.id===NOODLE_SHOP_ID);
   const root=new THREE.Group();root.name='Original Lambzhou 1919 frontage';scene.add(root);
   const geometry=[],materials=[],textures=[],solids=[],glowing=[],lettering=[],obstacles=[];
-  let visible=false,disposed=false;
+  let visible=false,disposed=false,cookVisible=false,cookPhase=0;
   if(!store)return {update(){},get stats(){return Object.freeze({sites:0,visible:false,drawCalls:0,triangles:0,geometryCount:0,materialCount:0,textureCount:0,cullDistance:RANGE,disposed});},obstacles:Object.freeze([]),dispose(){if(disposed)return;disposed=true;scene.remove(root);}};
   const f=store.frontage,ground=heightAt(f.x,f.z);
   if(!Number.isFinite(ground))throw new Error('Noodle frontage requires finite terrain');
@@ -53,15 +54,15 @@ export function createNoodleShopView(scene,heightAt) {
   for(const side of [-1,1]) {
     const x=side*(.78+bayWidth/2);
     box(0x25292c,x,1.48,.19,bayWidth,2.60,.16);
-    box(0xa58c61,x,1.49,.282,bayWidth-.12,2.45,.025);
-    box(0xb9ac83,x,1.69,.30,bayWidth-.2,1.94,.018,glowing);
+    box(0xa58c61,x,1.49,side<0?.205:.282,bayWidth-.12,2.45,.025);
+    if(side>0)box(0xb9ac83,x,1.69,.30,bayWidth-.2,1.94,.018,glowing);
     box(0xe2c17b,x,2.58,.324,bayWidth-.16,.045,.035,glowing);
-    box(side<0?0x9baba7:0xca743e,x,.69,.34,bayWidth-.20,.68,.06);
-    box(side<0?0xc5cdca:0x9c784f,x,1.05,.34,bayWidth-.18,.065,.08);
-    for(let k=0;k<7;k++)box(0xad915f,x-bayWidth/2+.18+k*(bayWidth-.36)/6,2.12,.329,.030,.83,.025);
+    box(side<0?0x9baba7:0xca743e,x,.69,side<0?.79:.34,bayWidth-.20,.68,side<0?.65:.06);
+    box(side<0?0xc5cdca:0x9c784f,x,1.05,side<0?.64:.34,bayWidth-.18,.065,side<0?.62:.08);
+    if(side>0)for(let k=0;k<7;k++)box(0xad915f,x-bayWidth/2+.18+k*(bayWidth-.36)/6,2.12,.329,.030,.83,.025);
     box(0x243a4a,x,.49,.37,.43,.11,.08);
-    box(0x292d2f,x,1.46,.40,.045,2.55,.045);
-    box(0xc3d0c5,x,1.73,.411,bayWidth-.18,.025,.012,glowing);
+    if(side>0)box(0x292d2f,x,1.46,.40,.045,2.55,.045);
+    if(side>0)box(0xc3d0c5,x,1.73,.411,bayWidth-.18,.025,.012,glowing);
   }
   // Central glass double door stays visually clear; E performs the separate room transition.
   box(0x283639,0,1.39,.26,1.34,2.78,.16);
@@ -97,6 +98,23 @@ export function createNoodleShopView(scene,heightAt) {
     cylinder(0xe9dfbd,x,.83,out,.115,.025,12);
     cylinder(0x9b6e3e,x,.85,out,.085,.012,12);
   }
+  // Original shallow street-facing cook display; inferred depth, not a surveyed room.
+  // The backing remains ahead of the source wall and every moving part is behind its sill.
+  const cookX=-(.78+bayWidth/2),cookOut=.43,cookParts=createPersonGeometries();
+  const cookAppearance={...appearanceForPerson('lambzhou-window-cook'),shirt:0xe2dccb,trousers:0x41494a};
+  emitPersonParts(cookAppearance,{},(name,x,y,z,sx,sy,sz,tint)=>{
+    if(name==='arms'||name==='hands')return;
+    const shape=name==='torso'||name==='legs'?'capsule':name==='shoes'?'box':'sphere';
+    finish(cookParts[shape].clone().scale(sx,sy,sz).translate(cookX+x,y,cookOut+z).rotateY(angle).translate(f.x,ground,f.z),tint);
+  });
+  Object.values(cookParts).forEach(g=>g.dispose());
+  box(0xd9cfae,cookX,1.16,.594,.35,.63,.025);
+  for(const side of [-1,1])box(0x272d2c,cookX+side*.05,1.66,.568,.025,.025,.018);
+  box(0xe8e2d3,cookX,1.83,cookOut,.31,.14,.27);
+  for(const side of [-1,1])box(0x363b3b,cookX+side*(bayWidth/2-.08),1.56,.69,.09,1.95,.18);
+  box(0x363b3b,cookX,2.53,.69,bayWidth,.09,.18);
+  const cookDisplay=Object.freeze({x:point(cookX,0,cookOut).x,z:point(cookX,0,cookOut).z,
+    yaw:angle,sourceId:NOODLE_SHOP_ID,interpretation:'Original shallow preparation-window display; estimated depth.'});
   const atlasWidth=512,atlasHeight=256,rowHeight=32,pixels=new Uint8Array(atlasWidth*atlasHeight*4);
   LABELS.forEach((label,row)=>{
     const scale=row===0?4:3,left=Math.floor((atlasWidth-(label.length*6-1)*scale)/2),top=row*rowHeight+2;
@@ -130,12 +148,39 @@ export function createNoodleShopView(scene,heightAt) {
     const g=mergeGeometries(batch,false);batch.forEach(piece=>piece.dispose());g.computeBoundingSphere();geometry.push(g);materials.push(material);
     const mesh=new THREE.Mesh(g,material);mesh.name=name;root.add(mesh);meshes.push(mesh);
   }
-  const triangles=geometry.reduce((sum,g)=>sum+g.index.count/3,0);
-  function update(focus) {
+  const moving=[];
+  for(const [name,g,capacity] of [['Street cook rounded arms and hands',new THREE.SphereGeometry(1,6,4),6],['Street cook noodle strands',new THREE.BoxGeometry(1,1,1),36]]) {
+    const colors=new Float32Array(g.attributes.position.count*3);colors.fill(1);g.setAttribute('color',new THREE.BufferAttribute(colors,3));
+    const mesh=new THREE.InstancedMesh(g,materials[0],capacity);mesh.name=name;mesh.count=capacity;mesh.visible=false;mesh.frustumCulled=false;root.add(mesh);geometry.push(g);moving.push(mesh);
+  }
+  const part=new THREE.Object3D(),tint=new THREE.Color();
+  function put(mesh,index,x,y,out,sx,sy,sz,color,roll=0) {
+    part.position.copy(point(x,y,out));part.rotation.set(0,angle,0);part.rotateZ(roll);part.scale.set(sx,sy,sz);part.updateMatrix();
+    mesh.setMatrixAt(index,part.matrix);mesh.setColorAt(index,tint.setHex(color));
+  }
+  function poseCook() {
+    const spread=.27+(Math.sin(cookPhase*2)+1)*.10,handY=1.29+Math.cos(cookPhase*2)*.10;
+    for(let side=0;side<2;side++) {
+      const sign=side?1:-1;
+      put(moving[0],side*3,cookX+sign*.27,1.36,.51,.075,.19,.075,cookAppearance.skin,-sign*.25);
+      put(moving[0],side*3+1,cookX+sign*(spread+.27)/2,(handY+1.36)/2,.62,.065,.075,.15,cookAppearance.skin);
+      put(moving[0],side*3+2,cookX+sign*spread,handY,.735,.062,.07,.065,cookAppearance.skin);
+    }
+    for(let strand=0;strand<6;strand++)for(let segment=0;segment<6;segment++) {
+      const a=segment/6,b=(segment+1)/6,sag=.14+strand*.012,ax=(a*2-1)*spread,bx=(b*2-1)*spread;
+      const ay=handY-Math.sin(a*Math.PI)*sag,by=handY-Math.sin(b*Math.PI)*sag;
+      put(moving[1],strand*6+segment,cookX+(ax+bx)/2,(ay+by)/2,.735+(strand-2.5)*.008,Math.hypot(bx-ax,by-ay)+.006,.009,.009,0xead8a4,Math.atan2(by-ay,bx-ax));
+    }
+    for(const mesh of moving){mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;}
+  }
+  poseCook();
+  const triangles=geometry.slice(0,3).reduce((sum,g)=>sum+g.index.count/3,0)+moving.reduce((sum,m)=>sum+m.geometry.index.count/3*m.count,0);
+  function update(focus,dt=0) {
     if(disposed)return;
-    visible=!!focus&&Number.isFinite(focus.x)&&Number.isFinite(focus.z)&&Math.hypot(focus.x-f.x,focus.z-f.z)<RANGE;
-    root.visible=visible;
+    const d=focus&&Number.isFinite(focus.x)&&Number.isFinite(focus.z)?Math.hypot(focus.x-f.x,focus.z-f.z):Infinity;
+    visible=d<RANGE;cookVisible=d<40;root.visible=visible;for(const mesh of moving)mesh.visible=cookVisible;
+    if(cookVisible&&Number.isFinite(dt)&&dt>0){cookPhase=(cookPhase+Math.min(dt,.1))%(Math.PI*2);poseCook();}
   }
   update(null);
-  return {update,obstacles:Object.freeze(obstacles),get stats(){return Object.freeze({sites:1,storeId:store.id,visible,drawCalls:visible?3:0,triangles,geometryCount:3,materialCount:3,textureCount:1,atlasWidth,atlasHeight,cullDistance:RANGE,entranceClearWidth:1.8,disposed});},dispose(){if(disposed)return;disposed=true;visible=false;scene.remove(root);geometry.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());}};
+  return {update,cookDisplay,obstacles:Object.freeze(obstacles),get stats(){return Object.freeze({sites:1,storeId:store.id,visible,drawCalls:visible?3+(cookVisible?2:0):0,cookVisible,cookPhase,noodleSegments:36,sharedCookModel:true,triangles,geometryCount:5,materialCount:3,textureCount:1,atlasWidth,atlasHeight,cullDistance:RANGE,entranceClearWidth:1.8,disposed});},dispose(){if(disposed)return;disposed=true;visible=false;cookVisible=false;scene.remove(root);moving.forEach(m=>m.dispose());geometry.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());}};
 }

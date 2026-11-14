@@ -52,6 +52,26 @@ const officerTorso = find('Officer torso');
 for (const hex of [officerAppearance.shirt, officerAppearance.trousers, officerAppearance.skin, officerAppearance.hair]) {
   assert(verticesWithColor(officerTorso, hex).length > 0, 'officer identity palette survives instanced batching');
 }
+const actorBuffers = [];
+find('Adult player').traverse(mesh => { if (mesh.isMesh) actorBuffers.push([mesh.geometry, mesh.geometry.attributes.position.array, mesh.geometry.attributes.color?.array]); });
+const policeColors = [...officerTorso.geometry.attributes.color.array];
+const heroIds = ['player:student','player:corporate','player:basement'];
+assert.equal(new Set(heroIds.map(id => appearanceForPerson(id).shirt)).size,3,'three original adult outfits are distinct');
+for (const id of [...heroIds,'player']) {
+  const appearance = appearanceForPerson(id);
+  assert(view.setPlayerAppearance(id));
+  assert.deepEqual(find('Adult player').userData.appearance,appearance);
+  assert.equal(verticesWithColor(torsoMesh,appearance.shirt).length,jacketVertices.length,'hero outfit updates every jacket vertex');
+  assert(verticesWithColor(find('Head').children.find(object => object.isMesh),appearance.skin).length>0,'hero skin changes with the same identity');
+  assert(verticesWithColor(find('Head').children.find(object => object.isMesh),appearance.hair).length>0,'hero hair changes with the same identity');
+}
+assert(!view.setPlayerAppearance('unrecognised'),'unsupported hero cannot select an arbitrary appearance');
+let bufferIndex=0;
+find('Adult player').traverse(mesh => { if (mesh.isMesh) {
+  const [geometry,positions,colors]=actorBuffers[bufferIndex++];
+  assert.equal(mesh.geometry,geometry); assert.equal(mesh.geometry.attributes.position.array,positions); assert.equal(mesh.geometry.attributes.color?.array,colors);
+} });
+assert.deepEqual([...officerTorso.geometry.attributes.color.array],policeColors,'hero changes preserve police uniforms');
 const state = {
   mode: 'foot', actor: { x: 2, z: 3, yaw: .3, speed: 0, jumpHeight: 0 },
   weapon: 'unarmed', aiming: false, attackTimer: 0, reloading: 0,
@@ -100,6 +120,19 @@ state.reloading = 1; view.update(state, options);
 assert(shoulders[1].rotation.x < 1, 'reload brings weapon toward chest');
 state.reloading = 0; state.weapon = 'unarmed'; state.attackTimer = .15;
 view.update(state, options); assert(shoulders[1].rotation.x > 1.8, 'melee extends striking arm');
+state.actor.yaw=0; state.actor.speed=0; state.attackSerial=1;
+const elbows=[]; root.traverse(object => { if(object.name==='Elbow') elbows.push(object); });
+function fistZ(index) { root.updateMatrixWorld(true); return new THREE.Vector3(0,-.28,0).applyMatrix4(elbows[index].matrixWorld).z; }
+state.attackTimer=.3; view.update(state,options); const windup=fistZ(1), windupElbow=elbows[1].rotation.x;
+state.attackTimer=.15; view.update(state,options); const extension=fistZ(1);
+assert(extension < windup-.10 && elbows[1].rotation.x<windupElbow,'windup extends the actual fist forward and straightens its elbow');
+assert(find('Torso').position.z<-.05 && Math.abs(find('Torso').rotation.y)>.15,'strike shifts weight and torso toward the blow');
+state.attackTimer=.02; view.update(state,options);
+assert(fistZ(1)>extension+.15,'recovery retracts the fist');
+state.attackTimer=.15; state.attackSerial=2; view.update(state,options);
+assert(shoulders[0].rotation.x>1.8 && shoulders[1].rotation.x<1,'consecutive authoritative strikes alternate arms');
+state.attackTimer=0; view.update(state,options);
+assert.equal(find('Torso').position.z,0); assert.equal(find('Torso').rotation.y,0,'idle clears strike weight shift');
 state.actor.jumpHeight = .8; view.update(state, options);
 assert(Math.abs(find('Adult player').position.y - heightAt(2, 3) - .835) < 1e-10, 'jump lift follows simulation');
 state.police = Array.from({length:4},(_,i) => ({mode:'foot',active:true,health:100,x:i*2,z:4,yaw:.5,speed:2,car:{x:i*9,z:-12,yaw:1,active:true}}));

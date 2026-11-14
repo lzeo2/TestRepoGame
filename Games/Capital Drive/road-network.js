@@ -8,9 +8,21 @@ export function roadProfile(road = {}) {
   const base = Number.isFinite(taggedWidth) && taggedWidth > 0 ? taggedWidth : Number(road.width) || 8;
   const driveWidth = Math.max(2.5, Math.min(minor ? (service === 'parking_aisle' ? 4.2 : 3.2) : 24, base));
   const trafficAllowed = !minor && !privateRoad;
-  return { driveWidth, pavementWidth: minor ? 0 : road.type === 'service' ? 0.75 : 1.65,
-    hasKerb: !minor, markings: !minor && road.type !== 'service' && driveWidth >= 5,
+  const taggedLanes = /^\d+$/.test(String(tags.lanes || '')) ? Number(tags.lanes) : null;
+  const lanes = taggedLanes > 0 ? Math.min(8, taggedLanes) : road.oneway && driveWidth >= 7 ? Math.max(2, Math.min(4, Math.round(driveWidth / 3.6))) : driveWidth >= 5 ? 2 : 1;
+  const motorway = /^(motorway|motorway_link)$/.test(road.type || '');
+  const pavementWidth = minor || motorway || tags.sidewalk === 'no' || tags.sidewalk === 'none' ? 0 : road.type === 'service' ? .75 : 1.65;
+  return { driveWidth, pavementWidth, lanes, lanesFromSource: taggedLanes > 0,
+    sidewalkLeft: pavementWidth > 0 && tags.sidewalk !== 'right' && tags['sidewalk:left'] !== 'no',
+    sidewalkRight: pavementWidth > 0 && tags.sidewalk !== 'left' && tags['sidewalk:right'] !== 'no',
+    major: /^(primary|trunk|motorway)(?:_link)?$/.test(road.type || ''),
+    hasKerb: !minor && !motorway, markings: !minor && road.type !== 'service' && driveWidth >= 5,
     trafficAllowed, busAllowed: trafficAllowed && !['no', 'private'].includes(tags.bus) && road.type !== 'service' && driveWidth >= 4.5 };
+}
+
+export function roadMarkingOffsets(road, profile = roadProfile(road)) {
+  if (!profile.markings) return [];
+  return road.oneway ? Array.from({ length: profile.lanes - 1 }, (_, i) => -profile.driveWidth / 2 + profile.driveWidth * (i + 1) / profile.lanes) : [0];
 }
 
 export function applyRoadProfiles(map, sidecar = {}) {

@@ -20,6 +20,9 @@ Read repository `AGENTS.md`, `docs/CODE_QUALITY.md`,
 `docs/capital-drive-yoober-contract.md` and
 `docs/capital-drive-signals-transport-crime-contract.md`.
 Shared street/vehicle character work also reads `docs/capital-drive-people-contract.md`.
+Three-character, gym, indoor encounter and sourced street-detail work also reads
+`docs/capital-drive-canberra-life-contract.md` and
+`docs/capital-drive-canberra-life-sources.md`.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -76,7 +79,11 @@ queries. Do not restore a separate full model for every traffic car. Medical
 recovery is character-health based; a wrecked car must allow exit. Ordinary
 road travel and foot movement must not generate reckless vehicle reports.
 
-Campaign is a third mode with saved ordered chapters. Its completion and rewards
+Campaign is a third mode with three separately ordered introductions, a shared
+meeting and the retained six chapters. Its strict v2 save preserves v1 progress;
+do not replay old rewards or teleport during a mid-session character selection.
+Only an initial start uses character-start.js and checked separate car/foot poses.
+Its completion and rewards
 share the career save write; active missions remain transient. No sandbox travel
 may advance a chapter. House/shop/Centre room plans and meshes are generated only
 on entry and discarded on leave. Counter actions require the matching active room.
@@ -99,6 +106,9 @@ exercise input; steer around the player's parked car rather than walking through
 it. A harness failure is retained and corrected without weakening collision.
 
 Interior activities own supplied-dt scoring and exactly-once completion events.
+Bench, treadmill, curls and rowing have different cue/hold/release rules and
+equipment-linked participant poses. Start the activity before paid admission;
+finish requires its real matching terminal session, never a caller boolean.
 Progression owns all paid shift and rental cash, validates the live matching room,
 station and session, and writes through the existing career save. No passive
 workout timer or Free-roam activity may bank progression. X+Y held with timed
