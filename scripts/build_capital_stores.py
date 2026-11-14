@@ -150,6 +150,38 @@ def build(cache):
         'geometryNote':'Exact retained map footprints; estimated street-facing interaction positions, not surveyed entrances.'},'stores':stores}, precincts(elements,world)
 
 
+def add_north_store(payload, cache):
+    """Add the corroborated ground-floor noodle POI without changing the base snapshot."""
+    north_bytes = (GAME/'data/canberra-north.json').read_bytes()
+    north = json.loads(north_bytes)
+    filename = 'osm-map-2-2.json'
+    expected = next(f['sha256'] for f in north['meta']['source']['files'] if f['file'] == filename)
+    raw = (cache/filename).read_bytes()
+    if digest(raw) != expected:
+        raise ValueError('Unpinned northern source tile: '+filename)
+    elements = {(e['type'],e['id']):e for e in json.loads(raw)['elements']}
+    source = elements[('node',5656111023)]
+    if source.get('tags',{}).get('amenity') != 'restaurant' or source['tags'].get('name') != '1919 Lanzhou Beef Noodle':
+        raise ValueError('Expected retained Lanzhou restaurant POI')
+    profiles = {r['id']:r.get('sourceTags',{}) for r in north['roads']}
+    allocated = [((s['frontage']['x'],s['frontage']['z']),s['frontage']['width']) for s in payload['stores']]
+    building, location = locate(source,north,profiles,allocated)
+    if building['id'] != 'osm-584970594' or location['road'] != 'Bunda Street':
+        raise ValueError('Noodle shop must match its retained Civic footprint and public frontage')
+    payload['stores'].append({'id':'store-5656111023','name':'Lambzhou 1919',
+        'aliases':['lambzhou 1919','Lanzhou 1919','1919 Lanzhou Beef Noodle','Lanhou 1919'],
+        'type':'food','interiorType':'noodle-shop','radius':4.8,'price':35,'heal':35,'robbery':500,
+        'sourceName':source['tags']['name'],'source':{k:source[k] for k in ('type','id','lat','lon','version','timestamp')},
+        'buildingId':building['id'],'building':{'points':building['points'],'height':building['height']},'district':'Civic',
+        'externalReferences':[
+            {'url':'https://1919lanzhoubeefnoodle.com.au/store/canberra-centre/','note':'Official chain identifies Canberra Centre Shop EG11c.'},
+            {'url':'https://canberracentre.qicre.com/eat-and-drink/1919-lanzhou-beef-noodle/','note':'Official centre identifies ground floor Bunda Street opposite Garema Place.'}],
+        'addressNote':'Shop EG11c, Canberra Centre, Bunda Street: official external references, not an OSM address or surveyed tenant boundary.',
+        **location})
+    payload['meta']['northMapSha256'] = digest(north_bytes)
+    payload['meta']['northSourceFiles'] = [{'file':filename,'sha256':expected}]
+
+
 def precincts(elements, world):
     """Retain exact source ways; roles and levels are bounded exterior interpretations."""
     lon0, lat0 = world['meta']['origin']
@@ -208,15 +240,18 @@ def module(entries, export):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cache',type=Path,required=True)
+    parser.add_argument('--north-cache',type=Path,required=True,help='Retained northern OSM source cache for Civic noodle shop')
     parser.add_argument('--output',type=Path,default=GAME/'data/stores.json')
     parser.add_argument('--module-output',type=Path,default=GAME/'stores.js')
     parser.add_argument('--precinct-output',type=Path,default=GAME/'data/shopping-precincts.json')
     parser.add_argument('--precinct-module-output',type=Path,default=GAME/'shopping-precincts.js')
     args = parser.parse_args()
     payload, sites = build(args.cache)
+    precinct_meta = dict(payload['meta'])
+    add_north_store(payload,args.north_cache)
     args.output.write_text(json.dumps(payload,sort_keys=True,separators=(',',':'))+'\n')
     args.module_output.write_text(module(payload['stores'],'MAPPED_STORES')+'export const LEGACY_SHOP_IDS = Object.freeze(["crescent-kiosk", "manuka-store"]);\n')
-    args.precinct_output.write_text(json.dumps({'version':1,'meta':payload['meta'],'precincts':sites,'managedBuildingIds':['act-87705-0']},sort_keys=True,separators=(',',':'))+'\n')
+    args.precinct_output.write_text(json.dumps({'version':1,'meta':precinct_meta,'precincts':sites,'managedBuildingIds':['act-87705-0']},sort_keys=True,separators=(',',':'))+'\n')
     args.precinct_module_output.write_text(module(sites,'SHOPPING_PRECINCTS')+'export const SHOPPING_BUILDING_IDS = Object.freeze(["act-87705-0"]);\n')
     print(f'{len(payload["stores"])} exact-source retail/food POIs; {len(sites)} source precincts, {len(sites[0]["paths"])} clear source paths, {len(sites[0]["parking"])} source parking areas')
 

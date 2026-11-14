@@ -32,7 +32,24 @@ for (let i=0;i<MAPPED_STORES.length;i++) for(let j=0;j<i;j++) {
 const mapBytes = await readFile(join(game, 'data/canberra.json'));
 const addressBytes = await readFile(join(game, 'data/addresses.json'));
 const profileBytes = await readFile(join(game, 'data/road-profiles.json'));
-const map = JSON.parse(mapBytes), profiles = JSON.parse(profileBytes).roads;
+const northBytes = await readFile(join(game, 'data/canberra-north.json'));
+const north = JSON.parse(northBytes), baseMap = JSON.parse(mapBytes);
+const map = {...baseMap,buildings:[...baseMap.buildings,...north.buildings],roads:[...baseMap.roads,...north.roads]};
+const profiles = {...JSON.parse(profileBytes).roads,...Object.fromEntries(north.roads.map(r=>[r.id,r.sourceTags||{}]))};
+assert.equal(hash(northBytes),payload.meta.northMapSha256);
+const noodles=MAPPED_STORES.find(s=>s.id==='store-5656111023');
+assert(noodles);
+assert.equal(MAPPED_STORES.length,21);
+assert.equal(noodles.name,'Lambzhou 1919');
+assert.equal(noodles.interiorType,'noodle-shop');
+assert.equal(noodles.buildingId,'osm-584970594');
+assert.equal(noodles.road,'Bunda Street');
+assert.equal(noodles.robbery,500);
+assert.equal(noodles.price,35);
+assert.equal(noodles.heal,35);
+for(const alias of ['Lanzhou 1919','1919 Lanzhou Beef Noodle','Lanhou 1919']) assert(noodles.aliases.includes(alias));
+assert.equal(noodles.externalReferences.length,2);
+assert(/not an OSM address/.test(noodles.addressNote));
 const distance = (a,b) => Math.hypot(a[0]-b[0],a[1]-b[1]);
 function inside(p, points) {
   let hit = false;
@@ -65,7 +82,7 @@ for (const store of MAPPED_STORES) {
   assert(store.aliases.includes(store.name.toLowerCase()));
   assert(['food','retail'].includes(store.type));
   assert(store.radius>0 && store.radius<=5.5 && store.price===35 && store.heal===35);
-  assert(store.robbery>=180 && store.robbery<=350);
+  assert(store.id==='store-5656111023' ? store.robbery===500 : store.robbery>=180 && store.robbery<=350);
   assert(store.source.version>0 && /^\d{4}-/.test(store.source.timestamp));
   assert.equal(store.source.type,'node');
   const sourcePoint=[(store.source.lon-map.meta.origin[0])*111320*Math.cos(map.meta.origin[1]*Math.PI/180),(map.meta.origin[1]-store.source.lat)*111320];
@@ -104,12 +121,20 @@ for (const path of SHOPPING_PRECINCTS[0].paths) {
 // Cache verification is explicit: CI can run geometry checks without developer downloads.
 const cacheIndex=process.argv.indexOf('--cache');
 const cache=cacheIndex>=0 ? process.argv[cacheIndex+1] : process.env.CAPITAL_STORES_CACHE;
+const northCacheIndex=process.argv.indexOf('--north-cache');
+const northCache=northCacheIndex>=0 ? process.argv[northCacheIndex+1] : process.env.CAPITAL_STORES_NORTH_CACHE;
 if (cache) {
+  assert(northCache,'--cache requires --north-cache for complete Civic source regeneration');
   const sources=new Map();
   for (const source of payload.meta.sourceFiles) {
     const raw=await readFile(join(cache,source.file));
     assert.equal(hash(raw),source.sha256);
     for (const e of JSON.parse(raw).elements) sources.set(`${e.type}/${e.id}`,e);
+  }
+  for (const source of payload.meta.northSourceFiles) {
+    const raw=await readFile(join(northCache,source.file));
+    assert.equal(hash(raw),source.sha256);
+    for(const e of JSON.parse(raw).elements) sources.set(`${e.type}/${e.id}`,e);
   }
   for (const store of MAPPED_STORES) {
     const source=sources.get(`${store.source.type}/${store.source.id}`);
@@ -130,7 +155,7 @@ if (cache) {
   const output=await mkdtemp(join(tmpdir(),'capital-stores-'));
   try {
     for (let run=0;run<2;run++) {
-      const result=spawnSync('python3',['-B','scripts/build_capital_stores.py','--cache',cache,'--output',join(output,'stores.json'),'--module-output',join(output,'stores.js'),'--precinct-output',join(output,'shopping-precincts.json'),'--precinct-module-output',join(output,'shopping-precincts.js')],{cwd:root,encoding:'utf8',timeout:30000});
+      const result=spawnSync('python3',['-B','scripts/build_capital_stores.py','--cache',cache,'--north-cache',northCache,'--output',join(output,'stores.json'),'--module-output',join(output,'stores.js'),'--precinct-output',join(output,'shopping-precincts.json'),'--precinct-module-output',join(output,'shopping-precincts.js')],{cwd:root,encoding:'utf8',timeout:30000});
       assert.equal(result.status,0,result.stderr);
       assert.deepEqual(await readFile(join(output,'stores.json')),bytes,'JSON regeneration is byte-identical');
       assert.deepEqual(await readFile(join(output,'stores.js')),moduleBytes,'module regeneration is byte-identical');
@@ -138,6 +163,7 @@ if (cache) {
       assert.deepEqual(await readFile(join(output,'shopping-precincts.js')),precinctModuleBytes,'precinct module regeneration is byte-identical');
     }
   } finally { await rm(output,{recursive:true,force:true}); }
+  assert.deepEqual(await readFile(join(game,'data/canberra-north.json')),northBytes,'northern source map preserved');
   assert.deepEqual(await readFile(join(game,'data/canberra.json')),mapBytes,'map preserved');
   assert.deepEqual(await readFile(join(game,'data/addresses.json')),addressBytes,'address source preserved');
   assert.deepEqual(await readFile(join(game,'data/road-profiles.json')),profileBytes,'road source preserved');

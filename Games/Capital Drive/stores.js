@@ -2395,6 +2395,190 @@ export const MAPPED_STORES = freeze([
     "type": "food",
     "x": -224.255,
     "z": 332.893
+  },
+  {
+    "addressNote": "Shop EG11c, Canberra Centre, Bunda Street: official external references, not an OSM address or surveyed tenant boundary.",
+    "aliases": [
+      "lambzhou 1919",
+      "Lanzhou 1919",
+      "1919 Lanzhou Beef Noodle",
+      "Lanhou 1919"
+    ],
+    "building": {
+      "height": 6.4,
+      "points": [
+        [
+          -317.04,
+          -4363.33
+        ],
+        [
+          -336.67,
+          -4354.36
+        ],
+        [
+          -353.44,
+          -4391.14
+        ],
+        [
+          -377.63,
+          -4436.6
+        ],
+        [
+          -375.1,
+          -4438.51
+        ],
+        [
+          -381.89,
+          -4451.83
+        ],
+        [
+          -387.07,
+          -4448.84
+        ],
+        [
+          -406.75,
+          -4489.42
+        ],
+        [
+          -439.69,
+          -4492.91
+        ],
+        [
+          -432.65,
+          -4540.1
+        ],
+        [
+          -399.4,
+          -4535.64
+        ],
+        [
+          -392.65,
+          -4534.63
+        ],
+        [
+          -391.54,
+          -4543.89
+        ],
+        [
+          -388.24,
+          -4572.59
+        ],
+        [
+          -351.34,
+          -4568.43
+        ],
+        [
+          -305.33,
+          -4468.47
+        ],
+        [
+          -248.41,
+          -4496.49
+        ],
+        [
+          -246.46,
+          -4493.69
+        ],
+        [
+          -237.54,
+          -4497.91
+        ],
+        [
+          -225.63,
+          -4473.09
+        ],
+        [
+          -217.72,
+          -4458.96
+        ],
+        [
+          -202.68,
+          -4427.33
+        ],
+        [
+          -216.25,
+          -4421.17
+        ],
+        [
+          -214.65,
+          -4416.68
+        ],
+        [
+          -258.64,
+          -4397.16
+        ],
+        [
+          -256.2,
+          -4391.55
+        ],
+        [
+          -289.33,
+          -4376.43
+        ],
+        [
+          -305.32,
+          -4368.88
+        ],
+        [
+          -317.04,
+          -4363.33
+        ]
+      ]
+    },
+    "buildingId": "osm-584970594",
+    "buildingMatch": {
+      "distance": 0,
+      "method": "containing footprint"
+    },
+    "district": "Civic",
+    "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+    "externalReferences": [
+      {
+        "note": "Official chain identifies Canberra Centre Shop EG11c.",
+        "url": "https://1919lanzhoubeefnoodle.com.au/store/canberra-centre/"
+      },
+      {
+        "note": "Official centre identifies ground floor Bunda Street opposite Garema Place.",
+        "url": "https://canberracentre.qicre.com/eat-and-drink/1919-lanzhou-beef-noodle/"
+      }
+    ],
+    "frontage": {
+      "allocation": "nonoverlapping source-point-nearest public facade unit",
+      "confidence": "estimated",
+      "width": 6.2,
+      "x": -363.093,
+      "yaw": 2.06,
+      "z": -4408.812
+    },
+    "heal": 35,
+    "id": "store-5656111023",
+    "interiorType": "noodle-shop",
+    "name": "Lambzhou 1919",
+    "price": 35,
+    "publicApproach": {
+      "x": -367.096,
+      "z": -4406.948
+    },
+    "radius": 4.8,
+    "road": "Bunda Street",
+    "roadId": "701312042-north-0",
+    "robbery": 500,
+    "source": {
+      "id": 5656111023,
+      "lat": -35.2783536,
+      "lon": 149.1330983,
+      "timestamp": "2025-09-14T21:26:26Z",
+      "type": "node",
+      "version": 7
+    },
+    "sourceName": "1919 Lanzhou Beef Noodle",
+    "sourcePosition": {
+      "x": -354.4,
+      "z": -4413.437
+    },
+    "type": "food",
+    "x": -365.282,
+    "z": -4407.647
   }
 ]);
 export const LEGACY_SHOP_IDS = Object.freeze(["crescent-kiosk", "manuka-store"]);
