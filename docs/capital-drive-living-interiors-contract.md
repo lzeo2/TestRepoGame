@@ -57,3 +57,29 @@ start/finish authority, NPC view lifecycle, new source/store/skate adapters, nor
 browser tests and source docs. Existing services remain available; no shop/home
 may be a dead room. Gym training uses minigame completion, never an automatic timer.
 No map teleport in Campaign/Street Life; Free roam cannot bank rewards.
+
+
+## Additions and integration ownership
+
+M5: exact five Civic parody stores, ACT SKPK6 park, shared cut/ramp/rail geometry
+and deterministic cached builder (`faf3626d`). M6: three bounded Lemon stands,
+six pooled assets, phone hire/riding/stop-in-place and atomic payment callback
+(`1108238b`). These are fictional operator/pricing choices beside sourced roads.
+M7/M8: actual viewed exterior/interior cues and left-kitchen correction
+(`ecd14cd7`, `1c965740`); imagery remains external inspection material. M2 followup
+`e6dcaa1b` aligns staff with the left prep line. No new Street View inspection
+was possible after explicit operator approval; see the honest source notes.
+
+M9 owns the bounded normal-input browser suite (`bc7b5205`, `eb4f2ef0`); it retains
+two failed attempts and root reruns rather than converting failures into passes.
+M10 owns Progression paid work and its pure regression (`ae775e85`): noodle60,
+stock45, two extra legal deliveries; the controller binds actual active sessions.
+M11 owns the real-map/rendered-buffer opening regression (`fddd7073`), and reported
+a stationary-car contact-normal defect. Root fixed the inward contact and added
+its reproduction to the regression. Root integration is `2f603714`; no new
+wallet, source-map rewrite, remote runtime service or catalog game was introduced.
+
+The reusable skill and runner now describe these boundaries and reproduction.
+Final current-run verification is recorded separately from the initial contracts
+and historical fleet results. No worker pushes or grants gameplay state as
+positive browser proof.

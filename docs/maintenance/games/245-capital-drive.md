@@ -22,10 +22,10 @@ artwork or branded vehicle assets are used.
   health, witnessed offences, timed carjacking and delayed recovery. `police.js`
   owns up to four road patrols, dismounted officers, sight/search/escape and arrest.
 - `progression.js`: recurring ordered jobs, costs/rewards/unlocks, owned garage,
-  condition-preserving retrieval, food/gun/ammo purchases, timed fitness/robbery,
+  condition-preserving retrieval, food/gun/ammo purchases, playable fitness/paid work, timed robbery,
   cooldowns and strict legacy-compatible career-save validation.
 - `street-ui.js`: jobs/garage/shops, five-star HUD and recovery feedback; no clock
-  or storage owner. `services.js` combines twenty-one mapped parody stores with fictional gym/arms sites.
+  or storage owner. `services.js` combines twenty-six mapped parody stores with fictional gym/arms sites.
   `stores.js`/`data/stores.json` pin source nodes and estimated public frontages.
   `storefronts-view.js` presents twenty generic-capable facades plus a separately managed noodle restaurant in two batches.
 - `actor-view.js`: original articulated adult, generic patrol cars, pooled brief
@@ -43,8 +43,8 @@ artwork or branded vehicle assets are used.
 - `buses.js`/`bus-view.js`: two original unbranded buses, fictional ambient
   circuits on the actual public-road graph and bounded rendering.
 - `districts.js`: exact source Manuka retail polygon, shared appearance classifier.
-- `pedestrians.js`:80 instanced fictional adults, safe sidewalk walking,
-  panic/anger/knockdown/recovery and causally attributed witness events.
+- `pedestrians.js`:80 suburban /160 nearby Civic instanced fictional adults, safe sidewalk walking,
+  panic/anger/knockdown/recovery swept player contacts/yielding and causally attributed witness events.
 - `navigation.js`, `map-projection.js`, `address-search.js`: directed road routes,
   shared map transform and bounded offline landmark/street/address matching.
 - `data/canberra.json`: unchanged 12,572 sourced outlines, 5,197 road runs and
@@ -60,6 +60,9 @@ exits a moving car, enters a nearby empty car, or starts taking an occupied car.
 An occupied car must brake and stay close through the 1.8 second taking action.
 **1/2** chooses fists/owned pistol; purchase the pistol at the supplies outlet first;
 right mouse aims, left mouse attacks/fires, F melees and R reloads on foot.
+**Q** starts the nearby interior mini-game or paid shop task; **T** opens the
+Lemon hire phone. At the gym bench hold **X+Y**, then press **ArrowUp** on each
+LIFT cue for six repetitions. Early/late presses and releasing grip fail the set.
 Drag mouse to orbit; vehicle vertical drag looks up/down and stationary views
 remain in place. H horns when sound is enabled. M map, J jobs, G garage, K shops, P/Esc
 pause. Touch driving and action buttons cover smaller/coarse-pointer devices; Pause also opens the garage and sound controls.
@@ -73,7 +76,9 @@ sandbox travel never pays career cash or completes a job.
 
 Start Crescent parcel at spawn and deliver down NSW Crescent. Ordered checkpoint,
 target-wagon theft and wanted-getaway jobs unlock after that delivery; later jobs
-pay more. Each fresh job requires arrival/stage/time conditions and pays once.
+pay more. Franklin and Kennedy deliveries are available immediately for$400/$450.
+Noodle preparation pays$60 and shop stocking pays$45 after the actual task completes.
+No time-only, interrupted or Free-roam task pays. Each fresh job requires arrival/stage/time conditions and pays once.
 Crescent garage is a fictional service marker beside the mapped road: buy,
 retrieve, store, repair and paint owned cars there. Retrieval keeps damage/paint;
 repair costs cash. Police need actual building-unobstructed sight, then search
@@ -139,6 +144,37 @@ OFL font remain. All runtime data/imports/assets are local; developer caches and
 browser/geodata tooling stay outside the repository.
 
 ## Audit findings
+
+### Living interiors, hire rides and paid work, 14 November 2026
+
+The [living source notes](../../capital-drive-living-sources.md) record the actual
+viewed restaurant exterior and official interior photographs, five exact Civic
+store POIs, nine source paths and ACT SKPK6 boundary. The left preparation line,
+right dining side, oxblood facade, cream transom and black frames follow those
+observations; room dimensions/doors and ordinary building art remain estimates.
+No new restaurant Street View panorama was accessible after explicit approval;
+the cloud browser failed technically. No imagery/logos/murals are bundled.
+
+`interior-activities.js` owns seven playable activity kinds; `interior-people.js`
+and its view add up to16 active adults in at most6 batches, loaded/cleared with
+the room. The gym has an enterable original room, an animated press and six timed
+repetitions. Houses have cooking/TV/rest; shops stock/order tasks; the concourse
+has games. Work wages and exercise progression validate the actual matching
+room, station/session and player. A repeated Q cannot cancel pay eligibility.
+
+`micromobility.js`/view provide six pooled fictional Lemon scooters/e-bikes at
+three source-road stands. T phone hires a nearby actual asset for$20/$30; WASD
+rides, S brakes, E ends a stopped ride in place. Cash stays in Progression and
+sandbox travel cannot bank/spend it. Recovery, mode changes and teleport reset
+or freeze the hire; it cannot move during a medical transfer.
+
+`civic-extras.js`/view present five source shops and a walkable park in one draw.
+The exact ACT park polygon cuts the overlapping roof/facade and collider. Shared
+ramp heights and a physical rail agree with visible geometry. A car's inner-edge
+contact resolves locally into the opening rather than jumping to the old outer
+facade. Source geography is unchanged. The pinned offline builder reproduces
+both generated files byte-for-byte. See the [living verification receipt](../../verification/capital-drive-living-2026-11-14.md) for current
+normal-input results, previews, source budgets and retained failures.
 
 ### Precincts, lazy rooms, Civic and campaign, 14 November 2026
 
@@ -267,12 +303,12 @@ imports with retained source hashes; never turn rendering estimates into data.
 
 ```sh
 python3 -B scripts/check_capital_drive.py
-python3 -B scripts/check_capital_drive.py --browser --output <external-output>
+python3 -B scripts/check_capital_drive.py --browser --living-browser --output <external-output>
 python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The reusable runner checks25authored modules and21pure suites (68commands), fails
+The reusable runner checks44authored modules and36pure suites (117commands), fails
 on missing files or actual command errors and bounds subprocess lifetimes. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
 unavailable WebGL, denied storage and hidden teleport guards. Actual-map physics

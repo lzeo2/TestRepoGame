@@ -12,7 +12,9 @@ Read repository `AGENTS.md`, `docs/CODE_QUALITY.md`,
 `docs/capital-drive-expansion-contract.md` and
 `docs/capital-drive-stores-pool-contract.md`,
 `docs/capital-drive-precinct-character-contract.md` and
-`docs/capital-drive-district-sources.md`.
+`docs/capital-drive-district-sources.md`,
+`docs/capital-drive-living-interiors-contract.md` and
+`docs/capital-drive-living-sources.md`.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -82,4 +84,18 @@ never infer whole-device performance from a buffer-byte comparison.
 The priority-shop browser option reuses the bounded harness for the sourced noodle
 restaurant. Its two official interior photo references inform original geometry;
 reference photos/logos/murals stay outside runtime assets. Both source caches are
-required for a reproducible21-store build.
+required for a reproducible21-store build; five Civic extras are rebuilt separately from their pinned OSM/ACT caches.
+
+
+Living-room changes also require the `--browser --living-browser --output` flow
+when normal-input evidence is needed. It uses a temporary localhost server and
+retains failed runs. Wait for native dialog-close events to settle before held
+exercise input; steer around the player's parked car rather than walking through
+it. A harness failure is retained and corrected without weakening collision.
+
+Interior activities own supplied-dt scoring and exactly-once completion events.
+Progression owns all paid shift and rental cash, validates the live matching room,
+station and session, and writes through the existing career save. No passive
+workout timer or Free-roam activity may bank progression. X+Y held with timed
+ArrowUp presses controls the six-rep bench. Q starts the nearby task; T opens
+the hire phone. The active room's people and geometry must dispose on leave.
