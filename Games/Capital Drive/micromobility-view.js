@@ -1,7 +1,7 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import {mergeGeometries} from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
 
-const RANGE=180, CAPACITY=6;
+const RANGE=180, CAPACITY=24;
 const COLORS={lemon:0xf0cf36,dark:0x303638,metal:0x9ca7aa,skin:0xbb8764,shirt:0x546d90,pants:0x303e54};
 const valid=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);
 function color(geometry,value) {
@@ -37,12 +37,8 @@ function model(kind) {
     box(COLORS.dark,0,.64,.13,.10,.32,.15);
     rod(COLORS.metal,[-.19,.42,.05],[.19,.42,.05]);
   } else if(kind==='stand') {
-    box(COLORS.dark,0,.035,0,2.5,.07,.9);
-    box(COLORS.lemon,0,.95,.55,.10,1.9,.10);
-    box(COLORS.lemon,0,1.6,.55,.65,.42,.09);
-    // Original cutout-inspired lemon and leaf mark, with no imported brand assets.
-    parts.push(color(new THREE.SphereGeometry(.16,8,5).scale(1,.65,.25).translate(0,1.6,.49),COLORS.dark));
-    box(COLORS.dark,.16,1.73,.49,.15,.04,.02);
+    // Retain three unobtrusive legacy anchor marks without docks or tall signs.
+    parts.push(color(new THREE.CylinderGeometry(.18,.18,.015,8).translate(0,.008,0),COLORS.lemon));
   } else {
     const seated=kind==='rider-bike',hip=seated?1.13:1.13,shoulder=seated?1.51:1.57;
     box(COLORS.shirt,0,(hip+shoulder)/2,seated?.10:0,.36,shoulder-hip,.23);
@@ -80,9 +76,11 @@ export function createMicromobilityView(scene,heightAt) {
       dummy.position.set(pose.x,Number.isFinite(sampled)?sampled+.04:.04,pose.z);dummy.rotation.set(0,Number.isFinite(pose.yaw)?pose.yaw:0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();
       mesh.setMatrixAt(mesh.count++,dummy.matrix);return true;
     }
-    for(const stand of (snapshot.stands||[]).slice(0,3))if(put('stand',stand))visibleStands++;
-    for(const asset of (snapshot.assets||[]).slice(0,CAPACITY))if(asset.available&&['bike','scooter'].includes(asset.kind)&&put(asset.kind,asset))visibleAssets++;
-    const active=snapshot.active;
+    const nearby=items=>items.filter(p=>valid(p)&&Math.hypot(p.x-focus.x,p.z-focus.z)<=RANGE)
+      .sort((a,b)=>Math.hypot(a.x-focus.x,a.z-focus.z)-Math.hypot(b.x-focus.x,b.z-focus.z)||String(a.id).localeCompare(String(b.id)));
+    for(const stand of nearby((snapshot.stands||[]).filter(s=>!s.distributed)).slice(0,3))if(put('stand',stand))visibleStands++;
+    const active=snapshot.active,activeVisible=active&&valid(active)&&['bike','scooter'].includes(active.kind)&&Math.hypot(active.x-focus.x,active.z-focus.z)<=RANGE;
+    for(const asset of nearby((snapshot.assets||[]).filter(a=>a.available&&['bike','scooter'].includes(a.kind)&&a.id!==active?.assetId)).slice(0,CAPACITY-(activeVisible?1:0)))if(put(asset.kind,asset))visibleAssets++;
     if(active&&['bike','scooter'].includes(active.kind)) {
       if(put(active.kind,active))visibleAssets++;
       put(`rider-${active.kind}`,active);
@@ -93,7 +91,7 @@ export function createMicromobilityView(scene,heightAt) {
     }
   }
   return {update,
-    get stats(){return Object.freeze({visibleAssets,visibleStands,drawCalls,triangles,geometryCount:5,materialCount:1,textureCount:0,capacity:CAPACITY,disposed});},
+    get stats(){return Object.freeze({visibleAssets,visibleStands,drawCalls,triangles,geometryCount:5,materialCount:1,textureCount:0,capacity:CAPACITY,cullDistance:RANGE,disposed});},
     dispose(){if(disposed)return;disposed=true;scene.remove(root);for(const mesh of meshes.values())mesh.geometry.dispose();material.dispose();visibleAssets=visibleStands=drawCalls=triangles=0;},
   };
 }
