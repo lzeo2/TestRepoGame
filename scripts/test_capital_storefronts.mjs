@@ -35,8 +35,8 @@ for(let i=0;i<MAPPED_STORES.length;i++) {
     const dx=positions.getX(v)-f.x,dz=positions.getZ(v)-f.z;
     const localX=Math.cos(angle)*dx-Math.sin(angle)*dz;
     const out=Math.sin(angle)*dx+Math.cos(angle)*dz;
-    assert(Math.abs(localX)<=5.10,'bounded facade width');
-    assert(out>=.019 && out<=.631,'all details lie just outside source-facing facade');
+    assert(Math.abs(localX)<=Math.min(5.1,f.width/2),'facades and awnings stay within allocated neighbouring units');
+    assert(out>=.019 && out<=.921,'all details lie just outside source-facing facade');
     minY=Math.min(minY,positions.getY(v));maxY=Math.max(maxY,positions.getY(v));
   }
   assert(Math.abs(minY-ground)<.0002,'facade rests on supplied terrain');

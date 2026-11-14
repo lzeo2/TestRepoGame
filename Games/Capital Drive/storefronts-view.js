@@ -53,7 +53,7 @@ export function createStorefrontsView(scene,heightAt) {
     const f=store.frontage,angle=f.yaw+Math.PI;
     const ground=heightAt(f.x,f.z);
     if(!Number.isFinite(ground)) throw new Error('Storefront requires finite terrain height');
-    const width=Math.max(2.4,Math.min(10,f.width*.88));
+    const width=Math.max(2.2,Math.min(10,f.width-.16));
     const pieces=[];
     function place(geometry) {return geometry.rotateY(angle).translate(f.x,ground,f.z);}
     function box(color,x,y,z,w,h,d) {
@@ -66,7 +66,7 @@ export function createStorefrontsView(scene,heightAt) {
     // Shallow applied facade only: opaque source buildings remain intact.
     box(0xc8b99e,0,1.38,.075,width,2.76,.10);
     box(accent,0,2.82,.16,width+.12,.64,.16);
-    box(accent,0,2.42,.32,width+.18,.12,.60);
+    box(accent,0,2.42,.47,width+.10,.12,.90);
     box(0x363e40,0,1.14,.15,.98,2.24,.10);
     box(0x6c8b91,0,1.44,.211,.77,1.32,.018);
     box(0xe3c990,.30,1.05,.23,.045,.25,.04);
