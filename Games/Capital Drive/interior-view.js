@@ -119,15 +119,15 @@ export function createInteriorView(scene) {
         }
       } else if (item.kind === 'counter' || item.kind === 'kitchen-pass') {
         detail(item, 0, h + 0.045, 0, w + 0.12, 0.09, d + 0.12, 0x44514a);
-        detail(item, 0.35, h + 0.16, 0.1, 0.35, 0.25, 0.3, 0x303936);
+        detail(item, item.kind === 'kitchen-pass' ? 0 : 0.35, h + 0.16, item.kind === 'kitchen-pass' ? -d / 2 + 1.9 : 0.1, 0.35, 0.25, 0.3, 0x303936);
       } else if (item.kind === 'noodle-station' || item.kind === 'prep-bench') {
         detail(item, 0, h + 0.04, 0, w + 0.05, 0.08, d + 0.05, 0xc2cbc5);
         if (item.kind === 'noodle-station') {
-          for (const x of [-0.6, 0.35]) {
-            detail(item, x, h + 0.15, 0, 0.5, 0.2, 0.5, 0x4c5a55);
-            detail(item, x, h + 0.26, 0, 0.4, 0.025, 0.4, 0xd6c39b);
+          for (const z of [-0.65, 0.65]) {
+            detail(item, 0, h + 0.15, z, w * 0.85, 0.2, 0.5, 0x4c5a55);
+            detail(item, 0, h + 0.26, z, w * 0.75, 0.025, 0.4, 0xd6c39b);
           }
-        } else detail(item, 0, h + 0.1, 0, 0.65, 0.04, 0.5, 0xb28e51);
+        } else detail(item, 0, h + 0.1, 0, w * 0.85, 0.04, 0.8, 0xb28e51);
       } else if (item.kind === 'kitchen-bench') {
         detail(item, 0, h + 0.035, 0, w + 0.08, 0.07, d + 0.08, 0xd3cbbb);
         detail(item, 0, h + 0.08, -d * 0.25, w * 0.6, 0.04, 0.65, 0x7e8d89);
@@ -151,15 +151,16 @@ export function createInteriorView(scene) {
       // Pale stone tile joints and warm strips are static geometry, without extra lights/textures.
       for (let x = -2.4; x <= 2.4; x += 1.2) detail(local, x, 0.016, 6, 0.012, 0.008, 11.8, 0xa89f90);
       for (let z = 1.2; z < 12; z += 1.2) detail(local, 0, 0.016, z, plan.width - 0.2, 0.008, 0.012, 0xa89f90);
-      detail(local, 0.6, 2.25, 9.2, plan.width - 2, 0.11, 0.18, 0xb2915c);
-      detail(local, 0.6, 2.18, 9.2, plan.width - 2.1, 0.025, 0.06, 0xffe6ac);
-      for (let x = -1.4; x < 2.7; x += 0.4) detail(local, x, 2.4, 9.2, 0.065, 0.4, 0.11, 0xb2915c);
-      for (const x of [-0.65, 0.65]) {
-        detail(local, x, 2.4, 9.1, 0.95, 0.34, 0.025, 0x424e45);
-        for (const row of [-1, 0, 1]) detail(local, x + 0.12, 2.4 + row * 0.08, 9.08, 0.5, 0.025, 0.012, 0xdac8a0);
-        detail(local, x - 0.29, 2.4, 9.08, 0.14, 0.11, 0.012, 0xd99a59);
+      // Timber menu canopy follows the long left service pass and open kitchen.
+      detail(local, -1.45, 2.25, 6.1, 0.18, 0.11, 7.6, 0xb2915c);
+      detail(local, -1.35, 2.18, 6.1, 0.06, 0.025, 7.5, 0xffe6ac);
+      for (let z = 2.4; z < 9.9; z += 0.4) detail(local, -1.45, 2.4, z, 0.11, 0.4, 0.065, 0xb2915c);
+      for (const z of [4.2, 7]) {
+        detail(local, -1.37, 2.4, z, 0.025, 0.34, 1.15, 0x424e45);
+        for (const row of [-1, 0, 1]) detail(local, -1.35, 2.4 + row * 0.08, z + 0.12, 0.012, 0.025, 0.65, 0xdac8a0);
+        detail(local, -1.35, 2.4, z - 0.38, 0.012, 0.11, 0.14, 0xd99a59);
       }
-      detail(local, 0, 1.65, 11.5, 4.5, 0.95, 0.06, 0xaebbb6);
+      detail(local, -plan.width / 2 + 0.12, 1.65, 6.1, 0.06, 0.95, 7.6, 0xaebbb6);
       // Original abstract bowl-and-line relief, with no copied mural, text or logos.
       for (const side of [-1, 1]) for (const z of [3.5, 6.3]) {
         detail(local, side * (plan.width / 2 - 0.15), 2.12, z, 0.025, 0.07, 0.7, 0x7b684c);

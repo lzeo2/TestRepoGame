@@ -171,7 +171,8 @@ assert.equal(actual.stats.generatedPlans, baseStores.length);
 
 const roadURL = moduleURL(await read('../Games/Capital Drive/road-network.js'));
 const civicSource = (await read('../Games/Capital Drive/civic-view.js'))
-  .replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadURL);
+  .replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadURL)
+  .replace('./civic-extras.js', moduleURL(await read('../Games/Capital Drive/civic-extras.js')));
 const { CIVIC_INTERIOR_ENTRIES } = await import(moduleURL(civicSource));
 const north = JSON.parse(await read('../Games/Capital Drive/data/canberra-north.json'));
 const publicDoor = CIVIC_INTERIOR_ENTRIES[0];
@@ -251,6 +252,22 @@ assert.equal(noodlePlan.type, 'shop'); assert.equal(noodlePlan.variant, 'noodles
 assert.equal(noodlePlan.storeId, noodleStore.id); assert(noodlePlan.counter);
 assert.equal(noodlePlan.depth, 12); assert(noodlePlan.width >= 6.2 && noodlePlan.width <= 7);
 assert.equal(noodlePlan.exit.width, 2);
+const noodleLocal = p => ({ x: nc * (p.x - noodleEntry.x) - ns * (p.z - noodleEntry.z), z: ns * (p.x - noodleEntry.x) + nc * (p.z - noodleEntry.z) });
+for (const f of noodlePlan.furniture) {
+  const local = noodleLocal(f);
+  if (['kitchen-pass', 'noodle-station', 'prep-bench'].includes(f.kind)) assert(local.x < -1.05, 'open service kitchen is left of the aisle');
+  if (['noodle-table', 'communal-table', 'padded-chair', 'stool', 'banquette'].includes(f.kind)) assert(local.x > 1.05, 'dining furniture is right of the aisle');
+  assert(local.z - f.depth / 2 >= 2, 'first two metres by the public door stay clear');
+  assert(Math.abs(local.x) - f.width / 2 >= 1.05, 'furniture leaves the full central 2.1m aisle clear');
+}
+const pass = noodlePlan.furniture.find(f => f.kind === 'kitchen-pass');
+assert(pass.depth > 7 && pass.width < 1, 'service pass runs along the left aisle');
+const booth = noodleLocal(noodlePlan.furniture.find(f => f.kind === 'banquette'));
+assert(booth.z > 9, 'orange booth is at the rear right');
+assert(noodleLocal(noodlePlan.counter).x < 0, 'single public service approach is on the left');
+assert.equal(noodlePlan.activities.length, 1);
+assert(Math.hypot(noodlePlan.activities[0].x - noodlePlan.counter.x, noodlePlan.activities[0].z - noodlePlan.counter.z) < 1e-8);
+
 for (const kind of ['banquette', 'noodle-table', 'padded-chair', 'communal-table', 'stool', 'kitchen-pass', 'noodle-station', 'prep-bench']) {
   assert(noodlePlan.furniture.some(f => f.kind === kind), `restaurant includes ${kind}`);
 }
@@ -263,14 +280,14 @@ function walkDiner(x, z) {
   for (let i = 0; i < steps; i++) assert.equal(restaurant.moveActor(diner, dx / steps, dz / steps).blocked, false, 'restaurant aisle and service approach stay clear');
   assert(Math.hypot(diner.x - target.x, diner.z - target.z) < 1e-6);
 }
-walkDiner(0, 8.1);
+walkDiner(0, 4.2); walkDiner(-0.55, 4.2);
 assert(Math.hypot(diner.x - noodlePlan.counter.x, diner.z - noodlePlan.counter.z) < .01);
 assert(!restaurant.nearExit(diner));
-walkDiner(0, 1.65); assert(restaurant.nearExit(diner));
-const counterWalker = { ...noodlePoint(0, 8.1) };
-assert(restaurant.moveActor(counterWalker, ns * 3, nc * 3).blocked, 'service pass prevents walking through the kitchen worktop');
+walkDiner(0, 4.2); walkDiner(0, 10.8); walkDiner(0, 1.65); assert(restaurant.nearExit(diner));
+const counterWalker = { ...noodlePoint(-0.55, 4.2) };
+assert(restaurant.moveActor(counterWalker, -nc * 3, ns * 3).blocked, 'service pass prevents walking through the kitchen worktop');
 const tableWalker = { ...noodlePoint(0, 3.4) };
-assert(restaurant.moveActor(tableWalker, -nc * 3, ns * 3).blocked, 'tables and blue chairs share physical collision');
+assert(restaurant.moveActor(tableWalker, nc * 3, -ns * 3).blocked, 'tables and blue chairs share physical collision');
 const noodleScene = new THREE.Scene(), noodleView = createInteriorView(noodleScene);
 assert.equal(noodleView.stats.meshes, 0);
 noodleView.load(noodlePlan);

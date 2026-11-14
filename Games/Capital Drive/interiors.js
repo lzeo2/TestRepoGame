@@ -237,27 +237,29 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
         width: bench.width, depth: bench.depth, height: bench.height, approachX: approach.x, approachZ: approach.z };
       station('bench', 'bench', 'Bench press: six controlled reps', -0.8, 7.1, -Math.PI / 2, 1.25);
     } else if (entry.variant === 'noodles') {
-      rooms.push({ kind: 'noodle-dining', ...worldPoint(origin, 0, 4.35), width, depth: 8.7 },
-        { kind: 'noodle-kitchen', ...worldPoint(origin, 0, 10.5), width, depth: 3 });
-      // Reference material cues only: original seating, room arrangement and abstract bowl motifs.
-      // The central 2.1m aisle and first 2m by the public door stay free of furniture.
-      for (const side of [-1, 1]) {
-        box(furniture, 'banquette', side * (width / 2 - 0.42), side < 0 ? 4.9 : 3.5, 0.7, side < 0 ? 5.4 : 2.4, 0.92, 0xda713b, 0, side < 0 ? 0 : Math.PI);
-        for (const z of [3.4, 6.2]) {
-          const communal = side > 0 && z > 5;
-          const table = box(furniture, communal ? 'communal-table' : 'noodle-table', side * 2.05, z, 0.95, communal ? 1.8 : 1.1, communal ? 1.02 : 0.76, 0xc8ab78);
-          box(furniture, communal ? 'stool' : 'padded-chair', side * 1.3, z, 0.46, 0.5, communal ? 0.76 : 0.84, 0x3d5674, 0, side < 0 ? -Math.PI / 2 : Math.PI / 2);
-          if (communal) box(furniture, 'stool', side * 1.3, z + 0.65, 0.46, 0.5, 0.76, 0x3d5674);
-          box(details, 'noodle-bowl', side * 2.05, z - 0.2, 0.29, 0.29, 0.14, 0xe9e1ca, table.height);
-          box(details, 'chopsticks', side * 1.9, z + 0.04, 0.17, 0.025, 0.015, 0xb1814a, table.height + 0.02);
-          box(details, 'condiments', side * 2.05, z + 0.33, 0.25, 0.15, 0.2, 0x815239, table.height);
-        }
+      // Official Canberra interior references establish relative sides, not a surveyed floorplan.
+      const kitchenWidth = width / 2 - 1.125;
+      rooms.push({ kind: 'noodle-dining', ...worldPoint(origin, (width / 2 - 1.125) / 2, 6), width: width - kitchenWidth, depth },
+        { kind: 'noodle-kitchen', ...worldPoint(origin, -(width / 2 + 1.125) / 2, 6), width: kitchenWidth, depth });
+      // A long left-hand service pass opens onto stainless preparation stations.
+      // Furniture leaves the central 2.1m aisle and first 2m by the public door clear.
+      box(furniture, 'kitchen-pass', -1.45, 6.1, 0.65, 7.6, 1.02, 0xb5996d);
+      const kitchenX = -width / 2 + 0.25;
+      box(furniture, 'noodle-station', kitchenX, 3.9, 0.34, 2.4, 0.94, 0xa6afaa);
+      box(furniture, 'prep-bench', kitchenX, 7.8, 0.34, 3.8, 0.94, 0xb4b8aa);
+      counter = { ...worldPoint(origin, -0.55, 4.2), y: floorY, yaw: origin.yaw - Math.PI / 2, radius: 1.25 };
+      station('noodle-order', 'noodle', 'Prepare the noodle order', -0.55, 4.2, -Math.PI / 2, 1.25);
+      // Dining and blue seats sit to the right, with the orange booth toward the back.
+      box(furniture, 'banquette', width / 2 - 0.42, 10.3, 0.7, 2.9, 0.92, 0xda713b, 0, Math.PI);
+      for (const z of [3.4, 5.9, 8.3, 10.6]) {
+        const communal = z === 8.3;
+        const table = box(furniture, communal ? 'communal-table' : 'noodle-table', 2.05, z, 0.95, communal ? 1.8 : 1.1, communal ? 1.02 : 0.76, 0xc8ab78);
+        box(furniture, communal ? 'stool' : 'padded-chair', 1.3, z, 0.46, 0.5, communal ? 0.76 : 0.84, 0x3d5674, 0, Math.PI / 2);
+        if (communal) box(furniture, 'stool', 1.3, z + 0.65, 0.46, 0.5, 0.76, 0x3d5674, 0, Math.PI / 2);
+        box(details, 'noodle-bowl', 2.05, z - 0.2, 0.29, 0.29, 0.14, 0xe9e1ca, table.height);
+        box(details, 'chopsticks', 1.9, z + 0.04, 0.17, 0.025, 0.015, 0xb1814a, table.height + 0.02);
+        box(details, 'condiments', 2.05, z + 0.33, 0.25, 0.15, 0.2, 0x815239, table.height);
       }
-      box(furniture, 'kitchen-pass', 0.6, 9.2, width - 2, 0.7, 1.02, 0xb5996d);
-      counter = { ...worldPoint(origin, 0, 8.1), y: floorY, yaw: origin.yaw, radius: 1.6 };
-      box(furniture, 'noodle-station', -0.85, 10.9, 2.2, 0.85, 0.94, 0xa6afaa);
-      box(furniture, 'prep-bench', width / 2 - 1.05, 10.9, 1.4, 0.85, 0.94, 0xb4b8aa);
-      station('noodle-order', 'noodle', 'Prepare the noodle order', 0, 8.1);
     } else {
       box(furniture, 'counter', width / 2 - 1.15, depth - 2.2, 1.7, 1, 1.05, 0x9a7e59);
       counter = { ...worldPoint(origin, width / 2 - 1.15, depth - 3.15), y: floorY, yaw: origin.yaw, radius: 1.6 };
