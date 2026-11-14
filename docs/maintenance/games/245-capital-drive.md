@@ -153,6 +153,48 @@ browser/geodata tooling stay outside the repository.
 
 ## Audit findings
 
+### Signals, full contacts, transport and hold-ups, 14 November 2026
+
+The [contract](../../capital-drive-signals-transport-crime-contract.md) and
+[receipt](../../verification/capital-drive-signals-2026-11-14.md) record the newer
+signal/arrow/tracking, traffic, transport, equipment and crime work. These supersede
+the scenic-signal, uniform vehicle-body and legacy button-only robbery descriptions.
+
+339 exact OSM signal nodes from 34 pinned caches produce 347 estimated heads in
+96 groups. One simulation clock owns phases and red/amber travel caps for traffic,
+buses and Yoober. The player keeps direct control. Five pooled draws show nearby
+heads, without lights/assets fetched remotely. Timings, grouping and sidewalk
+offsets remain estimates. GPS shows yellow turn arrows and along-route distances.
+T's Track driver advances the world/map while player input stays frozen; ordinary
+dialogs still pause, and no career teleport or earnings are enabled.
+
+The saved starter's zero-condition brake, unchecked traffic/player rotations,
+static source-road collider conflicts and false opposing-lane/crossing queues were
+reproduced separately. Starter-only assistance restores a saved wreck to 35% on a
+new career start. Actual model body sizes, swept walking boxes, checked steering,
+rotated parked indexing and cached ambient-lane admission preserve collision.
+Full-runtime 7,200-frame regressions keep all 40 bodies clear and all 40 make real
+progress. Original strict junction checks remain enabled. Stopped counts include
+legitimate queues; no universal free-flow or hardware-FPS claim.
+
+Yoober's continuous lookahead reduces vertex hesitation while preserving corners,
+obstacles and lights. Nearby cancellations can provoke one bounded fictional
+driver; remote/recovery/mode/sandbox cancellations do not. At a bus's front-left
+door, E requests a stop within 10 m, boards beside the stopped clear door, and
+stops/exits while aboard. The player has a visible seated passenger and chase/orbit
+camera, with no new interior-camera toggle. Foot combat/rentals/jobs are excluded.
+
+K arms stock includes a scanner ($500) and packs of three flares ($120), capped at
+12. B uses a checked short flare throw on foot; at most three 20-second beacons
+exist. Scanner ownership reveals nearby occluded patrols. Strict optional v1 gear
+and mugging cooldowns retain legacy saves; Free-roam previews never spend/save.
+Equip an owned gun or actually punch a living pedestrian/employee, then E demands
+valuables/the till. The bound adult visibly complies through intimidation,
+emptying and handover; E cancels. Employees require the matching store/room and
+bounded counter/staff reach. Only completed handover pays once, with 180-second
+cooldowns. Ordinary purchase reach stays strict. NPC modules grant no cash.
+Source road/building/terrain snapshots and shared vehicle artwork are unchanged.
+
 ### Yoober, five-star trading and default geometry, 14 November 2026
 
 The [Yoober contract](../../capital-drive-yoober-contract.md) records one physical
@@ -369,7 +411,8 @@ authority regressions; they are not claimed as naturally earned browser sessions
   Instanced traffic is at most19draws for40cars, preserving original models. These are bounded geometry,
   not hardware-performance measurements.
 - Traffic keeps directed left-hand routing and bounded clearance, with simplified
-  overtaking/anger. Signals are scenic. Patrols use directed legal roads, bounded
+  overtaking/anger. Signals use sourced positions and estimated physical stop
+  phases. Patrols use directed legal roads, bounded
   acceleration/turning, brake/dismount and last-seen search; officers use swept
   local obstacle avoidance. This is not full sidewalk navigation and cannot
   guarantee passage around every blocked road. The inherited car cockpit is
@@ -401,7 +444,7 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The reusable runner checks51authored modules and51pure suites (154commands), fails
+The reusable runner checks 56 authored modules and 64 pure suites (185 commands), fails
 on missing files or actual command errors and bounds subprocess lifetimes. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
 unavailable WebGL, denied storage and hidden teleport guards. Actual-map physics
