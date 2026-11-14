@@ -18,6 +18,9 @@ artwork or branded vehicle assets are used.
 - `simulation.js`: indexed car/actor collision, directed OSM graph, 40 nearby
   reactive traffic cars (cap 56), bounded overtaking/road rage, vehicle claims,
   parked/abandoned descriptors, polygon line of sight and safe teleport.
+- `ride-service.js`/`ride-service-view.js`: one physical NPC-driven Yoober car,
+  quoted phone bookings, single boarding debit, clear stopped exits and pooled
+  driver-fare waiting/seated passengers. Progression owns repeatable paid fares.
 - `gameplay.js`: foot/sprint/jump, car entry/theft, four firearms/aim/reload,
   health, witnessed offences, eight-cue car locks and delayed recovery. `police.js`
   owns up to four road patrols, dismounted officers, sight/search/escape and arrest.
@@ -63,7 +66,10 @@ have already driven stay unlocked for immediate re-entry. **E** cancels an attem
 **1–5** chooses fists/pistol/shotgun/SMG/carbine; buy owned weapons at supplies or fictional street contacts first;
 right mouse aims, left mouse attacks/fires, F melees and R reloads on foot.
 **Q** starts the nearby interior mini-game or paid shop task; **T** opens the
-Lemon hire phone. At the gym bench hold **X+Y**, then press **ArrowUp** on each
+Yoober/Lemon phone. Book outside on foot, walk beside the stopped Yoober and E
+boards; E exits at the destination or requests a stop during travel. Drive for
+Yoober requires an owned legal four-door and two-second stopped pickups/drop-offs.
+At the gym bench hold **X+Y**, then press **ArrowUp** on each
 LIFT cue for six repetitions. Early/late presses and releasing grip fail the set.
 Drag mouse to orbit; vehicle vertical drag looks up/down and stationary views
 remain in place. H horns when sound is enabled. M map, J jobs, G garage, K shops, P/Esc
@@ -146,6 +152,32 @@ OFL font remain. All runtime data/imports/assets are local; developer caches and
 browser/geodata tooling stay outside the repository.
 
 ## Audit findings
+
+### Yoober, five-star trading and default geometry, 14 November 2026
+
+The [Yoober contract](../../capital-drive-yoober-contract.md) records one physical
+NPC car, fixed quoted boarding fees, phone destinations/cancellation, safe exits,
+the supplied passenger focus/input guard and two repeatable paid driver fares.
+The [verification receipt](../../verification/capital-drive-yoober-2026-11-14.md)
+separates normal-input proof, actual geometry measurements and device limits.
+The Crescent/Franklin fares pay$45/$110 through the existing strict v1 wallet.
+No Uber service, real driver, external API or Street Life teleport is used.
+
+Ordinary food/weapon/ammo purchasing now allows wanted stars, including five.
+Other reach, stock, cash, ownership, sight, interior and activity checks remain.
+Contact panic follows actual gunfire/damage rather than wanted stars alone;
+injured/frightened contacts can still decline. Gym/garage/work/ride rules retain
+their own wanted restrictions. This supersedes the purchase wanted lock below.
+
+The game now boots the Low world/neighbourhood geometry. Paired actual merged-map
+world attributes fell534,265,329→286,722,933bytes; neighbourhood36,342,540→19,630,188.
+World triangles fell8,513,470→4,155,544. At spawn, world draws93→61 and visible
+triangles433,881→181,728. Exact terrain/walls/roads/pavement/water attributes,
+source footprints, accepted tree positions, structural garden boundaries and all
+4,200door descriptors are preserved. Ordinary facade/roof/tree/ornament detail
+and visibility are reduced; landmarks and physics are unchanged. Low render
+resolution caps960×540. Standard changes target rate/resolution, without rebuilding
+the city. These measurements establish geometry savings, not N100 FPS or total RAM.
 
 ### Arms, quieter adults and parking correction, 14 November 2026
 
@@ -369,7 +401,7 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The reusable runner checks49authored modules and47pure suites (144commands), fails
+The reusable runner checks51authored modules and51pure suites (154commands), fails
 on missing files or actual command errors and bounds subprocess lifetimes. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
 unavailable WebGL, denied storage and hidden teleport guards. Actual-map physics

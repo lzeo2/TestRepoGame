@@ -16,7 +16,8 @@ Read repository `AGENTS.md`, `docs/CODE_QUALITY.md`,
 `docs/capital-drive-living-interiors-contract.md` and
 `docs/capital-drive-living-sources.md` and
 `docs/capital-drive-unlock-contract.md` and
-`docs/capital-drive-arms-and-streets-contract.md`.
+`docs/capital-drive-arms-and-streets-contract.md` and
+`docs/capital-drive-yoober-contract.md`.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -118,3 +119,18 @@ and Progression's strict legacy ownership/cash owner. Use the bounded
 never style a denied action as loading. Street contacts are fictional, not real
 people or allegations attached to source POIs. New parking must pass whole-body
 clearance against the same traffic lanes and be used for both art and physics.
+
+Yoober uses one transient external car on the directed public-road graph. Bookings
+are free; the stopped boarding action debits its authoritative quote once through
+Progression and the existing writer. Passenger focus follows the live car, without
+foot movement, attacks or ordinary claiming; exit uses the shared physical sweep.
+Driver fares require actual legal owned cars and contiguous stopped pickup/drop-off.
+Use --browser --yoober-browser --output for normal-input proof, or the focused
+script's separate passenger/driver scenarios. Keep failed attempts and no-grant
+evidence. Wanted stars alone now permit ordinary purchasing; actual contact panic
+and all other stock/reach/ownership rules remain.
+
+Low world/neighbourhood constructors retain geography, physical surfaces and door
+descriptors while simplifying presentation detail. Run the paired
+test_capital_low_detail.mjs --actual comparison before claiming savings. Geometry
+bytes/triangles and software WebGL observations never establish N100 FPS.

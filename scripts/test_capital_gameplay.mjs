@@ -176,3 +176,22 @@ game.step(1 / 60); assert.equal(game.state.wanted, 2, 'pause preserves reckless 
 events.push({ type: 'witness', kind: 'assault', offenderId: 'player' });
 game.step(1 / 60); assert.equal(game.state.wanted, 3, 'actual assault remains promptly reported');
 console.log('Capital gameplay: independent reckless/combat report cooldowns and pause PASS');
+
+// Passenger focus follows the physical service car without foot movement or combat.
+const passengerSimulation=createSimulation(map,{trafficCount:0});
+let attached=null,passengerStrikes=0;
+const passengerGame=createGameplay(map,passengerSimulation,{passengerPose:()=>attached,hasPistol:()=>true,
+  pedestrians:{snapshot:()=>[],drainEvents:()=>[],strike:()=>{passengerStrikes++;return {hits:0,people:[]};},alert(){}}});
+passengerGame.interact();passengerGame.addAmmo(24);passengerGame.setWeapon('pistol');
+attached={x:100,z:40,yaw:.4,speed:5};
+const passengerAmmo=passengerGame.state.ammo;
+passengerGame.step(1/60,{moveX:1,moveZ:1,jump:true,aim:true,fire:true,melee:true});
+assert.equal(passengerGame.focus(),attached);assert.equal(passengerGame.state.passenger,true);
+assert.equal(passengerGame.state.actor.x,attached.x);assert.equal(passengerGame.state.actor.jumpHeight,0);
+assert.equal(passengerGame.state.ammo,passengerAmmo);assert.equal(passengerStrikes,0);assert.equal(passengerGame.state.aiming,false);
+assert.equal(passengerGame.interact(),false,'ordinary vehicle claiming cannot run while a passenger');
+attached.x+=3;assert.equal(passengerGame.focus().x,103,'attachment follows the live physical car');
+attached=null;assert.equal(passengerGame.state.passenger,false);assert.equal(passengerGame.focus(),passengerGame.state.actor);
+const afterRideX=passengerGame.state.actor.x;passengerGame.step(1/60,{moveX:1});assert(passengerGame.state.actor.x>afterRideX,'normal movement resumes after detachment');
+assert.equal(passengerGame.snapshot().passenger,false);
+console.log('Capital gameplay: supplied passenger attachment, live focus, safe input exclusion and detachment PASS');

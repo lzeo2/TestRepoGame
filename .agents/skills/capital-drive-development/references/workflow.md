@@ -149,10 +149,10 @@ python3 -B scripts/check_capital_drive.py --dry-run
 python3 -B scripts/check_capital_drive.py
 ```
 
-The runner enumerates37 authored modules and30 pure suites in its `MODULES`
+The runner enumerates51 authored modules and51 pure suites in its `MODULES`
 and `SUITES` constants, including roads, buses, police, occupants and services.
 It checks every syntax entry, executes every suite (drive receives the actual map
-argument), then runs `git diff --check`:98 commands in the pure pass. Keep these
+argument), then runs `git diff --check`:154 commands in the pure pass. Keep these
 explicit lists current when adding a required module; a missing file fails.
 Missing modules/data/suites fail; nothing silently skips. Each pure command has a
 120 second limit; total run is bounded to 900 seconds. Actual exit codes are printed.
@@ -375,13 +375,14 @@ current ammo aliases compatible, preserve independent pools on switching, and
 clip each pellet before target adapters. Canonical firearm hit kinds must reach
 pedestrian adapters; new gun IDs are trace/model identities. Duplicate ownership,
 wrong-stock ammo, full packs, remote/panicked contacts, sandbox, recovery and
-wanted state cannot spend cash. Validate old pistol-only v1 saves and strict new
+recovery state cannot spend cash. Wanted stars alone allow ordinary purchasing.
+Validate old pistol-only v1 saves and strict new
 optional weapon booleans. Root owns the sole save writer.
 
 K lists current eligibility and costs; actual disabled states use explanatory
 copy and a not-allowed cursor. Never relocate a service or remove a guard just
 because a purchase was denied: test actual approach geometry, mode, ownership,
-funds, ammo and wanted state first. For native acceptance spend actual starting
+funds, ammo and actual contact panic first. For native acceptance spend actual starting
 money through normal controls; do not grant a save or use sandbox money as proof.
 A foot route may need the real school gate and a normal detour around cars.
 
@@ -397,3 +398,30 @@ slots. Test whole-car clearance, deterministic physical occupancy, mission targe
 retention, buses, pause and local spatial queries. Do not release queues by
 ignoring collisions or teleporting cars. Separate legitimate player blockage from
 mutual junction/turning deadlocks and source-building overlap findings.
+
+## Yoober and measured Low geometry
+
+Read docs/capital-drive-yoober-contract.md. Register the one ride-car descriptor
+alongside buses/patrol cars before movement. Quotes/search run only on phone
+actions, not in the frame loop. Booking charges nothing. The authoritative boarding
+session checks live reach, mode, funds and a clear stopped vehicle before its
+single debit. Terminal states must release activeFare. Passenger attachment and
+snapshot anchors must agree, E must not intercept distant unrelated interactions,
+and mouse orbit must use the vehicle branch aboard. Clear transient rides on mode,
+teleport, recovery and respawn; no career travel shortcut or reward is allowed.
+
+Driver work uses existing job clocks, strict ownership and one save writer. Place
+the waiting passenger on a clear source-road curb; the driving marker stays on the
+road. Two-second stopped pickup/drop-off cannot be replaced by elapsed waiting,
+passing at speed, a different car, sandbox input or a synthetic completed save.
+The focused native script supports --scenario passenger or driver with a fresh
+external output; --capture batches the explicitly needed new-flow frames. The
+common runner also exposes --browser --yoober-browser --output and kills the
+browser process group on its existing limit. Keep failed runs separately.
+
+Low constructors preserve source footprints, terrain/walls/roads/pavement/water,
+accepted tree positions, structural garden boundaries and door descriptors. The
+default synthetic geometry suite is cheap; --actual performs a paired merged-map
+comparison outside the browser. Log buffer bytes, triangles and visible draws
+separately from total RAM/frame time. Never infer N100 hardware performance from
+cloud software rendering. Normal constructor defaults remain backward compatible.

@@ -35,7 +35,9 @@ export function createGameplay(map, simulation, options = {}) {
   const theftChallenge = createVehicleChallenge();
   function clearTheftChallenge() { theftChallenge.clear(); theftChallenge.drainEvents(); }
   const policeController = createPolice(simulation, { onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
-  const focus = () => state.mode === 'foot' ? state.actor : simulation.player;
+  const passengerPose=()=>{const pose=options.passengerPose?.();return pose&&Number.isFinite(pose.x)&&Number.isFinite(pose.z)?pose:null;};
+  Object.defineProperty(state,'passenger',{enumerable:true,get:()=>!!passengerPose()});
+  const focus = () => passengerPose()||(state.mode === 'foot' ? state.actor : simulation.player);
   const visible = (a, b) => simulation.hasLineOfSight(a, b);
   function emit(kind, message, extra = {}) {
     state.event = kind; state.message = message;
@@ -61,7 +63,7 @@ export function createGameplay(map, simulation, options = {}) {
     return true;
   }
   function interact() {
-    if (state.recovery || state.carjacking) return false;
+    if (state.recovery || state.carjacking || state.passenger) return false;
     if (state.mode === 'vehicle') {
       if (Math.abs(simulation.player.speed) > 1.2) {
         simulation.player.speed = 0; simulation.player.vx = 0; simulation.player.vz = 0;
@@ -293,7 +295,10 @@ export function createGameplay(map, simulation, options = {}) {
         if (weapon && ownsWeapon(weapon.id)) { const amount = Math.min(weapon.magazine - state.ammo, state.reserveAmmo); state.ammo += amount; state.reserveAmmo -= amount; }
       }
     }
-    if (state.mode === 'foot' && !takingVehicle) {
+    if(state.passenger){
+      const pose=passengerPose();Object.assign(state.actor,{x:pose.x,z:pose.z,yaw:finite(pose.yaw),speed:finite(pose.speed),jumpHeight:0});jumpVelocity=0;
+    }
+    if (state.mode === 'foot' && !takingVehicle && !state.passenger) {
       const x = finite(input.moveX), z = finite(input.moveZ), length = Math.hypot(x, z);
       const speed = input.sprint ? 6.8 + clamp(finite(options.fitness?.()), 0, 3) * 0.6 : 3.6;
       const before = { x: state.actor.x, z: state.actor.z };

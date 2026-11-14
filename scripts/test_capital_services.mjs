@@ -6,7 +6,7 @@ const p=createProgression(map),site=type=>p.services.find(s=>s.type===type);
 const ctx=(s,extra={})=>({pose:{x:s.x,z:s.z},onFoot:true,vehicle:{modelId:'lantern',stolen:false},vehicleHealth:100,health:60,wanted:0,respawnSerial:0,weapon:'unarmed',reserveAmmo:0,...extra});
 const food=site('food'),arms=site('arms'),gym=site('gym');
 const stable=()=>JSON.stringify(p.serialize());
-for(const extra of [{pose:map.spawn},{onFoot:false},{sandbox:true},{recovering:true},{wanted:2},{health:100}]){
+for(const extra of [{pose:map.spawn},{onFoot:false},{sandbox:true},{recovering:true},{health:100}]){
  const before=stable();assert.equal(p.purchaseService(food.id,'food',ctx(food,extra)).ok,false);assert.equal(stable(),before,'failed purchase cannot alter wallet/save');
 }
 let r=p.purchaseService(food.id,'food',ctx(food));assert.equal(r.heal,35);assert.equal(r.cost,35);assert.equal(p.state.cash,965);

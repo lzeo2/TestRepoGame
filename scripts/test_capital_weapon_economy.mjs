@@ -67,7 +67,7 @@ const dealer={id:'test-road-dealer',name:'Fictional road dealer',type:'arms',dea
   const site=p.services.find(service=>service.id===dealer.id);
   assert(site);assert.equal(p.services.length,fixture().p.services.length+1);
   for(const extra of [{pose:map.spawn},{pose:{x:site.x,z:site.z+1}},{onFoot:false},{sandbox:true},{recovering:true},
-    {wanted:1},{health:0},{panic:true},{pose:{x:NaN,z:site.z}},{wanted:NaN},{respawnSerial:-1}]){
+    {health:0},{panic:true},{pose:{x:NaN,z:site.z}},{wanted:NaN},{respawnSerial:-1}]){
     unchanged(p,()=>p.purchaseService(site.id,'shotgun',ctx(site,extra)));
   }
   unchanged(p,()=>p.purchaseService(site.id,'pistol',ctx(site)));
