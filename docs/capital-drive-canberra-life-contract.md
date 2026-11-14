@@ -1,6 +1,6 @@
 # Canberra life and three-character campaign
 
-14 November 2026. Existing original Capital Drive 245; this extends PR21's shared
+Updated 15 November 2026. Existing original Capital Drive 245; this extends PR21's shared
 people and vehicle contacts. All characters, businesses, dialogue and missions
 are original fiction. Geographic source facts remain separate from authored
 architecture, room layouts, landscaping and gameplay.
@@ -11,24 +11,28 @@ Campaign offers Kit Vale (18, Telopea student), Rowan Pike (29, Civic analyst),
 and Milo Finch (26, basement regular). Each has two different playable opening
 missions. All six introductions lead to Three receipts, where the other two
 characters appear at a collision-checked Kingston public approach. The retained
-six courier chapters follow. Character palettes persist through foot, driving,
+six shared chapters now have assigned protagonists and heist objectives; see the
+[story and streaming contract](capital-drive-story-and-streaming-contract.md). Character palettes persist through foot, driving,
 Yoober/bus passenger and workout views. Melee now has windup, extension, return
 and alternating fists; the existing gameplay owner still applies damage.
 
 | Protagonist | Opening missions | Link to the shared story |
 | --- | --- | --- |
-| Kit Vale | Paper chase collects misplaced club flyers at two school paths; Extra credit covers a real Coals stock shift. | Delivery stickers carry Mara's fictional depot code. |
+| Kit Vale | False start enters the after-hours school wing, triggers its alarm task and requires an outdoor escape; Extra credit covers a real Coals stock shift. | Delivery stickers carry Mara's fictional depot code. |
 | Rowan Pike | Present tense plays the failed slideshow task; Lunch breakpoint visits the restaurant counter and resolves the booth dispute. | Disillusionment with the office leads to Mara's receipt-based courier work. |
-| Milo Finch | Touch grass walks to the park and completes a stock shift; Signed for delivers a sealed parcel to Kingston. | The parcel receipt matches the other two depot clues. |
+| Milo Finch | Touch grass packs the ledger at Milo’s named enterable Jardine Street safehouse, then completes a stock shift; Signed for delivers a sealed parcel to Kingston. | The parcel receipt matches the other two depot clues. |
 
 Three receipts brings the adults to the Kingston approach before a drive to the
-Crescent starts their shared courier chapters. The opening events are playable
-objectives and briefing/outro dialogue, not cinematic cutscenes.
+Crescent starts their shared chapters. Short supplied-clock caption scenes now
+introduce each chapter using the existing world and camera. Skip starts the actual
+mission; Back to briefing cancels without reward. Work chapters disable attacks.
 
 Rowan's first mission uses the actual Centre PowerPunt workstation. Three fresh
 X/Y/X edits lead to an authored Microstall sync outage; only a validated terminal
 activity event produces the presentation serial. Lunch then uses the actual
-Lambzhou guest encounter. Work objectives likewise require a new completed shift
+Lambzhou guest encounter: she throws noodles at Rowan, then attacks him. This
+mission requires the actual fresh `noodle-fight` outcome; an ordinary apology or
+confrontation cannot satisfy it. Work objectives likewise require a new completed shift
 from the matching store. Starting a mission records serial baselines, so older
 events, sandbox travel, repeated input and caller-shaped outcomes cannot earn it.
 
@@ -36,8 +40,12 @@ Campaign saves are strict v2: selected character, ordered prefix for each intro,
 meeting flag, legacy flag and the retained six-chapter prefix. Existing v1 saves
 migrate without replaying rewards or losing completed chapters. The same career
 writer commits campaign progress and cash. Transient missions/encounters are not
-saved. Denied/corrupt saves remain unwritten. Mid-session character selection
-does not teleport. `character-start.js` only prepares an explicitly initial
+saved. Denied/corrupt saves remain unwritten. Between any two missions, J opens
+Campaign and permits switching to any of the three adults, even partway through
+an introduction. Each ordered intro prefix is retained independently, and v2
+saves accept multiple partial introductions. Active missions lock selection;
+completion, cancellation or failure releases it. Mid-session selection does not
+teleport or grant cash. `character-start.js` only prepares an explicitly initial
 spawn, separately parks the car and checks a clear foot pose; all three starts
 were tested against actual expanded geometry and parked cars.
 
@@ -67,9 +75,16 @@ cover the real session, wallet and legacy-save owners.
 
 Lambzhou's exterior window cook and lazy indoor cook pull bounded original
 noodle strands. A fictional booth guest wears pink earmuffs and objects to a bag
-on the floor. Live nearby dialogue can be resumed after Esc; apology resolves
-peacefully, confrontation permits existing bounded melee retaliation. Only the
-actual validated outcome increments the encounter serial. Sight, health,
+on the floor. Live nearby dialogue can be resumed after Esc. Ordinary encounters permit a
+peaceful apology or confrontation. During Rowan's lunch objective, both replies
+lead to a 0.75-second windup, a 0.55-second bowl/noodle flight and then live melee.
+The released bowl follows its captured trajectory if Rowan moves away. No timer
+alone grants mission credit: a validated throw and actual emitted melee are both
+required. Nonlethal interruption or calming down permits a fresh nearby retry
+without stale throw credit. The effect adds 12 strands and five bowl instances
+to the existing accessory batch (93 total capacity), retaining six room-person
+draws and no new geometry per frame. Only the actual validated outcome increments
+the encounter serial. Sight, health,
 coercion, cooldown and pause guards remain authoritative. Free roam retains its
 existing player-health protection. No allegation or likeness of a real patron
 is represented.
@@ -100,12 +115,18 @@ is represented.
   Manuka/Kingston anchors. No official signs, murals or reference imagery are copied.
 
 New views are pooled and use supplied clocks: street furniture one draw, wildlife
-one, rails at most two/600 instances, meeting cast seven for two adults; indoor
+one, rails at most two/600 instances, story cast seven for two adults; indoor
 people retain six batches/16 NPCs plus one workout participant. The cook adds two
 near-only draws within40m. Interior geometry remains one lazy merged mesh; the
 expanded Centre wing is 3,864 triangles. Static props cull locally and add no
 lights, reflections, remote assets or animation loops. These bounds are not an
 Intel N100 FPS measurement.
+
+Exterior world and neighbourhood views now allocate nearby 350m chunks and evict
+far geometry; full source geography, navigation, addresses and door metadata stay
+loaded. Actual-map paired buffer measurements and the retained native limits are
+in the [follow-up receipt](verification/capital-drive-campaign-followup-2026-11-15.md).
+These are attribute-buffer measurements, not total browser memory or FPS.
 
 ## Reproduce and known limits
 

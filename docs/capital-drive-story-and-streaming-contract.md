@@ -1,6 +1,6 @@
 # Capital Drive: story, mission directions and resident geometry contract
 
-Inspected source: 14 November 2026. This records the current original campaign
+Inspected source: 15 November 2026. This records the current original campaign
 and local rendering architecture. It does not certify a complete native campaign,
 an actual robbery playthrough, the full Rowan lunch route, or N100 performance.
 The existing [Canberra life contract](capital-drive-canberra-life-contract.md),

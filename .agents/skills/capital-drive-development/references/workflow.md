@@ -150,10 +150,10 @@ python3 -B scripts/check_capital_drive.py --dry-run
 python3 -B scripts/check_capital_drive.py
 ```
 
-The runner enumerates57 authored modules and65 pure suites in its `MODULES`
+The runner enumerates69 authored modules and80 pure suites in its `MODULES`
 and `SUITES` constants, including roads, buses, police, occupants and services.
 It checks every syntax entry, executes every suite (drive receives the actual map
-argument), then runs `git diff --check`:220 commands in the city-life pure pass. Keep these
+argument), then runs `git diff --check`:230 commands in the story/streaming pure pass. Keep these
 explicit lists current when adding a required module; a missing file fails.
 Missing modules/data/suites fail; nothing silently skips. Each pure command has a
 120 second limit; total run is bounded to 900 seconds. Actual exit codes are printed.
@@ -471,15 +471,23 @@ intro prefixes, a meeting flag, the selected character and the retained shared
 prefix. Keep v1 completed chapters and reward history during migration. Root owns
 serial baselines for real PowerPunt, completed work and booth outcomes; a stale
 event or sandbox action cannot complete a new objective. Mid-session selection
-changes appearance and mission ownership without moving the player. Initial
+changes appearance and mission ownership without moving the player. Allow it
+between any missions, retaining multiple partial intro prefixes through reload;
+only active missions lock selection. Initial
 character-start placement checks the actual expanded map and parked bodies.
 
-`campaign-scenes.js` supplies two other adults only during the meeting stage,
-with shared car/foot contacts; its view cannot grant mission credit. The selected
+`campaign-scenes.js` supplies two other adults during the meeting and the six
+shared heists, with shared car/foot contacts. Ground allies follow and exchange
+authoritative shots with visible foot police outdoors; they do not board cars or
+join indoor rooms. Its view cannot grant mission credit. The selected
 hero must remain consistent in foot, cockpit, transit and workout adapters.
 `interior-people.js` owns live dialogue, peaceful/confrontational outcomes and
-attributed retaliation. Resume pending conversations after Esc without replaying
-the outcome serial. Free roam protects player health; prove an emitted punch
+attributed retaliation. Rowan's active lunch encounter uses scriptedFight:true: a
+validated noodle throw must precede an actual melee emission for noodle-fight
+credit. Ordinary peaceful/confrontation outcomes do not advance that objective.
+Released visual flight follows captured positions despite target departure;
+nonlethal/timeout retries require a new throw. Resume pending conversations after
+Esc without replaying the outcome serial. Free roam protects player health; prove an emitted punch
 with its actual serial/timer rather than expecting sandbox injury.
 
 For native evidence, use the life selector or individual cases in fresh external
@@ -487,6 +495,7 @@ directories. Cases run separately to keep each software-WebGL run bounded:
 
 ```sh
 timeout 600s python3 -B scripts/test_capital_life_browser.py --scenario campaign --capture --output <fresh-campaign-directory>
+timeout 600s python3 -B scripts/test_capital_life_browser.py --scenario rowan-lunch --capture --output <fresh-rowan-lunch-directory>
 timeout 600s python3 -B scripts/test_capital_life_browser.py --scenario restaurant --capture --output <fresh-restaurant-directory>
 timeout 600s python3 -B scripts/test_capital_life_browser.py --scenario gym --capture --output <fresh-gym-directory>
 timeout 600s python3 -B scripts/test_capital_life_browser.py --scenario scenery --capture --output <fresh-scenery-directory>
@@ -509,3 +518,39 @@ all fail, so no whole ACT body is changed. Elevated rails are not ground walls.
 Reserve-bound wildlife and suburb materials are interpretations with bounded
 instances. Whole-centre tenant adjacency and fresh Street View remain unverified;
 do not promote architectural text into an observed floorplan or screenshot.
+
+
+## Story locations and resident geometry
+
+Read docs/capital-drive-story-and-streaming-contract.md and the dated follow-up
+receipt before changing these boundaries. Keep the source school gate/door,
+late-bound safehouse ID and actual activity station consistent with mission guides.
+Select the nearest clear source home with cheap sorting before collision queries;
+never sweep every house each frame. A guide is a read-only DTO, never a new clock,
+reward owner or alternate coordinate system. Preserve fresh serial baselines across
+stages, including when optional input fields are absent.
+
+Cutscenes are bounded captions driven by the controller clock and existing world
+camera. Hidden/blurred scenes freeze; Skip starts one real mission and Cancel pays
+nothing. Attack denial must precede ammo/cooldown/offence writes for job chapters
+and mini-games. Police return-to-car decisions include moving-target interception,
+actual car/door reach and legal directed routes. Allies only damage actual foot
+police through the gameplay owner; view effects cannot apply damage.
+
+```sh
+timeout 120s node scripts/test_capital_world_streaming.mjs --actual
+timeout 120s node scripts/test_capital_neighbourhood_streaming.mjs --actual
+timeout 120s node scripts/test_capital_mission_locations.mjs
+timeout 120s node scripts/test_capital_cutscenes.mjs
+timeout 120s node scripts/test_capital_campaign_scenes.mjs
+timeout 180s python3 -B scripts/test_capital_life_browser.py --scenario school-story --capture --output <fresh-external-school-directory>
+timeout 120s python3 -B scripts/test_capital_life_browser.py --scenario cutscene-ui --capture --output <fresh-external-ui-directory>
+timeout 120s python3 -B scripts/test_capital_life_browser.py --scenario noodle-component --capture --output <fresh-external-component-directory>
+```
+
+Actual-map streaming comparisons retain full source collision and metadata, verify
+resident attribute hashes after revisits and bound loads/evictions. They measure
+attribute arrays, not total process/GPU memory. The noodle component is explicitly
+programmatic supplied-dt evidence; never present it as native career reward proof.
+School-story stops after the alarm and normal exit, before evasion/reward. Keep
+failed native travel receipts and source blockers instead of deleting buildings.

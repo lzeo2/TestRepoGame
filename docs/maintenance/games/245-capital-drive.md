@@ -7,7 +7,7 @@
 Operator-authorized original Canberra open-world preview, catalog 245, static entry
 `Games/Capital Drive/index.html`. Three modes share one runtime. **Campaign** has
 three fictional adult protagonists, two opening missions each, a shared Kingston
-meeting and the retained six courier chapters. **Street Life** has jobs, cash, a
+meeting and six assigned shared heist chapters. **Street Life** has jobs, cash, a
 garage, foot combat and police; **Free roam** has all cars, local address search
 and map teleporting. The mapped area covers the inner south and a source-derived
 lake/Civic corridor. Airport and whole-city coverage remain later work. No GTA code,
@@ -45,7 +45,9 @@ artwork or branded vehicle assets are used.
   selected Kit/Rowan/Milo palette follows foot, driving, passenger and workout poses.
   Vehicle claims preserve the person's identity independently of exit event IDs.
 - `world-view.js`, `neighbourhood.js`: bilinear terrain, road/footpath ribbons,
-  chunked architecture, 9,000 trees, 4,200 frontages and clipped retail paving.
+  streamed nearby architecture/vegetation/frontage geometry with real disposal,
+  9,000 tree recipes, 4,200 door descriptors and clipped retail paving. Full
+  source/collision/navigation metadata remains loaded.
 - `landmarks.js`, `landmarks-view.js`: real anchors and dedicated Parliament
   House, Old Parliament House, Manuka Oval, Kingston Powerhouse and Manuka Pool; exact source
   replacement IDs, near/distant LOD and local procedural architecture.
@@ -65,7 +67,9 @@ artwork or branded vehicle assets are used.
   placement estimates differ.
 - `campaign.js`, `character-start.js`, `campaign-scenes.js`/view: three distinct
   introductions, collision-checked initial starts, shared meeting, strict v2
-  campaign progress and authoritative work/presentation/encounter serials.
+  campaign progress, ground combat companions and authoritative activity serials.
+  `cutscenes.js` owns transient supplied-time captions; `mission-locations.js` binds
+  actual room doors/stations and the named safehouse without owning cash or clocks.
 - `districts.js`: exact source Manuka retail polygon, shared appearance classifier.
 - `pedestrians.js`:36 suburban /64 nearby Civic instanced fictional adults, safe sidewalk walking,
   panic/anger/knockdown/recovery swept player contacts/yielding and causally attributed witness events.
@@ -197,6 +201,61 @@ font remain. All runtime data/imports/assets are local; developer caches and
 browser/geodata tooling stay outside the repository.
 
 ## Audit findings
+
+### Clear missions, crew and streamed geometry, 15 November 2026
+
+The [story and streaming contract](../../capital-drive-story-and-streaming-contract.md)
+and [follow-up receipt](../../verification/capital-drive-campaign-followup-2026-11-15.md)
+record the current architecture. Guides name the destination and metres, route to
+its actual rendered approach, then mark the real indoor counter, person or task.
+Milo’s safehouse binds one existing Jardine Street house and furnishes its ledger
+station only on entry. Telopea’s estimated after-hours wing has an actual entered
+room and a held-X/release/fresh-Y alarm task. This replaces Kit’s old flyer task
+under its retained save ID. Completed historical chapters are not replayed.
+
+Each chapter starts with a short skippable caption scene on the existing world.
+Job chapters and active mini-games deny attacks before ammo/offence/cooldown
+writes. The actual school alarm intentionally starts a one-star search once.
+Shared chapter owners are Milo, Kit, Rowan, Rowan, Kit and Milo. Two bounded allies
+follow and fight visible foot police outdoors; they do not board cars or join
+indoor rooms. Police have sidearms with sight/range/cooldown guards and compare
+foot intercept time with return/drive/dismount time before boarding a usable car.
+
+Production enables real world and neighbourhood geometry eviction. Actual Low
+world attribute bytes fall286,446,573 full→15,835,095 opening; six-area peak16,541,880.
+Neighbourhood full19,629,540→1,182,060 settled; peak2,011,932. All4,200door descriptors
+remain, and source geometry hashes match on revisits. Full source map, colliders,
+routing graph and addresses stay in memory. One interior loads on entry and
+releases on exit. These measurements do not measure total RAM or N100 FPS.
+
+Current source verification passed230/230 commands. Native school evidence passed18
+checks through captions, attack protection, actual alarm and room exit; it stops
+before evasion/reward. Nine programmatic noodle-component checks establish the
+actual throw/punch engine and view, not a naturally earned lunch mission. The
+bounded native Rowan lunch walk failed at a source-building corner; its failure
+and earlier caption-layout artifacts are retained. The final in-page caption
+overlay passed28 desktop/mobile focus/input checks and visual review; its top
+rectangle is gone. Full shared heists, paid gym
+career completion and target-hardware performance remain unverified.
+
+### Campaign switching and Rowan's lunch, 15 November 2026
+
+J opens Campaign and permits changing among Kit, Rowan and Milo between any
+missions, including partly completed introductions. Active missions lock all
+choices; completion, cancellation or failure releases them. Independent ordered
+intro prefixes survive switching/reload in the existing v2 format. Mid-session
+selection changes appearance without moving the player or granting rewards.
+
+Rowan's lunch now requires Dot to throw noodles at him before a live melee attack.
+The controller enables this sequence only for the active lunch encounter objective;
+the counter must be visited first. Both dialogue replies lead to the story
+sequence. Ordinary restaurant dialogue keeps its peaceful/confrontation choices.
+A released bowl follows its stored trajectory when Rowan retreats. Nonlethal
+interruption and anger timeout permit a fresh retry; old throw credit cannot
+complete it. Death, coercion, reach, sight, pause and current player-health guards
+remain. Twelve strands/five bowl pieces reuse the accessory batch, retaining six
+room-person draws. See the [follow-up receipt](../../verification/capital-drive-campaign-followup-2026-11-15.md)
+for current checks; the 14 November counts below remain dated evidence.
 
 ### Canberra life and three-character campaign, 14 November 2026
 
@@ -566,10 +625,11 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The current reusable runner checks 67 authored modules and 76 pure suites
-(220 syntax/source commands), fails on missing files or command errors and bounds
-subprocess lifetimes. The current city-life source run passed 220/220; its log
-hash and retained failures are in the dated city-life receipt. Browser
+The current reusable runner checks 69 authored modules and 80 pure suites
+(230 syntax/source commands), fails on missing files or command errors and bounds
+subprocess lifetimes. The current follow-up source run passed 230/230; its log
+hash and retained failures are in the dated follow-up receipt. The earlier
+city-life220/220 result remains separately dated. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
 unavailable WebGL, denied storage and hidden teleport guards. Actual-map physics
 uses 28,323 nodes /48,290 directed edges /40 traffic cars. Current Street Life
