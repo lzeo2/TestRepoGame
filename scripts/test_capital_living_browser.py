@@ -452,6 +452,30 @@ def main():
                 check(page.locator('#phone-dialog').is_visible() and
                       page.evaluate('document.documentElement.scrollWidth<=innerWidth'), '390px Lemon phone fits without horizontal page overflow')
                 capture(page, 'phone-390-lemon-layout')
+                close(page, 'phone-dialog')
+                page.set_viewport_size({'width': 1280, 'height': 800})
+                page.keyboard.press('p')
+                page.locator('#change-mode-button').click()
+                start(page, 'street')
+                page.keyboard.press('j')
+                franklin=page.locator('#jobs-list .job-option').filter(has_text='Franklin Street delivery')
+                kennedy=page.locator('#jobs-list .job-option').filter(has_text='Kennedy Street delivery')
+                check(franklin.get_by_role('button',name='Start job').is_enabled() and
+                      kennedy.get_by_role('button',name='Start job').is_enabled(),
+                      'Both new legal delivery jobs are available in a fresh career')
+                check('$400' in franklin.inner_text() and '$450' in kennedy.inner_text(),
+                      'Jobs board displays the actual delivery rewards')
+                capture(page, 'career-paid-jobs-board')
+                franklin.get_by_role('button',name='Start job').click()
+                page.wait_for_function('capitalDriveSnapshot().routePoints>0')
+                check('Franklin Street delivery' in page.locator('#job-title').inner_text(),
+                      'Normal jobs-board input starts the routed delivery')
+                page.keyboard.press('m')
+                check(page.locator('#teleport-button').is_hidden(), 'Career delivery keeps map teleport unavailable')
+                close(page, 'map-dialog')
+                page.keyboard.press('j')
+                page.locator('#cancel-job-button').click()
+                check(page.locator('#cancel-job-button').is_disabled(), 'Normal job cancellation clears the active delivery')
                 context.close()
                 page = None
                 check(not errors, 'No page or console errors')
