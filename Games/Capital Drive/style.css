@@ -250,3 +250,15 @@ body.indoors .minimap-wrap { display: none; }
 #activity-panel p{margin:8px 0;line-height:1.4}#activity-progress{width:100%;height:15px;accent-color:var(--accent)}
 [data-mini]{min-width:54px}#rental-offers{display:grid;gap:10px}#rental-offers button{text-align:left}
 @media(max-width:620px){#activity-panel{bottom:185px;font-size:12px}.topbar nav{gap:3px}.topbar nav button{padding:6px}}
+
+.dev-code-section{margin-top:18px;border-top:1px solid var(--line);padding-top:12px}
+.dev-code-section summary{min-height:44px;cursor:pointer;display:list-item;line-height:44px}
+#dev-code-form label{display:block;margin:8px 0}.dev-code-row{display:flex;gap:8px}
+#dev-code-input{min-width:0;flex:1;min-height:44px;font:inherit;border:1px solid var(--line);border-radius:4px;padding:10px;background:var(--panel);color:var(--ink)}
+#dev-code-status{margin:8px 0 0;min-height:1.5em}
+
+#activity-sequence{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}#activity-sequence kbd{min-width:42px;min-height:42px;padding:9px;text-align:center;font:bold 20px Atkinson,Arial,sans-serif;border:2px solid var(--line);border-radius:4px;background:var(--black);color:#f5f2e9}
+#activity-sequence .done{opacity:.5;border-color:#8ab48e}#activity-sequence .current{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent);color:var(--accent)}
+.activity-cue-line{display:flex;gap:14px;align-items:center;min-height:42px}#activity-cue{font-size:28px}#activity-cue[data-ready=true]{color:var(--accent)}#activity-grip{font-size:13px}
+#activity-window{width:100%;height:12px;accent-color:var(--accent)}.rental-offer{display:flex;gap:6px;flex-wrap:wrap}.rental-offer button:first-child{flex:1;min-width:170px}
+@media(max-width:620px){#activity-sequence{gap:5px}#activity-sequence kbd{min-width:32px;min-height:34px;padding:5px;font-size:18px}#activity-cue{font-size:24px}#activity-panel{padding:12px}.activity-cue-line{min-height:34px}}

@@ -1,14 +1,38 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createMicromobility} from '../Games/Capital Drive/micromobility.js';
+import {applyRoadProfiles,roadProfile} from '../Games/Capital Drive/road-network.js';
+import {CAMPUS_BOUNDARY} from '../Games/Capital Drive/campus.js';
+import {MANUKA_POOL_SITE} from '../Games/Capital Drive/landmarks.js';
+import {MAPPED_STORES} from '../Games/Capital Drive/stores.js';
+import {EXTRA_STORES} from '../Games/Capital Drive/civic-extras.js';
 import {applyMapExpansion} from '../Games/Capital Drive/map-expansion.js';
 const read=path=>readFile(new URL(path,import.meta.url),'utf8');
 const base=JSON.parse(await read('../Games/Capital Drive/data/canberra.json'));
 const north=JSON.parse(await read('../Games/Capital Drive/data/canberra-north.json'));
-const map=applyMapExpansion(base,north),before=JSON.stringify(map);
+const profiles=JSON.parse(await read('../Games/Capital Drive/data/road-profiles.json'));
+const map=applyMapExpansion(applyRoadProfiles(base,profiles),north),before=JSON.stringify(map);
 const rental=createMicromobility(map),initial=rental.snapshot();
-assert.equal(initial.stands.length,3,'three public source-derived district stands');
-assert.equal(initial.assets.length,6);
+assert.equal(initial.stands.length,33,'three legacy anchors plus thirty distributed roadside points');
+assert.equal(initial.assets.length,56);
+assert.deepEqual(createMicromobility(map).snapshot(),initial,'deterministic layout');
+assert.deepEqual(initial.stands.slice(0,3).map(s=>s.id),['lemon-civic','lemon-kingston','lemon-manuka']);
+assert.deepEqual(initial.assets.slice(0,6).map(a=>a.id),['lemon-civic-scooter','lemon-civic-bike','lemon-kingston-scooter','lemon-kingston-bike','lemon-manuka-scooter','lemon-manuka-bike']);
+assert(new Set(initial.stands.filter(s=>s.distributed).map(s=>s.district)).size>=8);
+for(const district of ['kingston','manuka','griffith','narrabundah','redhill','barton','civic'])assert(initial.stands.some(s=>s.district===district),district);
+assert(initial.assets.some(a=>a.z<-4000)&&initial.assets.some(a=>a.z>2000),'north/south corridor covered');
+assert(initial.assets.some(a=>a.x>1500)&&initial.assets.some(a=>a.x<-1100),'east/west coverage');
+const pointSegment=(p,a,b)=>{const dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((p.x-a[0])*dx+(p.z-a[1])*dz)/(dx*dx+dz*dz||1)));return Math.hypot(p.x-a[0]-dx*t,p.z-a[1]-dz*t);};
+const inside=(p,ring)=>{let hit=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const a=ring[i],b=ring[j];if((a[1]>p.z)!==(b[1]>p.z)&&p.x<(b[0]-a[0])*(p.z-a[1])/(b[1]-a[1])+a[0])hit=!hit;}return hit;};
+const excluded=[...(map.areas||[]).filter(a=>/water|park|garden|pitch|playground|school|sports/.test(a.type||'')),{points:CAMPUS_BOUNDARY},{points:MANUKA_POOL_SITE},...(map.barriers||[])];
+for(const a of initial.assets){
+  assert(a.x>map.bounds.minX&&a.x<map.bounds.maxX&&a.z>map.bounds.minZ&&a.z<map.bounds.maxZ);
+  for(const r of map.roads)if(!['footway','path','pedestrian','cycleway'].includes(r.type))for(let i=1;i<r.points.length;i++)assert(pointSegment(a,r.points[i-1],r.points[i])>=roadProfile(r).driveWidth/2+.79,`${a.id} outside vehicle lane`);
+  for(const polygon of [...map.buildings,...excluded])if(polygon.points?.length){assert(!inside(a,polygon.points),`${a.id} outside building/sensitive area`);for(let i=0;i<polygon.points.length;i++)assert(pointSegment(a,polygon.points[i],polygon.points[(i+1)%polygon.points.length])>=1.79,`${a.id} boundary clearance`);}
+  for(const door of [...MAPPED_STORES,...EXTRA_STORES].map(s=>s.frontage).filter(Boolean))assert(Math.hypot(a.x-door.x,a.z-door.z)>=6.99,'clear source storefront approaches');
+  assert(rental.validateStart(a.kind,{pose:a,assetId:a.id,onFoot:true,moveActor(){}}).ok,`${a.id} reachable on safe ground`);
+}
+
 for(const stand of initial.stands) {
   assert(map.roads.some(r=>(r.sourceId||`way/${String(r.id).split('-')[0]}`)===stand.sourceRoadId),'stand retains actual road source');
   assert(Number.isFinite(stand.x)&&Number.isFinite(stand.z));
@@ -29,6 +53,7 @@ const startPose={...pose};
 assert(rental.validateStart('scooter',context).ok);
 assert(rental.start('scooter',context).ok);assert.equal(charges,1);assert.equal(cash,80);
 assert.deepEqual(pose,startPose,'hiring never teleports the foot actor');
+assert.equal(rental.snapshot().active.stolen,false);assert.equal(rental.snapshot().active.hired,true);assert.equal(rental.snapshot().active.charge,20);
 assert.equal(rental.start('bike',context).ok,false);assert.equal(charges,1,'duplicate start cannot charge');
 assert.equal(rental.drainEvents().filter(e=>e.type==='started').length,1);assert.deepEqual(rental.drainEvents(),[]);
 const paused=structuredClone(rental.snapshot());rental.step(0,{throttle:1},context);rental.step(1,{throttle:1},{...context,paused:true});
@@ -41,7 +66,7 @@ const yaw=rental.snapshot().active.yaw;rental.step(.1,{steer:1,throttle:1},conte
 collide=true;const stoppedAt={x:pose.x,z:pose.z};rental.step(.1,{throttle:1},context);
 assert.equal(rental.snapshot().active.speed,0,'swept actor collision stops ride');assert.equal(pose.x,stoppedAt.x);assert.equal(pose.z,stoppedAt.z);
 // Reset is a mode/session lifecycle action, never a persisted career mutation.
-rental.reset();assert.equal(rental.snapshot().active,null);assert.equal(rental.snapshot().assets.length,6);assert.deepEqual(rental.drainEvents(),[]);
+rental.reset();assert.equal(rental.snapshot().active,null);assert.equal(rental.snapshot().assets.length,56);assert.deepEqual(rental.drainEvents(),[]);
 Object.assign(pose,{x:asset.x,z:asset.z,yaw:asset.yaw,speed:0});collide=false;
 assert(rental.start('bike',context).ok);assert.equal(charges,2);assert.equal(cash,50);
 assert(rental.end(context).ok,'stationary dismount on clear pickup pavement');assert.equal(rental.snapshot().active,null);
@@ -53,6 +78,20 @@ for(let i=0;i<100;i++)rental.step(.1,{throttle:1},context);
 assert.equal(rental.snapshot().active.speed,8.3,'e-bike capped at 30km/h');
 for(let i=0;i<20;i++)rental.step(.1,{brake:1},context);
 assert.equal(rental.snapshot().active.speed,0,'brake reaches a complete stop');rental.reset();
+// Only a controller-verified completed scooter permit can claim a free ride.
+Object.assign(pose,{x:asset.x,z:asset.z,yaw:asset.yaw,speed:0});
+const permit={targetId:asset.id,phase:'complete',kind:'scooter',sessionId:1},steal={...context,assetId:asset.id,permit};
+const chargeBefore=charges;
+for(const bad of [null,{}, {...permit,phase:'active'},{...permit,targetId:'other'},{...permit,kind:'bike'},{...permit,sessionId:0},{...permit,sessionId:1.5}])assert.equal(rental.claimStolen(asset.id,{...context,permit:bad}).ok,false);
+for(const guard of [{onFoot:false},{recovering:true},{moveActor:null},{pose:{x:1e7,z:1e7}},{pose:{x:NaN,z:0}}])assert.equal(rental.claimStolen(asset.id,{...steal,...guard}).ok,false);
+const bike=initial.assets[1];assert.equal(rental.claimStolen(bike.id,{...context,pose:bike,permit:{...permit,targetId:bike.id}}).ok,false,'bikes cannot be hacked');
+const theftPose={...pose};assert(rental.claimStolen(asset.id,steal).ok);assert.deepEqual(pose,theftPose,'hack claim never teleports');
+assert.equal(charges,chargeBefore,'hack never calls wallet callback');assert.equal(rental.snapshot().active.stolen,true);assert.equal(rental.snapshot().active.hired,false);assert.equal(rental.snapshot().active.charge,0);
+assert.equal(rental.claimStolen(asset.id,steal).ok,false);assert.equal(rental.drainEvents().filter(e=>e.type==='stolen').length,1);assert.deepEqual(rental.drainEvents(),[]);
+assert(rental.end(context).ok);assert.equal(rental.snapshot().assets.find(a=>a.id===asset.id).available,true,'stolen ride parks normally');
+assert.equal(rental.claimStolen(asset.id,steal).ok,false,'completed session consumed once');
+assert(rental.claimStolen(asset.id,{...steal,permit:{...permit,sessionId:2}}).ok);rental.reset();
+assert(rental.claimStolen(asset.id,steal).ok,'reset clears session permit consumption');rental.reset();
 // Independent empty and obstructed worlds do not invent rental placements.
 const empty=createMicromobility({roads:[],buildings:[]});assert.deepEqual(empty.offers(pose),[]);assert.equal(empty.start('bike',context).ok,false);
 const allBlocked=createMicromobility({roads:[{id:'1',name:'Blocked Road',type:'residential',width:4,points:[[-330,250],[-280,250]]}],buildings:[{points:[[-340,230],[-270,230],[-270,270],[-340,270]]}]});
@@ -63,16 +102,24 @@ const utilsURL=url((await read('../assets/car-arcade/vendor/BufferGeometryUtils.
 const {createMicromobilityView}=await import(url((await read('../Games/Capital Drive/micromobility-view.js')).replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL)).replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'",JSON.stringify(utilsURL))));
 const scene=new THREE.Scene(),view=createMicromobilityView(scene,(x,z)=>x*.001+z*.002),root=scene.children[0];
 assert.equal(view.stats.drawCalls,0);assert.equal(root.children.length,5);
-view.update(initial,initial.stands[0],.1);assert(view.stats.visibleAssets>=2);assert(view.stats.drawCalls<=6);assert(view.stats.triangles<=10000);
+view.update(initial,initial.stands[0],.1);assert(view.stats.visibleAssets>=2);assert(view.stats.drawCalls<=5);assert(view.stats.triangles<=30000);
 const allNear={stands:initial.stands.map(s=>({...s,x:0,z:0})),assets:initial.assets.map(a=>({...a,x:0,z:0})),active:null};
-view.update(allNear,{x:0,z:0},.1);assert.equal(view.stats.visibleAssets,6);assert.equal(view.stats.visibleStands,3);assert(view.stats.triangles<10000);
+view.update(allNear,{x:0,z:0},.1);assert.equal(view.stats.visibleAssets,24);assert.equal(view.stats.visibleStands,3);assert(view.stats.triangles<30000);
 allNear.assets[0].available=false;allNear.active={kind:'scooter',x:0,z:0,yaw:0,speed:3};view.update(allNear,{x:0,z:0},.1);
-assert.equal(view.stats.visibleAssets,6);assert(view.stats.drawCalls<=6);assert(view.stats.triangles<10000);
+assert.equal(view.stats.visibleAssets,24);assert(view.stats.drawCalls<=5);assert(view.stats.triangles<30000);
 assert(root.children.find(m=>m.name==='Lemon rider-scooter').visible,'standing original scooter rider');
 allNear.active.kind='bike';view.update(allNear,{x:0,z:0},.1);assert(root.children.find(m=>m.name==='Lemon rider-bike').visible,'seated original bike rider');
+const distantFirst={stands:[],assets:[...initial.assets.map(a=>({...a,x:1000,z:1000})),{id:'nearest-late',kind:'scooter',available:true,x:1,z:0},{id:'edge',kind:'bike',available:true,x:180,z:0},{id:'outside',kind:'scooter',available:true,x:180.01,z:0}],active:null};
+view.update(distantFirst,{x:0,z:0});assert.equal(view.stats.visibleAssets,2,'cull before cap includes late assets and range boundary');
+const nearMatrix=new THREE.Matrix4();root.children.find(m=>m.name==='Lemon scooter').getMatrixAt(0,nearMatrix);assert.equal(nearMatrix.elements[12],1,'non-first asset is rendered');
+const ordered={stands:[],assets:Array.from({length:40},(_,i)=>({id:`near-${i}`,kind:'scooter',available:true,x:40-i,z:0})),active:{kind:'scooter',assetId:'riding',x:100,z:0,yaw:0}};
+view.update(ordered,{x:0,z:0});assert.equal(view.stats.visibleAssets,24,'active asset included inside global cap');
+root.children.find(m=>m.name==='Lemon scooter').getMatrixAt(0,nearMatrix);assert.equal(nearMatrix.elements[12],1,'nearest sorted before capacity limit');
+assert(root.children.find(m=>m.name==='Lemon rider-scooter').visible,'active rider always has reserved space');
+view.update(allNear,{x:0,z:0});
 const matrix=new THREE.Matrix4();root.children.find(m=>m.name==='Lemon bike').getMatrixAt(0,matrix);assert(Math.abs(matrix.elements[13]-.04)<1e-6,'grounded to height provider');
 view.update(allNear,{x:1e6,z:1e6},.1);assert.equal(view.stats.drawCalls,0);assert.equal(view.stats.visibleAssets,0);
 view.update(allNear,{x:NaN,z:0});assert.equal(view.stats.drawCalls,0);
 let disposedGeometry=0,disposedMaterial=0;for(const mesh of root.children)mesh.geometry.addEventListener('dispose',()=>disposedGeometry++);root.children[0].material.addEventListener('dispose',()=>disposedMaterial++);
 view.dispose();view.dispose();view.update(allNear,{x:0,z:0},.1);assert.equal(scene.children.length,0);assert.equal(disposedGeometry,5);assert.equal(disposedMaterial,1);assert.equal(view.stats.drawCalls,0);
-console.log('PASS Lemon source-road stands, actual-asset hire guards, atomic one-time cash callback, no teleport, capped acceleration/turn/brake/collision/pause, stationary end, six pooled vehicles plus riders under six draws/10000 triangles, culling and exact disposal');
+console.log('PASS 56 deterministic Lemon assets across ten districts, source-road and sensitive-area safety, paid hire guards, completed one-use scooter permit, no wallet theft/no teleport, ride physics/recovery, nearest 24 within 180m, five pooled draws, rider reserve and exact disposal');

@@ -31,6 +31,7 @@ import {createInteriorActivities} from './interior-activities.js';
 import {createInteriorPeople} from './interior-people.js';
 import {createInteriorPeopleView} from './interior-people-view.js';
 import {createMicromobility} from './micromobility.js';
+import {createVehicleChallenge} from './vehicle-challenges.js';
 import {createMicromobilityView} from './micromobility-view.js';
 import {EXTRA_STORES,SKATEPARK_LANDMARK,SKATE_BUILDING_OPENING,BARRIERS as SKATE_BARRIERS,skateHeightOffset} from './civic-extras.js';
 import {createCivicExtrasView} from './civic-extras-view.js';
@@ -60,6 +61,8 @@ let trafficView,storefrontsView,shoppingView,campusView,civicView,noodleShopView
 let interiors,interiorScene,interiorView,indoorActorView,campaign,terrainSampler,gymEntry;
 let activities=createInteriorActivities(),roomPeople=createInteriorPeople(),roomPeopleView,micromobility,microView;
 const miniKeys=new Set();
+const rentalHack=createVehicleChallenge();
+let rentalHackTarget=null,cueStamp='';
 let parkedChunks = [], selectedCar = 'lantern', selectedPaint = '#e7e6df';
 let quality = 'low', started = false, disposed = false, lastTime = 0, accumulator = 0, lastRender = 0, hudTime = 0;
 let orbit = 0, orbitHeight = 0, orbitHold = 0, dragging = false, pointer = null, toastTimer;
@@ -142,7 +145,7 @@ function servicePosition(site){
   return plan?.storeId===site.id?{...plan.counter,radius:plan.counter.radius}:null;
 }
 function miniInput(){return {x:keys.has('KeyX')||miniKeys.has('x'),y:keys.has('KeyY')||miniKeys.has('y'),up:keys.has('ArrowUp')||miniKeys.has('up')};}
-function stopMini(){activities.cancel();progression?.cancelActivity();clearInput();}
+function stopMini(){activities.cancel();rentalHack.cancel();rentalHackTarget=null;gameplay?.cancelCarjacking();progression?.cancelActivity();clearInput();}
 function beginMini(id){
   if(!interiors?.active||paused()||activities.snapshot().active)return;
   const station=id?interiors.active.activities.find(s=>s.id===id):activities.nearest(focus());
@@ -159,6 +162,56 @@ function beginMini(id){
   }else notify(station.label);
   clearInput();
 }
+function streetChallenge(){
+  const hack=rentalHack.snapshot();
+  if(hack.active)return {...hack,label:'Bypass scooter lock'};
+  const theft=gameplay?.state.carjacking;
+  if(theft)return {...(theft.challenge||{}),active:true,kind:'car',label:'Take vehicle',
+    prompt:theft.phase==='waiting'?'Stay beside the car while the driver stops.':theft.challenge?.prompt,
+    progress:theft.progress,remaining:theft.challenge?.remaining||8-theft.waited};
+  return null;
+}
+function beginRentalHack(offer){
+  if(!started||interiors.active||activities.snapshot().active||rentalHack.snapshot().active||gameplay.state.carjacking)return;
+  const checked=micromobility.validateStart('scooter',{pose:focus(),onFoot:gameplay.state.mode==='foot',recovering:!!gameplay.state.recovery,assetId:offer.id,moveActor:moveBody});
+  if(!checked.ok){notify(checked.reason);return;}
+  if(!visible(focus(),checked.offer)){notify('Move into clear view of the scooter.');return;}
+  rentalHack.clear();rentalHack.drainEvents();rentalHackTarget={...checked.offer};
+  rentalHack.start('scooter',{targetId:offer.id,anchor:checked.offer,sandbox:isSandbox()});
+  closeDialogs();clearInput();notify('Match the sequence to bypass the lock.');
+}
+function updateRentalHack(dt){
+  const state=rentalHack.snapshot();
+  if(state.active){
+    const asset=micromobility.offers(focus()).find(a=>a.id===state.targetId);
+    const valid=!!asset?.available&&asset.distance<=2.8&&gameplay.state.mode==='foot'&&!gameplay.state.recovery&&!interiors.active&&!gameplay.state.carjacking&&visible(focus(),asset);
+    rentalHack.step(dt,miniInput(),{valid,sandbox:isSandbox()});
+  }
+  for(const event of rentalHack.drainEvents()){
+    const terminal=rentalHack.snapshot();
+    if(event.sessionId!==terminal.sessionId||event.targetId!==terminal.targetId)continue;
+    if(event.type==='complete'&&terminal.phase==='complete'&&rentalHackTarget?.id===event.targetId&&event.sessionId===terminal.sessionId&&event.sandbox===isSandbox()){
+      const result=micromobility.claimStolen(event.targetId,{permit:terminal,pose:gameplay.state.actor,onFoot:gameplay.state.mode==='foot',recovering:!!gameplay.state.recovery,moveActor:moveBody});
+      if(result.ok){gameplay.reportOffence('scooter theft',1,{point:focus()});cameraReady=false;notify('Lock bypassed. WASD rides; S brakes; E dismounts.');}
+      else notify(result.reason);
+    }else if(event.type==='failed')notify(event.reason);
+    rentalHackTarget=null;clearInput();
+  }
+}
+function renderSequence(state){
+  const sequence=state.sequence||[],index=state.index||0;
+  const stamp=[state.kind,state.phase,index,state.expectedKey,sequence.join(','),state.active].join('|');
+  if(stamp!==cueStamp){
+    cueStamp=stamp;$('activity-sequence').replaceChildren();
+    sequence.forEach((key,i)=>{const tile=document.createElement('kbd');tile.textContent={x:'X',y:'Y',up:'↑'}[key]||key;tile.dataset.key=key;
+      tile.className=i<index?'done':i===index?'current':'upcoming';if(i===index)tile.setAttribute('aria-current','step');$('activity-sequence').append(tile);});
+    $('activity-cue').textContent=!state.active?'':state.requiresGrip&&state.phase==='grip'?'HOLD X + Y':state.memorising?'READ THE SEQUENCE':state.phase==='lift'?'HOLD X + Y':state.phase==='prepare'?'WAIT':state.expectedKey?`PRESS ${{x:'X',y:'Y',up:'↑'}[state.expectedKey]}`:state.kind==='rest'?'REST':'WAIT';
+    $('activity-cue').dataset.ready=String(state.phase==='cue'||state.acceptsInput===true);
+    $('activity-grip').textContent=state.requiresGrip?'Keep X + Y held':'';
+  }
+  $('activity-window').hidden=!state.active||!state.cueWindow||state.phase!=='cue';
+  $('activity-window').max=state.cueWindow||1;$('activity-window').value=state.cueRemaining||0;
+}
 function updateMini(){
   for(const event of activities.drainEvents()){
     if(event.kind==='bench'&&progression.state.activity?.type==='workout'){
@@ -172,12 +225,14 @@ function updateMini(){
     if(event.type==='complete'&&event.heal&&!isSandbox())gameplay.heal(event.heal);
     if(event.type==='complete'||event.type==='failed')notify(event.reason);
   }
-  const state=activities.snapshot(),nearest=interiors?.active&&activities.nearest(focus());
-  $('activity-panel').hidden=!interiors?.active||(!state.kind&&!nearest);
+  const street=streetChallenge(),state=street||activities.snapshot(),nearest=interiors?.active&&activities.nearest(focus());
+  $('activity-panel').hidden=!street&&(!interiors?.active||(!state.kind&&!nearest));
+  renderSequence(state);
   $('activity-title').textContent=state.active||state.kind?state.label:nearest?.label||'';
-  $('activity-prompt').textContent=state.kind?state.prompt:'Q or Play starts this activity.';
-  $('activity-progress').value=state.progress;
-  $('activity-score').textContent=state.kind?`${state.score} points${state.kind==='bench'?` · ${state.reps}/6 reps`:''}`:'';
+  $('activity-prompt').textContent=street?(state.sequence?.length?'Release between presses. E cancels.':state.prompt):state.kind?state.prompt:'Q or Play starts this activity.';
+  $('activity-progress').hidden=!!street;
+  $('activity-progress').value=state.progress||0;
+  $('activity-score').textContent=street?`${state.index||0}/${state.sequence?.length||8} · ${state.mistakes||0}/${state.maxMistakes||2} mistakes`:state.kind?`${state.score} points${state.kind==='bench'?` · ${state.reps}/6 reps`:''}`:'';
   $('activity-start').textContent=!isSandbox()&&interiors?.active?.storeId&&['noodle','stock'].includes(nearest?.kind)?`Work · +$${nearest.kind==='noodle'?60:45}`:'Play';
   $('activity-start').hidden=state.active;$('activity-start').disabled=!nearest;
   $('activity-cancel').hidden=!state.active;
@@ -191,22 +246,25 @@ for(const button of document.querySelectorAll('[data-mini]')){
 }
 function openPhone(){
   if(!started)return;
-  const state=micromobility.snapshot(),offers=micromobility.offers(focus());
-  $('rental-status').textContent=state.active?'S to brake, then end your ride.':'Walk to a Lemon scooter or bike. Scooter $20 · e-bike $30.';
+  const state=micromobility.snapshot(),offers=micromobility.offers(focus()).slice(0,8);
+  $('rental-status').textContent=state.active?'S to brake, then end your ride.':'Nearby Lemon rides. Scooter $20 · e-bike $30. A scooter lock can also be hacked.';
   $('rental-offers').replaceChildren();
   for(const offer of offers){
     const row=document.createElement('div'),b=document.createElement('button'),routeButton=document.createElement('button');
+    row.className='rental-offer';
     b.textContent=`Hire ${offer.kind==='bike'?'e-bike':'scooter'} · $${offer.price} · ${Math.round(offer.distance)} m`;
-    b.disabled=!offer.available||offer.distance>2.8||!!state.active||gameplay.state.mode!=='foot'||!!interiors.active||!!gameplay.state.recovery;
+    b.disabled=!offer.available||offer.distance>2.8||!!state.active||gameplay.state.mode!=='foot'||!!interiors.active||!!gameplay.state.recovery||!!streetChallenge();
     b.dataset.hireKind=offer.kind;b.dataset.standId=offer.standId;
     b.addEventListener('click',()=>{
-      const result=micromobility.start(offer.kind,{pose:gameplay.state.actor,onFoot:gameplay.state.mode==='foot',recovering:!!gameplay.state.recovery,standId:offer.standId,moveActor:moveBody,pay:price=>{
+      const result=micromobility.start(offer.kind,{pose:gameplay.state.actor,onFoot:gameplay.state.mode==='foot',recovering:!!gameplay.state.recovery,standId:offer.standId,assetId:offer.id,moveActor:moveBody,pay:price=>{
         if(isSandbox())return true;const paid=progression.payRental(price,careerContext());if(paid.ok)saveCareer();else notify(paid.message);return paid.ok;
       }});
       if(result.ok){closeDialogs();cameraReady=false;notify('Ride hired. WASD rides; S brakes; E dismounts.');}else notify(result.reason);
     });
     routeButton.textContent='Route';routeButton.addEventListener('click',()=>{routeTo({...offer,name:'Lemon '+offer.kind});closeDialogs();});
-    row.append(b,routeButton);$('rental-offers').append(row);
+    row.append(b,routeButton);
+    if(offer.kind==='scooter'){const hack=document.createElement('button');hack.textContent='Hack';hack.dataset.hackAsset=offer.id;hack.disabled=b.disabled;hack.addEventListener('click',()=>beginRentalHack(offer));row.append(hack);}
+    $('rental-offers').append(row);
   }
   $('end-rental').disabled=!state.active||Math.abs(state.active.speed)>.3;
   openDialog('phone-dialog');
@@ -245,6 +303,7 @@ function leaveInterior(){
 function interiorHint(){
   if(gameplay?.state.mode!=='foot')return null;
   const pose=focus(),plan=interiors?.active;
+  if(streetChallenge())return 'Match the sequence · E cancel';
   if(activities.snapshot().active)return 'X + Y / ↑ activity controls · E stop';
   if(micromobility?.snapshot().active)return 'WASD ride · S brake · E dismount · T phone';
   if(plan){
@@ -253,6 +312,8 @@ function interiorHint(){
     const station=activities.nearest(pose);
     return station?`Q ${station.label} · E at the door leaves`:'WASD walk · E at the door leaves';
   }
+  const lemon=micromobility?.offers(pose)[0];
+  if(lemon?.available&&lemon.distance<=2.8)return 'T hire or hack Lemon ride';
   const entry=interiors?.findEntry(pose);
   return entry?`E enter ${entry.name}`:null;
 }
@@ -304,6 +365,7 @@ function refreshModeUI() {
   $('teleport-button').disabled = !isSandbox() || !mapSelection;
   $('recover-button').hidden = !isSandbox();
   $('jobs-button').hidden = isSandbox();
+  $('dev-code-section').hidden=isSandbox();
   $('store-car-button').hidden = isSandbox();
   $('paint-label').textContent = isSandbox() ? 'Paint' : `Paint · $${progression.garage.paintCost}`;
   $('repair-car-button').textContent = isSandbox() ? 'Repair vehicle' : `Repair · $${progression.garage.repairCost}`;
@@ -317,6 +379,7 @@ function openDialog(id) {
   if (!simulation || !started) return;
   clearInput();
   for (const d of dialogs) if (d.open) d.close();
+  if(id==='pause-dialog')resetDevEntry();
   $(id).showModal();
   if (id === 'map-dialog') { refreshModeUI(); fitMapCanvas(); drawMap($('full-map'), true); }
 }
@@ -327,6 +390,18 @@ $('map-button').addEventListener('click', () => openDialog('map-dialog'));
 $('minimap-button').addEventListener('click', () => openDialog('map-dialog'));
 $('pause-button').addEventListener('click', () => openDialog('pause-dialog'));
 $('pause-garage-button').addEventListener('click', () => { streetUI.renderGarage(); openDialog('garage-dialog'); });
+function resetDevEntry(){
+  $('dev-code-section').open=false;$('dev-code-input').value='';$('dev-code-status').textContent='';
+}
+$('pause-dialog').addEventListener('close',resetDevEntry);
+$('dev-code-form').addEventListener('submit',event=>{
+  event.preventDefault();
+  const value=$('dev-code-input').value;$('dev-code-input').value='';
+  if(!started||!$('pause-dialog').open||isSandbox())return;
+  const result=progression.redeemDevCode(value,careerContext());
+  if(result.ok){saveCareer();streetUI.refresh();}
+  $('dev-code-status').textContent=result.ok?(careerError?'Applied for this session. Saving is unavailable.':'Applied.'):result.message;
+});
 $('resume-button').addEventListener('click', closeDialogs);
 $('start-button').addEventListener('click', () => {
   if (!simulation || !gameplay || !streetUI) return;
@@ -475,7 +550,7 @@ for (const button of document.querySelectorAll('[data-drive]')) {
 function interact() {
   if (!gameplay || paused()) return;
   if(gameplay.state.recovery)return;
-  if(activities.snapshot().active){stopMini();return;}
+  if(activities.snapshot().active||streetChallenge()){stopMini();return;}
   if(micromobility?.snapshot().active){const r=micromobility.end({pose:focus(),onFoot:true,moveActor:moveBody});notify(r.reason||r.message||(r.ok?'Dismounted.':'Brake before dismounting.'));return;}
   if(gameplay.state.mode==='foot'&&!gameplay.state.carjacking){
     const pose=focus();
@@ -504,7 +579,7 @@ for (const button of document.querySelectorAll('[data-action]')) {
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(type, () => actionTouch.delete(button.dataset.action));
 }
 function walkingInput() {
-  if(gameplay?.state.recovery||activities.snapshot().active||micromobility?.snapshot().active)return {};
+  if(gameplay?.state.recovery||activities.snapshot().active||rentalHack.snapshot().active||micromobility?.snapshot().active)return {};
   const forward = Number(keys.has('KeyW') || keys.has('ArrowUp') || touch.has('throttle')) - Number(keys.has('KeyS') || keys.has('ArrowDown') || touch.has('brake'));
   const lateral = Number(keys.has('KeyD') || keys.has('ArrowRight') || touch.has('right')) - Number(keys.has('KeyA') || keys.has('ArrowLeft') || touch.has('left'));
   return { moveX: -Math.sin(footCameraYaw) * forward + Math.cos(footCameraYaw) * lateral,
@@ -917,12 +992,13 @@ function animate(time) {
       const walking = gameplay.state.mode === 'foot';
       syncExternalVehicles();
       simulation.step(1 / 60, walking||gameplay.state.recovery||gameplay.state.vehicleHealth<=0 ? { brake: true } : input(), focus());
-      gameplay.step(1 / 60, walkingInput());
+      gameplay.step(1 / 60, {...walkingInput(),challenge:miniInput()});
       syncExternalVehicles();buses?.step(1/60);
       if (!isSandbox()) progression.update(1 / 60, careerContext());
       activities.step(1/60,miniInput(),careerContext());
       roomPeople.update(1/60,{actor:gameplay.state.actor,activity:activities.snapshot()});
       micromobility?.step(1/60,{throttle:Math.max(0,input().throttle),brake:Math.max(0,-input().throttle),steer:input().steer},{pose:gameplay.state.actor,onFoot:gameplay.state.mode==='foot',recovering:!!gameplay.state.recovery,moveActor:moveBody});
+      updateRentalHack(1/60);
       campaign.update(1/60,careerContext());
       if(previousActorMode!==gameplay.state.mode){previousActorMode=gameplay.state.mode;footCameraYaw=gameplay.state.actor.yaw;cameraReady=false;clearInput();}
       accumulator -= 1 / 60;
@@ -1122,7 +1198,7 @@ async function boot() {
   // Read-only diagnostics for QA; no production state setters.
   window.capitalDriveSnapshot = () => Object.freeze({ ready: true, started, paused: paused(), gameMode,
     player: Object.freeze({ ...simulation.player }), focus: Object.freeze({ ...focus() }),
-    gameplay: gameplay.snapshot(),miniGame:freezeCopy(activities.snapshot()),roomPeople:freezeCopy(roomPeople.snapshot()),roomPeopleView:freezeCopy(roomPeopleView.stats),rentals:freezeCopy(micromobility.snapshot()),microView:freezeCopy(microView.stats),gymEntry:freezeCopy(gymEntry),campaign:campaign.snapshot(),interiors:freezeCopy({...interiors.snapshot(),entrySample:interiors.entries.slice(0,8),publicEntries:CIVIC_INTERIOR_ENTRIES,active:interiors.active}),career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
+    gameplay: gameplay.snapshot(),rentalHack:freezeCopy(rentalHack.snapshot()),nearbyVehicles:freezeCopy(simulation.nearbyVehicles(focus().x,focus().z,40)),miniGame:freezeCopy(activities.snapshot()),roomPeople:freezeCopy(roomPeople.snapshot()),roomPeopleView:freezeCopy(roomPeopleView.stats),rentals:freezeCopy(micromobility.snapshot()),microView:freezeCopy(microView.stats),gymEntry:freezeCopy(gymEntry),campaign:campaign.snapshot(),interiors:freezeCopy({...interiors.snapshot(),entrySample:interiors.entries.slice(0,8),publicEntries:CIVIC_INTERIOR_ENTRIES,active:interiors.active}),career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
     places: Object.freeze(map.landmarks.map(place => Object.freeze({ ...place }))), addressCount: addressData.addresses.length,
     camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch,footYaw:footCameraYaw }),
     discovered: Object.freeze([...discovered]), roadCount: map.roads.length, buildings: map.buildings.length, traffic: simulation.traffic.length,

@@ -175,22 +175,32 @@ export function createInteriorActivities() {
   function prompt() {
     const s = session;
     if (!s) return 'Walk to an activity station.';
-    if (s.phase === 'complete') return `${s.reason} Score ${s.score}. E to play again.`;
-    if (s.phase === 'failed') return `${s.reason} E to retry. Escape cancels.`;
-    if (s.phase === 'cancelled') return 'Activity cancelled. E to retry at the station.';
+    if (s.phase === 'complete') return `${s.reason} Score ${s.score}. Q to play again.`;
+    if (s.phase === 'failed') return `${s.reason} Q to retry. Escape cancels.`;
+    if (s.phase === 'cancelled') return 'Activity cancelled. Q to retry at the station.';
     if (s.kind === 'bench') return `Hold X + Y. ${s.phase === 'cue' ? 'LIFT: press ArrowUp now!' :
       s.phase === 'lift' ? 'Keep holding while the bar returns.' : 'Wait for the LIFT cue, then press ArrowUp.'} ${s.reps}/6 reps. ${s.mistakes}/3 mistakes.`;
     if (s.kind === 'rest') return `Rest here for ${Math.max(0, s.duration - s.elapsed).toFixed(1)} seconds. Moving away cancels.`;
     if (s.kind === 'stock') return s.phase === 'memorise' ?
       `Remember: ${RECIPES.stock.map(key => KEY_LABEL[key]).join(', ')}. Release each key between presses.` :
-      `Repeat the stock order from memory. ${s.index}/4 items. ${s.mistakes}/3 mistakes.`;
+      `Repeat: ${RECIPES.stock.map(key => KEY_LABEL[key]).join(', ')}. ${s.index}/4 items. ${s.mistakes}/3 mistakes. Release between presses.`;
     if (RECIPES[s.kind]) return `${s.kind === 'noodle' ? 'Serve noodles' : 'Cook a meal'}: ${RECIPES[s.kind].map((key, i) => `${i < s.index ? 'done' : KEY_LABEL[key]}`).join(', ')}. X chop, Y add, ArrowUp serve. Release between presses.`;
     return `${s.phase === 'cue' ? 'GO! Press ArrowUp now.' : 'Wait for GO, then press ArrowUp.'} ${s.hits}/${s.kind === 'arcade' ? 8 : 5} signals. ${s.mistakes}/3 mistakes.`;
   }
   function snapshot() {
     const s = session;
+    const sequence = s ? RECIPES[s.kind] ?? (s.kind === 'bench' ? Array(6).fill('up') :
+      s.kind === 'tv' || s.kind === 'arcade' ? Array(s.kind === 'arcade' ? 8 : 5).fill('up') : []) : [];
+    const index = s ? RECIPES[s.kind] ? s.index : s.kind === 'bench' ? s.reps : s.hits : 0;
+    const cue = s?.phase === 'cue';
     return { active: running(), planId, sessionId: s?.sessionId ?? null,
       kind: s?.kind ?? null, label: s?.label ?? '', phase: s?.phase ?? 'idle', prompt: prompt(),
+      sequence: Object.freeze([...sequence]), index,
+      expectedKey: running() ? sequence[index] ?? null : null,
+      cue, memorising: s?.phase === 'memorise', requiresGrip: s?.kind === 'bench',
+      acceptsInput: running() && (cue || s.phase === 'recipe' || s.phase === 'repeat'),
+      cueWindow: s?.kind === 'bench' ? 1.05 : s?.kind === 'tv' || s?.kind === 'arcade' ? 1 : 0,
+      cueRemaining: cue ? Math.max(0, (s.kind === 'bench' ? 1.05 : 1) - s.phaseTime) : 0,
       progress: s?.progress ?? 0, reps: s?.reps ?? 0, lift: s?.lift ?? 0, score: s?.score ?? 0,
       remaining: s ? Math.max(0, s.duration - s.elapsed) : 0, mistakes: s?.mistakes ?? 0,
       reason: s?.reason ?? null, sandbox: s?.sandbox ?? false,

@@ -1,4 +1,10 @@
-// Original Lemon hire simulation. The controller owns payment, actor collision and saves.
+// Fictional distributed Lemon fleet; source-road placements are clear-ground estimates.
+// The controller owns hack verification, payment, actor collision and saves.
+import {roadProfile} from './road-network.js';
+import {CAMPUS_BOUNDARY} from './campus.js';
+import {MANUKA_POOL_SITE} from './landmarks.js';
+import {MAPPED_STORES} from './stores.js';
+import {EXTRA_STORES,SKATEPARK} from './civic-extras.js';
 const KINDS = Object.freeze({scooter:{price:20,maxSpeed:6.9,acceleration:2.5},bike:{price:30,maxSpeed:8.3,acceleration:2.1}});
 const valid = pose => pose && Number.isFinite(pose.x) && Number.isFinite(pose.z);
 const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
@@ -26,18 +32,29 @@ function inside(x,z,points) {
 function rentalSites(map) {
   const segments=[];
   for(const road of map.roads||[]) for(let i=1;i<road.points.length;i++) {
-    const a=road.points[i-1],b=road.points[i],margin=(road.width||4)/2+.9;
+    const a=road.points[i-1],b=road.points[i],margin=roadProfile(road).driveWidth/2+3;
     segments.push({road,a,b,minX:Math.min(a[0],b[0])-margin,maxX:Math.max(a[0],b[0])+margin,minZ:Math.min(a[1],b[1])-margin,maxZ:Math.max(a[1],b[1])+margin});
   }
   const roadsAt=grid(segments),buildingsAt=grid((map.buildings||[]).filter(b=>b.points?.length).map(b=>({points:b.points,
     minX:Math.min(...b.points.map(p=>p[0]))-2.2,maxX:Math.max(...b.points.map(p=>p[0]))+2.2,
     minZ:Math.min(...b.points.map(p=>p[1]))-2.2,maxZ:Math.max(...b.points.map(p=>p[1]))+2.2})));
+  const polygonIndex=polygons=>grid(polygons.filter(p=>p.points?.length).map(p=>({...p,
+    minX:Math.min(...p.points.map(a=>a[0]))-2,maxX:Math.max(...p.points.map(a=>a[0]))+2,
+    minZ:Math.min(...p.points.map(a=>a[1]))-2,maxZ:Math.max(...p.points.map(a=>a[1]))+2})));
+  const areasAt=polygonIndex([...(map.areas||[]).filter(a=>/water|park|garden|pitch|playground|school|sports/.test(a.type||'')),
+    {points:CAMPUS_BOUNDARY},{points:MANUKA_POOL_SITE},...(SKATEPARK.points?[SKATEPARK]:[])]);
+  const barriersAt=polygonIndex(map.barriers||[]);
+  const doors=[...(map.interiorEntries||[]),...(map.publicEntries||[]),
+    ...MAPPED_STORES.map(s=>s.frontage),...EXTRA_STORES.map(s=>s.frontage),{x:-248.655,z:-4172.87}].filter(valid);
+  const blocks=(p,polygon,margin)=>inside(p.x,p.z,polygon.points)||polygon.points.some((a,i)=>project(p.x,p.z,a,polygon.points[(i+1)%polygon.points.length])<margin);
   function safe(p) {
     if(!valid(p))return false;
     const b=map.bounds;
     if(b&&(p.x<b.minX+1||p.x>b.maxX-1||p.z<b.minZ+1||p.z>b.maxZ-1))return false;
-    if(roadsAt(p.x,p.z).some(s=>!['footway','path','pedestrian','cycleway'].includes(s.road.type)&&project(p.x,p.z,s.a,s.b)<(s.road.width||4)/2+.8))return false;
-    return !buildingsAt(p.x,p.z).some(b=>inside(p.x,p.z,b.points)||b.points.some((a,i)=>project(p.x,p.z,a,b.points[(i+1)%b.points.length])<2.2));
+    if(roadsAt(p.x,p.z).some(s=>!['footway','path','pedestrian','cycleway'].includes(s.road.type)&&project(p.x,p.z,s.a,s.b)<roadProfile(s.road).driveWidth/2+.8))return false;
+    if(areasAt(p.x,p.z).some(a=>blocks(p,a,1.8))||barriersAt(p.x,p.z).some(a=>blocks(p,a,1.8)))return false;
+    if(doors.some(door=>distance(p,door)<7))return false;
+    return !buildingsAt(p.x,p.z).some(b=>blocks(p,b,2.2));
   }
   const anchors=[['civic','Civic',-245,-4257,'canberra-centre'],['kingston','Kingston',386,-234,'kingston'],['manuka','Manuka',-309,250,'manuka']];
   const stands=[];
@@ -50,7 +67,7 @@ function rentalSites(map) {
       const dx=s.b[0]-s.a[0],dz=s.b[1]-s.a[1],length=Math.hypot(dx,dz);
       if(length<5)continue;
       for(const t of [.25,.5,.75]) for(const side of [-1,1]) {
-        const nx=-dz/length*side,nz=dx/length*side,offset=(road.width||4)/2+1.7;
+        const nx=-dz/length*side,nz=dx/length*side,offset=roadProfile(road).driveWidth/2+1.7;
         const p={x:s.a[0]+dx*t+nx*offset,z:s.a[1]+dz*t+nz*offset,yaw:Math.atan2(-dx,-dz),tx:dx/length,tz:dz/length};
         candidates.push({...p,road:road.name,sourceRoadId:road.sourceId||`way/${String(road.id).split('-')[0]}`,score:distance(p,anchor)});
       }
@@ -60,14 +77,42 @@ function rentalSites(map) {
     const p=candidates.find(p=>[-1.2,-.6,0,.6,1.2].every(t=>safe({x:p.x+p.tx*t,z:p.z+p.tz*t}))&&safe({x:p.x-Math.sin(p.yaw)*1.1,z:p.z-Math.cos(p.yaw)*1.1}));
     if(p)stands.push({id:`lemon-${id}`,label:`Lemon ${label}`,x:p.x,z:p.z,yaw:p.yaw,road:p.road,sourceRoadId:p.sourceRoadId,tx:p.tx,tz:p.tz});
   }
+  // Stable district seeds spread singles/pairs rather than implying real fleet locations.
+  const districts=[['kingston',386,-234],['manuka',-309,250],['griffith',382,1080],['narrabundah',1553,1614],
+    ['redhill',-599,2148],['barton',-420,-1200],['foreshore',601,-829],['lake-west',-1500,-2400],
+    ['lake-east',750,-2700],['civic',-245,-4257]];
+  for(const [district,x,z] of districts) {
+    const candidates=[];
+    for(const s of segments) {
+      const road=s.road,profile=roadProfile(road);
+      if(!road.name||!['residential','tertiary','living_street','unclassified'].includes(road.type)||!profile.trafficAllowed||road.sourceTags?.foot==='no'||road.sourceTags?.bridge==='yes')continue;
+      const dx=s.b[0]-s.a[0],dz=s.b[1]-s.a[1],length=Math.hypot(dx,dz);
+      if(length<14||project(x,z,s.a,s.b)>750)continue;
+      for(const t of [.3,.5,.7])for(const side of [-1,1]) {
+        const offset=profile.driveWidth/2+2.1,nx=-dz/length*side,nz=dx/length*side;
+        const p={x:s.a[0]+dx*t+nx*offset,z:s.a[1]+dz*t+nz*offset,tx:dx/length,tz:dz/length,yaw:Math.atan2(-dx,-dz)};
+        candidates.push({...p,road:road.name,sourceRoadId:road.sourceId||`way/${String(road.id).split('-')[0]}`,score:distance(p,{x,z})});
+      }
+    }
+    candidates.sort((a,b)=>a.score-b.score||a.sourceRoadId.localeCompare(b.sourceRoadId)||a.x-b.x||a.z-b.z);
+    let count=0;
+    for(const p of candidates) {
+      if(count>=3)break;
+      if(stands.some(s=>distance(s,p)<110))continue;
+      // Check vehicle footprint and a parallel walk-up strip; doors receive a 7m exclusion.
+      if(![-1.4,-.7,0,.7,1.4].every(t=>safe({x:p.x+p.tx*t,z:p.z+p.tz*t})&&safe({x:p.x+p.tx*t-Math.sin(p.yaw)*1.1,z:p.z+p.tz*t-Math.cos(p.yaw)*1.1})))continue;
+      stands.push({id:`lemon-${district}-${++count}`,label:`Lemon ${district}`,district,x:p.x,z:p.z,yaw:p.yaw,tx:p.tx,tz:p.tz,road:p.road,sourceRoadId:p.sourceRoadId,distributed:true,pair:count%2===1});
+    }
+  }
   return {stands,safe};
 }
 export function createMicromobility(map) {
   const {stands,safe}=rentalSites(map),events=[];
   let assets=[],active=null,starting=false;
+  const consumedPermits=new Set();
   function reset() {
-    active=null;starting=false;events.length=0;
-    assets=stands.flatMap(s=>['scooter','bike'].map((kind,i)=>({id:`${s.id}-${kind}`,standId:s.id,kind,x:s.x+s.tx*(i? .6:-.6),z:s.z+s.tz*(i? .6:-.6),yaw:s.yaw,available:true})));
+    active=null;starting=false;events.length=0;consumedPermits.clear();
+    assets=stands.flatMap(s=>(s.distributed?(s.pair?['scooter','bike']:['scooter']):['scooter','bike']).map((kind,i)=>({id:`${s.id}-${kind}`,standId:s.id,kind,x:s.x+s.tx*(i? .6:-.6),z:s.z+s.tz*(i? .6:-.6),yaw:s.yaw,available:true})));
   }
   function offers(pose) {
     return assets.map(a=>({...a,label:`Lemon ${a.kind==='bike'?'e-bike':'scooter'}`,price:KINDS[a.kind].price,distance:valid(pose)?distance(a,pose):Infinity,available:a.available&&!active,sourceRoadId:stands.find(s=>s.id===a.standId)?.sourceRoadId})).sort((a,b)=>a.distance-b.distance);
@@ -90,9 +135,19 @@ export function createMicromobility(map) {
     try {paid=context.pay(checked.offer.price,{...checked.offer})===true;} finally {starting=false;}
     if(!paid)return {ok:false,reason:'Not enough cash for this hire.'};
     const asset=assets.find(a=>a.id===checked.offer.id);asset.available=false;
-    active={assetId:asset.id,kind,speed:0,x:context.pose.x,z:context.pose.z,yaw:Number.isFinite(context.pose.yaw)?context.pose.yaw:asset.yaw,distance:0};
+    active={assetId:asset.id,kind,speed:0,x:context.pose.x,z:context.pose.z,yaw:Number.isFinite(context.pose.yaw)?context.pose.yaw:asset.yaw,distance:0,stolen:false,hired:true,charge:checked.offer.price};
     events.push({type:'started',kind,assetId:asset.id,price:checked.offer.price});
     return {ok:true,price:checked.offer.price,assetId:asset.id};
+  }
+  function claimStolen(assetId,context={}) {
+    const permit=context.permit;
+    if(!permit||permit.targetId!==assetId||permit.kind!=='scooter'||permit.phase!=='complete'||!Number.isSafeInteger(permit.sessionId)||permit.sessionId<=0||consumedPermits.has(permit.sessionId))return {ok:false,reason:'Complete this scooter hack first.'};
+    const checked=validateStart('scooter',{...context,assetId});if(!checked.ok)return checked;
+    const asset=assets.find(a=>a.id===checked.offer.id);
+    consumedPermits.add(permit.sessionId);asset.available=false;
+    active={assetId:asset.id,kind:'scooter',speed:0,x:context.pose.x,z:context.pose.z,yaw:Number.isFinite(context.pose.yaw)?context.pose.yaw:asset.yaw,distance:0,stolen:true,hired:false,charge:0};
+    events.push({type:'stolen',kind:'scooter',assetId:asset.id,price:0});
+    return {ok:true,assetId:asset.id,price:0,stolen:true};
   }
   function step(dt,input={},context={}) {
     if(!active||context.onFoot!==true||context.recovering||!valid(context.pose)||context.paused||!Number.isFinite(dt)||dt<=0)return;
@@ -119,5 +174,5 @@ export function createMicromobility(map) {
   }
   function snapshot() {return {stands:stands.map(s=>({...s})),assets:assets.map(a=>({...a})),active:active?{...active}:null};}
   reset();
-  return {offers,validateStart,start,step,end,snapshot,drainEvents(){return events.splice(0);},reset};
+  return {offers,validateStart,start,claimStolen,step,end,snapshot,drainEvents(){return events.splice(0);},reset};
 }

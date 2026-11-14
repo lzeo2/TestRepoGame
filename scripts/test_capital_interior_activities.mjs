@@ -96,13 +96,25 @@ for (const kind of ['noodle', 'cooking', 'stock']) {
     for (let i = 0; i < 20; i++) tick(game, ctx, { x: true });
     assert.equal(game.snapshot().score, 0, 'memorisation presses award nothing');
     waitPhase(game, ctx, 'repeat');
-    assert.doesNotMatch(game.snapshot().prompt, /X, ArrowUp, Y, X/, 'memory answer is hidden');
+    assert.match(game.snapshot().prompt, /X, ArrowUp, Y, X/, 'stock sequence stays visible for the key tiles');
+    assert.deepEqual(game.snapshot().sequence, recipe.stock);
+    assert.equal(game.snapshot().memorising, false);
+    assert.equal(game.snapshot().acceptsInput, true);
   }
-  for (const key of recipe[kind]) press(game, ctx, key);
+  assert.deepEqual(game.snapshot().sequence, recipe[kind]);
+  assert.equal(Object.isFrozen(game.snapshot().sequence), true);
+  for (const [index, key] of recipe[kind].entries()) {
+    assert.equal(game.snapshot().index, index);
+    assert.equal(game.snapshot().expectedKey, key);
+    press(game, ctx, key);
+  }
   const event = assertSingleResult(game, 'complete');
   assert.equal(event.kind, kind); assert.equal(event.sandbox, true);
   assert.equal(event.score, recipe[kind].length * 50);
   assert.equal(game.snapshot().progress, 1);
+  assert.equal(game.snapshot().expectedKey, null);
+  assert.equal(game.snapshot().acceptsInput, false);
+  assert.match(game.snapshot().prompt, /Q to play again/);
 }
 {
   const { game, ctx } = fixture('cooking');
@@ -130,7 +142,14 @@ for (const kind of ['noodle', 'cooking', 'stock']) {
   const { game, ctx } = fixture('bench');
   for (let rep = 1; rep <= 6; rep++) {
     waitPhase(game, ctx, 'cue', grip);
+    const cue = game.snapshot();
+    assert.equal(cue.cue, true); assert.equal(cue.requiresGrip, true);
+    assert.equal(cue.acceptsInput, true); assert(cue.cueRemaining > 0);
+    assert.equal(cue.cueWindow, 1.05);
+    assert.deepEqual(cue.sequence, Array(6).fill('up'));
+    assert.equal(cue.index, rep - 1); assert.equal(cue.expectedKey, 'up');
     const state = tick(game, ctx, { ...grip, up: true });
+    assert.equal(state.cue, false); assert.equal(state.cueRemaining, 0);
     assert.equal(state.reps, rep); assert.equal(state.lift, 1);
     for (let i = 0; i < 4; i++) tick(game, ctx, { ...grip, up: true });
     assert.equal(game.snapshot().reps, rep, 'keyboard repeat cannot add reps');
@@ -159,6 +178,7 @@ for (const kind of ['noodle', 'cooking', 'stock']) {
   waitPhase(game, ctx, 'cue', grip);
   for (let i = 0; i < 22; i++) tick(game, ctx, grip);
   const result = assertSingleResult(game, 'failed');
+  assert.match(game.snapshot().prompt, /Q to retry/);
   assert.match(result.reason, /Too late/); assert.equal(result.reps, 1);
   assert.equal(game.start('bench', ctx), true, 'failed bench is retryable');
   assert.equal(game.snapshot().reps, 0); assert.equal(game.snapshot().mistakes, 0);

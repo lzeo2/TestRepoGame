@@ -335,3 +335,34 @@ Paid career guard regressions do not substitute for native career-play evidence.
 Keep optional actor.y distinct from measured terrain; an absent optional field
 can serialize as null and is not alone proof of a height failure. Inspect actual
 rendering and a finite ground sampler before changing terrain.
+
+
+## Vehicle unlock sequences and distributed rentals
+
+`vehicle-challenges.js` owns preparation/cue clocks, fresh single-key edges,
+progress, deadlines and exactly-once outcomes. The scooter has four lenient cues;
+the car has eight shorter cues. Controller/gameplay admission must validate the
+actual target, mode, distance, stopped car and unobstructed view before and after
+completion. A displayed sequence or a caller-shaped permit alone does not prove
+completion. Root verifies the live session/event/target before the rental owner
+consumes the one-use permit; it never routes this path through the hire wallet.
+Keep previously driven cars unlocked while retaining challenges for unknown cars.
+
+All indoor mini-games expose sequence/index/current key and cue timing from their
+state owner. Render those fields directly, including bench grip instructions; do
+not duplicate scoring or hard-code independent countdowns in DOM handlers. E
+cancels and P/Esc pauses. Waiting, wrong/held/chord input and stale events cannot
+claim a vehicle. Clear old events before a retry so a cancelled session cannot
+consume the replacement target.
+
+Distribution uses stable source-road estimates and safety grids, not invented
+actual operator coordinates. Preserve source IDs and old anchors, avoid lanes,
+water, private/sensitive areas and known doors, and select nearest visible assets
+before capping the instance buffers. Keep the active ride in that budget.
+
+For browser QA use `--browser --theft-browser --output` with fresh external
+evidence. Observe snapshot and current DOM cue together; software screenshots
+consume real response time. Capture, cancel through normal input, then retry a
+fresh session rather than extending the game clock or deleting a failed run.
+The pause-entry check is `--dev-browser`; configured values stay out of public
+copy. A grant through that UI proves the form/save path, not legitimate job pay.

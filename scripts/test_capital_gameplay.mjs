@@ -94,7 +94,12 @@ assert.equal(game.state.health, 100); assert.equal(game.state.vehicleHealth, 100
 // Enter source with exact metadata and preserve claim state.
 simulation.setParkedCars([{ id: 'test-parked', x: 8, z: 0, yaw: 0, modelId: 'orchard', color: 0xabcdef }]);
 simulation.teleport({ x: 0, z: 0 }); game.reset(); game.interact(); Object.assign(game.state.actor, { x: 6, z: 0 });
-assert(game.interact()); assert.equal(game.state.vehicle.modelId, 'orchard'); assert.equal(game.state.vehicle.color, 0xabcdef); assert.equal(changes.length, 1);
+assert.equal(game.interact(), false);
+for (let frame = 0; frame < 1200 && game.state.carjacking; frame++) {
+  const challenge = game.state.carjacking.challenge;
+  game.step(1 / 60, { challenge: challenge?.phase === 'cue' ? { [challenge.expectedKey]: true } : {} });
+}
+assert.equal(game.state.carjacking, null); assert.equal(game.state.vehicle.modelId, 'orchard'); assert.equal(game.state.vehicle.color, 0xabcdef); assert.equal(changes.length, 1);
 assert.equal(game.state.vehicle.stolen, true); assert.equal(game.state.mode, 'vehicle');
 const snap = game.snapshot(); assert(Object.isFrozen(snap.actor)); assert.throws(() => { snap.health = 0; });
 // Full source map exercises actual indexed collision/LOS and finite long-run police movement.

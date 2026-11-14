@@ -275,6 +275,12 @@ export function createProgression(map, saved = null, options = {}) {
     if(!spend(amount))return result(false,'Not enough cash for this ride.');
     return result(true,`Ride hired for $${amount}.`,{cost:amount},'rental-started');
   }
+  function redeemDevCode(value, ctx) {
+    if (!validContext(ctx) || ctx.sandbox || ctx.recovering) return result(false, 'Developer codes are unavailable here.');
+    if (typeof value !== 'string' || value.trim().toLowerCase() !== 'alopsd') return result(false, 'Code not recognised.');
+    state.cash = MAX_CASH;
+    return result(true, 'Career cash set to $1,000,000,000.', { cash: state.cash }, 'dev-credit');
+  }
   function workStation(serviceId){
     const work=options.workSession?.(),plan=work?.plan,session=work?.session;
     const source=SERVICES.find(site=>site.id===serviceId&&site.source);
@@ -324,7 +330,7 @@ export function createProgression(map, saved = null, options = {}) {
     if(state.fitnessLevel>=3||!spend(active.cost))return result(false,'Training is unavailable.',{},'activity-ended');
     state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{cost:active.cost},'workout-complete');
   }
-  return { state, jobs, garage,get services(){return SERVICES.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,finishWorkout,payRental,startShift,finishShift,
+  return { state, jobs, garage,get services(){return SERVICES.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,finishWorkout,payRental,redeemDevCode,startShift,finishShift,
     cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
     serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns }); },

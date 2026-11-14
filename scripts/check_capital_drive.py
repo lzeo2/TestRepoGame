@@ -24,7 +24,7 @@ MODULES = (
     'buses.js', 'bus-view.js', 'vehicle-occupants-view.js', 'districts.js',
     'services.js', 'services-view.js', 'stores.js', 'storefronts-view.js', 'traffic-view.js',
     'shopping-precincts.js','shopping-view.js','suburb-character.js','campus.js','campus-view.js',
-    'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','civic-extras.js','civic-extras-view.js',
+    'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
     'test_capital_drive.mjs', 'test_capital_pedestrians.mjs',
@@ -37,7 +37,7 @@ SUITES = (
     'test_capital_services_view.mjs', 'test_capital_stores.mjs', 'test_capital_storefronts.mjs',
     'test_capital_traffic_view.mjs', 'test_capital_sites.mjs',
     'test_capital_shopping.mjs','test_capital_campus.mjs','test_capital_interiors.mjs',
-    'test_capital_campaign.mjs','test_capital_north.mjs','test_capital_terrain.mjs','test_capital_civic.mjs','test_capital_crossings.mjs','test_capital_noodle_shop.mjs','test_capital_interior_people.mjs','test_capital_interior_activities.mjs','test_capital_micromobility.mjs','test_capital_civic_extras.mjs','test_capital_work_jobs.mjs','test_capital_skate_opening.mjs',
+    'test_capital_campaign.mjs','test_capital_north.mjs','test_capital_terrain.mjs','test_capital_civic.mjs','test_capital_crossings.mjs','test_capital_noodle_shop.mjs','test_capital_interior_people.mjs','test_capital_interior_activities.mjs','test_capital_micromobility.mjs','test_capital_civic_extras.mjs','test_capital_work_jobs.mjs','test_capital_skate_opening.mjs','test_capital_dev_codes.mjs','test_capital_vehicle_challenges.mjs','test_capital_car_theft.mjs','test_capital_scooter_hack.mjs',
 )
 DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json','shopping-precincts.json','canberra-north.json','north-terrain.json','civic-extras.json')
 
@@ -77,11 +77,13 @@ def main():
     parser.add_argument('--expansion-browser', action='store_true', help='Use the retained earlier expansion browser suite.')
     parser.add_argument('--priority-shop-browser',action='store_true',help='Use the focused restaurant browser flow with --browser.')
     parser.add_argument('--living-browser',action='store_true',help='Use the living interior, gym, restaurant and Lemon hire flow with --browser.')
+    parser.add_argument('--dev-browser',action='store_true',help='Use the focused pause-entry browser flow with --browser.')
+    parser.add_argument('--theft-browser',action='store_true',help='Use the sequence, scooter hack and car theft browser flow with --browser.')
     parser.add_argument('--dry-run', action='store_true', help='List required files and exact commands without running them or creating directories.')
     args = parser.parse_args()
-    if sum([args.classic_browser,args.expansion_browser,args.priority_shop_browser,args.living_browser])>1:parser.error('Choose one browser flow')
-    if (args.priority_shop_browser or args.living_browser) and not args.browser:parser.error('Browser flow options require --browser')
-    browser_suite='scripts/test_capital_living_browser.py' if args.living_browser else 'scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py' if args.expansion_browser else 'scripts/test_capital_district_browser.py'
+    if sum([args.classic_browser,args.expansion_browser,args.priority_shop_browser,args.living_browser,args.dev_browser,args.theft_browser])>1:parser.error('Choose one browser flow')
+    if (args.priority_shop_browser or args.living_browser or args.dev_browser or args.theft_browser) and not args.browser:parser.error('Browser flow options require --browser')
+    browser_suite='scripts/test_capital_dev_browser.py' if args.dev_browser else 'scripts/test_capital_theft_browser.py' if args.theft_browser else 'scripts/test_capital_living_browser.py' if args.living_browser else 'scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py' if args.expansion_browser else 'scripts/test_capital_district_browser.py'
     if args.browser != (args.output is not None):
         parser.error('--browser and --output must be used together')
     output = args.output.expanduser().resolve() if args.output else None
