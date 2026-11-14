@@ -26,7 +26,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
   const materials = [], textures = [], entries = [];
   const managedShops = new Set(map.shoppingManagedBuildingIds || []);
   const managedCampus = new Set(map.campusBuildingIds || []);
-  const gardenIndex = new Map();
+  const gardenIndex = new Map(), drivewayIndex = new Map();
   const BACKYARD_TRIANGLE_LIMIT = 60000;
   const stats = { lowGraphics, bufferBytes: 0, backyards: 0, backyardTriangles: 0, gardenBeds: 0, gardenSeats: 0, sheds: 0, apartmentEntries: 0, frontages: 0, driveways: 0, hedges: 0, fences: 0, letterboxes: 0, doors: 0, verandahs: 0, lamps: 0, benches: 0, bins: 0, stopPoles: 0, shopSigns: 0, retailAprons: 0, apronTriangles: 0, pavedArea: 0, chunks: 0, meshes: 0, triangles: 0 };
   const material = new THREE.MeshLambertMaterial({ vertexColors: true });
@@ -263,16 +263,17 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     if (!f) continue;
     if (String(building.id).startsWith('osm-') && nearby(buildingIndex, f.x, f.z).some(b => String(b.id).startsWith('act-') && inside(f.x, f.z, b.points))) continue;
     const isShop = shopping(f.x, f.z) && /commercial|retail|yes|apartments/.test(building.type || '');
-    const character = suburbCharacter(map, f.x, f.z);
+    const character = suburbCharacter(map, f.x, f.z, building);
     const apartment = /apartments/.test(building.type || '');
     const yaw = Math.atan2(f.nx, f.nz), tangentX = f.nz, tangentZ = -f.nx;
     const roadEdge = f.street.segment.width / 2;
-    const gardenDistance = Math.min(f.distance - 2, roadEdge + 6.5);
+    const gardenDistance = Math.min(f.distance - 2, roadEdge + (character.id === 'redhill' ? 8 : 6.5));
     const gx = f.street.x + f.nx * gardenDistance, gz = f.street.z + f.nz * gardenDistance;
     const floor = Math.max(...building.points.map(p => heightAt(...p))) + 0.12;
     // A narrow pavement connects a real kerb to a real building face.
     groundStrip([f.start.x, f.start.z], [f.face.x, f.face.z], isShop ? 1.8 : 2.8, seed % 3 ? PALETTE.concrete : 0xa39481);
     stats.driveways++;
+    indexItem(drivewayIndex, { a: [f.start.x, f.start.z], b: [f.face.x, f.face.z] }, [[f.start.x, f.start.z], [f.face.x, f.face.z]], 3);
     // Doors sit just outside the imported facade, with a light frame behind.
     const dx = f.face.x - f.nx * 0.08, dz = f.face.z - f.nz * 0.08;
     solid(box, dx, floor + 1.06, dz, 1.13, 2.16, 0.12, PALETTE.frame, yaw);
@@ -295,7 +296,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
       }
       stats.verandahs++;
     } else if (seed % 4 === 0) {
-      solid(box, dx - f.nx * 0.9, floor + 2.5, dz - f.nz * 0.9, 3.2, 0.18, 2, 0x998b75, yaw);
+      solid(box, dx - f.nx * 0.9, floor + 2.5, dz - f.nz * 0.9, character.id === 'narrabundah' ? 4.2 : 3.2, 0.18, 2, character.id === 'narrabundah' ? 0x786b5d : 0x998b75, yaw);
       for (const side of [-1, 1]) {
         const px = dx - f.nx * 1.6 + tangentX * side * 1.35, pz = dz - f.nz * 1.6 + tangentZ * side * 1.35;
         solid(box, px, floor + 1.2, pz, 0.1, 2.4, 0.1, PALETTE.frame);
@@ -307,7 +308,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
         const px = gx + tangentX * side * 4.1, pz = gz + tangentZ * side * 4.1;
         if (inPark(px, pz) || inRoad(px, pz, 2.5) || inBuilding(px, pz, building)) continue;
         if (seed % 3) {
-          groundBox(px, pz, 4.6, character.id === 'redhill' ? 1.3 : 0.85 + hash(seed) * 0.25, 0.95, PALETTE.hedge, yaw); stats.hedges++;
+          groundBox(px, pz, 4.6, character.id === 'redhill' ? 1.15 : 0.85 + hash(seed) * 0.25, 0.95, PALETTE.hedge, yaw); stats.hedges++;
         } else {
           groundBox(px, pz, 4.5, character.fenceHeight, 0.2, seed % 2 ? 0xc7c1ab : 0xa29279, yaw);
           if (!lowGraphics) for (const end of [-1, 1]) groundBox(px + tangentX * end * 2.2, pz + tangentZ * end * 2.2, 0.25, 0.8, 0.25, PALETTE.timber);
@@ -340,7 +341,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
           solid(box, x, heightAt(x, z) + lift + sy / 2, z, sx, sy, sz, tint, yaw, 'garden');
         };
         // Three low rear/side spans leave the house side and its return route open.
-        gardenBox(0, garden.depth, garden.width, character.fenceHeight, 0.16, PALETTE.timber);
+        gardenBox(0, garden.depth, garden.width, character.fenceHeight, 0.16, character.id === 'narrabundah' ? 0x827d6d : PALETTE.timber);
         for (const side of [-1, 1]) gardenBox(side * garden.width / 2, garden.depth / 2, 0.16, character.fenceHeight, garden.depth, PALETTE.timber);
         // Keep the same garden boundary and route clearance on Low. Beds,
         // seats and decorative sheds do not affect movement or entry.
@@ -349,8 +350,11 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
           gardenBox(garden.width * 0.2, 1.5, 1.6, 0.48, 0.5, PALETTE.timber);
           gardenBox(garden.width * 0.2, 1.7, 1.6, 0.8, 0.1, PALETTE.timber); stats.gardenSeats++;
           if (seed % 4 === 0 && garden.width > 7) {
-            gardenBox(garden.width * 0.3, garden.depth - 1.2, 1.3, 1.7, 1.3, 0x8b9182);
-            gardenBox(garden.width * 0.3, garden.depth - 1.2, 1.5, 0.12, 1.5, 0x646e65, 1.7); stats.sheds++;
+            // An original small rear utility shelter, within the validated garden.
+            // It does not replace or invent a mapped garage footprint.
+            const shelter = character.id === 'narrabundah' ? 2 : 1.3;
+            gardenBox(garden.width * 0.25, garden.depth - 1.3, shelter, 1.7, shelter, 0x8b9182);
+            gardenBox(garden.width * 0.25, garden.depth - 1.3, shelter + 0.2, 0.12, shelter + 0.2, 0x646e65, 1.7); stats.sheds++;
           }
         }
         indexItem(gardenIndex, { points: garden.corners }, garden.corners, 1);
@@ -395,7 +399,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     const nx = -(s.b[1] - s.a[1]) / length, nz = (s.b[0] - s.a[0]) / length;
     const x = (s.a[0] + s.b[0]) / 2 + nx * (s.width / 2 + s.profile.pavementWidth + 1.5), z = (s.a[1] + s.b[1]) / 2 + nz * (s.width / 2 + s.profile.pavementWidth + 1.5);
     const key = `${Math.floor(x / 100)},${Math.floor(z / 100)}`;
-    if (furnitureCells.has(key) || inRoad(x, z, 1) || inBuilding(x, z)) continue;
+    if (furnitureCells.has(key) || inRoad(x, z, 1) || inBuilding(x, z) || nearby(drivewayIndex, x, z).some(d => project(x, z, d.a, d.b).distance < 2.1)) continue;
     furnitureCells.add(key);
     const y = heightAt(x, z), yaw = Math.atan2(nx, nz);
     solid(box, x, y + 2.6, z, 0.09, 5.2, 0.09, PALETTE.pole);

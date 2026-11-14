@@ -1,20 +1,25 @@
-// Bounded appearance cues from the recorded public street observations. These
-// distances are art transitions, not suburb boundaries or cadastral parcels.
+// Original district appearance, not surveyed facade or cadastral boundaries.
+// ACT suburb attributes outrank the old landmark-distance fallback. Red Hill cues
+// use the recorded Pelsart observation; Narrabundah is a restrained postwar
+// brick/verandah interpretation, not a claimed new Street View observation.
 const profile = (id, walls, roofs, fenceHeight, gardenDepth) => Object.freeze({
   id, walls: Object.freeze(walls), roofs: Object.freeze(roofs), fenceHeight, gardenDepth,
 });
 const PROFILES = Object.freeze({
-  redhill: profile('redhill', [0xd6cbb5, 0xb29b80, 0xc4b498], [0x796b5c, 0x976b50], 0.72, 8),
+  redhill: profile('redhill', [0xd6cbb5, 0xb29b80, 0xc4b498], [0x54534e, 0x686258, 0x745a4e], 0.62, 10),
+  narrabundah: profile('narrabundah', [0xa97960, 0x9b715a, 0xc5aa8c, 0xc2b49b], [0x895e4b, 0x68645c, 0x906a52], 0.9, 8),
   griffith: profile('griffith', [0xa97860, 0xd7cbb1, 0xb38b72], [0x985e49, 0x776b5c], 0.82, 6),
   kingston: profile('kingston', [0xc9bdab, 0xb39178, 0xd8cdb6], [0x72766f, 0x8a6d5c], 0.65, 4),
   barton: profile('barton', [0xd4c9b2, 0xb69279, 0xc4b99f], [0x856952, 0x74756c], 0.75, 6),
   residential: profile('residential', [0xa97860, 0xc8b598, 0xddd4bd, 0x996e59, 0xbca68a], [0x92604b, 0x686964, 0xa26e53, 0x726558], 0.8, 6),
 });
-export function suburbCharacter(map, x, z) {
+export function suburbCharacter(map, x, z, building) {
+  const district = String(building?.suburb || '').toLowerCase().replace(/\s/g, '');
+  if (PROFILES[district]) return PROFILES[district];
   let selected = PROFILES.residential, nearest = Infinity;
   for (const anchor of map.landmarks || []) {
     const id = anchor.id === 'foreshore' ? 'kingston' : anchor.id === 'manuka' ? 'griffith' : anchor.id === 'telopea' ? 'barton' : anchor.id;
-    const radius = id === 'kingston' ? 650 : id === 'redhill' ? 800 : id === 'griffith' ? 700 : id === 'barton' ? 500 : 0;
+    const radius = id === 'kingston' ? 650 : id === 'narrabundah' ? 750 : id === 'redhill' ? 800 : id === 'griffith' ? 700 : id === 'barton' ? 500 : 0;
     const distance = Math.hypot(x - anchor.x, z - anchor.z);
     if (PROFILES[id] && distance < radius && distance < nearest) { selected = PROFILES[id]; nearest = distance; }
   }
