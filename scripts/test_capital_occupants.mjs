@@ -23,7 +23,7 @@ const occupantsURL = dataURL((await read('../Games/Capital Drive/vehicle-occupan
   .replace("'./person-model.js'",JSON.stringify(peopleURL)));
 const {createVehicleOccupantsView} = await import(occupantsURL);
 const {CARS} = await import(fleetURL);
-const scene = new THREE.Scene(), heightAt = (x,z) => x*.002+z*.001;
+const scene = new THREE.Scene(), heightAt = () => .25;
 const view = createVehicleOccupantsView(scene,heightAt), root = scene.children[0];
 const batches = Object.fromEntries(root.children.map(mesh=>[mesh.name.replace('Vehicle occupant ',''),mesh]));
 assert.equal(root.children.length,7,'one bounded batch per shared-model part');
@@ -48,16 +48,44 @@ for (const model of CARS) {
   batches.head.getMatrixAt(0,matrix); position.setFromMatrixPosition(matrix);
   assert(Math.abs(position.x-car.x-eye[0])<1e-6 && eye[0]<0,'head shares baked left cockpit seat');
   assert(Math.abs(position.z-car.z-eye[2])<1e-6,'head aligns with model cockpit');
-  assert(Math.abs(position.y-heightAt(car.x,car.z)-eye[1]+.015*scale)<1e-6,'head retains shared seated eye offset');
+  assert(Math.abs(position.y-heightAt(car.x,car.z)-.18-eye[1]+.015*scale)<1e-6,'head retains shared seated eye offset');
   for(const name of ['head','hair']) {
     const bounds=worldBounds(batches[name],0);
-    assert(bounds.max.y < heightAt(car.x,car.z)+model.height-.02,`${model.id} ${name} fits actual roof plane`);
+    assert(bounds.max.y < heightAt(car.x,car.z)+.18+model.height-.02,`${model.id} ${name} fits actual roof plane`);
     bounds.getSize(size); assert(size.x>.12 && size.x<.29,'rounded head retains adult proportions');
   }
   car.yaw = Math.PI/2; view.update(0,{cars:[car],focus:car});
   batches.head.getMatrixAt(0,matrix); position.setFromMatrixPosition(matrix);
   assert(Math.abs(position.x-car.x-eye[2])<1e-6 && Math.abs(position.z-car.z+eye[0])<1e-6,'seat rotates with car');
 }
+// A seat follows the actual render-car lift and slope rotation, including the
+// eye anchor's vertical/longitudinal shift and the head's roof-relative bounds.
+const slopeScene = new THREE.Scene(), slopeHeight = (x,z) => x*.12+z*.18;
+const slopeView = createVehicleOccupantsView(slopeScene,slopeHeight);
+const body = new THREE.Object3D(), inverseBody = new THREE.Matrix4(), local = new THREE.Matrix4();
+for(const model of CARS) for(const yaw of [0,.7,Math.PI/2]) {
+  const car = {id:model.id,modelId:model.id,x:3,z:4,yaw,occupied:true};
+  slopeView.update(0,{cars:[car],focus:car});
+  const eye = createCar(model.id).userData.cockpit.eye;
+  const fit=Math.min(1,(model.height-eye[1]-.025)/PERSON_MODEL.seatedHeadTop);
+  const fx=-Math.sin(yaw), fz=-Math.cos(yaw);
+  body.position.set(car.x,slopeHeight(car.x,car.z)+.18,car.z);
+  body.rotation.set(Math.atan2(slopeHeight(car.x+fx*2,car.z+fz*2)-slopeHeight(car.x-fx*2,car.z-fz*2),4),yaw,0,'YXZ'); body.updateMatrix();
+  const expectedHead = new THREE.Vector3(eye[0],eye[1]-.015*fit,eye[2]).applyMatrix4(body.matrix);
+  const head=slopeScene.children[0].getObjectByName('Vehicle occupant head');
+  head.getMatrixAt(0,matrix); position.setFromMatrixPosition(matrix);
+  assert(position.distanceTo(expectedHead)<1e-6,`${model.id} eye anchor follows car ground lift and slope`);
+  inverseBody.copy(body.matrix).invert();
+  for(const name of ['head','hair']) {
+    const mesh=slopeScene.children[0].getObjectByName(`Vehicle occupant ${name}`);
+    mesh.getMatrixAt(0,matrix); local.multiplyMatrices(inverseBody,matrix);
+    mesh.geometry.computeBoundingBox();
+    const bounds=mesh.geometry.boundingBox.clone().applyMatrix4(local);
+    assert(bounds.max.y<model.height-.02,`${model.id} ${name} stays below tilted roof`);
+    assert(Math.abs(bounds.getCenter(new THREE.Vector3()).x-eye[0])<1e-6,'head remains centered on local left seat');
+  }
+}
+slopeView.dispose();
 // Different event IDs must not replace the actual driver's appearance on exit.
 const identity='traffic-person-identity', original=appearanceForPerson(identity);
 const car={id:'traffic-car',personId:identity,modelId:'relay',x:0,z:0,yaw:0,occupied:true};
@@ -69,7 +97,7 @@ event.personId='changed-after-claim'; car.personId='player';
 view.update(0,{cars:[]});
 for(const [name,hex] of Object.entries(expectedColors(original))) assert.deepEqual(colorAt(batches[name],0),shade(hex),'exit appearance captured before claim');
 batches.head.getMatrixAt(0,matrix); position.setFromMatrixPosition(matrix);
-assert(Math.abs(position.y-(.035+PERSON_MODEL.head.y*original.height))<1e-6,'standing exit preserves personal height');
+assert(Math.abs(position.y-(heightAt(0,0)+.035+PERSON_MODEL.head.y*original.height))<1e-6,'standing exit preserves personal height');
 const stableCar={id:'stable-car',modelId:'relay',x:0,z:0,occupied:true};
 view.update(0,{cars:[stableCar]}); const stableColors=Object.fromEntries(Object.entries(batches).map(([name,mesh])=>[name,colorAt(mesh,0)]));
 view.update(0,{cars:[{id:'other',modelId:'relay',x:1,z:0,occupied:true},stableCar]});
@@ -113,4 +141,4 @@ assert.equal(scene.children.length,0); assert.equal(geometryDisposals,3); assert
 assert.equal(sharedDisposals,0,'shared factory resources remain live'); assert(view.stats.disposed && view.stats.drawCalls===0);
 assert(!view.addExit({x:0,z:0}),'disposed view rejects exits');
 disposeCars();
-console.log('PASS all 16 rounded-model cockpit seats/actual roof planes/rotation, per-person appearance and exit continuity, bounded 64 drivers/12 exits in seven draws/three geometries/one material, pause/culling/expiry/finite transforms, stable buffers and exact disposal');
+console.log('PASS all 16 rounded-model cockpit seats/actual roof planes/ground lift/slope rotation, per-person appearance and exit continuity, bounded 64 drivers/12 exits in seven draws/three geometries/one material, pause/culling/expiry/finite transforms, stable buffers and exact disposal');

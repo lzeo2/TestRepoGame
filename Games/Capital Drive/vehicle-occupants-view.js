@@ -22,7 +22,8 @@ export function createVehicleOccupantsView(scene, heightAt) {
     mesh.setColorAt(0,color); root.add(mesh); meshes.push(mesh); batches[name] = mesh;
   }
   const exits = Array.from({length: EXIT_LIMIT},() => ({life:0,id:null,x:0,z:0,yaw:0,age:0,appearance:null}));
-  const pose = new THREE.Object3D(), part = new THREE.Object3D(), combined = new THREE.Matrix4();
+  const pose = new THREE.Object3D(), carPose = new THREE.Object3D(), seat = new THREE.Object3D();
+  const part = new THREE.Object3D(), combined = new THREE.Matrix4();
   const standing = {kind:'standing',stride:0}, seated = {kind:'driver'};
   let disposed = false, nextExit = 0;
   const counters = {drivers:0,exits:0,drawCalls:0};
@@ -66,8 +67,11 @@ export function createVehicleOccupantsView(scene, heightAt) {
         cabins.set(id,{eye,scale});
       }
       const {eye,scale} = cabins.get(id), yaw = finite(car.yaw), c = Math.cos(yaw), s = Math.sin(yaw);
-      pose.position.set(car.x + eye[0]*c + eye[2]*s,ground(car.x,car.z)+eye[1],car.z-eye[0]*s+eye[2]*c);
-      pose.rotation.set(0,yaw,0); pose.scale.setScalar(scale); pose.updateMatrix();
+      const front = ground(car.x-s*2,car.z-c*2), rear = ground(car.x+s*2,car.z+c*2);
+      carPose.position.set(car.x,ground(car.x,car.z)+.18,car.z);
+      carPose.rotation.set(Math.atan2(front-rear,4),yaw,0,'YXZ'); carPose.updateMatrix();
+      seat.position.set(eye[0],eye[1],eye[2]); seat.scale.setScalar(scale); seat.updateMatrix();
+      pose.matrix.multiplyMatrices(carPose.matrix,seat.matrix);
       emitPersonParts(appearance(car),seated,emit); counters.drivers++;
     }
     for (const exit of exits) {
