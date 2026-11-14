@@ -31,6 +31,10 @@ import {createInteriorActivities} from './interior-activities.js';
 import {createInteriorPeople} from './interior-people.js';
 import {createInteriorPeopleView} from './interior-people-view.js';
 import {createMicromobility} from './micromobility.js';
+import {WEAPONS,weaponById} from './weapons.js';
+import {createStreetDealers} from './street-dealers.js';
+import {createStreetDealersView} from './street-dealers-view.js';
+import {generateParkedCars} from './parking-layout.js';
 import {createVehicleChallenge} from './vehicle-challenges.js';
 import {createMicromobilityView} from './micromobility-view.js';
 import {EXTRA_STORES,SKATEPARK_LANDMARK,SKATE_BUILDING_OPENING,BARRIERS as SKATE_BARRIERS,skateHeightOffset} from './civic-extras.js';
@@ -57,6 +61,7 @@ const vehicles = [
   { id: 'finch', name: 'City hatchback', note: 'Small and nimble', label: 'HATCH' },
 ];
 let map, simulation, world, renderer, scene, camera, playerMesh, route = [], destination = null;
+let streetDealers,dealerView;
 let trafficView,storefrontsView,shoppingView,campusView,civicView,noodleShopView,civicExtrasView;
 let interiors,interiorScene,interiorView,indoorActorView,campaign,terrainSampler,gymEntry;
 let activities=createInteriorActivities(),roomPeople=createInteriorPeople(),roomPeopleView,micromobility,microView;
@@ -124,13 +129,14 @@ function careerContext() {
   const state = gameplay.state;
   return { pose: focus(), onFoot: state.mode === 'foot', vehicle: { ...state.vehicle },
     wanted: state.wanted, vehicleHealth: state.vehicleHealth, respawnSerial: state.respawnSerial,
-    health:state.health,weapon:state.weapon,reserveAmmo:state.reserveAmmo,recovering:!!state.recovery,sandbox:isSandbox(),campaign:gameMode==='campaign',interior:interiorContext() };
+    health:state.health,weapon:state.weapon,reserveAmmo:state.reserveAmmo,ammunition:Object.fromEntries(WEAPONS.map(w=>[w.id,gameplay.getAmmo(w.id)])),recovering:!!state.recovery,sandbox:isSandbox(),campaign:gameMode==='campaign',interior:interiorContext() };
 }
 const emptyView=()=>({update(){},dispose(){},stats:{}});
 function moveBody(actor,dx,dz,radius=.45){
   const clip=interiors?.active?roomPeople.clipMovement(actor,dx,dz,radius):pedestrians?.clipMovement(actor,dx,dz,radius)||{dx,dz,blocked:false};
-  const result=interiors?.active?interiors.moveActor(actor,clip.dx,clip.dz,radius):simulation.moveActor(actor,clip.dx,clip.dz,radius);
-  return {...result,blocked:result.blocked||clip.blocked};
+  const contact=!interiors?.active?streetDealers?.clipMovement(actor,clip.dx,clip.dz,radius)||clip:clip;
+  const result=interiors?.active?interiors.moveActor(actor,contact.dx,contact.dz,radius):simulation.moveActor(actor,contact.dx,contact.dz,radius);
+  return {...result,blocked:result.blocked||clip.blocked||contact.blocked};
 }
 function servicePosition(site){
   const plan=interiors?.active;
@@ -312,6 +318,7 @@ function interiorHint(){
     const station=activities.nearest(pose);
     return station?`Q ${station.label} · E at the door leaves`:'WASD walk · E at the door leaves';
   }
+  const contact=streetDealers?.nearest(pose);if(contact)return `E trade with ${contact.name}`;
   const lemon=micromobility?.offers(pose)[0];
   if(lemon?.available&&lemon.distance<=2.8)return 'T hire or hack Lemon ride';
   const entry=interiors?.findEntry(pose);
@@ -409,7 +416,8 @@ $('start-button').addEventListener('click', () => {
   clearInterior();micromobility?.reset(); campaign.cancel();campaign.drainEvents();
   simulation.reset(); restoreParkedCars(); gameplay.reset({ sandbox: isSandbox() });
   buses?.reset();progression.cancelActivity();
-  if(!isSandbox()&&progression.state.equipment.pistol)gameplay.addAmmo(24);
+  streetDealers?.reset();
+  if(!isSandbox())for(const weapon of WEAPONS)if(progression.state.equipment[weapon.id])gameplay.addAmmo(weapon.starterAmmo,weapon.id);
   if (progression.state.activeJob) progression.cancelJob();
   const owned = progression.state.ownedVehicles.find(car => car.id === 'lantern');
   applyPlayerVehicle({ modelId: 'lantern', color: owned?.color || '#e7e6df', health: isSandbox() ? 100 : owned?.health ?? 100 });
@@ -534,7 +542,7 @@ window.addEventListener('keydown', event => {
     if (event.code === 'KeyK') { streetUI.renderServices(); openDialog('services-dialog'); return; }
     if (event.code === 'KeyE' && !paused()) { event.preventDefault(); interact(); return; }
     if (event.code === 'Digit1' && !paused()) gameplay.setWeapon('unarmed');
-    if (event.code === 'Digit2' && !paused()) gameplay.setWeapon('pistol');
+    if(!paused()){const weapon=WEAPONS.find(w=>event.code==='Digit'+w.key);if(weapon)gameplay.setWeapon(weapon.id);}
     if (event.code === 'KeyR' && !paused()) { gameplay.state.mode === 'foot' ? gameplay.reload() : recover(); return; }
     if (event.code === 'KeyH' && !paused()) horn();
   }
@@ -552,6 +560,8 @@ function interact() {
   if(gameplay.state.recovery)return;
   if(activities.snapshot().active||streetChallenge()){stopMini();return;}
   if(micromobility?.snapshot().active){const r=micromobility.end({pose:focus(),onFoot:true,moveActor:moveBody});notify(r.reason||r.message||(r.ok?'Dismounted.':'Brake before dismounting.'));return;}
+  const contact=gameplay.state.mode==='foot'&&!interiors.active&&streetDealers?.nearest(focus());
+  if(contact){$('services-filter').value='arms';streetUI.renderServices();openDialog('services-dialog');$('services-list').querySelector(`[data-service-id="${contact.id}"]`)?.scrollIntoView({block:'start'});return;}
   if(gameplay.state.mode==='foot'&&!gameplay.state.carjacking){
     const pose=focus();
     if(interiors.active){
@@ -573,7 +583,7 @@ function interact() {
   streetUI.refresh(); renderer.domElement.focus();
 }
 $('touch-enter').addEventListener('click', interact);
-$('touch-weapon').addEventListener('click', () => { if (!paused()) gameplay.setWeapon(gameplay.state.weapon === 'pistol' ? 'unarmed' : 'pistol'); });
+$('touch-weapon').addEventListener('click',()=>{if(paused())return;const owned=['unarmed',...WEAPONS.filter(w=>isSandbox()||progression.state.equipment[w.id]).map(w=>w.id)];gameplay.setWeapon(owned[(owned.indexOf(gameplay.state.weapon)+1)%owned.length]);});
 for (const button of document.querySelectorAll('[data-action]')) {
   button.addEventListener('pointerdown', event => { event.preventDefault(); button.setPointerCapture(event.pointerId); if (!paused()) actionTouch.add(button.dataset.action); });
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) button.addEventListener(type, () => actionTouch.delete(button.dataset.action));
@@ -796,35 +806,10 @@ function populatePlaces() {
 
 function createParkedCars() {
   const chunks = new Map(), dummy = new THREE.Object3D(), color = new THREE.Color();
-  const palette = [0xe0e0d9, 0xb9bdbb, 0x72797b, 0x344650, 0x3d4843, 0x934e40];
-  let seed = 731, serial = 0;
-  const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
-  for (const road of map.roads) {
-    if (!road.name || !['residential', 'tertiary', 'unclassified'].includes(road.type)) continue;
-    let distance = 30 + random() * 40;
-    for (let i = 1; i < road.points.length; i++) {
-      const a = road.points[i - 1], b = road.points[i], dx = b[0] - a[0], dz = b[1] - a[1], length = Math.hypot(dx, dz);
-      while (distance < length) {
-        const side = random() < .5 ? 1 : -1, offset = road.width / 2 - .8;
-        const x = a[0] + dx * distance / length + dz / length * offset * side, z = a[1] + dz * distance / length - dx / length * offset * side;
-        const key = `${Math.floor(x / 300)},${Math.floor(z / 300)}`;
-        if (!chunks.has(key)) chunks.set(key, []);
-        const suv = random() < .43;
-        chunks.get(key).push({ id: `parked:${serial++}`, x, z, yaw: Math.atan2(-dx, -dz) + (side < 0 ? Math.PI : 0), suv,
-          modelId: suv ? 'gravel' : serial % 4 === 0 ? 'orchard' : 'lantern', color: palette[Math.floor(random() * palette.length)] });
-        distance += 90 + random() * 90;
-      }
-      distance -= length;
-    }
+  for(const car of generateParkedCars(map,{isClear:(x,z,radius,pose)=>simulation.canOccupy(pose,{length:4.8,width:2})})){
+    const key=`${Math.floor(car.x/300)},${Math.floor(car.z/300)}`;
+    if(!chunks.has(key))chunks.set(key,[]);chunks.get(key).push(car);
   }
-  const targetRoad = simulation.nearestRoad(-298, -325.27), offset = Math.min(3.3, targetRoad.road.width / 2 - .8);
-  const target = { id: 'mission-wagon', x: targetRoad.x - Math.cos(targetRoad.yaw) * offset,
-    z: targetRoad.z + Math.sin(targetRoad.yaw) * offset, yaw: targetRoad.yaw,
-    suv: false, modelId: 'orchard', color: 0x394956 };
-  for (const [key, cars] of chunks) chunks.set(key, cars.filter(car => Math.hypot(car.x - target.x, car.z - target.z) > 9));
-  const targetKey = `${Math.floor(target.x / 300)},${Math.floor(target.z / 300)}`;
-  if (!chunks.has(targetKey)) chunks.set(targetKey, []);
-  chunks.get(targetKey).push(target);
   const geometry = new THREE.BoxGeometry(1, 1, 1), material = new THREE.MeshLambertMaterial({ color: 0xffffff });
   parkedResources.push(geometry, material);
   parkedSourceCars.push(...[...chunks.values()].flat()); simulation.setParkedCars(parkedSourceCars);
@@ -996,6 +981,7 @@ function animate(time) {
       syncExternalVehicles();buses?.step(1/60);
       if (!isSandbox()) progression.update(1 / 60, careerContext());
       activities.step(1/60,miniInput(),careerContext());
+      streetDealers.update(1/60,{focus:focus(),wanted:gameplay.state.wanted,shots:gameplay.state.shots});
       roomPeople.update(1/60,{actor:gameplay.state.actor,activity:activities.snapshot()});
       micromobility?.step(1/60,{throttle:Math.max(0,input().throttle),brake:Math.max(0,-input().throttle),steer:input().steer},{pose:gameplay.state.actor,onFoot:gameplay.state.mode==='foot',recovering:!!gameplay.state.recovery,moveActor:moveBody});
       updateRentalHack(1/60);
@@ -1045,6 +1031,7 @@ function animate(time) {
   if(!interiors.active)actorView?.update(micromobility?.snapshot().active?{...gameplay.state,mode:'vehicle'}:gameplay.state, { dt: activeDt, time: time / 1000, focus: p, objective });
   roomPeopleView?.update(roomPeople.snapshot(),activeDt,{activity:activities.snapshot()});
   microView?.update(micromobility.snapshot(),p,activeDt);
+  dealerView?.update(streetDealers.snapshot(),interiors.active?{x:Infinity,z:Infinity}:p,activeDt);
   if(interiors.active){
     const angle=footCameraYaw,ground=interiors.active.floorY;
     desiredCamera.set(p.x+Math.sin(angle)*3.2,ground+2.25,p.z+Math.cos(angle)*3.2);
@@ -1116,8 +1103,10 @@ async function boot() {
   const ground=world.heightAt;world.heightAt=(x,z)=>ground(x,z)+skateHeightOffset(x,z);
   civicExtrasView=compatibility?emptyView():createCivicExtrasView(scene,map,ground);
   world.update(simulation.player, 0);
-  pedestrians = createPedestrians(scene, map, world.heightAt);
   neighbourhood = compatibility ? { update() {}, dispose() {}, stats: {} } : createNeighbourhoodDetails(scene, map, world.heightAt);
+  pedestrians=createPedestrians(scene,map,world.heightAt,{entrances:[...ALL_STORES.map(s=>s.frontage).filter(Boolean),...CIVIC_INTERIOR_ENTRIES,...CAMPUS_GATES,...(neighbourhood.entries||[])]});
+  streetDealers=createStreetDealers(map);dealerView=compatibility?emptyView():createStreetDealersView(scene,world.heightAt);
+  map.landmarks.push(...streetDealers.services.map(site=>({...site,aliases:['street dealer','arms dealer','weapons contact'],description:'Fictional street contact'})));
   neighbourhood.update(simulation.player);
   landmarkView = compatibility ? { update() {}, dispose() {}, stats: {} } : createLandmarksView(scene, map, world.heightAt);
   landmarkView.update(simulation.player, 0);
@@ -1129,7 +1118,7 @@ async function boot() {
   const indoorSun=new THREE.DirectionalLight(0xfff1d4,1.1);indoorSun.position.set(-2,5,3);interiorScene.add(indoorSun);
   interiorView=compatibility?{load(){},clear(){},dispose(){},stats:{}}:createInteriorView(interiorScene);
   roomPeopleView=compatibility?{load(){},update(){},clear(){},dispose(){},stats:{}}:createInteriorPeopleView(interiorScene,()=>interiors.active?.floorY||0);
-  const careerOptions={workSession:()=>({plan:interiors.active,session:activities.snapshot()}),interactiveWorkouts:true,hasLineOfSight:visible,servicePosition:servicePosition,canUseService:site=>site.type==='gym'?interiors.active?.serviceId===site.id:!site.buildingId||interiors.active?.storeId===site.id};
+  const careerOptions={extraServices:streetDealers.services,workSession:()=>({plan:interiors.active,session:activities.snapshot()}),interactiveWorkouts:true,hasLineOfSight:visible,servicePosition:servicePosition,canUseService:site=>site.dealer?!interiors.active&&streetDealers.canTrade(site.id):site.type==='gym'?interiors.active?.serviceId===site.id:!site.buildingId||interiors.active?.storeId===site.id};
   try {
     const raw = localStorage.getItem(CAREER_KEY);
     if (raw && raw.length > 16000) throw new Error('Saved career is too large.');
@@ -1142,8 +1131,9 @@ async function boot() {
     campaign=createCampaign(map);progression = createProgression(map,null,careerOptions); $('save-status').textContent = careerError;
   }
   const actorSimulation={...simulation,moveActor:(actor,...args)=>actor===gameplay?.state.actor?moveBody(actor,...args):simulation.moveActor(actor,...args),hasLineOfSight:visible};
-  gameplay = createGameplay(map, actorSimulation, { pedestrians, heightAt: (x,z)=>interiors.active?.floorY??world.heightAt(x,z),
-    hasPistol:()=>progression.state.equipment.pistol,fitness:()=>progression.state.fitnessLevel,
+  const witnesses={snapshot:()=>[...pedestrians.snapshot(),...streetDealers.snapshot()],drainEvents:()=>pedestrians.drainEvents(),alert:spec=>{pedestrians.alert(spec);streetDealers.alert(spec);},strike:spec=>{const a=pedestrians.strike(spec),b=streetDealers.strike(spec);return {hits:a.hits+b.hits,people:[...(a.people||[]),...(b.people||[])]};}};
+  gameplay = createGameplay(map, actorSimulation, { pedestrians:witnesses, heightAt: (x,z)=>interiors.active?.floorY??world.heightAt(x,z),
+    hasWeapon:id=>!!progression.state.equipment[id],hasPistol:()=>progression.state.equipment.pistol,fitness:()=>progression.state.fitnessLevel,
     onCarjacked:pose=>occupantsView?.addExit(pose),
     onVehicleChanged: applyPlayerVehicle,
     onRespawn: reason => {
@@ -1202,11 +1192,11 @@ async function boot() {
     places: Object.freeze(map.landmarks.map(place => Object.freeze({ ...place }))), addressCount: addressData.addresses.length,
     camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch,footYaw:footCameraYaw }),
     discovered: Object.freeze([...discovered]), roadCount: map.roads.length, buildings: map.buildings.length, traffic: simulation.traffic.length,
-    visibleTraffic: trafficView.stats.visible||0,trafficView:Object.freeze({...trafficView.stats}), destination: destination?.id ?? null, routePoints: route.length,
+    visibleTraffic: trafficView.stats.visible||0,trafficView:Object.freeze({...trafficView.stats}), destination: destination?.id ?? null, routePoints: route.length,routePath:freezeCopy(route.map(p=>({x:p[0],z:p[1]}))),streetDealers:freezeCopy({services:streetDealers.services,people:streetDealers.snapshot(),view:dealerView.stats}),
     mapSelection: mapSelection ? Object.freeze({ ...mapSelection }) : null,
     mapView: Object.freeze({ zoom: mapView.zoom, ...map.bounds, x: fullMapProjection().cx, z: fullMapProjection().cz, scale: fullMapProjection().scale }),
     rendering: Object.freeze({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, quality, compatibility }), world: Object.freeze({ ...world.stats }),
-    pedestrians: Object.freeze({ ...pedestrians.stats, sample: Object.freeze(pedestrians.snapshot().slice(0, 8)) }), neighbourhood: Object.freeze({ ...neighbourhood.stats }),
+    pedestrians: Object.freeze({ ...pedestrians.stats, sample: Object.freeze(pedestrians.snapshot().slice(0,8)),routineSample:freezeCopy(pedestrians.snapshot().filter(p=>p.routine!=='walk').slice(0,12)) }), neighbourhood: Object.freeze({ ...neighbourhood.stats }),
     landmarks: Object.freeze({ ...landmarkView.stats }), actors: Object.freeze({ ...actorView.stats }),
     services:freezeCopy(progression.services),activity:freezeCopy(progression.state.activity),
     buses:freezeCopy(buses.snapshot()),busView:Object.freeze({...busView.stats}),occupants:Object.freeze({...occupantsView.stats}),
@@ -1220,6 +1210,7 @@ window.addEventListener('pagehide', () => {
   if (audio) audio.context.close().catch(error => console.warn('Could not release audio:', error.message));
   for (const resource of parkedResources) resource.dispose();
   streetUI?.dispose(); actorView?.dispose(); landmarkView?.dispose();busView?.dispose();occupantsView?.dispose();servicesView?.dispose();trafficView?.dispose();storefrontsView?.dispose();
+  dealerView?.dispose();
   stopMini();roomPeopleView?.dispose();microView?.dispose();civicExtrasView?.dispose();
   shoppingView?.dispose();campusView?.dispose();civicView?.dispose();noodleShopView?.dispose();interiorView?.dispose();indoorActorView?.dispose();
   pedestrians?.dispose(); neighbourhood?.dispose(); world?.dispose(); disposeCars(); renderer?.dispose();

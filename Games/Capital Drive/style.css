@@ -8,7 +8,7 @@ button,select,a{font:inherit}
 button,select{min-height:44px}
 button{border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink);padding:9px 15px;cursor:pointer;font-weight:700}
 button:hover{border-color:var(--accent)}
-button:disabled{opacity:.55;cursor:wait}
+button:disabled{opacity:.55;cursor:not-allowed}
 button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 kbd{font:10px Atkinson,Arial,sans-serif;border:1px solid currentColor;padding:2px 4px;border-radius:3px;opacity:.7}
 button kbd{margin-left:10px}
@@ -262,3 +262,5 @@ body.indoors .minimap-wrap { display: none; }
 .activity-cue-line{display:flex;gap:14px;align-items:center;min-height:42px}#activity-cue{font-size:28px}#activity-cue[data-ready=true]{color:var(--accent)}#activity-grip{font-size:13px}
 #activity-window{width:100%;height:12px;accent-color:var(--accent)}.rental-offer{display:flex;gap:6px;flex-wrap:wrap}.rental-offer button:first-child{flex:1;min-width:170px}
 @media(max-width:620px){#activity-sequence{gap:5px}#activity-sequence kbd{min-width:32px;min-height:34px;padding:5px;font-size:18px}#activity-cue{font-size:24px}#activity-panel{padding:12px}.activity-cue-line{min-height:34px}}
+
+.service-state{font-size:13px;line-height:1.5;color:var(--muted)}.service-actions.weapon-stock{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.weapon-stock button{min-height:52px;white-space:normal;text-align:left}.weapon-stock small{font-weight:400;font-size:11px}#services-filter{width:100%;min-height:44px;margin:8px 0 16px}
