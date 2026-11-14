@@ -49,7 +49,10 @@ assert.equal(s.interact(f.ctx).ok, false, 'cannot board moving approach');
 advance(f, snap => snap.phase === 'waiting');
 assert.equal(s.interact({ ...f.ctx, pose: { x: 200, z: -5 } }).ok, false, 'remote boarding denied');
 f.ctx.pose = { ...s.snapshot().pickup.walk };
-assert(s.interact(f.ctx).boarded); assert.equal(f.payments(), 1); assert.equal(f.cash(), initialCash - booked.fare);
+assert(s.interact(f.ctx).boarded); assert.equal(s.passenger, true);
+assert.equal(s.phase, 'riding'); assert.equal(s.seatPose, s.vehicles[0], 'hot-loop passenger pose is stable');
+assert.throws(() => { s.passenger = false; }, TypeError, 'phase getters have no setter');
+assert.equal(f.payments(), 1); assert.equal(f.cash(), initialCash - booked.fare);
 for (let i = 0; i < 60; i++) s.step(1 / 60, f.ctx);
 s.interact(f.ctx); // A second E requests a stop and cannot charge again.
 assert.equal(f.payments(), 1);
