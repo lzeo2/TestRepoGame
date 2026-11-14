@@ -1,4 +1,5 @@
 import { roadProfile } from './road-network.js';
+import { createTrafficLights } from './traffic-lights.js';
 // Coordinates are metres east/south; yaw matches THREE.Object3D.rotation.y.
 const TAU = Math.PI * 2;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -110,6 +111,7 @@ function insideRing(x,z,points){
 
 export function createSimulation(map, options = {}) {
   const graph = buildRoadGraph(map.roads || []);
+  const trafficLights = createTrafficLights(map, graph, options.trafficSignals || map.trafficSignals);
   const roadIndex = new SpatialGrid(80), buildingIndex = new SpatialGrid(48), waterIndex = new SpatialGrid(128), barrierIndex = new SpatialGrid(32);
   const replacedColliders=new Set(map.collisionReplacedBuildingIds||[]);
   for (const segment of graph.segments) roadIndex.insert(segment,
@@ -271,7 +273,7 @@ export function createSimulation(map, options = {}) {
     const target = spawn || fallback;
     Object.assign(player, { x: target.x, z: target.z, yaw: target.yaw || 0, speed: 0, vx: 0, vz: 0, steer: 0,
       odometer: 0, crashes: 0, lastImpactSpeed:0, offroad: false });
-    crashCooldown = 0; stopRequests.clear();
+    crashCooldown = 0; stopRequests.clear(); trafficLights.reset();
   }
   // Teleport keeps the current heading unless an explicit finite yaw is supplied.
   // It changes position/motion only; discovery and trip statistics belong to callers.
@@ -409,11 +411,14 @@ export function createSimulation(map, options = {}) {
       car.overtakeCooldown = Math.max(0, car.overtakeCooldown - dt);
       const priorPose = { x: car.x, z: car.z, yaw: car.yaw }, priorEdge = car.edge, priorPosition = car.position;
       const edge = car.edge, remaining = edge.length - car.position;
+      const signalDistance = trafficLights.stopDistance(car, { length: car.length || 4.5 });
+      const signalLimited = Number.isFinite(signalDistance);
       // OSM maxspeed is km/h. Junction courtesy and spacing are intentionally simple.
       let target = clamp((edge.road.speed || 50) / 3.6, 5, 24) * car.cruiseFactor * (car.aggressive ? 1.16 : 1);
       const stopTime = stopRequests.get(car.id) || 0;
       if (stopTime > 0) { target = 0; car.overtake = 0; stopRequests.set(car.id, Math.max(0, stopTime - dt)); }
       const cruise = target;
+      if (signalLimited) { target = Math.min(target, Math.sqrt(12 * Math.max(0, signalDistance))); car.overtake = 0; }
       let blocked = false;
       if (edge.to.outgoing.length > 2 && remaining < 20) target = Math.min(target, 7.5);
       for (const other of traffic) {
@@ -453,7 +458,7 @@ export function createSimulation(map, options = {}) {
           target = Math.min(target, Math.max(0, (ahead - 3 - (obstacle.length || 4.5) / 2) * 0.8));
         }
       }
-      if (target < cruise * 0.65) blocked = true;
+      if (target < cruise * 0.65 && !signalLimited) blocked = true;
       car.anger = clamp(car.anger + (blocked ? dt * 0.3 : -dt * 0.2), 0, 1);
       if (car.anger > 0.45 && car.honkCooldown === 0) { car.honks++; car.honkCooldown = 5 + car.slot % 4; }
       // Passing stays on wide one-way carriageways, with a clear return corridor.
@@ -469,10 +474,12 @@ export function createSimulation(map, options = {}) {
         car.overtake = Math.max(0, car.overtake - dt);
         if (!passClear) car.overtake = 0;
         else target = Math.min(cruise * 1.1, 28);
-      } else if (car.aggressive && blocked && car.anger > 0.4 && car.overtakeCooldown === 0 && stopTime <= 0 && passClear) {
+      } else if (car.aggressive && blocked && car.anger > 0.4 && car.overtakeCooldown === 0 && stopTime <= 0 && !signalLimited && passClear) {
         car.overtake = 2; car.overtakeCooldown = 9;
       }
       car.speed += clamp(target - car.speed, -9 * dt, 3.5 * dt);
+      // A hard displacement cap keeps fast cars behind the front-bumper stop line.
+      if (signalLimited) car.speed = Math.min(car.speed, Math.max(0, signalDistance) / dt);
       car.position += car.speed * dt;
       // Small segments can cross more than one node per tick.
       let transitions = 0;
@@ -506,6 +513,7 @@ export function createSimulation(map, options = {}) {
     if (!Number.isFinite(dt) || dt <= 0) return;
     focusPoint = focus && Number.isFinite(focus.x) && Number.isFinite(focus.z) ? focus : player;
     dt = Math.min(dt, 0.05); elapsed += dt; crashCooldown -= dt;
+    trafficLights.step(dt);
     const throttle = clamp(Number(input.throttle) || 0, -1, 1);
     player.steer += (clamp(Number(input.steer) || 0, -1, 1) - player.steer) * Math.min(1, dt * 10);
     const road = nearestRoad(player.x, player.z);
@@ -639,7 +647,7 @@ export function createSimulation(map, options = {}) {
     }
     return true;
   }
-  return { player, traffic, parkedCars, abandonedCars, graph, step, reset, teleport, nearestRoad, setParkedCars,
+  return { player, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, nearestRoad, setParkedCars,
     setExternalVehicles, canOccupy, moveVehicle, requestVehicleStop,
     setPlayerVehicle, nearbyVehicles, claimVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
 }
