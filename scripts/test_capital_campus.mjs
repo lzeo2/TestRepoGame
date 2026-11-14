@@ -7,7 +7,8 @@ const campusURL=dataURL(await read('../Games/Capital Drive/campus.js'));
 const {CAMPUS_BOUNDARY:boundary,CAMPUS_BARRIERS:barriers,CAMPUS_GATES:gates,CAMPUS_BUILDING_IDS:ids}=await import(campusURL);
 const threeURL=dataURL(await read('../assets/car-arcade/vendor/three.module.js'));
 const THREE=await import(threeURL);
-const {createCampusView}=await import(dataURL((await read('../Games/Capital Drive/campus-view.js')).replace('../../assets/car-arcade/vendor/three.module.js',threeURL).replace('./campus.js',campusURL)));
+const utilsURL=dataURL((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace('./three.module.js',threeURL));
+const {createCampusView}=await import(dataURL((await read('../Games/Capital Drive/campus-view.js')).replace('../../assets/car-arcade/vendor/three.module.js',threeURL).replace('./campus.js',campusURL).replace('../../assets/car-arcade/vendor/BufferGeometryUtils.js',utilsURL)));
 import {createSimulation,projectSegment} from '../Games/Capital Drive/simulation.js';
 const map=JSON.parse(await read('../Games/Capital Drive/data/canberra.json')),original=JSON.stringify(map);
 assert.ok(Object.isFrozen(boundary)&&boundary.every(Object.isFrozen));
@@ -58,7 +59,14 @@ assert.equal(sim.moveActor(actor,-nx*4,-nz*4,.45).blocked,true,'closed span bloc
 assert.ok((actor.x-closed.x)*nx+(actor.z-closed.z)*nz>.4,'actor stays on original side');
 const scene=new THREE.Scene(),height=(x,z)=>12+x*.003+z*.001;
 const view=createCampusView(scene,map,height),root=scene.children[0];
-assert.equal(view.stats.drawCalls,0);view.update(gates[0]);assert.equal(view.stats.drawCalls,2);
+assert.equal(view.stats.drawCalls,0);view.update(gates.find(g=>g.id==='telopea-gate-11'));assert.equal(view.stats.drawCalls,3);
+assert.equal(view.entranceDetails.filter(d=>d.kind.includes('flag')).length,2);assert.equal(view.obstacles.length,3);
+for(const rock of view.obstacles)for(const point of rock.points) {
+  assert(gates.every(g=>projectSegment(...point,g.outside,g.inside).distance>2.5),'rocks keep every gate corridor clear');
+  for(const road of map.roads)for(let i=1;i<road.points.length;i++)assert(projectSegment(...point,road.points[i-1],road.points[i]).distance>=road.width/2+.5,'rocks keep roads and paths clear');
+}
+const withRocks=createSimulation({...map,barriers:[...barriers,...view.obstacles]},{trafficCount:0,parkedCount:0});
+for(const gate of gates){const actor={x:gate.outside[0],z:gate.outside[1]};assert.equal(withRocks.moveActor(actor,gate.inside[0]-actor.x,gate.inside[1]-actor.z,.45).blocked,false);}
 assert.ok(view.stats.triangles<16000);assert.ok(view.stats.lineSegments<15000);
 let geometryDisposals=0,materialDisposals=0;
 for(const mesh of root.children) {
@@ -75,6 +83,6 @@ for(const barrier of barriers)for(const point of barrier.points) {
 view.update({x:1e8,z:1e8});assert.equal(view.stats.drawCalls,0);
 view.update({x:NaN,z:0});assert.equal(view.stats.drawCalls,0);
 view.dispose();view.dispose();view.update(gates[0]);assert.equal(scene.children.length,0);
-assert.equal(geometryDisposals,2);assert.equal(materialDisposals,2);assert.equal(view.stats.disposed,true);assert.equal(view.stats.drawCalls,0);
+assert.equal(geometryDisposals,3);assert.equal(materialDisposals,3);assert.equal(view.stats.disposed,true);assert.equal(view.stats.drawCalls,0);
 assert.equal(JSON.stringify(map),original,'no geographic snapshot mutation');
-console.log(`PASS campus: exact214 source vertices,${barriers.length} shared spans,11 passable mapped-path gaps, closed swept collision,${view.stats.triangles} triangles,2draws,finite buffers,culling,owned disposal`);
+console.log(`PASS campus: exact214 source vertices,${barriers.length} shared spans,11 passable mapped-path gaps, closed swept collision,${view.stats.triangles} triangles,3draws with estimated flags/rocks,finite buffers,culling,owned disposal`);
