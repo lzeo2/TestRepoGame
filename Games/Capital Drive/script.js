@@ -567,13 +567,13 @@ function interact() {
     if(interiors.active){
       if(interiors.nearExit(pose)){leaveInterior();return;}
       const plan=interiors.active;
-      if(plan.counter&&Math.hypot(pose.x-plan.counter.x,pose.z-plan.counter.z)<=plan.counter.radius){streetUI.renderServices();openDialog('services-dialog');return;}
+      if(plan.counter&&Math.hypot(pose.x-plan.counter.x,pose.z-plan.counter.z)<=plan.counter.radius){$('services-filter').value='all';streetUI.renderServices();openDialog('services-dialog');return;}
       notify('Walk to the door to leave.');return;
     }
     const entry=interiors.findEntry(pose);
     if(entry){enterInterior(entry);return;}
     const site=progression.services.find(s=>Math.hypot(s.x-pose.x,s.z-pose.z)<=s.radius&&progression.canUseService(s,careerContext()));
-    if(site){streetUI.renderServices();openDialog('services-dialog');return;}
+    if(site){$('services-filter').value='all';streetUI.renderServices();openDialog('services-dialog');return;}
   }
   const previousMode = gameplay.state.mode;
   gameplay.interact();

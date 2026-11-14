@@ -181,7 +181,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
           const owned=!!progression.state.equipment[weapon.id],reserve=ctx.ammunition[weapon.id].reserveAmmo,multiplier=site.priceMultiplier||1;
           purchase(`${weapon.name} ${money(Math.ceil(weapon.price*multiplier))}`,weapon.id,Math.ceil(weapon.price*multiplier),owned?'Owned':'');
           const cap=weapon.id==='pistol'?120:weapon.reserveCap;
-          purchase(`${weapon.ammoPack} ${weapon.name} rounds ${money(Math.ceil(weapon.ammoPrice*multiplier))}`,`ammo:${weapon.id}`,Math.ceil(weapon.ammoPrice*multiplier),!owned?'Buy this weapon first':reserve>cap-weapon.ammoPack?'Ammo is full':'');
+          purchase(`${weapon.ammoPack} ${weapon.name} rounds ${money(Math.ceil(weapon.ammoPrice*multiplier))}`,`ammo:${weapon.id}`,Math.ceil(weapon.ammoPrice*multiplier),!owned?'Buy this weapon first':reserve>cap-weapon.ammoPack?'No room for this ammo pack':'');
         }
       }
       if(site.dealer){const tag=document.createElement('span');tag.className='eyebrow';tag.textContent='Street contact';entry.append(tag);}
