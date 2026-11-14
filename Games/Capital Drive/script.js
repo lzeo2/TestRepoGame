@@ -500,11 +500,12 @@ function openWork(){
   else {streetUI.renderJobs();openDialog('jobs-dialog');}
 }
 function openCampaign(){
-  const chapter=campaign.current(),active=campaign.state.active;
+  const chapter=campaign.current(),active=campaign.state.active,required=campaign.nextRequiredCharacter();
+  const complete=!chapter&&!required&&campaign.journal().shared.every(item=>item.complete);
   renderCharacterChoices();
-  $('campaign-title').textContent=chapter?.name||(campaign.state.character?'Choose the next character':'Three ways in');
-  $('campaign-contact').textContent=chapter?.contact||'THE LATE SHIFT';
-  $('campaign-briefing').textContent=chapter?.briefing||'Choose a character to follow their opening missions. The three stories meet in Kingston.';
+  $('campaign-title').textContent=chapter?.name||(required?`Switch to ${required.name}`:complete?'Campaign complete':campaign.state.character?'Choose the next character':'Three ways in');
+  $('campaign-contact').textContent=chapter?.contact||(required?'NEXT CHARACTER':'THE LATE SHIFT');
+  $('campaign-briefing').textContent=chapter?.briefing||(required?`${required.name} leads the next mission. Choose them above to continue.`:complete?'The shared story is complete. Keep exploring or switch to Street Life for jobs.':'Choose a character to follow their opening missions. The three stories meet in Kingston.');
   $('campaign-status').textContent=active?`${active.target.label} · ${Math.ceil(active.remaining)}s`:campaign.state.failed?campaign.state.message:'';
   $('campaign-status').hidden=!$('campaign-status').textContent;
   $('campaign-chapters').replaceChildren();
@@ -543,6 +544,11 @@ function syncPlayerAppearance(){
   actorView?.setPlayerAppearance?.(playerAppearanceId);indoorActorView?.setPlayerAppearance?.(playerAppearanceId);
   rideView?.setPlayerAppearance?.(playerAppearanceId);busView?.setPlayerAppearance?.(playerAppearanceId);
   roomPeopleView?.setPlayerAppearance?.(playerAppearanceId);
+  refreshModeLabel();
+}
+function refreshModeLabel(){
+  const hero=gameMode==='campaign'&&campaign?.characters.find(c=>c.id===campaign.state.character);
+  $('mode-label').textContent=isSandbox()?'FREE ROAM':gameMode==='campaign'?(hero?.name||'CAMPAIGN'):'STREET LIFE';
 }
 function renderCharacterChoices(){
   if(!campaign)return;
@@ -583,7 +589,7 @@ function routeTo(point) {
 }
 function refreshModeUI() {
   document.body.dataset.mode = gameMode;
-  $('mode-label').textContent = isSandbox() ? 'FREE ROAM' : gameMode==='campaign' ? 'CAMPAIGN' : 'STREET LIFE';
+  refreshModeLabel();
   $('jobs-button').firstChild.textContent = gameMode==='campaign' ? 'Campaign ' : 'Jobs ';
   $('map-action-title').textContent = isSandbox() ? 'Teleport anywhere' : 'Plan a route';
   $('teleport-button').hidden = !isSandbox();
