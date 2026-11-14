@@ -191,3 +191,45 @@ attached=null;assert.equal(passengerGame.state.passenger,false);assert.equal(pas
 const afterRideX=passengerGame.state.actor.x;passengerGame.step(1/60,{moveX:1});assert(passengerGame.state.actor.x>afterRideX,'normal movement resumes after detachment');
 assert.equal(passengerGame.snapshot().passenger,false);
 console.log('Capital gameplay: supplied passenger attachment, live focus, safe input exclusion and detachment PASS');
+
+// The caller's activity guard precedes every ammunition, hit, timer and offence mutation.
+let attackAllowed=false,guardStrikes=0;
+const guarded=createGameplay(map,simulation,{hasPistol:()=>true,canAttack:()=>attackAllowed,
+  pedestrians:{strike:()=>{guardStrikes++;return {hits:1};},snapshot:()=>[],drainEvents:()=>[]}});
+guarded.state.mode='foot';Object.assign(guarded.state.actor,{x:0,z:-50,yaw:0});
+guarded.addAmmo(24);guarded.setWeapon('pistol');
+const guardAmmo=guarded.state.ammo;
+for(let i=0;i<20;i++)guarded.step(1/60,{fire:true,aim:true});
+assert.equal(guarded.state.ammo,guardAmmo);assert.equal(guarded.state.wanted,0);
+assert.equal(guarded.state.attackTimer,0);assert.equal(guardStrikes,0);assert.equal(guarded.state.shots.length,0);
+attackAllowed=true;guarded.step(1/60,{fire:true});
+assert.equal(guarded.state.ammo,guardAmmo-1,'a denied attack leaves no cooldown');assert.equal(guardStrikes,1);
+guarded.reset();guarded.state.mode='foot';attackAllowed=false;
+guarded.step(1/60,{melee:true});assert.equal(guarded.state.attackSerial,0);assert.equal(guardStrikes,1);
+attackAllowed=true;guarded.step(1/60,{melee:true});assert.equal(guarded.state.attackSerial,1);assert.equal(guardStrikes,2);
+// Ally strikes use live officer reach and occlusion; player sidearm injuries use ordinary recovery.
+const combatSim=createSimulation(map,{trafficCount:0});Object.assign(combatSim.player,{x:0,z:-100});
+const combat=createGameplay(map,combatSim);
+combat.state.mode='foot';Object.assign(combat.state.actor,{x:0,z:0});
+const liveOfficer={id:'live-officer',x:8,z:0,yaw:0,speed:0,health:100,mode:'foot',searchTime:0};
+combat.state.police.push(liveOfficer,...[1,2,3].map(i=>({id:`dead:${i}`,x:0,z:-100,health:0,mode:'foot'})));
+assert.equal(combat.strikePolice({from:{x:23,z:0},targetId:liveOfficer.id,damage:12,range:28}),false,'building blocks ally gunfire');
+assert.equal(combat.strikePolice({from:{x:-40,z:0},targetId:liveOfficer.id,damage:12,range:28}),false,'remote ally cannot damage');
+assert.equal(combat.strikePolice({from:{x:0,z:0},targetId:liveOfficer.id,damage:12,range:28}),true);
+assert.equal(liveOfficer.health,88);assert.equal(combat.state.wanted,0,'allied attacks do not attribute player offences');
+assert.equal(combat.state.shots.length,1);
+assert.equal(combat.strikePolice({from:{x:0,z:0},targetId:liveOfficer.id,damage:1000,range:1000}),true);
+assert.equal(liveOfficer.health,76,'ally damage is bounded to the live weapon maximum');
+assert.equal(combat.strikePolice({from:{x:-25,z:0},targetId:liveOfficer.id,damage:12,range:1000}),false,'caller range cannot exceed the ally weapon maximum');
+
+liveOfficer.mode='vehicle';assert.equal(combat.strikePolice({from:{x:0,z:0},targetId:liveOfficer.id,damage:12,range:28}),false);
+liveOfficer.mode='foot';combat.state.wanted=3;combat.state.heat=100;
+const unhurt=combat.state.health;combat.step(0);assert.equal(combat.state.health,unhurt);
+let sawPoliceTrace=false;
+for(let i=0;i<50;i++){combat.step(1/60);sawPoliceTrace ||= combat.state.shots.some(shot=>shot.kind==='pistol');}
+assert(combat.state.health<unhurt,'actual visible officer shots injure the player');
+assert(sawPoliceTrace);
+combat.state.health=1;
+for(let i=0;i<100 && !combat.state.recovery;i++)combat.step(1/60);
+assert.equal(combat.state.recovery?.reason,'knockout','police gunshot death uses existing recovery');
+console.log('Capital gameplay: injected attack guard, actual ally police damage/reach/LOS, sidearm player damage and recovery PASS');

@@ -163,3 +163,98 @@ for(let i=0;i<1800;i++) {
 }
 assert(reversed,'stationary destination still triggers a bounded recovery retry');
 console.log('Capital police: real external-car door boarding and bounded obstacle retry PASS');
+
+// Fleeing foot targets use the same physical door and a cached route ETA decision.
+const chaseMap={bounds:{minX:-500,maxX:500,minZ:-200,maxZ:200},spawn:{x:0,z:-150},buildings:[],roads:[
+  {id:'long',type:'residential',points:[[-400,0],[400,0]],nodes:[1,2],width:12,speed:40,oneway:1}]};
+function returnFixture({carDistance=10,targetDistance=100,blocked=false,offRoad=false,speed=6.8}={}) {
+  const sim=createSimulation(chaseMap,{trafficCount:0});Object.assign(sim.player,{x:0,z:-150});
+  const pose=pointOnLane(sim.graph.edges[0],150);
+  const car={id:'eta-patrol',...pose,x:pose.x-carDistance+10,speed:0,length:4.8,width:1.9,active:true};
+  if(offRoad)car.z=100;
+  const officer={id:car.id,x:pose.x+10,z:pose.z+3,yaw:0,speed:0,health:100,mode:'foot',car};
+  const status={police:[officer,...disabled()],wanted:1,mode:'foot',weapon:'unarmed',heat:100};
+  const fleeing={x:officer.x+targetDistance,z:pose.z+3,speed};
+  sim.setExternalVehicles([car]);
+  let probes=0;const canOccupy=sim.canOccupy;
+  sim.canOccupy=(...args)=>{probes++;return !blocked && canOccupy(...args);};
+  const ai=createPolice(sim);ai.report(fleeing);
+  return {sim,officer,status,fleeing,ai,probes:()=>probes};
+}
+const efficient=returnFixture();const originalX=efficient.officer.x;
+efficient.ai.step(1/60,efficient.status,efficient.fleeing);
+assert(efficient.officer.x<originalX,'a fleeing foot target makes the officer return when car ETA wins');
+const firstProbes=efficient.probes();
+for(let i=0;i<25;i++)efficient.ai.step(1/60,efficient.status,efficient.fleeing);
+assert(efficient.probes()-firstProbes<=26,'door safety may refresh but route/probe decision is cached for one second');
+const frozenPolice=structuredClone(efficient.status);efficient.ai.step(0,efficient.status,efficient.fleeing);
+assert.deepEqual(efficient.status,frozenPolice,'pause freezes return decisions and movement');
+for(let i=0;i<600 && efficient.officer.mode==='foot';i++)efficient.ai.step(1/60,efficient.status,efficient.fleeing);
+assert.equal(efficient.officer.mode,'vehicle','fleeing foot pursuit reaches a clear door before driving');
+for(const settings of [{targetDistance:40},{carDistance:95},{blocked:true},{offRoad:true},{speed:0}]) {
+  const fixture=returnFixture(settings),x=fixture.officer.x;
+  fixture.ai.step(1/60,fixture.status,fixture.fleeing);
+  assert(fixture.officer.x>x,`no pointless return for ${JSON.stringify(settings)}`);
+}
+// Start close to the stopped patrol, then actually advance the sprinting target.
+// A static-distance ETA would keep running until the car becomes too far away.
+const sprinting=returnFixture({targetDistance:15,speed:0});
+sprinting.fleeing.yaw=-Math.PI/2;
+for(let i=0;i<20;i++)sprinting.ai.step(1/60,sprinting.status,sprinting.fleeing);
+sprinting.fleeing.speed=6.8;
+let returned=false,walkedBack=false,maxCarGap=0;
+for(let frame=0;frame<900;frame++) {
+  sprinting.fleeing.x+=sprinting.fleeing.speed/60;
+  const beforeX=sprinting.officer.x;
+  sprinting.ai.step(1/60,sprinting.status,sprinting.fleeing);
+  if(sprinting.officer.mode==='foot') {
+    walkedBack ||= sprinting.officer.x<beforeX;
+    maxCarGap=Math.max(maxCarGap,Math.hypot(sprinting.officer.x-sprinting.officer.car.x,sprinting.officer.z-sprinting.officer.car.z));
+  } else {returned=true;break;}
+}
+assert(walkedBack && returned,'a near sprinting fugitive triggers a real walk back and boarding');
+assert(maxCarGap<25,'the officer chooses the fresh patrol before running beyond its return radius');
+const boardedX=sprinting.officer.car.x;
+for(let frame=0;frame<120;frame++) {
+  sprinting.fleeing.x+=sprinting.fleeing.speed/60;
+  sprinting.ai.step(1/60,sprinting.status,sprinting.fleeing);
+}
+assert(sprinting.officer.car.x>boardedX+3,'the returned officer actually drives the routed patrol after the moving fugitive');
+
+const approaching=returnFixture({targetDistance:15,speed:6.8});approaching.fleeing.yaw=Math.PI/2;
+const approachingX=approaching.officer.x;approaching.ai.step(1/60,approaching.status,approaching.fleeing);
+assert(approaching.officer.x>approachingX,'a fast target approaching the officer still has a cheap foot interception');
+// Actual sidearm fire requires a live visible target and proportional force.
+const firing=returnFixture({targetDistance:20,speed:0});firing.status.health=100;
+for(let i=0;i<120;i++)firing.ai.step(1/60,firing.status,firing.fleeing);
+assert.equal(firing.ai.drainEvents().length,0,'one-star unarmed alarm never authorizes gunfire');
+firing.status.wanted=3;firing.fleeing.x=firing.officer.x+15;
+for(let i=0;i<80;i++)firing.ai.step(1/60,firing.status,firing.fleeing);
+const shots=firing.ai.drainEvents();assert(shots.length>0 && shots.length<=2);
+for(const shot of shots) {assert.equal(shot.targetId,'player');assert.equal(shot.damage,9);assert(firing.sim.hasLineOfSight(shot.from,shot.to));}
+const armedThreat=returnFixture({targetDistance:20,speed:0});
+armedThreat.status.health=100;armedThreat.status.weapon='pistol';armedThreat.status.aiming=true;
+for(let i=0;i<45;i++)armedThreat.ai.step(1/60,armedThreat.status,armedThreat.fleeing);
+assert(armedThreat.ai.drainEvents().some(shot=>shot.targetId==='player'),'actual low-star aimed firearm authorizes defensive gunfire');
+const pauseFire=structuredClone(firing.status);firing.ai.step(0,firing.status,firing.fleeing);
+assert.deepEqual(firing.status,pauseFire);assert.deepEqual(firing.ai.drainEvents(),[]);
+const coverSim=createSimulation(wallMap,{trafficCount:0});
+const covered={id:'cover-officer',x:23,z:0,health:100,mode:'foot',yaw:0,speed:0,car:{id:'cover-car',x:25,z:0,yaw:0,speed:0,length:4.8,width:1.9}};
+const coverState={police:[covered,...disabled()],wanted:3,mode:'foot',weapon:'unarmed',health:100,heat:100};
+const ally={id:'campaign-ally:test',x:24,z:10,health:100,active:true,armed:true};
+const coverAI=createPolice(coverSim,{getAllies:()=>[ally]});coverAI.report({x:0,z:0});
+for(let i=0;i<70;i++)coverAI.step(1/60,coverState,{x:0,z:0,speed:0});
+const allyShots=coverAI.drainEvents();assert(allyShots.some(shot=>shot.targetId===ally.id));
+assert(allyShots.every(shot=>shot.targetId!=='player'),'wall blocks actual player-target shots');
+ally.health=0;for(let i=0;i<80;i++)coverAI.step(1/60,coverState,{x:0,z:0,speed:0});
+assert.equal(coverAI.drainEvents().length,0,'dead allies cannot be targeted');
+ally.health=100;coverState.wanted=1;ally.mode='idle';
+for(let i=0;i<80;i++)coverAI.step(1/60,coverState,{x:0,z:0,speed:0});
+assert.equal(coverAI.drainEvents().length,0,'a low-star idle armed ally is not an active threat');
+ally.mode='combat';
+for(let i=0;i<80;i++)coverAI.step(1/60,coverState,{x:0,z:0,speed:0});
+assert(coverAI.drainEvents().some(shot=>shot.targetId===ally.id),'actual ally combat authorizes defensive fire below three stars');
+ally.mode='idle';ally.shot={remaining:.1};
+for(let i=0;i<80;i++)coverAI.step(1/60,coverState,{x:0,z:0,speed:0});
+assert(coverAI.drainEvents().some(shot=>shot.targetId===ally.id),'a live ally shot also authorizes defensive fire');
+console.log('Capital police: cached foot/car ETA, physical door, refusal cases, pause, proportional sidearm fire, covered player and live ally target PASS');
