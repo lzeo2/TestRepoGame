@@ -16,7 +16,7 @@ export function createCampaign(map, saved = null) {
   const redHill = place('redhill', { x: -1770, z: 1740, name: 'Red Hill' });
   const bridge = place('commonwealth-bridge', { x: -1230, z: -2840, name: 'Commonwealth Avenue Bridge' });
   const target = (point, label, kind = 'drive', extra = {}) => ({ x: point.x, z: point.z, label, kind, radius: 26, hold: 1, ...extra });
-  const chapters = freeze([
+  const shared = freeze([
     { id: 'late-parcel', name: '1. Late parcel', contact: 'Mara, local courier', reward: 350, time: 360,
       briefing: 'A replacement driver has not shown up. Take the sealed parcel from the Crescent to the Manuka shopfront. Keep the car in one piece.',
       outro: 'Mara: You know these streets. There is more work if you want it.',
@@ -42,22 +42,100 @@ export function createCampaign(map, saved = null) {
       outro: 'Mara: Good driving. The next shift is yours to choose. Campaign complete.',
       stages: [target(shop, 'Return to Manuka', 'drive', { stop: true }), target(shop, 'Meet Mara outside Coals on foot', 'foot', { hold: 3, radius: 12 })] },
   ]);
-  const state = { completed: [], active: null, message: '', failed: false };
+  const noodle = place('store-5656111023', { x: -367.096, z: -4406.948, name: 'Lambzhou 1919' });
+  const mall = { x: -248.655, z: -4172.87 };
+  const characters = freeze([
+    { id: 'student', name: 'Kit Vale', age: 18, tagline: 'A Telopea student with one last errand and very little patience.', appearance: 'student', start: { ...map.spawn }, onFoot: true },
+    { id: 'corporate', name: 'Rowan Pike', age: 29, tagline: 'A Civic analyst whose career depends on a slideshow.', appearance: 'corporate', start: { ...mall }, onFoot: true },
+    { id: 'basement', name: 'Milo Finch', age: 26, tagline: 'A basement regular trying a radical new strategy: going outside.', appearance: 'basement', start: { x: kingston.x, z: kingston.z }, onFoot: true },
+  ]);
+  const intros = freeze({
+    student: [
+      { id: 'student-paper-chase', name: 'Paper chase', contact: 'Kit Vale', reward: 100, time: 480,
+        briefing: 'Your club flyers went to the wrong gate. Collect both bundles, then take them to the Crescent. The prank is a fake timetable for the chess club.',
+        outro: 'Kit: Three delivery stickers. One fictional depot. Apparently even a harmless prank needs logistics.',
+        stages: [target({ x: -337.147, z: -385.029 }, 'Collect the club flyers at the west path gate', 'foot', { radius: 7 }), target({ x: -137.704, z: -225.963 }, 'Collect the second bundle at the park path gate', 'foot', { radius: 7 }), target(map.spawn, 'Bring the flyers to the Crescent', 'foot', { radius: 12 })] },
+      { id: 'student-extra-credit', name: 'Extra credit', contact: 'Mara, local courier', reward: 150, time: 660,
+        briefing: 'Mara will carry the flyers if you cover a stock task at Coals. Drive over, enter the shop and finish a stock activity.',
+        outro: 'Kit: Shift finished. Mara wants the depot stickers brought to Kingston.',
+        stages: [target(shop, 'Park outside Coals', 'drive', { stop: true }), target(shop, 'Enter Coals and finish a stock shift', 'work', { storeId: shop.id, hold: 0 })] },
+    ],
+    corporate: [
+      { id: 'corporate-present-tense', name: 'Present tense', contact: 'Rowan Pike, fictional analyst', reward: 100, time: 480,
+        briefing: 'Margin Parade, your fictional employer, has scheduled a crucial slideshow. Enter Capitol Centre and try the PowerPunt presentation station before lunch.',
+        outro: 'Rowan: PowerPunt lost every slide. My manager called that an opportunity. I am taking lunch.',
+        stages: [target(mall, 'Enter Capitol Centre and try the PowerPunt presentation', 'presentation', { roomId: 'interior-canberra-centre', hold: 0 }), target(mall, 'Step outside after the PowerPunt outage', 'foot', { radius: 18, hold: 2 })] },
+      { id: 'corporate-lunch-breakpoint', name: 'Lunch breakpoint', contact: 'Rowan Pike', reward: 150, time: 540,
+        briefing: 'Walk along Bunda Street to Lambzhou 1919. Visit the counter, then talk to Dot, the fictional adult diner in pink earmuffs. Resolve the booth dispute and leave.',
+        outro: 'Rowan: A broken slideshow and a noodle-shop argument. Enough office politics. Mara has work that leaves a receipt.',
+        stages: [target(noodle, 'Enter Lambzhou 1919 and reach the counter', 'interior', { storeId: noodle.id || 'store-5656111023', radius: 2.5 }), target(noodle, 'Talk to the pink-earmuff diner and resolve the dispute', 'encounter', { storeId: 'store-5656111023', hold: 0 }), target(noodle, 'Leave the shop and cool off outside', 'foot', { radius: 18, hold: 3, clear: true })] },
+    ],
+    basement: [
+      { id: 'basement-touch-grass', name: 'Touch grass', contact: 'Milo Finch', reward: 100, time: 540,
+        briefing: 'The basement has excellent reception and terrible prospects. Step into daylight, walk to the park path, then drive to Coals and finish a stock task. Temp work beats refreshing the inbox.',
+        outro: 'Milo: Actual work. Actual wages. Disturbingly effective.',
+        stages: [target({ x: -137.704, z: -225.963 }, 'Walk to the daylight park path', 'foot', { radius: 9, hold: 2 }), target(shop, 'Finish a stock shift inside Coals', 'work', { storeId: shop.id, hold: 0 })] },
+      { id: 'basement-first-delivery', name: 'Signed for', contact: 'Mara, local courier', reward: 150, time: 600,
+        briefing: 'Pick up Mara\'s sealed parcel outside Coals and deliver it to Kingston. Stop before handover, then step out. No browser refresh can do this shift for you.',
+        outro: 'Milo: The parcel has the same depot code as two other receipts. Mara wants all three people together.',
+        stages: [target(shop, 'Collect the sealed parcel outside Coals', 'foot', { radius: 12 }), target(kingston, 'Stop at the Kingston meeting approach', 'drive', { stop: true }), target(kingston, 'Hand over the parcel on foot', 'foot', { radius: 16, hold: 2 })] },
+    ],
+  });
+  const meeting = freeze({ id: 'three-receipts', name: 'Three receipts', contact: 'Kit, Rowan, Milo and Mara', reward: 200, time: 600,
+    briefing: 'All three introductions are complete. Meet on foot at the Kingston public approach. Kit has the stickers, Rowan has a ruined presentation and Milo has the delivery receipt. Mara can connect the depot code.',
+    outro: 'Mara: Three strangers, one depot. We follow the parcels together. The late shift starts on the Crescent.',
+    stages: [target(kingston, 'Meet the three couriers at the Kingston public approach', 'foot', { radius: 16, hold: 5 }), target(map.spawn, 'Drive to the Crescent for the late shift', 'drive', { stop: true })] });
+  const ids = characters.map(c => c.id);
+  const emptyIntros = () => Object.fromEntries(ids.map(id => [id, []]));
+  const state = { character: null, intros: emptyIntros(), meeting: false, legacy: false, completed: [], active: null, message: 'Choose a character to begin.', failed: false };
+  const object = value => value && typeof value === 'object' && !Array.isArray(value);
+  const keys = (value, allowed) => object(value) && Object.keys(value).length === allowed.length && Object.keys(value).every(k => allowed.includes(k));
+  const prefix = (value, chapters) => Array.isArray(value) && value.length <= chapters.length && value.every((id, index) => chapters[index]?.id === id);
   if (saved !== null) {
-    if (!saved || typeof saved !== 'object' || Array.isArray(saved) || Object.keys(saved).some(k => !['version', 'completed'].includes(k)) || saved.version !== 1 || !Array.isArray(saved.completed) || saved.completed.length > chapters.length || saved.completed.some((id, index) => chapters[index]?.id !== id)) throw new Error('Unsupported or corrupt campaign progress.');
-    state.completed = [...saved.completed];
+    if (keys(saved, ['version', 'completed']) && saved.version === 1 && prefix(saved.completed, shared)) {
+      state.character = 'legacy'; state.legacy = true; state.completed = [...saved.completed];
+    } else {
+      if (!keys(saved, ['version', 'character', 'intros', 'meeting', 'legacy', 'completed']) || saved.version !== 2 ||
+          ![null, 'legacy', ...ids].includes(saved.character) || typeof saved.meeting !== 'boolean' || typeof saved.legacy !== 'boolean' ||
+          !keys(saved.intros, ids) || ids.some(id => !prefix(saved.intros[id], intros[id])) || !prefix(saved.completed, shared) ||
+          (saved.character === 'legacy' && !saved.legacy) || (saved.character === null && (saved.legacy || saved.meeting || saved.completed.length || ids.some(id => saved.intros[id].length))) ||
+          (saved.meeting && ids.some(id => saved.intros[id].length !== intros[id].length)) ||
+          (saved.completed.length && !saved.legacy && !saved.meeting) ||
+          (ids.filter(id => saved.intros[id].length > 0 && saved.intros[id].length < intros[id].length).some(id => id !== saved.character))) throw new Error('Unsupported or corrupt campaign progress.');
+      state.character = saved.character; state.intros = clone(saved.intros); state.meeting = saved.meeting; state.legacy = saved.legacy; state.completed = [...saved.completed];
+    }
   }
   const events = [];
-  const current = () => chapters[state.completed.length] || null;
+  const allIntroduced = () => ids.every(id => state.intros[id].length === intros[id].length);
+  const current = () => {
+    if (!state.character) return null;
+    if (state.character === 'legacy') return shared[state.completed.length] || null;
+    const opening = intros[state.character][state.intros[state.character].length];
+    if (opening) return opening;
+    if (!allIntroduced()) return null;
+    return !state.meeting ? meeting : shared[state.completed.length] || null;
+  };
+  const chapters = () => state.character === 'legacy' ? shared : [...(intros[state.character] || []), meeting, ...shared];
+  const isCompleted = id => state.completed.includes(id) || (id === meeting.id && state.meeting) || ids.some(hero => state.intros[hero].includes(id));
   function validContext(ctx) {
     return ctx && finitePoint(ctx.pose) && typeof ctx.onFoot === 'boolean' && Number.isSafeInteger(ctx.respawnSerial) && Number.isFinite(ctx.wanted) && ctx.wanted >= 0 && ctx.wanted <= 5;
   }
+  function canSelectCharacter(id) {
+    return ids.includes(id) && !state.active && (state.character === null || state.character === 'legacy' || state.intros[state.character].length === intros[state.character].length);
+  }
+  function selectCharacter(id, ctx) {
+    if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.campaign || !canSelectCharacter(id)) return { ok: false, message: 'Finish this character\'s introduction before switching.' };
+    state.character = id; state.failed = false; state.message = `${characters.find(c => c.id === id).name}: ${current()?.briefing || 'Choose another character to bring the three stories together.'}`;
+    return { ok: true, message: state.message };
+  }
+  const serial = value => Number.isSafeInteger(value?.serial) && value.serial >= 0 ? value.serial : 0;
+  const baselines = ctx => ({ presentation: serial(ctx.presentation), encounter: serial(ctx.encounter), work: serial(ctx.workCompletion) });
   function start(ctx) {
-    if (!validContext(ctx) || ctx.sandbox || ctx.recovering) return { ok: false, message: 'Campaign unavailable here.' };
+    if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.campaign) return { ok: false, message: 'Campaign unavailable here.' };
     if (state.active) return { ok: false, message: 'Mission already active.' };
     const chapter = current();
-    if (!chapter) return { ok: false, message: 'Campaign complete.' };
-    state.active = { id: chapter.id,name:chapter.name,reward:chapter.reward, stage: 0, target: clone(chapter.stages[0]), remaining: chapter.time, elapsed: 0, held: 0, serial: ctx.respawnSerial, sawWanted: ctx.wanted > 0 };
+    if (!chapter) return { ok: false, message: !state.character ? 'Choose a character first.' : !allIntroduced() && state.character !== 'legacy' ? 'Choose another character to complete their introduction.' : 'Campaign complete.' };
+    state.active = { id: chapter.id, name: chapter.name, reward: chapter.reward, stage: 0, target: clone(chapter.stages[0]), remaining: chapter.time, elapsed: 0, held: 0, serial: ctx.respawnSerial, sawWanted: ctx.wanted > 0, baselines: baselines(ctx) };
     state.failed = false; state.message = chapter.briefing;
     events.push({ type: 'started', id: chapter.id, incident: Boolean(chapter.incident) });
     return { ok: true, message: chapter.name };
@@ -77,6 +155,9 @@ export function createCampaign(map, saved = null) {
     if (!active.remaining) { fail('Time expired. Open Campaign to retry.'); return; }
     let eligible = goal.anywhere || distance(ctx.pose, goal) <= goal.radius;
     if (goal.kind === 'interior') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.interior?.atCounter === true;
+    else if (goal.kind === 'presentation') eligible = ctx.onFoot && ctx.interior?.roomId === goal.roomId && ctx.presentation?.roomId === goal.roomId && ctx.presentation?.outcome === 'outage' && serial(ctx.presentation) > active.baselines.presentation;
+    else if (goal.kind === 'encounter') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.encounter?.storeId === goal.storeId && ctx.encounter?.roomId === ctx.interior?.roomId && ctx.encounter?.character === 'booth-guest' && ctx.encounter?.phase === 'complete' && ['peaceful', 'confrontation'].includes(ctx.encounter?.outcome) && serial(ctx.encounter) > active.baselines.encounter;
+    else if (goal.kind === 'work') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.workCompletion?.storeId === goal.storeId && serial(ctx.workCompletion) > active.baselines.work;
     else if (goal.kind === 'foot') eligible &&= ctx.onFoot && !ctx.interior;
     else if (goal.kind === 'stolen') eligible &&= !ctx.onFoot && ctx.vehicle?.stolen === true;
     else if (goal.kind === 'escape') eligible &&= active.sawWanted && ctx.wanted === 0;
@@ -85,16 +166,21 @@ export function createCampaign(map, saved = null) {
     if (goal.stolen) eligible &&= ctx.vehicle?.stolen === true;
     if (goal.clear) eligible &&= ctx.wanted === 0;
     active.held = eligible ? active.held + step : 0;
-    if (!eligible || active.held < goal.hold || active.elapsed < .5) return;
+    if (!eligible || active.held + 1e-9 < goal.hold || active.elapsed < .5) return;
     if (active.stage + 1 < chapter.stages.length) {
-      active.stage++; active.target = clone(chapter.stages[active.stage]); active.held = 0;
+      active.stage++; active.target = clone(chapter.stages[active.stage]); active.held = 0; active.baselines = baselines(ctx);
       events.push({ type: 'stage', message: active.target.label });
     } else {
-      state.completed.push(chapter.id); state.active = null; state.message = chapter.outro; state.failed = false;
+      if (ids.includes(state.character) && intros[state.character].some(item => item.id === chapter.id)) state.intros[state.character].push(chapter.id);
+      else if (chapter.id === meeting.id) state.meeting = true;
+      else state.completed.push(chapter.id);
+      state.active = null; state.message = chapter.outro; state.failed = false;
       events.push({ type: 'complete', id: chapter.id, reward: chapter.reward, message: chapter.outro });
     }
   }
-  return { state, chapters, current, start, update, cancel: () => fail('Mission cancelled. Open Campaign to retry.'),
-    serialize: () => ({ version: 1, completed: [...state.completed] }),
-    snapshot: () => freeze(clone({ ...state, next: current()?.id || null })), drainEvents: () => events.splice(0) };
+  return { state, characters, get chapters() { return chapters(); }, current, start, update, selectCharacter, canSelectCharacter, isCompleted,
+    cancel: () => fail('Mission cancelled. Open Campaign to retry.'),
+    serialize: () => clone({ version: 2, character: state.character, intros: state.intros, meeting: state.meeting, legacy: state.legacy, completed: state.completed }),
+    journal: () => freeze(clone({ character: state.character, introductions: ids.map(id => ({ character: id, chapters: intros[id].map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })), meeting: state.meeting, shared: shared.map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })),
+    snapshot: () => freeze(clone({ ...state, next: current()?.id || null, switching: ids.filter(canSelectCharacter) })), drainEvents: () => events.splice(0) };
 }
