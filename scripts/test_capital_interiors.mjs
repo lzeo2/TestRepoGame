@@ -2,7 +2,42 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
-const { createInteriors } = await import(moduleURL(await read('../Games/Capital Drive/interiors.js')));
+const { createInteriors, createGymEntry } = await import(moduleURL(await read('../Games/Capital Drive/interiors.js')));
+function assertActivitiesReachable(interiors, plan) {
+  assert(Object.isFrozen(plan.activities) && plan.activities.length > 0, `${plan.type} has immutable activities`);
+  const ids = new Set();
+  const c = Math.cos(plan.origin.yaw), sin = Math.sin(plan.origin.yaw);
+  const point = (x, z) => ({ x: plan.origin.x + c * x + sin * z, z: plan.origin.z - sin * x + c * z });
+  const local = p => ({ x: c * (p.x - plan.origin.x) - sin * (p.z - plan.origin.z), z: sin * (p.x - plan.origin.x) + c * (p.z - plan.origin.z) });
+  const step = 0.35, queue = [[0, 0]], visited = new Set(['0,0']), reached = new Set();
+  for (const station of plan.activities) {
+    assert(Object.isFrozen(station)); assert(!ids.has(station.id)); ids.add(station.id);
+    assert(['bench', 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade'].includes(station.kind));
+    assert(station.label && [station.x, station.z, station.yaw, station.radius].every(Number.isFinite));
+    assert(station.radius > 0 && station.radius <= 2);
+    const pose = { x: station.x, z: station.z };
+    assert.equal(interiors.moveActor(pose, 0, 0).blocked, false, `${station.id} has player-sized standing space`);
+    assert(plan.furniture.some(f => Math.hypot(f.x - station.x, f.z - station.z) < 2.5), `${station.id} relates to furniture`);
+  }
+  for (let cursor = 0; cursor < queue.length; cursor++) {
+    const [ix, iz] = queue[cursor], p = point(ix * step, 1.65 + iz * step);
+    for (const station of plan.activities) if (Math.hypot(p.x - station.x, p.z - station.z) <= step * 0.8) {
+      const pose = { ...p };
+      if (!interiors.moveActor(pose, station.x - p.x, station.z - p.z).blocked) reached.add(station.id);
+    }
+    if (reached.size === plan.activities.length) break;
+    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = ix + dx, nz = iz + dz, key = `${nx},${nz}`;
+      if (visited.has(key)) continue;
+      visited.add(key);
+      const q = point(nx * step, 1.65 + nz * step), l = local(q);
+      if (Math.abs(l.x) > plan.width / 2 || l.z < 0 || l.z > plan.depth) continue;
+      const pose = { ...p };
+      if (!interiors.moveActor(pose, q.x - p.x, q.z - p.z).blocked) queue.push([nx, nz]);
+    }
+  }
+  assert.deepEqual([...reached].sort(), [...ids].sort(), `${plan.id} every station reachable from its door with solid furniture`);
+}
 const house = { id: 'house', type: 'house', height: 4, points: [[-6, 20], [6, 20], [6, 34], [-6, 34]] };
 const shopBuilding = { ...house, id: 'shop', type: 'retail' };
 const doors = [{ id: 'house', buildingId: 'house', x: 0, z: 20, nx: 0, nz: 1 }];
@@ -23,6 +58,7 @@ assert.equal(entry.type, 'house');
 assert.equal(interiors.enter({ ...entry }, actor), false, 'fabricated descriptors cannot open a room');
 const plan = interiors.enter(entry, actor);
 assert(plan && plan === interiors.active);
+assertActivitiesReachable(interiors, plan);
 assert.deepEqual(plan.rooms.map(r => r.kind), ['living', 'kitchen', 'bedroom', 'bathroom']);
 assert(plan.furniture.some(f => f.kind === 'bed') && plan.furniture.some(f => f.kind === 'bath'));
 assert(Object.isFrozen(plan.furniture));
@@ -56,6 +92,7 @@ assert.equal(interiors.leave(actor), false);
 actor.x = 30; actor.z = 18.5;
 const shop = interiors.enter(interiors.findEntry(actor), actor);
 assert.equal(shop.type, 'shop');
+assertActivitiesReachable(interiors, shop);
 assert.equal(shop.storeId, store.id);
 assert(shop.counter && shop.furniture.some(f => f.kind === 'shelves'));
 assert(interiors.hasLineOfSight(actor, shop.counter), 'shop counter has an accessible central approach');
@@ -117,6 +154,7 @@ for (const entry of actual.entries) {
   assert.equal(actual.findEntry(visitor), entry);
   const interior = actual.enter(entry, visitor);
   assert(interior && interior.type === 'shop');
+  assertActivitiesReachable(actual, interior);
   assert(actual.hasLineOfSight(visitor, interior.counter), `${entry.name} counter has a clear approach`);
   const movement = actual.moveActor(visitor, s * 0.5, c * 0.5);
   assert(movement.moved && !movement.blocked, `${entry.name} entrance aisle is walkable`);
@@ -153,6 +191,8 @@ assert(mallEntry && mallEntry.type === 'mall');
 assert(!('furniture' in mallEntry) && !('rooms' in mallEntry));
 assert.equal(mall.enter({ ...mallEntry }, visitor), false);
 const mallPlan = mall.enter(mallEntry, visitor);
+assertActivitiesReachable(mall, mallPlan);
+assert(mallPlan.activities.some(s => s.kind === 'arcade'));
 assert.equal(mallPlan.counter, null, 'original mall fixtures do not expose a paid service counter');
 assert(!('storeId' in mallPlan)); assert(!('siteId' in mallPlan));
 assert.equal(mallPlan.rooms.filter(r => r.kind === 'mall-unit').length, 4);
@@ -205,6 +245,8 @@ const noodlePoint = (x, z) => ({ x: noodleEntry.x + nc * x + ns * z, z: noodleEn
 const diner = { ...noodlePoint(0, -1.5), y: 0, yaw: 0.42 }, outsideRestaurant = { ...diner };
 assert.equal(restaurant.findEntry(diner), noodleEntry);
 const noodlePlan = restaurant.enter(noodleEntry, diner);
+assertActivitiesReachable(restaurant, noodlePlan);
+assert.equal(noodlePlan.activities[0].kind, 'noodle');
 assert.equal(noodlePlan.type, 'shop'); assert.equal(noodlePlan.variant, 'noodles');
 assert.equal(noodlePlan.storeId, noodleStore.id); assert(noodlePlan.counter);
 assert.equal(noodlePlan.depth, 12); assert(noodlePlan.width >= 6.2 && noodlePlan.width <= 7);
@@ -255,3 +297,62 @@ assert.notEqual(revisit, noodlePlan); assert.deepEqual(revisit, noodlePlan);
 noodleView.load(revisit); restaurant.reset(diner); noodleView.dispose(); noodleView.dispose();
 assert.equal(noodleScene.children.length, 0);
 console.log(`PASS lazy interiors: houses; ${baseStores.length} generic shops <=${maximumTriangles} triangles; Civic/four reachable units ${mallTriangles}; source-tied noodle restaurant ${noodleTriangles} triangles / 1 draw, ${geometryBytes} bytes; lazy lifecycle, dishes, aisle/counter collision and disposal`);
+
+// The fictional Kingston gym uses a retained facade with a clear outside approach.
+const gymService = { id: 'kingston-gym', type: 'gym', name: 'Kingston gym', x: 607.24, z: 39.78 };
+assert.equal(createGymEntry(actualMap, { ...gymService, x: NaN }), null);
+assert.equal(createGymEntry({ buildings: [] }, gymService), null);
+const gymDoor = createGymEntry(actualMap, gymService);
+assert(gymDoor && Object.isFrozen(gymDoor));
+assert.equal(gymDoor.buildingId, 'osm-1286498977');
+assert.equal(gymDoor.serviceId, 'kingston-gym');
+assert.deepEqual(createGymEntry(actualMap, gymService), gymDoor, 'source frontage selection is deterministic');
+const gymBuilding = actualMap.buildings.find(b => b.id === gymDoor.buildingId);
+const gs = Math.sin(gymDoor.yaw), gc = Math.cos(gymDoor.yaw);
+const gymPoint = (x, z) => ({ x: gymDoor.x + gc * x + gs * z, z: gymDoor.z - gs * x + gc * z });
+function inside(p, points) {
+  let hit = false;
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    const a = points[i], b = points[j];
+    if ((a[1] > p.z) !== (b[1] > p.z) && p.x < (b[0] - a[0]) * (p.z - a[1]) / (b[1] - a[1]) + a[0]) hit = !hit;
+  }
+  return hit;
+}
+assert(inside(gymPoint(0, 0.35), gymBuilding.points), 'gym normal faces into actual source outline');
+for (const z of [-0.55, -1.4, -2.8, -4]) for (const x of [-0.65, 0, 0.65]) {
+  const p = gymPoint(x, z);
+  assert(!actualMap.buildings.some(b => inside(p, b.points)), 'source building does not block the actual exterior approach');
+  for (const road of actualMap.roads) {
+    if (/^(footway|path|pedestrian|steps|cycleway)$/.test(road.type || '')) continue;
+    for (let i = 1; i < road.points.length; i++) {
+      const a = road.points[i - 1], b = road.points[i], dx = b[0] - a[0], dz = b[1] - a[1];
+      const t = Math.max(0, Math.min(1, ((p.x - a[0]) * dx + (p.z - a[1]) * dz) / (dx * dx + dz * dz || 1)));
+      assert(Math.hypot(p.x - a[0] - t * dx, p.z - a[1] - t * dz) >= (road.width || 6) / 2 + 0.4, 'gym approach is outside a road carriageway');
+    }
+  }
+}
+const gym = createInteriors(actualMap, { publicEntries: [gymDoor] });
+assert.equal(gym.entries.length, 1); assert.equal(gym.stats.generatedPlans, 0);
+assert.equal(createInteriors(actualMap, { publicEntries: [{ ...gymDoor, x: gymDoor.x + 500 }] }).entries.length, 0);
+const athlete = { ...gymPoint(0, -1.5), y: 0, yaw: 0.7 }, outsideGym = { ...athlete };
+assert.equal(gym.findEntry(gymPoint(0, 1.1)), null);
+const gymPlan = gym.enter(gym.findEntry(athlete), athlete);
+assert.equal(gymPlan.type, 'gym'); assert.equal(gymPlan.serviceId, 'kingston-gym');
+assert(!('storeId' in gymPlan)); assert(gymPlan.counter && gymPlan.exercise);
+assertActivitiesReachable(gym, gymPlan);
+assert.equal(gymPlan.activities[0].kind, 'bench');
+for (const kind of ['exercise-bench', 'bench-rack', 'weight-rack', 'treadmill', 'exercise-mat', 'lockers']) assert(gymPlan.furniture.some(f => f.kind === kind));
+assert(Math.hypot(gymPlan.exercise.approachX - gymPlan.activities[0].x, gymPlan.exercise.approachZ - gymPlan.activities[0].z) < 1e-8);
+const gymScene = new THREE.Scene(), gymView = createInteriorView(gymScene);
+assert.equal(gymView.stats.meshes, 0); gymView.load(gymPlan);
+assert.equal(gymView.stats.draws, 1); assert(gymView.stats.triangles < 3000);
+const gymTriangles = gymView.stats.triangles;
+let gymDisposed = 0;
+gymScene.children[0].children[0].geometry.addEventListener('dispose', () => gymDisposed++);
+assert(gym.leave(athlete)); gymView.clear(); assert.equal(gymDisposed, 1);
+assert.deepEqual({ x: athlete.x, z: athlete.z, y: athlete.y, yaw: athlete.yaw }, outsideGym);
+assert.equal(gym.stats.activePlans, 0);
+const gymRevisit = gym.enter(gym.findEntry(athlete), athlete); assert.notEqual(gymRevisit, gymPlan); assert.deepEqual(gymRevisit, gymPlan);
+gymView.load(gymRevisit); gym.reset(athlete); gymView.dispose(); gymView.dispose();
+assert.equal(gymScene.children.length, 0);
+console.log(`PASS purposeful interiors: every house/shop/mall/noodle/gym station reachable with player clearance; actual Kingston source door approach; gym ${gymTriangles} triangles / 1 draw; deterministic lazy disposal`);

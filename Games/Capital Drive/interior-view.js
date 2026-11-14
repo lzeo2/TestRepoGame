@@ -37,7 +37,7 @@ export function createInteriorView(scene) {
     for (const room of plan.rooms || []) {
       const color = { living: 0xaa9c84, kitchen: 0xb8b6a4, bedroom: 0x9b9e90, bathroom: 0xb2c1bb,
         shop: 0xb3b1a0, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e,
-        'noodle-dining': 0xc9baa0, 'noodle-kitchen': 0xb3bbb0 }[room.kind];
+        'noodle-dining': 0xc9baa0, 'noodle-kitchen': 0xb3bbb0, 'gym-floor': 0x777e79 }[room.kind];
       box(room.x, plan.floorY + 0.006, room.z, room.width - 0.12, 0.012, room.depth - 0.12, o.yaw, color);
     }
     for (const wall of plan.walls) {
@@ -61,6 +61,35 @@ export function createInteriorView(scene) {
       } else if (item.kind === 'shelves') {
         detail(item, -w / 2 + 0.04, h / 2, 0, 0.08, h, d, color);
         for (const end of [-1, 1]) detail(item, 0, h / 2, end * (d / 2 - 0.035), w, h, 0.07, color);
+      } else if (item.kind === 'exercise-bench') {
+        detail(item, 0, h - 0.07, 0, w, 0.14, d, color);
+        detail(item, 0, h / 2, 0, 0.12, h - 0.14, d * 0.75, 0x657073);
+        for (const z of [-0.75, 0.75]) detail(item, 0, 0.08, z, 1.1, 0.12, 0.22, 0x657073);
+      } else if (item.kind === 'bench-rack') {
+        detail(item, 0, h / 2, 0, w, h, 0.16, color);
+        detail(item, 0, 0.08, 0, 0.6, 0.16, d, color);
+        detail(item, 0, h - 0.3, -0.12, w + 0.05, 0.1, 0.36, 0xb1b8ae);
+      } else if (item.kind === 'weight-rack') {
+        for (const z of [-d / 2 + 0.15, d / 2 - 0.15]) detail(item, 0, h / 2, z, w, h, 0.16, color);
+        for (const y of [0.42, 0.92]) {
+          detail(item, 0, y, 0, w, 0.1, d, color);
+          for (let z = -d / 2 + 0.4; z < d / 2; z += 0.55) {
+            detail(item, 0, y + 0.13, z, w * 0.75, 0.1, 0.08, 0xb1b8ae);
+            for (const x of [-0.23, 0.23]) detail(item, x, y + 0.13, z, 0.14, 0.28, 0.24, 0x303c40);
+          }
+        }
+      } else if (item.kind === 'treadmill') {
+        detail(item, 0, 0.13, 0, w, 0.26, d, color);
+        detail(item, 0, 0.28, 0, w * 0.78, 0.05, d * 0.75, 0x343d3e);
+        for (const x of [-w * 0.42, w * 0.42]) detail(item, x, h / 2, d * 0.34, 0.09, h, 0.12, color);
+        detail(item, 0, h, d * 0.34, w, 0.16, 0.38, 0x3a4849);
+        detail(item, 0, h + 0.09, d * 0.34, w * 0.55, 0.03, 0.24, 0x94b6a4);
+      } else if (item.kind === 'arcade') {
+        detail(item, 0, h * 0.3, 0, w, h * 0.6, d, color);
+        detail(item, 0, h * 0.78, d * 0.22, w, h * 0.44, d * 0.5, color);
+        detail(item, 0, h * 0.78, -0.015, w * 0.78, h * 0.3, 0.035, 0x263e47);
+        for (const x of [-0.22, 0, 0.22]) detail(item, x, h * 0.78, -0.04, 0.1, 0.1, 0.02, 0xc8b873);
+        detail(item, 0.2, h * 0.62, -d * 0.25, 0.1, 0.08, 0.1, 0xc79875);
       } else if (item.kind === 'bench') {
         detail(item, 0, h - 0.09, 0, w, 0.18, d, color);
         for (const end of [-1, 1]) detail(item, 0, (h - 0.18) / 2, end * (d / 2 - 0.3), w * 0.65, h - 0.18, 0.15, 0x5e6458);
@@ -69,7 +98,12 @@ export function createInteriorView(scene) {
         for (const x of [-1, 1]) for (const z of [-1, 1]) detail(item, x * (w / 2 - 0.09), h / 2,
           z * (d / 2 - 0.09), 0.09, h - 0.1, 0.09, color);
       } else detail(item, 0, h / 2, 0, w, h, d, color);
-      if (item.kind === 'bed') {
+      if (item.kind === 'lockers') {
+        for (let x = -w / 2 + 0.3; x < w / 2; x += 0.62) {
+          detail(item, x, h / 2, -d / 2 - 0.01, 0.012, h - 0.12, 0.02, 0x717d75);
+          detail(item, x + 0.12, h * 0.55, -d / 2 - 0.025, 0.05, 0.13, 0.03, 0x535d56);
+        }
+      } else if (item.kind === 'bed') {
         detail(item, 0, h + 0.07, 0, w - 0.1, 0.14, d - 0.12, 0xc1c8bb);
         detail(item, 0, h + 0.18, d / 2 - 0.38, w - 0.28, 0.15, 0.46, 0xe1ddc9);
         detail(item, 0, h * 0.8, d / 2, w + 0.1, h * 1.6, 0.09, 0x886c50);
