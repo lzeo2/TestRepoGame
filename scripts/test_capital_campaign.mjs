@@ -68,11 +68,15 @@ function finishMission(value) {
   let guard = 0;
   while (value.state.active && guard++ < 12) {
     const target = value.state.active.target;
-    const context = { ...ctx, pose: { ...target, speed: 0 }, vehicle: { stolen: true }, onFoot: ['foot', 'interior', 'work', 'presentation', 'encounter', 'school-alarm', 'robbery'].includes(target.kind) || target.foot === true };
+    const context = { ...ctx, pose: { ...target, speed: 0 }, vehicle: { stolen: true }, onFoot: ['foot', 'interior', 'work', 'presentation', 'encounter', 'school-alarm', 'robbery', 'home-action'].includes(target.kind) || target.foot === true };
     if (target.kind === 'interior') context.interior = { storeId: target.storeId, roomId: 'shop-room', atCounter: true };
     if (target.kind === 'work') {
       context.interior = { storeId: target.storeId, roomId: 'shop-room' };
       context.workCompletion = { serial: ++serial, storeId: target.storeId };
+    }
+    if (target.kind === 'home-action') {
+      context.interior = { roomId: target.roomId };
+      context.homeAction = { serial: ++serial, roomId: target.roomId, outcome: 'packed' };
     }
     if (target.kind === 'school-alarm') {
       context.interior = { roomId: target.roomId };
@@ -412,6 +416,78 @@ assert.equal(relocated.current().reward,200);assert.equal(relocated.current().st
 assert.equal(createCampaign(map,meetingSave).current().stages[0].x,923,'default fixture meeting unchanged');
 assert.deepEqual(createCampaign(map,{version:1,completed:[]},{meetingPoint:{x:15,z:25}}).current(),createCampaign(map,{version:1,completed:[]}).current(),'meeting override preserves six legacy chapter targets and rewards');
 for(const invalid of [null,{}, {x:NaN,z:0},{x:0,z:Infinity}])assert.throws(()=>createCampaign(map,null,{meetingPoint:invalid}),/finite/);
+const homeDescriptor = { roomId: 'interior-source-house', buildingId: 'source-house', name: "Milo's safehouse", street: 'Dawes Street', x: 41, z: 52, approach: { x: 45, z: 55 } };
+const homeMap = { ...map, storyHomes: { basement: homeDescriptor } };
+const homeCampaign = createCampaign(homeMap);
+assert.deepEqual(homeCampaign.characters.find(hero => hero.id === 'basement').start, { x: 45, z: 55 }, 'Milo begins at the supplied checked home approach');
+homeCampaign.selectCharacter('basement', ctx);
+assert.match(homeCampaign.current().briefing, /Dawes Street/);
+assert.equal(homeCampaign.current().stages[0].kind, 'home-action');
+assert.equal(homeCampaign.current().stages[0].stationId, 'interior-source-house-stash');
+assert.equal(homeCampaign.current().stages[0].roomId, homeDescriptor.roomId);
+homeDescriptor.approach.x = 999;
+assert.equal(homeCampaign.characters.find(hero => hero.id === 'basement').start.x, 45, 'mission home start is copied and frozen');
+homeDescriptor.approach.x = 45;
+const homeAction = { serial: 40, roomId: homeDescriptor.roomId, outcome: 'packed' };
+homeCampaign.start({ ...ctx, homeAction });
+assert.equal(homeCampaign.state.active.combat, false);
+const homeContext = { ...ctx, onFoot: true, interior: { roomId: homeDescriptor.roomId }, homeAction };
+for (const invalid of [
+  homeContext,
+  { ...homeContext, homeAction: { ...homeAction, serial: 41, roomId: 'wrong-home' } },
+  { ...homeContext, homeAction: { ...homeAction, serial: 41, outcome: 'cancelled' } },
+  { ...homeContext, homeAction: { ...homeAction, serial: 41 }, interior: { roomId: 'wrong-home' } },
+  { ...homeContext, homeAction: { ...homeAction, serial: 41 }, onFoot: false },
+  { ...homeContext, homeAction: { ...homeAction, serial: 41 }, interior: null },
+  { ...homeContext, homeAction: { ...homeAction, serial: 41 }, sandbox: true },
+  { ...homeContext, homeAction: null, workCompletion: { serial: 100, storeId: 'coals' } },
+]) {
+  tick(homeCampaign, invalid);
+  assert.equal(homeCampaign.state.active.stage, 0, 'home task requires a fresh successful packed event in the correct live room');
+}
+homeCampaign.cancel();
+homeCampaign.start({ ...ctx, homeAction: { ...homeAction, serial: 41 } });
+tick(homeCampaign, { ...homeContext, homeAction: { ...homeAction, serial: 41 } });
+assert.equal(homeCampaign.state.active.stage, 0, 'a task completed before retry cannot be reused');
+tick(homeCampaign, { ...homeContext, homeAction: { ...homeAction, serial: 42 } });
+assert.equal(homeCampaign.state.active.stage, 1);
+assert.deepEqual(homeCampaign.state.intros.basement, [], 'packing alone cannot skip the exterior or paid shift');
+const homeExterior = { ...ctx, onFoot: true, pose: { x: 45, z: 55 } };
+tick(homeCampaign, { ...homeExterior, interior: { roomId: homeDescriptor.roomId } });
+assert.equal(homeCampaign.state.active.stage, 1, 'the outside objective cannot complete inside the home');
+tick(homeCampaign, homeExterior);
+assert.equal(homeCampaign.state.active.stage, 2);
+tick(homeCampaign, { ...ctx, onFoot: true, interior: { storeId: 'coals' }, workCompletion: { serial: 50, storeId: 'coals' } });
+assert.deepEqual(homeCampaign.state.intros.basement, ['basement-touch-grass']);
+assert.equal(homeCampaign.drainEvents().filter(event => event.type === 'complete').length, 1);
+const finale = createCampaign(homeMap, { ...meetingSave, character: 'basement', meeting: true, completed: legacyIds.slice(0, 5) });
+assert.equal(finale.current().id, 'home-by-the-lake');
+assert.equal(finale.current().reward, 1200);
+assert.deepEqual(finale.current().stages.map(goal => goal.kind), ['drive', 'home-action', 'foot']);
+assert.ok(finale.current().stages.every(goal => goal.label.includes('Dawes Street')), 'all finale objectives identify the actual supplied home street');
+assert.ok(finale.current().cutscene.lines.some(line => line.text.includes('Dawes Street')));
+finale.start({ ...ctx, homeAction: { ...homeAction, serial: 42 } });
+const finalePark = { ...ctx, pose: { x: 45, z: 55 } };
+tick(finale, { ...finalePark, pose: { ...finalePark.pose, speed: 10 } });
+assert.equal(finale.state.active.stage, 0, 'final home arrival requires stopping');
+tick(finale, finalePark);
+assert.equal(finale.state.active.stage, 1);
+tick(finale, { ...homeContext, homeAction: { ...homeAction, serial: 42 } });
+assert.equal(finale.state.active.stage, 1, 'the intro home receipt cannot pack the final recovered ledger');
+tick(finale, { ...homeContext, homeAction: { ...homeAction, serial: 43 } });
+assert.equal(finale.state.active.stage, 2);
+assert.deepEqual(finale.state.completed, legacyIds.slice(0, 5));
+for (const invalid of [{ ...finalePark, onFoot: false }, { ...finalePark, onFoot: true, wanted: 1 }, { ...finalePark, onFoot: true, interior: { roomId: homeDescriptor.roomId } }]) {
+  tick(finale, invalid, 40);
+  assert.equal(finale.state.active.stage, 2, 'final split requires being outside, on foot and clear');
+}
+tick(finale, { ...finalePark, onFoot: true }, 40);
+assert.deepEqual(finale.state.completed, legacyIds);
+assert.equal(finale.drainEvents().filter(event => event.type === 'complete').length, 1);
+assert.deepEqual(createCampaign(homeMap, finale.serialize()).state.completed, legacyIds, 'final home completion remains save-compatible');
+for (const invalid of [{ ...homeDescriptor, x: NaN }, { ...homeDescriptor, roomId: '' }]) {
+  assert.throws(() => createCampaign({ ...map, storyHomes: { basement: invalid } }), /finite entry and room identity/);
+}
 // Read only the bounded northern snapshot: no simulation, renderer or full-map
 // collider build is needed to prove the bridge objective uses its source road.
 const north = JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra-north.json', import.meta.url), 'utf8'));
@@ -437,4 +513,4 @@ const onSourceRoad = sourceRoad.points.slice(1).some((b, index) => {
 });
 assert.ok(onSourceRoad, 'source bridge mission target lies on an actual public-road segment');
 assert.ok(Math.hypot(bridgeGoal.x + 1230, bridgeGoal.z + 2840) > bridgeGoal.radius, 'regression catches the old off-road fallback');
-console.log('PASS campaign: interleaved independent introductions and partial-save reload; active-mission switching lock; noodle-fight-only lunch credit; three-character convergence; character-owned crew heists; fresh school alarm and robbery objectives; compact backstories and job combat policy; retained six chapters; strict v1/v2 migration; replay and recovery gates');
+console.log('PASS campaign: interleaved independent introductions and partial-save reload; active-mission switching lock; noodle-fight-only lunch credit; three-character convergence; character-owned crew heists; fresh school alarm, robbery and proper-home objectives; compact backstories and job combat policy; retained six chapters; strict v1/v2 migration; replay and recovery gates');
