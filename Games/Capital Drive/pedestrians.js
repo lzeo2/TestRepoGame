@@ -129,9 +129,12 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
     if (distance < 3 || distance > path.length - 3) return false;
     const p = pointAlong(path, distance);
     if (doors.some(door => Math.hypot(p.x - door.x, p.z - door.z) < 3)) return false;
-    // Validate the entire small chair/work area, including the outward pavement edge.
-    for (const dx of [-0.55, 0, 0.55]) for (const dz of [-0.55, 0, 0.55]) {
-      if (!safe(p.x + dx, p.z + dz)) return false;
+    // The chair/body occupy a 0.4m-radius footprint. Sample a slightly larger
+    // circle: an axis-aligned square rejects diagonal pavements unnecessarily.
+    if (!safe(p.x, p.z)) return false;
+    for (let i = 0; i < 16; i++) {
+      const angle = i * Math.PI / 8;
+      if (!safe(p.x + Math.cos(angle) * 0.45, p.z + Math.sin(angle) * 0.45)) return false;
     }
     return true;
   }
@@ -225,7 +228,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
     person.site = safeSite(path, distance) && person.ambient !== 'walk' ? { ...pointAlong(path, distance), distance, yaw: person.yaw + (person.direction < 0 ? Math.PI : 0) } : null;
     person.routine = person.site ? person.ambient : 'walk';
     person.stopped = Boolean(person.site);
-    person.routineClock = 7 + person.id % 6;
+    person.routineClock = 7 + (person.id * 7) % 11;
     person.returning = false;
   }
   for (let i = 0; i < (paths.length ? MAX_POPULATION : 0); i++) {
@@ -259,10 +262,16 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
       }
     }
     function separated(slot) { return occupied.every(p => Math.hypot(p.x - slot.x, p.z - slot.z) > 6); }
+    const routineSlots = slots.filter(slot => safeSite(slot.path, slot.distance));
     for (let i = 0; i < pool.length; i++) {
       let slot;
-      if (i < 4 && ahead.length) {
-        const desired = 16 + i * 10;
+      if (pool[i].ambient !== 'walk' && routineSlots.length) {
+        const preferred = routineSlots.filter(candidate => separated(candidate));
+        if (i < 2) preferred.sort((a, b) => Math.hypot(a.x - player.x, a.z - player.z) - Math.hypot(b.x - player.x, b.z - player.z));
+        if (preferred.length) slot = preferred[Math.floor(random() * (i < 2 ? Math.min(5, preferred.length) : preferred.length))];
+      }
+      if (!slot && i < 8 && ahead.length) {
+        const desired = 16 + (i % 4) * 10;
         ahead.sort((a, b) => Math.abs(a.forward - desired) + a.lateral * 0.25 - Math.abs(b.forward - desired) - b.lateral * 0.25);
         slot = ahead.find(separated);
       }
