@@ -1,7 +1,9 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 
-const POPULATION = 80;
-const MAX_POPULATION = 160;
+const POPULATION = 36;
+const MAX_POPULATION = 64;
+const SEATED_CAP = 6;
+const WORKER_CAP = 6;
 const PERSON_RADIUS = 0.32;
 const PEOPLE_CELL = 8;
 const VIEW_DISTANCE = 180;
@@ -60,9 +62,13 @@ function sidewalkPaths(map) {
     maxX: Math.max(...building.points.map(p => p[0])) + 0.3,
     minZ: Math.min(...building.points.map(p => p[1])) - 0.3,
     maxZ: Math.max(...building.points.map(p => p[1])) + 0.3 })));
+  const waterAt = indexBoxes((map.areas || []).filter(area => area.type === 'water').map(area => ({ points: area.points,
+    minX: Math.min(...area.points.map(p => p[0])) - 1, maxX: Math.max(...area.points.map(p => p[0])) + 1,
+    minZ: Math.min(...area.points.map(p => p[1])) - 1, maxZ: Math.max(...area.points.map(p => p[1])) + 1 })));
   const { minX, maxX, minZ, maxZ } = map.bounds;
   function safe(x, z) {
     return x > minX + 1 && x < maxX - 1 && z > minZ + 1 && z < maxZ - 1 &&
+      !waterAt(x, z).some(area => inFootprint(x, z, area.points)) &&
       !roadsAt(x, z).some(s => segmentDistance(x, z, s.a, s.b) < s.clearance) &&
       !buildingsAt(x, z).some(b => x >= b.minX && x <= b.maxX && z >= b.minZ && z <= b.maxZ && inFootprint(x, z, b.points));
   }
@@ -99,7 +105,7 @@ function sidewalkPaths(map) {
       finish();
     }
   }
-  return paths;
+  return { paths, safe };
 }
 
 function pointAlong(path, distance) {
@@ -116,8 +122,19 @@ function pointAlong(path, distance) {
     nx: nx / n, nz: nz / n, yaw: Math.atan2(-(b.x - a.x), -(b.z - a.z)) };
 }
 
-export function createPedestrians(scene, map, heightAt) {
-  const paths = sidewalkPaths(map);
+export function createPedestrians(scene, map, heightAt, { entrances = [] } = {}) {
+  const { paths, safe } = sidewalkPaths(map);
+  const doors = [...(map.entrances || []), ...(map.doors || []), ...entrances].filter(p => p && Number.isFinite(p.x) && Number.isFinite(p.z));
+  function safeSite(path, distance) {
+    if (distance < 3 || distance > path.length - 3) return false;
+    const p = pointAlong(path, distance);
+    if (doors.some(door => Math.hypot(p.x - door.x, p.z - door.z) < 3)) return false;
+    // Validate the entire small chair/work area, including the outward pavement edge.
+    for (const dx of [-0.55, 0, 0.55]) for (const dz of [-0.55, 0, 0.55]) {
+      if (!safe(p.x + dx, p.z + dz)) return false;
+    }
+    return true;
+  }
   const pathCells = new Map();
   for (const path of paths) {
     const center = pointAlong(path, path.length / 2);
@@ -144,10 +161,12 @@ export function createPedestrians(scene, map, heightAt) {
   const capsule = new THREE.CapsuleGeometry(1, 1, 2, 5);
   const sphere = new THREE.SphereGeometry(1, 6, 4);
   const box = new THREE.BoxGeometry(1, 1, 1);
+  const cup = new THREE.CylinderGeometry(1, 0.8, 1, 7);
   const batches = {};
   for (const [name, geometry, capacity] of [['torso', capsule, MAX_POPULATION], ['head', sphere, MAX_POPULATION],
     ['hair', sphere, MAX_POPULATION], ['arms', capsule, MAX_POPULATION * 2], ['legs', capsule, MAX_POPULATION * 2],
-    ['shoes', box, MAX_POPULATION * 2], ['hands', sphere, DETAIL_COUNT * 2], ['bags', box, DETAIL_COUNT]]) {
+    ['shoes', box, MAX_POPULATION * 2], ['hands', sphere, DETAIL_COUNT * 2], ['bags', box, DETAIL_COUNT], ['chairs', box, SEATED_CAP * 6],
+    ['cups', cup, SEATED_CAP * 2], ['tools', box, MAX_POPULATION]]) {
     const mesh = new THREE.InstancedMesh(geometry, material, capacity);
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     mesh.frustumCulled = false;
@@ -156,7 +175,8 @@ export function createPedestrians(scene, map, heightAt) {
     group.add(mesh); batches[name] = mesh;
   }
   const stats = { count: paths.length ? POPULATION : 0, visible: 0, detailed: 0, paths: paths.length,
-    drawCalls: 0, triangles: 0, recycled: 0, capacity: MAX_POPULATION, collisionCandidates: 0, collisionQueries: 0, localPathCandidates: 0 };
+    drawCalls: 0, triangles: 0, recycled: 0, capacity: MAX_POPULATION, collisionCandidates: 0, collisionQueries: 0, localPathCandidates: 0, seated: 0, working: 0, routineSites: 0,
+    seatedCapacity: SEATED_CAP, workerCapacity: WORKER_CAP };
   const spawn = map.spawn || { x: 0, z: 0, yaw: 0 };
   const anchors = (map.landmarks || []).filter(p => ['manuka', 'kingston', 'telopea'].includes(p.id));
   const civic = (map.landmarks || []).find(p => p.id === 'canberra-centre');
@@ -202,10 +222,17 @@ export function createPedestrians(scene, map, heightAt) {
     person.hitCooldown = 0; person.witnessCooldown = 0; person.retaliationCooldown = 0;
     Object.assign(person, pointAlong(path, distance));
     person.y = heightAt(person.x, person.z) + PAVEMENT_LIFT;
+    person.site = safeSite(path, distance) && person.ambient !== 'walk' ? { ...pointAlong(path, distance), distance, yaw: person.yaw + (person.direction < 0 ? Math.PI : 0) } : null;
+    person.routine = person.site ? person.ambient : 'walk';
+    person.stopped = Boolean(person.site);
+    person.routineClock = 7 + person.id % 6;
+    person.returning = false;
   }
   for (let i = 0; i < (paths.length ? MAX_POPULATION : 0); i++) {
     residents.push({ id: i, direction: random() < 0.5 ? -1 : 1, speed: 0.85 + random() * 0.6,
-      phase: random() * Math.PI * 2, height: 0.94 + random() * 0.15,
+      phase: random() * Math.PI * 2, height: 0.92 + random() * 0.2,
+      personality: i % 5 === 0 ? 'assertive' : i % 3 === 0 ? 'wary' : 'reserved',
+      ambient: i % 12 === 0 ? 'coffee' : i % 12 === 1 ? 'work' : i % 12 === 2 ? 'phone' : i % 12 === 3 ? 'wait' : 'walk',
       shirt: SHIRTS[Math.floor(random() * SHIRTS.length)], trousers: TROUSERS[Math.floor(random() * TROUSERS.length)],
       skin: SKIN[Math.floor(random() * SKIN.length)], hair: HAIR[Math.floor(random() * HAIR.length)], bag: random() < 0.45 });
   }
@@ -224,18 +251,18 @@ export function createPedestrians(scene, map, heightAt) {
       for (let j = 0; j < path.points.length; j += 2) {
         const p = path.points[j], dx = p.x - player.x, dz = p.z - player.z;
         const gap = Math.hypot(dx, dz);
-        if (gap < 7 || gap > 175) continue;
+        if (gap < 9 || gap > 175) continue;
         const forward = dx * fx + dz * fz, lateral = Math.abs(dx * fz - dz * fx);
         const slot = { path, distance: path.lengths[j], x: p.x, z: p.z, forward, lateral };
         slots.push(slot);
         if (forward >= 10 && forward <= 58 && lateral < forward * 0.5 + 3) ahead.push(slot);
       }
     }
-    function separated(slot) { return occupied.every(p => Math.hypot(p.x - slot.x, p.z - slot.z) > 3.5); }
+    function separated(slot) { return occupied.every(p => Math.hypot(p.x - slot.x, p.z - slot.z) > 6); }
     for (let i = 0; i < pool.length; i++) {
       let slot;
-      if (i < 8 && ahead.length) {
-        const desired = 14 + i * 5;
+      if (i < 4 && ahead.length) {
+        const desired = 16 + i * 10;
         ahead.sort((a, b) => Math.abs(a.forward - desired) + a.lateral * 0.25 - Math.abs(b.forward - desired) - b.lateral * 0.25);
         slot = ahead.find(separated);
       }
@@ -247,7 +274,14 @@ export function createPedestrians(scene, map, heightAt) {
       }
       const target = i < Math.ceil(pool.length * 0.85) || !anchors.length ? player : anchors[i % anchors.length];
       const path = slot?.path || choosePath(target, 0, 250) || choosePath(target, 0, 1000) || paths[i % paths.length];
-      const distance = slot?.distance ?? random() * path.length;
+      let distance = slot?.distance ?? random() * path.length;
+      if (!slot) {
+        for (let attempt = 0; attempt < 80; attempt++) {
+          const candidate = pointAlong(path, distance);
+          if (occupied.every(p => Math.hypot(candidate.x - p.x, candidate.z - p.z) > 2)) break;
+          distance = random() * path.length;
+        }
+      }
       place(pool[i], path, distance);
       pool[i].phase = random() * Math.PI * 2;
       occupied.push(pool[i]);
@@ -274,25 +308,48 @@ export function createPedestrians(scene, map, heightAt) {
     for (const mesh of Object.values(batches)) mesh.count = 0;
     const visible = pool.filter(p => Math.hypot(p.x - player.x, p.z - player.z) < VIEW_DISTANCE)
       .sort((a, b) => Math.hypot(a.x - player.x, a.z - player.z) - Math.hypot(b.x - player.x, b.z - player.z));
+    stats.seated = 0; stats.working = 0;
+    stats.routineSites = pool.filter(p => p.site).length;
+    for (const p of pool) {
+      if (p.ambient !== 'coffee' || !p.site || Math.hypot(p.site.x - player.x, p.site.z - player.z) >= VIEW_DISTANCE) continue;
+      const sitePerson = { ...p, ...p.site, y: heightAt(p.site.x, p.site.z) + PAVEMENT_LIFT, height: 1, knockdown: 0, stun: 0 };
+      rootRotation.setFromAxisAngle(axis, sitePerson.yaw);
+      part('chairs', sitePerson, 0, 0.47, 0, 0.56, 0.09, 0.52, 0x75624b);
+      part('chairs', sitePerson, 0, 0.78, 0.24, 0.56, 0.55, 0.07, 0x75624b);
+      for (const side of [-1, 1]) for (const end of [-1, 1]) {
+        part('chairs', sitePerson, side * 0.22, 0.23, end * 0.2, 0.055, 0.46, 0.055, 0x494a46);
+      }
+    }
     for (let i = 0; i < visible.length; i++) {
       const p = visible[i], detailed = i < DETAIL_COUNT;
+      const sitting = p.routine === 'coffee' && p.reaction === 'calm';
+      const working = p.routine === 'work' && p.reaction === 'calm';
+      const phone = p.routine === 'phone' && p.reaction === 'calm';
+      const lower = sitting ? 1.12 - 0.83 / p.height : 0;
+      stats.seated += Number(sitting); stats.working += Number(working);
       const swing = p.stopped ? 0 : Math.sin(p.phase) * (p.reaction === 'flee' ? 0.85 : 0.5);
-      const yaw = p.yaw + (p.direction < 0 ? Math.PI : 0);
+      const yaw = sitting ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0);
       rootRotation.setFromAxisAngle(axis, yaw);
-      part('torso', p, 0, 1.12, 0, 0.23, 0.21, 0.15, p.shirt);
-      part('head', p, 0, 1.62, 0, 0.135, 0.17, 0.13, p.skin);
-      part('hair', p, 0, 1.72, 0.015, 0.139, 0.09, 0.13, p.hair);
+      part('torso', p, 0, 1.12 - lower, 0, 0.23, 0.21, 0.15, p.shirt);
+      part('head', p, 0, 1.62 - lower, 0, 0.135, 0.17, 0.13, p.skin);
+      part('hair', p, 0, 1.72 - lower, 0.015, 0.139, 0.09, 0.13, p.hair);
       for (const side of [-1, 1]) {
-        part('arms', p, side * 0.29, 1.06, -Math.sin(swing * side) * 0.12, 0.075, 0.19, 0.075, p.shirt, p.reaction === 'angry' ? -1.1 : p.reaction === 'panic' ? -2.1 : -swing * side);
-        const footLocalZ = Math.sin(swing * side) * 0.22 - 0.045;
+        const armAction = sitting || phone ? -1.1 : working ? -0.8 + Math.sin(p.phase) * 0.25 : null;
+        part('arms', p, side * 0.29, 1.06 - lower, armAction !== null ? -0.13 : -Math.sin(swing * side) * 0.12, 0.075, 0.19, 0.075, p.shirt, p.reaction === 'angry' ? -1.1 : p.reaction === 'panic' ? -2.1 : armAction ?? -swing * side);
+        const footLocalZ = sitting ? -0.39 : Math.sin(swing * side) * 0.22 - 0.045;
         const footX = p.x + (Math.cos(yaw) * side * 0.105 + Math.sin(yaw) * footLocalZ) * p.height;
         const footZ = p.z + (-Math.sin(yaw) * side * 0.105 + Math.cos(yaw) * footLocalZ) * p.height;
         const ground = (heightAt(footX, footZ) + PAVEMENT_LIFT - p.y) / p.height;
-        part('legs', p, side * 0.105, 0.43 + ground, Math.sin(swing * side) * 0.13, 0.085, 0.235, 0.085, p.trousers, swing * side);
-        part('shoes', p, side * 0.105, 0.055 + ground, footLocalZ, 0.17, 0.11, 0.28, 0x303030);
-        if (detailed) part('hands', p, side * 0.3, 0.76, -Math.sin(swing * side) * 0.22, 0.062, 0.075, 0.065, p.skin);
+        part('legs', p, side * 0.105, sitting ? 0.48 : 0.43 + ground, sitting ? -0.17 : Math.sin(swing * side) * 0.13, 0.085, 0.235, 0.085, p.trousers, sitting ? -1.4 : swing * side);
+        part('shoes', p, side * 0.105, 0.055 + ground, sitting ? -0.39 : footLocalZ, 0.17, 0.11, 0.28, 0x303030);
+        if (detailed) part('hands', p, side * 0.3, 0.76 - lower, armAction !== null ? -0.32 : -Math.sin(swing * side) * 0.22, 0.062, 0.075, 0.065, p.skin);
       }
-      if (detailed && p.bag) part('bags', p, 0, 1.13, 0.19, 0.31, 0.39, 0.15, 0x544b3e);
+      if (sitting) {
+        part('cups', p, 0.28, 0.9 - lower, -0.32, 0.065, 0.085, 0.065, 0xf1e7d1);
+        part('cups', p, 0.28, 0.98 - lower, -0.32, 0.05, 0.008, 0.05, 0x65412d);
+      }
+      if (phone || working) part('tools', p, 0.28, working ? 0.96 : 1.23, -0.28, working ? 0.2 : 0.075, working ? 0.28 : 0.14, 0.025, working ? 0xc9b796 : 0x242a32);
+      if (detailed && (p.bag || p.ambient === 'work')) part('bags', p, 0, 1.13 - lower, 0.19, 0.31, 0.39, 0.15, 0x544b3e);
     }
     stats.visible = visible.length; stats.detailed = Math.min(DETAIL_COUNT, visible.length);
     stats.drawCalls = 0; stats.triangles = 0;
@@ -347,10 +404,12 @@ export function createPedestrians(scene, map, heightAt) {
   function react(p, source, kind, hit = false, report = true) {
     const gun = ['pistol', 'gunshot', 'firearm', 'shot', 'fire'].includes(kind);
     p.fear = Math.max(p.fear, gun ? 1 : 0.65);
-    p.anger = gun ? 0 : hit ? (p.id % 5 === 0 ? 1 : 0) : p.anger;
+    p.anger = gun ? 0 : hit ? (p.personality === 'assertive' && Math.hypot(p.x - source.x, p.z - source.z) <= 2.6 ? 1 : 0) : p.anger;
     if (gun || hit) p.angerOffender = p.anger ? source.offenderId : null;
     p.reaction = p.knockdown > 0 ? 'knockdown' : p.stun > 0 ? 'stunned' : p.anger ? 'angry' : 'panic';
     p.reactionTimer = gun ? 8 : 5;
+    p.routine = 'interrupted';
+    p.returning = Boolean(p.site);
     const before = pointAlong(p.path, Math.max(0, p.distance - 0.5));
     const after = pointAlong(p.path, Math.min(p.path.length, p.distance + 0.5));
     const dot = (after.x - before.x) * (p.x - source.x) + (after.z - before.z) * (p.z - source.z);
@@ -429,20 +488,47 @@ export function createPedestrians(scene, map, heightAt) {
         // Alarm is visible feedback; it does not itself establish an offence.
         react(p, { x: source.x, z: source.z, offenderId: frightening ? 'player' : String(source.id || 'npc:traffic') }, 'traffic alarm', false, false);
       }
-      if (p.reaction === 'angry' && p.angerOffender === 'player' && gap < 2.1 && p.retaliationCooldown <= 0) {
+      if (p.reaction === 'angry' && p.angerOffender === 'player' && gap < 2.1 && p.retaliationCooldown <= 0 &&
+        (!hasLineOfSight || hasLineOfSight(p, player))) {
         emit({ type: 'retaliation', kind: 'melee', x: p.x, z: p.z, personId: p.id, targetId: 'player', damage: 5 });
         p.retaliationCooldown = 2.2;
       }
+      if (p.reaction === 'calm') {
+        if (p.routine === 'interrupted') { p.routine = 'walk'; p.returning = Boolean(p.site); }
+        if (p.site) {
+          if (p.returning) {
+            const toSite = p.site.distance - p.distance;
+            if (Math.abs(toSite) < 0.16 && p.yieldTimer <= 0) {
+              p.distance = p.site.distance; p.escape = 0; p.routine = p.ambient;
+              p.returning = false; p.routineClock = 8 + p.id % 8;
+            } else p.direction = toSite >= 0 ? 1 : -1;
+          } else {
+            p.routineClock = Math.max(0, p.routineClock - dt);
+            if (p.routineClock <= 0) {
+              if (p.routine === 'walk') p.returning = true;
+              else { p.routine = 'walk'; p.routineClock = 5 + p.id % 4; }
+            }
+          }
+        }
+        if (p.yieldTimer > 0) { p.routine = 'walk'; p.returning = false; p.routineClock = 3; }
+      }
+      const ambientStop = p.reaction === 'calm' && ['coffee', 'work', 'phone', 'wait'].includes(p.routine);
       const caution = Math.min(11, 5 + Math.abs(player.speed || 0) * 0.12);
-      p.stopped = p.knockdown > 0 || p.stun > 0 || p.reaction === 'angry' || (p.reaction === 'calm' && p.yieldTimer <= 0 && gap < caution) || traffic.some(car => Math.hypot(car.x - p.x, car.z - p.z) < 4.5);
-      const escape = gap < 7 ? 0.45 : 0;
+      p.stopped = ambientStop || p.knockdown > 0 || p.stun > 0 || p.reaction === 'angry' || (p.reaction === 'calm' && p.yieldTimer <= 0 && gap < caution) || traffic.some(car => Math.hypot(car.x - p.x, car.z - p.z) < 4.5);
+      const escape = ambientStop ? 0 : gap < 7 ? 0.45 : 0;
       p.escape += Math.max(-dt * 0.6, Math.min(dt * 0.9, escape - p.escape));
       if (!p.stopped) {
+        const previousDistance = p.distance;
         p.distance += p.direction * p.speed * (p.reaction === 'flee' ? 2.7 : p.yieldTimer > 0 ? 2.2 : 1) * dt;
         if (p.distance > p.path.length) { p.distance = p.path.length; p.direction = -1; }
         if (p.distance < 0) { p.distance = 0; p.direction = 1; }
+        const candidate = pointAlong(p.path, p.distance);
+        const blocked = peopleIn(candidate.x - 1, candidate.x + 1, candidate.z - 1, candidate.z + 1)
+          .some(other => other !== p && Math.hypot(candidate.x - other.x, candidate.z - other.z) < 0.82);
+        if (blocked) { p.distance = previousDistance; p.direction *= -1; }
         p.phase += dt * p.speed * (p.reaction === 'flee' ? 9 : 5.2);
       }
+      if (ambientStop) p.phase += dt * (p.routine === 'work' ? 2 : 0.6);
       Object.assign(p, pointAlong(p.path, p.distance));
       p.x += p.nx * p.escape; p.z += p.nz * p.escape;
       p.y = heightAt(p.x, p.z) + PAVEMENT_LIFT;
@@ -458,7 +544,8 @@ export function createPedestrians(scene, map, heightAt) {
           const path = choosePath(player, 210, 410);
           if (!path) break;
           const distance = random() * path.length, candidate = pointAlong(path, distance);
-          if (Math.hypot(candidate.x - player.x, candidate.z - player.z) <= 200) continue;
+          if (Math.hypot(candidate.x - player.x, candidate.z - player.z) <= 200 ||
+            pool.some(other => Math.hypot(other.x - candidate.x, other.z - candidate.z) < 2)) continue;
           place(person, path, distance); pool.push(person);
         }
       } else if (pool.length > desired) {
@@ -473,7 +560,9 @@ export function createPedestrians(scene, map, heightAt) {
         if (!path) continue;
         const distance = random() * path.length, candidate = pointAlong(path, distance);
         const gap = Math.hypot(candidate.x - player.x, candidate.z - player.z);
-        if (gap > 200 && gap < 460) { place(p, path, distance); stats.recycled++; }
+        if (gap > 200 && gap < 460 && pool.every(other => other === p || Math.hypot(other.x - candidate.x, other.z - candidate.z) >= 2)) {
+          place(p, path, distance); stats.recycled++;
+        }
       }
     }
     rebuildPeopleGrid(); render(player);
@@ -482,13 +571,16 @@ export function createPedestrians(scene, map, heightAt) {
   return { update, resetPopulation, clipMovement, stats, alert, strike,
     drainEvents() { return events.splice(0); },
     snapshot() { return Object.freeze(pool.map(p => Object.freeze({ id: p.id, x: p.x, y: p.y, z: p.z,
-      yaw: p.yaw + (p.direction < 0 ? Math.PI : 0), roadId: p.path.roadId, roadName: p.path.name,
+      yaw: p.routine === 'coffee' && p.reaction === 'calm' ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0), roadId: p.path.roadId, roadName: p.path.name,
       sidewalkOffset: p.path.offset, yieldTimer: p.yieldTimer, escape: p.escape, stopped: p.stopped, phase: p.phase,
+      routine: p.routine, ambient: p.ambient, routineClock: p.routineClock, returning: p.returning, personality: p.personality,
+      seat: p.ambient === 'coffee' && p.site ? Object.freeze({ x: p.site.x, z: p.site.z, yaw: p.site.yaw }) : null,
+      routineSite: p.site ? Object.freeze({ x: p.site.x, z: p.site.z, roadId: p.path.roadId }) : null,
       health: p.health, reaction: p.reaction, fear: p.fear, anger: p.anger,
       stun: p.stun, knockdown: p.knockdown, reactionTimer: p.reactionTimer }))); },
     dispose() {
       if (disposed) return;
-      disposed = true; events.length = 0; peopleCells.clear(); pathCells.clear(); scene.remove(group); capsule.dispose(); sphere.dispose(); box.dispose(); material.dispose();
+      disposed = true; events.length = 0; peopleCells.clear(); pathCells.clear(); scene.remove(group); capsule.dispose(); sphere.dispose(); box.dispose(); cup.dispose(); material.dispose();
       for (const mesh of Object.values(batches)) mesh.dispose();
     } };
 }

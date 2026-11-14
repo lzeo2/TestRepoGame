@@ -15,10 +15,10 @@ const fixture = { bounds, roads: [road], spawn: { x: 0, z: 0, yaw: 0 }, building
 const heightAt = (x, z) => x * 0.001 + z * 0.002;
 const scene = new THREE.Scene();
 const pedestrians = createPedestrians(scene, fixture, heightAt);
-assert.equal(pedestrians.stats.count, 80);
+assert.equal(pedestrians.stats.count, 36);
 assert(pedestrians.stats.visible >= 20, 'population appears near the initial player');
-assert.equal(scene.children[0].children.length, 8, 'body parts share eight instanced batches');
-assert(pedestrians.stats.drawCalls <= 8);
+assert.equal(scene.children[0].children.length, 11, 'body parts share eleven instanced body/prop batches');
+assert(pedestrians.stats.drawCalls <= 11);
 assert(pedestrians.stats.detailed <= 20);
 function checkFixture() {
   for (const p of pedestrians.snapshot()) {
@@ -51,9 +51,9 @@ const matrices = scene.children[0].children.map(mesh => [...mesh.instanceMatrix.
 for (let i = 0; i < 20; i++) pedestrians.update({ x: 400, z: 400, speed: 30 }, 0);
 assert.deepEqual(pedestrians.snapshot(), paused, 'zero dt freezes movement, reactions and animation');
 assert.deepEqual(scene.children[0].children.map(mesh => [...mesh.instanceMatrix.array]), matrices, 'pause freezes rendered poses too');
-const near = pedestrians.snapshot()[0];
+const near = pedestrians.snapshot().find(p => p.ambient === 'walk');
 pedestrians.update({ x: near.x, z: near.z, speed: 0 }, 0.1);
-const reacted = pedestrians.snapshot()[0];
+const reacted = pedestrians.snapshot().find(p => p.id === near.id);
 assert(reacted.stopped && reacted.escape > 0, 'nearby car stops walkers and they retreat into the pavement');
 pedestrians.dispose(); pedestrians.dispose();
 assert.equal(scene.children.length, 0, 'dispose removes all pedestrian batches');
@@ -61,7 +61,7 @@ console.log('PASS deterministic sidewalk offsets, building avoidance, terrain, w
 
 const map = JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra.json', import.meta.url), 'utf8'));
 const actual = createPedestrians(new THREE.Scene(), map, heightAt);
-assert.equal(actual.stats.count, 80);
+assert.equal(actual.stats.count, 36);
 assert(actual.stats.visible >= 20, 'actual map starts with nearby pedestrians');
 const initialStats = { ...actual.stats };
 assert(actual.stats.triangles < 60000, 'population stays within a modest low-poly budget');
@@ -104,12 +104,12 @@ function aheadCount(player) {
     return forward >= 10 && forward <= 60 && lateral < forward * 0.5 + 3;
   }).length;
 }
-assert(aheadCount(map.spawn) >= 6, 'several pedestrians begin on sidewalks within the chase camera view ahead');
+assert(aheadCount(map.spawn) >= 3, 'several pedestrians begin on sidewalks within the chase camera view ahead');
 const manuka = { ...map.landmarks.find(p => p.id === 'manuka'), yaw: 0 };
 actual.resetPopulation(manuka);
-assert.equal(actual.stats.count, 80, 'teleports reuse the same population');
-assert(actual.stats.visible >= 40, 'Manuka arrival immediately has nearby walkers');
-assert(aheadCount(manuka) >= 4, 'Manuka arrival places walkers ahead as well as around the destination');
+assert.equal(actual.stats.count, 36, 'teleports reuse the same population');
+assert(actual.stats.visible >= 20, 'Manuka arrival immediately has nearby walkers');
+assert(aheadCount(manuka) >= 2, 'Manuka arrival places walkers ahead as well as around the destination');
 checkActual();
 const arrived = actual.snapshot();
 actual.update({ x: 3000, z: 2000, yaw: 0 }, 0);
@@ -128,7 +128,7 @@ for (const p of actual.snapshot()) {
   const gap = Math.hypot(p.x - far.x, p.z - far.z);
   assert(gap > 180, 'recycled pedestrians enter outside the visible radius');
 }
-console.log(`PASS actual Canberra map: ${actual.stats.count} adults, ${actual.stats.paths} safe paths, ${actual.stats.recycled} recycled, ${initialStats.visible} initially visible, ${initialStats.triangles} initial triangles, <=8 draws`);
+console.log(`PASS actual Canberra map: ${actual.stats.count} adults, ${actual.stats.paths} safe paths, ${actual.stats.recycled} recycled, ${initialStats.visible} initially visible, ${initialStats.triangles} initial triangles, <=11 draws`);
 actual.alert({ x: far.x, z: far.z, radius: 100, kind: 'gunshot' });
 for (let i = 0; i < 120; i++) actual.update(far, 1 / 30);
 checkActual();
@@ -282,9 +282,9 @@ const civicAnchor = expanded.landmarks.find(p => p.id === 'canberra-centre');
 const civicScene = new THREE.Scene();
 const busy = createPedestrians(civicScene, expanded, heightAt);
 busy.resetPopulation({ ...civicAnchor, yaw: 0 });
-assert.equal(busy.stats.count, 160, 'Civic doubles the bounded adult pool');
-assert(busy.stats.visible >= 90, 'Civic has a substantially busier immediate pavement population');
-assert(busy.stats.drawCalls <= 8 && busy.stats.detailed <= 20 && busy.stats.triangles < 100000,
+assert.equal(busy.stats.count, 64, 'Civic increases the bounded adult pool');
+assert(busy.stats.visible >= 35, 'Civic has a substantially busier immediate pavement population');
+assert(busy.stats.drawCalls <= 11 && busy.stats.detailed <= 20 && busy.stats.triangles < 100000,
   'Civic retains the same instanced draw and detail caps');
 const expandedRoads = new Map(expanded.roads.map(r => [r.id, r]));
 assert(busy.snapshot().some(p => expandedRoads.get(p.roadId).type === 'living_street'), 'Bunda shared-street edges support walkers');
@@ -296,17 +296,17 @@ for (const p of busy.snapshot()) {
 }
 const civicPopulation = busy.snapshot();
 busy.resetPopulation(civicAnchor);
-assert.equal(new Set(busy.snapshot().map(p => p.id)).size, 160, 'Civic keeps stable unique IDs');
+assert.equal(new Set(busy.snapshot().map(p => p.id)).size, 64, 'Civic keeps stable unique IDs');
 busy.resetPopulation(map.spawn);
-assert.equal(busy.stats.count, 80, 'suburbs return to the quieter population without new batches');
-assert.equal(civicScene.children[0].children.length, 8);
+assert.equal(busy.stats.count, 36, 'suburbs return to the quieter population without new batches');
+assert.equal(civicScene.children[0].children.length, 11);
 for (let i = 0; i < 11; i++) busy.update(civicAnchor, 0.1);
-assert.equal(busy.stats.count, 160, 'normal travel activates the Civic population without a teleport');
-assert.equal(new Set(busy.snapshot().map(p => p.id)).size, 160, 'adaptive activation never duplicates an ID');
-assert(busy.snapshot().filter(p => p.id >= 80).every(p => Math.hypot(p.x - civicAnchor.x, p.z - civicAnchor.z) > 180),
+assert.equal(busy.stats.count, 64, 'normal travel activates the Civic population without a teleport');
+assert.equal(new Set(busy.snapshot().map(p => p.id)).size, 64, 'adaptive activation never duplicates an ID');
+assert(busy.snapshot().filter(p => p.id >= 36).every(p => Math.hypot(p.x - civicAnchor.x, p.z - civicAnchor.z) > 180),
   'extra adults enter beyond the visible radius during normal travel');
 busy.resetPopulation(civicAnchor);
 assert.deepEqual(busy.snapshot(), civicPopulation, 'Civic arrivals remain deterministic');
 assert.equal(JSON.stringify({ map, north }), sourceBytes, 'population does not rewrite the geographic sources');
 busy.dispose();
-console.log('PASS Civic160/suburban80 adaptation, source Bunda edges, stable IDs, offscreen activation and eight draw calls');
+console.log('PASS Civic64/suburban36 adaptation, source Bunda edges, stable IDs, offscreen activation and eleven draw calls');
