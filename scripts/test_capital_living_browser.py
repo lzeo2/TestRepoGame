@@ -100,6 +100,7 @@ def main():
 
     def close(p, dialog):
         p.locator(f'[data-close="{dialog}"]').click()
+        p.evaluate('()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))')
         focus_world(p)
 
     def search(p, query):
@@ -394,11 +395,12 @@ def main():
                 look(page, landmark['x'], landmark['z'])
                 capture(page, 'source-skatepark-ramps')
                 # The exact opening is long and narrow. The source-derived centre
-                # lies on the shared slab; walk along its unobstructed central strip.
-                target = {'x': -227.3+.903*6+.429*12, 'z': -4449.4-.429*6+.903*12}
+                # places our car on the slab; walk around it and along the west strip.
+                target = {'x': -227.3+.903*2+.429*10, 'z': -4449.4-.429*2+.903*10}
+                around_car_to_door(page, target)
                 walk(page, target, tolerance=.7, seconds=25)
                 before = snap(page)['focus']
-                target = {'x': -227.3+.903*6+.429*15, 'z': -4449.4-.429*6+.903*15}
+                target = {'x': -227.3+.903*2+.429*13, 'z': -4449.4-.429*2+.903*13}
                 walk(page, target, tolerance=.7, seconds=20)
                 check(math.hypot(snap(page)['focus']['x']-before['x'], snap(page)['focus']['z']-before['z']) > 1.4,
                       'Normal footsteps cross the physical source skatepark opening')
