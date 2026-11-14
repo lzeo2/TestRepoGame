@@ -47,7 +47,7 @@ export function createRideServiceView(scene, heightAt) {
     [jacket,[.28,1.31,0],[.15,.32,.18]], [jacket,[.27,1.19,-.15],[.14,.14,.32]],
     [skin,[.27,1.20,-.33],[.10,.10,.10]], [0x292c36,[.27,1.29,-.35],[.11,.18,.025]],
     [0xd8c796,[.27,1.30,-.366],[.08,.12,.008]],
-  ], 1);
+  ], 2);
   // Origin is the factory cockpit eye. Mirror the left driver's seat across
   // the centreline; knees stay below the dashboard and hands rest in the lap.
   const seated = batch('Seated ride passengers', [
@@ -70,7 +70,7 @@ export function createRideServiceView(scene, heightAt) {
   );
   const badge = new THREE.Mesh(geometry(badges), adultMaterial); badge.name = 'Original Yoober split-bar badges'; car.add(badge);
   const pose = new THREE.Object3D(), seat = new THREE.Object3D(), combined = new THREE.Matrix4();
-  const counters = { cars: 0, waiting: 0, passengers: 0, playerPassenger: false, farePassenger: false, drawCalls: 0 };
+  const counters = { cars: 0, waiting: 0, drivers: 0, passengers: 0, playerPassenger: false, farePassenger: false, drawCalls: 0 };
   let disposed = false, wheelAngle = 0;
   const ground = (x,z) => finite(heightAt(x,z));
   const near = (value, focus) => !!valid(value) && value.active !== false && Math.hypot(value.x-focus.x,value.z-focus.z) < CULL_DISTANCE;
@@ -91,7 +91,7 @@ export function createRideServiceView(scene, heightAt) {
   function update(snapshot, { focus = {x:0,z:0}, playerCar = null, job = null, dt = 0 } = {}) {
     if (disposed) return;
     const center = valid(focus) ? focus : {x:0,z:0}, vehicle = snapshot?.car;
-    counters.cars = counters.waiting = counters.passengers = counters.drawCalls = 0;
+    counters.cars = counters.waiting = counters.drivers = counters.passengers = counters.drawCalls = 0;
     counters.playerPassenger = counters.farePassenger = false;
     car.visible = near(vehicle,center);
     if (car.visible) {
@@ -109,17 +109,24 @@ export function createRideServiceView(scene, heightAt) {
         pose.rotation.set(0,finite(stop.yaw),0); pose.updateMatrix(); waiting.setMatrixAt(0,pose.matrix); counters.waiting = 1;
       }
     }
-    waiting.count = counters.waiting; seated.count = counters.passengers;
+    if (snapshot?.driver?.active && near(snapshot.driver, center)) {
+      const driver = snapshot.driver;
+      pose.position.set(driver.x, ground(driver.x, driver.z) + .035, driver.z);
+      pose.rotation.set(driver.reaction === 'knockdown' ? Math.PI / 2 : 0, finite(driver.yaw),
+        driver.reaction === 'angry' ? Math.sin(finite(driver.elapsed) * 9) * .045 : 0);
+      pose.updateMatrix(); waiting.setMatrixAt(counters.waiting, pose.matrix); counters.drivers = 1;
+    }
+    waiting.count = counters.waiting + counters.drivers; seated.count = counters.passengers;
     for (const mesh of [waiting,seated]) { mesh.visible = mesh.count > 0; mesh.instanceMatrix.needsUpdate = true; }
     counters.drawCalls = counters.cars * (car.userData.drawCalls+1) + Number(waiting.visible) + Number(seated.visible);
   }
   return { update,
-    get stats() { return Object.freeze({...counters,carLimit:1,passengerLimit:SEATED_LIMIT,waitingLimit:1,batches:3,maxDrawCalls:car.userData.drawCalls+3,geometryCount:geometries.size,materialCount:materials.size,disposed}); },
+    get stats() { return Object.freeze({...counters,carLimit:1,passengerLimit:SEATED_LIMIT,waitingLimit:1,driverLimit:1,driverBatches:0,batches:3,maxDrawCalls:car.userData.drawCalls+3,geometryCount:geometries.size,materialCount:materials.size,disposed}); },
     dispose() {
       if (disposed) return;
       disposed = true; root.removeFromParent(); waiting.dispose(); seated.dispose();
       for (const item of geometries) item.dispose(); for (const item of materials) item.dispose();
-      counters.cars = counters.waiting = counters.passengers = counters.drawCalls = 0;
+      counters.cars = counters.waiting = counters.drivers = counters.passengers = counters.drawCalls = 0;
       counters.playerPassenger = counters.farePassenger = false;
     },
   };

@@ -8,8 +8,7 @@ const {CAMPUS_BOUNDARY:boundary,CAMPUS_BARRIERS:barriers,CAMPUS_GATES:gates,CAMP
 const threeURL=dataURL(await read('../assets/car-arcade/vendor/three.module.js'));
 const THREE=await import(threeURL);
 const {createCampusView}=await import(dataURL((await read('../Games/Capital Drive/campus-view.js')).replace('../../assets/car-arcade/vendor/three.module.js',threeURL).replace('./campus.js',campusURL)));
-const roadURL=dataURL(await read('../Games/Capital Drive/road-network.js'));
-const {createSimulation,projectSegment}=await import(dataURL((await read('../Games/Capital Drive/simulation.js')).replace('./road-network.js',roadURL)));
+import {createSimulation,projectSegment} from '../Games/Capital Drive/simulation.js';
 const map=JSON.parse(await read('../Games/Capital Drive/data/canberra.json')),original=JSON.stringify(map);
 assert.ok(Object.isFrozen(boundary)&&boundary.every(Object.isFrozen));
 assert.equal(boundary.length,214);

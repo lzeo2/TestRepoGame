@@ -1,9 +1,18 @@
 import { roadProfile } from './road-network.js';
+import { createTrafficLights } from './traffic-lights.js';
+import { BY_ID } from '../../assets/car-arcade/fleet.js';
 // Coordinates are metres east/south; yaw matches THREE.Object3D.rotation.y.
 const TAU = Math.PI * 2;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const angleDelta = (a, b) => ((b - a + Math.PI * 3) % TAU) - Math.PI;
 const yawFor = (dx, dz) => Math.atan2(-dx, -dz);
+// Fleet bumpers and wheel edges extend slightly beyond the authored body sizes.
+function vehicleSize(vehicle = {}, overrides = {}) {
+  const model = BY_ID[vehicle?.modelId];
+  const length = Number.isFinite(vehicle?.length) && vehicle.length > 0 ? clamp(vehicle.length, 1, 16) : model ? model.length + 0.08 : 4.5;
+  const width = Number.isFinite(vehicle?.width) && vehicle.width > 0 ? clamp(vehicle.width, 0.5, 4) : model ? model.width + 0.024 : 1.8;
+  return { length: overrides.length ?? length, width: overrides.width ?? width };
+}
 
 export function projectSegment(x, z, a, b) {
   const dx = b[0] - a[0], dz = b[1] - a[1];
@@ -110,6 +119,7 @@ function insideRing(x,z,points){
 
 export function createSimulation(map, options = {}) {
   const graph = buildRoadGraph(map.roads || []);
+  const trafficLights = createTrafficLights(map, graph, options.trafficSignals || map.trafficSignals);
   const roadIndex = new SpatialGrid(80), buildingIndex = new SpatialGrid(48), waterIndex = new SpatialGrid(128), barrierIndex = new SpatialGrid(32);
   const replacedColliders=new Set(map.collisionReplacedBuildingIds||[]);
   for (const segment of graph.segments) roadIndex.insert(segment,
@@ -189,7 +199,8 @@ export function createSimulation(map, options = {}) {
     return true;
   }
   function vehicleOverlap(a, al, aw, b) {
-    const bl = clamp(b.length || 4.5, 1, 16), bw = clamp(b.width || 1.8, 0.5, 4);
+    const dimensions = vehicleSize(b);
+    const bl = clamp(dimensions.length, 1, 16), bw = clamp(dimensions.width, 0.5, 4);
     const axes = [a.yaw || 0, b.yaw || 0].flatMap(yaw =>
       [[-Math.sin(yaw), -Math.cos(yaw)], [Math.cos(yaw), -Math.sin(yaw)]]);
     const af = [-Math.sin(a.yaw || 0), -Math.cos(a.yaw || 0)], ar = [-af[1], af[0]];
@@ -198,7 +209,8 @@ export function createSimulation(map, options = {}) {
       Math.abs(af[0] * x + af[1] * z) * al / 2 + Math.abs(ar[0] * x + ar[1] * z) * aw / 2 +
       Math.abs(bf[0] * x + bf[1] * z) * bl / 2 + Math.abs(br[0] * x + br[1] * z) * bw / 2);
   }
-  function canOccupy(pose, { length = 4.5, width = 1.8, ignoreId = pose?.id } = {}) {
+  function staticVehicleClear(pose, options = {}) {
+    let { length, width } = vehicleSize(pose, options);
     if (!pose || ![pose.x, pose.z, pose.yaw, length, width].every(Number.isFinite) || length <= 0 || width <= 0) return false;
     length = clamp(length, 1, 16); width = clamp(width, 0.5, 4);
     const radius = width / 2, span = Math.max(0, length / 2 - radius), samples = Math.max(2, Math.ceil(span * 4));
@@ -210,10 +222,17 @@ export function createSimulation(map, options = {}) {
         if (physicalContact(index,polygon,x,z,radius)) return false;
       }
     }
+    return true;
+  }
+  function canOccupy(pose, { ignoreId = pose?.id, ...options } = {}) {
+    let { length, width } = vehicleSize(pose, options);
+    if (!staticVehicleClear(pose, { length, width })) return false;
+    length = clamp(length, 1, 16); width = clamp(width, 0.5, 4);
     return ![player, ...traffic, ...parkedIndex.query(pose.x,pose.z,Math.hypot(length,width)/2+4), ...abandonedCars, ...externalVehicles].some(car =>
       car !== pose && car.id !== ignoreId && car.active !== false && vehicleOverlap(pose, length, width, car));
   }
-  function moveVehicle(vehicle, dx, dz, { length = vehicle?.length || 4.5, width = vehicle?.width || 1.8 } = {}) {
+  function moveVehicle(vehicle, dx, dz, options = {}) {
+    const { length, width } = vehicleSize(vehicle, options);
     if (!vehicle || ![vehicle.x, vehicle.z, vehicle.yaw, dx, dz].every(Number.isFinite)) return { moved: false, blocked: true, distance: 0 };
     const startX = vehicle.x, startZ = vehicle.z, requested = Math.hypot(dx, dz), scale = requested > 8 ? 8 / requested : 1;
     dx *= scale; dz *= scale;
@@ -237,8 +256,15 @@ export function createSimulation(map, options = {}) {
       if (!Number.isFinite(car.x) || !Number.isFinite(car.z)) continue;
       const parked = { ...car, id: car.id ?? `parked:${count}`, x: car.x, z: car.z, yaw: Number.isFinite(car.yaw) ? car.yaw : 0,
         modelId: car.modelId || 'lantern', color: car.color ?? 0xd4d7d3, active: car.active !== false };
+      if (typeof car.suv === 'boolean') {
+        parked.length = car.length ?? (car.suv ? 4.5 : 4.7);
+        parked.width = car.width ?? (car.suv ? 1.98 : 1.85);
+      }
       parkedCars.push(parked);
-      parkedIndex.insert(parked, parked.x - 2, parked.z - 2, parked.x + 2, parked.z + 2);
+      const size = vehicleSize(parked), sin = Math.abs(Math.sin(parked.yaw)), cos = Math.abs(Math.cos(parked.yaw));
+      const extentX = sin * size.length / 2 + cos * size.width / 2;
+      const extentZ = cos * size.length / 2 + sin * size.width / 2;
+      parkedIndex.insert(parked, parked.x - extentX, parked.z - extentZ, parked.x + extentX, parked.z + extentZ);
       count++;
     }
     return count;
@@ -271,7 +297,7 @@ export function createSimulation(map, options = {}) {
     const target = spawn || fallback;
     Object.assign(player, { x: target.x, z: target.z, yaw: target.yaw || 0, speed: 0, vx: 0, vz: 0, steer: 0,
       odometer: 0, crashes: 0, lastImpactSpeed:0, offroad: false });
-    crashCooldown = 0; stopRequests.clear();
+    crashCooldown = 0; stopRequests.clear(); trafficLights.reset();
   }
   // Teleport keeps the current heading unless an explicit finite yaw is supplied.
   // It changes position/motion only; discovery and trip statistics belong to callers.
@@ -350,6 +376,21 @@ export function createSimulation(map, options = {}) {
     return { ok: true, x: target.x, z: target.z, yaw, adjusted: distance > 0.000001, reason, distance };
   }
   reset();
+  // Source road centrelines can overlap retained fences/buildings/water. Cache
+  // only immutable geometry: a waiting player or bus must remain a real queue.
+  const trafficEdgeClearance = new Map();
+  function trafficEdgeClear(edge, car) {
+    const dimensions = vehicleSize(car), key = `${edge.id}:${dimensions.length}:${dimensions.width}`;
+    if (!trafficEdgeClearance.has(key)) {
+      const samples = Math.max(1, Math.ceil(edge.length / 0.5));
+      let clear = true;
+      for (let sample = 0; sample <= samples; sample++) {
+        if (!staticVehicleClear(pointOnLane(edge, edge.length * sample / samples), dimensions)) { clear = false; break; }
+      }
+      trafficEdgeClearance.set(key, clear);
+    }
+    return trafficEdgeClearance.get(key);
+  }
   const candidates = graph.edges.filter(edge => edge.length > 8 && roadProfile(edge.road).trafficAllowed);
   function nearbyEdges(radius, focus = focusPoint || player) {
     const nearby = [];
@@ -368,6 +409,7 @@ export function createSimulation(map, options = {}) {
     for (let attempt = 0; attempt < 80; attempt++) {
       const pool = initialEdges.length && attempt < 60 ? initialEdges : candidates;
       const edge = pool[Math.floor(random() * pool.length)];
+      if (!trafficEdgeClear(edge, car)) continue;
       placeTraffic(car, edge, random() * edge.length);
       const spawnDistance = Math.hypot(car.x - player.x, car.z - player.z);
       if (spawnDistance > 45 && (attempt >= 60 || spawnDistance < 350) &&
@@ -387,6 +429,7 @@ export function createSimulation(map, options = {}) {
       if (Math.hypot(car.x - focus.x, car.z - focus.z) <= (car.active ? 850 : 330)) continue;
       for (let attempt = 0; attempt < 40; attempt++) {
         const edge = localEdges[Math.floor(random() * localEdges.length)];
+        if (!trafficEdgeClear(edge, car)) continue;
         const position = random() * edge.length, pose = pointOnLane(edge, position);
         const gap = Math.hypot(pose.x - focus.x, pose.z - focus.z);
         // The renderer culls traffic at 300m; replacements enter beyond that view.
@@ -396,7 +439,7 @@ export function createSimulation(map, options = {}) {
     }
   }
   function nextEdge(car) {
-    const choices = car.edge.to.outgoing.filter(edge => roadProfile(edge.road).trafficAllowed);
+    const choices = car.edge.to.outgoing.filter(edge => roadProfile(edge.road).trafficAllowed && trafficEdgeClear(edge, car));
     const onward = choices.filter(edge => edge.to !== car.edge.from);
     const pool = onward.length ? onward : choices;
     return pool.length ? pool[Math.floor(random() * pool.length)] : null;
@@ -409,12 +452,16 @@ export function createSimulation(map, options = {}) {
       car.overtakeCooldown = Math.max(0, car.overtakeCooldown - dt);
       const priorPose = { x: car.x, z: car.z, yaw: car.yaw }, priorEdge = car.edge, priorPosition = car.position;
       const edge = car.edge, remaining = edge.length - car.position;
+      const body = vehicleSize(car);
+      const signalDistance = trafficLights.stopDistance(car, body);
+      const signalLimited = Number.isFinite(signalDistance);
       // OSM maxspeed is km/h. Junction courtesy and spacing are intentionally simple.
       let target = clamp((edge.road.speed || 50) / 3.6, 5, 24) * car.cruiseFactor * (car.aggressive ? 1.16 : 1);
       const stopTime = stopRequests.get(car.id) || 0;
       if (stopTime > 0) { target = 0; car.overtake = 0; stopRequests.set(car.id, Math.max(0, stopTime - dt)); }
       const cruise = target;
-      let blocked = false;
+      if (signalLimited) { target = Math.min(target, Math.sqrt(12 * Math.max(0, signalDistance))); car.overtake = 0; }
+      let blocked = false, junctionDistance = Infinity;
       if (edge.to.outgoing.length > 2 && remaining < 20) target = Math.min(target, 7.5);
       for (const other of traffic) {
         if (car === other || !other.active) continue;
@@ -429,9 +476,13 @@ export function createSimulation(map, options = {}) {
       if (ahead > 0 && ahead < 22 && Math.abs(px * edge.dz - pz * edge.dx) < 2.8) target = Math.min(target, Math.max(0, (ahead - 7) * 0.75));
       for (const obstacle of [...parkedIndex.query(car.x,car.z,28), ...abandonedCars, ...traffic, ...externalVehicles]) {
         if (obstacle === car || obstacle.active === false) continue;
-        const dx = obstacle.x - car.x, dz = obstacle.z - car.z;
+        const dx = obstacle.x - car.x, dz = obstacle.z - car.z, obstacleSize = vehicleSize(obstacle);
         if (obstacle.edge && traffic[obstacle.slot] === obstacle) {
           const alignment = edge.dx * obstacle.edge.dx + edge.dz * obstacle.edge.dz;
+          // Clear opposing lanes are not lead vehicles, even on narrow roads.
+          // The physical sweep still blocks genuinely intersecting car bodies.
+          if (alignment < -0.95 && Math.abs(dx * edge.dz - dz * edge.dx) >=
+            (body.width + obstacleSize.width) / 2 + 0.15) continue;
           if (Math.abs(alignment) < 0.65) {
             // Crossing cars need approach priority, rather than a following gap.
             // Limit straight-line prediction to these nearby segments and their turn mouths.
@@ -443,17 +494,18 @@ export function createSimulation(map, options = {}) {
               ownDistance > 3 && (otherDistance < ownDistance - 2 || Math.abs(otherDistance - ownDistance) <= 2 && obstacle.slot < car.slot);
             if (ownDistance > 0 && ownDistance < 24 && otherDistance > -3 && otherDistance < 24 &&
               ownDistance < remaining + 4 && otherDistance < obstacle.edge.length - obstacle.position + 4 && otherFirst) {
-              target = Math.min(target, Math.max(0, (ownDistance - 6) * 0.8));
+              junctionDistance = Math.min(junctionDistance, Math.max(0, ownDistance - 6));
+              target = Math.min(target, junctionDistance * 0.8);
             }
             continue;
           }
         }
         const ahead = dx * edge.dx + dz * edge.dz;
-        if (ahead > 0 && ahead < 24 && Math.abs(dx * edge.dz - dz * edge.dx - (car.overtake > 0 ? -Math.min(3.2, edge.laneOffset * 1.5) : 0)) < 1.5 + (obstacle.width || 1.8) / 2) {
-          target = Math.min(target, Math.max(0, (ahead - 3 - (obstacle.length || 4.5) / 2) * 0.8));
+        if (ahead > 0 && ahead < 24 && Math.abs(dx * edge.dz - dz * edge.dx - (car.overtake > 0 ? -Math.min(3.2, edge.laneOffset * 1.5) : 0)) < 1.5 + obstacleSize.width / 2) {
+          target = Math.min(target, Math.max(0, (ahead - 3 - obstacleSize.length / 2) * 0.8));
         }
       }
-      if (target < cruise * 0.65) blocked = true;
+      if (target < cruise * 0.65 && !signalLimited) blocked = true;
       car.anger = clamp(car.anger + (blocked ? dt * 0.3 : -dt * 0.2), 0, 1);
       if (car.anger > 0.45 && car.honkCooldown === 0) { car.honks++; car.honkCooldown = 5 + car.slot % 4; }
       // Passing stays on wide one-way carriageways, with a clear return corridor.
@@ -469,10 +521,13 @@ export function createSimulation(map, options = {}) {
         car.overtake = Math.max(0, car.overtake - dt);
         if (!passClear) car.overtake = 0;
         else target = Math.min(cruise * 1.1, 28);
-      } else if (car.aggressive && blocked && car.anger > 0.4 && car.overtakeCooldown === 0 && stopTime <= 0 && passClear) {
+      } else if (car.aggressive && blocked && car.anger > 0.4 && car.overtakeCooldown === 0 && stopTime <= 0 && !signalLimited && passClear) {
         car.overtake = 2; car.overtakeCooldown = 9;
       }
       car.speed += clamp(target - car.speed, -9 * dt, 3.5 * dt);
+      // A hard displacement cap keeps fast cars behind the front-bumper stop line.
+      if (signalLimited) car.speed = Math.min(car.speed, Math.max(0, signalDistance) / dt);
+      if (Number.isFinite(junctionDistance)) car.speed = Math.min(car.speed, junctionDistance / dt);
       car.position += car.speed * dt;
       // Small segments can cross more than one node per tick.
       let transitions = 0;
@@ -490,7 +545,18 @@ export function createSimulation(map, options = {}) {
       const targetZ = pose.z - (car.overtake > 0 ? car.edge.dx * passOffset : 0);
       const movement = moveVehicle(car, targetX - car.x, targetZ - car.z);
       if (movement.blocked) { car.edge = priorEdge; car.position = priorPosition; car.x = priorPose.x; car.z = priorPose.z; car.speed = 0; }
-      else car.yaw += angleDelta(car.yaw, pose.yaw) * Math.min(1, dt * 9);
+      else {
+        const turn = angleDelta(car.yaw, pose.yaw) * Math.min(1, dt * 9);
+        const turnSteps = Math.max(1, Math.ceil(Math.abs(turn) / 0.05));
+        // Translation was swept with the prior heading. Check the rotating body
+        // too, so a turning corner cannot overlap and permanently lock its peer.
+        for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
+          const nextPose = { x: car.x, z: car.z, yaw: car.yaw + turn / turnSteps,
+            modelId: car.modelId, length: car.length, width: car.width };
+          if (!canOccupy(nextPose, { ignoreId: car.id })) break;
+          car.yaw = nextPose.yaw;
+        }
+      }
     }
   }
   function resolveImpact(nx, nz, depth) {
@@ -506,6 +572,7 @@ export function createSimulation(map, options = {}) {
     if (!Number.isFinite(dt) || dt <= 0) return;
     focusPoint = focus && Number.isFinite(focus.x) && Number.isFinite(focus.z) ? focus : player;
     dt = Math.min(dt, 0.05); elapsed += dt; crashCooldown -= dt;
+    trafficLights.step(dt);
     const throttle = clamp(Number(input.throttle) || 0, -1, 1);
     player.steer += (clamp(Number(input.steer) || 0, -1, 1) - player.steer) * Math.min(1, dt * 10);
     const road = nearestRoad(player.x, player.z);
@@ -522,7 +589,14 @@ export function createSimulation(map, options = {}) {
     if (!throttle) forward = Math.sign(forward) * Math.max(0, Math.abs(forward) - 0.6 * dt);
     forward = clamp(forward, -12, player.offroad ? 27 : input.boost ? 54 : 46);
     const turnRate = -player.steer * forward * 0.075 / (1 + Math.abs(forward) * 0.035);
-    player.yaw += turnRate * dt * (input.handbrake ? 1.42 : 1);
+    const turn = turnRate * dt * (input.handbrake ? 1.42 : 1);
+    const turnSteps = Math.max(1, Math.ceil(Math.abs(turn) / 0.05));
+    for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
+      const nextPose = { x: player.x, z: player.z, yaw: player.yaw + turn / turnSteps,
+        modelId: player.modelId, length: player.length, width: player.width };
+      if (!canOccupy(nextPose, { ignoreId: player.id })) break;
+      player.yaw = nextPose.yaw;
+    }
     player.yaw = Math.atan2(Math.sin(player.yaw), Math.cos(player.yaw));
     // Preserve world momentum as the body turns; handbrake reduces lateral tyre grip.
     const oldVx = fx * forward - fz * lateral, oldVz = fz * forward + fx * lateral;
@@ -603,12 +677,12 @@ export function createSimulation(map, options = {}) {
         if (physicalContact(index,polygon,x,z,radius)) return false;
       }
       return ![player, ...traffic, ...parkedIndex.query(x,z,radius+3), ...abandonedCars, ...externalVehicles].some(car => {
-        if (car === actor || car.id === actor.id || car.active === false) return false;
-        if (!externalVehicles.includes(car)) return Math.hypot(x - car.x, z - car.z) < radius + 1.8;
+        if (car === actor || (typeof actor.id === 'string' && car.id === actor.id) || car.active === false) return false;
+        const size = vehicleSize(car);
         const yaw = car.yaw || 0, dx = x - car.x, dz = z - car.z;
         const along = Math.abs(-Math.sin(yaw) * dx - Math.cos(yaw) * dz);
         const across = Math.abs(Math.cos(yaw) * dx - Math.sin(yaw) * dz);
-        return Math.hypot(Math.max(0, along - (car.length || 4.5) / 2), Math.max(0, across - (car.width || 1.8) / 2)) < radius;
+        return Math.hypot(Math.max(0, along - size.length / 2), Math.max(0, across - size.width / 2)) < radius;
       });
     }
     let blocked = scale < 1;
@@ -639,7 +713,7 @@ export function createSimulation(map, options = {}) {
     }
     return true;
   }
-  return { player, traffic, parkedCars, abandonedCars, graph, step, reset, teleport, nearestRoad, setParkedCars,
+  return { player, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, nearestRoad, setParkedCars,
     setExternalVehicles, canOccupy, moveVehicle, requestVehicleStop,
     setPlayerVehicle, nearbyVehicles, claimVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
 }

@@ -149,10 +149,10 @@ python3 -B scripts/check_capital_drive.py --dry-run
 python3 -B scripts/check_capital_drive.py
 ```
 
-The runner enumerates51 authored modules and51 pure suites in its `MODULES`
+The runner enumerates56 authored modules and64 pure suites in its `MODULES`
 and `SUITES` constants, including roads, buses, police, occupants and services.
 It checks every syntax entry, executes every suite (drive receives the actual map
-argument), then runs `git diff --check`:154 commands in the pure pass. Keep these
+argument), then runs `git diff --check`:185 commands in the pure pass. Keep these
 explicit lists current when adding a required module; a missing file fails.
 Missing modules/data/suites fail; nothing silently skips. Each pure command has a
 120 second limit; total run is bounded to 900 seconds. Actual exit codes are printed.
@@ -425,3 +425,40 @@ default synthetic geometry suite is cheap; --actual performs a paired merged-map
 comparison outside the browser. Log buffer bytes, triangles and visible draws
 separately from total RAM/frame time. Never infer N100 hardware performance from
 cloud software rendering. Normal constructor defaults remain backward compatible.
+
+## Signals, body contacts and live NPC handovers
+
+Read docs/capital-drive-signals-transport-crime-contract.md. Rebuild signals with
+scripts/build_capital_signals.py --south-cache <external-south> --north-cache
+<external-north> --output <external-output>; compare the exact sidecar bytes.
+Source nodes are real; controller phases, stop bars and pole offsets are estimates.
+Only Simulation advances/resets phases. The red/amber limit must cap actual motion,
+including bus/ride braking branches, not just a target speed. Committed cars clear.
+
+Keep model-sized swept contacts for walking and driving, angular checks, rotated
+parked bounds and local queries. Existing historical rotation fixtures explicitly
+retain their old dimensions. Static ambient-lane feasibility must exclude dynamic
+queues; avoid source collider conflicts without deleting buildings/fences/water.
+Preserve old failing fixtures and strict junction assertions. Legitimate queues
+behind the player or red signals must be distinguished from permanent overlap.
+
+The guidance helper compiles turns once per changed route, reports along-route
+metres and filters dense bends. Live Yoober map follow advances one world clock
+with player input cleared/braked; hidden tabs and ordinary menus remain paused.
+Pan/zoom/recenter exits follow. Test the actual car position and map centre together.
+Bus E uses the front-left door, a bounded stop request and stopped clear sweeps;
+active mini-game/rental cancellation takes priority over nearby boarding.
+
+Equipment and handover cash belong to Progression. Never let NPC rendering grant
+money or callers supply live target facts. Bind room/store/target/respawn serial,
+check threat and health throughout, and pay exactly once with strict saved cooldowns.
+Fists require an attributed recent actual punch. A behind-counter demand may use
+bounded staff/counter reach while ordinary purchases retain their strict radius.
+Clear lazy room people/state on leave. Maintain gear caps and no-consume failures.
+
+For normal-input evidence, use --browser --signals-browser --output or
+--browser --crime-browser --output. The focused scripts also select individual
+scenarios. Travel a career normally; Free-roam map travel may preview signals,
+buses/flares but cannot prove purchased equipment or earned crime money. Retain
+failed geometry/timing approaches and correct the real path instead of weakening
+collision. Check actual hands-up/emptying poses and source-bound target snapshots.

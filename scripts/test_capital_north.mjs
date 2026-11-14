@@ -7,7 +7,7 @@ const moduleUrl = source => `data:text/javascript;base64,${Buffer.from(source).t
 const { applyMapExpansion } = await import(moduleUrl(await readFile(new URL('map-expansion.js', baseUrl), 'utf8')));
 const networkUrl = moduleUrl(await readFile(new URL('road-network.js', baseUrl), 'utf8'));
 const { createRoutePlanner } = await import(networkUrl);
-const { buildRoadGraph } = await import(moduleUrl((await readFile(new URL('simulation.js', baseUrl), 'utf8')).replace("'./road-network.js'", JSON.stringify(networkUrl))));
+import {buildRoadGraph} from '../Games/Capital Drive/simulation.js';
 const raw = await readFile(new URL('data/canberra.json', baseUrl));
 const base = JSON.parse(raw), north = JSON.parse(await readFile(new URL('data/canberra-north.json', baseUrl), 'utf8'));
 const digest = createHash('sha256').update(raw).digest('hex');

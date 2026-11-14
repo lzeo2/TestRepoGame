@@ -5,8 +5,7 @@ const read = name => readFile(new URL(name, base), 'utf8');
 const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const networkURL = moduleURL(await read('road-network.js'));
 const { applyRoadProfiles, roadProfile } = await import(networkURL);
-const { createSimulation, pointOnLane, projectSegment } = await import(moduleURL((await read('simulation.js'))
-  .replace("'./road-network.js'", JSON.stringify(networkURL))));
+import {createSimulation,pointOnLane,projectSegment} from '../Games/Capital Drive/simulation.js';
 const { generateParkedCars } = await import(moduleURL((await read('parking-layout.js'))
   .replace("'./road-network.js'", JSON.stringify(networkURL))));
 const { applyMapExpansion } = await import(moduleURL(await read('map-expansion.js')));

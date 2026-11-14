@@ -16,7 +16,9 @@ function touches(p, box, radius) {
   return Math.hypot(Math.max(0,Math.abs(q.x)-box.width/2), Math.max(0,Math.abs(q.z)-box.depth/2)) < radius;
 }
 export function createInteriorPeople() {
-  let plan = null, people = [], elapsed = 0;
+  let plan = null, people = [], elapsed = 0, crime = null, reportCooldown = 0;
+  const events = [];
+  const employee = p => ['cashier', 'shopkeeper', 'cook'].includes(p.role);
   function protectedPoint(p) {
     const q = local(plan.origin,p);
     if (Math.abs(q.x) < (plan.type === 'mall' ? 1.1 : .96)) return true;
@@ -40,6 +42,8 @@ export function createInteriorPeople() {
     people.push({id:`${plan.id}-adult-${index}`, role, adult:true, x:position.x,z:position.z,y:plan.floorY,
       yaw, radius:BODY_RADIUS, seated:Boolean(seat), seatHeight:seat ? (seat.kind === 'stool' ? .69 : .45) : 0,
       palette:index%6, hair:index%4, apron:role==='cook'||role==='cashier'||role==='shopkeeper',
+      health:100, reaction:'calm', fear:0, stun:0, knockdown:0, reactionTimer:0, hitCooldown:0, playerHitTimer:0, crimePhase:null,
+      roomId:plan.id, storeId:plan.storeId || null,
       gesture, phase:index*1.73, speed:0, home:{x:position.x,z:position.z},target,progress:0,direction:1});
     return true;
   }
@@ -91,9 +95,20 @@ export function createInteriorPeople() {
     const step = finite(dt) ? clamp(dt,0,.1) : 0;
     if (!plan || !step) return;
     elapsed += step;
+    reportCooldown = Math.max(0, reportCooldown - step);
     for (const p of people) {
       p.phase += step; p.speed = 0;
-      if (!p.target) continue;
+      for (const key of ['hitCooldown', 'playerHitTimer', 'stun', 'knockdown', 'reactionTimer']) p[key] = Math.max(0, p[key] - step);
+      if (p.reactionTimer <= 0 && p.stun <= 0 && p.knockdown <= 0) {
+        p.reaction = 'calm'; p.fear = 0;
+        p.health = Math.min(100, p.health + step * 10);
+      } else p.reaction = p.knockdown > 0 ? 'knockdown' : p.stun > 0 ? 'stunned' : 'panic';
+      const coerced = p.health > 0 && p.crimePhase;
+      if (coerced) {
+        p.fear = Math.max(p.fear, .8);
+        if (p.stun <= 0 && p.knockdown <= 0) p.reaction = 'compliant';
+      }
+      if (coerced || p.reaction !== 'calm' || !p.target) continue;
       // Side pockets have short prevalidated paths. Pause for nearby actors rather than entering the aisle.
       if ((point(actor) && Math.hypot(actor.x-p.x,actor.z-p.z)<1.15) || activity?.kind === 'bench') continue;
       const length = Math.hypot(p.target.x-p.home.x,p.target.z-p.home.z);
@@ -121,7 +136,65 @@ export function createInteriorPeople() {
     }
     return {dx:dx*fraction,dz:dz*fraction,blocked:fraction<1};
   }
-  function snapshot() { return people.map(({home,target,progress,direction,...p})=>Object.freeze({...p})); }
-  function clear() { plan=null;people=[];elapsed=0; }
-  return {load,update,clipMovement,snapshot,clear,get stats(){return Object.freeze({active:plan?.id || null,count:people.length,limit:LIMIT,elapsed});}};
+  function crimeDescriptor(p) {
+    return Object.freeze({ id:p.id, kind:'employee', roomId:p.roomId, storeId:p.storeId,
+      x:p.x, z:p.z, health:p.health, threatened:p.playerHitTimer>0, lastPlayerHit:p.playerHitTimer>0 });
+  }
+  function getCrimeTarget(id) {
+    const p = people.find(person => person.id === id && employee(person));
+    return p ? crimeDescriptor(p) : null;
+  }
+  function setCrime(activity) {
+    crime = activity && ['robbery','mugging'].includes(activity.type) && ['intimidation','emptying','handover'].includes(activity.phase)
+      ? { targetId:String(activity.targetId), phase:activity.phase } : null;
+    for (const p of people) p.crimePhase = p.health>0 && crime?.targetId===p.id && employee(p) ? crime.phase : null;
+  }
+  function report(source, kind, witness) {
+    if (reportCooldown>0 || !witness || events.length>=32) return;
+    events.push(Object.freeze({ type:'witness', kind, x:source.x, z:source.z, witnessId:witness.id,
+      offenderId:source.offenderId, roomId:plan.id }));
+    reportCooldown = .8;
+  }
+  function frighten(p, duration = 6) {
+    p.fear = 1; p.reactionTimer = Math.max(p.reactionTimer, duration);
+    p.reaction = p.knockdown>0 ? 'knockdown' : p.stun>0 ? 'stunned' : 'panic';
+  }
+  function alert({x,z,radius=28,kind='gunshot',hasLineOfSight,offenderId='player'} = {}) {
+    if (!plan || ![x,z,radius].every(finite)) return 0;
+    const reach = clamp(radius,0,100);
+    let witness = null, count = 0;
+    for (const p of people) {
+      if (p.health<=0 || Math.hypot(p.x-x,p.z-z)>reach || (hasLineOfSight && !hasLineOfSight({x,z},p))) continue;
+      frighten(p); witness ||= p; count++;
+    }
+    report({x,z,offenderId},kind,witness);
+    return count;
+  }
+  function strike({x,z,yaw=0,range=2,damage=20,kind='melee',hasLineOfSight,offenderId='player'} = {}) {
+    const hits = [];
+    if (!plan || ![x,z,yaw,range,damage].every(finite)) return {hits:0,people:hits};
+    const reach=clamp(range,0,100), power=clamp(damage,0,100);
+    const gun=['pistol','gunshot','firearm','shot','fire'].includes(kind);
+    const candidates=people.map(p=>({p,distance:Math.hypot(p.x-x,p.z-z)})).filter(({p,distance})=>{
+      const forward=(p.x-x)*-Math.sin(yaw)+(p.z-z)*-Math.cos(yaw);
+      const lateral=Math.abs((p.x-x)*Math.cos(yaw)-(p.z-z)*Math.sin(yaw));
+      return power>0 && p.health>0 && p.hitCooldown<=0 && distance<=reach && forward>=-.3 &&
+        (gun ? lateral<=.55 : forward>=distance*.25) && (!hasLineOfSight || hasLineOfSight({x,z},p));
+    }).sort((a,b)=>a.distance-b.distance);
+    for (const {p} of candidates.slice(0,gun?1:3)) {
+      p.health=Math.max(0,p.health-power); p.hitCooldown=.4; p.stun=.65;
+      if (offenderId==='player' && kind==='melee') p.playerHitTimer=12;
+      if (p.health===0 || power>=35) p.knockdown=2.8;
+      if (p.health===0) p.crimePhase=null;
+      frighten(p,10);
+      hits.push(Object.freeze({id:p.id,x:p.x,z:p.z,health:p.health,reaction:p.reaction}));
+    }
+    if (hits.length) report({x,z,offenderId},kind,candidates[0].p);
+    return {hits:hits.length,people:hits};
+  }
+  function snapshot() { return people.map(({home,target,progress,direction,playerHitTimer,...p})=>Object.freeze({...p,
+    threatened:playerHitTimer>0,lastPlayerHit:playerHitTimer>0,crimePhase:p.health>0?p.crimePhase:null})); }
+  function clear() { plan=null;people=[];elapsed=0;crime=null;reportCooldown=0;events.length=0; }
+  return {load,update,clipMovement,snapshot,clear,strike,alert,setCrime,getCrimeTarget,
+    drainEvents(){return events.splice(0);},get stats(){return Object.freeze({active:plan?.id || null,count:people.length,limit:LIMIT,elapsed});}};
 }

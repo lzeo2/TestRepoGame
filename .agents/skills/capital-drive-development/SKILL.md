@@ -17,7 +17,8 @@ Read repository `AGENTS.md`, `docs/CODE_QUALITY.md`,
 `docs/capital-drive-living-sources.md` and
 `docs/capital-drive-unlock-contract.md` and
 `docs/capital-drive-arms-and-streets-contract.md` and
-`docs/capital-drive-yoober-contract.md`.
+`docs/capital-drive-yoober-contract.md` and
+`docs/capital-drive-signals-transport-crime-contract.md`.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -134,3 +135,23 @@ Low world/neighbourhood constructors retain geography, physical surfaces and doo
 descriptors while simplifying presentation detail. Run the paired
 test_capital_low_detail.mjs --actual comparison before claiming savings. Geometry
 bytes/triangles and software WebGL observations never establish N100 FPS.
+
+Signals use the pinned local sidecar and Simulation's sole clock. Retain actual
+stop-distance travel caps for traffic/buses/Yoober, and manual player control.
+GPS uses along-route geometry; live map follow advances the world only with player
+input frozen. Hidden tabs pause. Source data rebuilds from explicit external caches.
+
+Vehicle contacts must match model bodies, including walking ends/corners, checked
+steering and rotated parked indexing. Keep bounded spatial queries. Historical
+4.5×1.8 captures retain explicit old dimensions; obsolete invisible circles are
+not the new body contract. Avoid impossible ambient lanes using static admission,
+without changing source geography, bypassing collision or teleporting visible cars.
+
+Bus boarding uses the actual public door and clear stopped sweeps. Mini-game
+cancellation/rental dismount takes priority over nearby boarding. Flare placement
+cannot consume inventory on failure; Free-roam preview never writes career state.
+Hold-ups bind live NPC callbacks and matching room/store, never caller-provided
+threat/reward facts. Owned guns or recent attributed punches permit demands;
+dead/remote/cancelled/recovery targets cannot pay. NPC views animate authoritative
+phases; the existing writer banks one handover and strict cooldowns. Use the native
+signals harness for map/transport and crime harness for normal career cash proof.
