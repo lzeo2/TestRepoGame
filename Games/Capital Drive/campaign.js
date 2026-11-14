@@ -67,9 +67,9 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
         outro: 'Rowan: PowerPunt lost every slide. My manager called that an opportunity. I am taking lunch.',
         stages: [target(mall, 'Enter Capitol Centre and try the PowerPunt presentation', 'presentation', { roomId: 'interior-canberra-centre', hold: 0 }), target(mall, 'Step outside after the PowerPunt outage', 'foot', { radius: 18, hold: 2 })] },
       { id: 'corporate-lunch-breakpoint', name: 'Lunch breakpoint', contact: 'Rowan Pike', reward: 150, time: 540,
-        briefing: 'Walk along Bunda Street to Lambzhou 1919. Visit the counter, then talk to Dot, the fictional adult diner in pink earmuffs. Resolve the booth dispute and leave.',
-        outro: 'Rowan: A broken slideshow and a noodle-shop argument. Enough office politics. Mara has work that leaves a receipt.',
-        stages: [target(noodle, 'Enter Lambzhou 1919 and reach the counter', 'interior', { storeId: noodle.id || 'store-5656111023', radius: 2.5 }), target(noodle, 'Talk to the pink-earmuff diner and resolve the dispute', 'encounter', { storeId: 'store-5656111023', hold: 0 }), target(noodle, 'Leave the shop and cool off outside', 'foot', { radius: 18, hold: 3, clear: true })] },
+        briefing: 'Walk along Bunda Street to Lambzhou 1919. Visit the counter, then talk to Dot, the fictional adult diner in pink earmuffs. She throws noodles at you, then attacks. Face the dispute, then leave and lose any police attention.',
+        outro: 'Rowan: A broken slideshow, thrown noodles and a fistfight. Lunch is over. Mara has work that leaves a receipt.',
+        stages: [target(noodle, 'Enter Lambzhou 1919 and reach the counter', 'interior', { storeId: noodle.id || 'store-5656111023', radius: 2.5 }), target(noodle, 'Talk to Dot, then face her noodle throw and attack', 'encounter', { storeId: 'store-5656111023', hold: 0 }), target(noodle, 'Leave the shop and cool off outside', 'foot', { radius: 18, hold: 3, clear: true })] },
     ],
     basement: [
       { id: 'basement-touch-grass', name: 'Touch grass', contact: 'Milo Finch', reward: 100, time: 540,
@@ -101,8 +101,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
           !keys(saved.intros, ids) || ids.some(id => !prefix(saved.intros[id], intros[id])) || !prefix(saved.completed, shared) ||
           (saved.character === 'legacy' && !saved.legacy) || (saved.character === null && (saved.legacy || saved.meeting || saved.completed.length || ids.some(id => saved.intros[id].length))) ||
           (saved.meeting && ids.some(id => saved.intros[id].length !== intros[id].length)) ||
-          (saved.completed.length && !saved.legacy && !saved.meeting) ||
-          (ids.filter(id => saved.intros[id].length > 0 && saved.intros[id].length < intros[id].length).some(id => id !== saved.character))) throw new Error('Unsupported or corrupt campaign progress.');
+          (saved.completed.length && !saved.legacy && !saved.meeting)) throw new Error('Unsupported or corrupt campaign progress.');
       state.character = saved.character; state.intros = clone(saved.intros); state.meeting = saved.meeting; state.legacy = saved.legacy; state.completed = [...saved.completed];
     }
   }
@@ -122,10 +121,12 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     return ctx && finitePoint(ctx.pose) && typeof ctx.onFoot === 'boolean' && Number.isSafeInteger(ctx.respawnSerial) && Number.isFinite(ctx.wanted) && ctx.wanted >= 0 && ctx.wanted <= 5;
   }
   function canSelectCharacter(id) {
-    return ids.includes(id) && !state.active && (state.character === null || state.character === 'legacy' || state.intros[state.character].length === intros[state.character].length);
+    return ids.includes(id) && !state.active;
   }
   function selectCharacter(id, ctx) {
-    if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.campaign || !canSelectCharacter(id)) return { ok: false, message: 'Finish this character\'s introduction before switching.' };
+    if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.campaign) return { ok: false, message: 'Campaign unavailable here.' };
+    if (!ids.includes(id)) return { ok: false, message: 'Choose an available character.' };
+    if (!canSelectCharacter(id)) return { ok: false, message: 'Finish or cancel the active mission before switching characters.' };
     state.character = id; state.failed = false; state.message = `${characters.find(c => c.id === id).name}: ${current()?.briefing || 'Choose another character to bring the three stories together.'}`;
     return { ok: true, message: state.message };
   }
@@ -157,7 +158,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     let eligible = goal.anywhere || distance(ctx.pose, goal) <= goal.radius;
     if (goal.kind === 'interior') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.interior?.atCounter === true;
     else if (goal.kind === 'presentation') eligible = ctx.onFoot && ctx.interior?.roomId === goal.roomId && ctx.presentation?.roomId === goal.roomId && ctx.presentation?.outcome === 'outage' && serial(ctx.presentation) > active.baselines.presentation;
-    else if (goal.kind === 'encounter') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.encounter?.storeId === goal.storeId && ctx.encounter?.roomId === ctx.interior?.roomId && ctx.encounter?.character === 'booth-guest' && ctx.encounter?.phase === 'complete' && ['peaceful', 'confrontation'].includes(ctx.encounter?.outcome) && serial(ctx.encounter) > active.baselines.encounter;
+    else if (goal.kind === 'encounter') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.encounter?.storeId === goal.storeId && ctx.encounter?.roomId === ctx.interior?.roomId && ctx.encounter?.character === 'booth-guest' && ctx.encounter?.phase === 'complete' && ctx.encounter?.outcome === 'noodle-fight' && serial(ctx.encounter) > active.baselines.encounter;
     else if (goal.kind === 'work') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.workCompletion?.storeId === goal.storeId && serial(ctx.workCompletion) > active.baselines.work;
     else if (goal.kind === 'foot') eligible &&= ctx.onFoot && !ctx.interior;
     else if (goal.kind === 'stolen') eligible &&= !ctx.onFoot && ctx.vehicle?.stolen === true;

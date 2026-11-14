@@ -12,14 +12,21 @@ const ctx = { pose: { x: 0, z: 0, speed: 0 }, onFoot: false, vehicle: { stolen: 
 const tick = (campaign, context, count = 15) => { for (let i = 0; i < count; i++) campaign.update(.1, context); };
 const legacyIds = ['late-parcel', 'under-the-awning', 'borrowed-wheels', 'quiet-streets', 'across-the-water', 'home-by-the-lake'];
 
-const campaign = createCampaign(map);
+let campaign = createCampaign(map);
 assert.equal(campaign.current(), null);
 assert.equal(campaign.start(ctx).ok, false, 'new campaigns require a hero');
 assert.deepEqual(campaign.characters.map(c => c.id), ['student', 'corporate', 'basement']);
 assert.ok(Object.isFrozen(campaign.characters[0].start));
-assert.equal(campaign.selectCharacter('student', { ...ctx, sandbox: true }).ok, false);
+for (const forbidden of [{ ...ctx, sandbox: true }, { ...ctx, recovering: true }, { ...ctx, campaign: false }, { ...ctx, pose: { x: NaN, z: 0 } }]) {
+  assert.equal(campaign.selectCharacter('student', forbidden).ok, false);
+  assert.equal(campaign.state.character, null, 'unavailable context does not select a character');
+}
+assert.equal(campaign.canSelectCharacter('unknown'), false);
+assert.equal(campaign.selectCharacter('unknown', ctx).ok, false);
 assert.equal(campaign.selectCharacter('student', ctx).ok, true);
-assert.equal(campaign.selectCharacter('corporate', ctx).ok, false, 'finish the chosen opening before switching');
+assert.equal(campaign.selectCharacter('corporate', ctx).ok, true, 'switch freely before any introduction mission');
+assert.equal(campaign.current().id, 'corporate-present-tense');
+assert.equal(campaign.selectCharacter('student', ctx).ok, true);
 assert.equal(campaign.drainEvents().length, 0, 'selection earns nothing');
 assert.equal(campaign.start(ctx).ok, true);
 assert.equal(campaign.start(ctx).ok, false);
@@ -29,9 +36,16 @@ campaign.update(0, ctx);
 assert.equal(campaign.state.active.elapsed, 0);
 tick(campaign, { ...ctx, pose: { ...campaign.state.active.target } });
 assert.equal(campaign.state.active.stage, 0, 'student errand requires walking');
-assert.equal(campaign.selectCharacter('basement', ctx).ok, false, 'active mission locks hero');
+for (const hero of ['student', 'corporate', 'basement']) {
+  assert.equal(campaign.canSelectCharacter(hero), false, 'active mission disables every character option');
+  assert.equal(campaign.selectCharacter(hero, ctx).ok, false, 'active mission locks hero');
+}
+assert.equal(campaign.state.character, 'student');
 assert.ok(campaign.cancel());
 assert.deepEqual(campaign.state.intros.student, []);
+assert.equal(campaign.selectCharacter('corporate', ctx).ok, true, 'cancel permits immediate switching');
+assert.equal(campaign.current().id, 'corporate-present-tense');
+assert.equal(campaign.selectCharacter('student', ctx).ok, true);
 
 // Every objective is exercised through the same live-context predicates as the controller.
 let serial = 0;
@@ -54,7 +68,7 @@ function finishMission(value) {
     }
     if (target.kind === 'encounter') {
       context.interior = { storeId: target.storeId, roomId: 'noodle-room' };
-      context.encounter = { serial: ++serial, storeId: target.storeId, roomId: 'noodle-room', character: 'booth-guest', phase: 'complete', outcome: 'peaceful' };
+      context.encounter = { serial: ++serial, storeId: target.storeId, roomId: 'noodle-room', character: 'booth-guest', phase: 'complete', outcome: 'noodle-fight' };
     }
     tick(value, context, Math.ceil(Math.max(target.hold || 0, 1.5) * 10) + 2);
   }
@@ -66,13 +80,37 @@ function finishMission(value) {
   assert.equal(value.drainEvents().length, 0, 'no reward replay');
   return mission.id;
 }
+campaign.drainEvents();
 const openings = [];
-for (const hero of ['student', 'corporate', 'basement']) {
-  if (hero !== 'student') assert.equal(campaign.selectCharacter(hero, ctx).ok, true);
-  openings.push(finishMission(campaign), finishMission(campaign));
-  if (hero !== 'basement') assert.equal(campaign.current(), null, 'other introductions required before convergence');
-  assert.ok(campaign.canSelectCharacter('student'));
+const heroes = ['student', 'corporate', 'basement'];
+const poseBeforeSelection = structuredClone(ctx.pose);
+for (const hero of heroes) {
+  const progressBeforeSelection = campaign.serialize();
+  assert.equal(campaign.selectCharacter(hero, ctx).ok, true);
+  assert.deepEqual(campaign.serialize().intros, progressBeforeSelection.intros, 'selection does not advance introductions');
+  assert.equal(campaign.drainEvents().length, 0, 'selection emits no reward or teleport events');
+  assert.deepEqual(ctx.pose, poseBeforeSelection, 'selection preserves the player location');
+  openings.push(finishMission(campaign));
+  assert.equal(campaign.state.intros[hero].length, 1);
+  assert.ok(campaign.canSelectCharacter('student'), 'partial introduction permits switching');
 }
+const partialSave = campaign.serialize();
+assert.deepEqual(Object.values(partialSave.intros).map(chapters => chapters.length), [1, 1, 1]);
+const partialReload = createCampaign(map, partialSave);
+assert.deepEqual(partialReload.serialize(), partialSave, 'all three independent partial prefixes survive reload');
+assert.equal(partialReload.drainEvents().length, 0, 'reload earns no rewards');
+for (const hero of heroes) {
+  assert.equal(partialReload.selectCharacter(hero, ctx).ok, true);
+  assert.equal(partialReload.current().id, { student: 'student-extra-credit', corporate: 'corporate-lunch-breakpoint', basement: 'basement-first-delivery' }[hero]);
+  assert.equal(partialReload.drainEvents().length, 0);
+}
+campaign = partialReload;
+for (const hero of heroes) {
+  assert.equal(campaign.selectCharacter(hero, ctx).ok, true);
+  openings.push(finishMission(campaign));
+  if (hero !== 'basement') assert.equal(campaign.current(), null, 'other introductions required before convergence');
+}
+
 assert.equal(new Set(openings).size, 6, 'six original, different opening missions');
 assert.equal(campaign.current().id, 'three-receipts');
 assert.equal(finishMission(campaign), 'three-receipts');
@@ -141,8 +179,24 @@ tick(corporate, counter);
 assert.equal(corporate.state.active.stage, 1, 'encounter predating booth stage is stale');
 tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11, outcome: null } });
 assert.equal(corporate.state.active.stage, 1);
-tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11 } });
+for (const outcome of ['peaceful', 'confrontation']) {
+  tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11, outcome } });
+  assert.equal(corporate.state.active.stage, 1, `${outcome} does not count as Rowan's noodle fight`);
+}
+for (const mismatch of [{ phase: 'confronting' }, { roomId: 'wrong-room' }, { storeId: 'coals' }, { character: 'employee' }]) {
+  tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11, outcome: 'noodle-fight', ...mismatch } });
+  assert.equal(corporate.state.active.stage, 1, 'only a complete matching guest encounter counts');
+}
+tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 10, outcome: 'noodle-fight' } });
+assert.equal(corporate.state.active.stage, 1, 'old noodle fights do not count');
+tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11, outcome: 'noodle-fight' } });
 assert.equal(corporate.state.active.stage, 2);
+assert.deepEqual(corporate.state.intros.corporate, ['corporate-present-tense'], 'fight alone does not skip the exit');
+tick(corporate, { ...ctx, onFoot: true, wanted: 1, pose: { ...corporate.state.active.target } }, 35);
+assert.equal(corporate.state.active.stage, 2, 'escape objective still requires a clear wanted state');
+tick(corporate, { ...ctx, onFoot: true, pose: { ...corporate.state.active.target } }, 35);
+assert.equal(corporate.state.active, null);
+assert.equal(corporate.drainEvents().filter(event => event.type === 'complete').length, 1);
 
 const workSave = createCampaign(map).serialize();
 workSave.character = 'student'; workSave.intros.student = ['student-paper-chase'];
@@ -166,6 +220,12 @@ for (const save of [
   { version: 1, completed: [], money: 100 },
   { ...workSave, extra: true },
   { ...workSave, character: 'unknown' },
+  { ...partialSave, intros: { ...partialSave.intros, corporate: ['corporate-lunch-breakpoint'] } },
+  { ...partialSave, intros: { ...partialSave.intros, basement: ['basement-touch-grass', 'basement-touch-grass'] } },
+  { ...partialSave, intros: { ...partialSave.intros, corporate: ['corporate-present-tense'], extra: [] } },
+  { ...partialSave, character: 'legacy', legacy: false },
+  { ...partialSave, meeting: true },
+  { ...partialSave, completed: ['late-parcel'] },
   { ...workSave, intros: { ...workSave.intros, student: ['corporate-present-tense'] } },
   { ...workSave, completed: ['late-parcel'] },
   { ...workSave, meeting: true },
@@ -177,7 +237,14 @@ tick(timeout, { ...ctx, pose: { x: 10000, z: 10000 } }, 3601);
 assert.equal(timeout.state.active, null);
 assert.equal(timeout.state.failed, true);
 assert.deepEqual(timeout.state.completed, []);
+assert.equal(timeout.selectCharacter('student', ctx).ok, true, 'time failure unlocks character switching');
+assert.equal(timeout.state.failed, false);
+assert.equal(timeout.current().id, 'student-paper-chase');
 assert.equal(timeout.start(ctx).ok, true, 'time failure permits a clean retry');
+timeout.update(.1, { ...ctx, respawnSerial: 1 });
+assert.equal(timeout.state.active, null);
+assert.equal(timeout.selectCharacter('corporate', ctx).ok, true, 'recovery failure unlocks character switching');
+assert.equal(timeout.current().id, 'corporate-present-tense');
 assert.throws(() => worker.update(NaN, ctx));
 assert.throws(() => worker.update(-1, ctx));
 const meetingSave={version:2,character:'student',intros:{student:['student-paper-chase','student-extra-credit'],corporate:['corporate-present-tense','corporate-lunch-breakpoint'],basement:['basement-touch-grass','basement-first-delivery']},meeting:false,legacy:false,completed:[]};
@@ -190,4 +257,4 @@ assert.equal(relocated.current().reward,200);assert.equal(relocated.current().st
 assert.equal(createCampaign(map,meetingSave).current().stages[0].x,923,'default fixture meeting unchanged');
 assert.deepEqual(createCampaign(map,{version:1,completed:[]},{meetingPoint:{x:15,z:25}}).current(),createCampaign(map,{version:1,completed:[]}).current(),'meeting override preserves six legacy chapter targets and rewards');
 for(const invalid of [null,{}, {x:NaN,z:0},{x:0,z:Infinity}])assert.throws(()=>createCampaign(map,null,{meetingPoint:invalid}),/finite/);
-console.log('PASS campaign: six distinct playable introductions; three-character convergence; retained six chapters; fresh room/work outcomes; strict v1/v2 migration; replay and recovery gates');
+console.log('PASS campaign: interleaved independent introductions and partial-save reload; active-mission switching lock; noodle-fight-only lunch credit; three-character convergence; retained six chapters; strict v1/v2 migration; replay and recovery gates');
