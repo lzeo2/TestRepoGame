@@ -1,12 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-// Import authored browser ES module without changing the portal's Node module mode.
-const roadNetworkSource = await readFile(new URL('../Games/Capital Drive/road-network.js', import.meta.url), 'utf8');
-const roadNetworkUrl = `data:text/javascript;base64,${Buffer.from(roadNetworkSource).toString('base64')}`;
-let source = await readFile(new URL('../Games/Capital Drive/simulation.js', import.meta.url), 'utf8');
-source = source.replace("'./road-network.js'", JSON.stringify(roadNetworkUrl));
-const { buildRoadGraph, pointOnLane, createSimulation } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+import {buildRoadGraph,pointOnLane,createSimulation} from '../Games/Capital Drive/simulation.js';
 const navigationSource = await readFile(new URL('../Games/Capital Drive/navigation.js', import.meta.url), 'utf8');
 const { findRoute } = await import(`data:text/javascript;base64,${Buffer.from(navigationSource).toString('base64')}`);
 const road = (id, points, nodes, oneway = 0) => ({ id, name: id, type: 'residential', width: 10, speed: 50, oneway, points, nodes });
@@ -230,7 +225,7 @@ assert(street.moveActor(swimmer, -8, 0).blocked && swimmer.x > -80, 'water block
 const walker = { x: 497, z: 300 };
 assert(street.moveActor(walker, 8, 0).blocked && walker.x <= 499.55, 'bounds block actor locally');
 const byCar = { x: street.player.x + 3, z: street.player.z };
-assert(street.moveActor(byCar, -2, 0).blocked && byCar.x >= street.player.x + 2.25, 'vehicle clearance blocks actor');
+assert(street.moveActor(byCar, -2, 0).blocked && byCar.x >= street.player.x + 1.54, 'actual Atlas body side plus actor radius blocks foot movement');
 assert.equal(street.hasLineOfSight({ x: 20, z: -60 }, { x: 90, z: -60 }), false, 'building blocks full segment');
 assert.equal(street.hasLineOfSight({ x: 20, z: -90 }, { x: 90, z: -90 }), true, 'clear segment stays visible');
 assert.equal(street.hasLineOfSight({ x: 50, z: -60 }, { x: 90, z: -60 }), false, 'interior endpoint blocks sight');

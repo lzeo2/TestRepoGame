@@ -305,7 +305,7 @@ export function createGameplay(map, simulation, options = {}) {
       if (length > 0) simulation.moveActor(state.actor, x / Math.max(1, length) * speed * dt, z / Math.max(1, length) * speed * dt, 0.45);
       state.actor.speed = distance(before, state.actor) / dt;
       state.aiming = Boolean(input.aim && weaponById(state.weapon));
-      if (Number.isFinite(input.aimYaw) && (state.aiming || input.fire)) state.actor.yaw = input.aimYaw;
+      if (Number.isFinite(input.aimYaw) && (state.aiming || input.fire || input.melee)) state.actor.yaw = input.aimYaw;
       else if (length > 0) state.actor.yaw = yawFor(x, z);
       if (input.jump && state.actor.jumpHeight === 0 && jumpVelocity === 0) jumpVelocity = 5;
       if (jumpVelocity !== 0 || state.actor.jumpHeight > 0) {

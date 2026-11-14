@@ -1,6 +1,6 @@
 import { createRoutePlanner, roadProfile } from './road-network.js';
 
-const LENGTH = 4.5, WIDTH = 1.8, MAX_SPEED = 10;
+const LENGTH = 4.66, WIDTH = 1.884, MAX_SPEED = 10;
 const angle = value => Math.atan2(Math.sin(value), Math.cos(value));
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const lane = (edge, at) => ({ x: edge.from.x + edge.dx * at + edge.dz * edge.laneOffset,

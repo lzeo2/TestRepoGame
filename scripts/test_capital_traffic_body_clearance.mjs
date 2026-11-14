@@ -38,6 +38,7 @@ try {
   // translation is clear; easing the old heading into its neighbour was not.
   const rotation = createSimulation(map, { trafficCount: 1, seed: 20261112, isOnBridge: terrain.isOnBridge });
   const turning = rotation.traffic[0];
+  turning.length=4.5;turning.width=1.8; // Retain the dimensions of the captured historical rotation fixture.
   Object.assign(turning, { x: -352.18173012129444, z: -410.40571362257157,
     yaw: -1.6371285194705876, edge: rotation.graph.edges[31236], position: .19366101874075223,
     speed: 0, active: true, overtake: 0 });

@@ -51,7 +51,7 @@ for (const kind of ['bus', 'stationary-car']) {
 const signal = fixture(small); assert(signal.ride.book('corner', signal.ctx).ok);
 const signalCar = signal.ride.vehicles[0], line = signalCar.x + 14;
 let red = true, calls = 0;
-signal.sim.trafficLights = { stopDistance(car, { length }) { calls++; assert.equal(length, 4.5); return red ? Math.max(0, line - car.x) : Infinity; } };
+signal.sim.trafficLights = { stopDistance(car, { length }) { calls++; assert.equal(length, car.length, 'signal braking uses the actual external car body length'); return red ? Math.max(0, line - car.x) : Infinity; } };
 for (let i = 0; i < 60 * 10; i++) signal.ride.step(1 / 60, signal.ctx);
 assert(calls > 0 && signalCar.x <= line && signalCar.speed < .1, 'red/amber cap actual displacement at the stop line');
 red = false; advance(signal, s => s.phase === 'waiting');
