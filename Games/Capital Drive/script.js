@@ -197,10 +197,10 @@ function openPhone(){
   for(const offer of offers){
     const row=document.createElement('div'),b=document.createElement('button'),routeButton=document.createElement('button');
     b.textContent=`Hire ${offer.kind==='bike'?'e-bike':'scooter'} · $${offer.price} · ${Math.round(offer.distance)} m`;
-    b.disabled=!offer.available||offer.distance>2.8||!!state.active||gameplay.state.mode!=='foot'||!!interiors.active;
+    b.disabled=!offer.available||offer.distance>2.8||!!state.active||gameplay.state.mode!=='foot'||!!interiors.active||!!gameplay.state.recovery;
     b.dataset.hireKind=offer.kind;b.dataset.standId=offer.standId;
     b.addEventListener('click',()=>{
-      const result=micromobility.start(offer.kind,{pose:gameplay.state.actor,onFoot:gameplay.state.mode==='foot',standId:offer.standId,moveActor:moveBody,pay:price=>{
+      const result=micromobility.start(offer.kind,{pose:gameplay.state.actor,onFoot:gameplay.state.mode==='foot',recovering:!!gameplay.state.recovery,standId:offer.standId,moveActor:moveBody,pay:price=>{
         if(isSandbox())return true;const paid=progression.payRental(price,careerContext());if(paid.ok)saveCareer();else notify(paid.message);return paid.ok;
       }});
       if(result.ok){closeDialogs();cameraReady=false;notify('Ride hired. WASD rides; S brakes; E dismounts.');}else notify(result.reason);
@@ -922,7 +922,7 @@ function animate(time) {
       if (!isSandbox()) progression.update(1 / 60, careerContext());
       activities.step(1/60,miniInput(),careerContext());
       roomPeople.update(1/60,{actor:gameplay.state.actor,activity:activities.snapshot()});
-      micromobility?.step(1/60,{throttle:Math.max(0,input().throttle),brake:Math.max(0,-input().throttle),steer:input().steer},{pose:gameplay.state.actor,onFoot:gameplay.state.mode==='foot',moveActor:moveBody});
+      micromobility?.step(1/60,{throttle:Math.max(0,input().throttle),brake:Math.max(0,-input().throttle),steer:input().steer},{pose:gameplay.state.actor,onFoot:gameplay.state.mode==='foot',recovering:!!gameplay.state.recovery,moveActor:moveBody});
       campaign.update(1/60,careerContext());
       if(previousActorMode!==gameplay.state.mode){previousActorMode=gameplay.state.mode;footCameraYaw=gameplay.state.actor.yaw;cameraReady=false;clearInput();}
       accumulator -= 1 / 60;

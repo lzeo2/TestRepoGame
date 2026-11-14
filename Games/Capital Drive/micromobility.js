@@ -75,7 +75,7 @@ export function createMicromobility(map) {
   function validateStart(kind,context={}) {
     if(!KINDS[kind])return {ok:false,reason:'Unknown rental.'};
     if(active||starting)return {ok:false,reason:'End your current Lemon hire first.'};
-    if(context.onFoot!==true||!valid(context.pose))return {ok:false,reason:'Walk to a Lemon vehicle to hire it.'};
+    if(context.recovering||context.onFoot!==true||!valid(context.pose))return {ok:false,reason:'Walk to a Lemon vehicle to hire it.'};
     if(typeof context.moveActor!=='function')return {ok:false,reason:'Ride movement is unavailable.'};
     const offer=offers(context.pose).find(a=>a.kind===kind&&a.available&&(!context.standId||a.standId===context.standId)&&(!context.assetId||a.id===context.assetId));
     if(!offer||offer.distance>PICKUP_RANGE)return {ok:false,reason:'Move closer to an available Lemon vehicle.'};
@@ -95,7 +95,7 @@ export function createMicromobility(map) {
     return {ok:true,price:checked.offer.price,assetId:asset.id};
   }
   function step(dt,input={},context={}) {
-    if(!active||!valid(context.pose)||context.paused||!Number.isFinite(dt)||dt<=0)return;
+    if(!active||context.onFoot!==true||context.recovering||!valid(context.pose)||context.paused||!Number.isFinite(dt)||dt<=0)return;
     if(typeof context.moveActor!=='function')return;
     const time=Math.min(dt,.1),spec=KINDS[active.kind],throttle=clamp(Number(input.throttle)||0,0,1),brake=clamp(Number(input.brake)||0,0,1),steer=clamp(Number(input.steer)||0,-1,1);
     active.speed=clamp(active.speed+(throttle*spec.acceleration-(brake?6*brake:.55))*time,0,spec.maxSpeed);
