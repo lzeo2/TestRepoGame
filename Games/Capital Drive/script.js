@@ -229,7 +229,8 @@ function updateMini(){
   $('activity-panel').hidden=!street&&(!interiors?.active||(!state.kind&&!nearest));
   renderSequence(state);
   $('activity-title').textContent=state.active||state.kind?state.label:nearest?.label||'';
-  $('activity-prompt').textContent=state.kind?state.prompt:'Q or Play starts this activity.';
+  $('activity-prompt').textContent=street?(state.sequence?.length?'Release between presses. E cancels.':state.prompt):state.kind?state.prompt:'Q or Play starts this activity.';
+  $('activity-progress').hidden=!!street;
   $('activity-progress').value=state.progress||0;
   $('activity-score').textContent=street?`${state.index||0}/${state.sequence?.length||8} · ${state.mistakes||0}/${state.maxMistakes||2} mistakes`:state.kind?`${state.score} points${state.kind==='bench'?` · ${state.reps}/6 reps`:''}`:'';
   $('activity-start').textContent=!isSandbox()&&interiors?.active?.storeId&&['noodle','stock'].includes(nearest?.kind)?`Work · +$${nearest.kind==='noodle'?60:45}`:'Play';
