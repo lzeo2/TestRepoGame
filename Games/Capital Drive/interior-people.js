@@ -42,7 +42,7 @@ export function createInteriorPeople() {
     people.push({id:`${plan.id}-adult-${index}`, role, adult:true, x:position.x,z:position.z,y:plan.floorY,
       yaw, radius:BODY_RADIUS, seated:Boolean(seat), seatHeight:seat ? (seat.kind === 'stool' ? .69 : seat.kind === 'banquette' ? .55 : .45) : 0,
       character, earmuffs:character==='booth-guest', palette:index%6, hair:character==='booth-guest'?3:index%4, apron:role==='cook'||role==='cashier'||role==='shopkeeper',
-      health:100, reaction:'calm', fear:0, anger:0, angerOffender:null, retaliationCooldown:0, stun:0, knockdown:0, reactionTimer:0, hitCooldown:0, playerHitTimer:0, crimePhase:null,
+      health:100, reaction:'calm', fear:0, anger:0, angerOffender:null, retaliationCooldown:0, attackTimer:0, attackSerial:0, stun:0, knockdown:0, reactionTimer:0, hitCooldown:0, playerHitTimer:0, crimePhase:null,
       roomId:plan.id, storeId:plan.storeId || null,
       gesture, phase:index*1.73, speed:0, home:{x:position.x,z:position.z},target,progress:0,direction:1});
     return true;
@@ -103,7 +103,7 @@ export function createInteriorPeople() {
     reportCooldown = Math.max(0, reportCooldown - step);
     for (const p of people) {
       p.phase += step; p.speed = 0;
-      for (const key of ['hitCooldown', 'playerHitTimer', 'stun', 'knockdown', 'reactionTimer', 'retaliationCooldown']) p[key] = Math.max(0, p[key] - step);
+      for (const key of ['hitCooldown', 'playerHitTimer', 'stun', 'knockdown', 'reactionTimer', 'retaliationCooldown', 'attackTimer']) p[key] = Math.max(0, p[key] - step);
       if (p.reactionTimer <= 0 && p.stun <= 0 && p.knockdown <= 0) {
         p.reaction = 'calm'; p.fear = 0; p.anger=0; p.angerOffender=null;
         p.health = Math.min(100, p.health + step * 10);
@@ -113,10 +113,12 @@ export function createInteriorPeople() {
         p.fear = Math.max(p.fear, .8);
         if (p.stun <= 0 && p.knockdown <= 0) p.reaction = 'compliant';
       }
+      if(coerced || p.health<=0 || p.stun>0 || p.knockdown>0 || p.reaction!=='angry')p.attackTimer=0;
       if (!coerced && p.health>0 && p.reaction==='angry' && p.angerOffender==='player' && p.retaliationCooldown<=0 &&
           point(actor) && Math.hypot(actor.x-p.x,actor.z-p.z)<=2.1 && typeof hasLineOfSight==='function' && hasLineOfSight(p,actor)) {
         if(emit({type:'retaliation',kind:'melee',x:p.x,z:p.z,personId:p.id,targetId:'player',damage:5})) {
-          p.retaliationCooldown=2.2;
+          p.retaliationCooldown=2.2;p.attackTimer=.65;p.attackSerial++;
+          p.yaw=Math.atan2(actor.x-p.x,actor.z-p.z);
           if (encounterState?.personId===p.id && encounterState.phase==='angry') completeEncounter('confrontation');
         }
       }
@@ -209,7 +211,7 @@ export function createInteriorPeople() {
     let witness = null, count = 0;
     for (const p of people) {
       if (p.health<=0 || Math.hypot(p.x-x,p.z-z)>reach || (hasLineOfSight && !hasLineOfSight({x,z},p))) continue;
-      p.anger=0;p.angerOffender=null;frighten(p); witness ||= p; count++;
+      p.anger=0;p.angerOffender=null;p.attackTimer=0;frighten(p); witness ||= p; count++;
     }
     report({x,z,offenderId},kind,witness);
     return count;
@@ -226,7 +228,7 @@ export function createInteriorPeople() {
         (gun ? lateral<=.55 : forward>=distance*.25) && (!hasLineOfSight || hasLineOfSight({x,z},p));
     }).sort((a,b)=>a.distance-b.distance);
     for (const {p} of candidates.slice(0,gun?1:3)) {
-      p.health=Math.max(0,p.health-power); p.hitCooldown=.4; p.stun=.65;
+      p.health=Math.max(0,p.health-power); p.hitCooldown=.4; p.stun=.65;p.attackTimer=0;
       if (offenderId==='player' && kind==='melee') p.playerHitTimer=12;
       if (p.health===0 || power>=35) p.knockdown=2.8;
       if (p.health===0) p.crimePhase=null;

@@ -102,10 +102,15 @@ assert.equal(pool.drainEvents().length,0,'walls prevent retaliation and completi
 pool.update(.1,context);const fight=pool.drainEvents();
 assert.deepEqual(fight.map(e=>e.type),['retaliation','encounter-complete']);
 assert.equal(fight[0].damage,5);assert.equal(pool.encounter.serial,2);assert.equal(pool.encounter.outcome,'confrontation');
+const punch=pool.snapshot().find(p=>p.id===guest.id);assert.equal(punch.attackTimer,.65);assert.equal(punch.attackSerial,1);
+pool.update(0,context);assert.equal(pool.snapshot().find(p=>p.id===guest.id).attackTimer,.65,'pause freezes the emitted punch');
+pool.update(.1,context);assert.equal(pool.snapshot().find(p=>p.id===guest.id).attackTimer,.55);
+
 for(let i=0;i<10;i++)pool.update(.1,context);assert.equal(pool.drainEvents().length,0,'retaliation cooldown');
 for(let i=0;i<15;i++)pool.update(.1,{actor:{x:actor.x+100,z:actor.z},hasLineOfSight:seen});assert.equal(pool.drainEvents().length,0,'distance rechecked live');
 const strikeOrigin={x:guest.x,z:guest.z-1,yaw:Math.PI};
 assert(pool.strike({...strikeOrigin,damage:100,range:2,hasLineOfSight:seen}).hits>0);
+assert.equal(pool.snapshot().find(p=>p.id===guest.id).attackTimer,0,'a hit/death cancels the current punch pose');
 for(let i=0;i<15;i++)pool.update(.1,context);assert.equal(pool.drainEvents().filter(e=>e.type==='retaliation').length,0,'dead guest cannot retaliate');
 plans.push(encounterPlan);
 const threeURL=url(await read('../assets/car-arcade/vendor/three.module.js')),THREE=await import(threeURL);
@@ -138,14 +143,57 @@ for(const plan of plans) {
     assert.equal(accessories.count,calmCount-36,'stun hides noodle strands');
   }
   if(plan.exercise) {
-    const original=pool.snapshot();view.update(original,0,{activity:{active:true,kind:'bench',lift:1,reps:3}});matrices();
+    const original=pool.snapshot();view.update(original,0,{activity:{active:true,kind:'bench',exercisePose:'bench',station:plan.activities.find(s=>s.kind==='bench'),lift:1,reps:3}});matrices();
     assert.equal(root.children[0].count,original.length+1,'temporary lying player');assert(view.stats.drawCalls<=6);
     assert.deepEqual(pool.snapshot(),original,'visual exercise never changes simulation');
     view.update(original,0,{activity:{active:false,kind:'bench',lift:0,reps:6}});assert.equal(root.children[0].count,original.length,'completed bench removes the temporary lying player');
     assert(root.children[5].count>=3,'resting racked bar remains visible');
   }
+  if(plan.type==='gym') {
+    const original=pool.snapshot();
+    for(const kind of ['bench','treadmill','curls','rower']) {
+      const station=plan.activities.find(s=>s.kind===kind);assert(station,`actual ${kind} station`);
+      const activity={active:true,kind,exercisePose:kind,station,lift:0,reps:0};
+      view.update(original,0,{activity});matrices();
+      assert.equal(root.children[0].count,original.length+1,`${kind} shows one participating player`);
+      assert(Object.isFrozen(view.exerciseFocus));
+      const focus=view.exerciseFocus,equipment=plan.furniture.find(f=>f.kind===kind);
+      if(equipment)assert(Math.hypot(focus.x-equipment.x,focus.z-equipment.z)<.35,`${kind} participant anchored on actual equipment`);
+      if(kind==='curls')assert.equal(root.children[5].count,9,'two dumbbells share six prop slots plus racked bar');
+      if(kind==='rower') {
+        assert.equal(root.children[5].count,4,'one moving handle plus racked bar');
+        const handle=new THREE.Matrix4();root.children[5].getMatrixAt(0,handle);
+        const position=new THREE.Vector3().setFromMatrixPosition(handle),yaw=equipment.yaw;
+        assert(Math.abs(position.x-(equipment.x+Math.sin(yaw)*.64))<1e-5);
+        assert(Math.abs(position.z-(equipment.z+Math.cos(yaw)*.64))<1e-5);
+        assert(Math.abs(position.y-(plan.floorY+.78))<1e-5,'resting grip matches actual machine handle');
+      }
+      const arms=Array.from(root.children[4].instanceMatrix.array),props=Array.from(root.children[5].instanceMatrix.array),legs=Array.from(root.children[3].instanceMatrix.array);
+      view.update(original,0,{activity});assert.deepEqual(Array.from(root.children[4].instanceMatrix.array),arms,'renderer dt cannot invent workout motion');
+      view.update(original,.1,{activity:{...activity,lift:1}});matrices();
+      if(kind==='treadmill')assert.notDeepEqual(Array.from(root.children[3].instanceMatrix.array),legs,'supplied cadence moves belt strides');
+      else assert.notDeepEqual(Array.from(root.children[4].instanceMatrix.array),arms,`${kind} supplied lift moves hands`);
+      if(['bench','curls','rower'].includes(kind))assert.notDeepEqual(Array.from(root.children[5].instanceMatrix.array),props,`${kind} gear follows supplied hand movement`);
+      for(const mesh of root.children)assert(mesh.count<=mesh.instanceMatrix.count,'participant stays inside fixed pools');
+      assert(view.stats.drawCalls<=6);
+      view.update(original,.1,{activity:{...activity,active:false}});assert.equal(root.children[0].count,original.length,'cancel/failure/grip loss removes participant');assert.equal(view.exerciseFocus,null);
+      view.update(original,.1,{activity:{...activity,station:{...station,id:'foreign-station'}}});assert.equal(root.children[0].count,original.length,'foreign station cannot create participant');
+    }
+    const max=Array.from({length:16},(_,i)=>({...original[0],id:`bounded-${i}`,x:plan.origin.x+i*.01,earmuffs:i===0,apron:true,gesture:i===1?'pull-noodles':'idle',reaction:'calm'}));
+    const station=plan.activities.find(s=>s.kind==='curls');
+    view.update(max,.1,{activity:{active:true,kind:'curls',exercisePose:'curls',station,lift:.5}});
+    assert.equal(root.children[0].count,17,'16 NPCs plus one player remain bounded');
+    for(const mesh of root.children)assert(mesh.count<=mesh.instanceMatrix.count);matrices();
+  }
+  if(plan.boothGuest) {
+    const people=pool.snapshot(),guest=people.find(p=>p.character==='booth-guest');
+    const pose=timer=>people.map(p=>p.id===guest.id?{...p,reaction:'angry',attackTimer:timer,attackSerial:1}:p);
+    view.update(pose(.65),0);const windup=Array.from(root.children[4].instanceMatrix.array);
+    view.update(pose(.30),0);assert.notDeepEqual(Array.from(root.children[4].instanceMatrix.array),windup,'emitted punch timer drives actual extension');
+    view.update(pose(.30),1);const frozen=Array.from(root.children[4].instanceMatrix.array);view.update(pose(.30),1);assert.deepEqual(Array.from(root.children[4].instanceMatrix.array),frozen,'view has no independent attack clock');
+  }
   view.clear();assert.equal(scene.children.length,0);assert.equal(view.stats.geometryCount,0);
 }
 assert.equal(disposedGeometry,plans.length*6);assert.equal(disposedMaterial,plans.length);assert.equal(disposedMesh,plans.length*6);
 view.dispose();view.dispose();view.load(plans[0]);view.update([],1);assert(view.stats.disposed);assert.equal(scene.children.length,0);
-console.log('PASS active adult roles, real booth/window anchors, authoritative peaceful/hostile encounters, live LOS/health/radius/cooldown gates, swept contacts, pause, shared rounded parts, 36 moving noodle segments, six lazy draws, bench poses and exact disposal');
+console.log('PASS active adult roles, real booth/window anchors, authoritative peaceful/hostile encounters, live LOS/health/radius/cooldown gates, swept contacts, pause, shared rounded parts, 36 moving noodle segments, six lazy draws, four equipment-linked workout poses, emitted NPC punch poses and exact disposal');

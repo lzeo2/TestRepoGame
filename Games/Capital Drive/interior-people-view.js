@@ -2,7 +2,7 @@ import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import {PERSON_MODEL, appearanceForPerson} from './person-model.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
 
-const LIMIT = 16, NOODLE_SEGMENTS = 36, ACCESSORY_CAPACITY = LIMIT+10+NOODLE_SEGMENTS+8;
+const LIMIT = 16, NOODLE_SEGMENTS = 36, ACCESSORY_CAPACITY = LIMIT+10+NOODLE_SEGMENTS+8+6;
 const finite = n => Number.isFinite(n) ? n : 0;
 const valid = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 
@@ -10,7 +10,7 @@ const valid = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 export function createInteriorPeopleView(scene,heightAt = () => 0) {
   let root = null, plan = null, material = null, meshes = [], disposed = false;
   const body = new THREE.Object3D(), part = new THREE.Object3D(), matrix = new THREE.Matrix4(), color = new THREE.Color();
-  let count = 0, draws = 0;
+  let count = 0, draws = 0, exerciseFocus = null;
   const appearances=new Map();
   function geometry(parts) {
     const sources = parts.map(([size,position,tint=0xffffff,shape='box']) => {
@@ -42,6 +42,10 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
     const mesh=meshes[index];if(mesh.count>=mesh.instanceMatrix.count)return;const i=mesh.count++;
     part.position.set(...position);part.rotation.set(...rotation);part.scale.set(...scale);part.updateMatrix();
     matrix.multiplyMatrices(body.matrix,part.matrix);mesh.setMatrixAt(i,matrix);mesh.setColorAt(i,color.setHex(tint));
+  }
+  function limb(a,b,tint) {
+    const dy=b[1]-a[1],dz=b[2]-a[2];
+    put(4,[(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2],[Math.atan2(dz,dy),0,0],[.12,Math.hypot(dy,dz),.13],tint);
   }
   function person(p,lying=false) {
     let appearance=appearances.get(p.id);
@@ -79,14 +83,14 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
       }
     }
     for(let side=0;side<2;side++) {
-      const sign=side?1:-1,stride=moving?Math.sin(phase*8)*.21*sign:0;
+      const sign=side?1:-1,stride=gesture==='treadmill' ? finite(p.lift)*.30*sign*(p.reps%2?-1:1) : moving?Math.sin(phase*8)*.21*sign:0;
       if (seated) {
         put(3,[sign*.115,.91,.20],[0,0,0],[.17,.17,.42],appearance.trousers);
-        put(3,[sign*.115,.90-finite(p.seatHeight)/2,.39],[0,0,0],[.15,Math.max(.20,finite(p.seatHeight)-.12),.16],appearance.trousers);
-        put(3,[sign*.115,.96-finite(p.seatHeight),.45],[0,0,0],[.19,.11,.29],0x252b2d);
+        put(3,[sign*.115,gesture==='rower'?.75:.90-finite(p.seatHeight)/2,gesture==='rower'?.60:.39],[0,0,0],[.15,gesture==='rower'?.32:Math.max(.20,finite(p.seatHeight)-.12),.16],appearance.trousers);
+        put(3,[sign*.115,gesture==='rower'?.62:.96-finite(p.seatHeight),gesture==='rower'?.60:.45],[0,0,0],[.19,.11,.29],0x252b2d);
       } else {
         put(3,[sign*.115,.49,0],[stride,0,0],[.17,.83,.19],appearance.trousers);
-        put(3,[sign*.115,.07,.055],[0,0,0],[.19,.13,.30],0x252b2d);
+        put(3,[sign*.115,.07,gesture==='treadmill'?stride*.55:.055],[0,0,0],[.19,.13,.30],0x252b2d);
       }
       if (coerced && !down && !lying) {
         if (p.crimePhase==='intimidation') {
@@ -100,13 +104,37 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
         }
         continue;
       }
+      const amount=Math.max(0,Math.min(1,finite(p.lift)));
+      if(gesture==='curls') {
+        const curling=(p.reps%2===side),lift=curling?amount:0;
+        const hand=[sign*.29,.86+lift*.48,.12+Math.sin(lift*Math.PI)*.22];
+        limb([sign*.29,1.34,0],[sign*.29,1.03,.06],skin);limb([sign*.29,1.03,.06],hand,skin);
+        put(5,hand,[0,0,0],[.30,.045,.045],0xaeb6b7);
+        for(const end of [-1,1])put(5,[hand[0]+end*.14,hand[1],hand[2]],[0,0,0],[.09,.18,.18],0x343a3e);
+        continue;
+      }
+      if(gesture==='rower') {
+        const handZ=.94-amount*.55,handY=1.15;
+        limb([sign*.29,1.34,0],[sign*.29,1.20,.38-amount*.17],skin);
+        limb([sign*.29,1.20,.38-amount*.17],[sign*.23,handY,handZ],skin);
+        if(side===0)put(5,[0,handY,handZ],[0,0,0],[.65,.045,.045],0xaeb6b7);
+        continue;
+      }
+      const attacking=!coerced&&!down&&p.stun<=0&&p.reaction==='angry'&&finite(p.attackTimer)>0;
+      if(attacking) {
+        const progress=1-Math.min(1,p.attackTimer/.65),extension=progress<.25 ? -.10*progress/.25 : progress<.55 ? (progress-.25)/.30 : (1-progress)/.45;
+        const punch=(p.attackSerial%2===side),reach=punch?.27+extension*.43:.22;
+        limb([sign*.29,1.34,0],[sign*.29,1.28,.16+Math.max(0,extension)*.13],skin);
+        limb([sign*.29,1.28,.16+Math.max(0,extension)*.13],[sign*.23,1.35,reach],skin);
+        continue;
+      }
       let reach=0,lift=0;
       if(pulling) {
         put(4,[sign*.29,1.32,.15],[.6,0,sign*.25],[.13,.36,.14],skin);
         put(4,[sign*spread,handY,.33],[Math.PI/2,0,0],[.12,.25,.13],skin);
         continue;
       }
-      if(p.reaction==='angry' && !down) {reach=.28;lift=.22+Math.sin(phase*8+side)*.08;}
+      if(p.reaction==='angry' && !down) {reach=.22;lift=.22;}
       else if (gesture==='eat') {reach=.18;lift=.06+Math.sin(phase*2+side)*.09;}
       else if (gesture==='serve'||gesture==='prepare'||gesture==='browse') {reach=.18;lift=Math.sin(phase*2+side)*.06;}
       else if (gesture==='exercise'||gesture==='coach') {lift=.16+Math.sin(phase*2)*.15;}
@@ -129,10 +157,28 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
     count=0;
     const list=Array.isArray(people)?people:people?.snapshot?.() || [];
     for(const p of list) {if (count>=LIMIT) break;if(!valid(p))continue;person(p);count++;}
+    exerciseFocus=null;
+    const station=activity?.active===true && (plan.activities||[]).find(s=>s.id===activity.station?.id && s.kind===activity.kind && s.kind===activity.exercisePose);
+    const workout=station && ['bench','treadmill','curls','rower'].includes(station.kind) ? station.kind : null;
+    if(workout && workout!=='bench') {
+      const equipment=(plan.furniture||[]).find(f=>f.kind===workout);
+      if(workout==='curls'||equipment) {
+        let x=station.x,z=station.z,y=plan.floorY,yaw=finite(station.yaw)+Math.PI;
+        if(equipment) {
+          const offset=workout==='rower'?-.3:-.1;
+          yaw=finite(equipment.yaw);x=equipment.x+Math.sin(yaw)*offset;z=equipment.z+Math.cos(yaw)*offset;
+          y+=workout==='treadmill'?.31:0;
+        }
+        person({id:'player',x,z,y,yaw,phase:0,lift:activity.lift,reps:activity.reps||0,gesture:workout,
+          seated:workout==='rower',seatHeight:workout==='rower'?.53:0});
+        exerciseFocus=Object.freeze({x,z,y:plan.floorY+1});
+      }
+    }
     const bench=plan.exercise;
     if (valid(bench)) {
-      const exercising=activity?.active===true&&activity?.kind==='bench';
+      const exercising=workout==='bench';
       if(exercising) {
+      exerciseFocus=Object.freeze({x:bench.x,z:bench.z,y:plan.floorY+1});
       person({id:'player',x:bench.x,z:bench.z,y:plan.floorY+finite(bench.height)+.13,yaw:finite(bench.yaw),palette:0,hair:0,phase:0,lift:activity.lift,gesture:'bench'},true);
       }
       body.position.set(bench.x,plan.floorY+(exercising ? finite(bench.height)+.60+Math.max(0,Math.min(1,finite(activity.lift)))*.38 : 1.48),bench.z);
@@ -145,8 +191,8 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
   }
   function clear() {
     if(root) {scene.remove(root);for(const mesh of meshes){mesh.dispose();mesh.geometry.dispose();}material.dispose();}
-    root=null;plan=null;material=null;meshes=[];count=draws=0;appearances.clear();
+    root=null;plan=null;material=null;meshes=[];count=draws=0;appearances.clear();exerciseFocus=null;
   }
-  return {load,update,clear,get stats(){return Object.freeze({active:plan?.id || null,people:count,limit:LIMIT,drawCalls:draws,geometryCount:meshes.length,materialCount:material?1:0,disposed,accessoryCapacity:ACCESSORY_CAPACITY,noodleSegmentLimit:NOODLE_SEGMENTS,sharedModel:true});},
+  return {load,update,clear,get exerciseFocus(){return exerciseFocus;},get stats(){return Object.freeze({active:plan?.id || null,people:count,limit:LIMIT,drawCalls:draws,geometryCount:meshes.length,materialCount:material?1:0,disposed,accessoryCapacity:ACCESSORY_CAPACITY,noodleSegmentLimit:NOODLE_SEGMENTS,sharedModel:true,exerciseFocus});},
     dispose(){if(disposed)return;clear();disposed=true;}};
 }
