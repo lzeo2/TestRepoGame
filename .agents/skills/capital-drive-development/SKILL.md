@@ -155,3 +155,8 @@ threat/reward facts. Owned guns or recent attributed punches permit demands;
 dead/remote/cancelled/recovery targets cannot pay. NPC views animate authoritative
 phases; the existing writer banks one handover and strict cooldowns. Use the native
 signals harness for map/transport and crime harness for normal career cash proof.
+
+The road-guidance view is presentation only: use the current route and live manual
+driver pose, shared terrain and checked left-lane placement. Hide on foot/indoors/
+passenger/arrival/off-route; never mutate the route, vehicle or career. Keep three
+pooled world arrows/two draws and test actual forward poses plus native framing.
