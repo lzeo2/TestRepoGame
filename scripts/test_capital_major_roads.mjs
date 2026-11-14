@@ -2,8 +2,21 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {roadProfile, roadMarkingOffsets, applyRoadProfiles} from '../Games/Capital Drive/road-network.js';
 import {createSimulation, pointOnLane} from '../Games/Capital Drive/simulation.js';
+import {applyMapExpansion} from '../Games/Capital Drive/map-expansion.js';
+import {POOL_BARRIERS} from '../Games/Capital Drive/landmarks.js';
+import {CAMPUS_BARRIERS} from '../Games/Capital Drive/campus.js';
+import {BARRIERS as SKATE_BARRIERS} from '../Games/Capital Drive/civic-extras.js';
+import {HIGHWAY_BARRIERS} from '../Games/Capital Drive/highway-barriers.js';
 const read = name => readFile(new URL(`../Games/Capital Drive/data/${name}`, import.meta.url), 'utf8').then(JSON.parse);
-const map = applyRoadProfiles(await read('canberra.json'), await read('road-profiles.json'));
+const map = applyMapExpansion(applyRoadProfiles(await read('canberra.json'), await read('road-profiles.json')), await read('canberra-north.json'));
+// Match the runtime's permanent source barriers before admitting ambient cars.
+map.barriers = [...POOL_BARRIERS, ...CAMPUS_BARRIERS, ...SKATE_BARRIERS.map(b => {
+  const dx=b.b[0]-b.a[0], dz=b.b[1]-b.a[1], length=Math.hypot(dx,dz)||1, nx=-dz/length*b.width/2, nz=dx/length*b.width/2;
+  return {...b, points:[[b.a[0]+nx,b.a[1]+nz],[b.b[0]+nx,b.b[1]+nz],[b.b[0]-nx,b.b[1]-nz],[b.a[0]-nx,b.a[1]-nz]]};
+}), ...HIGHWAY_BARRIERS];
+const hindmarshRails = HIGHWAY_BARRIERS.filter(b => b.roadContext?.name === 'Hindmarsh Drive');
+assert(HIGHWAY_BARRIERS.length > 600 && hindmarshRails.length >= 40, 'real-map traffic fixture includes ground-level sourced highway rails');
+assert(HIGHWAY_BARRIERS.every(b => b.sourceLayer === '0' && ['no','false','0'].includes(b.sourceBridge)), 'elevated source rails cannot become ground-level phantom walls');
 for (const [id, lanes, width] of [['220108364-0',3,11.2],['333933993-0',2,8],['447092623-0',4,14.5]]) {
   const road = map.roads.find(r => r.id === id), profile = roadProfile(road);
   assert.equal(road.name, 'Hindmarsh Drive'); assert.equal(road.oneway, 1); assert.equal(road.speed, 80);
@@ -57,4 +70,5 @@ const positions=hindmarsh.map(c=>({x:c.x,z:c.z}));
 for(let i=0;i<60;i++)actual.step(1/60, {brake:true});
 const moving=hindmarsh.filter((c,i)=>Math.hypot(c.x-positions[i].x,c.z-positions[i].z)>1);
 assert(moving.length>=4,'actual Hindmarsh population moves along its legal source lanes');
-console.log(`PASS major roads: source Hindmarsh 2/3/4 lanes and unchanged widths; source sidewalk/motorway rules; fixed40 fleet, ${major.length} fixture major cars and ${hindmarsh.length} Hindmarsh cars; deterministic admission, full bodies, pause and no visible refresh jump`);
+assert(hindmarsh.every(c => actual.canOccupy(c)), 'whole vehicle bodies remain clear after driving beside source rails');
+console.log(`PASS major roads: source Hindmarsh 2/3/4 lanes and unchanged widths; source sidewalk/motorway rules; fixed40 fleet, ${major.length} fixture major cars and ${hindmarsh.length} Hindmarsh cars (${moving.length} moving) with ${HIGHWAY_BARRIERS.length} ground rails/${hindmarshRails.length} Hindmarsh rails; deterministic admission, full bodies, pause, local-only queries and no visible refresh jump`);
