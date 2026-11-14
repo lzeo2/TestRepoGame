@@ -68,4 +68,32 @@ view.update({x:NaN,z:Infinity});assert.equal(view.stats.drawCalls,0);
 assert.equal(JSON.stringify(MAPPED_STORES),original,'source store registry unchanged');
 let geometries=0,materials=0,textures=0;for(const mesh of root.children){mesh.geometry.addEventListener('dispose',()=>geometries++);mesh.material.addEventListener('dispose',()=>materials++);}atlas.addEventListener('dispose',()=>textures++);
 view.dispose();view.dispose();view.update(store);assert.equal(scene.children.length,0);assert.equal(geometries,3);assert.equal(materials,3);assert.equal(textures,1);assert.equal(view.stats.disposed,true);
-console.log(`Capital noodle shop PASS: source5656111023 facade, exterior-readable signs, 1.8m clear door, ${view.stats.triangles} triangles / three draws, ${view.stats.atlasWidth}x${view.stats.atlasHeight} original atlas, 200m culling and owned disposal`);
+// Exercise the retained source composition used by the default Low runtime. The
+// frontage is an overlay; the separately managed Civic mesh must supply its wall.
+const {applyRoadProfiles}=await import(url(await read('../Games/Capital Drive/road-network.js')));
+const {applyMapExpansion}=await import(url(await read('../Games/Capital Drive/map-expansion.js')));
+const {createTerrainSampler}=await import(url(await read('../Games/Capital Drive/terrain.js')));
+const base=JSON.parse(await read('../Games/Capital Drive/data/canberra.json'));
+const profiles=JSON.parse(await read('../Games/Capital Drive/data/road-profiles.json'));
+const runtime=applyMapExpansion(applyRoadProfiles(base,profiles),north);
+runtime.terrainTiles=[JSON.parse(await read('../Games/Capital Drive/data/north-terrain.json')).terrain];
+const runtimeSource=JSON.stringify(runtime),actualHeight=createTerrainSampler(runtime).heightAt;
+const {createCivicView}=await import(url((await read('../Games/Capital Drive/civic-view.js'))
+ .replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL))
+ .replace("'./road-network.js'",JSON.stringify(url(await read('../Games/Capital Drive/road-network.js'))))
+ .replace("'./civic-extras.js'",JSON.stringify(url(await read('../Games/Capital Drive/civic-extras.js'))))));
+for(let cycle=0;cycle<2;cycle++) {
+ const actualScene=new THREE.Scene(),civic=createCivicView(actualScene,runtime,actualHeight);
+ const frontage=createNoodleShopView(actualScene,actualHeight);
+ civic.update(store);frontage.update(store);actualScene.updateMatrixWorld(true);
+ assert(civic.stats.visible&&civic.stats.near&&frontage.stats.visible,'source shell and facade remain present together at the shop');
+ const shell=actualScene.children[0].children.find(m=>m.name==='Civic exact source bodies');
+ const ray=new THREE.Raycaster(new THREE.Vector3(f.x+nx*3,actualHeight(f.x,f.z)+1.4,f.z+nz*3),new THREE.Vector3(-nx,0,-nz),0,4);
+ assert(ray.intersectObject(shell).length,'actual terrain and skate carve retain the physical source wall behind the restaurant');
+ frontage.update({x:f.x+201,z:f.z});
+ assert(!frontage.stats.visible&&civic.stats.visible,'detail culling retains the existing source building shell');
+ civic.dispose();frontage.dispose();civic.dispose();frontage.dispose();
+ assert.equal(actualScene.children.length,0,'repeated scene lifecycle leaves no facade or source shell behind');
+}
+assert.equal(JSON.stringify(runtime),runtimeSource,'source composition and terrain stay immutable');
+console.log(`Capital noodle shop PASS: source5656111023 facade and actual-map Civic shell, exterior-readable signs, 1.8m clear door, ${view.stats.triangles} triangles / three draws, ${view.stats.atlasWidth}x${view.stats.atlasHeight} original atlas, 200m culling and owned disposal`);
