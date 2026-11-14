@@ -89,7 +89,7 @@ function checkActual() {
     assert(!outlines.some(b => p.x >= b.minX && p.x <= b.maxX && p.z >= b.minZ && p.z <= b.maxZ && insideOutline(p, b.points)),
       'actual mapped building outlines are never occupied');
     const r = named.get(p.roadId);
-    assert(r.name && ['residential', 'tertiary'].includes(r.type));
+    assert(r.name && ['residential', 'tertiary', 'living_street', 'unclassified'].includes(r.type));
     const distance = Math.min(...r.points.slice(1).map((b, i) => distanceToSegment(p, r.points[i], b)));
     assert(distance >= r.width / 2 + 0.5, 'actual-map walkers remain off asphalt');
     assert(distance <= r.width / 2 + 1.75, 'walkers remain within the pavement ribbon');
@@ -240,3 +240,73 @@ driving.alert({ x: close.x, z: close.z, kind: 'gunshot' });
 assert(driving.drainEvents().some(e => e.kind === 'gunshot'), 'driving cooldown never suppresses gunfire witnesses');
 driving.dispose();
 console.log('PASS forgiving road traffic, bounded close-threat exposure, contact/extreme-pass reporting, LOS and paused cooldowns');
+
+const contacts = createPedestrians(new THREE.Scene(), fixture, heightAt);
+const contactTarget = contacts.snapshot()[0];
+const walker = Object.freeze({ x: contactTarget.x, z: contactTarget.z + 3 });
+const swept = contacts.clipMovement(walker, 0, -6, 0.35);
+assert(swept.blocked, 'a long step cannot tunnel through an adult');
+assert(swept.dz > -3 && swept.dz < 0, 'sweep stops before the nearest disc');
+assert(Math.hypot(walker.x + swept.dx - contactTarget.x, walker.z + swept.dz - contactTarget.z) >= 0.67,
+  'clipped endpoint retains the combined body clearance');
+assert(contacts.stats.collisionCandidates < 20, 'short movement queries only a local grid neighbourhood');
+assert(contacts.snapshot()[0].yieldTimer > 0, 'body contact requests a short yield');
+const yieldingPaused = contacts.snapshot();
+contacts.update(walker, 0);
+assert.deepEqual(contacts.snapshot(), yieldingPaused, 'pause freezes a requested yield');
+for (let i = 0; i < 15; i++) contacts.update(walker, 0.1);
+assert(Math.hypot(contacts.snapshot()[0].x - contactTarget.x, contacts.snapshot()[0].z - contactTarget.z) > 1.4,
+  'calm adults walk aside instead of remaining stopped against the player');
+assert.deepEqual(contacts.drainEvents(), [], 'ordinary walking contact never reports an offence');
+contacts.resetPopulation(origin);
+const slideTarget = contacts.snapshot()[0];
+const slider = { x: slideTarget.x - 2, z: slideTarget.z + 0.4 };
+const sliding = contacts.clipMovement(slider, 4, 0, 0.35);
+assert(sliding.blocked && Math.abs(sliding.dz) > 0.1, 'oblique contact slides around the disc');
+assert(Math.hypot(slider.x + sliding.dx - slideTarget.x, slider.z + sliding.dz - slideTarget.z) >= 0.67,
+  'sliding endpoint remains outside the body');
+const overlapping = { x: slideTarget.x + 0.2, z: slideTarget.z };
+assert(Math.abs(contacts.clipMovement(overlapping, 0.2, 0, 0.35).dx - 0.2) < 1e-8, 'existing overlaps can always separate');
+contacts.clipMovement({ x: 10000, z: 10000 }, 1, 1, 0.35);
+assert.equal(contacts.stats.collisionCandidates, 0, 'distant movement performs zero person predicates');
+contacts.dispose();
+assert.deepEqual(contacts.clipMovement(walker, 1, 0), { dx: 0, dz: 0, blocked: false });
+console.log('PASS swept adult contacts, tangent sliding, overlap escape, temporary yielding, walking attribution and local broad phase');
+
+const expansionSource = await readFile(new URL('../Games/Capital Drive/map-expansion.js', import.meta.url), 'utf8');
+const { applyMapExpansion } = await import(`data:text/javascript;base64,${Buffer.from(expansionSource).toString('base64')}`);
+const north = JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra-north.json', import.meta.url), 'utf8'));
+const sourceBytes = JSON.stringify({ map, north });
+const expanded = applyMapExpansion(map, north);
+const civicAnchor = expanded.landmarks.find(p => p.id === 'canberra-centre');
+const civicScene = new THREE.Scene();
+const busy = createPedestrians(civicScene, expanded, heightAt);
+busy.resetPopulation({ ...civicAnchor, yaw: 0 });
+assert.equal(busy.stats.count, 160, 'Civic doubles the bounded adult pool');
+assert(busy.stats.visible >= 90, 'Civic has a substantially busier immediate pavement population');
+assert(busy.stats.drawCalls <= 8 && busy.stats.detailed <= 20 && busy.stats.triangles < 100000,
+  'Civic retains the same instanced draw and detail caps');
+const expandedRoads = new Map(expanded.roads.map(r => [r.id, r]));
+assert(busy.snapshot().some(p => expandedRoads.get(p.roadId).type === 'living_street'), 'Bunda shared-street edges support walkers');
+for (const p of busy.snapshot()) {
+  const r = expandedRoads.get(p.roadId);
+  assert(Math.min(...r.points.slice(1).map((b, i) => distanceToSegment(p, r.points[i], b))) >= r.width / 2 + 0.5,
+    'even shared-street pedestrians occupy safe edges outside the asphalt');
+  assert(!expanded.buildings.some(b => insideOutline(p, b.points)), 'busy Civic avoids all retained source building outlines');
+}
+const civicPopulation = busy.snapshot();
+busy.resetPopulation(civicAnchor);
+assert.equal(new Set(busy.snapshot().map(p => p.id)).size, 160, 'Civic keeps stable unique IDs');
+busy.resetPopulation(map.spawn);
+assert.equal(busy.stats.count, 80, 'suburbs return to the quieter population without new batches');
+assert.equal(civicScene.children[0].children.length, 8);
+for (let i = 0; i < 11; i++) busy.update(civicAnchor, 0.1);
+assert.equal(busy.stats.count, 160, 'normal travel activates the Civic population without a teleport');
+assert.equal(new Set(busy.snapshot().map(p => p.id)).size, 160, 'adaptive activation never duplicates an ID');
+assert(busy.snapshot().filter(p => p.id >= 80).every(p => Math.hypot(p.x - civicAnchor.x, p.z - civicAnchor.z) > 180),
+  'extra adults enter beyond the visible radius during normal travel');
+busy.resetPopulation(civicAnchor);
+assert.deepEqual(busy.snapshot(), civicPopulation, 'Civic arrivals remain deterministic');
+assert.equal(JSON.stringify({ map, north }), sourceBytes, 'population does not rewrite the geographic sources');
+busy.dispose();
+console.log('PASS Civic160/suburban80 adaptation, source Bunda edges, stable IDs, offscreen activation and eight draw calls');

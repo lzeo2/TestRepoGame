@@ -1,6 +1,9 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 
 const POPULATION = 80;
+const MAX_POPULATION = 160;
+const PERSON_RADIUS = 0.32;
+const PEOPLE_CELL = 8;
 const VIEW_DISTANCE = 180;
 const DETAIL_COUNT = 20;
 const PAVEMENT_LIFT = 0.05;
@@ -65,7 +68,8 @@ function sidewalkPaths(map) {
   }
   const paths = [];
   for (const road of map.roads || []) {
-    if (!road.name || !['residential', 'tertiary'].includes(road.type)) continue;
+    if (!road.name || !['residential', 'tertiary', 'living_street', 'unclassified'].includes(road.type) ||
+      road.sourceTags?.foot === 'no' || road.sourceTags?.access === 'private') continue;
     for (const side of [-1, 1]) {
       let points = [], lengths = [0];
       function finish() {
@@ -114,6 +118,23 @@ function pointAlong(path, distance) {
 
 export function createPedestrians(scene, map, heightAt) {
   const paths = sidewalkPaths(map);
+  const pathCells = new Map();
+  for (const path of paths) {
+    const center = pointAlong(path, path.length / 2);
+    path.center = center;
+    const key = `${Math.floor(center.x / CELL)},${Math.floor(center.z / CELL)}`;
+    if (!pathCells.has(key)) pathCells.set(key, []);
+    pathCells.get(key).push(path);
+  }
+  function nearbyPaths(target, maximum) {
+    const found = [];
+    for (let x = Math.floor((target.x - maximum) / CELL); x <= Math.floor((target.x + maximum) / CELL); x++) {
+      for (let z = Math.floor((target.z - maximum) / CELL); z <= Math.floor((target.z + maximum) / CELL); z++) {
+        found.push(...(pathCells.get(`${x},${z}`) || []));
+      }
+    }
+    return found;
+  }
   let seed = 0x4ca7b23, disposed = false;
   function random() { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; }
   const group = new THREE.Group();
@@ -124,9 +145,9 @@ export function createPedestrians(scene, map, heightAt) {
   const sphere = new THREE.SphereGeometry(1, 6, 4);
   const box = new THREE.BoxGeometry(1, 1, 1);
   const batches = {};
-  for (const [name, geometry, capacity] of [['torso', capsule, POPULATION], ['head', sphere, POPULATION],
-    ['hair', sphere, POPULATION], ['arms', capsule, POPULATION * 2], ['legs', capsule, POPULATION * 2],
-    ['shoes', box, POPULATION * 2], ['hands', sphere, DETAIL_COUNT * 2], ['bags', box, DETAIL_COUNT]]) {
+  for (const [name, geometry, capacity] of [['torso', capsule, MAX_POPULATION], ['head', sphere, MAX_POPULATION],
+    ['hair', sphere, MAX_POPULATION], ['arms', capsule, MAX_POPULATION * 2], ['legs', capsule, MAX_POPULATION * 2],
+    ['shoes', box, MAX_POPULATION * 2], ['hands', sphere, DETAIL_COUNT * 2], ['bags', box, DETAIL_COUNT]]) {
     const mesh = new THREE.InstancedMesh(geometry, material, capacity);
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     mesh.frustumCulled = false;
@@ -135,15 +156,37 @@ export function createPedestrians(scene, map, heightAt) {
     group.add(mesh); batches[name] = mesh;
   }
   const stats = { count: paths.length ? POPULATION : 0, visible: 0, detailed: 0, paths: paths.length,
-    drawCalls: 0, triangles: 0, recycled: 0 };
+    drawCalls: 0, triangles: 0, recycled: 0, capacity: MAX_POPULATION, collisionCandidates: 0, collisionQueries: 0, localPathCandidates: 0 };
   const spawn = map.spawn || { x: 0, z: 0, yaw: 0 };
   const anchors = (map.landmarks || []).filter(p => ['manuka', 'kingston', 'telopea'].includes(p.id));
-  const pool = [], events = [];
+  const civic = (map.landmarks || []).find(p => p.id === 'canberra-centre');
+  const populationAt = target => paths.length ? (civic && Math.hypot(target.x - civic.x, target.z - civic.z) < 650 ? MAX_POPULATION : POPULATION) : 0;
+  const pool = [], residents = [], events = [];
+  const peopleCells = new Map();
+  function rebuildPeopleGrid() {
+    peopleCells.clear();
+    for (const p of pool) {
+      const key = `${Math.floor(p.x / PEOPLE_CELL)},${Math.floor(p.z / PEOPLE_CELL)}`;
+      if (!peopleCells.has(key)) peopleCells.set(key, []);
+      peopleCells.get(key).push(p);
+    }
+  }
+  function peopleIn(minX, maxX, minZ, maxZ) {
+    const found = [];
+    for (let x = Math.floor(minX / PEOPLE_CELL); x <= Math.floor(maxX / PEOPLE_CELL); x++) {
+      for (let z = Math.floor(minZ / PEOPLE_CELL); z <= Math.floor(maxZ / PEOPLE_CELL); z++) {
+        found.push(...(peopleCells.get(`${x},${z}`) || []));
+      }
+    }
+    return found;
+  }
   const emit = event => { if (events.length < 160) events.push(Object.freeze(event)); };
   function choosePath(target, minimum = 0, maximum = 300) {
     const candidates = [];
-    for (const path of paths) {
-      const p = pointAlong(path, path.length / 2), distance = Math.hypot(p.x - target.x, p.z - target.z);
+    const local = nearbyPaths(target, maximum);
+    stats.localPathCandidates = local.length;
+    for (const path of local) {
+      const p = path.center, distance = Math.hypot(p.x - target.x, p.z - target.z);
       if (distance >= minimum && distance < maximum) candidates.push(path);
     }
     if (!candidates.length) return null;
@@ -151,7 +194,7 @@ export function createPedestrians(scene, map, heightAt) {
   }
   function place(person, path, distance = random() * path.length) {
     person.direction = person.initialDirection;
-    person.path = path; person.distance = distance; person.escape = 0; person.stopped = false;
+    person.path = path; person.distance = distance; person.escape = 0; person.stopped = false; person.yieldTimer = 0;
     person.health = 100; person.reaction = 'calm'; person.fear = 0; person.anger = 0;
     person.angerOffender = null;
     person.reactionTimer = 0; person.stun = 0; person.knockdown = 0;
@@ -160,21 +203,24 @@ export function createPedestrians(scene, map, heightAt) {
     Object.assign(person, pointAlong(path, distance));
     person.y = heightAt(person.x, person.z) + PAVEMENT_LIFT;
   }
-  for (let i = 0; i < stats.count; i++) {
-    pool.push({ id: i, direction: random() < 0.5 ? -1 : 1, speed: 0.85 + random() * 0.6,
+  for (let i = 0; i < (paths.length ? MAX_POPULATION : 0); i++) {
+    residents.push({ id: i, direction: random() < 0.5 ? -1 : 1, speed: 0.85 + random() * 0.6,
       phase: random() * Math.PI * 2, height: 0.94 + random() * 0.15,
       shirt: SHIRTS[Math.floor(random() * SHIRTS.length)], trousers: TROUSERS[Math.floor(random() * TROUSERS.length)],
       skin: SKIN[Math.floor(random() * SKIN.length)], hair: HAIR[Math.floor(random() * HAIR.length)], bag: random() < 0.45 });
   }
-  for (const p of pool) p.initialDirection = p.direction;
+  for (const p of residents) p.initialDirection = p.direction;
   function resetPopulation(player) {
     if (disposed) return;
+    pool.length = 0;
+    pool.push(...residents.slice(0, populationAt(player)));
+    stats.count = pool.length;
     // Explicit teleports need a fresh local street population immediately.
     // Position-derived seed makes repeating the same arrival reproducible.
     seed = (0x4ca7b23 ^ Math.imul(Math.round(player.x * 10), 73856093) ^ Math.imul(Math.round(player.z * 10), 19349663)) >>> 0;
     const fx = -Math.sin(player.yaw || 0), fz = -Math.cos(player.yaw || 0);
     const slots = [], ahead = [], occupied = [];
-    for (const path of paths) {
+    for (const path of nearbyPaths(player, 400)) {
       for (let j = 0; j < path.points.length; j += 2) {
         const p = path.points[j], dx = p.x - player.x, dz = p.z - player.z;
         const gap = Math.hypot(dx, dz);
@@ -193,13 +239,13 @@ export function createPedestrians(scene, map, heightAt) {
         ahead.sort((a, b) => Math.abs(a.forward - desired) + a.lateral * 0.25 - Math.abs(b.forward - desired) - b.lateral * 0.25);
         slot = ahead.find(separated);
       }
-      if (!slot && i < 56 && slots.length) {
+      if (!slot && i < Math.ceil(pool.length * 0.85) && slots.length) {
         for (let attempt = 0; attempt < 40; attempt++) {
           const candidate = slots[Math.floor(random() * slots.length)];
           if (separated(candidate)) { slot = candidate; break; }
         }
       }
-      const target = i < 56 || !anchors.length ? player : anchors[(i - 56) % anchors.length];
+      const target = i < Math.ceil(pool.length * 0.85) || !anchors.length ? player : anchors[i % anchors.length];
       const path = slot?.path || choosePath(target, 0, 250) || choosePath(target, 0, 1000) || paths[i % paths.length];
       const distance = slot?.distance ?? random() * path.length;
       place(pool[i], path, distance);
@@ -207,7 +253,7 @@ export function createPedestrians(scene, map, heightAt) {
       occupied.push(pool[i]);
     }
     recycleTimer = 0; events.length = 0;
-    render(player);
+    rebuildPeopleGrid(); render(player);
   }
   const transform = new THREE.Object3D(), color = new THREE.Color(), rootRotation = new THREE.Quaternion();
   const axis = new THREE.Vector3(0, 1, 0), limbRotation = new THREE.Quaternion(), limbAxis = new THREE.Vector3(1, 0, 0);
@@ -256,6 +302,47 @@ export function createPedestrians(scene, map, heightAt) {
       if (mesh.count) { stats.drawCalls++; stats.triangles += mesh.count * (mesh.geometry.index.count / 3); }
     }
   }
+  function clipMovement(actor, dx, dz, radius = 0.35) {
+    if (disposed || ![actor?.x, actor?.z, dx, dz, radius].every(Number.isFinite)) return { dx: 0, dz: 0, blocked: false };
+    radius = Math.max(0, Math.min(4, radius));
+    const reach = radius + PERSON_RADIUS + 0.02;
+    // A slide can leave the original segment bounds but never travel farther
+    // than the requested step. Include that envelope in the local broad phase.
+    const envelope = reach + Math.hypot(dx, dz);
+    const candidates = peopleIn(actor.x - envelope, actor.x + envelope, actor.z - envelope, actor.z + envelope);
+    stats.collisionQueries++; stats.collisionCandidates = candidates.length;
+    let x = actor.x, z = actor.z, remainingX = dx, remainingZ = dz, blocked = false;
+    // Swept circles prevent tunnelling; remove only the inward component to slide.
+    for (let iteration = 0; iteration < 3; iteration++) {
+      let first = 1, hit = null;
+      const length2 = remainingX * remainingX + remainingZ * remainingZ;
+      if (length2 < 1e-12) break;
+      for (const p of candidates) {
+        if (p.id === actor.id && actor.isPedestrian) continue;
+        const ox = x - p.x, oz = z - p.z, dot = ox * remainingX + oz * remainingZ;
+        const c = ox * ox + oz * oz - reach * reach;
+        if (dot >= 0) continue; // An existing overlap can always move apart.
+        const discriminant = dot * dot - length2 * c;
+        if (discriminant < 0) continue;
+        const t = c <= 0 ? 0 : (-dot - Math.sqrt(discriminant)) / length2;
+        if (t >= 0 && t <= first) { first = t; hit = p; }
+      }
+      if (!hit) { x += remainingX; z += remainingZ; break; }
+      blocked = true;
+      const t = Math.max(0, first - 0.001 / Math.sqrt(length2));
+      x += remainingX * t; z += remainingZ * t;
+      remainingX *= 1 - t; remainingZ *= 1 - t;
+      const nx = x - hit.x, nz = z - hit.z, n = Math.hypot(nx, nz) || 1;
+      const inward = (remainingX * nx + remainingZ * nz) / n;
+      if (inward < 0) { remainingX -= nx / n * inward; remainingZ -= nz / n * inward; }
+      hit.yieldTimer = 1.4;
+      const before = pointAlong(hit.path, Math.max(0, hit.distance - 0.5));
+      const after = pointAlong(hit.path, Math.min(hit.path.length, hit.distance + 0.5));
+      const away = (after.x - before.x) * (hit.x - actor.x) + (after.z - before.z) * (hit.z - actor.z);
+      hit.direction = away === 0 ? hit.initialDirection : away > 0 ? 1 : -1;
+    }
+    return { dx: x - actor.x, dz: z - actor.z, blocked };
+  }
   function descriptor(p) { return Object.freeze({ id: p.id, x: p.x, z: p.z, health: p.health, reaction: p.reaction }); }
   function react(p, source, kind, hit = false, report = true) {
     const gun = ['pistol', 'gunshot', 'firearm', 'shot', 'fire'].includes(kind);
@@ -277,7 +364,7 @@ export function createPedestrians(scene, map, heightAt) {
     if (disposed || !Number.isFinite(x) || !Number.isFinite(z)) return 0;
     const reach = Number.isFinite(radius) ? Math.max(0, Math.min(100, radius)) : 28;
     let count = 0;
-    for (const p of pool) {
+    for (const p of peopleIn(x - reach, x + reach, z - reach, z + reach)) {
       if (p.knockdown > 0 || Math.hypot(p.x - x, p.z - z) > reach ||
         (hasLineOfSight && !hasLineOfSight({ x, z }, p))) continue;
       react(p, { x, z, offenderId }, kind); count++;
@@ -289,7 +376,7 @@ export function createPedestrians(scene, map, heightAt) {
     if (disposed || ![x, z, yaw, range, damage].every(Number.isFinite)) return { hits: 0, people };
     const reach = Math.max(0, Math.min(100, range)), power = Math.max(0, Math.min(100, damage));
     const gun = ['pistol', 'gunshot', 'firearm', 'shot', 'fire'].includes(kind);
-    const candidates = pool.map(p => ({ p, distance: Math.hypot(p.x - x, p.z - z) }))
+    const candidates = peopleIn(x - reach, x + reach, z - reach, z + reach).map(p => ({ p, distance: Math.hypot(p.x - x, p.z - z) }))
       .filter(({ p, distance }) => {
         const forward = (p.x - x) * -Math.sin(yaw) + (p.z - z) * -Math.cos(yaw);
         const lateral = Math.abs((p.x - x) * Math.cos(yaw) - (p.z - z) * Math.sin(yaw));
@@ -314,7 +401,7 @@ export function createPedestrians(scene, map, heightAt) {
     dt = Math.min(dt, 0.1); recycleTimer += dt;
     for (const p of pool) {
       const gap = Math.hypot(p.x - player.x, p.z - player.z);
-      for (const key of ['drivingReportCooldown', 'hitCooldown', 'witnessCooldown', 'retaliationCooldown', 'stun', 'knockdown', 'reactionTimer']) p[key] = Math.max(0, p[key] - dt);
+      for (const key of ['drivingReportCooldown', 'hitCooldown', 'witnessCooldown', 'retaliationCooldown', 'stun', 'knockdown', 'reactionTimer', 'yieldTimer']) p[key] = Math.max(0, p[key] - dt);
       if (p.reactionTimer <= 0 && p.knockdown <= 0 && p.stun <= 0) {
         p.reaction = 'calm'; p.fear = 0; p.anger = 0; p.angerOffender = null; p.health = Math.min(100, p.health + dt * 20);
       } else if (p.knockdown > 0) p.reaction = 'knockdown';
@@ -325,7 +412,7 @@ export function createPedestrians(scene, map, heightAt) {
       const forward = (player.speed < 0 ? -1 : 1);
       const fx = -Math.sin(player.yaw || 0) * forward, fz = -Math.cos(player.yaw || 0) * forward;
       const along = dx * fx + dz * fz, lateral = Math.abs(dx * fz - dz * fx);
-      const seen = !hasLineOfSight || hasLineOfSight(player, p);
+      const seen = gap < 9 && (!hasLineOfSight || hasLineOfSight(player, p));
       const impact = speed > 4 && gap < 1.4 && seen;
       const dangerous = speed > 16 && gap < 3.6 && along > -1.5 && lateral < 2.5 && seen;
       p.recklessExposure = dangerous ? Math.min(0.6, p.recklessExposure + dt) : 0;
@@ -347,11 +434,11 @@ export function createPedestrians(scene, map, heightAt) {
         p.retaliationCooldown = 2.2;
       }
       const caution = Math.min(11, 5 + Math.abs(player.speed || 0) * 0.12);
-      p.stopped = p.knockdown > 0 || p.stun > 0 || p.reaction === 'angry' || (p.reaction === 'calm' && gap < caution) || traffic.some(car => Math.hypot(car.x - p.x, car.z - p.z) < 4.5);
+      p.stopped = p.knockdown > 0 || p.stun > 0 || p.reaction === 'angry' || (p.reaction === 'calm' && p.yieldTimer <= 0 && gap < caution) || traffic.some(car => Math.hypot(car.x - p.x, car.z - p.z) < 4.5);
       const escape = gap < 7 ? 0.45 : 0;
       p.escape += Math.max(-dt * 0.6, Math.min(dt * 0.9, escape - p.escape));
       if (!p.stopped) {
-        p.distance += p.direction * p.speed * (p.reaction === 'flee' ? 2.7 : 1) * dt;
+        p.distance += p.direction * p.speed * (p.reaction === 'flee' ? 2.7 : p.yieldTimer > 0 ? 2.2 : 1) * dt;
         if (p.distance > p.path.length) { p.distance = p.path.length; p.direction = -1; }
         if (p.distance < 0) { p.distance = 0; p.direction = 1; }
         p.phase += dt * p.speed * (p.reaction === 'flee' ? 9 : 5.2);
@@ -362,6 +449,24 @@ export function createPedestrians(scene, map, heightAt) {
     }
     if (recycleTimer >= 1) {
       recycleTimer = 0;
+      const desired = populationAt(player);
+      if (pool.length < desired) {
+        const activeIds = new Set(pool.map(p => p.id));
+        for (const person of residents) {
+          if (pool.length >= desired) break;
+          if (activeIds.has(person.id)) continue;
+          const path = choosePath(player, 210, 410);
+          if (!path) break;
+          const distance = random() * path.length, candidate = pointAlong(path, distance);
+          if (Math.hypot(candidate.x - player.x, candidate.z - player.z) <= 200) continue;
+          place(person, path, distance); pool.push(person);
+        }
+      } else if (pool.length > desired) {
+        for (let i = pool.length - 1; i >= desired; i--) {
+          if (Math.hypot(pool[i].x - player.x, pool[i].z - player.z) > VIEW_DISTANCE) pool.splice(i, 1);
+        }
+      }
+      stats.count = pool.length;
       for (const p of pool) {
         if (Math.hypot(p.x - player.x, p.z - player.z) <= 550) continue;
         const path = choosePath(player, 210, 410);
@@ -371,19 +476,19 @@ export function createPedestrians(scene, map, heightAt) {
         if (gap > 200 && gap < 460) { place(p, path, distance); stats.recycled++; }
       }
     }
-    render(player);
+    rebuildPeopleGrid(); render(player);
   }
   resetPopulation(spawn);
-  return { update, resetPopulation, stats, alert, strike,
+  return { update, resetPopulation, clipMovement, stats, alert, strike,
     drainEvents() { return events.splice(0); },
     snapshot() { return Object.freeze(pool.map(p => Object.freeze({ id: p.id, x: p.x, y: p.y, z: p.z,
       yaw: p.yaw + (p.direction < 0 ? Math.PI : 0), roadId: p.path.roadId, roadName: p.path.name,
-      sidewalkOffset: p.path.offset, escape: p.escape, stopped: p.stopped, phase: p.phase,
+      sidewalkOffset: p.path.offset, yieldTimer: p.yieldTimer, escape: p.escape, stopped: p.stopped, phase: p.phase,
       health: p.health, reaction: p.reaction, fear: p.fear, anger: p.anger,
       stun: p.stun, knockdown: p.knockdown, reactionTimer: p.reactionTimer }))); },
     dispose() {
       if (disposed) return;
-      disposed = true; events.length = 0; scene.remove(group); capsule.dispose(); sphere.dispose(); box.dispose(); material.dispose();
+      disposed = true; events.length = 0; peopleCells.clear(); pathCells.clear(); scene.remove(group); capsule.dispose(); sphere.dispose(); box.dispose(); material.dispose();
       for (const mesh of Object.values(batches)) mesh.dispose();
     } };
 }
