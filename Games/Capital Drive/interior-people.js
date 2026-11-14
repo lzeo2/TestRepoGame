@@ -54,8 +54,16 @@ export function createInteriorPeople() {
     const furniture = plan.furniture || [];
     if (plan.variant === 'noodles') {
       for (const chair of furniture.filter(f=>f.kind==='padded-chair'||f.kind==='stool')) add('diner',chair,{seat:chair,yaw:chair.yaw,gesture:'eat'});
-      pocket('cook',-1,10,false,'prepare');
-      pocket('cashier',1.8,9.95,false,'serve');
+      const pass = furniture.find(f=>f.kind==='kitchen-pass');
+      const prep = furniture.find(f=>f.kind==='prep-bench');
+      const station = furniture.find(f=>f.kind==='noodle-station');
+      if (pass && prep && station) {
+        const front = local(plan.origin,pass), back = local(plan.origin,station);
+        const staffX = (front.x-pass.width/2+back.x+station.width/2)/2;
+        const staffYaw = plan.origin.yaw+Math.PI/2;
+        add('cashier',world(plan.origin,staffX,local(plan.origin,plan.counter || station).z),{yaw:staffYaw,gesture:'serve'});
+        add('cook',world(plan.origin,staffX,local(plan.origin,prep).z+prep.depth*.16),{yaw:staffYaw,gesture:'prepare'});
+      }
     } else if (plan.type === 'house') {
       const sofa = furniture.find(f=>f.kind==='sofa');
       if (sofa) add('resident',sofa,{seat:sofa,yaw:plan.origin.yaw+Math.PI,gesture:'rest'});

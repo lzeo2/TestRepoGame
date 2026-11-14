@@ -4,18 +4,18 @@ const read=p=>readFile(new URL(p,import.meta.url),'utf8');
 const url=s=>`data:text/javascript;base64,${Buffer.from(s).toString('base64')}`;
 const {createInteriorPeople}=await import(url(await read('../Games/Capital Drive/interior-people.js')));
 const {createInteriors}=await import(url(await read('../Games/Capital Drive/interiors.js')));
-function make(type,variant,yaw=.7) {
+function make(type,variant,yaw=.7,width=8) {
   const building={id:'b',type:type==='house'?'house':'retail',height:4,points:[[-12,0],[12,0],[12,30],[-12,30]]};
   const options={heightAt:()=>3};
   const map={buildings:[building],interiorEntries:[{buildingId:'b',x:0,z:0,nx:Math.sin(yaw),nz:Math.cos(yaw)}]};
-  if(type==='shop') options.stores=[{id:'s',buildingId:'b',name:'Fictional shop',frontage:{x:0,z:0,yaw,width:8},...(variant?{interiorType:'noodle-shop'}:{})}];
+  if(type==='shop') options.stores=[{id:'s',buildingId:'b',name:'Fictional shop',frontage:{x:0,z:0,yaw,width},...(variant?{interiorType:'noodle-shop'}:{})}];
   if(type==='mall'||type==='gym') options.publicEntries=[{id:'public',buildingId:'b',x:0,z:0,yaw,type}];
   const interiors=createInteriors(map,options),entry=interiors.entries[0];
   assert(entry,`${type} fixture entry`);
   const actor={x:entry.x-Math.sin(yaw),z:entry.z-Math.cos(yaw),y:3,yaw};
   return interiors.enter(entry,actor);
 }
-const plans=[make('house'),make('shop'),make('shop','noodles'),make('mall'),make('gym')];
+const plans=[make('house'),make('shop'),make('shop','noodles'),make('shop','noodles',-1.2,6.2),make('mall'),make('gym')];
 const pool=createInteriorPeople();assert.equal(pool.stats.count,0);
 for(const plan of plans) {
   const source=structuredClone(plan);pool.load(plan);const before=pool.snapshot();
@@ -23,6 +23,20 @@ for(const plan of plans) {
   if(plan.variant==='noodles') {
     for(const role of ['cook','cashier','diner']) assert(before.some(p=>p.role===role),`restaurant ${role}`);
     assert(before.filter(p=>p.seated).length>=3);
+    const pass=plan.furniture.find(f=>f.kind==='kitchen-pass');
+    for(const p of before) {
+      const c=Math.cos(plan.origin.yaw),s=Math.sin(plan.origin.yaw),localX=c*(p.x-plan.origin.x)-s*(p.z-plan.origin.z);
+      if(p.role==='diner') assert(localX>.96,'all dining is right of the central aisle');
+      else {
+        const passX=c*(pass.x-plan.origin.x)-s*(pass.z-plan.origin.z);
+        assert(localX<passX-pass.width/2-p.radius,'staff stay behind the left service pass');
+        assert(Math.abs(p.yaw-plan.origin.yaw-Math.PI/2)<1e-6,'staff face the public aisle');
+        for(const box of plan.furniture) {
+          const bc=Math.cos(box.yaw),bs=Math.sin(box.yaw),x=bc*(p.x-box.x)-bs*(p.z-box.z),z=bs*(p.x-box.x)+bc*(p.z-box.z);
+          assert(Math.hypot(Math.max(0,Math.abs(x)-box.width/2),Math.max(0,Math.abs(z)-box.depth/2))>=p.radius,'staff do not overlap kitchen solids');
+        }
+      }
+    }
   }
   if(plan.type==='gym') assert(before.some(p=>p.role==='trainer')&&before.some(p=>p.role==='exerciser'));
   for(let tick=0;tick<200;tick++) {
