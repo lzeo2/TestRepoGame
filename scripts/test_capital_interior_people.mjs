@@ -87,7 +87,13 @@ assert.equal(pool.nearestDialogue(actor),null,'dialogue requires a live visibili
 assert.equal(pool.startDialogue('missing',context).ok,false);
 assert.equal(pool.encounter.serial,0);
 const dialogue=pool.startDialogue(guest.id,context);assert(dialogue.ok&&Object.isFrozen(dialogue.dialogue));
-assert.equal(pool.startDialogue(guest.id,context).ok,false,'once per visit');
+assert(pool.startDialogue(guest.id,context).ok,'reopening resumes the same pending dialogue');
+assert.equal(pool.encounter.serial,0,'pending resume never completes an encounter');assert.equal(pool.drainEvents().length,0);
+assert.equal(pool.nearestDialogue(actor,{hasLineOfSight:seen}).id,guest.id);
+assert.equal(pool.nearestDialogue(actor,{hasLineOfSight:blocked}),null);
+assert.equal(pool.startDialogue(guest.id,{actor,hasLineOfSight:blocked}).ok,false,'occluded pending dialogue cannot resume');
+assert.equal(pool.startDialogue(guest.id,{actor:{x:0,z:-100},hasLineOfSight:seen}).ok,false,'remote pending dialogue cannot resume');
+assert.equal(pool.encounter.phase,'dialogue');assert.equal(pool.encounter.serial,0);
 assert.equal(pool.respondDialogue(guest.id,'invalid',context).ok,false);
 assert.equal(pool.respondDialogue(guest.id,'apologise',{actor,hasLineOfSight:blocked}).ok,false);
 assert(pool.respondDialogue(guest.id,'apologise',context).ok);
@@ -195,5 +201,27 @@ for(const plan of plans) {
   view.clear();assert.equal(scene.children.length,0);assert.equal(view.stats.geometryCount,0);
 }
 assert.equal(disposedGeometry,plans.length*6);assert.equal(disposedMaterial,plans.length);assert.equal(disposedMesh,plans.length*6);
+// Hero changes recolour only the temporary participant, including changes made before a load.
+const {appearanceForPerson}=await import(modelURL),gym=plans.find(p=>p.type==='gym');
+assert(view.setPlayerAppearance('player:student'));view.load(gym);pool.load(gym);
+const live=pool.snapshot(),station=gym.activities.find(s=>s.kind==='curls'),activity={active:true,kind:'curls',exercisePose:'curls',station,lift:.5};
+view.update(live,0,{activity});
+const shirts=scene.children[0].children[0],geometry=shirts.geometry,buffer=shirts.instanceMatrix.array,colors=shirts.instanceColor.array;
+const npcColors=Array.from(colors.slice(0,live.length*3));
+function shirtMatches(id) {
+  const actual=new THREE.Color();shirts.getColorAt(live.length,actual);const expected=new THREE.Color(appearanceForPerson(id).shirt);
+  assert(Math.abs(actual.r-expected.r)+Math.abs(actual.g-expected.g)+Math.abs(actual.b-expected.b)<1e-6,`${id} workout shirt matches shared hero palette`);
+}
+shirtMatches('player:student');
+for(const id of ['player:corporate','player:basement','player']) {
+  assert(view.setPlayerAppearance(id));view.update(live,0,{activity});shirtMatches(id);
+  assert.equal(shirts.geometry,geometry);assert.equal(shirts.instanceMatrix.array,buffer);assert.equal(shirts.instanceColor.array,colors);
+  assert.deepEqual(Array.from(colors.slice(0,live.length*3)),npcColors,'NPC colours keep their identities');
+}
+assert.equal(view.setPlayerAppearance('unknown'),false);view.update(live,0,{activity});shirtMatches('player');
+assert(view.setPlayerAppearance('player:basement'));view.clear();view.load(gym);view.update(live,0,{activity});
+const retained=new THREE.Color();scene.children[0].children[0].getColorAt(live.length,retained);const wanted=new THREE.Color(appearanceForPerson('player:basement').shirt);
+assert(Math.abs(retained.r-wanted.r)+Math.abs(retained.g-wanted.g)+Math.abs(retained.b-wanted.b)<1e-6,'hero preset survives room lifecycle');
+view.clear();
 view.dispose();view.dispose();view.load(plans[0]);view.update([],1);assert(view.stats.disposed);assert.equal(scene.children.length,0);
 console.log('PASS active adult roles, real booth/window anchors, authoritative peaceful/hostile encounters, live LOS/health/radius/cooldown gates, swept contacts, pause, shared rounded parts, 36 moving noodle segments, six lazy draws, four equipment-linked workout poses, emitted NPC punch poses and exact disposal');

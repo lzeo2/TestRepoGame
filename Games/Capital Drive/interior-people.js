@@ -142,12 +142,12 @@ export function createInteriorPeople() {
       Math.hypot(actor.x-p.x,actor.z-p.z)<=2.1 && hasLineOfSight(actor,p));
   }
   function nearestDialogue(actor,{hasLineOfSight}={}) {
-    if(encounterState?.phase!=='idle') return null;
+    if(!['idle','dialogue'].includes(encounterState?.phase)) return null;
     const p=dialoguePerson(encounterState.personId,actor,hasLineOfSight);
     return p ? Object.freeze({id:p.id,character:p.character,label:'Talk to the booth guest',x:p.x,z:p.z,radius:2.1}) : null;
   }
   function startDialogue(id,{actor,hasLineOfSight}={}) {
-    if(encounterState?.phase!=='idle' || !dialoguePerson(id,actor,hasLineOfSight)) return Object.freeze({ok:false,reason:'Move close to the booth guest.'});
+    if(!['idle','dialogue'].includes(encounterState?.phase) || !dialoguePerson(id,actor,hasLineOfSight)) return Object.freeze({ok:false,reason:'Move close to the booth guest.'});
     encounterState.phase='dialogue';
     return Object.freeze({ok:true,dialogue:Object.freeze({id,title:'Booth guest',line:'You left your bag on the floor! Pick it up! Want to argue about it?',
       choices:Object.freeze([Object.freeze({id:'apologise',label:'Sorry, I will move it.'}),Object.freeze({id:'confront',label:'Back off.'})])})});

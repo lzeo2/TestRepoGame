@@ -12,6 +12,11 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
   const body = new THREE.Object3D(), part = new THREE.Object3D(), matrix = new THREE.Matrix4(), color = new THREE.Color();
   let count = 0, draws = 0, exerciseFocus = null;
   const appearances=new Map();
+  let playerAppearance=appearanceForPerson('player');
+  function setPlayerAppearance(personId) {
+    if(disposed || !['player','player:student','player:corporate','player:basement'].includes(personId))return false;
+    playerAppearance=appearanceForPerson(personId);appearances.delete('player');return true;
+  }
   function geometry(parts) {
     const sources = parts.map(([size,position,tint=0xffffff,shape='box']) => {
       const g = shape==='sphere' ? new THREE.SphereGeometry(1,6,4) : shape==='capsule' ? new THREE.CapsuleGeometry(1,1,2,5) : new THREE.BoxGeometry(1,1,1);
@@ -49,7 +54,7 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
   }
   function person(p,lying=false) {
     let appearance=appearances.get(p.id);
-    if(!appearance){appearance=appearanceForPerson(p.id||'player');if(appearances.size<LIMIT+1)appearances.set(p.id,appearance);}
+    if(!appearance){appearance=p.id==='player'?playerAppearance:appearanceForPerson(p.id||'player');if(appearances.size<LIMIT+1)appearances.set(p.id,appearance);}
     const skin=appearance.skin,shirt=appearance.shirt;
     const phase=finite(p.phase),coerced=p.health>0 && p.crimePhase,down=finite(p.knockdown)>0 || p.health===0;
     const moving=!coerced && finite(p.speed)>0,gesture=p.gesture || 'idle',seated=!coerced && !down && Boolean(p.seated);
@@ -193,6 +198,6 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
     if(root) {scene.remove(root);for(const mesh of meshes){mesh.dispose();mesh.geometry.dispose();}material.dispose();}
     root=null;plan=null;material=null;meshes=[];count=draws=0;appearances.clear();exerciseFocus=null;
   }
-  return {load,update,clear,get exerciseFocus(){return exerciseFocus;},get stats(){return Object.freeze({active:plan?.id || null,people:count,limit:LIMIT,drawCalls:draws,geometryCount:meshes.length,materialCount:material?1:0,disposed,accessoryCapacity:ACCESSORY_CAPACITY,noodleSegmentLimit:NOODLE_SEGMENTS,sharedModel:true,exerciseFocus});},
+  return {load,update,clear,setPlayerAppearance,get exerciseFocus(){return exerciseFocus;},get stats(){return Object.freeze({active:plan?.id || null,people:count,limit:LIMIT,drawCalls:draws,geometryCount:meshes.length,materialCount:material?1:0,disposed,accessoryCapacity:ACCESSORY_CAPACITY,noodleSegmentLimit:NOODLE_SEGMENTS,sharedModel:true,exerciseFocus});},
     dispose(){if(disposed)return;clear();disposed=true;}};
 }
