@@ -1,6 +1,6 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { createTerrainSampler } from './terrain.js';
-import { roadProfile } from './road-network.js';
+import { roadProfile, roadMarkingOffsets } from './road-network.js';
 import { retailDistrict } from './districts.js';
 import { suburbCharacter } from './suburb-character.js';
 
@@ -370,8 +370,8 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
     const pathWidth = s.profile.pavementWidth;
     const kerbWidth = s.profile.hasKerb ? 0.18 : 0;
     if (pathWidth > 0) {
-      ribbon(s.a, s.b, -half - kerbWidth - pathWidth, -half - kerbWidth, residentialPath ? 0xb7b59c : COLORS.path, 0.045);
-      ribbon(s.a, s.b, half + kerbWidth, half + kerbWidth + pathWidth, COLORS.path, 0.045);
+      if (s.profile.sidewalkLeft) ribbon(s.a, s.b, -half - kerbWidth - pathWidth, -half - kerbWidth, residentialPath ? 0xb7b59c : COLORS.path, 0.045);
+      if (s.profile.sidewalkRight) ribbon(s.a, s.b, half + kerbWidth, half + kerbWidth + pathWidth, COLORS.path, 0.045);
     }
     if (kerbWidth) {
       ribbon(s.a, s.b, -half - kerbWidth, -half, COLORS.kerb, 0.065);
@@ -386,9 +386,11 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
       ribbon(s.a, s.b, 0.09, 0.2, COLORS.paint, 0.105);
     } else if (marked) {
       const dx = (s.b[0] - s.a[0]) / s.length, dz = (s.b[1] - s.a[1]) / s.length;
-      for (let d = 8; d < s.length - 6; d += 12) {
-        ribbon([s.a[0] + dx * d, s.a[1] + dz * d], [s.a[0] + dx * Math.min(d + 3, s.length - 6), s.a[1] + dz * Math.min(d + 3, s.length - 6)], -0.065, 0.065, COLORS.paint, 0.105);
+      const offsets = roadMarkingOffsets(s.road, s.profile);
+      for (const offset of offsets) for (let d = 8; d < s.length - 6; d += 12) {
+        ribbon([s.a[0] + dx * d, s.a[1] + dz * d], [s.a[0] + dx * Math.min(d + 3, s.length - 6), s.a[1] + dz * Math.min(d + 3, s.length - 6)], offset - .065, offset + .065, COLORS.paint, 0.105);
       }
+      if (s.profile.major) for (const side of [-1, 1]) ribbon(s.a, s.b, side * (half - .25) - .06, side * (half - .25) + .06, COLORS.paint, .105);
     }
     counters.roadSegments++;
   }
@@ -472,7 +474,7 @@ export function createWorldView(scene, map, { lowGraphics = false } = {}) {
 
     const signedArea = points.reduce((sum, p, i) => { const q = points[(i + 1) % points.length]; return sum + p[0] * q[1] - q[0] * p[1]; }, 0);
     const reverse = signedArea > 0;
-    const character = suburbCharacter(map, x, z);
+    const character = suburbCharacter(map, x, z, building);
     const apartment = /apartments/.test(building.type || '');
     const walls = isSchool ? 0xe0d2b4 : lowShop ? 0xd6c9ae : building.color || (residential ? character.walls[index % character.walls.length] : 0xc4bca9);
     const roofColor = isSchool ? 0x9f5943 : residential ? character.roofs[index % character.roofs.length] : 0x777d79;
