@@ -337,7 +337,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       box(furniture, 'lockers', 5.5, 3.4, .65, 3.4, 1.95, 0xa3aba2);
       // Stylised fictional prop and simple game-key task, without device details.
       box(furniture, 'alarm-panel', 1.43, 9, .18, .48, .48, 0xb8493f, 1.05);
-      station('alarm', 'alarm', 'Fictional school alarm', .5, 9, Math.PI / 2, 1.25);
+      station('alarm', 'alarm', 'School fire alarm', .5, 9, Math.PI / 2, 1.25);
     } else if (entry.type === 'gym') {
       rooms.push({ kind: 'gym-floor', ...worldPoint(origin, 0, depth / 2), width, depth });
       box(furniture, 'counter', 3.8, 3.1, 2.2, 0.8, 1.05, 0xaaa18a);

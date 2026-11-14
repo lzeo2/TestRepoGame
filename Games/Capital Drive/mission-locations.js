@@ -101,7 +101,7 @@ export function createMissionGuide(entries, storyHomes = {}) {
     }
     if (!point(plan.counter)) return fallback();
     const instruction = goal.kind === 'robbery' ?
-      'Threaten the fictional employee, then press E to demand the till handover.' :
+      'Threaten the employee, then press E to demand the till handover.' :
       `Reach the service counter in ${location}.`;
     return result(instruction, location, plan.counter, true, entry.id);
   }
