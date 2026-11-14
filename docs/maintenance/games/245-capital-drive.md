@@ -5,10 +5,12 @@
 ## Identity and status
 
 Operator-authorized original Canberra open-world preview, catalog 245, static entry
-`Games/Capital Drive/index.html`. Three modes share one runtime: **Campaign** has six ordered original missions, **Street Life** has
-jobs, cash, a garage, foot combat and police; **Free roam** has all cars, local
-address search and map teleporting. The mapped area covers the inner south and a source-derived lake/Civic corridor.
-Whole-city coverage and cinematic storytelling remain future work. No GTA code,
+`Games/Capital Drive/index.html`. Three modes share one runtime. **Campaign** has
+three fictional adult protagonists, two opening missions each, a shared Kingston
+meeting and the retained six courier chapters. **Street Life** has jobs, cash, a
+garage, foot combat and police; **Free roam** has all cars, local address search
+and map teleporting. The mapped area covers the inner south and a source-derived
+lake/Civic corridor. Airport and whole-city coverage remain later work. No GTA code,
 artwork or branded vehicle assets are used.
 
 ## Implementation map
@@ -29,7 +31,8 @@ artwork or branded vehicle assets are used.
   condition-preserving retrieval, food/gun/ammo purchases, playable fitness/paid work, timed robbery,
   cooldowns and strict legacy-compatible career-save validation.
 - `street-ui.js`: jobs/garage/shops, five-star HUD and recovery feedback; no clock
-  or storage owner. `services.js` combines twenty-six mapped parody stores with fictional gym/arms sites.
+  or storage owner. `services.js` combines twenty-six mapped parody stores, the
+  retained fictional Kingston gym/arms sites and three source-backed parody gyms.
   `stores.js`/`data/stores.json` pin source nodes and estimated public frontages.
   `storefronts-view.js` presents twenty generic-capable facades plus a separately managed noodle restaurant in two batches.
 - `actor-view.js`: original articulated adult, generic patrol cars, pooled brief
@@ -38,7 +41,8 @@ artwork or branded vehicle assets are used.
   presents two small generic activity signs. `traffic-view.js` instances the
   six traffic models in at most19draws rather than up to320separate draws. Supplied dt and bounded resources.
 - `person-model.js`: shared rounded adult dimensions/geometry and deterministic
-  appearances for street people, occupants, transit, the player and police.
+  appearances for street people, occupants, transit, the player and police. The
+  selected Kit/Rowan/Milo palette follows foot, driving, passenger and workout poses.
   Vehicle claims preserve the person's identity independently of exit event IDs.
 - `world-view.js`, `neighbourhood.js`: bilinear terrain, road/footpath ribbons,
   chunked architecture, 9,000 trees, 4,200 frontages and clipped retail paving.
@@ -46,9 +50,22 @@ artwork or branded vehicle assets are used.
   House, Old Parliament House, Manuka Oval, Kingston Powerhouse and Manuka Pool; exact source
   replacement IDs, near/distant LOD and local procedural architecture.
 - `road-network.js`/`data/road-profiles.json`: source-tagged service/access widths
-  and cached legal directed routes; shared swept external vehicle collision.
+  and lane/sidewalk semantics, cached legal directed routes and shared swept
+  external vehicle collision. `highway-barriers.js`/view use 658 source-derived
+  ground strips, including 49 by Hindmarsh; elevated evidence is excluded.
 - `buses.js`/`bus-view.js`: two original unbranded buses, fictional ambient
-  circuits on the actual public-road graph and bounded rendering.
+  circuits on the actual public-road graph, physical stops at sourced stop
+  refs2255/2376, seven-second active dwell and bounded rendering. No ACT timetable.
+- `street-assets.js`/view: 388 deduplicated source bus-stop facilities, 13 fuel
+  sites and 24 fitness venues. One instanced furniture draw; at most80stops and
+  12petrol sites nearby. Only three fitness venues become additional gym services.
+- `wildlife-view.js`: twelve original reserve-bounded kangaroos with near-only
+  animation in one draw. `campus-view.js` adds estimated Telopea landscaping;
+  `local-details-view.js` adds original local-history notices. Source facts and
+  placement estimates differ.
+- `campaign.js`, `character-start.js`, `campaign-scenes.js`/view: three distinct
+  introductions, collision-checked initial starts, shared meeting, strict v2
+  campaign progress and authoritative work/presentation/encounter serials.
 - `districts.js`: exact source Manuka retail polygon, shared appearance classifier.
 - `pedestrians.js`:36 suburban /64 nearby Civic instanced fictional adults, safe sidewalk walking,
   panic/anger/knockdown/recovery swept player contacts/yielding and causally attributed witness events.
@@ -61,8 +78,11 @@ artwork or branded vehicle assets are used.
 
 ## Gameplay and controls
 
-Choose Campaign, Street Life or Free roam, then start beside Telopea Park School. WASD or
-arrows drive/walk, Shift boosts/sprints, Space handbrakes/jumps. **E** stops then
+Choose Campaign, Street Life or Free roam. Campaign initially places Kit Vale
+(18, Telopea student), Rowan Pike (29, Civic analyst) or Milo Finch (26, basement
+regular) at a checked character-specific approach; changing character mid-session
+does not teleport. Street Life/Free roam retain the mapped Crescent start. WASD
+or arrows drive/walk, Shift boosts/sprints, Space handbrakes/jumps. **E** stops then
 exits a moving car, enters a nearby empty car, or starts taking an occupied car.
 Unfamiliar parked and occupied cars require an eight-key timed unlock sequence.
 Occupied drivers must stop first; remain close and visible throughout. Cars you
@@ -73,8 +93,11 @@ right mouse aims, left mouse attacks/fires, F melees and R reloads on foot.
 Yoober/Lemon phone. Book outside on foot, walk beside the stopped Yoober and E
 boards; E exits at the destination or requests a stop during travel. Drive for
 Yoober requires an owned legal four-door and two-second stopped pickups/drop-offs.
-At the gym bench hold **X+Y**, then press **ArrowUp** on each
-LIFT cue for six repetitions. Early/late presses and releasing grip fail the set.
+At equipment, **E** or **Q** starts the selected gym activity. Bench uses held
+**X+Y** with timed **ArrowUp** for six reps; treadmill uses twelve alternating
+X/Y taps; curls use six alternating sustained X/Y lifts; rowing uses six X+Y
+drives followed by releases. Follow the displayed cues, then use Done to dismiss
+the completed result. Early/late presses and incorrect holds count as mistakes.
 Drag mouse to orbit; vehicle vertical drag looks up/down and stationary views
 remain in place. H horns when sound is enabled. M map, J jobs, G garage, K shops, P/Esc
 pause. Touch driving and action buttons cover smaller/coarse-pointer devices; Pause also opens the garage and sound controls.
@@ -83,10 +106,11 @@ Street Life map selections set road routes. Teleport, Start nearby and road
 recovery are unavailable, with handler guards as well as hidden controls. Free
 roam enables zoom/pan, address results, teleport confirmation/Enter and R recovery.
 Clear off-road destinations stay exact; obstructed destinations adjust to clear
-land. A mode change restarts at the mapped spawn and cancels a transient job;
-sandbox travel never pays career cash or completes a job.
+land. A mode change cancels a transient job and resets mode-specific state; initial
+campaign placement uses the checked selected-character start. Sandbox travel
+never pays career cash or completes a job.
 
-Start Crescent parcel at spawn and deliver down NSW Crescent. Ordered checkpoint,
+Street Life starts with Crescent parcel on NSW Crescent. Ordered checkpoint,
 target-wagon theft and wanted-getaway jobs unlock after that delivery; later jobs
 pay more. Franklin and Kennedy deliveries are available immediately for$400/$450.
 Noodle preparation pays$60 and shop stocking pays$45 after the actual task completes.
@@ -98,16 +122,24 @@ last-seen ground; hiding cools the search. Arrest or defeat deducts up to $250,
 transfers through a 3.4 second fade/recovery sequence, restores the player at a
 bounded road approach and preserves completed jobs. The penalty is applied once.
 
-Twenty-three service points can be routed to from Shops, including twenty-one actual mapped
-parody stores such as Coals. Enter a mapped shop on foot and visit its counter: food
-costs $35 for 35 health, the supplies dealer sells a $450 pistol and $60 ammunition,
-and eight-second gym sessions cost $120 per current upgrade step to improve
-sprinting through three levels. Taking a shop till requires an equipped owned
-pistol and four uninterrupted nearby seconds; the witnessed offence raises
-wanted level. Each till pays once and retains its 180 active-second empty cooldown
-through reload. Store interactions also require the active matching interior and clear sight to its counter; leaving interrupts a till action. Generic gym/supplies activities remain exterior.
+Shops routes to 31 service points: 26 mapped parody shops such as Coals, four
+gyms and the supplies site. The three additional gyms are Fitness Eventually,
+Hybrid Patience and Occasional Fitness, at retained source fitness venues with
+estimated public approaches. Enter a mapped shop and visit its counter: food
+costs $35 for 35 health; supplies stock includes a $450 pistol and $60 ammunition.
+A successful interactive workout costs $120 times the current upgrade step and
+improves sprinting through three fitness levels. The matching live room,
+equipment/session, reach, sight and career state must still agree at completion;
+cancelled/interrupted or caller-shaped results cannot charge or award fitness.
+Free-roam and level-three workouts are practice. Shop hold-ups require an actual
+owned-gun or recent-punch threat, a matching live employee/room and uninterrupted
+nearby handover; witnessed offences raise wanted level. A completed till handover
+pays once and retains its 180 active-second empty cooldown through reload.
+Leaving interrupts the action. Ordinary counter interactions retain matching-room
+and clear-sight guards. Gyms have entered rooms and equipment; the generic
+supplies activity remains exterior.
 Retired fictional food-marker cooldown keys remain valid in older saves. Free
-roam cannot purchase, train or earn robbery cash. See [store sources](../../capital-drive-store-sources.md).
+roam cannot purchase, bank fitness upgrades or earn robbery cash. See [store sources](../../capital-drive-store-sources.md).
 
 Minor scrapes below8m/s cause no wear; body injury starts only with severe
 impacts at18m/s. A wrecked car stops and allows E exit without hospital recovery.
@@ -122,14 +154,18 @@ Root supplies capped 60 Hz simulation and 30/60 Hz rendering targets. Dialogs,
 blur/hidden tabs clear held input and pause clocks. `pagehide` saves valid career
 state and releases loop/audio/graphics; adapters own no second RAF.
 
-`capital-drive-v1` still stores validated discovered IDs. It accepts the original
-seven IDs plus runtime landmark IDs and twenty-one mapped store IDs. `capital-drive-career-v1` separately
-stores version 1, cash, owned vehicles (paint/condition/stored flag), completed
-job IDs, pistol ownership, fitness level and till cooldowns. The three new fields
-are optional on legacy v1 input and strictly validated when present. Ammunition
-and active training/robbery are transient; an owned gun starts with 24 rounds
-when starting a career session. The controller also accepts an optional validated campaign field with an ordered completed-chapter prefix, saved atomically with career cash. Legacy saves start at chapter one. Unknown fields still reject the save. Active jobs and wanted state are transient. Oversized, corrupt or denied
-sources report failure and remain unwritten. Sandbox never writes career state.
+`capital-drive-v1` stores validated discovered place IDs. `capital-drive-career-v1`
+retains its version1 wallet, owned vehicles, completed jobs, weapon/gear ownership,
+fitness and robbery/mugging cooldowns, with strict optional legacy fields. Active
+jobs, ammunition, workouts and encounters are transient. The controller saves an
+optional campaign field atomically with career cash. Campaign v2 stores the
+selected hero, each ordered two-mission introduction prefix, shared meeting and
+retained six-chapter prefix. Existing campaign v1 completion migrates through the
+legacy path without resetting completed chapters or replaying rewards. Fresh
+campaigns select a protagonist and complete all six introductions before the
+meeting. Fresh mission baselines reject old work/presentation/encounter serials.
+Unknown/corrupt/oversized saves reject and denied writes stay unwritten. Sandbox
+never writes career state.
 Only this game's keys are read/written; no origin-wide clear.
 
 `capitalDriveSnapshot()` exposes detached/frozen QA state, including focus,
@@ -142,28 +178,77 @@ completion rather than granting state.
 
 See [source record](../../capital-drive-sources.md),
 [landmark references](../../capital-drive-landmark-references.md),
-[address sources](../../capital-drive-address-sources.md) and in-game credits.
+[address sources](../../capital-drive-address-sources.md),
+[city-life sources](../../capital-drive-canberra-life-sources.md) and in-game credits.
 OSM roads/outlines/explicit address tags: OpenStreetMap contributors, ODbL 1.0.
 ACT footprints and 2020 LiDAR-derived two-metre AHD contours: Australian Capital
 Territory, CC-BY 4.0. Microsoft GlobalML outlines: CDLA-Permissive 2.0. The 513 x 513
 terrain grid has about 12 m cells and is not the native one-metre DEM. Historical
 Mapzen attribution stays retained separately.
 
-Actual Street View samples informed original architectural cues; the notes
-record dates, positions and obstructed/rejected views. Google images are not
-bundled. Local Three.js r160 MIT, unchanged original car factory and local Atkinson
-OFL font remain. All runtime data/imports/assets are local; developer caches and
+Earlier dated Street View samples informed original architectural cues; the notes
+record actual positions and obstructed/rejected views. The new lookup failed at
+the browser-control connection before a panorama loaded, so no fresh Street View
+observation is claimed. The official Centre viewer did not yield an observed
+floorplan; the Monaro-inspired wing remains a partial ground-floor interpretation.
+Google imagery, official floorplans and proprietary reference art are not bundled.
+Local Three.js r160 MIT, unchanged original car factory and local Atkinson OFL
+font remain. All runtime data/imports/assets are local; developer caches and
 browser/geodata tooling stay outside the repository.
 
 ## Audit findings
+
+### Canberra life and three-character campaign, 14 November 2026
+
+The [city-life contract](../../capital-drive-canberra-life-contract.md),
+[source record](../../capital-drive-canberra-life-sources.md) and
+[verification receipt](../../verification/capital-drive-canberra-life-2026-11-14.md)
+supersede the older six-chapter-only campaign, bench-only gym and generic shop
+room descriptions below. Each protagonist has two opening missions; all six
+introductions converge at Three receipts before the retained six courier chapters.
+Rowan's PowerPunt uses three fresh X/Y/X edits and a fictional Microstall outage;
+only that live terminal event advances the mission. Work requires a fresh matching
+completed shift. Campaign v1 progress and rewards remain intact on migration.
+
+Lambzhou has a near-only exterior window cook and a lazy indoor cook pulling
+original noodle strands. Dot is a fictional adult guest in pink earmuffs; nearby
+bag-dispute dialogue permits apology or confrontation with bounded retaliation.
+Sight, health, pause, cooldown and authoritative encounter serials govern it.
+The character does not depict or allege behaviour by a real customer.
+
+Accepted native evidence is 74 checks across four cases: campaign, restaurant,
+gym and scenery. It proves Rowan's first mission and PowerPunt outage, the tested
+restaurant choices, all four Free-roam workout inputs/Done/exit, and the recorded
+source scenery approaches. It does not establish naturally completed paid career
+workouts, the complete six introductions/shared meeting, campaign lunch credit,
+all-city appearance or an N100 frame rate. Those limits and retained earlier
+failures stay explicit in the receipt. Source authority tests cover paid workouts
+and replay guards; normal paid-career acceptance remains held.
+
+Source exports retain 388 stop facilities, 13 fuel sites (12 petrol/one hydrogen)
+and 24 fitness venues; only three become additional gym services. Shelters require
+source evidence and furniture clears roads/solid bodies. Six apparent canopy/body
+matches all fail 95% coverage, so zero whole ACT bodies are changed. Highway rails
+use 73 exact source ways: 998 evidence segments, 658 ground runtime strips and 49
+Hindmarsh strips; 340 elevated segments are omitted from flat collision/rendering.
+Two fictional bus circuits dwell at source stops2255/2376 for seven active seconds.
+ACT suburb attributes guide distinct Red Hill/Narrabundah palettes, gardens,
+verandas and rear shelters; these remain architectural estimates. Twelve original
+kangaroos stay inside a source Red Hill reserve boundary. Telopea
+rocks/flags/garden positions and local-history notice geometry remain estimates.
+
+The Centre remains an original partial ground-floor interpretation: exact tenant
+adjacency, escalators and the whole-mall floorplan were not observed. No fresh
+Street View panorama was loaded during the failed browser-control connection.
+Airport coverage and actual Intel N100/native GPU performance remain future gates.
 
 ### Shared street and vehicle people, 14 November 2026
 
 The [shared-people contract](../../capital-drive-people-contract.md) records the
 single rounded model family, stable person identities and bounded adapters.
 Drivers retain their appearance when displaced or when a Yoober driver steps out.
-The player keeps the warm jacket across foot, driving and passenger poses;
-police retain navy uniforms. Existing crowd routines, collisions, health,
+The active protagonist keeps the selected palette across foot, driving and
+passenger poses; police retain navy uniforms. Existing crowd routines, collisions, health,
 witnesses and career owners remain authoritative. The
 [verification receipt](../../verification/capital-drive-people-2026-11-14.md)
 distinguishes normal-input loading/movement from the labelled component comparison.
@@ -323,11 +408,11 @@ observations; room dimensions/doors and ordinary building art remain estimates.
 No new restaurant Street View panorama was accessible after explicit approval;
 the cloud browser failed technically. No imagery/logos/murals are bundled.
 
-`interior-activities.js` owns seven playable activity kinds; `interior-people.js`
+`interior-activities.js` now owns eleven playable activity kinds; `interior-people.js`
 and its view add up to16 active adults in at most6 batches, loaded/cleared with
-the room. The gym has an enterable original room, an animated press and six timed
-repetitions. Houses have cooking/TV/rest; shops stock/order tasks; the concourse
-has games. Work wages and exercise progression validate the actual matching
+the room. Each gym has an enterable original room and four distinct workout
+machines, with participant/equipment poses and input-driven completion. Houses
+have cooking/TV/rest; shops stock/order tasks; the concourse has games. Work wages and exercise progression validate the actual matching
 room, station/session and player. A repeated Q cannot cancel pay eligibility.
 
 `micromobility.js`/view provide six pooled fictional Lemon scooters/e-bikes at
@@ -360,8 +445,11 @@ that mode; Campaign has no map teleport, while Free roam never advances it.
 `interiors.js` generates one furnished layout on explicit E entry at a rendered
 door, with wall/furniture collision, door gaps and same-door return. `interior-view.js`
 creates/disposes only its active meshes. Houses use plausible living/kitchen/bed/
-bath arrangements, shops shelves/counters and the Centre an original four-unit
-concourse. These are not actual private floorplans or an exact mall interior.
+bath arrangements. Groceries use aisles/checkouts/fridges; fast food uses
+kitchen/pickup/booths; cafes and general shops have distinct furnishings. The
+Centre uses an inscribed Monaro-inspired partial ground-floor wing with stone
+portals, coffers and patterned floors. These are not actual private floorplans
+or a verified whole-mall interior.
 `suburb-character.js` and neighbourhood geometry add bounded rear gardens,
 coherent frontages, local palettes and clearer tree shading. Source footprints
 and nearest public roads guide these approximations; cadastral lots are not known.
@@ -374,8 +462,9 @@ Open roof-only shelters render as canopies and permit movement underneath.
 
 `map-expansion.js` merges the local north sidecar and suppresses51 audited
 OSM/ACT duplicate bodies only while their paired base IDs remain present.
-Original base map, address and profile bytes stay unchanged. Both lake bridges
-connect to Civic on the real directed graph. The full lake polygon retains its
+Original base map and address bytes stay unchanged. The separate road-profile
+sidecar now includes pinned source lane/sidewalk tags without changing widths.
+Both lake bridges connect to Civic on the real directed graph. The full lake polygon retains its
 island holes; western portions extend beyond the drivable rectangle. `terrain.js`
 shares ACT-derived ground, estimated continuous bridge decks and radius-aware
 water exemptions with rendering/collision. North terrain is259×157 at roughly25m
@@ -472,13 +561,15 @@ imports with retained source hashes; never turn rendering estimates into data.
 
 ```sh
 python3 -B scripts/check_capital_drive.py
-python3 -B scripts/check_capital_drive.py --browser --living-browser --output <external-output>
+python3 -B scripts/check_capital_drive.py --browser --life-browser --output <external-output>
 python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The reusable runner checks 58 authored modules and 67 pure suites (193 commands), fails
-on missing files or actual command errors and bounds subprocess lifetimes. Browser
+The current reusable runner checks 67 authored modules and 76 pure suites
+(220 syntax/source commands), fails on missing files or command errors and bounds
+subprocess lifetimes. The current city-life source run passed 220/220; its log
+hash and retained failures are in the dated city-life receipt. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
 unavailable WebGL, denied storage and hidden teleport guards. Actual-map physics
 uses 28,323 nodes /48,290 directed edges /40 traffic cars. Current Street Life
@@ -491,6 +582,7 @@ Historical 12/13 November receipts remain separately dated.
 Profile a repeatable inner-south route on the intended N100; refine landmark
 approaches/terrain seams and ordinary architecture from further verified views.
 Improve officer navigation, driver lane changes, damage presentation and job
-variety before adding a larger story campaign. Expand Canberra with bounded
-source snapshots and address coverage. Preserve a playable smaller district and
+variety while completing native career evidence for the three-character story.
+Airport coverage is a later expansion. Expand Canberra with bounded source
+snapshots and address coverage. Preserve a playable smaller district and
 honest evidence rather than claiming a completed city or cinematic GTA equivalent.

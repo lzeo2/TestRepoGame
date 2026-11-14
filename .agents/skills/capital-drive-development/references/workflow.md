@@ -153,7 +153,7 @@ python3 -B scripts/check_capital_drive.py
 The runner enumerates57 authored modules and65 pure suites in its `MODULES`
 and `SUITES` constants, including roads, buses, police, occupants and services.
 It checks every syntax entry, executes every suite (drive receives the actual map
-argument), then runs `git diff --check`:188 commands in the pure pass. Keep these
+argument), then runs `git diff --check`:220 commands in the city-life pure pass. Keep these
 explicit lists current when adding a required module; a missing file fails.
 Missing modules/data/suites fail; nothing silently skips. Each pure command has a
 120 second limit; total run is bounded to 900 seconds. Actual exit codes are printed.
@@ -463,3 +463,49 @@ scenarios. Travel a career normally; Free-roam map travel may preview signals,
 buses/flares but cannot prove purchased equipment or earned crime money. Retain
 failed geometry/timing approaches and correct the real path instead of weakening
 collision. Check actual hands-up/emptying poses and source-bound target snapshots.
+
+## Three protagonists and city-life scenes
+
+Read the city-life contract and source record. Campaign v2 stores three ordered
+intro prefixes, a meeting flag, the selected character and the retained shared
+prefix. Keep v1 completed chapters and reward history during migration. Root owns
+serial baselines for real PowerPunt, completed work and booth outcomes; a stale
+event or sandbox action cannot complete a new objective. Mid-session selection
+changes appearance and mission ownership without moving the player. Initial
+character-start placement checks the actual expanded map and parked bodies.
+
+`campaign-scenes.js` supplies two other adults only during the meeting stage,
+with shared car/foot contacts; its view cannot grant mission credit. The selected
+hero must remain consistent in foot, cockpit, transit and workout adapters.
+`interior-people.js` owns live dialogue, peaceful/confrontational outcomes and
+attributed retaliation. Resume pending conversations after Esc without replaying
+the outcome serial. Free roam protects player health; prove an emitted punch
+with its actual serial/timer rather than expecting sandbox injury.
+
+For native evidence, use the life selector or individual cases in fresh external
+directories. Cases run separately to keep each software-WebGL run bounded:
+
+```sh
+timeout 600s python3 -B scripts/test_capital_life_browser.py --scenario campaign --capture --output <fresh-campaign-directory>
+timeout 600s python3 -B scripts/test_capital_life_browser.py --scenario restaurant --capture --output <fresh-restaurant-directory>
+timeout 600s python3 -B scripts/test_capital_life_browser.py --scenario gym --capture --output <fresh-gym-directory>
+timeout 600s python3 -B scripts/test_capital_life_browser.py --scenario scenery --capture --output <fresh-scenery-directory>
+```
+
+All-machine Free-roam completion proves cues, participant poses and disposal,
+not paid career progression. The optional `test_capital_paid_gym_browser.py`
+diagnostic is outside the default runner and currently HELD: source-clear public
+travel did not reach admission before its watchdog. Retain that result; do not
+grant money, teleport or weaken collisions to turn it green. The known Highgate
+2.2m source passage overlaps an ACT body; use the documented public detour until
+a shared visual/height/collision correction is separately implemented.
+
+Street-asset and barrier builders require explicit external pinned caches.
+Compare two generated JSON/module outputs to each other and tracked files.
+Source stop positions do not establish current timetables or exact shelter art;
+actual bus dwell uses two compatible source stops and fictional routes. Canopy
+replacement requires the documented polygon coverage; current six candidates
+all fail, so no whole ACT body is changed. Elevated rails are not ground walls.
+Reserve-bound wildlife and suburb materials are interpretations with bounded
+instances. Whole-centre tenant adjacency and fresh Street View remain unverified;
+do not promote architectural text into an observed floorplan or screenshot.
