@@ -28,7 +28,7 @@ MODULES = (
 )
 SUITES = (
     'test_capital_drive.mjs', 'test_capital_pedestrians.mjs', 'test_capital_spawn.mjs', 'test_capital_starter.mjs', 'test_capital_signals.mjs', 'test_capital_signals_view.mjs', 'test_capital_guidance.mjs', 'test_capital_road_guidance_view.mjs', 'test_capital_traffic_body_clearance.mjs', 'test_capital_ambient_routes.mjs', 'test_capital_ride_driving.mjs', 'test_capital_bus_boarding.mjs', 'test_capital_equipment.mjs', 'test_capital_vehicle_contacts.mjs', 'test_capital_hold_ups.mjs', 'test_capital_crime_people.mjs',
-    'test_capital_neighbourhood.mjs', 'test_capital_world.mjs', 'test_capital_person_model.mjs',
+    'test_capital_neighbourhood.mjs', 'test_capital_world.mjs', 'test_capital_person_model.mjs', 'test_capital_vehicle_people.mjs',
     'test_capital_geodata.mjs', 'test_capital_map.mjs',
     'test_capital_gameplay.mjs', 'test_capital_progression.mjs',
     'test_capital_actors.mjs', 'test_capital_landmarks.mjs', 'test_capital_ride_service.mjs', 'test_capital_ride_view.mjs', 'test_capital_yoober_economy.mjs', 'test_capital_low_detail.mjs',

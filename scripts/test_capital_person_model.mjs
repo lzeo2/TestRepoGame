@@ -58,7 +58,7 @@ const map = { bounds: { minX: -500, maxX: 500, minZ: -500, maxZ: 500 }, spawn: {
 const pedestrians = createPedestrians(scene, map, () => 0);
 assert.equal(pedestrians.stats.count, 36);
 assert.equal(pedestrians.stats.capacity, 64);
-assert.equal(scene.children[0].children.length, 11);
+assert.equal(scene.children[0].children.length, 10);
 const before = pedestrians.snapshot();
 assert(before.every(p => Object.isFrozen(p.appearance) && p.appearanceKey === appearanceForPerson(p.id).key));
 const headMesh = scene.children[0].children.find(mesh => mesh.name === 'Pedestrian head');
@@ -75,7 +75,7 @@ assert(pedestrians.snapshot().some((p, i) => Math.hypot(p.x - before[i].x, p.z -
 const appearanceKeys = before.map(p => p.appearanceKey);
 pedestrians.resetPopulation(map.spawn);
 assert.deepEqual(pedestrians.snapshot().map(p => p.appearanceKey), appearanceKeys);
-assert(pedestrians.stats.drawCalls <= 11);
+assert(pedestrians.stats.drawCalls <= 10);
 pedestrians.dispose();
 assert.equal(scene.children.length, 0);
-console.log('PASS pedestrian shared descriptors/head proportions, 36/64 caps, pause, walking, reset identity, eleven batches and disposal');
+console.log('PASS pedestrian shared descriptors/head proportions, 36/64 caps, pause, walking, reset identity, ten batches and disposal');

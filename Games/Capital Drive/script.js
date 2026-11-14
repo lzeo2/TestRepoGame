@@ -101,6 +101,8 @@ let mapSelection = null, mapDrag = null;
 const mapView = { zoom: 1, x: null, z: null };
 const pedestrianFocus={id:'player',x:0,z:0,yaw:0,speed:0};
 const occupantPoses=new Map(),occupantInputs=[];
+const pedestrianContacts=[],externalPeopleContacts=[];
+const playerContact={id:'player-body',x:0,z:0,radius:.35};
 const desiredCamera = new THREE.Vector3(), lookTarget = new THREE.Vector3();
 function freezeCopy(value) {
   const copy = JSON.parse(JSON.stringify(value));
@@ -1158,6 +1160,23 @@ function updateCareer() {
 function syncExternalVehicles(){
   simulation.setExternalVehicles([...(buses?.vehicles||[]),...(rideService?.vehicles||[]),...gameplay.state.police.filter(p=>p.health>0&&p.car).map(p=>p.car)]);
 }
+function syncExternalPeople(){
+  externalPeopleContacts.length=0;
+  for(const person of pedestrians.writeContacts(pedestrianContacts))externalPeopleContacts.push(person);
+  for(const person of streetDealers.snapshot())externalPeopleContacts.push(person);
+  for(const person of rideService?.people||[])if(person.active)externalPeopleContacts.push(person);
+  for(const officer of gameplay.state.police)if(officer.health>0&&officer.mode==='foot')externalPeopleContacts.push(officer);
+  const job=progression.state.activeJob;
+  if(job?.type==='ride'&&job.stage===0&&!job.passenger){
+    const pose=job.waitingPose||job.target;
+    if(pose)externalPeopleContacts.push({id:'waiting-fare',x:pose.x,z:pose.z,radius:.32});
+  }
+  if(!interiors.active&&gameplay.state.mode==='foot'&&!gameplay.state.passenger&&!gameplay.state.recovery){
+    playerContact.x=gameplay.state.actor.x;playerContact.z=gameplay.state.actor.z;
+    externalPeopleContacts.push(playerContact);
+  }
+  simulation.setExternalPeople(externalPeopleContacts);
+}
 function animate(time) {
   if (disposed) return;
   raf = requestAnimationFrame(animate);
@@ -1168,9 +1187,10 @@ function animate(time) {
     while (accumulator >= 1 / 60) {
       const walking = gameplay.state.mode === 'foot';
       syncExternalVehicles();
+      syncExternalPeople();
       simulation.step(1 / 60, tracking||walking||gameplay.state.recovery||gameplay.state.vehicleHealth<=0 ? { brake: true } : input(), focus());
       gameplay.step(1 / 60, {...walkingInput(),challenge:miniInput()});
-      syncExternalVehicles();buses?.step(1/60,busContext());
+      syncExternalVehicles();syncExternalPeople();buses?.step(1/60,busContext());
       if(rideService?.vehicles[0].active)rideService.step(1/60,rideContext());
       equipment?.step(1/60,careerContext());
       if (!isSandbox()) progression.update(1 / 60, careerContext());
@@ -1420,7 +1440,7 @@ async function boot() {
     pedestrians: Object.freeze({ ...pedestrians.stats, sample: Object.freeze(pedestrians.snapshot().slice(0,8)),routineSample:freezeCopy(pedestrians.snapshot().filter(p=>['coffee','work'].includes(p.ambient)).slice(0,12)) }), neighbourhood: Object.freeze({ ...neighbourhood.stats }),
     landmarks: Object.freeze({ ...landmarkView.stats }), actors: Object.freeze({ ...actorView.stats }),
     services:freezeCopy(progression.services),activity:freezeCopy(progression.state.activity),
-    buses:freezeCopy(buses.snapshot()),busView:Object.freeze({...busView.stats}),occupants:Object.freeze({...occupantsView.stats}),
+    buses:freezeCopy(buses.snapshot()),busView:Object.freeze({...busView.stats}),occupants:Object.freeze({...occupantsView.stats}),peopleContacts:simulation.peopleContacts,
     serviceView:Object.freeze({...servicesView.stats}),storefronts:Object.freeze({...storefrontsView.stats}),poolGates:freezeCopy(POOL_GATE_APPROACHES),campus:freezeCopy(campusView.stats),campusGates:freezeCopy(CAMPUS_GATES),shopping:freezeCopy(shoppingView.stats),civic:freezeCopy(civicView.stats),civicExtras:freezeCopy(civicExtrasView.stats),noodleShop:freezeCopy(noodleShopView.stats),interiorView:freezeCopy(interiorView.stats),
     trafficSample: freezeCopy(simulation.traffic.slice(0, 8).map(({ id, x, z, speed, active, behaviour, honkCount }) => ({ id, x, z, speed, active, behaviour, honkCount }))) });
   raf = requestAnimationFrame(animate);
