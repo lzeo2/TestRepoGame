@@ -1,4 +1,5 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
+import { appearanceForPerson, createPersonGeometries, emitPersonParts, PERSON_MODEL } from './person-model.js';
 
 const POPULATION = 36;
 const MAX_POPULATION = 64;
@@ -10,10 +11,6 @@ const VIEW_DISTANCE = 180;
 const DETAIL_COUNT = 20;
 const PAVEMENT_LIFT = 0.05;
 const CELL = 32;
-const SHIRTS = [0x425d79, 0xa44d3c, 0xd5ba76, 0x789477, 0xddd6c3, 0x655574, 0x393d48];
-const TROUSERS = [0x343d4a, 0x656452, 0x293548, 0x807566];
-const SKIN = [0xe0b490, 0xad7958, 0x79513c, 0xc99673, 0x593e32];
-const HAIR = [0x302923, 0x655040, 0xa38c67, 0xaaa6a0];
 
 function indexBoxes(items) {
   const cells = new Map();
@@ -161,9 +158,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
   group.name = 'Capital Drive sidewalk pedestrians';
   scene.add(group);
   const material = new THREE.MeshLambertMaterial({ color: 0xffffff });
-  const capsule = new THREE.CapsuleGeometry(1, 1, 2, 5);
-  const sphere = new THREE.SphereGeometry(1, 6, 4);
-  const box = new THREE.BoxGeometry(1, 1, 1);
+  const { capsule, sphere, box } = createPersonGeometries();
   const cup = new THREE.CylinderGeometry(1, 0.8, 1, 7);
   const batches = {};
   for (const [name, geometry, capacity] of [['torso', capsule, MAX_POPULATION], ['head', sphere, MAX_POPULATION],
@@ -235,12 +230,14 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
     person.returning = false;
   }
   for (let i = 0; i < (paths.length ? MAX_POPULATION : 0); i++) {
-    residents.push({ id: i, direction: random() < 0.5 ? -1 : 1, speed: 0.85 + random() * 0.6,
-      phase: random() * Math.PI * 2, height: 0.92 + random() * 0.2,
+    const direction = random() < 0.5 ? -1 : 1, speed = 0.85 + random() * 0.6, phase = random() * Math.PI * 2;
+    // Keep the legacy height/palette/bag draws so crowd movement keeps its random stream.
+    for (let draw = 0; draw < 6; draw++) random();
+    const appearance = appearanceForPerson(i);
+    residents.push({ ...appearance, id: i, appearance, direction, speed, phase,
       personality: i % 5 === 0 ? 'assertive' : i % 3 === 0 ? 'wary' : 'reserved',
       ambient: i % 12 === 0 ? 'coffee' : i % 12 === 1 ? 'work' : i % 12 === 2 ? 'phone' : i % 12 === 3 ? 'wait' : 'walk',
-      shirt: SHIRTS[Math.floor(random() * SHIRTS.length)], trousers: TROUSERS[Math.floor(random() * TROUSERS.length)],
-      skin: SKIN[Math.floor(random() * SKIN.length)], hair: HAIR[Math.floor(random() * HAIR.length)], bag: random() < 0.45 });
+    });
   }
   for (const p of residents) p.initialDirection = p.direction;
   function resetPopulation(player) {
@@ -339,25 +336,36 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
       const sitting = !coerced && p.routine === 'coffee' && p.reaction === 'calm';
       const working = !coerced && p.routine === 'work' && p.reaction === 'calm';
       const phone = !coerced && p.routine === 'phone' && p.reaction === 'calm';
-      const lower = sitting ? 1.12 - 0.83 / p.height : 0;
+      const lower = sitting ? PERSON_MODEL.torso.y - 0.83 / p.height : 0;
       stats.seated += Number(sitting); stats.working += Number(working);
       const swing = p.stopped ? 0 : Math.sin(p.phase) * (p.reaction === 'flee' ? 0.85 : 0.5);
       const yaw = sitting ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0);
       rootRotation.setFromAxisAngle(axis, yaw);
-      part('torso', p, 0, 1.12 - lower, 0, 0.23, 0.21, 0.15, p.shirt);
-      part('head', p, 0, 1.62 - lower, 0, 0.135, 0.17, 0.13, p.skin);
-      part('hair', p, 0, 1.72 - lower, 0.015, 0.139, 0.09, 0.13, p.hair);
-      for (const side of [-1, 1]) {
-        const armAction = coerced ? (p.crimePhase === 'intimidation' ? -2.4 : p.crimePhase === 'emptying' ? -0.65 : -1.4) : sitting || phone ? -1.1 : working ? -0.8 + Math.sin(p.phase) * 0.25 : null;
-        part('arms', p, side * 0.29, 1.06 - lower, armAction !== null ? -0.13 : -Math.sin(swing * side) * 0.12, 0.075, 0.19, 0.075, p.shirt, coerced ? armAction : p.reaction === 'angry' ? -1.1 : p.reaction === 'panic' ? -2.1 : armAction ?? -swing * side);
-        const footLocalZ = sitting ? -0.39 : Math.sin(swing * side) * 0.22 - 0.045;
-        const footX = p.x + (Math.cos(yaw) * side * 0.105 + Math.sin(yaw) * footLocalZ) * p.height;
-        const footZ = p.z + (-Math.sin(yaw) * side * 0.105 + Math.cos(yaw) * footLocalZ) * p.height;
-        const ground = (heightAt(footX, footZ) + PAVEMENT_LIFT - p.y) / p.height;
-        part('legs', p, side * 0.105, sitting ? 0.48 : 0.43 + ground, sitting ? -0.17 : Math.sin(swing * side) * 0.13, 0.085, 0.235, 0.085, p.trousers, sitting ? -1.4 : swing * side);
-        part('shoes', p, side * 0.105, 0.055 + ground, sitting ? -0.39 : footLocalZ, 0.17, 0.11, 0.28, 0x303030);
-        if (detailed) part('hands', p, side * 0.3, coerced ? (p.crimePhase === 'intimidation' ? 1.59 : p.crimePhase === 'emptying' ? 0.86 : 1.12) : 0.76 - lower, armAction !== null ? -0.32 : -Math.sin(swing * side) * 0.22, 0.062, 0.075, 0.065, p.skin);
-      }
+      const armAction = coerced ? (p.crimePhase === 'intimidation' ? -2.4 : p.crimePhase === 'emptying' ? -0.65 : -1.4) : sitting || phone ? -1.1 : working ? -0.8 + Math.sin(p.phase) * 0.25 : null;
+      emitPersonParts(p.appearance, { kind: 'standing', stride: swing }, (name, x, y, z, sx, sy, sz, tint, rotation = 0) => {
+        const side = x < 0 ? -1 : 1;
+        if (name === 'hands' && !detailed) return;
+        if (name !== 'legs' && name !== 'shoes') y -= lower;
+        if (name === 'arms') {
+          if (armAction !== null) z = -0.13;
+          rotation = coerced ? armAction : p.reaction === 'angry' ? -1.1 : p.reaction === 'panic' ? -2.1 : armAction ?? rotation;
+        }
+        if (name === 'hands') {
+          if (coerced) y = p.crimePhase === 'intimidation' ? 1.59 : p.crimePhase === 'emptying' ? 0.86 : PERSON_MODEL.torso.y;
+          if (armAction !== null) z = -0.32;
+        }
+        if (name === 'legs' || name === 'shoes') {
+          const footLocalZ = sitting ? -0.39 : Math.sin(swing * side) * 0.22 + PERSON_MODEL.shoes.z;
+          const footX = p.x + (Math.cos(yaw) * side * PERSON_MODEL.legs.x + Math.sin(yaw) * footLocalZ) * p.height;
+          const footZ = p.z + (-Math.sin(yaw) * side * PERSON_MODEL.legs.x + Math.cos(yaw) * footLocalZ) * p.height;
+          const ground = (heightAt(footX, footZ) + PAVEMENT_LIFT - p.y) / p.height;
+          if (name === 'legs') {
+            y = sitting ? 0.48 : y + ground;
+            if (sitting) { z = -0.17; rotation = -1.4; }
+          } else { y += ground; z = footLocalZ; }
+        }
+        part(name, p, x, y, z, sx, sy, sz, tint, rotation);
+      });
       if (sitting) {
         part('cups', p, 0.28, 0.9 - lower, -0.32, 0.065, 0.085, 0.065, 0xf1e7d1);
         part('cups', p, 0.28, 0.98 - lower, -0.32, 0.05, 0.008, 0.05, 0x65412d);
@@ -605,7 +613,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
   resetPopulation(spawn);
   return { update, resetPopulation, clipMovement, stats, alert, strike, setCrime, getCrimeTarget,
     drainEvents() { return events.splice(0); },
-    snapshot() { return Object.freeze(pool.map(p => Object.freeze({ id: p.id, x: p.x, y: p.y, z: p.z,
+    snapshot() { return Object.freeze(pool.map(p => Object.freeze({ id: p.id, appearanceKey: p.appearance.key, appearance: p.appearance, x: p.x, y: p.y, z: p.z,
       yaw: p.routine === 'coffee' && p.reaction === 'calm' ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0), roadId: p.path.roadId, roadName: p.path.name,
       sidewalkOffset: p.path.offset, yieldTimer: p.yieldTimer, escape: p.escape, stopped: p.stopped, phase: p.phase,
       routine: p.routine, ambient: p.ambient, routineClock: p.routineClock, returning: p.returning, personality: p.personality,
