@@ -101,14 +101,13 @@ export function createStreetDealers(map,{avoidPoints=[]}={}) {
     }
     return count;
   }
-  function update(dt,{focus,wanted=0,shots=[]}={}) {
+  function update(dt,{shots=[]}={}) {
     if(!Number.isFinite(dt)||dt<=0)return;
     const time=Math.min(dt,.1);
     for(const p of people) {
       p.panic=Math.max(0,p.panic-time);p.hitCooldown=Math.max(0,p.hitCooldown-time);p.phase+=time;
       p.reaction=p.health<=0?'knockdown':p.health<100?'injured':p.panic>0?'panic':'calm';
     }
-    if(wanted>0&&valid(focus))alert({...focus,radius:16});
     for(const shot of Array.isArray(shots)?shots.slice(0,32):[])if(valid(shot))alert({...shot,radius:40});
   }
   function strike({x,z,yaw=0,range=2,damage=20,kind='melee',hasLineOfSight}={}) {

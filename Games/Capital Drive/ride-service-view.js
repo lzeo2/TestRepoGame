@@ -103,9 +103,10 @@ export function createRideServiceView(scene, heightAt) {
     }
     if (job?.type === 'ride') {
       if (job.passenger === true) counters.farePassenger = passenger(playerCar,center);
-      else if (job.stage === 0 && near(job.target,center)) {
-        pose.position.set(job.target.x,ground(job.target.x,job.target.z)+.035,job.target.z);
-        pose.rotation.set(0,finite(job.target.yaw),0); pose.updateMatrix(); waiting.setMatrixAt(0,pose.matrix); counters.waiting = 1;
+      else if (job.stage === 0 && near(job.waitingPose||job.target,center)) {
+        const stop=job.waitingPose||job.target;
+        pose.position.set(stop.x,ground(stop.x,stop.z)+.035,stop.z);
+        pose.rotation.set(0,finite(stop.yaw),0); pose.updateMatrix(); waiting.setMatrixAt(0,pose.matrix); counters.waiting = 1;
       }
     }
     waiting.count = counters.waiting; seated.count = counters.passengers;

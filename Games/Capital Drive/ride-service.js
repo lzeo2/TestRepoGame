@@ -264,7 +264,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
   }
   function snapshot() {
     return freeze({ phase, reason, passenger, paid, fare, activeFare: activeFare(), booking: copy(booking),
-      seatPose: passenger ? { x: car.x + Math.cos(car.yaw) * .38, z: car.z - Math.sin(car.yaw) * .38, yaw: car.yaw } : null,
+      seatPose: passenger ? { x: car.x, z: car.z, yaw: car.yaw, speed: car.speed } : null,
       car: { ...car }, pickup: copy(pickup), dropoff: copy(dropoff), route: [...route], waypoint: cursor });
   }
   return { vehicles, destinations, quote, book, interact, cancel, step, reset, snapshot,

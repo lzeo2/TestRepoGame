@@ -62,7 +62,8 @@ dealers.update(-1);dealers.update(NaN);assert.deepEqual(dealers.snapshot(),panic
 for(let i=0;i<301;i++)dealers.update(.1);
 assert(dealers.canTrade(contact.id),'panic recovers in bounded active time');
 assert.equal(dealers.snapshot()[0].x,contact.x,'reactions remain on safe static position');
-dealers.update(.1,{focus:contact,wanted:1});assert.equal(dealers.canTrade(contact.id),false);
+dealers.update(.1,{focus:contact,wanted:5});assert.equal(dealers.canTrade(contact.id),true,'wanted stars alone do not frighten a contact out of trading');
+dealers.update(.1,{shots:[contact]});assert.equal(dealers.canTrade(contact.id),false,'actual nearby gunfire still interrupts trading');
 dealers.reset();dealers.update(.1,{shots:[contact]});assert.equal(dealers.canTrade(contact.id),false);dealers.reset();
 const attack={x:contact.x,z:contact.z+1,yaw:0,range:2,damage:20,kind:'pistol'};
 assert.equal(dealers.strike({...attack,hasLineOfSight:()=>false}).hits,0);

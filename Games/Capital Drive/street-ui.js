@@ -5,7 +5,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
   const byId = id => document.getElementById(id);
   const cleanups = [];
   const sandbox = () => Boolean(isSandbox());
-  const context = () => ({ pose: gameplay.focus(), onFoot: gameplay.state.mode === 'foot',
+  const context = () => ({ pose: gameplay.focus(), onFoot: gameplay.state.mode === 'foot'&&!gameplay.state.passenger,
     vehicle: { ...gameplay.state.vehicle, color: paintColor(gameplay.state.vehicle.color) }, wanted: gameplay.state.wanted,
     vehicleHealth: gameplay.state.vehicleHealth, respawnSerial: gameplay.state.respawnSerial,health:gameplay.state.health,
     weapon:gameplay.state.weapon,reserveAmmo:gameplay.state.reserveAmmo,ammunition:Object.fromEntries(WEAPONS.map(w=>[w.id,gameplay.getAmmo(w.id)])),recovering:!!gameplay.state.recovery,sandbox:sandbox() });
@@ -152,7 +152,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       const row=document.createElement('div');row.className='button-row service-actions';
       const route=actionButton('Route',()=>{onRoute(site);closeDialogs();});route.dataset.serviceRoute=site.id;row.append(route);
       const available=!sandbox()&&ctx.onFoot&&!ctx.recovering&&Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)<=site.radius&&!progression.state.activity&&progression.canUseService(site,ctx);
-      const reason=sandbox()?'Purchases are available in Street Life and Campaign.':ctx.recovering?'Recover before trading.':!ctx.onFoot?'Step out of your vehicle to trade.':ctx.wanted>0?'Lose your wanted stars before trading.':progression.state.activity?'Finish your current activity first.':Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)>site.radius?'Follow the route and move closer to this location.':!progression.canUseService(site,ctx)?(site.dealer?'This contact is not trading right now.':'Enter the shop and approach its counter.') :'';
+      const reason=sandbox()?'Purchases are available in Street Life and Campaign.':ctx.recovering?'Recover before trading.':!ctx.onFoot?'Step out of your vehicle to trade.':progression.state.activity?'Finish your current activity first.':Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)>site.radius?'Follow the route and move closer to this location.':!progression.canUseService(site,ctx)?(site.dealer?'This contact is not trading right now.':'Enter the shop and approach its counter.') :'';
       const status=document.createElement('p');status.className='service-state';status.textContent=reason||`Ready to trade · Cash ${money(progression.state.cash)}`;
       const purchase=(label,item,cost,blocked='')=>{
         const why=reason||blocked||(progression.state.cash<cost?'Not enough cash.':'');
