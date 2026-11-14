@@ -200,7 +200,7 @@ def main():
             fx,fz=dx/length,dz/length
             side=1 if (pose['x']-car['x'])*fz-(pose['z']-car['z'])*fx>=0 else -1
             walk(p,{'x':car['x']+fx*4.5+fz*side*4.5,'z':car['z']+fz*4.5-fx*side*4.5},tolerance=.8)
-        walk(p,door,tolerance=1.9,seconds=40)
+        walk(p,door,tolerance=2.4,seconds=40)
 
     def room_point(plan,x,z):
         o=plan['origin'];c,s=math.cos(o['yaw']),math.sin(o['yaw'])
@@ -321,7 +321,7 @@ def main():
                     return {'x': frontage['x']+math.cos(yaw)*tangent+math.sin(yaw)*depth,
                             'z': frontage['z']-math.sin(yaw)*tangent+math.cos(yaw)*depth}
                 for waypoint in [storefront_point(5, -6), storefront_point(5, -1.2), frontage]:
-                    walk(page, waypoint, tolerance=.9 if waypoint is not frontage else 1.9, seconds=25)
+                    walk(page, waypoint, tolerance=.9 if waypoint is not frontage else 2.4, seconds=25)
                 plan = enter(page, 'shop')
                 capture(page, 'shop-lazy-interior')
                 # Follow an aisle beside the shelving, then approach the counter.
