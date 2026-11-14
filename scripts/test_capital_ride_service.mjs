@@ -22,8 +22,15 @@ function fixture(source = map) {
   const service = createRideService(source, sim, { canPay: fare => cash >= fare,
     pay: fare => { if (cash < fare) return false; cash -= fare; payments++; return true; } });
   sim.setExternalVehicles(service.vehicles);
+  const canOccupy = sim.canOccupy;
+  let turnSweeps = 0;
+  sim.canOccupy = (pose, options) => {
+    const from = options?.fromPose;
+    if (from && pose.x === from.x && pose.z === from.z && Math.abs(pose.yaw - from.yaw) > 1e-8) turnSweeps++;
+    return canOccupy(pose, options);
+  };
   const ctx = { pose: { x: 100, z: -5, yaw: 0 }, onFoot: true, sandbox: false, wanted: 0, recovering: false, indoors: false, busy: false };
-  return { sim, service, ctx, cash: () => cash, payments: () => payments };
+  return { sim, service, ctx, cash: () => cash, payments: () => payments, turnSweeps: () => turnSweeps };
 }
 function advance(f, until, seconds = 180) {
   for (let i = 0; i < seconds * 60 && !until(f.service.snapshot()); i++) {
@@ -49,7 +56,16 @@ assert.equal(s.interact(f.ctx).ok, false, 'cannot board moving approach');
 advance(f, snap => snap.phase === 'waiting');
 assert.equal(s.interact({ ...f.ctx, pose: { x: 200, z: -5 } }).ok, false, 'remote boarding denied');
 f.ctx.pose = { ...s.snapshot().pickup.walk };
-assert(s.interact(f.ctx).boarded); assert.equal(s.passenger, true);
+const boardingPlayer = { id: 'player-body', ...f.ctx.pose, radius: .35 };
+const otherFare = { id: 'other-adult', x: boardingPlayer.x * .8 + s.vehicles[0].x * .2,
+  z: boardingPlayer.z * .8 + s.vehicles[0].z * .2, radius: .35 };
+f.sim.setExternalPeople([boardingPlayer, otherFare]);
+assert.equal(s.interact(f.ctx).ok, false, 'boarding keeps every other adult physical');
+assert.equal(f.payments(), 0, 'an adult-blocked boarding cannot debit the fare');
+f.sim.setExternalPeople([boardingPlayer]);
+assert(!f.sim.canOccupy(f.ctx.pose, { length: 1, width: .8, ignoreId: s.vehicles[0].id }), 'the registered foot player is a real collision body');
+assert(s.interact(f.ctx).boarded, 'boarding ignores only the boarding player body');
+f.sim.setExternalPeople([]); assert.equal(s.passenger, true);
 assert.equal(s.phase, 'riding'); assert.equal(s.seatPose, s.vehicles[0], 'hot-loop passenger pose is stable');
 assert.throws(() => { s.passenger = false; }, TypeError, 'phase getters have no setter');
 assert.equal(f.payments(), 1); assert.equal(f.cash(), initialCash - booked.fare);
@@ -57,7 +73,16 @@ for (let i = 0; i < 60; i++) s.step(1 / 60, f.ctx);
 s.interact(f.ctx); // A second E requests a stop and cannot charge again.
 assert.equal(f.payments(), 1);
 advance(f, snap => snap.phase === 'exit-ready');
-const exit = s.interact(f.ctx); assert(exit.exited); assert(distance(exit.exitPose, s.snapshot().car) < 3);
+const exitCar = s.vehicles[0], exitPlayer = { id: 'player-body', x: exitCar.x, z: exitCar.z, radius: .35 };
+const exitAdults = [-1,1].map(side => ({ id: `exit-adult-${side}`, radius: .35,
+  x: exitCar.x + Math.cos(exitCar.yaw) * 1.9 * side,
+  z: exitCar.z - Math.sin(exitCar.yaw) * 1.9 * side }));
+f.sim.setExternalPeople([exitPlayer, ...exitAdults]);
+assert.equal(s.interact(f.ctx).ok, false, 'other adults block every swept passenger exit');
+assert(s.passenger); assert.equal(f.payments(), 1);
+f.sim.setExternalPeople([exitPlayer]);
+const exit = s.interact(f.ctx); assert(exit.exited, 'exit sweep ignores the passenger own body');
+f.sim.setExternalPeople([]); assert(distance(exit.exitPose, s.snapshot().car) < 3);
 assert(f.sim.canOccupy(exit.exitPose, { length: 1, width: .8, ignoreId: 'yoober-driver' }));
 assert.equal(s.snapshot().passenger, false); assert.equal(f.payments(), 1);
 assert.equal(s.activeFare, 0); assert.equal(s.snapshot().activeFare, 0);
@@ -68,6 +93,7 @@ const trip = fixture(); assert(trip.service.book('north-stop', trip.ctx).ok);
 advance(trip, snap => snap.phase === 'waiting'); trip.ctx.pose = trip.service.snapshot().pickup.walk;
 assert(trip.service.interact(trip.ctx).boarded);
 advance(trip, snap => snap.phase === 'arrived');
+assert(trip.turnSweeps()>0, 'ride turn checks retain the old pose for angular people sweeps');
 assert(trip.service.interact(trip.ctx).exited); assert.equal(trip.service.snapshot().phase, 'complete');
 assert.equal(trip.service.activeFare, 0); assert.equal(trip.service.snapshot().activeFare, 0);
 trip.ctx.pose = { x: 100, z: -5, yaw: 0 };

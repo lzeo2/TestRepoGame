@@ -40,8 +40,8 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     if (!aboard && !ctx.onFoot) return 'Get out of your vehicle first';
     return '';
   }
-  const bodyClear = pose => simulation.canOccupy(pose, { length: LENGTH, width: WIDTH, ignoreId: car.id });
-  function exitAt(pose) {
+  const bodyClear = (pose, fromPose) => simulation.canOccupy(pose, { length: LENGTH, width: WIDTH, ignoreId: car.id, fromPose });
+  function exitAt(pose, ignorePersonId) {
     for (const side of [1, -1]) for (const reach of [1.9, 2.3, 2.7]) {
       const target = { x: pose.x + Math.cos(pose.yaw) * reach * side,
         z: pose.z - Math.sin(pose.yaw) * reach * side, yaw: pose.yaw };
@@ -50,7 +50,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
       for (let i = 0; i <= 12; i++) {
         const p = { x: pose.x + (target.x - pose.x) * i / 12,
           z: pose.z + (target.z - pose.z) * i / 12, yaw: pose.yaw };
-        if (!simulation.canOccupy(p, { length: 1, width: .8, ignoreId: car.id })) { clear = false; break; }
+        if (!simulation.canOccupy(p, { length: 1, width: .8, ignoreId: car.id, ignorePersonId })) { clear = false; break; }
       }
       if (clear) return target;
     }
@@ -63,7 +63,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
       const t = steps ? i / steps : 0;
       if (!simulation.canOccupy({ x: pose.x + (car.x - pose.x) * t,
         z: pose.z + (car.z - pose.z) * t, yaw: car.yaw },
-      { length: 1, width: .8, ignoreId: car.id })) return false;
+      { length: 1, width: .8, ignoreId: car.id, ignorePersonId: 'player-body' })) return false;
     }
     return true;
   }
@@ -225,7 +225,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
       if (movement.distance < travel * .25) for (const offset of [.8, -.8, 1.5, -1.5, 2.2, -2.2]) {
         const yaw = driver.yaw + offset;
         const probe = { x: driver.x - Math.sin(yaw) * .8, z: driver.z - Math.cos(yaw) * .8, yaw };
-        if (!simulation.canOccupy(probe, { length: 1, width: .8, ignoreId: driver.id })) continue;
+        if (!simulation.canOccupy(probe, { length: 1, width: .8, ignoreId: driver.id, ignorePersonId: driver.id })) continue;
         simulation.moveActor(driver, -Math.sin(yaw) * travel, -Math.cos(yaw) * travel, .38); break;
       }
     } else if (!chase) { driver.active = false; car.occupied = true; return; }
@@ -270,7 +270,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     if (!car.active) return { ok: false, reason: 'No active ride' };
     if (passenger) {
       if (car.speed > .05) { phase = 'stopping'; reason = 'Stopping for a safe exit'; return { ok: false, stopping: true, reason }; }
-      const exitPose = exitAt(car);
+      const exitPose = exitAt(car, 'player-body');
       if (!exitPose) return { ok: false, reason: 'Exit blocked. Wait for clear ground' };
       passenger = false; car.speed = 0; phase = phase === 'arrived' ? 'complete' : 'cancelled';
       reason = phase === 'complete' ? 'Ride complete' : 'Ride ended'; emit(phase);
@@ -282,7 +282,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     if (denied || !!ctx.sandbox !== mode) return { ok: false, reason: denied || 'Ride mode changed' };
     if (phase !== 'waiting' || car.speed > .05) return { ok: false, reason: 'Wait for the driver to stop' };
     if (distance(ctx.pose, car) > 3.5 || !boardingClear(ctx.pose)) return { ok: false, reason: 'Walk beside the stopped driver' };
-    if (!exitAt(car)) return { ok: false, reason: 'Boarding area blocked' };
+    if (!exitAt(car, 'player-body')) return { ok: false, reason: 'Boarding area blocked' };
     if (!mode && (!canPay(fare, ctx) || !pay(fare, { ...ctx, bookingId: booking.id, destinationId: booking.destinationId }))) {
       reason = 'Fare payment declined'; return { ok: false, reason };
     }
@@ -339,10 +339,10 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     wantedSpeed = Math.min(wantedSpeed, Math.sqrt(Math.max(0, signalGap - .12) * 8));
     const clearance = Math.min(remaining, 2 + car.speed * .9);
     const front = { x: car.x - Math.sin(car.yaw) * clearance, z: car.z - Math.cos(car.yaw) * clearance, yaw: car.yaw };
-    if (!bodyClear(front)) wantedSpeed = 0;
+    if (!bodyClear(front, car)) wantedSpeed = 0;
     car.speed += Math.max(-5 * dt, Math.min(2 * dt, wantedSpeed - car.speed));
     const yaw = angle(car.yaw + Math.max(-1.2 * dt, Math.min(1.2 * dt, turn)));
-    if (bodyClear({ ...car, yaw })) car.yaw = yaw;
+    if (bodyClear({ ...car, yaw }, car)) car.yaw = yaw;
     const travel = Math.min(remaining, car.speed * dt, Math.max(0, signalGap));
     const movement = simulation.moveVehicle(car, -Math.sin(car.yaw) * travel, -Math.cos(car.yaw) * travel,
       { length: LENGTH, width: WIDTH });

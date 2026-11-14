@@ -79,7 +79,7 @@ export function createBuses(map, simulation) {
     for (let i = 0; i <= steps; i++) {
       const t = i / steps;
       if (!simulation.canOccupy({ x: from.x + (to.x - from.x) * t,
-        z: from.z + (to.z - from.z) * t, yaw: bus.yaw }, { length: 1, width: .8, ignoreId: bus.id })) return false;
+        z: from.z + (to.z - from.z) * t, yaw: bus.yaw }, { length: 1, width: .8, ignoreId: bus.id, ignorePersonId: 'player-body' })) return false;
     }
     return true;
   }
@@ -155,11 +155,12 @@ export function createBuses(map, simulation) {
     if (cursors[i] === 0) targetSpeed = Math.min(targetSpeed, Math.sqrt(Math.max(0, distance - 3) * 3));
     const look = Math.max(3, bus.speed * 1.4);
     const forward = { x: bus.x - Math.sin(bus.yaw) * look, z: bus.z - Math.cos(bus.yaw) * look, yaw: bus.yaw };
-    if (!simulation.canOccupy(forward, { length: LENGTH, width: WIDTH, ignoreId: bus.id })) targetSpeed = 0;
+    if (!simulation.canOccupy(forward, { length: LENGTH, width: WIDTH, ignoreId: bus.id, fromPose: bus })) targetSpeed = 0;
     bus.speed += Math.max(-4 * dt, Math.min(1.25 * dt, targetSpeed - bus.speed));
     const oldYaw = bus.yaw;
     bus.yaw = angle(bus.yaw + Math.max(-.65 * dt, Math.min(.65 * dt, turn)));
-    if (!simulation.canOccupy(bus, { length: LENGTH, width: WIDTH, ignoreId: bus.id })) bus.yaw = oldYaw;
+    if (!simulation.canOccupy(bus, { length: LENGTH, width: WIDTH, ignoreId: bus.id,
+      fromPose: { x: bus.x, z: bus.z, yaw: oldYaw } })) bus.yaw = oldYaw;
     const travel = Math.min(bus.speed * dt, Math.max(0, signalDistance - .1));
     const move = simulation.moveVehicle(bus, -Math.sin(bus.yaw) * travel, -Math.cos(bus.yaw) * travel,
       { length: LENGTH, width: WIDTH });
