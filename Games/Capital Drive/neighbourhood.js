@@ -18,7 +18,7 @@ function compactAttribute(values, itemSize, signed = false) {
   return new THREE.BufferAttribute(output, itemSize, true);
 }
 
-export function createNeighbourhoodDetails(scene, map, heightAt) {
+export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics = false } = {}) {
   const root = new THREE.Group();
   root.name = 'Neighbourhood details';
   scene.add(root);
@@ -28,7 +28,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
   const managedCampus = new Set(map.campusBuildingIds || []);
   const gardenIndex = new Map();
   const BACKYARD_TRIANGLE_LIMIT = 60000;
-  const stats = { backyards: 0, backyardTriangles: 0, gardenBeds: 0, gardenSeats: 0, sheds: 0, apartmentEntries: 0, frontages: 0, driveways: 0, hedges: 0, fences: 0, letterboxes: 0, doors: 0, verandahs: 0, lamps: 0, benches: 0, bins: 0, stopPoles: 0, shopSigns: 0, retailAprons: 0, apronTriangles: 0, pavedArea: 0, chunks: 0, meshes: 0, triangles: 0 };
+  const stats = { lowGraphics, bufferBytes: 0, backyards: 0, backyardTriangles: 0, gardenBeds: 0, gardenSeats: 0, sheds: 0, apartmentEntries: 0, frontages: 0, driveways: 0, hedges: 0, fences: 0, letterboxes: 0, doors: 0, verandahs: 0, lamps: 0, benches: 0, bins: 0, stopPoles: 0, shopSigns: 0, retailAprons: 0, apronTriangles: 0, pavedArea: 0, chunks: 0, meshes: 0, triangles: 0 };
   const material = new THREE.MeshLambertMaterial({ vertexColors: true });
   materials.push(material);
   const box = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
@@ -286,7 +286,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
     if (isShop) {
       solid(box, dx - f.nx * 0.6, floor + 2.65, dz - f.nz * 0.6, 3.6, 0.18, 1.3, 0x414b48, yaw);
       shopSigns.push({ x: dx - f.nx * 0.24, z: dz - f.nz * 0.24, y: floor + 3.1, yaw, label: seed % shopLabels.length });
-      if (seed % 2 === 0) {
+      if (!lowGraphics && seed % 2 === 0) {
         const px = dx - f.nx * 2 + tangentX * 2.1, pz = dz - f.nz * 2 + tangentZ * 2.1;
         if (!inRoad(px, pz, 2.3) && !inBuilding(px, pz)) {
           groundBox(px, pz, 0.8, 0.65, 0.8, 0x797c6f);
@@ -310,10 +310,10 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
           groundBox(px, pz, 4.6, character.id === 'redhill' ? 1.3 : 0.85 + hash(seed) * 0.25, 0.95, PALETTE.hedge, yaw); stats.hedges++;
         } else {
           groundBox(px, pz, 4.5, character.fenceHeight, 0.2, seed % 2 ? 0xc7c1ab : 0xa29279, yaw);
-          for (const end of [-1, 1]) groundBox(px + tangentX * end * 2.2, pz + tangentZ * end * 2.2, 0.25, 0.8, 0.25, PALETTE.timber);
+          if (!lowGraphics) for (const end of [-1, 1]) groundBox(px + tangentX * end * 2.2, pz + tangentZ * end * 2.2, 0.25, 0.8, 0.25, PALETTE.timber);
           stats.fences++;
         }
-        if (seed % 5 === 0) {
+        if (!lowGraphics && seed % 5 === 0) {
           const bx = px + f.nx * 2.2, bz = pz + f.nz * 2.2;
           if (!inBuilding(bx, bz, building)) {
             groundBox(bx, bz, 2, 0.2, 0.7, 0x9a725a, yaw);
@@ -322,7 +322,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
         }
       }
       const mx = gx + tangentX * 2.1, mz = gz + tangentZ * 2.1;
-      if (!inPark(mx, mz) && !inBuilding(mx, mz, building)) {
+      if (!lowGraphics && !inPark(mx, mz) && !inBuilding(mx, mz, building)) {
         groundBox(mx, mz, 0.11, 0.85, 0.11, PALETTE.timber);
         solid(box, mx, heightAt(mx, mz) + 0.9, mz, 0.42, 0.3, 0.28, [0x8d6654, 0x647362, 0x999c8d][seed % 3], yaw); stats.letterboxes++;
       }
@@ -342,12 +342,16 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
         // Three low rear/side spans leave the house side and its return route open.
         gardenBox(0, garden.depth, garden.width, character.fenceHeight, 0.16, PALETTE.timber);
         for (const side of [-1, 1]) gardenBox(side * garden.width / 2, garden.depth / 2, 0.16, character.fenceHeight, garden.depth, PALETTE.timber);
-        gardenBox(-garden.width * 0.25, garden.depth - 1, garden.width * 0.4, 0.25, 0.8, 0x92775d); stats.gardenBeds++;
-        gardenBox(garden.width * 0.2, 1.5, 1.6, 0.48, 0.5, PALETTE.timber);
-        gardenBox(garden.width * 0.2, 1.7, 1.6, 0.8, 0.1, PALETTE.timber); stats.gardenSeats++;
-        if (seed % 4 === 0 && garden.width > 7) {
-          gardenBox(garden.width * 0.3, garden.depth - 1.2, 1.3, 1.7, 1.3, 0x8b9182);
-          gardenBox(garden.width * 0.3, garden.depth - 1.2, 1.5, 0.12, 1.5, 0x646e65, 1.7); stats.sheds++;
+        // Keep the same garden boundary and route clearance on Low. Beds,
+        // seats and decorative sheds do not affect movement or entry.
+        if (!lowGraphics) {
+          gardenBox(-garden.width * 0.25, garden.depth - 1, garden.width * 0.4, 0.25, 0.8, 0x92775d); stats.gardenBeds++;
+          gardenBox(garden.width * 0.2, 1.5, 1.6, 0.48, 0.5, PALETTE.timber);
+          gardenBox(garden.width * 0.2, 1.7, 1.6, 0.8, 0.1, PALETTE.timber); stats.gardenSeats++;
+          if (seed % 4 === 0 && garden.width > 7) {
+            gardenBox(garden.width * 0.3, garden.depth - 1.2, 1.3, 1.7, 1.3, 0x8b9182);
+            gardenBox(garden.width * 0.3, garden.depth - 1.2, 1.5, 0.12, 1.5, 0x646e65, 1.7); stats.sheds++;
+          }
         }
         indexItem(gardenIndex, { points: garden.corners }, garden.corners, 1);
         stats.backyards++; stats.backyardTriangles += stats.triangles - before;
@@ -436,6 +440,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
       if (kind === 'sign') geometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uvs, 2));
       else geometry.setAttribute('color', compactAttribute(batch.colors, 3));
       geometry.computeBoundingSphere();
+      for (const attribute of Object.values(geometry.attributes)) stats.bufferBytes += attribute.array.byteLength;
       const mesh = new THREE.Mesh(geometry, kind === 'sign' ? materials.at(-1) : material);
       mesh.name = `Neighbourhood ${kind}`;
       mesh.matrixAutoUpdate = false; mesh.updateMatrix(); (kind === 'garden' ? chunk.detail : chunk.group).add(mesh); stats.meshes++;
@@ -448,8 +453,9 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
   function update(player) {
     const x = player.x ?? player.position?.x ?? 0, z = player.z ?? player.position?.z ?? 0;
     for (const chunk of chunks.values()) {
-      chunk.group.visible = Math.abs(chunk.x - x) < 650 + CHUNK / 2 && Math.abs(chunk.z - z) < 650 + CHUNK / 2;
-      if (chunk.detail) chunk.detail.visible = Math.abs(chunk.x - x) < 260 + CHUNK / 2 && Math.abs(chunk.z - z) < 260 + CHUNK / 2;
+      const range = lowGraphics ? 420 : 650, gardenRange = lowGraphics ? 180 : 260;
+      chunk.group.visible = Math.abs(chunk.x - x) < range + CHUNK / 2 && Math.abs(chunk.z - z) < range + CHUNK / 2;
+      if (chunk.detail) chunk.detail.visible = Math.abs(chunk.x - x) < gardenRange + CHUNK / 2 && Math.abs(chunk.z - z) < gardenRange + CHUNK / 2;
     }
   }
   let disposed = false;

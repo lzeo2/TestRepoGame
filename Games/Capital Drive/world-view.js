@@ -23,7 +23,7 @@ function compactAttribute(values, itemSize, signed = false) {
   return new THREE.BufferAttribute(output, itemSize, true);
 }
 
-export function createWorldView(scene, map) {
+export function createWorldView(scene, map, { lowGraphics = false } = {}) {
   const root = new THREE.Group();
   root.name = 'Canberra streets';
   scene.add(root);
@@ -33,7 +33,7 @@ export function createWorldView(scene, map) {
   const temporaryGeometry = [];
   const textures = [];
   const materials = [];
-  const counters = { buildings: 0, trees: 0, treesNearSpawn: 0, windows: 0, roofFacets: 0, texturedBuildings: 0, balconies: 0, signs: 0, roadSegments: 0, triangles: 0, chunks: 0, meshes: 0 };
+  const counters = { lowGraphics, bufferBytes: 0, buildings: 0, trees: 0, treesNearSpawn: 0, windows: 0, roofFacets: 0, texturedBuildings: 0, balconies: 0, signs: 0, roadSegments: 0, triangles: 0, chunks: 0, meshes: 0 };
   const color = new THREE.Color();
   const matrix = new THREE.Matrix4();
   const normalMatrix = new THREE.Matrix3();
@@ -163,6 +163,7 @@ export function createWorldView(scene, map) {
     batch.kinds.push(kind, kind, kind);
   }
   function softShadow(x, z, rx, rz, strength = 0.12) {
+    if (lowGraphics) return;
     const batch = batchAt(x, z, 'shadow');
     for (let i = 0; i < 10; i++) {
       const points = [[x, z], [x + Math.cos(i / 10 * Math.PI * 2) * rx, z + Math.sin(i / 10 * Math.PI * 2) * rz],
@@ -447,6 +448,9 @@ export function createWorldView(scene, map) {
     const utility = /shed|garage|carport|roof/.test(building.type || '');
     const residential = !isSchool && !shopping && !/apartments|commercial|retail|industrial|school|public|office/.test(building.type || '');
     const lowShop = shopping && /commercial|retail/.test(building.type || '') && (Number(building.height) || 4) <= 10;
+    // Low keeps footprint walls, roof form and school identity. Ordinary bays
+    // use one coloured pane rather than layered frames, mullions and glazing.
+    const simpleFacade = lowGraphics && !isSchool;
     const height = Math.max(2.5, Math.min(50, building === schoolMain ? 7.8 : lowShop ? 3.9 : isSchool ? Math.min(7.8, Number(building.height) || 4.2) : Number(building.height) || (residential ? 3.8 : 7)));
     const floorHeights = points.map(p => heightAt(...p));
     const base = (isSchool ? floorHeights.reduce((a, b) => a + b, 0) / points.length : Math.max(...floorHeights)) + 0.12;
@@ -478,7 +482,7 @@ export function createWorldView(scene, map) {
     const floors = Math.min(8, Math.max(1, Math.floor((height + 0.2) / 3.1)));
     const windowColumns = points.map((a, i) => {
       const b = points[(i + 1) % points.length], length = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      return utility || length < 3 ? 0 : Math.min(residential ? 7 : 16, Math.floor(length / (isSchool ? 3 : residential ? 3.8 : 3.2)));
+      return utility || length < 3 ? 0 : Math.min(simpleFacade ? 3 : residential ? 7 : 16, Math.floor(length / (isSchool ? 3 : residential ? 3.8 : 3.2)));
     });
     const eligibleSides = windowColumns.filter(Boolean).length;
     const columnBudget = Math.max(eligibleSides, Math.floor((residential ? 40 : 120) / floors));
@@ -517,11 +521,13 @@ export function createWorldView(scene, map) {
         faceQuad([[a[0] + nx * offset, y0, a[1] + nz * offset], [b[0] + nx * offset, y0, b[1] + nz * offset],
           [b[0] + nx * offset, y1, b[1] + nz * offset], [a[0] + nx * offset, y1, a[1] + nz * offset]], tint);
       }
-      stripe(base, base + 0.26, 0.025, isSchool ? 0xb2a58a : 0x8a8172);
-      stripe(base + height - 0.18, base + height + (lowShop ? 0.5 : 0.05), 0.1, isSchool ? 0xded4bc : lowShop ? 0xe0d5bf : 0xc1b9a6);
-      const eave = [[a[0], base + height - 0.05, a[1]], [b[0], base + height - 0.05, b[1]],
-        [b[0] + nx * 0.28, base + height - 0.05, b[1] + nz * 0.28], [a[0] + nx * 0.28, base + height - 0.05, a[1] + nz * 0.28]];
-      quad(batch, ...eave, 0x807c6d); quad(batch, ...eave.slice().reverse(), 0x807c6d);
+      if (!simpleFacade) {
+        stripe(base, base + 0.26, 0.025, isSchool ? 0xb2a58a : 0x8a8172);
+        stripe(base + height - 0.18, base + height + (lowShop ? 0.5 : 0.05), 0.1, isSchool ? 0xded4bc : lowShop ? 0xe0d5bf : 0xc1b9a6);
+        const eave = [[a[0], base + height - 0.05, a[1]], [b[0], base + height - 0.05, b[1]],
+          [b[0] + nx * 0.28, base + height - 0.05, b[1] + nz * 0.28], [a[0] + nx * 0.28, base + height - 0.05, a[1] + nz * 0.28]];
+        quad(batch, ...eave, 0x807c6d); quad(batch, ...eave.slice().reverse(), 0x807c6d);
+      }
       if (utility || length < 3) continue;
       const columns = windowColumns[i];
       const bay = (u, v, halfWidth, halfHeight, offset, tint, glass = false) => {
@@ -533,6 +539,11 @@ export function createWorldView(scene, map) {
         const u = (col + 0.5) / columns * length, y = base + (isSchool ? 1.7 : 1.9) + row * (isSchool ? 3.55 : 3.0);
         const hw = Math.min(isSchool ? 1.0 : shopping && row === 0 ? 1.25 : 0.82, length / columns * 0.34);
         const hh = isSchool ? 0.95 : shopping && row === 0 ? 1.2 : 0.72;
+        if (simpleFacade) {
+          bay(u, y, hw, hh, 0.055, [0x566d70, 0x627b7b, 0x4c656c][(row + col + index) % 3]);
+          counters.windows++;
+          continue;
+        }
         bay(u, y, hw + 0.09, hh + 0.1, 0.042, isSchool ? 0xe8dfc6 : 0xd4cec0);
         bay(u, y, hw, hh, 0.055, [0x566d70, 0x627b7b, 0x4c656c][(row + col + index) % 3], true);
         bay(u, y + hh * 0.57, hw, hh * 0.18, 0.058, 0x8ba0a0);
@@ -609,8 +620,8 @@ export function createWorldView(scene, map) {
       if (cross > 0) vertices.reverse();
       surfaceTriangle(x, z, ...vertices, roofColor, 2); counters.roofFacets++;
     }
-    for (const f of faces) roofTriangle(points[f[0]], points[f[1]], points[f[2]], pitched ? points.length <= 10 ? 2 : 1 : 0);
-    if (residential && !utility && index % 3 === 0) {
+    for (const f of faces) roofTriangle(points[f[0]], points[f[1]], points[f[2]], pitched ? simpleFacade ? 1 : points.length <= 10 ? 2 : 1 : 0);
+    if (!simpleFacade && residential && !utility && index % 3 === 0) {
       const top = roofHeight([x, z]);
       primitive(box, x, top + 0.4, z, 0.55, 1.0, 0.65, 0x9c7b61);
       primitive(box, x, top + 0.94, z, 0.7, 0.12, 0.8, 0x747366);
@@ -641,10 +652,10 @@ export function createWorldView(scene, map) {
     const eucalyptus = !avenue && seed % 3 !== 0, angle = hash(seed + 3) * Math.PI * 2;
     const leanX = Math.cos(angle) * h * 0.1, leanZ = Math.sin(angle) * h * 0.1;
     primitive(trunk, x, y + h * 0.31, z, 0.24 + h * 0.008, h * 0.62, 0.25, eucalyptus ? 0x8b8672 : 0x756b59);
-    primitive(trunk, x + leanX * 0.4, y + h * 0.58, z + leanZ * 0.4, 0.15, h * 0.3, 0.15, 0x8b8370, angle);
+    if (!lowGraphics) primitive(trunk, x + leanX * 0.4, y + h * 0.58, z + leanZ * 0.4, 0.15, h * 0.3, 0.15, 0x8b8370, angle);
     const foliage = eucalyptus ? [0x657d61, 0x71876b, 0x6a805f][seed % 3] : [0x647d48, 0x7c8b51, 0x70834c][seed % 3];
-    primitive(avenue ? leafCrown : crown, x + leanX, y + h * 0.8, z + leanZ, h * (park ? 0.38 : 0.32), h * (eucalyptus ? 0.29 : 0.32), h * 0.3, foliage, angle);
-    for (let i = 0; i < 2; i++) {
+    primitive(avenue && !lowGraphics ? leafCrown : crown, x + leanX, y + h * 0.8, z + leanZ, h * (park ? 0.38 : 0.32), h * (eucalyptus ? 0.29 : 0.32), h * 0.3, foliage, angle);
+    for (let i = 0; i < (lowGraphics ? 0 : 2); i++) {
       const a = angle + i * 2.6, r = h * 0.19;
       primitive(crown, x + leanX + Math.cos(a) * r, y + h * (0.67 + i * 0.15), z + leanZ + Math.sin(a) * r,
         h * 0.23, h * 0.22, h * 0.24, new THREE.Color(foliage).multiplyScalar(0.94 + i * 0.07), a);
@@ -799,6 +810,7 @@ export function createWorldView(scene, map) {
         }
       }
       meshGeometry.computeBoundingSphere();
+      for (const attribute of Object.values(meshGeometry.attributes)) counters.bufferBytes += attribute.array.byteLength;
       const mesh = new THREE.Mesh(meshGeometry, kind === 'sign' ? signMaterial : kind === 'road' ? roadMaterial : kind === 'surface' ? surfaceMaterial : kind === 'shadow' ? shadowMaterial : kind === 'glass' ? glazing : kind==='water'?waterMaterial:opaque);
       mesh.name = `Canberra ${kind}`;
       mesh.receiveShadow = false;
@@ -820,10 +832,10 @@ export function createWorldView(scene, map) {
     const z = player.z ?? player.position?.z ?? 0;
     for (const chunk of chunks.values()) {
       const distance = Math.hypot(chunk.x - x, chunk.z - z);
-      chunk.group.visible = distance < VISIBILITY + CHUNK_SIZE * 0.71;
+      chunk.group.visible = distance < (lowGraphics ? 500 : VISIBILITY) + CHUNK_SIZE * 0.71;
       for (const mesh of chunk.group.children) {
         const range = (mesh.name === 'Canberra detail' || mesh.name === 'Canberra glass') ? 280 : mesh.name === 'Canberra shadow' ? 350 : mesh.name === 'Canberra pavement' ? 450 : mesh.name === 'Canberra solid' ? 475 : VISIBILITY;
-        mesh.visible = distance < range + CHUNK_SIZE * 0.71;
+        mesh.visible = distance < (lowGraphics ? Math.min(range, mesh.name === 'Canberra detail' || mesh.name === 'Canberra glass' ? 180 : 500) : range) + CHUNK_SIZE * 0.71;
       }
     }
   }
