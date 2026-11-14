@@ -36,7 +36,7 @@ export function createInteriorView(scene) {
       plan.width, 0.16, plan.depth, o.yaw, plan.type === 'house' ? 0xa88e70 : 0xb3b1a0);
     for (const room of plan.rooms || []) {
       const color = { living: 0xaa9c84, kitchen: 0xb8b6a4, bedroom: 0x9b9e90, bathroom: 0xb2c1bb,
-        shop: 0xb3b1a0, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e,
+        shop: 0xb3b1a0, grocery: 0xc1c4b1, 'fast-food-dining': 0xbda78c, 'cafe-dining': 0xc4b49a, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e,
         'noodle-dining': 0xc9baa0, 'noodle-kitchen': 0xb3bbb0, 'gym-floor': 0x777e79 }[room.kind];
       box(room.x, plan.floorY + 0.006, room.z, room.width - 0.12, 0.012, room.depth - 0.12, o.yaw, color);
     }
@@ -78,6 +78,22 @@ export function createInteriorView(scene) {
             for (const x of [-0.23, 0.23]) detail(item, x, y + 0.13, z, 0.14, 0.28, 0.24, 0x303c40);
           }
         }
+      } else if (item.kind === 'rower') {
+        detail(item, 0, 0.16, 0, 0.2, 0.2, d, color);
+        detail(item, 0, 0.44, -0.3, w * 0.75, 0.18, 0.6, 0x35474a);
+        detail(item, 0, 0.42, d * 0.36, w, 0.7, 0.6, color);
+        detail(item, 0, 0.78, d * 0.23, w * 0.8, 0.1, 0.1, 0xb4c1ba);
+        for (const x of [-0.28, 0.28]) detail(item, x, 0.25, 0.3, 0.22, 0.1, 0.45, 0x35474a);
+      } else if (item.kind === 'curl-rack') {
+        detail(item, 0, h / 2, 0, w, h, d * 0.65, color);
+        for (const x of [-0.5, 0, 0.5]) {
+          detail(item, x, h + 0.08, 0, 0.28, 0.06, 0.08, 0xc0c8bd);
+          for (const side of [-1, 1]) detail(item, x + side * 0.16, h + 0.08, 0, 0.1, 0.22, 0.22, 0x303c40);
+        }
+      } else if (item.kind === 'booth') {
+        detail(item, 0, 0.45, 0, w, 0.2, d, color);
+        detail(item, w / 2 - 0.06, 0.7, 0, 0.12, 0.7, d, color);
+        for (const end of [-1, 1]) detail(item, 0, 0.25, end * (d / 2 - 0.12), w, 0.5, 0.16, 0x735b45);
       } else if (item.kind === 'treadmill') {
         detail(item, 0, 0.13, 0, w, 0.26, d, color);
         detail(item, 0, 0.28, 0, w * 0.78, 0.05, d * 0.75, 0x343d3e);
@@ -93,16 +109,29 @@ export function createInteriorView(scene) {
       } else if (item.kind === 'bench') {
         detail(item, 0, h - 0.09, 0, w, 0.18, d, color);
         for (const end of [-1, 1]) detail(item, 0, (h - 0.18) / 2, end * (d / 2 - 0.3), w * 0.65, h - 0.18, 0.15, 0x5e6458);
-      } else if (/table/.test(item.kind)) {
+      } else if (/table/.test(item.kind) || item.kind === 'office-desk') {
         detail(item, 0, h - 0.05, 0, w, 0.1, d, color);
         for (const x of [-1, 1]) for (const z of [-1, 1]) detail(item, x * (w / 2 - 0.09), h / 2,
           z * (d / 2 - 0.09), 0.09, h - 0.1, 0.09, color);
       } else detail(item, 0, h / 2, 0, w, h, d, color);
-      if (item.kind === 'lockers') {
+      if (item.kind === 'office-desk') {
+        detail(item, 0, h + 0.1, 0.2, 0.4, 0.15, 0.3, 0x4e5a57);
+        detail(item, 0, h + 0.48, 0.25, 1.05, 0.65, 0.08, 0x354440);
+        detail(item, 0, h + 0.48, 0.2, 0.9, 0.5, 0.025, 0xaec4b2);
+        detail(item, 0, h + 0.035, -0.24, 0.65, 0.05, 0.24, 0x4e5a57);
+      } else if (item.kind === 'lockers') {
         for (let x = -w / 2 + 0.3; x < w / 2; x += 0.62) {
           detail(item, x, h / 2, -d / 2 - 0.01, 0.012, h - 0.12, 0.02, 0x717d75);
           detail(item, x + 0.12, h * 0.55, -d / 2 - 0.025, 0.05, 0.13, 0.03, 0x535d56);
         }
+      } else if (item.kind === 'fridge' && plan.variant === 'grocery') {
+        for (let z = -d / 2 + 0.3; z < d / 2; z += 0.55) {
+          detail(item, w / 2 + 0.015, h * 0.55, z, 0.03, h * 0.77, 0.48, 0x536d71);
+          detail(item, w / 2 + 0.04, h * 0.5, z - 0.15, 0.035, 0.3, 0.035, 0xcbd2c9);
+        }
+      } else if (item.kind === 'grill' || item.kind === 'coffee-machine') {
+        detail(item, 0, h + 0.03, 0, w * 0.85, 0.06, d * 0.85, 0x303b39);
+        for (const z of [-0.3, 0, 0.3]) detail(item, w / 2 + 0.015, h * 0.8, z, 0.03, 0.09, 0.09, 0xd6b979);
       } else if (item.kind === 'bed') {
         detail(item, 0, h + 0.07, 0, w - 0.1, 0.14, d - 0.12, 0xc1c8bb);
         detail(item, 0, h + 0.18, d / 2 - 0.38, w - 0.28, 0.15, 0.46, 0xe1ddc9);
@@ -138,9 +167,29 @@ export function createInteriorView(scene) {
         detail(item, 0, h * 0.78, d / 2 + 0.015, w * 0.8, h * 0.6, 0.025, 0x6f8580);
       }
     }
+    if (plan.type === 'mall') {
+      const local = { x: o.x, z: o.z, yaw: o.yaw, y: plan.floorY };
+      // Original stone/coffer rhythm, informed by Monaro Mall's documented materials.
+      // These are abstract tiles, not a copy of the centre's artist mosaics.
+      for (const door of plan.doors.filter(d => d.kind === 'unit')) {
+        for (const end of [-1, 1]) detail({ ...door, yaw: o.yaw }, 0, 1.4, end * (door.width / 2 + 0.18), 0.42, 2.8, 0.36, 0xe0d8c4);
+        detail({ ...door, yaw: o.yaw }, 0, 2.78, 0, 0.42, 0.22, door.width + 0.7, 0xe0d8c4);
+      }
+      detail(local, 0, 3.08, plan.depth / 2, plan.width, 0.1, plan.depth, 0xe3dfd2);
+      for (let z = 3; z < plan.depth; z += 5) {
+        detail(local, 0, 2.93, z, plan.width, 0.2, 0.18, 0xbdb8a7);
+        for (let x = -plan.width / 2 + 5; x < plan.width / 2; x += 10) detail(local, x, 3, z + 2.5, 0.15, 0.13, 5, 0xbdb8a7);
+        detail(local, 0, 0.018, z, 9.5, 0.012, 0.05, 0xa59579);
+        for (const x of [-2.2, 0, 2.2]) detail(local, x, 0.025, z + 1.5, 0.45, 0.012, 0.45, x ? 0xad8e69 : 0x867b68);
+      }
+      for (const x of [-4.7, 4.7]) detail(local, x, 0.02, plan.depth / 2, 0.08, 0.012, plan.depth - 0.4, 0x8e8069);
+    }
     if (plan.variant === 'noodles') {
       const local = { x: o.x, z: o.z, yaw: o.yaw, y: plan.floorY };
       detail(local, 0, 2.74, plan.depth / 2, plan.width, 0.08, plan.depth, 0xe4dfd2);
+      // A clear front kitchen window exposes the cook; the pane adds no collision solid.
+      for (const x of [-2.98, -1.32]) detail(local, x, 1.55, 0.08, 0.06, 1.5, 0.08, 0x645945);
+      detail(local, -2.15, 2.3, 0.08, 1.72, 0.06, 0.08, 0x645945);
       // Honey timber panels and beams use a small number of original solid strips.
       for (const side of [-1, 1]) {
         for (let z = 2.5; z < 9; z += 1.4) detail(local, side * (plan.width / 2 - 0.095), 1.57, z,
@@ -180,6 +229,13 @@ export function createInteriorView(scene) {
           detail(item, 0.055, 0.095, 0, 0.075, 0.13, 0.075, 0xa75e39);
         }
       }
+    }
+    for (const station of plan.activities || []) {
+      if (!['bench', 'treadmill', 'curls', 'rower'].includes(station.kind)) continue;
+      const color = { bench: 0xc6b56a, treadmill: 0x9db6a1, curls: 0xc89b6a, rower: 0x91b4bf }[station.kind];
+      box(station.x, plan.floorY + 0.018, station.z, 0.6, 0.018, 0.6, station.yaw, color);
+      const marker = { ...station, y: plan.floorY };
+      detail(marker, 0, 0.032, 0.26, 0.36, 0.012, 0.055, 0x34443d);
     }
     // A pale door mat gives the explicit exit interaction a visible anchor.
     box(plan.exit.x, plan.floorY + 0.018, plan.exit.z, 1.05, 0.025, 0.7, o.yaw, 0x687a65);
