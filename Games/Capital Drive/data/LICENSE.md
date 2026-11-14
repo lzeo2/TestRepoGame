@@ -13,6 +13,13 @@ hashes and limitations are retained in each sidecar and in
 New interiors, garden arrangements and facade art are original interpretations;
 source geography does not establish private floorplans or current tenancies.
 
+The city-life continuation also adds `street-assets.json` and
+`highway-barriers.json`, © OpenStreetMap contributors, ODbL 1.0. They retain
+pinned raw-source hashes, source IDs, versions and geometry methods. Stop
+furniture, fuel presentation and rail heights are original estimates; current
+operations and timetables are not certified. See
+`docs/capital-drive-canberra-life-sources.md` for reproduction and limits.
+
 ## OpenStreetMap roads, green areas and supplementary building outlines
 
 © OpenStreetMap contributors. Available under the

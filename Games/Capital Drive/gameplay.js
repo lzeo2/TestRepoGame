@@ -153,6 +153,7 @@ export function createGameplay(map, simulation, options = {}) {
     if (weapon && state.ammo <= 0) { reload(); return; }
     if (weapon) { state.ammo--; fireCooldown = weapon.interval; shotSerial++; } else meleeCooldown = 0.55;
     state.attackTimer = weapon ? 0.15 : 0.3;
+    if(!weapon)state.attackSerial=(state.attackSerial||0)+1;
     const requestedRange = weapon ? (state.aiming ? weapon.aimRange : weapon.range) : 2.3;
     const pellets = weapon ? clamp(Math.floor(weapon.pellets), 1, 6) : 1;
     const adapterKind = weapon && kind !== 'pistol' ? 'firearm' : kind;
@@ -352,12 +353,16 @@ export function createGameplay(map, simulation, options = {}) {
     if (!state.sandbox && state.health <= 0) { beginRecovery('knockout'); return; }
     policeController.step(dt, state, focus());
   }
-  function reset({ sandbox = state.sandbox } = {}) {
+  function reset({ sandbox = state.sandbox,startPose,onFoot=false } = {}) {
     clearTheftChallenge();
     state.mode = 'vehicle'; Object.assign(state.actor, { x: simulation.player.x, z: simulation.player.z, yaw: simulation.player.yaw,
       speed: 0, jumpHeight: 0 });
+    if(onFoot&&startPose&&[startPose.x,startPose.z].every(Number.isFinite)){
+      const candidate={x:startPose.x,z:startPose.z,yaw:Number.isFinite(startPose.yaw)?startPose.yaw:0};
+      if(!simulation.moveActor(candidate,0,0,.45).blocked){Object.assign(state.actor,candidate);state.mode='foot';}
+    }
     Object.assign(state, { health: 100, vehicleHealth: 100, weapon: 'unarmed', ammo: 0, reserveAmmo: 0,
-      aiming: false, reloading: 0, attackTimer: 0, wanted: 0, pursuit: 'clear', heat: 0, sandbox: Boolean(sandbox),
+      aiming: false, reloading: 0, attackTimer: 0, attackSerial:0, wanted: 0, pursuit: 'clear', heat: 0, sandbox: Boolean(sandbox),
       event: '', message: '', arrestProgress: 0, recovery: null, carjacking: null });
     state.police.length = 0; state.shots.length = 0;
     policeController.reset(); clearAmmo(state.sandbox); shotSerial = 0;
