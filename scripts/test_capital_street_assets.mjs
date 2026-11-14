@@ -10,16 +10,31 @@ const read=path=>readFile(join(root,path),'utf8');
 const url=source=>`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const sha=raw=>createHash('sha256').update(raw).digest('hex');
 const moduleSource=await read('Games/Capital Drive/street-assets.js'),moduleURL=url(moduleSource);
-const {STREET_ASSETS:payload,BUS_STOPS,FUEL_STATIONS,STREET_ASSET_STATS,selectStreetAssets}=await import(moduleURL);
+const {STREET_ASSETS:payload,BUS_STOPS,FUEL_STATIONS,STREET_ASSET_STATS,selectStreetAssets,GYM_SITES,applyStreetAssetRoofs,STREET_ASSET_ROOF_MATCHES}=await import(moduleURL);
 assert.deepEqual(payload,JSON.parse(await read('Games/Capital Drive/data/street-assets.json')));
 assert.equal(payload.meta.rawBusStopPlatforms,389);assert.equal(payload.meta.rawFuelElements,15);
 assert.equal(BUS_STOPS.length,388);assert.equal(FUEL_STATIONS.length,13);assert.equal(STREET_ASSET_STATS.sourceFiles,35);
 assert.equal(FUEL_STATIONS.filter(f=>f.category==='petrol').length,12);
 assert.equal(FUEL_STATIONS.filter(f=>f.category==='hydrogen').length,1);
 assert.equal(payload.meta.license,'ODbL-1.0');
+assert.equal(GYM_SITES.length,24);assert.equal(payload.fitnessExcluded.length,29);
+assert.equal(STREET_ASSET_STATS.gyms,24);assert.equal(STREET_ASSET_STATS.roofCorrections,0);
+assert.equal(STREET_ASSET_ROOF_MATCHES.length,6);
+const expectedCoverage={'act-117296-0':.19474333525952023,'act-124055-0':.4820187815908144,'act-71567-0':.14168835991632037,'act-88255-0':.41597574580767105,'act-103829-0':.9235831940651804,'act-108424-0':.3226281204838187};
+// These independent reference fractions were cross-checked with GEOS intersection,
+// not inferred from point sampling. Every current candidate must remain rejected.
+for(const match of STREET_ASSET_ROOF_MATCHES) {
+ assert(Math.abs(match.coveredFraction-expectedCoverage[match.buildingId])<1e-8);
+ assert(match.coveredFraction<.95&&!match.eligible);assert.equal(match.sourceTags.building,'roof');
+ assert(Math.abs(match.intersectionArea/match.bodyArea-match.coveredFraction)<1e-12);
+ assert(match.intersectionArea<=Math.min(match.bodyArea,match.roofArea)+1e-6);
+}
+assert.equal(payload.roofCorrections.length,0,'no whole-shop body becomes a roof from partial canopy overlap');
+
 assert(Object.isFrozen(payload.meta.sourceFiles[0]) && Object.isFrozen(BUS_STOPS[0].sourceTags));
 const base=JSON.parse(await read('Games/Capital Drive/data/canberra.json')),north=JSON.parse(await read('Games/Capital Drive/data/canberra-north.json'));
 for(const [path,key] of [['canberra.json','mapSha256'],['canberra-north.json','northMapSha256'],['road-profiles.json','roadProfilesSha256']]) assert.equal(sha(await read(`Games/Capital Drive/data/${path}`)),payload.meta[key]);
+assert.equal(applyStreetAssetRoofs(base),base);assert.equal(applyStreetAssetRoofs(north),north);assert.equal(applyStreetAssetRoofs(null),null);
 const [lon0,lat0]=payload.meta.origin;
 const project=(lat,lon)=>[(lon-lon0)*111320*Math.cos(lat0*Math.PI/180),(lat0-lat)*111320];
 const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
@@ -28,6 +43,30 @@ const nearest=(p,a,b)=>{const dx=b[0]-a[0],dz=b[1]-a[1];const t=Math.max(0,Math.
 const buildings=[...base.buildings,...north.buildings],roads=[...base.roads,...north.roads];
 const profiles=JSON.parse(await read('Games/Capital Drive/data/road-profiles.json')).roads;
 assert.equal(new Set([...BUS_STOPS,...FUEL_STATIONS].map(s=>s.id)).size,BUS_STOPS.length+FUEL_STATIONS.length);
+for(const gym of GYM_SITES) {
+ assert(Object.isFrozen(gym.buildingMatches[0].points[0]));
+ assert(gym.sourceName&&gym.source.version>0);assert(!['private','no'].includes(gym.sourceTags.access));
+ assert(gym.sourceTags.leisure!=='fitness_station'||gym.sourceTags.indoor==='yes');
+ assert(!gym.sourceTags.email&&!gym.sourceTags.phone&&!gym.sourceTags.website);
+ if(gym.source.type==='node')assert(dist(project(gym.source.lat,gym.source.lon),[gym.x,gym.z])<1e-8);
+ assert(payload.meta.bounds.some(b=>gym.x>=b.minX&&gym.x<=b.maxX&&gym.z>=b.minZ&&gym.z<=b.maxZ));
+ assert(gym.buildingMatches.length>0);
+ for(const match of gym.buildingMatches){assert.deepEqual(match.points,buildings.find(b=>b.id===match.id).points);assert(inside([gym.x,gym.z],match.points));}
+ assert(!gym.entrance&&!gym.frontage&&!gym.publicApproach,'source centre is not a fabricated public entrance');
+}
+const geometryFixtures=spawnSync('python3',['-B','-c',`import importlib.util
+spec=importlib.util.spec_from_file_location('street_assets',${JSON.stringify(join(root,'scripts/build_capital_street_assets.py'))})
+m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+square=[[0,0],[4,0],[4,4],[0,4]]
+assert abs(m.intersection_area(square,[[2,2],[6,2],[6,6],[2,6]])-4)<1e-9
+assert abs(m.intersection_area(square,list(reversed(square)))-16)<1e-9
+assert m.intersection_area(square,[[5,0],[6,0],[6,1],[5,1]])==0
+concave=[[0,0],[3,0],[3,1],[1,1],[1,3],[0,3]]
+assert abs(m.intersection_area(concave,[[-1,-1],[4,-1],[4,4],[-1,4]])-5)<1e-9
+assert abs(m.intersection_area(concave,[[0,0],[2,0],[2,2],[0,2]])-3)<1e-9
+print('PASS polygon coverage fixtures')`],{encoding:'utf8'});
+assert.equal(geometryFixtures.status,0,geometryFixtures.stderr);
+
 for(const item of [...BUS_STOPS,...FUEL_STATIONS]) {
   assert(payload.meta.bounds.some(b=>item.x>=b.minX&&item.x<=b.maxX&&item.z>=b.minZ&&item.z<=b.maxZ));
   assert(item.source.version>0 && /^\d{4}-/.test(item.source.timestamp));
@@ -109,4 +148,4 @@ if(index>=0) {
   }
  } finally {await rm(directory,{recursive:true,force:true});}
 }
-console.log(`PASS sourced street assets: ${BUS_STOPS.length} stops, ${FUEL_STATIONS.length} fuel sites, 35 pinned inputs; safety, source positions, tags, renderer caps and disposal${index>=0?', twice byte-identical cache rebuilds':''}`);
+console.log(`PASS sourced street assets: ${BUS_STOPS.length} stops, ${FUEL_STATIONS.length} fuel sites, 35 pinned inputs; 24 gym sites, six rejected roof overlaps, polygon coverage, safety, source positions, tags, renderer caps and disposal${index>=0?', twice byte-identical cache rebuilds':''}`);

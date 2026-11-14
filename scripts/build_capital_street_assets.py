@@ -11,7 +11,7 @@ GAME = ROOT / 'Games/Capital Drive'
 SOURCE_KEYS = ('type', 'id', 'version', 'timestamp')
 TAG_KEYS = ('name', 'ref', 'gtfs:stop_id', 'shelter', 'bench', 'bus', 'highway', 'public_transport',
             'amenity', 'building', 'brand', 'operator', 'fuel:hydrogen', 'fuel:diesel', 'fuel:octane_91',
-            'fuel:octane_95', 'fuel:octane_98', 'fuel:e10', 'fuel:lpg')
+            'fuel:octane_95', 'fuel:octane_98', 'fuel:e10', 'fuel:lpg', 'leisure', 'sport', 'indoor', 'access', 'level', 'height')
 
 
 def digest(raw):
@@ -31,6 +31,54 @@ def nearest(p, a, b):
     t = max(0, min(1, ((p[0]-a[0])*dx+(p[1]-a[1])*dz)/(dx*dx+dz*dz))) if dx or dz else 0
     q = (a[0]+dx*t, a[1]+dz*t)
     return math.hypot(p[0]-q[0], p[1]-q[1]), q
+
+
+def signed_area(points):
+    return sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(points,points[1:]+points[:1]))/2
+
+
+def triangulate(points):
+    """Ear clipping of simple source outlines; reject degenerate/self-crossing input."""
+    pp = [list(p) for p in points]
+    if pp and pp[0] == pp[-1]: pp.pop()
+    def cross(a,b,c): return (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])
+    changed=True
+    while changed and len(pp)>3:
+        changed=False
+        for i in range(len(pp)):
+            if abs(cross(pp[i-1],pp[i],pp[(i+1)%len(pp)]))<1e-7:
+                pp.pop(i);changed=True;break
+    if signed_area(pp)<0: pp.reverse()
+    result=[]
+    while len(pp)>3:
+        for i,b in enumerate(pp):
+            a,c=pp[i-1],pp[(i+1)%len(pp)]
+            if cross(a,b,c)<=1e-7:continue
+            if any(cross(a,b,p)>=-1e-7 and cross(b,c,p)>=-1e-7 and cross(c,a,p)>=-1e-7 for j,p in enumerate(pp) if j not in ((i-1)%len(pp),i,(i+1)%len(pp))):continue
+            result.append([a,b,c]);pp.pop(i);break
+        else: raise ValueError('Cannot triangulate source footprint')
+    if len(pp)==3:result.append(pp)
+    return result
+
+
+def intersection_area(left,right):
+    """Exact planar area from disjoint source triangulations and convex clipping."""
+    total=0
+    for a in triangulate(left):
+        for b in triangulate(right):
+            clipped=a
+            for v,w in zip(b,b[1:]+b[:1]):
+                def side(p):return (w[0]-v[0])*(p[1]-v[1])-(w[1]-v[1])*(p[0]-v[0])
+                out=[]
+                for p,q in zip(clipped,clipped[1:]+clipped[:1]):
+                    sp,sq=side(p),side(q)
+                    if sp>=-1e-9:out.append(p)
+                    if (sp<0)!=(sq<0):
+                        t=sp/(sp-sq);out.append([p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t])
+                clipped=out
+                if not clipped:break
+            total+=abs(signed_area(clipped))
+    return total
 
 
 def build(cache, north_cache):
@@ -201,7 +249,43 @@ def build(cache, north_cache):
             yaw,_,_=facing(p)
             if rectangle_clear(*p,.6,.2,yaw):f['furniture'].append({'role':'fuel-sign','x':p[0],'z':p[1],'yaw':yaw})
         fuels.append(f)
-    return {'version':1,'meta':{'source':'OpenStreetMap contributors','license':'ODbL-1.0','url':'https://www.openstreetmap.org/copyright','mapSha256':digest(map_raw),'northMapSha256':digest(north_raw),'roadProfilesSha256':digest(profile_raw),'sourceFiles':files,'origin':base['meta']['origin'],'bounds':[base['bounds'],north['bounds']],'positionNote':'Source nodes unchanged. Way positions use area centroids; polygon coordinates projected directly. Furniture positions, dimensions and orientation are authored estimates; clearances tested against retained road widths and non-roof buildings. Existing roofs/buildings never replaced.','busRoutesNote':'Stop locations are sourced; ambient game bus circuits are fictional.','deduplicationNote':'Same ref within25m or same name within1.5m for stops; fuel nodes/ways contained by facility polygon, unnamed fuel bodies within40m. Duplicate source records retained.','rawBusStopPlatforms':raw_stops,'rawFuelElements':len(fuel_raw),'excluded':excluded},'busStops':stops,'fuelStations':fuels}
+    roof_matches=[];roof_corrections=[]
+    allowed={'act-117296-0','act-124055-0','act-71567-0','act-88255-0','act-103829-0','act-108424-0'}
+    for fuel in fuels:
+        canopy=fuel['canopy']
+        if not canopy:continue
+        roof=elements[('way',canopy['source']['id'])]
+        for bid in canopy['obstructingBuildingIds']:
+            if bid not in allowed:continue
+            body=next(b for b in buildings if b['id']==bid)
+            area=abs(signed_area(body['points']));roof_area=abs(signed_area(canopy['points']))
+            overlap=intersection_area(body['points'],canopy['points']);coverage=overlap/area if area else 0
+            match={'buildingId':bid,'source':canopy['source'],'sourceTags':{'building':'roof'},'sourceRoofPoints':canopy['points'],'bodyPoints':body['points'],'bodyArea':area,'roofArea':roof_area,'intersectionArea':overlap,'coveredFraction':coverage,'method':'ear-clipped polygon intersection area','eligible':coverage>=.95}
+            roof_matches.append(match)
+            if match['eligible']:
+                try:height=float(roof.get('tags',{}).get('height','nan'))
+                except ValueError:height=float('nan')
+                height_source=math.isfinite(height) and 3<=height<=5
+                roof_corrections.append({**match,'height':height if height_source else 4.2,'heightMethod':'source height tag' if height_source else 'authored canopy clearance estimate'})
+    # No guessed entrances: gym nodes/centroids and exact containing footprint
+    # candidates are provenance for the caller's separately estimated public facade.
+    gyms=[];fitness_excluded=[]
+    for e in sorted(elements.values(),key=lambda e:(e['type'],e['id'])):
+        t=e.get('tags',{});leisure=t.get('leisure');sport=t.get('sport','').split(';')
+        if not (leisure in ('fitness_centre','fitness_station') or leisure=='sports_centre' and 'fitness' in sport):continue
+        reason=None
+        if t.get('access') in ('no','private'):reason='private or prohibited access'
+        elif leisure=='fitness_station' and t.get('indoor')!='yes':reason='outdoor or unspecified fitness station'
+        elif not t.get('name'):reason='unnamed facility; no assumed commercial gym'
+        p=point(e)
+        if not in_bounds(p):reason='outside playable union bounds'
+        if reason:
+            fitness_excluded.append({'source':source(e),'reason':reason});continue
+        duplicate=next((g for g in gyms if g['sourceName']==t['name'] and (inside(p,g['sourcePolygon']) or math.hypot(p[0]-g['x'],p[1]-g['z'])<8)),None)
+        if duplicate:
+            duplicate['duplicateSources'].append(source(e));continue
+        gyms.append({'id':'gym-'+str(e['id']),'sourceName':t['name'],'source':source(e),'sourceTags':{k:v for k,v in t.items() if k in TAG_KEYS},'x':p[0],'z':p[1],'sourcePolygon':polygon(e),'positionMethod':'exact source node' if e['type']=='node' else 'source polygon area centroid','buildingMatches':[{'id':b['id'],'points':b['points'],'height':b['height']} for b in buildings if inside(p,b['points']) and b.get('type')!='roof'],'duplicateSources':[],'accessNote':'Source fitness venue; no observed public entrance, membership eligibility or current operation implied.'})
+    return {'version':1,'meta':{'source':'OpenStreetMap contributors','license':'ODbL-1.0','url':'https://www.openstreetmap.org/copyright','mapSha256':digest(map_raw),'northMapSha256':digest(north_raw),'roadProfilesSha256':digest(profile_raw),'sourceFiles':files,'origin':base['meta']['origin'],'bounds':[base['bounds'],north['bounds']],'positionNote':'Source nodes unchanged. Way positions use area centroids; polygon coordinates projected directly. Furniture positions, dimensions and orientation are authored estimates; clearances tested against retained road widths and non-roof buildings. Existing roofs/buildings never replaced.','busRoutesNote':'Stop locations are sourced; ambient game bus circuits are fictional.','deduplicationNote':'Same ref within25m or same name within1.5m for stops; fuel nodes/ways contained by facility polygon, unnamed fuel bodies within40m. Duplicate source records retained.','rawBusStopPlatforms':raw_stops,'rawFuelElements':len(fuel_raw),'excluded':excluded},'busStops':stops,'fuelStations':fuels,'gymSites':gyms,'roofMatches':roof_matches,'roofCorrections':roof_corrections,'fitnessExcluded':fitness_excluded}
 
 
 def module(payload):
@@ -213,7 +297,20 @@ function freeze(value) {
 export const STREET_ASSETS = freeze('''+json.dumps(payload,separators=(',',':'),sort_keys=True)+''');
 export const BUS_STOPS = STREET_ASSETS.busStops;
 export const FUEL_STATIONS = STREET_ASSETS.fuelStations;
-export const STREET_ASSET_STATS = freeze({stops:BUS_STOPS.length,fuelStations:FUEL_STATIONS.length,sourceFiles:STREET_ASSETS.meta.sourceFiles.length});
+export const GYM_SITES = STREET_ASSETS.gymSites;
+export const STREET_ASSET_ROOF_MATCHES = STREET_ASSETS.roofMatches;
+export function applyStreetAssetRoofs(map) {
+  if(!map || !Array.isArray(map.buildings)) return map;
+  const corrections=new Map(STREET_ASSETS.roofCorrections.map(c=>[c.buildingId,c]));
+  let changed=false;
+  const buildings=map.buildings.map(body=>{
+    const match=corrections.get(body.id);
+    if(!match || match.coveredFraction<.95 || match.sourceTags.building!=='roof' || JSON.stringify(body.points)!==JSON.stringify(match.bodyPoints)) return body;
+    changed=true;return {...body,type:'roof',height:match.height,streetAssetRoofSource:match.source,streetAssetRoofCoverage:match.coveredFraction};
+  });
+  return changed?{...map,buildings}:map;
+}
+export const STREET_ASSET_STATS = freeze({stops:BUS_STOPS.length,fuelStations:FUEL_STATIONS.length,gyms:GYM_SITES.length,roofCorrections:STREET_ASSETS.roofCorrections.length,sourceFiles:STREET_ASSETS.meta.sourceFiles.length});
 export function selectStreetAssets(focus, options={}) {
   if(!focus || !Number.isFinite(focus.x) || !Number.isFinite(focus.z)) return {stops:[],fuelStations:[]};
   const range=Number.isFinite(options.range)?Math.max(0,Math.min(600,options.range)):450;
