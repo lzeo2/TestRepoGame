@@ -1,4 +1,5 @@
 import { createPolice } from './police.js';
+import { createVehicleChallenge } from './vehicle-challenges.js';
 // Pure Street Life rules. The controller owns time, driving, persistence and rendering.
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const finite = n => Number.isFinite(n) ? n : 0;
@@ -22,6 +23,8 @@ export function createGameplay(map, simulation, options = {}) {
   let fireCooldown = 0, meleeCooldown = 0, jumpVelocity = 0;
   let previousCrashes = simulation.player.crashes || 0, witnessCooldown = 0;
   let retaliationCooldown = 0, crashCooldown = 0, recklessCooldown = 0, firstEquip = false;
+  const theftChallenge = createVehicleChallenge();
+  function clearTheftChallenge() { theftChallenge.clear(); theftChallenge.drainEvents(); }
   const policeController = createPolice(simulation, { onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
   const focus = () => state.mode === 'foot' ? state.actor : simulation.player;
   const visible = (a, b) => simulation.hasLineOfSight(a, b);
@@ -71,10 +74,12 @@ export function createGameplay(map, simulation, options = {}) {
     const target = simulation.nearbyVehicles(state.actor.x, state.actor.z, 7)
       .filter(v => visible(state.actor, v)).sort((a, b) => distance(a, state.actor) - distance(b, state.actor))[0];
     if (!target) { emit('no-vehicle', 'Move closer to a car.'); return false; }
-    if (target.occupied && target.id !== 'player') {
-      simulation.requestVehicleStop(target.id, 5);
-      state.carjacking = { id: target.id, elapsed: 0, waited: 0, duration: 1.8, progress: 0 };
-      emit('carjacking', 'Waiting for the driver to stop.'); return false;
+    if (target.id !== 'player' && target.owned !== true) {
+      clearTheftChallenge();
+      if (target.occupied) simulation.requestVehicleStop(target.id, 5);
+      state.carjacking = { id: target.id, phase: 'waiting', elapsed: 0, waited: 0, duration: 20, progress: 0, challenge: null };
+      state.actor.speed = 0; state.actor.jumpHeight = 0; jumpVelocity = 0; state.aiming = false;
+      emit('carjacking', target.occupied ? 'Waiting for the driver to stop.' : 'Getting ready to unlock the car.'); return false;
     }
     return enterVehicle(target);
   }
@@ -156,27 +161,54 @@ export function createGameplay(map, simulation, options = {}) {
   }
   function beginRecovery(reason) {
     if (state.recovery) return;
-    state.carjacking = null; state.aiming = false; state.actor.speed = 0; state.attackTimer = 0;
+    cancelCarjacking('recovery'); state.aiming = false; state.actor.speed = 0; state.attackTimer = 0;
     state.recovery = { reason, phase: 'out', elapsed: 0, duration: 3.4, progress: 0 };
     simulation.player.speed = 0; simulation.player.vx = 0; simulation.player.vz = 0;
     emit('recovery', reason === 'arrest' ? 'Being taken to the station.' : 'Medical help is arriving.', { reason });
   }
-  function updateCarjacking(dt) {
+  function cancelCarjacking(reason = 'cancelled') {
+    if (!state.carjacking) return false;
+    theftChallenge.cancel(reason); clearTheftChallenge(); state.carjacking = null;
+    state.actor.speed = 0; state.aiming = false;
+    emit('carjacking-cancelled', `Vehicle attempt ended: ${reason}.`);
+    return true;
+  }
+  function updateCarjacking(dt, input) {
     const action = state.carjacking;
     if (!action) return;
-    action.waited += dt;
-    if (action.waited > 8) { state.carjacking = null; emit('blocked', 'Driver did not stop nearby.'); return; }
     const target = simulation.nearbyVehicles(state.actor.x, state.actor.z, 7).find(v => v.id === action.id);
-    if (!target || !visible(state.actor, target) || state.mode !== 'foot') { state.carjacking = null; return; }
-    simulation.requestVehicleStop(target.id, 3);
-    // The taking clock only runs beside a stopped, visible occupied car.
-    if (distance(target, state.actor) > 5 || Math.abs(target.speed || 0) > 0.7) { action.elapsed = 0; action.progress = 0; return; }
-    action.elapsed += dt; action.progress = clamp(action.elapsed / action.duration, 0, 1);
-    if (action.elapsed >= action.duration) {
-      const displaced = { id: `exit:${target.id}`, x: target.x + Math.cos(target.yaw || 0)*2,
-        z: target.z - Math.sin(target.yaw || 0)*2, yaw: target.yaw || 0 };
-      state.carjacking = null;
-      if (enterVehicle(target)) options.onCarjacked?.(displaced);
+    if (!target || !visible(state.actor, target) || state.mode !== 'foot') {
+      cancelCarjacking('target lost'); return;
+    }
+    if (target.occupied) simulation.requestVehicleStop(target.id, 3);
+    const ready = distance(target, state.actor) <= 5 && Math.abs(target.speed || 0) <= 0.7;
+    if (action.phase === 'waiting') {
+      action.waited += dt;
+      if (action.waited > 8) { cancelCarjacking('driver did not stop nearby'); return; }
+      if (!ready) return;
+      if (!theftChallenge.start('car', { targetId: target.id, anchor: { x: target.x, z: target.z }, sandbox: state.sandbox })) {
+        cancelCarjacking('car unavailable'); return;
+      }
+      action.phase = 'challenge';
+      action.challenge = theftChallenge.snapshot();
+      emit('carjacking', 'Match the unlock cues. E cancels.');
+      return;
+    }
+    action.elapsed += dt;
+    if (action.elapsed > action.duration) { cancelCarjacking('unlock timed out'); return; }
+    theftChallenge.step(dt, input.challenge || {}, { valid: ready, sandbox: state.sandbox });
+    action.challenge = theftChallenge.snapshot(); action.progress = action.challenge.progress;
+    const completed = theftChallenge.drainEvents().some(event => event.type === 'complete' &&
+      event.sessionId === action.challenge.sessionId && event.targetId === action.id);
+    if (completed && action.challenge.phase === 'complete' && ready) {
+      // Claim only this live target once; a parked car has no adult to displace.
+      const displaced = target.occupied ? { id: `exit:${target.id}`, x: target.x + Math.cos(target.yaw || 0) * 2,
+        z: target.z - Math.sin(target.yaw || 0) * 2, yaw: target.yaw || 0 } : null;
+      state.carjacking = null; clearTheftChallenge();
+      if (enterVehicle(target) && displaced) options.onCarjacked?.(displaced);
+    } else if (!action.challenge.active) {
+      const reason = action.challenge.reason || 'unlock failed';
+      cancelCarjacking(reason);
     }
   }
   function addAmmo(amount) {
@@ -199,7 +231,9 @@ export function createGameplay(map, simulation, options = {}) {
       if (recovery.elapsed >= recovery.duration) state.recovery = null;
       return;
     }
-    updateCarjacking(dt);
+    if (!state.sandbox && state.health <= 0) { beginRecovery('knockout'); return; }
+    const takingVehicle = Boolean(state.carjacking);
+    updateCarjacking(dt, input);
     fireCooldown = Math.max(0, fireCooldown - dt); meleeCooldown = Math.max(0, meleeCooldown - dt);
     witnessCooldown = Math.max(0, witnessCooldown - dt);
     crashCooldown = Math.max(0, crashCooldown - dt); recklessCooldown = Math.max(0, recklessCooldown - dt);
@@ -209,7 +243,7 @@ export function createGameplay(map, simulation, options = {}) {
       state.reloading = Math.max(0, state.reloading - dt);
       if (state.reloading === 0) { const amount = Math.min(MAGAZINE - state.ammo, state.reserveAmmo); state.ammo += amount; state.reserveAmmo -= amount; }
     }
-    if (state.mode === 'foot') {
+    if (state.mode === 'foot' && !takingVehicle) {
       const x = finite(input.moveX), z = finite(input.moveZ), length = Math.hypot(x, z);
       const speed = input.sprint ? 6.8 + clamp(finite(options.fitness?.()), 0, 3) * 0.6 : 3.6;
       const before = { x: state.actor.x, z: state.actor.z };
@@ -263,6 +297,7 @@ export function createGameplay(map, simulation, options = {}) {
     policeController.step(dt, state, focus());
   }
   function reset({ sandbox = state.sandbox } = {}) {
+    clearTheftChallenge();
     state.mode = 'vehicle'; Object.assign(state.actor, { x: simulation.player.x, z: simulation.player.z, yaw: simulation.player.yaw,
       speed: 0, jumpHeight: 0 });
     Object.assign(state, { health: 100, vehicleHealth: 100, weapon: 'unarmed', ammo: 0, reserveAmmo: 0,
@@ -276,6 +311,6 @@ export function createGameplay(map, simulation, options = {}) {
     options.pedestrians?.drainEvents?.();
   }
   reset();
-  return { state, focus, step, interact, setWeapon, reload, reportOffence, reset, addAmmo, heal,
+  return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, reset, addAmmo, heal,
     snapshot: () => freeze(JSON.parse(JSON.stringify(state))) };
 }
