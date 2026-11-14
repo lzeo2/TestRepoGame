@@ -161,7 +161,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
           if(r.ok){if(r.heal)gameplay.heal(r.heal);if(r.ammo)gameplay.addAmmo(r.ammo,r.weaponId);if(r.weaponId&&item!== 'ammo'&&!item.startsWith('ammo:'))gameplay.setWeapon(r.weaponId);}
           feedback(r,true);renderServices();
         });b.dataset.serviceItem=item;b.dataset.reason=why;b.title=why;b.disabled=!!why;
-        if(blocked||(!reason&&progression.state.cash<cost)){const note=document.createElement('small');note.textContent=blocked||'Not enough cash';b.append(document.createElement('br'),note);}
+        if(!reason&&(blocked||progression.state.cash<cost)){const note=document.createElement('small');note.textContent=blocked||'Not enough cash';b.append(document.createElement('br'),note);}
         row.append(b);
       };
       const activity=(label,type,blocked=false)=>{

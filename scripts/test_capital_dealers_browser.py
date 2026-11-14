@@ -265,7 +265,7 @@ def main():
                       snap()['destination'] == site, 'Normal Route action creates a read-only road path')
                 check(not page.locator('#teleport-button').is_visible(), 'Street Life route has no teleport control')
                 target = next(service for service in snap()['services'] if service['id'] == site)
-                page.set_viewport_size({'width':480,'height':360})
+                page.set_viewport_size({'width':320,'height':240})
                 foot()
                 # E exits beside the actual campus fence; use its observed open gate.
                 pose = snap()["focus"]
@@ -278,7 +278,7 @@ def main():
                              if math.hypot(point["x"]-car["x"], point["z"]-car["z"]) > 8)
                 around_own_car(path[first], tolerance=3)
                 # Reduce software raster cost during the long walk, retaining real clocks and input.
-                page.set_viewport_size({'width':480,'height':360})
+                page.set_viewport_size({'width':320,'height':240})
                 for point in path[first+1:]:
                     if math.hypot(snap()['focus']['x']-target['x'], snap()['focus']['z']-target['z']) <= target['radius']-1:
                         break
@@ -347,6 +347,7 @@ def main():
                     pulse('r')
                     page.wait_for_function('capitalDriveSnapshot().gameplay.reloading===0', timeout=15000)
                     check(snap()['gameplay']['ammo'] == magazine, weapon+' normal reload refills its own magazine')
+                pulse('d')
                 capture('all-weapons-free-roam')
                 dealer = next(s for s in snap()['streetDealers']['services'] if s['id'] == 'dealer-kingston')
                 teleport_point(dealer['x']-math.sin(dealer['yaw'])*11, dealer['z']-math.cos(dealer['yaw'])*11)
@@ -366,6 +367,8 @@ def main():
                 capture('street-dealer-stock-desktop')
                 close_services()
                 pulse('1')
+                pose=snap()['focus'];yaw=snap()['camera']['footYaw']
+                look({'x':pose['x']+math.cos(yaw)*5,'z':pose['z']-math.sin(yaw)*5})
                 capture('street-dealer-contact-world')
                 observations.append({'pedestrianRoutines': snap()['pedestrians'].get('routineSample', []),
                                      'dealerView': snap()['streetDealers']['view']})
