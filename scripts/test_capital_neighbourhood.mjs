@@ -8,7 +8,8 @@ const source = await readFile(new URL('../Games/Capital Drive/neighbourhood.js',
 const districtsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/districts.js', import.meta.url), 'utf8'));
 const characterURL = moduleURL(await readFile(new URL('../Games/Capital Drive/suburb-character.js', import.meta.url), 'utf8'));
 const roadsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/road-network.js', import.meta.url), 'utf8'));
-const { createNeighbourhoodDetails } = await import(moduleURL(source.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL).replace('./suburb-character.js', characterURL)));
+const loadNeighbourhood = async text => import(moduleURL(text.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL).replace('./suburb-character.js', characterURL)));
+const { createNeighbourhoodDetails } = await loadNeighbourhood(source);
 const house = { id: 'house', type: 'house', height: 4, points: [[-6, 20], [6, 20], [6, 32], [-6, 32], [-6, 20]] };
 const base = { roads: [{ id: '1', name: 'Test Street', type: 'residential', width: 8, points: [[-100, 0], [100, 0]] }], buildings: [house], areas: [], landmarks: [], spawn: { x: 0, z: 0 } };
 const scene = new THREE.Scene();
@@ -30,7 +31,7 @@ scene.traverse(object => {
   for (const attribute of Object.values(object.geometry.attributes)) for (const n of attribute.array) assert.ok(Number.isFinite(n));
 });
 let first; scene.traverse(o => { if (!first && o.isMesh && o.name === 'Neighbourhood solid') first = o.geometry; });
-assert.ok(first.attributes.normal.array[1] > 0, 'driveway front face points upwards');
+assert.ok(first.attributes.normal.getY(0) > 0, 'driveway front face points upwards');
 details.update({ x: 1e6, z: 1e6 });
 assert.ok(scene.children[0].children.every(chunk => !chunk.visible));
 details.update(base.spawn);
@@ -153,3 +154,24 @@ const managedSchool = createNeighbourhoodDetails(scene, { ...schoolFixture, camp
 assert(oldSchool.stats.triangles > managedSchool.stats.triangles + 500, 'source campus renderer suppresses the old short frontage fence');
 oldSchool.dispose(); managedSchool.dispose();
 console.log('PASS managed campus suppresses legacy school fence');
+
+const floatSource = source.replace(/function compactAttribute\([\s\S]*?\n}\n/, 'function compactAttribute(values, itemSize) { return new THREE.Float32BufferAttribute(values, itemSize); }\n');
+assert.notEqual(floatSource, source);
+const { createNeighbourhoodDetails: createFloatDetails } = await loadNeighbourhood(floatSource);
+const compactScene = new THREE.Scene(), floatScene = new THREE.Scene();
+const compact = createNeighbourhoodDetails(compactScene, base, terrain), reference = createFloatDetails(floatScene, base, terrain);
+const meshes = scene => { const result=[]; scene.traverse(o => { if(o.isMesh) result.push(o); }); return result; };
+const compactMeshes = meshes(compactScene), floatMeshes = meshes(floatScene);
+assert.equal(compactMeshes.length,floatMeshes.length);
+let compactBytes=0,floatBytes=0;
+for(let m=0;m<compactMeshes.length;m++)for(const [name,attribute] of Object.entries(compactMeshes[m].geometry.attributes)) {
+  const other=floatMeshes[m].geometry.attributes[name]; compactBytes+=attribute.array.byteLength;floatBytes+=other.array.byteLength;
+  assert.equal(attribute.count,other.count); assert.equal(attribute.itemSize,other.itemSize);
+  if(name==='normal'||name==='color') {
+    assert(attribute.array instanceof (name==='normal'?Int8Array:Uint8Array)); assert.equal(attribute.normalized,true);
+    for(let i=0;i<attribute.count;i++)for(let c=0;c<attribute.itemSize;c++) assert(Math.abs(attribute.getComponent(i,c)-other.getComponent(i,c)) <= .5/(name==='normal'?127:255)+1e-7);
+  } else assert.deepEqual(Array.from(attribute.array),Array.from(other.array),`${name} remains exact`);
+}
+assert(compactBytes<floatBytes*.6); assert.equal(compact.stats.triangles,reference.stats.triangles);
+assert.deepEqual(compact.entries,reference.entries); compact.dispose();reference.dispose();
+console.log(`PASS compact neighbourhood: exact positions/entries/triangles, bounded normals/colors, ${floatBytes}→${compactBytes} bytes`);

@@ -9,6 +9,15 @@ const CELL = 100;
 const MAX_FRONTAGES = 4200;
 const PALETTE = { concrete: 0xaaa899, timber: 0x8a8068, hedge: 0x536d42, frame: 0xc9c6ac, pole: 0x747c75 };
 
+// Positions/UVs stay float32. Static lighting inputs need only bounded byte
+// precision; Three normalizes these attributes before the shader uses them.
+function compactAttribute(values, itemSize, signed = false) {
+  const scale = signed ? 127 : 255;
+  const output = signed ? new Int8Array(values.length) : new Uint8Array(values.length);
+  for (let i = 0; i < values.length; i++) output[i] = Math.round(Math.max(signed ? -1 : 0, Math.min(1, values[i])) * scale);
+  return new THREE.BufferAttribute(output, itemSize, true);
+}
+
 export function createNeighbourhoodDetails(scene, map, heightAt) {
   const root = new THREE.Group();
   root.name = 'Neighbourhood details';
@@ -28,6 +37,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
   const matrix = new THREE.Matrix4(), normalMatrix = new THREE.Matrix3();
   const rotation = new THREE.Quaternion(), axis = new THREE.Vector3(0, 1, 0);
   const position = new THREE.Vector3(), size = new THREE.Vector3(), vertex = new THREE.Vector3(), normal = new THREE.Vector3(), color = new THREE.Color();
+  const edgeAB = new THREE.Vector3(), edgeAC = new THREE.Vector3();
   const hash = n => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
   const clamp = THREE.MathUtils.clamp;
   const cellKey = (x, z) => `${Math.floor(x / CELL)},${Math.floor(z / CELL)}`;
@@ -75,9 +85,9 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
     return chunk.batches.get(kind);
   }
   function triangle(batch, a, b, c, tint) {
-    const ab = new THREE.Vector3().subVectors(new THREE.Vector3(...b), new THREE.Vector3(...a));
-    const ac = new THREE.Vector3().subVectors(new THREE.Vector3(...c), new THREE.Vector3(...a));
-    normal.crossVectors(ab, ac).normalize(); color.set(tint);
+    edgeAB.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    edgeAC.set(c[0] - a[0], c[1] - a[1], c[2] - a[2]);
+    normal.crossVectors(edgeAB, edgeAC).normalize(); color.set(tint);
     for (const p of [a, b, c]) { batch.positions.push(...p); batch.normals.push(normal.x, normal.y, normal.z); batch.colors.push(color.r, color.g, color.b); }
     stats.triangles++;
   }
@@ -422,9 +432,9 @@ export function createNeighbourhoodDetails(scene, map, heightAt) {
     for (const [kind, batch] of chunk.batches) {
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.Float32BufferAttribute(batch.positions, 3));
-      geometry.setAttribute('normal', new THREE.Float32BufferAttribute(batch.normals, 3));
+      geometry.setAttribute('normal', compactAttribute(batch.normals, 3, true));
       if (kind === 'sign') geometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uvs, 2));
-      else geometry.setAttribute('color', new THREE.Float32BufferAttribute(batch.colors, 3));
+      else geometry.setAttribute('color', compactAttribute(batch.colors, 3));
       geometry.computeBoundingSphere();
       const mesh = new THREE.Mesh(geometry, kind === 'sign' ? materials.at(-1) : material);
       mesh.name = `Neighbourhood ${kind}`;
