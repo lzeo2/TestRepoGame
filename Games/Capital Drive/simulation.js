@@ -200,7 +200,7 @@ export function createSimulation(map, options = {}) {
       Math.abs(af[0] * x + af[1] * z) * al / 2 + Math.abs(ar[0] * x + ar[1] * z) * aw / 2 +
       Math.abs(bf[0] * x + bf[1] * z) * bl / 2 + Math.abs(br[0] * x + br[1] * z) * bw / 2);
   }
-  function canOccupy(pose, { length = 4.5, width = 1.8, ignoreId = pose?.id } = {}) {
+  function staticVehicleClear(pose, { length = 4.5, width = 1.8 } = {}) {
     if (!pose || ![pose.x, pose.z, pose.yaw, length, width].every(Number.isFinite) || length <= 0 || width <= 0) return false;
     length = clamp(length, 1, 16); width = clamp(width, 0.5, 4);
     const radius = width / 2, span = Math.max(0, length / 2 - radius), samples = Math.max(2, Math.ceil(span * 4));
@@ -212,6 +212,11 @@ export function createSimulation(map, options = {}) {
         if (physicalContact(index,polygon,x,z,radius)) return false;
       }
     }
+    return true;
+  }
+  function canOccupy(pose, { length = 4.5, width = 1.8, ignoreId = pose?.id } = {}) {
+    if (!staticVehicleClear(pose, { length, width })) return false;
+    length = clamp(length, 1, 16); width = clamp(width, 0.5, 4);
     return ![player, ...traffic, ...parkedIndex.query(pose.x,pose.z,Math.hypot(length,width)/2+4), ...abandonedCars, ...externalVehicles].some(car =>
       car !== pose && car.id !== ignoreId && car.active !== false && vehicleOverlap(pose, length, width, car));
   }
@@ -352,6 +357,20 @@ export function createSimulation(map, options = {}) {
     return { ok: true, x: target.x, z: target.z, yaw, adjusted: distance > 0.000001, reason, distance };
   }
   reset();
+  // Source road centrelines can overlap retained fences/buildings/water. Cache
+  // only immutable geometry: a waiting player or bus must remain a real queue.
+  const trafficEdgeClearance = new Map();
+  function trafficEdgeClear(edge) {
+    if (!trafficEdgeClearance.has(edge.id)) {
+      const samples = Math.max(1, Math.ceil(edge.length / 0.5));
+      let clear = true;
+      for (let sample = 0; sample <= samples; sample++) {
+        if (!staticVehicleClear(pointOnLane(edge, edge.length * sample / samples))) { clear = false; break; }
+      }
+      trafficEdgeClearance.set(edge.id, clear);
+    }
+    return trafficEdgeClearance.get(edge.id);
+  }
   const candidates = graph.edges.filter(edge => edge.length > 8 && roadProfile(edge.road).trafficAllowed);
   function nearbyEdges(radius, focus = focusPoint || player) {
     const nearby = [];
@@ -370,6 +389,7 @@ export function createSimulation(map, options = {}) {
     for (let attempt = 0; attempt < 80; attempt++) {
       const pool = initialEdges.length && attempt < 60 ? initialEdges : candidates;
       const edge = pool[Math.floor(random() * pool.length)];
+      if (!trafficEdgeClear(edge)) continue;
       placeTraffic(car, edge, random() * edge.length);
       const spawnDistance = Math.hypot(car.x - player.x, car.z - player.z);
       if (spawnDistance > 45 && (attempt >= 60 || spawnDistance < 350) &&
@@ -389,6 +409,7 @@ export function createSimulation(map, options = {}) {
       if (Math.hypot(car.x - focus.x, car.z - focus.z) <= (car.active ? 850 : 330)) continue;
       for (let attempt = 0; attempt < 40; attempt++) {
         const edge = localEdges[Math.floor(random() * localEdges.length)];
+        if (!trafficEdgeClear(edge)) continue;
         const position = random() * edge.length, pose = pointOnLane(edge, position);
         const gap = Math.hypot(pose.x - focus.x, pose.z - focus.z);
         // The renderer culls traffic at 300m; replacements enter beyond that view.
@@ -398,7 +419,7 @@ export function createSimulation(map, options = {}) {
     }
   }
   function nextEdge(car) {
-    const choices = car.edge.to.outgoing.filter(edge => roadProfile(edge.road).trafficAllowed);
+    const choices = car.edge.to.outgoing.filter(edge => roadProfile(edge.road).trafficAllowed && trafficEdgeClear(edge));
     const onward = choices.filter(edge => edge.to !== car.edge.from);
     const pool = onward.length ? onward : choices;
     return pool.length ? pool[Math.floor(random() * pool.length)] : null;
@@ -419,7 +440,7 @@ export function createSimulation(map, options = {}) {
       if (stopTime > 0) { target = 0; car.overtake = 0; stopRequests.set(car.id, Math.max(0, stopTime - dt)); }
       const cruise = target;
       if (signalLimited) { target = Math.min(target, Math.sqrt(12 * Math.max(0, signalDistance))); car.overtake = 0; }
-      let blocked = false;
+      let blocked = false, junctionDistance = Infinity;
       if (edge.to.outgoing.length > 2 && remaining < 20) target = Math.min(target, 7.5);
       for (const other of traffic) {
         if (car === other || !other.active) continue;
@@ -437,6 +458,10 @@ export function createSimulation(map, options = {}) {
         const dx = obstacle.x - car.x, dz = obstacle.z - car.z;
         if (obstacle.edge && traffic[obstacle.slot] === obstacle) {
           const alignment = edge.dx * obstacle.edge.dx + edge.dz * obstacle.edge.dz;
+          // Clear opposing lanes are not lead vehicles, even on narrow roads.
+          // The physical sweep still blocks genuinely intersecting car bodies.
+          if (alignment < -0.95 && Math.abs(dx * edge.dz - dz * edge.dx) >=
+            ((car.width || 1.8) + (obstacle.width || 1.8)) / 2 + 0.15) continue;
           if (Math.abs(alignment) < 0.65) {
             // Crossing cars need approach priority, rather than a following gap.
             // Limit straight-line prediction to these nearby segments and their turn mouths.
@@ -448,7 +473,8 @@ export function createSimulation(map, options = {}) {
               ownDistance > 3 && (otherDistance < ownDistance - 2 || Math.abs(otherDistance - ownDistance) <= 2 && obstacle.slot < car.slot);
             if (ownDistance > 0 && ownDistance < 24 && otherDistance > -3 && otherDistance < 24 &&
               ownDistance < remaining + 4 && otherDistance < obstacle.edge.length - obstacle.position + 4 && otherFirst) {
-              target = Math.min(target, Math.max(0, (ownDistance - 6) * 0.8));
+              junctionDistance = Math.min(junctionDistance, Math.max(0, ownDistance - 6));
+              target = Math.min(target, junctionDistance * 0.8);
             }
             continue;
           }
@@ -480,6 +506,7 @@ export function createSimulation(map, options = {}) {
       car.speed += clamp(target - car.speed, -9 * dt, 3.5 * dt);
       // A hard displacement cap keeps fast cars behind the front-bumper stop line.
       if (signalLimited) car.speed = Math.min(car.speed, Math.max(0, signalDistance) / dt);
+      if (Number.isFinite(junctionDistance)) car.speed = Math.min(car.speed, junctionDistance / dt);
       car.position += car.speed * dt;
       // Small segments can cross more than one node per tick.
       let transitions = 0;
