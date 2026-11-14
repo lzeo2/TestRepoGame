@@ -118,6 +118,33 @@ const strikeOrigin={x:guest.x,z:guest.z-1,yaw:Math.PI};
 assert(pool.strike({...strikeOrigin,damage:100,range:2,hasLineOfSight:seen}).hits>0);
 assert.equal(pool.snapshot().find(p=>p.id===guest.id).attackTimer,0,'a hit/death cancels the current punch pose');
 for(let i=0;i<15;i++)pool.update(.1,context);assert.equal(pool.drainEvents().filter(e=>e.type==='retaliation').length,0,'dead guest cannot retaliate');
+// Explicit controller context can downgrade a pending story conversation after cancel/switch.
+for(const choice of ['apologise','confront']) {
+  const pending=createInteriorPeople();pending.load(encounterPlan);
+  assert(pending.startDialogue(guest.id,{...context,scriptedFight:false}).ok);
+  assert(pending.startDialogue(guest.id,{...context,scriptedFight:true}).ok,'new mission upgrades pending ordinary dialogue');
+  assert(pending.startDialogue(guest.id,context).ok,'omitted option resumes the selected context');
+  assert(pending.startDialogue(guest.id,{...context,scriptedFight:false}).ok,'cancelled mission explicitly restores ordinary dialogue');
+  assert(pending.startDialogue(guest.id,context).ok);
+  assert(pending.respondDialogue(guest.id,choice,context).ok);
+  if(choice==='confront')for(let i=0;i<8;i++)pending.update(.1,context);
+  assert.equal(pending.encounter.outcome,choice==='apologise'?'peaceful':'confrontation');
+  assert.equal(pending.encounter.serial,1);
+  assert.equal(pending.snapshot().find(p=>p.id===guest.id).noodleThrow,null);
+  assert.equal(pending.drainEvents().filter(e=>e.type==='noodles-throw').length,0,'ordinary choices never inherit scripted throw');
+}
+const retryContext=createInteriorPeople();retryContext.load(encounterPlan);
+retryContext.startDialogue(guest.id,{...context,scriptedFight:true});retryContext.respondDialogue(guest.id,'confront',context);
+retryContext.strike({...strikeOrigin,damage:20,range:2,hasLineOfSight:seen});retryContext.update(.1,context);
+for(let i=0;i<130;i++)retryContext.update(.1,{actor:{x:actor.x+100,z:actor.z},hasLineOfSight:seen});
+assert.equal(retryContext.encounter.phase,'interrupted');
+assert(retryContext.startDialogue(guest.id,{...context,scriptedFight:false}).ok,'explicit ordinary context also downgrades a calm retry');
+retryContext.respondDialogue(guest.id,'apologise',context);assert.equal(retryContext.encounter.outcome,'peaceful');
+const omittedContext=createInteriorPeople();omittedContext.load(encounterPlan);
+omittedContext.startDialogue(guest.id,{...context,scriptedFight:true});
+assert.equal(omittedContext.startDialogue(guest.id,{actor,hasLineOfSight:blocked,scriptedFight:false}).ok,false);
+omittedContext.startDialogue(guest.id,context);omittedContext.respondDialogue(guest.id,'apologise',context);
+assert.equal(omittedContext.encounter.phase,'noodle-windup','invalid explicit override cannot mutate a pending mission context');
 // Rowan's story encounter must physically throw before the same guest emits melee.
 let throwPose=null,flightPose=null;
 for (const choice of ['apologise','confront']) {
@@ -323,4 +350,4 @@ const retained=new THREE.Color();scene.children[0].children[0].getColorAt(live.l
 assert(Math.abs(retained.r-wanted.r)+Math.abs(retained.g-wanted.g)+Math.abs(retained.b-wanted.b)<1e-6,'hero preset survives room lifecycle');
 view.clear();
 view.dispose();view.dispose();view.load(plans[0]);view.update([],1);assert(view.stats.disposed);assert.equal(scene.children.length,0);
-console.log('PASS active adult roles, real booth/window anchors, authoritative peaceful/hostile encounters, live LOS/health/radius/cooldown gates, swept contacts, pause, shared rounded parts, 36 moving noodle segments, six lazy draws, four equipment-linked workout poses, emitted NPC punch poses, mission-only noodle throws before actual melee, released flight after target departure, safe nonlethal and departed-target timeout retries, immutable trajectories and exact disposal');
+console.log('PASS active adult roles, real booth/window anchors, authoritative peaceful/hostile encounters, live LOS/health/radius/cooldown gates, swept contacts, pause, shared rounded parts, 36 moving noodle segments, six lazy draws, four equipment-linked workout poses, emitted NPC punch poses, mission-only noodle throws before actual melee, released flight after target departure, safe nonlethal and departed-target timeout retries, explicit mission context downgrade, immutable trajectories and exact disposal');

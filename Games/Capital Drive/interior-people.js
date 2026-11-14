@@ -186,10 +186,13 @@ export function createInteriorPeople() {
     const p=dialoguePerson(encounterState.personId,actor,hasLineOfSight);
     return p ? Object.freeze({id:p.id,character:p.character,label:'Talk to the booth guest',x:p.x,z:p.z,radius:2.1}) : null;
   }
-  function startDialogue(id,{actor,hasLineOfSight,scriptedFight=false}={}) {
+  function startDialogue(id,{actor,hasLineOfSight,scriptedFight}={}) {
     if(!['idle','dialogue','interrupted'].includes(encounterState?.phase) || !dialoguePerson(id,actor,hasLineOfSight)) return Object.freeze({ok:false,reason:'Move close to the booth guest.'});
     if (encounterState.phase==='interrupted') {encounterState.throwEmitted=false;encounterState.outcome=null;}
-    if (scriptedFight===true) encounterState.scriptedFight=true;
+    if (typeof scriptedFight==='boolean') {
+      encounterState.scriptedFight=scriptedFight;
+      if (!scriptedFight) encounterState.throwEmitted=false;
+    }
     encounterState.phase='dialogue';
     return Object.freeze({ok:true,dialogue:Object.freeze({id,title:'Booth guest',line:'You left your bag on the floor! Pick it up! Want to argue about it?',
       choices:Object.freeze([Object.freeze({id:'apologise',label:'Sorry, I will move it.'}),Object.freeze({id:'confront',label:'Back off.'})])})});
