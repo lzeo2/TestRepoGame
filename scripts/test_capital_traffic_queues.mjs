@@ -4,8 +4,10 @@ const base = new URL('../Games/Capital Drive/', import.meta.url);
 const read = name => readFile(new URL(name, base), 'utf8');
 const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const networkURL = moduleURL(await read('road-network.js'));
-const { applyRoadProfiles } = await import(networkURL);
-const { createSimulation, pointOnLane } = await import(moduleURL((await read('simulation.js'))
+const { applyRoadProfiles, roadProfile } = await import(networkURL);
+const { createSimulation, pointOnLane, projectSegment } = await import(moduleURL((await read('simulation.js'))
+  .replace("'./road-network.js'", JSON.stringify(networkURL))));
+const { generateParkedCars } = await import(moduleURL((await read('parking-layout.js'))
   .replace("'./road-network.js'", JSON.stringify(networkURL))));
 const { applyMapExpansion } = await import(moduleURL(await read('map-expansion.js')));
 const actual = applyMapExpansion(applyRoadProfiles(JSON.parse(await read('data/canberra.json')),
@@ -72,3 +74,79 @@ for (const car of local.parkedCars) Object.defineProperty(car, 'active', { get()
 advance(local, 2);
 assert.equal(distantReads, 0, 'queue and physical queries do not scan the distant decorative fleet');
 console.log('PASS traffic queues: actual-map narrow-road parked overlap reproduced; physical following, legal release, pause, external bus and local-only parked queries');
+
+// Exercise the same pure layout and occupancy callback used by the controller.
+// Archived placement is a negative control, retained to measure the reported jam.
+// It deliberately uses the former raw-road width offset and random sequence.
+function legacyParking(map, simulation) {
+  let seed = 731, serial = 0;
+  const random = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  const cars = [];
+  for (const road of map.roads) {
+    if (!road.name || !['residential', 'tertiary', 'unclassified'].includes(road.type)) continue;
+    let along = 30 + random() * 40;
+    for (let i = 1; i < road.points.length; i++) {
+      const a = road.points[i - 1], b = road.points[i], dx = b[0] - a[0], dz = b[1] - a[1], length = Math.hypot(dx, dz);
+      while (along < length) {
+        const side = random() < .5 ? 1 : -1, offset = road.width / 2 - .8;
+        cars.push({ id: `legacy:${serial++}`, x: a[0] + dx * along / length + dz / length * offset * side,
+          z: a[1] + dz * along / length - dx / length * offset * side,
+          yaw: Math.atan2(-dx, -dz) + (side < 0 ? Math.PI : 0) });
+        random(); random(); // Former SUV and paint choices consumed these values.
+        along += 90 + random() * 90;
+      }
+      along -= length;
+    }
+  }
+  const road = simulation.nearestRoad(-298, -325.27), offset = Math.min(3.3, road.road.width / 2 - .8);
+  const wagon = { id: 'mission-wagon', x: road.x - Math.cos(road.yaw) * offset,
+    z: road.z + Math.sin(road.yaw) * offset, yaw: road.yaw };
+  return [...cars.filter(car => Math.hypot(car.x - wagon.x, car.z - wagon.z) > 9), wagon];
+}
+const legacySim = createSimulation(actual, { seed: 20261112 });
+const legacy = legacyParking(actual, legacySim);
+assert(legacy.length > 2000, 'archived negative control retains the former dense curb fleet');
+legacySim.setParkedCars(legacy);
+advance(legacySim, 60);
+const legacyStopped = legacySim.traffic.filter(car => car.active && car.speed < .1).length;
+const layoutSim = createSimulation(actual, { seed: 20261112 });
+const layoutOptions = { isClear: (_x, _z, _radius, car) => layoutSim.canOccupy(car, { length: 4.8, width: 2 }) };
+const layout = generateParkedCars(actual, layoutOptions);
+assert.deepEqual(generateParkedCars(actual, layoutOptions), layout, 'production parking generation is deterministic');
+assert(layout.length > 50, 'dedicated source parking retains a useful decorative fleet');
+assert.equal(new Set(layout.map(car => car.id)).size, layout.length, 'parked IDs are unique and stable');
+const mission = layout.find(car => car.id === 'mission-wagon');
+assert(mission && Math.hypot(mission.x + 298, mission.z + 325.27) <= 18.01, 'recovery-job wagon remains near its original task anchor');
+assert(layout.some(car => car.parkingType === 'source-parking-aisle'), 'source parking aisles supply actual parking slots');
+assert(layout.every(car => car.parkingType !== 'wide-curb' || roadProfile(actual.roads.find(road => (road.sourceId || road.id) === car.sourceRoadId)).driveWidth >= 12), 'ordinary narrow public roads do not receive curb blockers');
+assert.deepEqual(generateParkedCars(actual, { isClear: () => false }), [], 'external physical-clearance rejection is authoritative');
+const laneSegments = layoutSim.graph.edges.filter(edge => roadProfile(edge.road).trafficAllowed).map(edge => {
+  const a = pointOnLane(edge, 0), b = pointOnLane(edge, edge.length);
+  return { a: [a.x, a.z], b: [b.x, b.z], minX: Math.min(a.x, b.x) - 5, maxX: Math.max(a.x, b.x) + 5,
+    minZ: Math.min(a.z, b.z) - 5, maxZ: Math.max(a.z, b.z) + 5 };
+});
+let minimumClearance = Infinity;
+for (const car of layout) {
+  assert(layoutSim.canOccupy(car, { length: 4.8, width: 2 }), `${car.id} respects actual-map building/water/bounds and live vehicles`);
+  for (const offset of [-2.4, -1.2, 0, 1.2, 2.4]) {
+    const x = car.x - Math.sin(car.yaw) * offset, z = car.z - Math.cos(car.yaw) * offset;
+    for (const lane of laneSegments) {
+      if (x < lane.minX || x > lane.maxX || z < lane.minZ || z > lane.maxZ) continue;
+      const clearance = projectSegment(x, z, lane.a, lane.b).distance;
+      minimumClearance = Math.min(minimumClearance, clearance);
+      assert(clearance >= 2.5, `${car.id} front/body/rear keeps braking clearance from all directed public lanes (${clearance})`);
+    }
+  }
+}
+layoutSim.setParkedCars(layout);
+assert(layoutSim.parkedCars.every(car => layoutSim.canOccupy(car, { length: 4.8, width: 2 })), 'the complete generated fleet has no mutual physical overlaps');
+const startPositions = layoutSim.traffic.map(car => [car.x, car.z]);
+const started = performance.now();
+advance(layoutSim, 60);
+const stopped = layoutSim.traffic.filter(car => car.active && car.speed < .1).length;
+assert.equal(layoutSim.traffic.length, 40, 'actual map keeps the intended stable40-car population');
+assert(layoutSim.traffic.every(car => [car.x, car.z, car.speed, car.yaw].every(Number.isFinite)), 'seeded60-second traffic stays finite');
+assert(layoutSim.traffic.filter((car, i) => Math.hypot(car.x - startPositions[i][0], car.z - startPositions[i][1]) > 30).length >= 20, 'most real-map cars make useful route progress beside production parking');
+assert(stopped <= legacyStopped - 10, `production parking releases at least10 additional cars (${stopped} stopped versus${legacyStopped} legacy)`);
+assert(performance.now() - started < 20000, 'actual40-car replay stays within the bounded source-test budget');
+console.log(`PASS production parking: ${layout.length} deterministic physical slots, mission wagon retained, minimum lane clearance${minimumClearance.toFixed(2)}m;60s/40cars:${stopped} stopped (legacy${legacyStopped}), no citywide parked-query scan`);
