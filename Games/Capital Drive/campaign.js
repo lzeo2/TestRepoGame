@@ -1,4 +1,6 @@
-// Original missions. Targets are public approaches, never surveyed private rooms.
+import { expansionPlaces } from './map-expansion.js';
+
+// Original fiction. Mission rooms and encounters are authored, not surveyed private spaces.
 const clone = value => JSON.parse(JSON.stringify(value));
 const finitePoint = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
@@ -15,34 +17,51 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   const centre = place('canberra-centre', { x: -456, z: -4500, name: 'Canberra Centre' });
   const kingston = place('kingston', { x: 923, z: 285, name: 'Kingston' });
   const redHill = place('redhill', { x: -1770, z: 1740, name: 'Red Hill' });
-  const bridge = place('commonwealth-bridge', { x: -1230, z: -2840, name: 'Commonwealth Avenue Bridge' });
+  const sourceBridge = map.roads?.length ? expansionPlaces(map).find(point => point.id === 'commonwealth-bridge') : null;
+  const bridge = sourceBridge || place('commonwealth-bridge', { x: -1230, z: -2840, name: 'Commonwealth Avenue Bridge' });
+  // Flynn Drive has a sourced public sidewalk. Recruit on its closest source
+  // vertex rather than inventing a foot approach on the trunk bridge deck.
+  const approachRoad = map.roads?.find(road => road.sourceId === 'way/5640616');
+  const approachVertex = sourceBridge && approachRoad?.points.reduce((best, point) => !best || Math.hypot(point[0] - bridge.x, point[1] - bridge.z) < Math.hypot(best[0] - bridge.x, best[1] - bridge.z) ? point : best, null);
+  const bridgeApproach = approachVertex ? { x: approachVertex[0], z: approachVertex[1] } : null;
+  const school = map.schoolEntry || map.spawn;
+  if (!finitePoint(school)) throw new Error('Campaign school entry must be finite.');
+  const schoolRoomId = school.roomId || 'interior-telopea-school';
+  const scene = (id, title, ...lines) => ({ id, title, lines: lines.map(([speaker, text]) => ({ speaker, text, duration: 3.5 })) });
+  const crew = owner => ['student', 'corporate', 'basement'].filter(id => id !== owner);
   const target = (point, label, kind = 'drive', extra = {}) => ({ x: point.x, z: point.z, label, kind, radius: 26, hold: 1, ...extra });
   const shared = freeze([
-    { id: 'late-parcel', character: 'basement', name: '1. Late parcel', contact: 'Mara, local courier', reward: 350, time: 360,
-      briefing: 'Milo, a replacement driver has not shown up. Take the sealed parcel from the Crescent to the Manuka shopfront. Keep the car in one piece.',
-      outro: 'Mara: You know these streets. There is more work if you want it.',
-      stages: [target(map.spawn, 'Collect the parcel on the Crescent'), target(shop, 'Stop outside Coals', 'drive', { stop: true })] },
-    { id: 'under-the-awning', character: 'student', name: '2. Under the awning', contact: 'Mara', reward: 450, time: 300,
-      briefing: 'Kit, the shopkeeper has a ledger for Mara. Park nearby, walk inside Coals and collect it at the counter. Then return to your car.',
-      outro: 'Mara: Those missing deliveries all passed through the same depot.',
-      stages: [target(shop, 'Enter Coals and reach its counter', 'interior', { storeId: shop.id, radius: 2.5, hold: 2 }), target(shop, 'Return to a car outside Coals', 'drive')] },
+    { id: 'late-parcel', character: 'basement', name: '1. Depot interception', contact: 'Mara, local fixer', reward: 350, time: 360, incident: true, wantedLevel: 3,
+      cutscene: scene('late-parcel', 'The debt changes hands', ['Milo', 'The depot sold my debt twice. We need a getaway car before we intercept its collection.'], ['Mara', 'Kit and Rowan can cover you on foot outside. Get the vehicle to Coals and shake the search.']),
+      briefing: 'Milo, the fraudulent depot is moving its collection case. Take an occupied street vehicle and deliver it outside Coals. Kit and Rowan can cover you on foot outside. Lose the police before the handover.',
+      outro: 'Milo: Their getaway car is ours. The case names a ledger hidden behind the Coals counter.',
+      stages: [target(map.spawn, 'Intercept an occupied vehicle; crew covers on foot', 'stolen', { anywhere: true }), target(shop, 'Bring the stolen vehicle to Coals and lose the police', 'drive', { stolen: true, clear: true, stop: true })] },
+    { id: 'under-the-awning', character: 'student', name: '2. Ledger robbery', contact: 'Mara', reward: 450, time: 300,
+      cutscene: scene('under-the-awning', 'A receipt for every lie', ['Kit', 'The depot kept our club refund in a second set of books. The ledger is at Coals.'], ['Mara', 'Rowan and Milo will cover the street outside. Complete the counter robbery, then leave in a car.']),
+      briefing: 'Kit, rob the counter at Coals while Rowan and Milo cover the street outside. Complete the till handover to recover the depot ledger, then return to a car outside and lose any police attention.',
+      outro: 'Kit: The ledger has every double charge. Jules can match the depot vehicles to these entries.',
+      stages: [target(shop, 'Complete the Coals counter robbery while the crew covers outside', 'robbery', { storeId: shop.id, hold: 0 }), target(shop, 'Leave Coals in a car with the recovered ledger', 'drive', { clear: true, stop: true })] },
     { id: 'borrowed-wheels', character: 'corporate', name: '3. Borrowed wheels', contact: 'Jules, garage mechanic', reward: 700, time: 480,
-      briefing: 'Rowan, Jules wants a working example of the depot fleet. Take an occupied vehicle on the street, then bring it to the Kingston meeting point. Police must lose you before handover.',
-      outro: 'Jules: Same depot markings. Someone has been selling the parcels twice.',
-      stages: [target(shop, 'Take an occupied street vehicle', 'stolen', { anywhere: true }), target(kingston, 'Deliver the stolen vehicle in Kingston', 'drive', { stolen: true, clear: true, stop: true })] },
-    { id: 'quiet-streets', character: 'corporate', name: '4. Quiet streets', contact: 'Jules', reward: 800, time: 540, incident: true,
-      briefing: 'Rowan, the handover has drawn attention. Leave the patrols behind, reach the Red Hill meeting point and stay out of sight until the search ends.',
-      outro: 'Jules: We are clear. Mara has found the final delivery address across the lake.',
-      stages: [target(redHill, 'Lose the police and wait at Red Hill', 'escape', { clear: true, hold: 7, radius: 45 })] },
-    { id: 'across-the-water', character: 'student', name: '5. Across the water', contact: 'Mara', reward: 1000, time: 660,
-      briefing: 'Kit, take the recovered ledger to the city. Follow the route across Commonwealth Avenue Bridge, then stop at the Canberra Centre public approach.',
-      outro: 'Mara: Delivered. The missing stock is accounted for, and the depot cannot pin it on us.',
-      stages: [target(bridge, 'Cross Commonwealth Avenue Bridge', 'drive', { radius: 75, hold: 0 }), target(centre, 'Stop at Canberra Centre', 'drive', { stop: true, radius: 40 })] },
-    { id: 'home-by-the-lake', character: 'basement', name: '6. Home by the lake', contact: 'Mara', reward: 1200, time: 720,
-      briefing: 'Milo, one last run home. Return to Manuka, park outside Coals and meet Mara on foot. The rest of Canberra is yours after that.',
-      outro: 'Mara: Good driving. The next shift is yours to choose. Campaign complete.',
-      stages: [target(shop, 'Return to Manuka', 'drive', { stop: true }), target(shop, 'Meet Mara outside Coals on foot', 'foot', { hold: 3, radius: 12 })] },
-  ]);
+      cutscene: scene('borrowed-wheels', 'Hostile acquisition', ['Rowan', 'My employer signed off on this depot. Its fleet is the missing link.'], ['Jules', 'Take a live street vehicle. Kit and Milo cover the street on foot. Bring it to Kingston with no patrol on your tail.']),
+      briefing: 'Rowan, carjack an occupied street vehicle, then bring it to Kingston. Kit and Milo can cover you on foot outside. Stop for Jules and lose the police before handover.',
+      outro: 'Rowan: The fleet and the false accounts match. The depot knows we have its evidence.',
+      stages: [target(shop, 'Carjack an occupied street vehicle; crew covers on foot', 'stolen', { anywhere: true }), target(kingston, 'Deliver the stolen vehicle in Kingston', 'drive', { stolen: true, clear: true, stop: true })] },
+    { id: 'quiet-streets', character: 'corporate', name: '4. Armed getaway', contact: 'Jules', reward: 800, time: 540, incident: true, wantedLevel: 3,
+      cutscene: scene('quiet-streets', 'The handover was a trap', ['Rowan', 'They traced the handover. We are leaving together.'], ['Jules', 'Your crew is armed. Cover each other, reach Red Hill and lose the search.']),
+      briefing: 'Rowan, the depot handover has become an armed getaway. Kit and Milo will defend the crew against nearby threats. Reach Red Hill and lose the police before regrouping.',
+      outro: 'Rowan: Everyone is here. The ledger points to one final account across the lake.',
+      stages: [target(redHill, 'Escape with the crew and regroup at Red Hill', 'escape', { clear: true, hold: 7, radius: 45 })] },
+    { id: 'across-the-water', character: 'student', name: '5. Bridge score', contact: 'Mara', reward: 1000, time: 660, incident: true, wantedLevel: 3,
+      cutscene: scene('across-the-water', 'The last account', ['Kit', 'The Centre drop is the last escape route for the depot accountant. We get the ledger there first.'], ['Mara', 'Regroup with Rowan and Milo on Flynn Drive. They cover you on foot outside. Cross the bridge, then lose the police before the drop.']),
+      briefing: 'Kit, regroup at the Flynn Drive public approach, then drive the recovered ledger across Commonwealth Avenue Bridge. Rowan and Milo can cover you on foot outside. Evade the police and stop at the Canberra Centre public approach to close the depot account.',
+      outro: 'Kit: The evidence is delivered. The depot cannot collect those false debts again. Time to split the score.',
+      stages: [...(bridgeApproach ? [target(bridgeApproach, 'Regroup at the Flynn Drive public approach', 'drive', { stop: true })] : []), target(bridge, 'Carry the ledger across Commonwealth Avenue Bridge', 'drive', { radius: 75, hold: 0 }), target(centre, 'Lose the police and stop at Canberra Centre', 'drive', { stop: true, clear: true, radius: 40 })] },
+    { id: 'home-by-the-lake', character: 'basement', name: '6. Split the score', contact: 'Mara', reward: 1200, time: 720,
+      cutscene: scene('home-by-the-lake', 'Three shares, no debt', ['Milo', 'We started with a missing refund, a broken presentation and a debt collector.'], ['Mara', 'Return to Coals. Meet me and the crew outside, clear of the police, and we split the recovered money.']),
+      briefing: 'Milo, return to Manuka for the split. Kit and Rowan can cover you on foot outside. Lose any police, park outside Coals and meet Mara on foot to divide the recovered depot money. Make the final drop on foot.',
+      outro: 'Mara: Three equal shares. The fake debts are gone. Campaign complete.',
+      stages: [target(shop, 'Return to Coals for the split', 'drive', { clear: true, stop: true }), target(shop, 'Meet Mara outside Coals to split the score', 'foot', { clear: true, hold: 3, radius: 12 })] },
+  ].map(chapter => ({ ...chapter, companions: crew(chapter.character) })));
   const noodle = place('store-5656111023', { x: -367.096, z: -4406.948, name: 'Lambzhou 1919' });
   const mall = { x: -248.655, z: -4172.87 };
   const characters = freeze([
@@ -52,39 +71,40 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   ]);
   const intros = freeze({
     student: [
-      { id: 'student-paper-chase', name: 'Paper chase', contact: 'Kit Vale', reward: 100, time: 480,
-        briefing: 'Your club flyers went to the wrong gate. Collect both bundles, then take them to the Crescent. The prank is a fake timetable for the chess club.',
-        outro: 'Kit: Three delivery stickers. One fictional depot. Apparently even a harmless prank needs logistics.',
-        stages: [target({ x: -337.147, z: -385.029 }, 'Collect the club flyers at the west path gate', 'foot', { radius: 7 }), target({ x: -137.704, z: -225.963 }, 'Collect the second bundle at the park path gate', 'foot', { radius: 7 }), target(map.spawn, 'Bring the flyers to the Crescent', 'foot', { radius: 12 })] },
-      { id: 'student-extra-credit', name: 'Extra credit', contact: 'Mara, local courier', reward: 150, time: 660,
-        briefing: 'Mara will carry the flyers if you cover a stock task at Coals. Drive over, enter the shop and finish a stock activity.',
-        outro: 'Kit: Shift finished. Mara wants the depot stickers brought to Kingston.',
+      { id: 'student-paper-chase', name: 'False start', contact: 'Kit Vale', reward: 100, time: 480, combat: false,
+        cutscene: scene('student-paper-chase', 'After hours', ['Kit', 'The depot took our club money and called the missing refund a delivery fee.'], ['Kit', 'I am back after hours. Trigger the alarm, get outside and lose the search. No fighting.']),
+        briefing: 'The fictional depot kept your school club refund. Enter the fictional after-hours Telopea room and complete its alarm panel sequence to create a diversion. There is no fire. Leave the room and evade the police outside. Attacks are disabled during this mission.',
+        outro: 'Kit: Clear of the search. The depot refund has a Coals stock reference. Mara can get me inside.',
+        stages: [target(school, 'Enter the after-hours Telopea room and trigger its alarm', 'school-alarm', { roomId: schoolRoomId, hold: 0 }), target(school, 'Leave Telopea on foot and lose the search', 'escape', { foot: true, clear: true, radius: 30, hold: 3 })] },
+      { id: 'student-extra-credit', name: 'Extra credit', combat: false, cutscene: scene('student-extra-credit', 'The stock reference', ['Mara', 'That refund went through Coals. Work a real stock shift and find the depot receipt.'], ['Kit', 'A quiet shift first. Then we find where the money went.']), contact: 'Mara, local courier', reward: 150, time: 660,
+        briefing: 'Mara found the depot refund reference in a Coals stock order. Cover a real stock task to trace it. Drive over, enter the shop and finish a stock activity.',
+        outro: 'Kit: Shift finished. Mara wants the depot receipt brought to Kingston.',
         stages: [target(shop, 'Park outside Coals', 'drive', { stop: true }), target(shop, 'Enter Coals and finish a stock shift', 'work', { storeId: shop.id, hold: 0 })] },
     ],
     corporate: [
-      { id: 'corporate-present-tense', name: 'Present tense', contact: 'Rowan Pike, fictional analyst', reward: 100, time: 480,
+      { id: 'corporate-present-tense', name: 'Present tense', combat: false, cutscene: scene('corporate-present-tense', 'Margin Parade', ['Rowan', 'The promotion depends on one slideshow. My employer says the depot account is clean.'], ['Rowan', 'One presentation, then lunch. How hard can that be?']), contact: 'Rowan Pike, fictional analyst', reward: 100, time: 480,
         briefing: 'Margin Parade, your fictional employer, has scheduled a crucial slideshow. Enter Capitol Centre and try the PowerPunt presentation station before lunch.',
         outro: 'Rowan: PowerPunt lost every slide. My manager called that an opportunity. I am taking lunch.',
         stages: [target(mall, 'Enter Capitol Centre and try the PowerPunt presentation', 'presentation', { roomId: 'interior-canberra-centre', hold: 0 }), target(mall, 'Step outside after the PowerPunt outage', 'foot', { radius: 18, hold: 2 })] },
-      { id: 'corporate-lunch-breakpoint', name: 'Lunch breakpoint', contact: 'Rowan Pike', reward: 150, time: 540,
+      { id: 'corporate-lunch-breakpoint', name: 'Lunch breakpoint', cutscene: scene('corporate-lunch-breakpoint', 'Out to lunch', ['Rowan', 'PowerPunt lost the slides. My manager called it an opportunity.'], ['Rowan', 'I need lunch and five minutes without office politics.']), contact: 'Rowan Pike', reward: 150, time: 540,
         briefing: 'Walk along Bunda Street to Lambzhou 1919. Visit the counter, then talk to Dot, the fictional adult diner in pink earmuffs. She throws noodles at you, then attacks. Face the dispute, then leave and lose any police attention.',
         outro: 'Rowan: A broken slideshow, thrown noodles and a fistfight. Lunch is over. Mara has work that leaves a receipt.',
         stages: [target(noodle, 'Enter Lambzhou 1919 and reach the counter', 'interior', { storeId: noodle.id || 'store-5656111023', radius: 2.5 }), target(noodle, 'Talk to Dot, then face her noodle throw and attack', 'encounter', { storeId: 'store-5656111023', hold: 0 }), target(noodle, 'Leave the shop and cool off outside', 'foot', { radius: 18, hold: 3, clear: true })] },
     ],
     basement: [
-      { id: 'basement-touch-grass', name: 'Touch grass', contact: 'Milo Finch', reward: 100, time: 540,
+      { id: 'basement-touch-grass', name: 'Touch grass', combat: false, cutscene: scene('basement-touch-grass', 'The overdue notice', ['Milo', 'A depot collector says I owe for parcels I never received. Staying in the basement is getting expensive.'], ['Milo', 'Step outside. Find paid work. Stop refreshing the inbox.']), contact: 'Milo Finch', reward: 100, time: 540,
         briefing: 'The basement has excellent reception and terrible prospects. Step into daylight, walk to the park path, then drive to Coals and finish a stock task. Temp work beats refreshing the inbox.',
         outro: 'Milo: Actual work. Actual wages. Disturbingly effective.',
         stages: [target({ x: -137.704, z: -225.963 }, 'Walk to the daylight park path', 'foot', { radius: 9, hold: 2 }), target(shop, 'Finish a stock shift inside Coals', 'work', { storeId: shop.id, hold: 0 })] },
-      { id: 'basement-first-delivery', name: 'Signed for', contact: 'Mara, local courier', reward: 150, time: 600,
+      { id: 'basement-first-delivery', name: 'Signed for', cutscene: scene('basement-first-delivery', 'A real receipt', ['Mara', 'One parcel, one signature. Keep the receipt this time.'], ['Milo', 'If the depot tries charging twice, I want proof.']), contact: 'Mara, local courier', reward: 150, time: 600,
         briefing: 'Pick up Mara\'s sealed parcel outside Coals and deliver it to Kingston. Stop before handover, then step out. No browser refresh can do this shift for you.',
         outro: 'Milo: The parcel has the same depot code as two other receipts. Mara wants all three people together.',
         stages: [target(shop, 'Collect the sealed parcel outside Coals', 'foot', { radius: 12 }), target(kingston, 'Stop at the Kingston meeting approach', 'drive', { stop: true }), target(kingston, 'Hand over the parcel on foot', 'foot', { radius: 16, hold: 2 })] },
     ],
   });
-  const meeting = freeze({ id: 'three-receipts', name: 'Three receipts', contact: 'Kit, Rowan, Milo and Mara', reward: 200, time: 600,
-    briefing: 'All three introductions are complete. Meet on foot at the Kingston public approach. Kit has the stickers, Rowan has a ruined presentation and Milo has the delivery receipt. Mara can connect the depot code.',
-    outro: 'Mara: Three strangers, one depot. We follow the parcels together. The late shift starts on the Crescent.',
+  const meeting = freeze({ id: 'three-receipts', name: 'Three receipts', cutscene: scene('three-receipts', 'One fraudulent depot', ['Mara', 'Kit lost a club refund. Rowan approved the account. Milo got the fake debt. The same depot charged all three.'], ['Mara', 'Meet at Kingston. We take back the money and the ledger together.']), contact: 'Kit, Rowan, Milo and Mara', reward: 200, time: 600,
+    briefing: 'All three introductions are complete. Meet on foot at the Kingston public approach. Kit has the missing refund reference, Rowan has the failed depot presentation and Milo has the double-charged delivery receipt. Mara can connect the depot code.',
+    outro: 'Mara: Three people, one fraudulent depot. We take back the money together. Meet on the Crescent for the interception.',
     stages: [target(meetingPoint || kingston, 'Meet the three couriers at the Kingston public approach', 'foot', { radius: 16, hold: 5 }), target(map.spawn, 'Drive to the Crescent for the late shift', 'drive', { stop: true })] });
   const ids = characters.map(c => c.id);
   const emptyIntros = () => Object.fromEntries(ids.map(id => [id, []]));
@@ -142,15 +162,15 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     return { ok: true, message: state.message };
   }
   const serial = value => Number.isSafeInteger(value?.serial) && value.serial >= 0 ? value.serial : 0;
-  const baselines = ctx => ({ presentation: serial(ctx.presentation), encounter: serial(ctx.encounter), work: serial(ctx.workCompletion) });
+  const baselines = ctx => ({ presentation: serial(ctx.presentation), encounter: serial(ctx.encounter), work: serial(ctx.workCompletion), schoolAlarm: serial(ctx.schoolAlarm), heist: serial(ctx.heist) });
   function start(ctx) {
     if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.campaign) return { ok: false, message: 'Campaign unavailable here.' };
     if (state.active) return { ok: false, message: 'Mission already active.' };
     const chapter = current();
     if (!chapter) return { ok: false, message: !state.character ? 'Choose a character first.' : requiredMessage() || (!allIntroduced() && state.character !== 'legacy' ? 'Choose another character to complete their introduction.' : 'Campaign complete.') };
-    state.active = { id: chapter.id, name: chapter.name, reward: chapter.reward, stage: 0, target: clone(chapter.stages[0]), remaining: chapter.time, elapsed: 0, held: 0, serial: ctx.respawnSerial, sawWanted: ctx.wanted > 0, baselines: baselines(ctx) };
+    state.active = { id: chapter.id, name: chapter.name, reward: chapter.reward, combat: chapter.combat !== false, companions: clone(chapter.companions || []), cutscene: chapter.cutscene ? clone(chapter.cutscene) : null, stage: 0, target: clone(chapter.stages[0]), remaining: chapter.time, elapsed: 0, held: 0, serial: ctx.respawnSerial, sawWanted: ctx.wanted > 0, baselines: baselines(ctx) };
     state.failed = false; state.message = chapter.briefing;
-    events.push({ type: 'started', id: chapter.id, incident: Boolean(chapter.incident) });
+    events.push({ type: 'started', id: chapter.id, incident: Boolean(chapter.incident), wantedLevel: chapter.wantedLevel || 0 });
     return { ok: true, message: chapter.name };
   }
   function fail(message) {
@@ -168,6 +188,8 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     if (!active.remaining) { fail('Time expired. Open Campaign to retry.'); return; }
     let eligible = goal.anywhere || distance(ctx.pose, goal) <= goal.radius;
     if (goal.kind === 'interior') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.interior?.atCounter === true;
+    else if (goal.kind === 'school-alarm') eligible = ctx.onFoot && ctx.interior?.roomId === goal.roomId && ctx.schoolAlarm?.roomId === goal.roomId && ctx.schoolAlarm?.outcome === 'triggered' && serial(ctx.schoolAlarm) > active.baselines.schoolAlarm;
+    else if (goal.kind === 'robbery') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.heist?.storeId === goal.storeId && ctx.heist?.kind === 'robbery' && serial(ctx.heist) > active.baselines.heist;
     else if (goal.kind === 'presentation') eligible = ctx.onFoot && ctx.interior?.roomId === goal.roomId && ctx.presentation?.roomId === goal.roomId && ctx.presentation?.outcome === 'outage' && serial(ctx.presentation) > active.baselines.presentation;
     else if (goal.kind === 'encounter') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.encounter?.storeId === goal.storeId && ctx.encounter?.roomId === ctx.interior?.roomId && ctx.encounter?.character === 'booth-guest' && ctx.encounter?.phase === 'complete' && ctx.encounter?.outcome === 'noodle-fight' && serial(ctx.encounter) > active.baselines.encounter;
     else if (goal.kind === 'work') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.workCompletion?.storeId === goal.storeId && serial(ctx.workCompletion) > active.baselines.work;
@@ -175,6 +197,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     else if (goal.kind === 'stolen') eligible &&= !ctx.onFoot && ctx.vehicle?.stolen === true;
     else if (goal.kind === 'escape') eligible &&= active.sawWanted && ctx.wanted === 0;
     else eligible &&= !ctx.onFoot && ctx.vehicleHealth > 0;
+    if (goal.foot) eligible &&= ctx.onFoot && !ctx.interior;
     if (goal.stop) eligible &&= Math.abs(ctx.pose.speed || 0) < 1.2;
     if (goal.stolen) eligible &&= ctx.vehicle?.stolen === true;
     if (goal.clear) eligible &&= ctx.wanted === 0;

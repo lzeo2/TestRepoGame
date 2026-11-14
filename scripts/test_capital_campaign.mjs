@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-const src = await readFile(new URL('../Games/Capital Drive/campaign.js', import.meta.url), 'utf8');
-const { createCampaign } = await import('data:text/javascript;base64,' + Buffer.from(src).toString('base64'));
+import { createCampaign } from '../Games/Capital Drive/campaign.js';
+import { expansionPlaces } from '../Games/Capital Drive/map-expansion.js';
 const map = { spawn: { x: 0, z: 0 }, landmarks: [
   { id: 'coals', name: 'Coals', store: true, x: 100, z: 10 },
   { id: 'canberra-centre', x: 200, z: -400 },
@@ -53,7 +53,13 @@ let serial = 0;
 function finishMission(value) {
   const mission = value.current();
   assert.ok(mission, 'mission available');
-  assert.equal(value.start({ ...ctx, wanted: mission.incident ? 1 : 0 }).ok, true);
+  assert.equal(value.start({ ...ctx, wanted: mission.wantedLevel || (mission.incident ? 1 : 0) }).ok, true);
+  assert.equal(value.state.active.combat, mission.combat !== false, 'controller receives the chapter combat policy');
+  assert.deepEqual(value.state.active.companions, mission.companions || []);
+  assert.deepEqual(value.state.active.cutscene, mission.cutscene);
+  const started = value.drainEvents().filter(event => event.type === 'started');
+  assert.equal(started.length, 1);
+  assert.equal(started[0].wantedLevel, mission.wantedLevel || 0);
   const activeCharacter = value.state.character;
   for (const hero of ['student', 'corporate', 'basement']) {
     assert.equal(value.selectCharacter(hero, ctx).ok, false, 'every active chapter locks character selection');
@@ -62,11 +68,20 @@ function finishMission(value) {
   let guard = 0;
   while (value.state.active && guard++ < 12) {
     const target = value.state.active.target;
-    const context = { ...ctx, pose: { ...target, speed: 0 }, vehicle: { stolen: true }, onFoot: ['foot', 'interior', 'work', 'presentation', 'encounter'].includes(target.kind) };
+    const context = { ...ctx, pose: { ...target, speed: 0 }, vehicle: { stolen: true }, onFoot: ['foot', 'interior', 'work', 'presentation', 'encounter', 'school-alarm', 'robbery'].includes(target.kind) || target.foot === true };
     if (target.kind === 'interior') context.interior = { storeId: target.storeId, roomId: 'shop-room', atCounter: true };
     if (target.kind === 'work') {
       context.interior = { storeId: target.storeId, roomId: 'shop-room' };
       context.workCompletion = { serial: ++serial, storeId: target.storeId };
+    }
+    if (target.kind === 'school-alarm') {
+      context.interior = { roomId: target.roomId };
+      context.schoolAlarm = { serial: ++serial, roomId: target.roomId, outcome: 'triggered' };
+      context.wanted = 1;
+    }
+    if (target.kind === 'robbery') {
+      context.interior = { storeId: target.storeId, roomId: 'coals-room' };
+      context.heist = { serial: ++serial, storeId: target.storeId, kind: 'robbery' };
     }
     if (target.kind === 'presentation') {
       context.interior = { roomId: target.roomId };
@@ -145,6 +160,7 @@ for (let index = 0; index < legacyIds.length; index++) {
   assert.equal(campaign.selectCharacter(owner, ctx).ok, true);
   assert.equal(campaign.nextRequiredCharacter(), null, 'selected owner can begin without another switch');
   assert.equal(campaign.current().character, owner);
+  assert.deepEqual(campaign.current().companions, heroes.filter(hero => hero !== owner), 'the other two heroes accompany each heist');
   assert.equal(campaign.current().reward, chapterRewards[index], 'owner assignment preserves each original reward');
   assert.equal(finishMission(campaign), id, 'six existing chapters retain their global order and reward');
   campaign = createCampaign(map, campaign.serialize());
@@ -196,16 +212,20 @@ assert.deepEqual(createCampaign(map, oldRoute.serialize()).state.completed, lega
 
 const oldPlay = createCampaign(map, { version: 1, completed: [] });
 oldPlay.start(ctx);
-tick(oldPlay, ctx);
+tick(oldPlay, { ...ctx, vehicle: { stolen: false } });
+assert.equal(oldPlay.state.active.stage, 0, 'interception requires an actual stolen vehicle');
+tick(oldPlay, { ...ctx, vehicle: { stolen: true } });
 assert.equal(oldPlay.state.active.stage, 1);
-tick(oldPlay, { ...ctx, pose: { x: 100, z: 10, speed: 12 } });
+tick(oldPlay, { ...ctx, vehicle: { stolen: true }, pose: { x: 100, z: 10, speed: 12 } });
 assert.deepEqual(oldPlay.state.completed, [], 'drive-by does not hand over');
-tick(oldPlay, { ...ctx, pose: { x: 100, z: 10, speed: 0 } });
+tick(oldPlay, { ...ctx, vehicle: { stolen: true }, pose: { x: 100, z: 10, speed: 0 } });
 assert.deepEqual(oldPlay.state.completed, ['late-parcel']);
 oldPlay.start(ctx);
 tick(oldPlay, { ...ctx, onFoot: true, pose: { x: 100, z: 10 } }, 30);
 assert.equal(oldPlay.state.active.stage, 0, 'outside cannot collect the indoor ledger');
 tick(oldPlay, { ...ctx, onFoot: true, interior: { storeId: 'coals', atCounter: true } }, 25);
+assert.equal(oldPlay.state.active.stage, 0, 'standing at the counter does not complete a robbery');
+tick(oldPlay, { ...ctx, onFoot: true, interior: { storeId: 'coals' }, heist: { serial: 1, kind: 'robbery', storeId: 'coals' } });
 assert.equal(oldPlay.state.active.stage, 1);
 oldPlay.update(.1, { ...ctx, respawnSerial: 1 });
 assert.equal(oldPlay.state.active, null);
@@ -213,6 +233,85 @@ assert.equal(oldPlay.state.failed, true);
 assert.deepEqual(oldPlay.state.completed, ['late-parcel']);
 assert.equal(oldPlay.start(ctx).ok, true);
 assert.equal(createCampaign(map, oldPlay.serialize()).state.active, null, 'interrupted mission is transient');
+
+const schoolEntry = { x: 12, z: 34, roomId: 'interior-telopea-school' };
+const schoolCampaign = createCampaign({ ...map, schoolEntry });
+schoolCampaign.selectCharacter('student', ctx);
+assert.equal(schoolCampaign.current().id, 'student-paper-chase', 'school story retains completed-save identity');
+assert.equal(schoolCampaign.current().name, 'False start');
+assert.deepEqual([schoolCampaign.current().stages[0].x, schoolCampaign.current().stages[0].z], [12, 34]);
+schoolEntry.x = 999;
+assert.equal(schoolCampaign.current().stages[0].x, 12, 'school approach is copied at construction');
+const alarm = { serial: 20, roomId: 'interior-telopea-school', outcome: 'triggered' };
+schoolCampaign.start({ ...ctx, schoolAlarm: alarm });
+assert.equal(schoolCampaign.state.active.combat, false, 'school mission blocks attacks');
+const schoolContext = { ...ctx, onFoot: true, interior: { roomId: alarm.roomId }, schoolAlarm: alarm };
+for (const invalid of [
+  schoolContext,
+  { ...schoolContext, schoolAlarm: { ...alarm, serial: 21, roomId: 'wrong-room' } },
+  { ...schoolContext, schoolAlarm: { ...alarm, serial: 21, outcome: 'cancelled' } },
+  { ...schoolContext, schoolAlarm: { ...alarm, serial: 21 }, interior: { roomId: 'wrong-room' } },
+  { ...schoolContext, schoolAlarm: { ...alarm, serial: 21 }, onFoot: false },
+  { ...schoolContext, schoolAlarm: { ...alarm, serial: 21 }, sandbox: true },
+]) {
+  tick(schoolCampaign, invalid);
+  assert.equal(schoolCampaign.state.active.stage, 0, 'stale, wrong-room, failed or sandbox alarm cannot advance the school story');
+}
+tick(schoolCampaign, { ...schoolContext, wanted: 1, schoolAlarm: { ...alarm, serial: 21 } });
+assert.equal(schoolCampaign.state.active.stage, 1);
+const schoolExit = { ...ctx, onFoot: true, pose: { x: 12, z: 34 } };
+for (const invalid of [{ ...schoolExit, wanted: 1 }, { ...schoolExit, interior: { roomId: alarm.roomId } }, { ...schoolExit, onFoot: false }]) {
+  tick(schoolCampaign, invalid, 40);
+  assert.equal(schoolCampaign.state.active.stage, 1, 'escape requires outside, on foot and clear of police');
+}
+tick(schoolCampaign, schoolExit, 40);
+assert.equal(schoolCampaign.state.active, null);
+assert.deepEqual(schoolCampaign.state.intros.student, ['student-paper-chase']);
+assert.equal(schoolCampaign.drainEvents().filter(event => event.type === 'complete').length, 1);
+assert.throws(() => createCampaign({ ...map, schoolEntry: { x: NaN, z: 0 } }), /finite/);
+
+const robbery = createCampaign(map, { version: 1, completed: ['late-parcel'] });
+const heist = { serial: 30, storeId: 'coals', kind: 'robbery' };
+robbery.start({ ...ctx, heist });
+const robberyContext = { ...ctx, onFoot: true, interior: { storeId: 'coals', roomId: 'coals-room', atCounter: true }, heist };
+for (const invalid of [
+  robberyContext,
+  { ...robberyContext, heist: { ...heist, serial: 31, storeId: 'wrong-store' } },
+  { ...robberyContext, heist: { ...heist, serial: 31, kind: 'purchase' } },
+  { ...robberyContext, heist: { ...heist, serial: 31 }, interior: { storeId: 'wrong-store' } },
+  { ...robberyContext, heist: { ...heist, serial: 31 }, onFoot: false },
+  { ...robberyContext, heist: { ...heist, serial: 31 }, sandbox: true },
+  { ...robberyContext, heist: null, workCompletion: { serial: 100, storeId: 'coals' } },
+]) {
+  tick(robbery, invalid);
+  assert.equal(robbery.state.active.stage, 0, 'only a fresh matching completed robbery can recover the ledger');
+}
+tick(robbery, { ...robberyContext, heist: { ...heist, serial: 31 } });
+assert.equal(robbery.state.active.stage, 1);
+assert.deepEqual(robbery.state.completed, ['late-parcel'], 'robbery does not skip the getaway');
+robbery.cancel();
+assert.equal(robbery.start({ ...ctx, heist: { ...heist, serial: 31 } }).ok, true);
+tick(robbery, { ...robberyContext, heist: { ...heist, serial: 31 } });
+assert.equal(robbery.state.active.stage, 0, 'a cancelled robbery receipt cannot be reused on retry');
+
+const metadataCampaign = createCampaign(map);
+const missionDefinitions = new Map();
+for (const hero of heroes) {
+  metadataCampaign.selectCharacter(hero, ctx);
+  for (const mission of metadataCampaign.chapters) missionDefinitions.set(mission.id, mission);
+}
+assert.equal(missionDefinitions.size, 13, 'all existing mission identities are retained');
+for (const mission of missionDefinitions.values()) {
+  assert.ok(Object.isFrozen(mission.cutscene.lines[0]), 'backstory data is immutable');
+  assert.equal(mission.cutscene.id, mission.id);
+  assert.ok(mission.cutscene.title.length > 0);
+  assert.equal(mission.cutscene.lines.length, 2, 'pre-mission backstories stay compact');
+  assert.ok(mission.cutscene.lines.every(line => line.speaker && line.text && Number.isFinite(line.duration)));
+  assert.ok(mission.cutscene.lines.reduce((total, line) => total + line.duration, 0) <= 10);
+}
+for (const id of ['student-paper-chase', 'student-extra-credit', 'corporate-present-tense', 'basement-touch-grass']) {
+  assert.equal(missionDefinitions.get(id).combat, false, `${id} disables attacks during the job`);
+}
 
 const corporate = createCampaign(map);
 corporate.selectCharacter('corporate', ctx);
@@ -313,4 +412,29 @@ assert.equal(relocated.current().reward,200);assert.equal(relocated.current().st
 assert.equal(createCampaign(map,meetingSave).current().stages[0].x,923,'default fixture meeting unchanged');
 assert.deepEqual(createCampaign(map,{version:1,completed:[]},{meetingPoint:{x:15,z:25}}).current(),createCampaign(map,{version:1,completed:[]}).current(),'meeting override preserves six legacy chapter targets and rewards');
 for(const invalid of [null,{}, {x:NaN,z:0},{x:0,z:Infinity}])assert.throws(()=>createCampaign(map,null,{meetingPoint:invalid}),/finite/);
-console.log('PASS campaign: interleaved independent introductions and partial-save reload; active-mission switching lock; noodle-fight-only lunch credit; three-character convergence; character-owned courier chapters; retained six chapters; strict v1/v2 migration; replay and recovery gates');
+// Read only the bounded northern snapshot: no simulation, renderer or full-map
+// collider build is needed to prove the bridge objective uses its source road.
+const north = JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra-north.json', import.meta.url), 'utf8'));
+const sourceRoad = north.roads.find(road => road.sourceId === 'way/4878920');
+assert.ok(sourceRoad && sourceRoad.sourceTags.bridge === 'yes');
+const sourcePlaces = expansionPlaces({ roads: [sourceRoad] });
+const bridgeApproach = sourcePlaces.find(point => point.id === 'commonwealth-bridge');
+const bridgeCampaign = createCampaign({ ...map, roads: north.roads, landmarks: [...map.landmarks, { id: 'commonwealth-bridge', x: -1230, z: -2840 }] }, { ...meetingSave, meeting: true, completed: legacyIds.slice(0, 4) });
+assert.equal(bridgeCampaign.current().id, 'across-the-water');
+const bridgeStages = bridgeCampaign.current().stages;
+const regroupGoal = bridgeStages[0], bridgeGoal = bridgeStages[1];
+const publicApproachRoad = north.roads.find(road => road.sourceId === 'way/5640616');
+assert.equal(publicApproachRoad.sourceTags['sidewalk:both'], 'yes', 'crew regroup uses an explicitly sourced public sidewalk road');
+assert.ok(publicApproachRoad.points.some(point => point[0] === regroupGoal.x && point[1] === regroupGoal.z), 'crew regroup uses an exact Flynn Drive source vertex');
+assert.equal(regroupGoal.kind, 'drive');
+assert.equal(regroupGoal.stop, true);
+assert.equal(bridgeStages.length, 3, 'the source-safe regroup precedes the bridge crossing and Centre drop');
+assert.deepEqual([bridgeGoal.x, bridgeGoal.z], [bridgeApproach.x, bridgeApproach.z], 'bridge score uses the exact source road midpoint even when a stale landmark is supplied');
+const onSourceRoad = sourceRoad.points.slice(1).some((b, index) => {
+  const a = sourceRoad.points[index], dx = b[0] - a[0], dz = b[1] - a[1];
+  const t = Math.max(0, Math.min(1, ((bridgeGoal.x - a[0]) * dx + (bridgeGoal.z - a[1]) * dz) / (dx * dx + dz * dz || 1)));
+  return Math.hypot(bridgeGoal.x - a[0] - dx * t, bridgeGoal.z - a[1] - dz * t) < 1e-6;
+});
+assert.ok(onSourceRoad, 'source bridge mission target lies on an actual public-road segment');
+assert.ok(Math.hypot(bridgeGoal.x + 1230, bridgeGoal.z + 2840) > bridgeGoal.radius, 'regression catches the old off-road fallback');
+console.log('PASS campaign: interleaved independent introductions and partial-save reload; active-mission switching lock; noodle-fight-only lunch credit; three-character convergence; character-owned crew heists; fresh school alarm and robbery objectives; compact backstories and job combat policy; retained six chapters; strict v1/v2 migration; replay and recovery gates');
