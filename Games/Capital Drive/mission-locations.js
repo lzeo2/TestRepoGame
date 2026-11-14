@@ -1,0 +1,102 @@
+// Read-only mission directions. Live campaign/gameplay owners decide completion.
+const point = value => value && Number.isFinite(value.x) && Number.isFinite(value.z);
+const identity = value => (typeof value === 'string' && value.length > 0) || (typeof value === 'number' && Number.isFinite(value));
+const name = (value, fallback = '') => typeof value === 'string' && value.trim() ? value : fallback;
+const copyPoint = value => Object.freeze({ x: value.x, z: value.z });
+const approach = entry => Object.freeze({ x: entry.x - Math.sin(entry.yaw) * 1.8,
+  z: entry.z - Math.cos(entry.yaw) * 1.8 });
+const validEntry = entry => point(entry) && typeof entry.id === 'string' && entry.id.length > 0 &&
+  identity(entry.buildingId) && Number.isFinite(entry.yaw);
+function copyEntry(entry) {
+  return Object.freeze({ id: entry.id, buildingId: entry.buildingId, type: entry.type,
+    name: name(entry.name, 'the mission location'), storeId: entry.storeId ?? null,
+    x: entry.x, z: entry.z, yaw: entry.yaw,
+    approach: point(entry.approach) ? copyPoint(entry.approach) : approach(entry) });
+}
+
+export function selectStoryHomes(map, entries, { canApproach = () => true, roadName = () => '' } = {}) {
+  const kingston = point(map?.kingston) ? map.kingston :
+    (Array.isArray(map?.landmarks) ? map.landmarks.find(p => point(p) && p.id === 'kingston') : null);
+  if (!kingston || !Array.isArray(entries) || typeof canApproach !== 'function' || typeof roadName !== 'function')
+    return Object.freeze({ basement: null });
+  const sourceIds = Array.isArray(map.buildings) ? new Set(map.buildings.map(b => b?.id).filter(identity)) : null;
+  let best = null, bestDistance = Infinity;
+  for (const entry of entries) {
+    if (!validEntry(entry) || entry.type !== 'house' || (sourceIds && !sourceIds.has(entry.buildingId))) continue;
+    const door = copyEntry(entry), outside = approach(door);
+    if (canApproach(outside) !== true) continue;
+    const distance = Math.hypot(door.x - kingston.x, door.z - kingston.z);
+    if (distance < bestDistance || (distance === bestDistance && (!best || door.id < best.id))) {
+      best = door; bestDistance = distance;
+    }
+  }
+  if (!best) return Object.freeze({ basement: null });
+  return Object.freeze({ basement: Object.freeze({ id: best.id, roomId: best.id,
+    buildingId: best.buildingId, type: 'house', name: "Milo's safehouse", street: name(roadName(best)),
+    x: best.x, z: best.z, yaw: best.yaw, approach: approach(best) }) });
+}
+
+const INTERIOR_KINDS = new Set(['school-alarm', 'presentation', 'home-action', 'work', 'robbery', 'interior', 'encounter']);
+const STATION_KINDS = { 'school-alarm': 'alarm', presentation: 'presentation', 'home-action': 'stock', work: 'stock' };
+
+export function createMissionGuide(entries, storyHomes = {}) {
+  const byId = new Map(), byStore = new Map(), homes = new Map();
+  for (const entry of (Array.isArray(entries) ? entries : []).filter(validEntry).sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0)) {
+    const copy = copyEntry(entry);
+    if (!byId.has(copy.id)) byId.set(copy.id, copy);
+    if (identity(copy.storeId) && !byStore.has(copy.storeId)) byStore.set(copy.storeId, copy);
+  }
+  for (const home of Object.values(storyHomes || {})) {
+    const entry = byId.get(home?.roomId);
+    if (entry?.type === 'house' && entry.buildingId === home.buildingId && point(home) &&
+        entry.x === home.x && entry.z === home.z) homes.set(entry.id, Object.freeze({
+      name: name(home.name, entry.name), street: name(home.street),
+      approach: point(home.approach) ? copyPoint(home.approach) : entry.approach }));
+  }
+
+  function guide(active, context = {}) {
+    const { pose, plan, people } = context || {};
+    const goal = active?.target;
+    if (!goal) return null;
+    function result(instruction, location, target, indoors = false, entryId = null, stationId = null) {
+      if (!point(target)) return null;
+      const distance = point(pose) ? Math.hypot(pose.x - target.x, pose.z - target.z) : NaN;
+      return Object.freeze({ instruction, location, point: copyPoint(target),
+        distance: Number.isFinite(distance) ? distance : null,
+        indoors, entryId, stationId });
+    }
+    const fallback = () => result(name(goal.label), name(goal.location, name(goal.label)), goal);
+    if (!INTERIOR_KINDS.has(goal.kind)) return fallback();
+    const entry = identity(goal.roomId) ? byId.get(goal.roomId) : byStore.get(goal.storeId);
+    if (!entry || (identity(goal.storeId) && entry.storeId !== goal.storeId)) return fallback();
+    const home = homes.get(entry.id);
+    const location = home ? `${home.name}${home.street ? ` on ${home.street}` : ''}` : entry.name;
+    const matchingRoom = plan?.id === entry.id && (!identity(goal.storeId) || plan.storeId === goal.storeId);
+    if (!matchingRoom) return result(`Enter ${location} at the marked door.`, location,
+      home?.approach || entry.approach, false, entry.id);
+
+    const stationKind = STATION_KINDS[goal.kind];
+    if (stationKind) {
+      const stationId = identity(goal.stationId) ? goal.stationId :
+        goal.kind === 'home-action' ? `${entry.id}-stash` : null;
+      const station = (Array.isArray(plan.activities) ? plan.activities : []).find(s => point(s) &&
+        s.kind === stationKind && (stationId === null || s.id === stationId));
+      if (!station || !identity(station.id)) return fallback();
+      return result(`Press E or Q at ${name(station.label, 'the marked station')}.`, location,
+        station, true, entry.id, station.id);
+    }
+    if (goal.kind === 'encounter') {
+      const guest = (Array.isArray(people) ? people : []).find(p => point(p) && p.roomId === plan.id &&
+        p.character === 'booth-guest' && Number.isFinite(p.health) && p.health > 0 &&
+        (!identity(goal.storeId) || p.storeId === goal.storeId));
+      if (!guest) return fallback();
+      return result(`Speak to Dot at the marked booth in ${location}.`, location, guest, true, entry.id);
+    }
+    if (!point(plan.counter)) return fallback();
+    const instruction = goal.kind === 'robbery' ?
+      'Threaten the fictional employee, then press E to demand the till handover.' :
+      `Reach the service counter in ${location}.`;
+    return result(instruction, location, plan.counter, true, entry.id);
+  }
+  return Object.freeze({ guide });
+}
