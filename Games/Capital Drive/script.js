@@ -1205,14 +1205,14 @@ function animate(time) {
   busView?.update(buses.vehicles,p);servicesView?.update(p);signalsView?.update(simulation.trafficLights.heads,p);
   equipmentView?.update(equipment.snapshot(),p);
   occupantInputs.length=0;
-  const seated=(car,occupied,modelId=car.modelId)=>{
+  const seated=(car,occupied,modelId=car.modelId,personId=car.personId??car.id)=>{
     let pose=occupantPoses.get(car.id);if(!pose){pose={id:car.id};occupantPoses.set(car.id,pose);}
-    pose.x=car.x;pose.z=car.z;pose.yaw=car.yaw;pose.modelId=modelId;pose.active=car.active;pose.occupied=occupied;occupantInputs.push(pose);
+    pose.x=car.x;pose.z=car.z;pose.yaw=car.yaw;pose.modelId=modelId;pose.personId=personId;pose.active=car.active;pose.occupied=occupied;occupantInputs.push(pose);
   };
-  seated(simulation.player,gameplay.state.mode==='vehicle');
+  seated(simulation.player,gameplay.state.mode==='vehicle',simulation.player.modelId,'player');
   for(const car of simulation.traffic)seated(car,true);
-  for(const officer of gameplay.state.police)if(officer.health>0&&officer.car)seated(officer.car,officer.mode==='vehicle','relay');
-  for(const car of rideService?.vehicles||[])if(car.active)seated(car,car.occupied!==false);
+  for(const officer of gameplay.state.police)if(officer.health>0&&officer.car)seated(officer.car,officer.mode==='vehicle','relay','police');
+  for(const car of rideService?.vehicles||[])if(car.active)seated(car,car.occupied!==false,car.modelId,'yoober-driver-npc');
   occupantsView?.update(activeDt,{focus:p,cars:occupantInputs});
   if (++frameCount % 8 === 0) {
     world.update(p, time / 1000); neighbourhood?.update(p); landmarkView?.update(p, time / 1000);storefrontsView?.update(p);shoppingView?.update(p);campusView?.update(p);civicView?.update(p);noodleShopView?.update(p);civicExtrasView?.update(p);

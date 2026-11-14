@@ -128,12 +128,8 @@ for (let i = 0; i < 1800; i++) {
 console.log('Capital gameplay: foot collision/sprint/jump, entry/theft, combat occlusion/ammo, wanted/search, sandbox, respawn and actual-map finite police PASS');
 
 // Reproduce innocent stationary player beside frightened adults on the real map.
-const threeText = await readFile(new URL('../assets/car-arcade/vendor/three.module.js', import.meta.url), 'utf8');
-const threeURL = `data:text/javascript;base64,${Buffer.from(threeText).toString('base64')}`;
-const THREE = await import(threeURL);
-const pedestrianText = (await readFile(new URL('../Games/Capital Drive/pedestrians.js', import.meta.url), 'utf8'))
-  .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL));
-const { createPedestrians } = await import(`data:text/javascript;base64,${Buffer.from(pedestrianText).toString('base64')}`);
+const THREE = await import('../assets/car-arcade/vendor/three.module.js');
+const { createPedestrians } = await import('../Games/Capital Drive/pedestrians.js');
 const attributionSimulation = createSimulation(actual, { trafficCount: 0 });
 const actualAdults = createPedestrians(new THREE.Scene(), actual, () => 0);
 const innocentGame = createGameplay(actual, attributionSimulation, { pedestrians: actualAdults });

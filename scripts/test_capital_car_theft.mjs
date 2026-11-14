@@ -58,10 +58,21 @@ for (const occupied of [false, true]) {
   assert.equal(f.game.state.vehicle.stolen, true); assert.equal(f.stats.changes.length, 1);
   assert.equal(f.stats.events.filter(event => event.offence === 'vehicle theft').length, 1);
   assert.equal(f.stats.exits.length, occupied ? 1 : 0);
-  if (occupied) { assert(f.stats.stops > 20); assert.equal(f.stats.exits[0].x, 10); }
+  if (occupied) {
+    assert(f.stats.stops > 20); assert.equal(f.stats.exits[0].x, 10);
+    assert.equal(f.stats.exits[0].personId, f.source.id, 'driver identity survives claim and exit event ID');
+  }
   tick(f, 3); assert.equal(f.stats.claims, 1); assert.equal(f.stats.exits.length, occupied ? 1 : 0);
   assert(f.game.interact()); assert(f.game.interact(), 'current player car re-entry stays instant');
   assert.equal(f.game.state.carjacking, null); assert.equal(f.stats.claims, 2);
+}
+// A driver's identity can differ from its vehicle and must be captured before claim.
+{
+  const f = fixture({ occupied: true });
+  f.source.personId = 'fixture-driver';
+  begin(f); complete(f);
+  assert.equal(f.stats.exits[0].personId, 'fixture-driver');
+  assert.notEqual(f.stats.exits[0].id, f.stats.exits[0].personId);
 }
 // Taking B leaves the previously controlled A unlocked for instant, lawful re-entry.
 for (const occupied of [false, true]) {

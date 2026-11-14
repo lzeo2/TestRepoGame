@@ -1,12 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const threeSource = await readFile(new URL('../assets/car-arcade/vendor/three.module.js', import.meta.url), 'utf8');
-const threeURL = `data:text/javascript;base64,${Buffer.from(threeSource).toString('base64')}`;
-const THREE = await import(threeURL);
-const source = (await readFile(new URL('../Games/Capital Drive/pedestrians.js', import.meta.url), 'utf8'))
-  .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL));
-const { createPedestrians } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import { createPedestrians } from '../Games/Capital Drive/pedestrians.js';
 const fixture = { bounds: { minX: -600, maxX: 600, minZ: -200, maxZ: 200 },
   roads: [{ id: 'public', name: 'Public Street', type: 'residential', width: 8, points: [[-550, 0], [550, 0]] }],
   spawn: { x: 0, z: -30, yaw: Math.PI / 2 }, buildings: [], areas: [], landmarks: [] };
