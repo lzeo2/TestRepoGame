@@ -1,4 +1,5 @@
 import { createRoutePlanner, roadProfile } from './road-network.js';
+import { BUS_STOPS } from './street-assets.js';
 
 const COUNT = 2, LENGTH = 10.6, WIDTH = 2.45, STOP_HOLD = 20, STOPPED = .08;
 const angle = value => Math.atan2(Math.sin(value), Math.cos(value));
@@ -38,6 +39,51 @@ export function createBuses(map, simulation) {
   const origin = map.spawn || { x: 0, z: 0 };
   const seeds = graph.edges.filter(edge => edge.length > 24 && roadProfile(edge.road).busAllowed)
     .sort((a, b) => Math.hypot(a.from.x - origin.x, a.from.z - origin.z) - Math.hypot(b.from.x - origin.x, b.from.z - origin.z));
+  const stopIndex = new Map();
+  for (const stop of BUS_STOPS) {
+    if (!stopIndex.has(stop.roadId)) stopIndex.set(stop.roadId,[]);
+    stopIndex.get(stop.roadId).push(stop);
+  }
+  function serveStops(edges, start) {
+    const selected = new Map();
+    edges.forEach((edge,index) => {
+      for (const stop of stopIndex.get(edge.road.id) || []) {
+        const along = (stop.x-edge.from.x)*edge.dx+(stop.z-edge.from.z)*edge.dz;
+        const at = along-4.1;
+        if (at < 6 || at > edge.length-2) continue;
+        const center = lane(edge,at), dx = stop.x-center.x, dz = stop.z-center.z;
+        const side = Math.cos(edge.yaw)*dx-Math.sin(edge.yaw)*dz;
+        if (side > -1.8 || side < -5.5) continue;
+        const pull = Math.max(0,Math.min(2.4,-side-3.1));
+        const stoppingPose = {x:center.x-Math.cos(edge.yaw)*pull,z:center.z+Math.sin(edge.yaw)*pull,yaw:edge.yaw};
+        const door = {x:stoppingPose.x-Math.cos(edge.yaw)*1.95-Math.sin(edge.yaw)*4.1,
+          z:stoppingPose.z+Math.sin(edge.yaw)*1.95-Math.cos(edge.yaw)*4.1,yaw:edge.yaw};
+        const doorDistance = Math.hypot(stop.x-door.x,stop.z-door.z);
+        if (doorDistance > 1.8 || !simulation.canOccupy(stoppingPose,{length:LENGTH,width:WIDTH}) ||
+          !simulation.canOccupy(stop,{length:1,width:.8,ignorePersonId:'player-body'}) ||
+          !simulation.hasLineOfSight(stop,door)) continue;
+        const prior = selected.get(stop.id);
+        if (!prior || doorDistance < prior.doorDistance) selected.set(stop.id,{index,at,doorDistance,
+          descriptor:Object.freeze({id:stop.id,name:stop.name,ref:stop.ref,x:stop.x,z:stop.z,yaw:stop.yaw,
+            source:stop.source,sourceId:`${stop.source.type}/${stop.source.id}`,roadId:stop.roadId,edgeId:edge.id,
+            stoppingPose:Object.freeze(stoppingPose),doorPose:Object.freeze(door),positionMethod:stop.positionMethod})});
+      }
+    });
+    const stops = [...selected.values()].sort((a,b)=>a.index-b.index || a.at-b.at).slice(0,12);
+    const points = [start], firstAt = edges[0].length/2;
+    for (let i=0;i<edges.length;i++) {
+      if (i) points.push(lane(edges[i],0));
+      for (const stop of stops.filter(stop=>stop.index===i && (i || stop.at>firstAt)))
+        points.push({...stop.descriptor.stoppingPose,stop:stop.descriptor});
+    }
+    const beforeStart = stops.filter(stop=>stop.index===0 && stop.at<=firstAt);
+    if (beforeStart.length) { points.push(lane(edges[0],0)); for(const stop of beforeStart) points.push({...stop.descriptor.stoppingPose,stop:stop.descriptor}); }
+    const nextStops = points.map((point,index) => {
+      for (let offset=0;offset<points.length;offset++) { const stop=points[(index+offset)%points.length].stop; if(stop)return stop; }
+      return null;
+    });
+    return {points,stops:Object.freeze(stops.map(stop=>stop.descriptor)),nextStops};
+  }
   const routes = [];
   for (const seed of seeds.slice(0, 160)) {
     if (used.has(seed.id)) continue;
@@ -48,15 +94,14 @@ export function createBuses(map, simulation) {
     if (!edges) continue;
     // Ask the shared planner to validate each directed leg with its bus access policy.
     if (!edges.every(edge => planner.findEdges(edge.from, edge.to, { kind: 'bus' }).length)) continue;
-    const points = edges.map(edge => lane(edge, 0));
-    points[0] = start;
-    routes.push({ edges, points }); edges.forEach(edge => used.add(edge.id));
+    const served = serveStops(edges,start);
+    routes.push({ edges, ...served }); edges.forEach(edge => used.add(edge.id));
     if (routes.length === COUNT) break;
   }
   const vehicles = routes.map((route, i) => ({ id: `ambient-bus-${i}`, kind: 'bus',
     x: route.points[0].x, z: route.points[0].z, yaw: route.edges[0].yaw,
     length: LENGTH, width: WIDTH, active: true, occupied: true, speed: 0,
-    color: i ? 0xbb7448 : 0x547389, layover: i ? 2 : 0, stopRequested: 0, playerAboard: false }));
+    color: i ? 0xbb7448 : 0x547389, layover: i ? 2 : 0, stopRequested: 0, playerAboard: false, currentStop: null, dwellRemaining: 0, stopVisits: 0 }));
   const cursors = vehicles.map(() => 1);
   let aboard = null, exitRequested = false;
   const localPose = (bus, x, z) => ({ x: bus.x + Math.cos(bus.yaw) * x + Math.sin(bus.yaw) * z,
@@ -121,7 +166,7 @@ export function createBuses(map, simulation) {
   function reset() {
     aboard = null; exitRequested = false;
     vehicles.forEach((bus, i) => {
-      Object.assign(bus, routes[i].points[0], { yaw: routes[i].edges[0].yaw, speed: 0, layover: i ? 2 : 0, active: true, stopRequested: 0, playerAboard: false });
+      Object.assign(bus, routes[i].points[0], { yaw: routes[i].edges[0].yaw, speed: 0, layover: i ? 2 : 0, active: true, stopRequested: 0, playerAboard: false, currentStop: null, dwellRemaining: 0, stopVisits: 0 });
       cursors[i] = 1;
     });
   }
@@ -136,10 +181,19 @@ export function createBuses(map, simulation) {
       if (movement.blocked || bus.speed <= STOPPED) bus.speed = 0;
       return;
     }
+    if (bus.dwellRemaining > 0) {
+      bus.dwellRemaining = Math.max(0,bus.dwellRemaining-dt); bus.speed = 0;
+      if (!bus.dwellRemaining) bus.currentStop = null;
+      return;
+    }
     if (bus.layover > 0) { bus.layover = Math.max(0, bus.layover - dt); bus.speed = 0; return; }
     const route = routes[i], points = route.points;
     let target = points[cursors[i]], distance = Math.hypot(target.x - bus.x, target.z - bus.z);
-    if (distance < 4.5) {
+    if (target.stop && distance < .25 && bus.speed <= STOPPED) {
+      bus.currentStop = target.stop; bus.dwellRemaining = 7; bus.stopVisits++; bus.speed = 0;
+      cursors[i] = (cursors[i]+1)%points.length; return;
+    }
+    if (!target.stop && distance < 4.5) {
       if (cursors[i] === 0) {
         if (bus.speed < .35) { bus.layover = 4; bus.speed = 0; cursors[i] = 1; return; }
       } else {
@@ -152,6 +206,7 @@ export function createBuses(map, simulation) {
     let targetSpeed = Math.max(1.4, 7.2 * (1 - Math.min(1, Math.abs(turn) / 1.3)));
     const signalDistance = simulation.trafficLights?.stopDistance(bus, { length: LENGTH }) ?? Infinity;
     targetSpeed = Math.min(targetSpeed, Math.sqrt(Math.max(0, signalDistance - .15) * 8));
+    if (target.stop) targetSpeed = Math.min(targetSpeed,Math.sqrt(Math.max(0,distance-.08)*4));
     if (cursors[i] === 0) targetSpeed = Math.min(targetSpeed, Math.sqrt(Math.max(0, distance - 3) * 3));
     const look = Math.max(3, bus.speed * 1.4);
     const forward = { x: bus.x - Math.sin(bus.yaw) * look, z: bus.z - Math.cos(bus.yaw) * look, yaw: bus.yaw };
@@ -161,7 +216,7 @@ export function createBuses(map, simulation) {
     bus.yaw = angle(bus.yaw + Math.max(-.65 * dt, Math.min(.65 * dt, turn)));
     if (!simulation.canOccupy(bus, { length: LENGTH, width: WIDTH, ignoreId: bus.id,
       fromPose: { x: bus.x, z: bus.z, yaw: oldYaw } })) bus.yaw = oldYaw;
-    const travel = Math.min(bus.speed * dt, Math.max(0, signalDistance - .1));
+    const travel = Math.min(bus.speed * dt, Math.max(0, signalDistance - .1),target.stop ? Math.max(0,distance-.08) : Infinity);
     const move = simulation.moveVehicle(bus, -Math.sin(bus.yaw) * travel, -Math.cos(bus.yaw) * travel,
       { length: LENGTH, width: WIDTH });
     if (move.blocked) bus.speed = 0;
@@ -173,7 +228,8 @@ export function createBuses(map, simulation) {
   }
   function snapshot() {
     return vehicles.map((bus, i) => ({ ...bus, circuit: 'fictional ambient circuit',
-      routeEdgeIds: routes[i].edges.map(edge => edge.id), waypoint: cursors[i] }));
+      routeEdgeIds: routes[i].edges.map(edge => edge.id), waypoint: cursors[i],
+      servedStops: routes[i].stops, nextStop: routes[i].nextStops[cursors[i]] }));
   }
   return { vehicles, step, reset, snapshot, nearest, interact,
     get passenger() { return !!aboard; }, get seatPose() { return aboard; } };

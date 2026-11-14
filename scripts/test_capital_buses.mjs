@@ -5,7 +5,7 @@ const url = text => `data:text/javascript;base64,${Buffer.from(text).toString('b
 const networkURL = url(await read('../Games/Capital Drive/road-network.js'));
 import {createSimulation,buildRoadGraph} from '../Games/Capital Drive/simulation.js';
 const { roadProfile } = await import(networkURL);
-const { createBuses } = await import(url((await read('../Games/Capital Drive/buses.js')).replace("'./road-network.js'", JSON.stringify(networkURL))));
+const { createBuses } = await import('../Games/Capital Drive/buses.js');
 const road = (id, points, nodes, oneway = 1) => ({ id, points, nodes, oneway, width: 11, type: 'residential' });
 const roads = [road('a', [[0, 0], [180, 0]], [1, 2]), road('b', [[180, 0], [180, 180]], [2, 3]),
   road('c', [[180, 180], [0, 180]], [3, 4]), road('d', [[0, 180], [0, 0]], [4, 1]),
