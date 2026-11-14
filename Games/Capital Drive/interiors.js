@@ -52,9 +52,11 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
     const f = store.frontage;
     if (!f || !buildings.has(String(store.buildingId)) || !validPoint(f)) continue;
     // frontage.yaw faces inward; the visible shop door is centred on this facade unit.
+    const noodles = store.interiorType === 'noodle-shop';
     add({ id: `interior-${store.id}`, buildingId: store.buildingId, storeId: store.id,
       type: 'shop', name: store.name, x: f.x, z: f.z, yaw: f.yaw,
-      width: clamp((f.width || 7) * 0.9, 5.4, 12), depth: 10 });
+      ...(noodles ? { variant: 'noodles' } : {}),
+      width: noodles ? clamp(f.width || 6.5, 6.2, 7) : clamp((f.width || 7) * 0.9, 5.4, 12), depth: noodles ? 12 : 10 });
   }
   for (const entry of publicEntries) {
     const building = buildings.get(String(entry.buildingId));
@@ -88,7 +90,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
   function build(entry) {
     const { width, depth } = entry, floorY = entry.y + 0.14;
     const origin = { x: entry.x, z: entry.z, yaw: entry.yaw };
-    const walls = [], furniture = [], doors = [], rooms = [];
+    const walls = [], furniture = [], doors = [], rooms = [], details = [];
     function box(list, kind, x, z, w, d, h, color, y = 0, yaw = 0) {
       const p = worldPoint(origin, x, z);
       const item = { ...p, yaw: origin.yaw + yaw, width: w, depth: d, height: h, y: floorY + y, kind, color };
@@ -99,13 +101,13 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       const point = { ...worldPoint(origin, x, z), yaw: origin.yaw, y: floorY, kind, width };
       doors.push(point); return point;
     };
-    const gap = 1.5, sideWidth = (width - gap) / 2;
+    const gap = entry.variant === 'noodles' ? 2 : 1.5, sideWidth = (width - gap) / 2;
     wall(-(width + gap) / 4, 0, sideWidth, 0.16);
     wall((width + gap) / 4, 0, sideWidth, 0.16);
     wall(-width / 2, depth / 2, 0.16, depth);
     wall(width / 2, depth / 2, 0.16, depth);
     wall(0, depth, width, 0.16);
-    const exit = door('exit', 0, 0.9);
+    const exit = door('exit', 0, 0.9, gap);
     const spawn = { ...worldPoint(origin, 0, 1.65), y: floorY, yaw: origin.yaw + Math.PI };
     let counter = null;
     if (entry.type === 'house') {
@@ -159,6 +161,27 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
         for (const z of [2, 13, 24]) wall(centreX, z, unitWidth, 0.16);
         box(furniture, 'bench', side * 1.85, 13, 0.75, 2.6, 0.65, 0x938268);
       }
+    } else if (entry.variant === 'noodles') {
+      rooms.push({ kind: 'noodle-dining', ...worldPoint(origin, 0, 4.35), width, depth: 8.7 },
+        { kind: 'noodle-kitchen', ...worldPoint(origin, 0, 10.5), width, depth: 3 });
+      // Reference material cues only: original seating, room arrangement and abstract bowl motifs.
+      // The central 2.1m aisle and first 2m by the public door stay free of furniture.
+      for (const side of [-1, 1]) {
+        box(furniture, 'banquette', side * (width / 2 - 0.42), side < 0 ? 4.9 : 3.5, 0.7, side < 0 ? 5.4 : 2.4, 0.92, 0xda713b, 0, side < 0 ? 0 : Math.PI);
+        for (const z of [3.4, 6.2]) {
+          const communal = side > 0 && z > 5;
+          const table = box(furniture, communal ? 'communal-table' : 'noodle-table', side * 2.05, z, 0.95, communal ? 1.8 : 1.1, communal ? 1.02 : 0.76, 0xc8ab78);
+          box(furniture, communal ? 'stool' : 'padded-chair', side * 1.3, z, 0.46, 0.5, communal ? 0.76 : 0.84, 0x3d5674, 0, side < 0 ? -Math.PI / 2 : Math.PI / 2);
+          if (communal) box(furniture, 'stool', side * 1.3, z + 0.65, 0.46, 0.5, 0.76, 0x3d5674);
+          box(details, 'noodle-bowl', side * 2.05, z - 0.2, 0.29, 0.29, 0.14, 0xe9e1ca, table.height);
+          box(details, 'chopsticks', side * 1.9, z + 0.04, 0.17, 0.025, 0.015, 0xb1814a, table.height + 0.02);
+          box(details, 'condiments', side * 2.05, z + 0.33, 0.25, 0.15, 0.2, 0x815239, table.height);
+        }
+      }
+      box(furniture, 'kitchen-pass', 0.6, 9.2, width - 2, 0.7, 1.02, 0xb5996d);
+      counter = { ...worldPoint(origin, 0, 8.1), y: floorY, yaw: origin.yaw, radius: 1.6 };
+      box(furniture, 'noodle-station', -0.85, 10.9, 2.2, 0.85, 0.94, 0xa6afaa);
+      box(furniture, 'prep-bench', width / 2 - 1.05, 10.9, 1.4, 0.85, 0.94, 0xb4b8aa);
     } else {
       box(furniture, 'counter', width / 2 - 1.15, depth - 2.2, 1.7, 1, 1.05, 0x9a7e59);
       counter = { ...worldPoint(origin, width / 2 - 1.15, depth - 3.15), y: floorY, yaw: origin.yaw, radius: 1.6 };
@@ -167,8 +190,8 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       rooms.push({ kind: 'shop', ...worldPoint(origin, 0, depth / 2), width, depth });
     }
     return freeze({ id: entry.id, buildingId: entry.buildingId, ...(entry.type === 'mall' ? {} : { storeId: entry.storeId || null }),
-      type: entry.type, name: entry.name, origin, width, depth, floorY, spawn, exit, counter,
-      walls, doors, furniture, rooms, layoutNote: 'Original plausible layout; not a surveyed interior.' });
+      type: entry.type, ...(entry.variant ? { variant: entry.variant } : {}), name: entry.name, origin, width, depth, floorY, spawn, exit, counter,
+      walls, doors, furniture, rooms, ...(details.length ? { details } : {}), layoutNote: 'Original plausible layout; not a surveyed interior.' });
   }
   function enter(entry, actor) {
     if (active || !actor || !entries.includes(entry) || findEntry(actor) !== entry) return false;

@@ -103,8 +103,9 @@ assert.equal(interiors.snapshot().activePlans, 0);
 // Exercise the retained real source storefronts, including non-axis-aligned doors.
 const actualMap = JSON.parse(await read('../Games/Capital Drive/data/canberra.json'));
 const actualStores = JSON.parse(await read('../Games/Capital Drive/data/stores.json')).stores;
-const actual = createInteriors(actualMap, { stores: actualStores });
-assert.equal(actual.entries.length, actualStores.length);
+const baseStores = actualStores.filter(s => !s.interiorType);
+const actual = createInteriors(actualMap, { stores: baseStores });
+assert.equal(actual.entries.length, baseStores.length);
 assert.equal(actual.stats.generatedPlans, 0);
 let maximumTriangles = 0;
 const actualScene = new THREE.Scene(), actualView = createInteriorView(actualScene);
@@ -128,7 +129,7 @@ for (const entry of actual.entries) {
 }
 actualView.dispose();
 assert.equal(actualScene.children.length, 0);
-assert.equal(actual.stats.generatedPlans, actualStores.length);
+assert.equal(actual.stats.generatedPlans, baseStores.length);
 
 const roadURL = moduleURL(await read('../Games/Capital Drive/road-network.js'));
 const civicSource = (await read('../Games/Capital Drive/civic-view.js'))
@@ -187,4 +188,70 @@ const returnPlan = mall.enter(mall.findEntry(visitor), visitor);
 assert.notEqual(returnPlan, mallPlan); assert.deepEqual(returnPlan, mallPlan);
 mallView.load(returnPlan); mall.reset(visitor); mallView.dispose(); mallView.dispose();
 assert.equal(mallScene.children.length, 0); assert.equal(mall.stats.activePlans, 0);
-console.log(`PASS lazy interiors: door-only entry, furnished rooms, saved return, swept collision/door gaps, sight/disposal; ${actualStores.length} mapped shops <=${maximumTriangles} triangles; source-tied Civic concourse/four reachable units ${mallTriangles} triangles / 1 draw`);
+
+const noodleStore = actualStores.find(s => s.id === 'store-5656111023');
+assert(noodleStore && noodleStore.interiorType === 'noodle-shop');
+assert.equal(baseStores.length, 20, 'all twenty generic shops retain their full regression');
+assert.equal(noodleStore.buildingId, 'osm-584970594');
+assert.equal(noodleStore.source.id, 5656111023);
+const restaurant = createInteriors({ buildings: [...actualMap.buildings, ...north.buildings] }, { stores: actualStores });
+assert.equal(restaurant.entries.length, 21);
+assert.equal(restaurant.stats.generatedPlans, 0);
+const noodleEntry = restaurant.entries.find(e => e.storeId === noodleStore.id);
+assert.equal(noodleEntry.variant, 'noodles');
+assert(!('furniture' in noodleEntry));
+const ns = Math.sin(noodleEntry.yaw), nc = Math.cos(noodleEntry.yaw);
+const noodlePoint = (x, z) => ({ x: noodleEntry.x + nc * x + ns * z, z: noodleEntry.z - ns * x + nc * z });
+const diner = { ...noodlePoint(0, -1.5), y: 0, yaw: 0.42 }, outsideRestaurant = { ...diner };
+assert.equal(restaurant.findEntry(diner), noodleEntry);
+const noodlePlan = restaurant.enter(noodleEntry, diner);
+assert.equal(noodlePlan.type, 'shop'); assert.equal(noodlePlan.variant, 'noodles');
+assert.equal(noodlePlan.storeId, noodleStore.id); assert(noodlePlan.counter);
+assert.equal(noodlePlan.depth, 12); assert(noodlePlan.width >= 6.2 && noodlePlan.width <= 7);
+assert.equal(noodlePlan.exit.width, 2);
+for (const kind of ['banquette', 'noodle-table', 'padded-chair', 'communal-table', 'stool', 'kitchen-pass', 'noodle-station', 'prep-bench']) {
+  assert(noodlePlan.furniture.some(f => f.kind === kind), `restaurant includes ${kind}`);
+}
+for (const kind of ['noodle-bowl', 'chopsticks', 'condiments']) assert.equal(noodlePlan.details.filter(d => d.kind === kind).length, 4);
+assert.equal(noodlePlan.furniture.filter(f => f.kind === 'shelves').length, 0, 'restaurant is distinct from a generic shop');
+assert(restaurant.hasLineOfSight(diner, noodlePlan.counter));
+function walkDiner(x, z) {
+  const target = noodlePoint(x, z), dx = target.x - diner.x, dz = target.z - diner.z;
+  const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.3));
+  for (let i = 0; i < steps; i++) assert.equal(restaurant.moveActor(diner, dx / steps, dz / steps).blocked, false, 'restaurant aisle and service approach stay clear');
+  assert(Math.hypot(diner.x - target.x, diner.z - target.z) < 1e-6);
+}
+walkDiner(0, 8.1);
+assert(Math.hypot(diner.x - noodlePlan.counter.x, diner.z - noodlePlan.counter.z) < .01);
+assert(!restaurant.nearExit(diner));
+walkDiner(0, 1.65); assert(restaurant.nearExit(diner));
+const counterWalker = { ...noodlePoint(0, 8.1) };
+assert(restaurant.moveActor(counterWalker, ns * 3, nc * 3).blocked, 'service pass prevents walking through the kitchen worktop');
+const tableWalker = { ...noodlePoint(0, 3.4) };
+assert(restaurant.moveActor(tableWalker, -nc * 3, ns * 3).blocked, 'tables and blue chairs share physical collision');
+const noodleScene = new THREE.Scene(), noodleView = createInteriorView(noodleScene);
+assert.equal(noodleView.stats.meshes, 0);
+noodleView.load(noodlePlan);
+assert(noodleView.stats.draws <= 2 && noodleView.stats.triangles <= 3000);
+const noodleTriangles = noodleView.stats.triangles;
+let geometryBytes = 0, noodleDisposed = 0;
+noodleScene.traverse(mesh => {
+  if (!mesh.isMesh) return;
+  for (const attr of Object.values(mesh.geometry.attributes)) {
+    assert(attr.array.every(Number.isFinite)); geometryBytes += attr.array.byteLength;
+  }
+  geometryBytes += mesh.geometry.index?.array.byteLength || 0;
+  mesh.geometry.addEventListener('dispose', () => noodleDisposed++);
+  assert.equal(mesh.material.map, null, 'original detail needs no image assets or texture allocation');
+});
+assert(geometryBytes < 400000, 'specialised interior keeps a bounded active geometry allocation');
+assert.equal(restaurant.stats.activePlans, 1);
+restaurant.leave(diner); noodleView.clear();
+assert.equal(noodleDisposed, 1); assert.equal(noodleView.stats.meshes, 0);
+assert.deepEqual({ x: diner.x, z: diner.z, y: diner.y, yaw: diner.yaw }, outsideRestaurant);
+assert.equal(restaurant.stats.activePlans, 0);
+const revisit = restaurant.enter(restaurant.findEntry(diner), diner);
+assert.notEqual(revisit, noodlePlan); assert.deepEqual(revisit, noodlePlan);
+noodleView.load(revisit); restaurant.reset(diner); noodleView.dispose(); noodleView.dispose();
+assert.equal(noodleScene.children.length, 0);
+console.log(`PASS lazy interiors: houses; ${baseStores.length} generic shops <=${maximumTriangles} triangles; Civic/four reachable units ${mallTriangles}; source-tied noodle restaurant ${noodleTriangles} triangles / 1 draw, ${geometryBytes} bytes; lazy lifecycle, dishes, aisle/counter collision and disposal`);
