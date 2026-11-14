@@ -26,12 +26,14 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True, type=Path,
-                        help='Fresh evidence directory outside the repository; existing directories fail.')
+                        help='Fresh or empty evidence directory outside the repository; prior artifacts fail.')
     args = parser.parse_args()
     output = args.output.resolve()
     if output == ROOT or ROOT in output.parents:
         parser.error('--output must be outside the repository')
-    output.mkdir(parents=True, exist_ok=False)
+    if output.exists() and any(output.iterdir()):
+        parser.error('--output already contains evidence; choose a fresh directory')
+    output.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
     checks, errors, requests, external, observations = [], [], [], [], []
     failure = None
@@ -189,6 +191,21 @@ def main():
         record(p, 'normal walk timed out')
         raise AssertionError(f'Normal walk timed out before {target}')
 
+    def around_car_to_door(p, door):
+        state=snap(p)
+        car, pose=state['player'], state['focus']
+        dx,dz=door['x']-car['x'],door['z']-car['z']
+        length=math.hypot(dx,dz)
+        if length>3:
+            fx,fz=dx/length,dz/length
+            side=1 if (pose['x']-car['x'])*fz-(pose['z']-car['z'])*fx>=0 else -1
+            walk(p,{'x':car['x']+fx*4.5+fz*side*4.5,'z':car['z']+fz*4.5-fx*side*4.5},tolerance=.8)
+        walk(p,door,tolerance=1.9,seconds=40)
+
+    def room_point(plan,x,z):
+        o=plan['origin'];c,s=math.cos(o['yaw']),math.sin(o['yaw'])
+        return {'x':o['x']+c*x+s*z,'z':o['z']-s*x+c*z}
+
     def enter(p, kind):
         before = record(p, 'before '+kind+' E entry')
         p.keyboard.press('e')
@@ -279,6 +296,20 @@ def main():
                         look(page, centre['x']+8, centre['z']-5)
                         check(snap(page)['civic']['visible'], 'Source Civic exterior visible at public approach')
                         capture(page, 'source-centre-public-approach')
+                        mall=snap(page)['interiors']['publicEntries'][0]
+                        teleport_point(page,mall['x']-math.sin(mall['yaw'])*35,mall['z']-math.cos(mall['yaw'])*35)
+                        foot(page);look(page,mall['x'],mall['z'])
+                        capture(page,'centre-street-exterior')
+                        teleport_point(page,mall['x']-math.sin(mall['yaw'])*10,mall['z']-math.cos(mall['yaw'])*10)
+                        foot(page);around_car_to_door(page,mall)
+                        plan=enter(page,'mall')
+                        check(sum(room['kind']=='mall-unit' for room in plan['rooms'])==4,'Centre concourse has four original units')
+                        check(plan['counter'] is None and not plan.get('storeId'),'Public concourse has no invented economic service')
+                        walk(page,room_point(plan,0,7.5),tolerance=.6)
+                        walk(page,room_point(plan,7.5,7.5),tolerance=.6)
+                        capture(page,'centre-entered-concourse-unit')
+                        walk(page,room_point(plan,0,7.5),tolerance=.6)
+                        leave(page,plan)
                 store = next(item for item in snap(page)['services'] if item['name'] == 'Coals')
                 frontage = store['frontage']
                 look(page, frontage['x'], frontage['z'])
@@ -318,12 +349,17 @@ def main():
                 foot(page)
                 look(page, house['x'], house['z'])
                 capture(page, 'house-rendered-door-approach')
-                walk(page, house, tolerance=1.9, seconds=45)
+                around_car_to_door(page,house)
                 plan = enter(page, 'house')
                 check({room['kind'] for room in plan['rooms']} == {'living', 'kitchen', 'bedroom', 'bathroom'},
                       'Lazy house contains four distinct rooms')
                 check({'sofa', 'kitchen-bench', 'bed', 'bath', 'toilet'} <=
                       {item['kind'] for item in plan['furniture']}, 'House has living/kitchen/bed/bath furnishings')
+                walk(page,room_point(plan,0,3.1),tolerance=.3)
+                walk(page,room_point(plan,-1.5,3.1),tolerance=.35)
+                target=room_point(plan,-4,2.6);look(page,target['x'],target['z'])
+                capture(page, 'house-living-room-interior')
+                walk(page,room_point(plan,0,3.1),tolerance=.3)
                 capture(page, 'house-four-room-interior')
                 leave(page, plan)
 
@@ -337,12 +373,18 @@ def main():
                 capture(page, 'source-bridge-deck')
                 look(page, bx+250, bz+100)
                 capture(page, 'source-lake-shoreline')
-                gate = snap(page)['campusGates'][0]
-                teleport_point(page, gate['x']+10, gate['z']+8)
+                gate = next(g for g in snap(page)['campusGates'] if g['sourceWay']=='1284808827-0')
+                gx,gz=gate['outside'];ix,iz=gate['inside'];span=math.hypot(gx-ix,gz-iz)
+                teleport_point(page,gx+(gx-ix)/span*8,gz+(gz-iz)/span*8)
                 foot(page)
                 look(page, gate['x'], gate['z'])
                 check(snap(page)['campus']['visible'], 'Source school fence visible near mapped gate')
                 capture(page, 'source-school-fence-gate')
+                around_car_to_door(page,{'x':gx,'z':gz})
+                walk(page,{'x':gx,'z':gz},tolerance=.35)
+                walk(page,{'x':gate['inside'][0],'z':gate['inside'][1]},tolerance=.6,seconds=25)
+                check(math.hypot(snap(page)['focus']['x']-gate['inside'][0],snap(page)['focus']['z']-gate['inside'][1])<1,'Normal walk crosses the source-aligned school gate')
+                capture(page,'school-gate-entered')
                 check(snap(page)['career']['cash'] == initial_cash, 'Free roam travel/interior exploration preserves career cash')
                 context.close()
 

@@ -242,3 +242,6 @@ body.intro-open #recovery-screen{display:none}
 .campaign-chapters [aria-current="step"] { font-weight: 800; color: var(--ink); }
 #campaign-status { font-weight: 700; }
 @media (max-width: 620px) { .mode-options { grid-template-columns: 1fr; } .mode-options button { padding: .65rem .8rem; } }
+
+body.on-foot .driving-hud { display: none; }
+body.indoors .minimap-wrap { display: none; }

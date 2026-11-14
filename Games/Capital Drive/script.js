@@ -30,7 +30,7 @@ import {createInteriorView} from './interior-view.js';
 import {createCampaign} from './campaign.js';
 import {applyMapExpansion,expansionPlaces} from './map-expansion.js';
 import {createTerrainSampler} from './terrain.js';
-import {createCivicView,CIVIC_BUILDING_IDS,CIVIC_LANDMARKS} from './civic-view.js';
+import {createCivicView,CIVIC_BUILDING_IDS,CIVIC_LANDMARKS,CIVIC_INTERIOR_ENTRIES} from './civic-view.js';
 
 const $ = id => document.getElementById(id);
 const keys = new Set(), touch = new Set();
@@ -417,8 +417,12 @@ function createMapImage() {
   mapScale = mapImage.width / (b.maxX - b.minX);
   mapImage.height = Math.round((b.maxZ - b.minZ) * mapScale);
   const ctx = mapImage.getContext('2d'); ctx.fillStyle = '#dfdfcc'; ctx.fillRect(0, 0, mapImage.width, mapImage.height);
-  const path = points => { ctx.beginPath(); points.forEach(([x, z], i) => ctx[i ? 'lineTo' : 'moveTo']((x - b.minX) * mapScale, (z - b.minZ) * mapScale)); };
-  for (const area of map.areas) { path(area.points); ctx.fillStyle = area.type === 'water' ? '#9ab7ba' : '#bbca9b'; ctx.fill(); }
+  const path = (points,begin=true) => { if(begin)ctx.beginPath(); points.forEach(([x, z], i) => ctx[i ? 'lineTo' : 'moveTo']((x - b.minX) * mapScale, (z - b.minZ) * mapScale)); };
+  for (const area of map.areas) {
+    path(area.points);ctx.closePath();
+    for(const hole of area.innerRings||[]){path(hole.points||hole,false);ctx.closePath();}
+    ctx.fillStyle = area.type === 'water' ? '#9ab7ba' : '#bbca9b'; ctx.fill('evenodd');
+  }
   ctx.fillStyle = '#bfc1b3';
   for (const building of map.buildings) { path(building.points); ctx.fill(); }
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -723,9 +727,10 @@ function updateHud() {
   $('speed-fill').style.width = `${Math.min(100, Math.abs(p.speed) / 54 * 100)}%`;
   $('distance').textContent = `${(simulation.player.odometer / 1000).toFixed(1)} KM`;
   $('car-label').textContent = gameplay?.state.mode === 'foot' ? 'ON FOOT' : vehicles.find(v => v.id === selectedCar)?.label || selectedCar.toUpperCase();
-  $('street').textContent = nearby?.road.name || 'Canberra backstreets';
-  const nearestPlace = map.landmarks.reduce((a, b) => Math.hypot(a.x - p.x, a.z - p.z) < Math.hypot(b.x - p.x, b.z - p.z) ? a : b);
-  $('district').textContent = nearestPlace.id === 'telopea' ? 'BARTON' : nearestPlace.name.toUpperCase();
+  $('street').textContent = interiors?.active?.name||nearby?.road.name || 'Canberra backstreets';
+  const districtPlaces=map.landmarks.filter(place=>['telopea','manuka','kingston','foreshore','redhill','griffith','narrabundah','canberra-centre'].includes(place.id));
+  const nearestPlace = districtPlaces.reduce((a, b) => Math.hypot(a.x - p.x, a.z - p.z) < Math.hypot(b.x - p.x, b.z - p.z) ? a : b);
+  $('district').textContent = nearestPlace.id === 'telopea' ? 'BARTON' : nearestPlace.id==='canberra-centre'?'CIVIC':nearestPlace.name.replace(/ shops$/i,'').toUpperCase();
   $('driving-hint').textContent = gameplay?.state.mode === 'foot' ? 'SHIFT sprint · SPACE jump · RMB aim' : 'SPACE handbrake · SHIFT boost';
   $('destination-line').hidden=!destination;
   $('destination-line').textContent = destination ? `${destination.name} · ${(Math.hypot(destination.x - p.x, destination.z - p.z) / 1000).toFixed(1)} km away` : '';
@@ -845,16 +850,18 @@ function animate(time) {
   }
   const onFoot = gameplay.state.mode === 'foot';
   document.body.classList.toggle('on-foot', onFoot);
+  document.body.classList.toggle('indoors',!!interiors.active);
   $('aim-reticle').hidden = !onFoot || !gameplay.state.aiming || paused();
   const objective = isSandbox() ? destination : campaign.state.active?.target || progression.state.activeJob?.target || progression.garage;
   if(!interiors.active)actorView?.update(gameplay.state, { dt: activeDt, time: time / 1000, focus: p, objective });
   if(interiors.active){
     const angle=footCameraYaw,ground=interiors.active.floorY;
-    desiredCamera.set(p.x+Math.sin(angle)*1.8,ground+2.2,p.z+Math.cos(angle)*1.8);
+    desiredCamera.set(p.x+Math.sin(angle)*3.2,ground+2.25,p.z+Math.cos(angle)*3.2);
     const ahead={x:desiredCamera.x,z:desiredCamera.z};
-    if(!interiors.hasLineOfSight(p,ahead))desiredCamera.set(p.x,ground+1.75,p.z);
+    const cameraClear=interiors.hasLineOfSight(p,ahead);
+    if(!cameraClear)desiredCamera.set(p.x,ground+1.7,p.z);
     lookTarget.set(p.x-Math.sin(angle)*4,ground+1.4,p.z-Math.cos(angle)*4);
-    indoorActorView?.update({...gameplay.state,police:[]},{dt:activeDt,time:time/1000,focus:p,objective:null});
+    indoorActorView?.update({...gameplay.state,mode:cameraClear?'foot':'vehicle',police:[]},{dt:activeDt,time:time/1000,focus:p,objective:null});
   } else if (onFoot) {
     const angle = footCameraYaw, aiming = gameplay.state.aiming, distance = aiming ? 3.4 : 5.8;
     desiredCamera.set(p.x + Math.sin(angle) * distance + Math.cos(angle) * (aiming ? .65 : 0),
@@ -871,7 +878,7 @@ function animate(time) {
     lookTarget.y += Math.tan(lookPitch) * (distance + 5);
   }
   if(!interiors.active)desiredCamera.y = Math.max(desiredCamera.y, world.heightAt(desiredCamera.x, desiredCamera.z) + .65);
-  camera.position.lerp(desiredCamera, cameraReady ? 1 - Math.exp(-renderDt * 5.5) : 1);
+  camera.position.lerp(desiredCamera, interiors.active?1:cameraReady ? 1 - Math.exp(-renderDt * 5.5) : 1);
   camera.lookAt(lookTarget); cameraReady = true;
   renderer.render(interiors.active&&!compatibility?interiorScene:scene, camera);
   hudTime += renderDt;
@@ -918,7 +925,7 @@ async function boot() {
   landmarkView = compatibility ? { update() {}, dispose() {}, stats: {} } : createLandmarksView(scene, map, world.heightAt);
   landmarkView.update(simulation.player, 0);
   map.interiorEntries=neighbourhood.entries||[];
-  interiors=createInteriors(map,{heightAt:world.heightAt,stores:MAPPED_STORES});
+  interiors=createInteriors(map,{heightAt:world.heightAt,stores:MAPPED_STORES,publicEntries:CIVIC_INTERIOR_ENTRIES});
   interiorScene=new THREE.Scene();interiorScene.background=new THREE.Color(0xccc3ad);
   interiorScene.add(new THREE.HemisphereLight(0xfff8df,0x70685b,2));
   const indoorSun=new THREE.DirectionalLight(0xfff1d4,1.1);indoorSun.position.set(-2,5,3);interiorScene.add(indoorSun);
@@ -992,7 +999,7 @@ async function boot() {
   // Read-only diagnostics for QA; no production state setters.
   window.capitalDriveSnapshot = () => Object.freeze({ ready: true, started, paused: paused(), gameMode,
     player: Object.freeze({ ...simulation.player }), focus: Object.freeze({ ...focus() }),
-    gameplay: gameplay.snapshot(),campaign:campaign.snapshot(),interiors:freezeCopy({...interiors.snapshot(),entrySample:interiors.entries.slice(0,8),active:interiors.active}),career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
+    gameplay: gameplay.snapshot(),campaign:campaign.snapshot(),interiors:freezeCopy({...interiors.snapshot(),entrySample:interiors.entries.slice(0,8),publicEntries:CIVIC_INTERIOR_ENTRIES,active:interiors.active}),career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
     places: Object.freeze(map.landmarks.map(place => Object.freeze({ ...place }))), addressCount: addressData.addresses.length,
     camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch,footYaw:footCameraYaw }),
     discovered: Object.freeze([...discovered]), roadCount: map.roads.length, buildings: map.buildings.length, traffic: simulation.traffic.length,

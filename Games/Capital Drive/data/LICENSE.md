@@ -5,6 +5,14 @@ data converted for an original driving game. The game has no runtime dependency
 on the source services. Geographic data does not imply endorsement by its
 contributors or public agencies.
 
+The14November2026 continuation adds `canberra-north.json` (OpenStreetMap
+contributors, ODbL1.0), `shopping-precincts.json` (retained OSM geometry, ODbL1.0)
+and `north-terrain.json` (Australian Capital Territory, CC-BY4.0). Source URLs,
+hashes and limitations are retained in each sidecar and in
+`docs/capital-drive-district-sources.md`. The original snapshot is retained.
+New interiors, garden arrangements and facade art are original interpretations;
+source geography does not establish private floorplans or current tenancies.
+
 ## OpenStreetMap roads, green areas and supplementary building outlines
 
 © OpenStreetMap contributors. Available under the

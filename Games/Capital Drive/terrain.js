@@ -43,8 +43,8 @@ export function createTerrainSampler(map) {
     return base ? sample(base, x, z) : 0;
   }
 
-  // Relative to the 550m terrain datum. The default lake surface is an authored
-  // 555.93m AHD estimate; callers may supply a separately verified water level.
+  // Fixed normal design level, not a live reading: NCA Scrivener Dam lists
+  // 555.93m AHD. Deck clearance/profile above this level remains authored.
   const lakeWaterLevel = Number.isFinite(map.lakeWaterLevel) ? map.lakeWaterLevel : 5.93;
   const minimumLakeDeck = lakeWaterLevel + 2.5;
   const estimates = new Map((map.bridgeDecks || []).map(deck => [String(deck.roadId), deck.heights]));

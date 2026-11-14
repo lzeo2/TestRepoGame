@@ -142,7 +142,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
   function renderServices(){
     const container=byId('services-list');if(!container)return;container.replaceChildren();
     const ctx=context();
-    for(const site of progression.services){
+    for(const site of [...progression.services].sort((a,b)=>Math.hypot(a.x-ctx.pose.x,a.z-ctx.pose.z)-Math.hypot(b.x-ctx.pose.x,b.z-ctx.pose.z))){
       const entry=document.createElement('article');entry.className='job-option';entry.dataset.serviceId=site.id;
       const title=document.createElement('h3');title.textContent=site.name;
       const detail=document.createElement('p');detail.textContent=`${site.road} · ${Math.round(Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z))} m`;

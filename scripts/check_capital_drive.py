@@ -78,7 +78,7 @@ def main():
     parser.add_argument('--dry-run', action='store_true', help='List required files and exact commands without running them or creating directories.')
     args = parser.parse_args()
     if args.classic_browser and args.expansion_browser:parser.error('Choose one earlier browser suite')
-    browser_suite='scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py' if args.expansion_browser else 'scripts/test_capital_stores_pool_browser.py'
+    browser_suite='scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py' if args.expansion_browser else 'scripts/test_capital_district_browser.py'
     if args.browser != (args.output is not None):
         parser.error('--browser and --output must be used together')
     output = args.output.expanduser().resolve() if args.output else None

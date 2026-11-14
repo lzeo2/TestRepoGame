@@ -451,6 +451,21 @@ export function createWorldView(scene, map) {
     const floorHeights = points.map(p => heightAt(...p));
     const base = (isSchool ? floorHeights.reduce((a, b) => a + b, 0) / points.length : Math.max(...floorHeights)) + 0.12;
     const footing = Math.min(...floorHeights) - 0.3;
+    if(building.type==='roof'){
+      const faces=THREE.ShapeUtils.triangulateShape(points.map(p=>new THREE.Vector2(...p)),[]);
+      for(const face of faces){
+        const p=face.map(i=>[points[i][0],base+height,points[i][1]]);
+        if((p[1][0]-p[0][0])*(p[2][2]-p[0][2])-(p[1][2]-p[0][2])*(p[2][0]-p[0][0])>0)p.reverse();
+        triangle(batchAt(x,z),...p,0x85887d);
+        triangle(batchAt(x,z),...p.slice().reverse(),0xaaa99a);
+      }
+      for(let i=0;i<points.length;i+=Math.max(1,Math.ceil(points.length/6))){
+        const p=points[i],ground=groundHeightAt(...p);
+        primitive(box,p[0],ground+(base+height-ground)/2,p[1],.16,base+height-ground,.16,0xaaa99a);
+      }
+      counters.buildings++;return;
+    }
+
     const signedArea = points.reduce((sum, p, i) => { const q = points[(i + 1) % points.length]; return sum + p[0] * q[1] - q[0] * p[1]; }, 0);
     const reverse = signedArea > 0;
     const character = suburbCharacter(map, x, z);

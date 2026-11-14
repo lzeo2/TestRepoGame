@@ -116,7 +116,7 @@ export function createSimulation(map, options = {}) {
     Math.min(segment.a[0], segment.b[0]), Math.min(segment.a[1], segment.b[1]),
     Math.max(segment.a[0], segment.b[0]), Math.max(segment.a[1], segment.b[1]));
   for (const building of map.buildings || []) {
-    if (!building.points?.length||replacedColliders.has(building.id)) continue;
+    if (!building.points?.length||building.type==='roof'||replacedColliders.has(building.id)) continue;
     buildingIndex.insert(building, Math.min(...building.points.map(p => p[0])), Math.min(...building.points.map(p => p[1])),
       Math.max(...building.points.map(p => p[0])), Math.max(...building.points.map(p => p[1])));
   }
