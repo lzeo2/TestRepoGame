@@ -141,7 +141,11 @@ export function createRideServiceView(scene, heightAt) {
     for (const mesh of people) { mesh.visible = mesh.count > 0; mesh.instanceMatrix.needsUpdate = true; }
     counters.drawCalls = counters.cars * (car.userData.drawCalls+1) + people.reduce((sum,mesh) => sum + Number(mesh.visible),0);
   }
-  return { update,
+  function setPlayerAppearance(personId) {
+    if (disposed || !['player','player:student','player:corporate','player:basement'].includes(personId)) return false;
+    seated.userData.setPerson(personId); return true;
+  }
+  return { update, setPlayerAppearance,
     get stats() { return Object.freeze({...counters,carLimit:1,passengerLimit:SEATED_LIMIT,waitingLimit:1,driverLimit:1,driverBatches:1,batches:5,maxDrawCalls:car.userData.drawCalls+4,geometryCount:geometries.size,materialCount:materials.size,disposed}); },
     dispose() {
       if (disposed) return;

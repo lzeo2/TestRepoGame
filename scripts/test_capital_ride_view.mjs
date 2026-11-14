@@ -43,6 +43,21 @@ assert.deepEqual(driver.userData.appearance,appearanceForPerson('yoober-driver-n
 assert(seated.geometry.index.count > 36*11,'rounded shared body geometry replaces the box body');
 assert.deepEqual(waiting.userData.appearance,appearanceForPerson(job.id));
 assert.deepEqual(waiting.geometry.attributes.color.array,fare.geometry.attributes.color.array,'standing and seated fare retain the same palette');
+const npcColors=[...driver.geometry.attributes.color.array];
+const heroGeometry=seated.geometry, heroPositions=heroGeometry.attributes.position.array, heroColors=heroGeometry.attributes.color.array;
+for (const id of ['player:student','player:corporate','player:basement','player']) {
+  const appearance=appearanceForPerson(id); assert(view.setPlayerAppearance(id));
+  assert.deepEqual(seated.userData.appearance,appearance,'seated hero retains the selected standing identity');
+  const expected=new THREE.Color(appearance.shirt);
+  for(let vertex=0;vertex<30;vertex++) {
+    assert(Math.abs(heroGeometry.attributes.color.getX(vertex)-expected.r)<1e-6);
+    assert(Math.abs(heroGeometry.attributes.color.getY(vertex)-expected.g)<1e-6);
+    assert(Math.abs(heroGeometry.attributes.color.getZ(vertex)-expected.b)<1e-6);
+  }
+  assert.equal(seated.geometry,heroGeometry); assert.equal(heroGeometry.attributes.position.array,heroPositions); assert.equal(heroGeometry.attributes.color.array,heroColors,'hero swap reuses colour storage');
+}
+assert(!view.setPlayerAppearance('unknown'));
+assert.deepEqual([...driver.geometry.attributes.color.array],npcColors,'player appearance does not recolor the Yoober driver');
 const fareColorStorage = fare.geometry.attributes.color.array, waitingColorStorage = waiting.geometry.attributes.color.array;
 view.update({...snapshot,driver:{active:true,x:8,z:8,yaw:.2,reaction:'angry',elapsed:1}},{focus:car,job});
 assert.equal(view.stats.drivers,1); assert.equal(driver.count,1); assert.equal(waiting.count,1);

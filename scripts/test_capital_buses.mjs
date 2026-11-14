@@ -67,6 +67,22 @@ view.update(buses.vehicles, first);
 assert.equal(view.stats.buses, 2); assert.equal(view.stats.drawCalls, 4); assert(view.stats.triangles < 5000);
 assert.equal(view.stats.geometries,5);
 for (let i=0;i<2;i++) assert.deepEqual(scene.children[0].children[i].userData.driverAppearance,appearanceForPerson(`city-bus-driver-${i}`));
+const passenger=scene.children[0].getObjectByName('Seated bus player passenger');
+const driversBefore=scene.children[0].children.slice(0,2).map(group=>[...group.children[0].geometry.attributes.color.array]);
+const heroGeometry=passenger.geometry, heroPositions=heroGeometry.attributes.position.array, heroColors=heroGeometry.attributes.color.array;
+for (const id of ['player:student','player:corporate','player:basement','player']) {
+  const appearance=appearanceForPerson(id); assert(view.setPlayerAppearance(id));
+  assert.deepEqual(passenger.userData.appearance,appearance,'seated hero retains the selected standing identity');
+  const expected=new THREE.Color(appearance.shirt);
+  for(let vertex=0;vertex<30;vertex++) {
+    assert(Math.abs(heroGeometry.attributes.color.getX(vertex)-expected.r)<1e-6);
+    assert(Math.abs(heroGeometry.attributes.color.getY(vertex)-expected.g)<1e-6);
+    assert(Math.abs(heroGeometry.attributes.color.getZ(vertex)-expected.b)<1e-6);
+  }
+  assert.equal(passenger.geometry,heroGeometry); assert.equal(heroGeometry.attributes.position.array,heroPositions); assert.equal(heroGeometry.attributes.color.array,heroColors,'hero swap reuses colour storage');
+}
+assert(!view.setPlayerAppearance('unknown'));
+assert.deepEqual(scene.children[0].children.slice(0,2).map(group=>[...group.children[0].geometry.attributes.color.array]),driversBefore,'player changes preserve bus drivers and livery');
 const snapshot = buses.snapshot(); view.update(buses.vehicles, first); assert.deepEqual(buses.snapshot(), snapshot, 'rendering is read-only');
 let released = 0, releasedMaterials = 0; const ownedMaterials = new Set(); scene.traverse(object => { if (object.isMesh) {
   assert([...object.geometry.attributes.position.array].every(Number.isFinite));

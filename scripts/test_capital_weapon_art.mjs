@@ -73,6 +73,18 @@ for (let i = 0; i < 200; i++) {
   view.update(state, options);
 }
 assert.deepEqual(resources(), initialResources, 'switching/aim/reload creates no new render resources');
+state.actor.speed=0;
+for(const personId of ['player:student','player:corporate','player:basement','player']) {
+  assert(view.setPlayerAppearance(personId));
+  for(const id of Object.keys(weapons)) {
+    state.weapon=id; state.aiming=false; view.update(state,options); root.updateMatrixWorld(true);
+    assert(new THREE.Box3().setFromObject(weapons[id]).min.y>=2,`${personId} carries ${id} above the ground`);
+    state.aiming=true; view.update(state,options); root.updateMatrixWorld(true);
+    const direction=new THREE.Vector3(0,0,-1).transformDirection(weapons[id].matrixWorld);
+    assert(direction.z<-.9 && Math.abs(direction.y)<.15,`${personId} preserves ${id} forward aim`);
+  }
+}
+assert.deepEqual(resources(),initialResources,'hero changes preserve weapon geometry/material budgets');
 state.weapon = 'unarmed'; state.aiming = false; state.attackTimer = .15; state.actor.speed = 0;
 view.update(state, options);
 assert.equal(view.stats.activeWeapon, null);

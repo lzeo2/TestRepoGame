@@ -4,6 +4,7 @@ import { createCar } from '../../assets/car-arcade/models.js';
 import { appearanceForPerson, createPersonGeometries, PERSON_MODEL } from './person-model.js';
 
 const POLICE_LIMIT = 4, SHOT_LIMIT = 8, CULL_DISTANCE = 380;
+const MELEE_POSES = [[0,.45,1.15,-.12,0],[.2,.30,1.4,-.20,.005],[.5,1.95,-.30,.24,-.075],[1,0,-.12,0,0]];
 const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallback;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, finite(value)));
 
@@ -125,6 +126,33 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
   const joints = []; actor.traverse(object => { if (object.isGroup) joints.push(object); });
   for (const group of joints) batchStatic(group);
 
+  // Merged parts retain fixed colour slots; changing a hero reuses every buffer.
+  const playerSlots = { jacket: 'shirt', pants: 'trousers', skin: 'skin', hair: 'hair', shoe: 'shoes' };
+  const playerPaint = [];
+  actor.traverse(mesh => {
+    const colors = mesh.geometry?.attributes.color;
+    if (!colors) return;
+    const slots = Object.keys(playerSlots).map(slot => [slot, []]);
+    for (let i = 0; i < colors.count; i++) for (const [slot, indices] of slots) {
+      const color = palette[slot].color;
+      if (Math.abs(colors.getX(i)-color.r)<1e-6 && Math.abs(colors.getY(i)-color.g)<1e-6 && Math.abs(colors.getZ(i)-color.b)<1e-6) indices.push(i);
+    }
+    playerPaint.push({ colors, slots });
+  });
+  const heroAppearances = new Map(['player','player:student','player:corporate','player:basement'].map(id => [id, appearanceForPerson(id)]));
+  actor.userData.appearance = playerAppearance;
+  function setPlayerAppearance(personId) {
+    if (disposed || !heroAppearances.has(personId)) return false;
+    const next = heroAppearances.get(personId);
+    if (actor.userData.appearance.id === next.id) return true;
+    for (const [slot, field] of Object.entries(playerSlots)) palette[slot].color.setHex(next[field]);
+    for (const { colors, slots } of playerPaint) {
+      for (const [slot, indices] of slots) for (const vertex of indices) palette[slot].color.toArray(colors.array,vertex*3);
+      colors.needsUpdate = true;
+    }
+    actor.scale.setScalar(next.height); actor.userData.appearance = next; return true;
+  }
+
   // Clone pooled factory resources so disposing this view cannot break other cars.
   const carGeometries = new Map(), carMaterials = new Map();
   const police = Array.from({ length: policeLimit }, (_, i) => {
@@ -178,7 +206,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
   const arrowGeometry = ownGeometry(new THREE.ConeGeometry(.45, .65, 4));
   const arrow = piece(marker, 'Objective arrow', palette.marker, [0, 3.2, 0], [1, 1, 1], arrowGeometry); arrow.rotation.x = Math.PI;
   marker.visible = false; actor.visible = false;
-  let phase = 0, clock = 0, disposed = false;
+  let phase = 0, clock = 0, disposed = false, lastAttackTimer = 0, lastAttackSerial = null, punchingArm = 0;
   const counters = { police: 0, officers: 0, shots: 0, playerVisible: false, objectiveVisible: false, meshes: 0, triangles: 0, drawCalls: 0, activeWeapon: null, weaponMeshes: weaponEntries.length };
   root.traverse(object => { if (object.isMesh) { counters.meshes++; counters.triangles += (object.geometry.index?.count || object.geometry.attributes.position.count) / 3 * (object.isInstancedMesh ? object.instanceMatrix.count : 1); } });
   function ground(x, z) { return finite(heightAt(x, z)); }
@@ -191,6 +219,10 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
     actor.visible = state.mode === 'foot' && near(pose, center);
     if (actor.visible) {
       const speed = clamp(Math.abs(finite(pose.speed)), 0, 12);
+      const attack = clamp(state.attackTimer, 0, .3), serial = Number.isFinite(state.attackSerial) ? state.attackSerial : null;
+      if (state.weapon === 'unarmed' && attack > 0 && ((serial !== null && serial !== lastAttackSerial) || (serial === null && attack > lastAttackTimer + 1e-6))) punchingArm = serial !== null ? (Math.abs(Math.floor(serial)) % 2 ? 1 : 0) : 1-punchingArm;
+      lastAttackSerial = serial; lastAttackTimer = attack;
+      body.position.set(0,0,0); body.rotation.z = 0;
       phase += step * speed * 2.7;
       const stride = Math.min(1, speed / 3) * Math.sin(phase) * (speed > 4 ? .85 : .55);
       const jump = clamp(pose.jumpHeight, 0, 5);
@@ -214,7 +246,19 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
         arms[1].rotation.x = .65; elbows[1].rotation.x = 1.2;
         arms[0].rotation.x = .9; arms[0].rotation.z = .55; elbows[0].rotation.x = .55;
       }
-      if (finite(state.attackTimer) > 0 && state.weapon === 'unarmed') { arms[1].rotation.x = 1.1 + Math.sin(clamp(state.attackTimer / .3, 0, 1) * Math.PI) * .9; elbows[1].rotation.x = -.25; body.rotation.y = -.22; } else body.rotation.y = 0;
+      body.rotation.y = 0;
+      if (attack > 0 && state.weapon === 'unarmed') {
+        // The authoritative remaining attack timer drives anticipation, strike and recovery.
+        const elapsed = 1-attack/.3, side = punchingArm ? 1 : -1, other = 1-punchingArm;
+        const keys = MELEE_POSES;
+        let index = 0; while (index < keys.length-2 && elapsed > keys[index+1][0]) index++;
+        const start = keys[index], end = keys[index+1], raw = clamp((elapsed-start[0])/(end[0]-start[0]),0,1), t = raw*raw*(3-2*raw);
+        const value = n => start[n]+(end[n]-start[n])*t;
+        arms[punchingArm].rotation.set(value(1),0,-side*.12); elbows[punchingArm].rotation.x = value(2);
+        arms[other].rotation.set(.65,0,side*.18); elbows[other].rotation.x = .8;
+        body.rotation.y = value(3)*side; body.position.z = value(4); body.rotation.z = -.035*side*Math.sin(elapsed*Math.PI);
+        knees[other].rotation.x += .10*Math.sin(elapsed*Math.PI);
+      }
     }
     counters.police = 0; counters.officers = 0;
     police.forEach((view, i) => {
@@ -273,7 +317,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
     root.traverseVisible(object => { if (object.isMesh) counters.drawCalls++; });
   }
   return {
-    update,
+    update, setPlayerAppearance,
     get stats() { return Object.freeze({ ...counters, geometryCount: geometries.size, materialCount: materials.size, disposed }); },
     dispose() {
       if (disposed) return; disposed = true; scene.remove(root);

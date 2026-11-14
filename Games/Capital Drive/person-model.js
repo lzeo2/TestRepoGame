@@ -20,8 +20,17 @@ export const PERSON_MODEL = Object.freeze({
   hands: dimension(0.3, 0.76, 0, 0.062, 0.075, 0.065)
 });
 
+const PLAYER_PRESETS = Object.freeze({
+  'player:student': Object.freeze({ shirt: 0x527c92, trousers: 0x343d4a, skin: 0xc99673, hair: 0x302923, shoes: 0xe2dfd0 }),
+  'player:corporate': Object.freeze({ shirt: 0x303d54, trousers: 0x292f3b, skin: 0xad7958, hair: 0x191b20, shoes: 0x242526 }),
+  'player:basement': Object.freeze({ shirt: 0x6d596f, trousers: 0x51564a, skin: 0xe0b490, hair: 0x865b3f, shoes: 0x333330 })
+});
+
+const PLAYER_APPEARANCES = new Map(Object.entries(PLAYER_PRESETS).map(([id, palette]) => [id, Object.freeze({ id, key: `${id}:original`, ...palette, height: 1, bag: false })]));
+
 export function appearanceForPerson(id) {
   const raw = String(id);
+  if (PLAYER_APPEARANCES.has(raw)) return PLAYER_APPEARANCES.get(raw);
   if (raw === 'player' || raw === 'police') return Object.freeze({
     id: raw, key: `${raw}:original`, shirt: raw === 'police' ? 0x25354d : 0xb47442,
     trousers: 0x354351, skin: 0xba8662, hair: 0x342b26, shoes: 0x292a28, height: 1, bag: false
