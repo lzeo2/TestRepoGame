@@ -24,6 +24,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
   let phase = 'idle', reason = '', passenger = false, fare = 0, booking = null, serial = 0;
   let route = [], points = [], cursor = 0, elapsed = 0, stalled = 0, wait = 0;
   let pickup = null, dropoff = null, paid = false, mode = false;
+  const activeFare = () => ['approaching', 'waiting', 'riding', 'arrived', 'stopping', 'exit-ready'].includes(phase) ? fare : 0;
   const emit = type => events.push(Object.freeze({ type, bookingId: booking?.id || null, fare, reason }));
   function guard(ctx = {}, aboard = false) {
     if (!ctx.pose || ![ctx.pose.x, ctx.pose.z].every(Number.isFinite)) return 'Player unavailable';
@@ -262,12 +263,12 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     elapsed = 0; stalled = 0; wait = 0; events.length = 0;
   }
   function snapshot() {
-    return freeze({ phase, reason, passenger, paid, fare, activeFare: fare, booking: copy(booking),
+    return freeze({ phase, reason, passenger, paid, fare, activeFare: activeFare(), booking: copy(booking),
       seatPose: passenger ? { x: car.x + Math.cos(car.yaw) * .38, z: car.z - Math.sin(car.yaw) * .38, yaw: car.yaw } : null,
       car: { ...car }, pickup: copy(pickup), dropoff: copy(dropoff), route: [...route], waypoint: cursor });
   }
   return { vehicles, destinations, quote, book, interact, cancel, step, reset, snapshot,
     get phase() { return phase; }, get passenger() { return passenger; },
-    get activeFare() { return fare; }, get seatPose() { return passenger ? car : null; },
+    get activeFare() { return activeFare(); }, get seatPose() { return passenger ? car : null; },
     drainEvents: () => events.splice(0) };
 }
