@@ -155,6 +155,14 @@ browser/geodata tooling stay outside the repository.
 
 ### Signals, full contacts, transport and hold-ups, 14 November 2026
 
+The later [road-arrow follow-up](../../verification/capital-drive-road-arrows-2026-11-14.md)
+adds `road-guidance-view.js`: yellow outlined world-space arrows ahead of the manual
+driver, following the existing route at 12/24/36 m with terrain height and estimated
+left-lane placement. They hide on foot, indoors, for passengers, at arrival, reversed
+away from the route or too far off route. Map/HUD arrows and next-turn distance
+remain. At most three markers/two draws use 4,992 buffer bytes, without physics,
+progression, source data or lights changing.
+
 The [contract](../../capital-drive-signals-transport-crime-contract.md) and
 [receipt](../../verification/capital-drive-signals-2026-11-14.md) record the newer
 signal/arrow/tracking, traffic, transport, equipment and crime work. These supersede
@@ -444,7 +452,7 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The reusable runner checks 56 authored modules and 64 pure suites (185 commands), fails
+The reusable runner checks 57 authored modules and 65 pure suites (188 commands), fails
 on missing files or actual command errors and bounds subprocess lifetimes. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
 unavailable WebGL, denied storage and hidden teleport guards. Actual-map physics

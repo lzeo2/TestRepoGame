@@ -132,8 +132,8 @@ rules. Gameplay remains fictional and non-graphic.
 
 ## Verification and limits
 
-Run `python3 -B scripts/check_capital_drive.py`: 56 modules, 64 pure suites and diff
-check, 185 commands. New regressions retain old failing rotation, lane, yield and
+Run `python3 -B scripts/check_capital_drive.py`: 57 modules, 65 pure suites and diff
+check, 188 commands. New regressions retain old failing rotation, lane, yield and
 contact fixtures; audit actual geometry and 7,200 simulation frames; test source
 rebuilds, phases, navigation, transport, cash/save guards and pooled resources.
 
