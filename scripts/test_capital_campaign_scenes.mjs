@@ -35,6 +35,29 @@ for(const invalid of [{mode:'free'},{recovering:true},{interior:{}},{mission:nul
  scenes.update({...ctx,...invalid},.1);assert.equal(scenes.people.length,0,'scene exists only in the outside campaign meeting stage');scenes.update(ctx,.1);
 }
 scenes.update({...ctx,character:'basement'},.1);assert.deepEqual(scenes.people.map(p=>p.appearanceId),['player:student','player:corporate']);
+// Sweep against the two live bodies without changing either authority's state.
+const castBefore=structuredClone(scenes.people), person=scenes.people[0], other=scenes.people[1];
+const separation=Math.hypot(person.x-other.x,person.z-other.z),nx=(person.x-other.x)/separation,nz=(person.z-other.z)/separation,tx=-nz,tz=nx;
+const walking={x:person.x+nx*3,z:person.z+nz*3}, walkingBefore={...walking};
+const stopped=scenes.clipMovement(walking,-nx*6,-nz*6);
+assert(stopped.blocked,'a long sweep cannot pass through a meeting actor');
+assert(Math.hypot(walking.x+stopped.dx-person.x,walking.z+stopped.dz-person.z)>=.79-1e-6);
+assert(Math.hypot(stopped.dx,stopped.dz)<2.22,'sweep stops at the first body rather than tunnelling to the far side');
+const sliding={x:person.x+nx*.99-tx,z:person.z+nz*.99-tz};
+const slide=scenes.clipMovement(sliding,-nx*.6+tx*2,-nz*.6+tz*2);
+assert(slide.blocked&&slide.dx*tx+slide.dz*tz>1,'contact preserves useful tangent movement');
+assert(Math.hypot(sliding.x+slide.dx-person.x,sliding.z+slide.dz-person.z)>=.79-1e-5);
+const touching={x:person.x+nx*.6,z:person.z+nz*.6};
+const escape=scenes.clipMovement(touching,nx,nz);
+assert(!escape.blocked&&Math.abs(escape.dx-nx)<1e-8&&Math.abs(escape.dz-nz)<1e-8,'an overlapping actor can move outward');
+const physicalBeforePause=scenes.clipMovement(walking,-nx*6,-nz*6);scenes.update({...ctx,character:'basement',paused:true},.1);
+assert.deepEqual(scenes.clipMovement(walking,-nx*6,-nz*6),physicalBeforePause,'pausing animation retains physical bodies');
+assert.deepEqual(walking,walkingBefore);assert.deepEqual(scenes.people,castBefore,'movement clipping never mutates cast or player');
+assert.deepEqual(scenes.clipMovement({x:NaN,z:0},1,0),{dx:0,dz:0,blocked:false});
+scenes.clear();const free=scenes.clipMovement(walking,3,2);assert.deepEqual(free,{dx:3,dz:2,blocked:false},'clear removes physical bodies immediately');
+scenes.update({...ctx,character:'basement'},.1);scenes.update({...ctx,mode:'free'},.1);
+assert.deepEqual(scenes.clipMovement(walking,3,2),{dx:3,dz:2,blocked:false},'mode exit removes physical bodies immediately');
+scenes.update({...ctx,character:'basement'},.1);
 const blocked=createCampaignScenes(map,{canOccupy:()=>false,moveActor:()=>{throw Error('blocked candidates must not sweep');}});
 blocked.update(ctx,.1);assert.equal(blocked.people.length,0,'blocked cast is omitted rather than teleported');
 const original=createCampaignScenes(map,simulation);original.update({...ctx,mission:{...mission,target:{...kingston,radius:16}}},.1);assert.equal(original.people.length,0,'unsafe schematic landmark centre does not invent source pavement');
@@ -57,4 +80,4 @@ view.update([{...scenes.people[0],x:NaN}],mission.target);assert.equal(view.stat
 const geometries=new Set(root.children.map(mesh=>mesh.geometry));let released=0,instances=0,materials=0;
 geometries.forEach(g=>g.addEventListener('dispose',()=>released++));root.children.forEach(m=>m.addEventListener('dispose',()=>instances++));root.children[0].material.addEventListener('dispose',()=>materials++);
 view.dispose();view.dispose();view.update(scenes.people,mission.target);assert.equal(released,3);assert.equal(instances,7);assert.equal(materials,1);assert.equal(scene.children.length,0);
-console.log(`PASS transient three-character meeting: actual expanded Kingston source roads/rails/parked clearance, immutable guards/pause, shared identities, gestures, seven stable pooled draws and exact disposal; approach ${scenes.meetingPoint.x.toFixed(3)},${scenes.meetingPoint.z.toFixed(3)}`);
+console.log(`PASS transient three-character meeting: actual expanded Kingston source roads/rails/parked clearance, immutable guards/pause, swept foot contacts/sliding, shared identities, gestures, seven stable pooled draws and exact disposal; approach ${scenes.meetingPoint.x.toFixed(3)},${scenes.meetingPoint.z.toFixed(3)}`);

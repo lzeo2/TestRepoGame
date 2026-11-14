@@ -88,5 +88,28 @@ export function createCampaignScenes(map, simulation) {
     elapsed+=Math.min(.1,dt);
     people=Object.freeze(people.map(person=>Object.freeze({...person,gesturePhase:elapsed})));
   }
-  return {update,clear,meetingPoint,get people(){return people;},get dialogueLines(){return dialogueLines;}};
+  function clipMovement(actor,dx,dz,radius=.45) {
+    if(![actor?.x,actor?.z,dx,dz,radius].every(Number.isFinite))return {dx:0,dz:0,blocked:false};
+    const reach=Math.max(0,Math.min(4,radius))+RADIUS+.02;
+    let x=actor.x,z=actor.z,rx=dx,rz=dz,blocked=false;
+    for(let iteration=0;iteration<4;iteration++) {
+      const length2=rx*rx+rz*rz;if(length2<1e-12)break;
+      let first=1,hit=null;
+      for(const person of people) {
+        if(person.id===actor.id||person.active===false)continue;
+        const ox=x-person.x,oz=z-person.z,dot=ox*rx+oz*rz,c=ox*ox+oz*oz-reach*reach;
+        if(dot>=0)continue;
+        const discriminant=dot*dot-length2*c;if(discriminant<0)continue;
+        const t=c<=0?0:(-dot-Math.sqrt(discriminant))/length2;
+        if(t>=0&&t<=first){first=t;hit=person;}
+      }
+      if(!hit){x+=rx;z+=rz;break;}
+      blocked=true;const t=Math.max(0,first-.001/Math.sqrt(length2));
+      x+=rx*t;z+=rz*t;rx*=1-t;rz*=1-t;
+      const nx=x-hit.x,nz=z-hit.z,length=Math.hypot(nx,nz)||1,inward=(rx*nx+rz*nz)/length;
+      if(inward<0){rx-=nx/length*inward;rz-=nz/length*inward;}
+    }
+    return {dx:x-actor.x,dz:z-actor.z,blocked};
+  }
+  return {update,clear,clipMovement,meetingPoint,get people(){return people;},get dialogueLines(){return dialogueLines;}};
 }
