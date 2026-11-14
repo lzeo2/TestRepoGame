@@ -39,7 +39,7 @@ function blocks(p,points,margin) {
   }
   return inside;
 }
-function placements(map) {
+function placements(map,avoidPoints) {
   const segments=[];
   for(const road of map.roads||[]) for(let i=1;i<road.points.length;i++) {
     const a=road.points[i-1],b=road.points[i],margin=roadProfile(road).driveWidth/2+3;
@@ -52,6 +52,7 @@ function placements(map) {
   const doors=[...(map.interiorEntries||[]),...(map.publicEntries||[]),...MAPPED_STORES.map(s=>s.frontage),
     ...EXTRA_STORES.map(s=>s.frontage),{x:-248.655,z:-4172.87}].filter(valid);
   function safe(p) {
+    if(avoidPoints.some(other=>distance(p,other)<4))return false;
     const b=map.bounds;
     if(b&&(p.x<b.minX+1||p.x>b.maxX-1||p.z<b.minZ+1||p.z>b.maxZ-1))return false;
     if(roadsAt(p.x,p.z).some(s=>!['footway','path','pedestrian','cycleway'].includes(s.road.type)&&segmentDistance(p.x,p.z,s.a,s.b)<roadProfile(s.road).driveWidth/2+.85))return false;
@@ -81,8 +82,8 @@ function placements(map) {
   return Object.freeze(selected);
 }
 
-export function createStreetDealers(map) {
-  const services=placements(map||{});
+export function createStreetDealers(map,{avoidPoints=[]}={}) {
+  const services=placements(map||{},Array.isArray(avoidPoints)?avoidPoints.filter(valid):[]);
   let people=[];
   function reset() {people=services.map((s,i)=>({...s,health:100,panic:0,hitCooldown:0,phase:i*2.1,palette:i,role:'dealer',reaction:'calm'}));}
   function canTrade(id) {const p=people.find(p=>p.id===id);return Boolean(p&&p.health===100&&p.panic===0);}

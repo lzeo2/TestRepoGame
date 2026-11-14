@@ -109,3 +109,10 @@ assert.equal(scene.children.length,0);assert.equal(geometryDisposals,2);assert.e
 assert.equal(view.stats.visible,0);assert(view.stats.disposed);
 assert.equal(JSON.stringify(map),before);
 console.log('PASS six bounded batches, distinct adult bodies/bags, grounding, culling, shared resources and idempotent disposal');
+
+const {createMicromobility}=await import('../Games/Capital Drive/micromobility.js');
+const parkedRides=createMicromobility(map).snapshot().assets;
+const spacedContacts=createStreetDealers(map,{avoidPoints:parkedRides});
+assert.equal(spacedContacts.services.length,3);
+assert(spacedContacts.services.every(contact=>parkedRides.every(ride=>Math.hypot(contact.x-ride.x,contact.z-ride.z)>=4)),'contacts keep their bodies/cases clear of parked hire rides');
+console.log('PASS combined contact/rental placements preserve physical space');

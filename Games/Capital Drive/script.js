@@ -1105,7 +1105,7 @@ async function boot() {
   world.update(simulation.player, 0);
   neighbourhood = compatibility ? { update() {}, dispose() {}, stats: {} } : createNeighbourhoodDetails(scene, map, world.heightAt);
   pedestrians=createPedestrians(scene,map,world.heightAt,{entrances:[...ALL_STORES.map(s=>s.frontage).filter(Boolean),...CIVIC_INTERIOR_ENTRIES,...CAMPUS_GATES,...(neighbourhood.entries||[])]});
-  streetDealers=createStreetDealers(map);dealerView=compatibility?emptyView():createStreetDealersView(scene,world.heightAt);
+  streetDealers=createStreetDealers(map,{avoidPoints:micromobility.snapshot().assets});dealerView=compatibility?emptyView():createStreetDealersView(scene,world.heightAt);
   map.landmarks.push(...streetDealers.services.map(site=>({...site,aliases:['street dealer','arms dealer','weapons contact'],description:'Fictional street contact'})));
   neighbourhood.update(simulation.player);
   landmarkView = compatibility ? { update() {}, dispose() {}, stats: {} } : createLandmarksView(scene, map, world.heightAt);
