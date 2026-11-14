@@ -20,8 +20,13 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
   const edges = simulation.graph.edges.filter(edge => edge.length >= 18 && roadProfile(edge.road).trafficAllowed);
   const car = { id: 'yoober-driver', kind: 'ride', modelId: 'lantern', color: 0x6953a3,
     length: LENGTH, width: WIDTH, x: 0, z: 0, yaw: 0, speed: 0, active: false, occupied: true };
-  const vehicles = [car], events = [];
+  const vehicles = [car], events = [], combatEvents = [];
+  const driver = { id: 'yoober-driver-npc', role: 'driver', x: 0, z: 0, yaw: 0, active: false,
+    health: 100, reaction: 'calm', elapsed: 0, cooldown: 0, hitCooldown: 0 };
+  const people = [driver];
+  let ragePending = false, driverDoor = null;
   let phase = 'idle', reason = '', passenger = false, fare = 0, booking = null, serial = 0;
+  let legStart = null;
   let route = [], points = [], cursor = 0, elapsed = 0, stalled = 0, wait = 0;
   let pickup = null, dropoff = null, paid = false, mode = false;
   const activeFare = () => ['approaching', 'waiting', 'riding', 'arrived', 'stopping', 'exit-ready'].includes(phase) ? fare : 0;
@@ -91,8 +96,12 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     if (path.length === 1) return [{ ...to }];
     const result = [];
     path.forEach((edge, i) => {
-      if (i) result.push(lane(edge, 0));
-      result.push(i === path.length - 1 ? { ...to } : lane(edge, edge.length));
+      if (i === path.length - 1) result.push({ ...to });
+      else {
+        const end = lane(edge, edge.length), next = lane(path[i + 1], 0);
+        if (Math.abs(angle(edge.yaw - path[i + 1].yaw)) > .5) result.push({ ...end, precision: true }, { ...next, precision: true });
+        else result.push({ x: (end.x + next.x) / 2, z: (end.z + next.z) / 2 });
+      }
     });
     return result;
   }
@@ -129,6 +138,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     return { ok: false, reason: 'No clear reachable public road stop nearby' };
   }
   function quote(id, ctx = {}) {
+    if (driver.active) return { ok: false, reason: 'The driver is still outside' };
     if (passenger || !['idle', 'complete', 'cancelled', 'failed'].includes(phase)) return { ok: false, reason: 'A ride is already booked' };
     const result = plan(id, ctx);
     if (!result.ok) return result;
@@ -136,10 +146,12 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     return copy(publicQuote);
   }
   function setRoute(path, from, to) {
+    legStart = { x: from.x, z: from.z };
     route = path.map(edge => edge.id); points = routePoints(path, from, to); cursor = 0; elapsed = 0; stalled = 0;
   }
   function book(id, ctx = {}) {
     if (passenger || !['idle', 'complete', 'cancelled', 'failed'].includes(phase)) return { ok: false, reason: 'A ride is already booked' };
+    if (driver.active) return { ok: false, reason: 'The driver is still outside' };
     const planResult = plan(id, ctx);
     if (!planResult.ok) { reason = planResult.reason; return planResult; }
     const from = planResult.pickup;
@@ -166,15 +178,93 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
       metres: planResult.metres, rideEdges: planResult.path.map(edge => edge.id) };
     pickup = from; dropoff = planResult.dropoff; fare = planResult.fare; paid = false; passenger = false;
     mode = !!ctx.sandbox; reason = ''; wait = 0; phase = 'approaching';
+    ragePending = false; driver.active = false; car.occupied = true;
     Object.assign(car, { x: origin.x, z: origin.z, yaw: origin.yaw, speed: 0, active: true });
     setRoute(approach, origin, pickup); emit('booked');
     return { ok: true, bookingId: booking.id, fare, pickup: copy(pickup), dropoff: copy(dropoff) };
   }
+  function provoke(ctx) {
+    if (!ragePending || passenger || car.speed > .05) return;
+    ragePending = false;
+    if (guard(ctx) || ctx.sandbox || distance(car, ctx.pose) >= 10 || !simulation.hasLineOfSight(car, ctx.pose)) return;
+    let door = exitAt(car);
+    if (door && distance(door, ctx.pose) < .9) door = exitAt({ ...car, yaw: angle(car.yaw + Math.PI) });
+    if (!door || distance(door, ctx.pose) < .9) return;
+    driverDoor = door;
+    Object.assign(driver, door, { active: true, health: 100, reaction: 'angry', elapsed: 0, cooldown: .6, hitCooldown: 0 });
+    car.occupied = false; reason = 'The driver got out and is angry about the nearby cancellation'; emit('driver-rage');
+  }
   function cancel(ctx = {}) {
-    if (phase === 'idle' || !car.active) return { ok: false, reason: 'No active ride' };
+    if (phase === 'idle' || !car.active || ['complete', 'cancelled', 'failed', 'cancel-braking'].includes(phase))
+      return { ok: false, reason: 'No active ride' };
     reason = 'Ride cancelled';
-    if (passenger) { phase = 'stopping'; emit('stopping'); return { ok: true, stopping: true }; }
-    phase = 'cancelled'; car.active = false; car.speed = 0; emit('cancelled'); return { ok: true };
+    ragePending = serial % 3 === 0 && !ctx.sandbox && !guard(ctx, passenger) &&
+      distance(car, ctx.pose) < 10 && simulation.hasLineOfSight(car, ctx.pose);
+    if (passenger) { phase = 'stopping'; emit('stopping'); return { ok: true, stopping: true, reason }; }
+    phase = car.speed > .05 ? 'cancel-braking' : 'cancelled'; wait = 0;
+    if (phase === 'cancelled') { provoke(ctx); if (!driver.active) car.active = false; }
+    emit('cancelled'); return { ok: true, stopping: phase === 'cancel-braking', reason };
+  }
+  function stepDriver(dt, ctx) {
+    if (!driver.active) return;
+    driver.elapsed += dt; driver.cooldown = Math.max(0, driver.cooldown - dt);
+    driver.hitCooldown = Math.max(0, driver.hitCooldown - dt);
+    if (ctx.recovering || ctx.sandbox || !!ctx.sandbox !== mode || ctx.indoors || driver.elapsed >= 15) {
+      driver.active = false; car.occupied = true; return;
+    }
+    const chase = driver.reaction === 'angry' && driver.health > 0 && driver.elapsed < 10 &&
+      ctx.onFoot && ctx.pose && distance(driver, ctx.pose) < 14 && simulation.hasLineOfSight(driver, ctx.pose);
+    const target = chase ? ctx.pose : driverDoor;
+    if (!chase && driver.health > 0) driver.reaction = 'returning';
+    if (driver.health <= 0) { driver.reaction = 'knockdown'; return; }
+    const gap = distance(driver, target);
+    driver.yaw = Math.atan2(-(target.x - driver.x), -(target.z - driver.z));
+    if (gap > (chase ? 1.45 : .35)) {
+      const travel = Math.min(gap, dt * (chase ? 1.9 : 1.4));
+      const movement = simulation.moveActor(driver, -Math.sin(driver.yaw) * travel, -Math.cos(driver.yaw) * travel, .38);
+      if (movement.distance < travel * .25) for (const offset of [.8, -.8, 1.5, -1.5, 2.2, -2.2]) {
+        const yaw = driver.yaw + offset;
+        const probe = { x: driver.x - Math.sin(yaw) * .8, z: driver.z - Math.cos(yaw) * .8, yaw };
+        if (!simulation.canOccupy(probe, { length: 1, width: .8, ignoreId: driver.id })) continue;
+        simulation.moveActor(driver, -Math.sin(yaw) * travel, -Math.cos(yaw) * travel, .38); break;
+      }
+    } else if (!chase) { driver.active = false; car.occupied = true; return; }
+    if (chase && gap < 1.9 && driver.cooldown <= 0 && simulation.hasLineOfSight(driver, ctx.pose)) {
+      combatEvents.push(Object.freeze({ type: 'retaliation', attackerId: driver.id, targetId: 'player',
+        x: driver.x, z: driver.z, damage: 6 })); driver.cooldown = 1.2;
+    }
+  }
+  function clipMovement(actor, dx, dz, radius = .45) {
+    if (!driver.active || actor?.id === driver.id) return { dx, dz, blocked: false };
+    if (![actor?.x, actor?.z, dx, dz, radius].every(Number.isFinite)) return { dx: 0, dz: 0, blocked: true };
+    const reach = Math.max(.1, Math.min(4, radius)) + .38;
+    const x = actor.x - driver.x, z = actor.z - driver.z, length2 = dx * dx + dz * dz;
+    const toward = x * dx + z * dz, c = x * x + z * z - reach * reach;
+    if (length2 < 1e-12 || toward >= 0) return { dx, dz, blocked: false };
+    const discriminant = toward * toward - length2 * c;
+    if (discriminant < 0) return { dx, dz, blocked: false };
+    const contact = c <= 0 ? 0 : (-toward - Math.sqrt(discriminant)) / length2;
+    if (contact < 0 || contact > 1) return { dx, dz, blocked: false };
+    const scale = Math.max(0, contact - .001 / Math.sqrt(length2));
+    return { dx: dx * scale, dz: dz * scale, blocked: true };
+  }
+  function alert({ x, z, radius = 28, hasLineOfSight } = {}) {
+    if (!driver.active || driver.health <= 0 || ![x, z, radius].every(Number.isFinite) ||
+      distance(driver, { x, z }) > Math.max(0, Math.min(100, radius)) ||
+      !(hasLineOfSight || simulation.hasLineOfSight)({ x, z }, driver)) return 0;
+    driver.reaction = 'returning'; return 1;
+  }
+  function strike({ x, z, yaw = 0, range = 2, damage = 20, kind = 'melee', hasLineOfSight } = {}) {
+    const result = { hits: 0, people: [] };
+    if (!driver.active || driver.health <= 0 || driver.hitCooldown > 0 || ![x, z, yaw, range, damage].every(Number.isFinite)) return result;
+    const gap = distance(driver, { x, z }), forward = (driver.x - x) * -Math.sin(yaw) + (driver.z - z) * -Math.cos(yaw);
+    const lateral = Math.abs((driver.x - x) * Math.cos(yaw) - (driver.z - z) * Math.sin(yaw));
+    const gun = ['pistol', 'shotgun', 'smg', 'carbine', 'gunshot', 'firearm', 'shot', 'fire'].includes(kind);
+    if (damage <= 0 || gap > Math.max(0, Math.min(100, range)) || forward < -.3 ||
+      (gun ? lateral > .55 : forward < gap * .25) || !(hasLineOfSight || simulation.hasLineOfSight)({ x, z }, driver)) return result;
+    driver.health = Math.max(0, driver.health - Math.min(100, damage)); driver.hitCooldown = .4;
+    driver.reaction = driver.health > 0 ? 'returning' : 'knockdown';
+    result.hits = 1; result.people.push(copy(driver)); return result;
   }
   function interact(ctx = {}) {
     if (!car.active) return { ok: false, reason: 'No active ride' };
@@ -201,42 +291,77 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     return { ok: true, boarded: true, fare, passenger: true };
   }
   function drive(dt) {
-    while (cursor < points.length - 1 && distance(car, points[cursor]) < .35) cursor++;
+    // Progress along the lane polyline, rather than stopping at every OSM node.
+    // A bounded lookahead rounds the short joins between successive left lanes.
+    while (cursor < points.length - 1) {
+      const target = points[cursor], previous = cursor ? points[cursor - 1] : legStart;
+      const dx = target.x - previous.x, dz = target.z - previous.z, length2 = dx * dx + dz * dz;
+      const projection = length2 ? ((car.x - previous.x) * dx + (car.z - previous.z) * dz) / length2 : 1;
+      if (distance(car, target) < (target.precision ? .35 : 1) || (!target.precision && projection >= 1)) cursor++;
+      else break;
+    }
     const target = points[cursor];
     if (!target) { car.speed = 0; return; }
-    const d = distance(car, target), final = cursor === points.length - 1;
-    if (final && d < .15 && car.speed < .15) {
+    const gap = distance(car, target), finalGap = distance(car, points.at(-1));
+    if (cursor === points.length - 1 && finalGap < .2 && car.speed < .2) {
       car.speed = 0; phase = passenger ? 'arrived' : 'waiting'; wait = 0; emit(phase); return;
     }
-    const desiredYaw = Math.atan2(-(target.x - car.x), -(target.z - car.z));
+    let remaining = gap, cornerLimit = MAX_SPEED, ahead = gap;
+    let previous = cursor ? points[cursor - 1] : legStart;
+    for (let i = cursor; i < points.length - 1; i++) {
+      const here = points[i], next = points[i + 1];
+      const incoming = Math.atan2(here.z - previous.z, here.x - previous.x);
+      const outgoing = Math.atan2(next.z - here.z, next.x - here.x);
+      const bend = Math.abs(angle(outgoing - incoming));
+      if (ahead < 35 && bend > .2) {
+        const cornerSpeed = Math.max(2, 6 - bend * 2.2);
+        cornerLimit = Math.min(cornerLimit, Math.sqrt(cornerSpeed * cornerSpeed + 5 * Math.max(0, ahead - 3)));
+      }
+      const span = distance(here, next); remaining += span; ahead += span; previous = here;
+    }
+    let look = Math.min(target.precision ? gap : 8, 2.2 + car.speed * .55), aim = target;
+    let from = car;
+    for (let i = cursor; i < points.length; i++) {
+      const to = points[i], span = distance(from, to);
+      if (span >= look || i === points.length - 1) {
+        const t = span > 0 ? Math.min(1, look / span) : 0;
+        aim = { x: from.x + (to.x - from.x) * t, z: from.z + (to.z - from.z) * t }; break;
+      }
+      look -= span; from = to;
+    }
+    const desiredYaw = Math.atan2(-(aim.x - car.x), -(aim.z - car.z));
     const turn = angle(desiredYaw - car.yaw);
-    let wantedSpeed = Math.min(MAX_SPEED, Math.sqrt(Math.max(0, d - .05) * 4));
-    if (Math.abs(turn) > .35) wantedSpeed = Math.min(wantedSpeed, 1.5);
-    if (Math.abs(turn) > .9) wantedSpeed = 0;
-    const look = Math.min(d, 2 + car.speed * .9);
-    const front = { x: car.x - Math.sin(car.yaw) * look, z: car.z - Math.cos(car.yaw) * look, yaw: car.yaw };
+    let wantedSpeed = Math.min(MAX_SPEED, cornerLimit, Math.sqrt(Math.max(0, remaining - .08) * 4));
+    if (target.precision) wantedSpeed = Math.min(wantedSpeed, Math.sqrt(Math.max(0, gap - .05) * 4));
+    if (Math.abs(turn) > .5) wantedSpeed = Math.min(wantedSpeed, 2.5);
+    if (Math.abs(turn) > 1) wantedSpeed = 0;
+    const signalGap = simulation.trafficLights?.stopDistance(car, { length: LENGTH }) ?? Infinity;
+    wantedSpeed = Math.min(wantedSpeed, Math.sqrt(Math.max(0, signalGap - .12) * 8));
+    const clearance = Math.min(remaining, 2 + car.speed * .9);
+    const front = { x: car.x - Math.sin(car.yaw) * clearance, z: car.z - Math.cos(car.yaw) * clearance, yaw: car.yaw };
     if (!bodyClear(front)) wantedSpeed = 0;
     car.speed += Math.max(-5 * dt, Math.min(2 * dt, wantedSpeed - car.speed));
     const yaw = angle(car.yaw + Math.max(-1.2 * dt, Math.min(1.2 * dt, turn)));
     if (bodyClear({ ...car, yaw })) car.yaw = yaw;
-    const travel = Math.min(d, car.speed * dt);
+    const travel = Math.min(remaining, car.speed * dt, Math.max(0, signalGap));
     const movement = simulation.moveVehicle(car, -Math.sin(car.yaw) * travel, -Math.cos(car.yaw) * travel,
       { length: LENGTH, width: WIDTH });
-    if (movement.blocked) car.speed = 0;
-    stalled = movement.distance > .002 ? 0 : stalled + dt;
-    if (cursor < points.length - 1 && d < .4) cursor++;
+    if (movement.blocked || travel < car.speed * dt - 1e-6) car.speed = 0;
+    stalled = movement.distance > .002 || Number.isFinite(signalGap) ? 0 : stalled + dt;
   }
   function step(dt, ctx = {}) {
-    if (!Number.isFinite(dt) || dt <= 0 || !car.active) return;
+    if (!Number.isFinite(dt) || dt <= 0 || (!car.active && !driver.active)) return;
     const invalid = guard(ctx, passenger) || (!!ctx.sandbox !== mode ? 'Ride mode changed' : '');
     if (invalid && !['complete', 'cancelled', 'failed'].includes(phase)) {
-      reason = invalid;
+      reason = invalid; ragePending = false;
       if (passenger) { if (phase !== 'exit-ready') phase = 'stopping'; }
       else { phase = 'cancelled'; car.speed = 0; car.active = false; emit('cancelled'); return; }
     }
     let remaining = Math.min(dt, .2);
     while (remaining > 1e-8) {
       const tick = Math.min(remaining, 1 / 60); remaining -= tick; elapsed += tick;
+      stepDriver(tick, ctx);
+      if (!passenger && phase === 'cancelled') provoke(ctx);
       if (phase === 'approaching' || phase === 'riding') {
         drive(tick);
         if (stalled > 25 || elapsed > (passenger ? 600 : 120)) {
@@ -244,30 +369,35 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
           if (passenger) phase = 'stopping';
           else { phase = 'failed'; car.speed = 0; car.active = false; emit('failed'); }
         }
-      } else if (phase === 'stopping') {
+      } else if (phase === 'stopping' || phase === 'cancel-braking') {
         car.speed = Math.max(0, car.speed - 5 * tick);
-        const movement = simulation.moveVehicle(car, -Math.sin(car.yaw) * car.speed * tick,
-          -Math.cos(car.yaw) * car.speed * tick, { length: LENGTH, width: WIDTH });
-        if (movement.blocked) car.speed = 0;
-        if (car.speed <= .05) { car.speed = 0; phase = 'exit-ready'; emit('exit-ready'); }
+        const signalGap = simulation.trafficLights?.stopDistance(car, { length: LENGTH }) ?? Infinity;
+        const travel = Math.min(car.speed * tick, Math.max(0, signalGap));
+        const movement = simulation.moveVehicle(car, -Math.sin(car.yaw) * travel,
+          -Math.cos(car.yaw) * travel, { length: LENGTH, width: WIDTH });
+        if (movement.blocked || travel < car.speed * tick - 1e-6) car.speed = 0;
+        if (car.speed <= .05) { car.speed = 0; phase = passenger ? 'exit-ready' : 'cancelled'; wait = 0; emit(phase); }
       } else {
         wait += tick;
         if (phase === 'waiting' && wait > 90) { phase = 'cancelled'; reason = 'Pickup timed out'; car.active = false; emit('cancelled'); }
-        if (['complete', 'cancelled'].includes(phase) && wait > 3) car.active = false;
+        if (['complete', 'cancelled'].includes(phase) && wait > 3 && !driver.active && !ragePending) car.active = false;
       }
     }
   }
   function reset() {
     car.active = false; car.speed = 0; phase = 'idle'; reason = ''; passenger = false; paid = false;
     fare = 0; booking = null; pickup = null; dropoff = null; route = []; points = []; cursor = 0;
-    elapsed = 0; stalled = 0; wait = 0; events.length = 0;
+    elapsed = 0; stalled = 0; wait = 0; events.length = 0; combatEvents.length = 0;
+    ragePending = false; driver.active = false; car.occupied = true;
   }
   function snapshot() {
     return freeze({ phase, reason, passenger, paid, fare, activeFare: activeFare(), booking: copy(booking),
       seatPose: passenger ? { x: car.x, z: car.z, yaw: car.yaw, speed: car.speed } : null,
-      car: { ...car }, pickup: copy(pickup), dropoff: copy(dropoff), route: [...route], waypoint: cursor });
+      car: { ...car }, driver: copy(driver), people: driver.active ? [copy(driver)] : [],
+      stats: { drivers: Number(driver.active), driverLimit: 1 }, pickup: copy(pickup), dropoff: copy(dropoff), route: [...route], waypoint: cursor });
   }
-  return { vehicles, destinations, quote, book, interact, cancel, step, reset, snapshot,
+  return { vehicles, people, destinations, quote, book, interact, cancel, step, reset, snapshot, strike, alert, clipMovement,
+    drainCombatEvents: () => combatEvents.splice(0),
     get phase() { return phase; }, get passenger() { return passenger; },
     get activeFare() { return activeFare(); }, get seatPose() { return passenger ? car : null; },
     drainEvents: () => events.splice(0) };
