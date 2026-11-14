@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Build the independent Civic/lake OSM overlay; raw API snapshots stay outside Git.
 
-Only Python's standard library and curl are required. --fetch obtains bounded map
-tiles and the complete lake multipolygon. Later builds verify every pinned hash.
-No terrain is fabricated: terrainRequirements is a gate for the integration owner.
+Requires curl and externally installed Shapely for the developer overlap audit.
+--fetch obtains bounded map tiles and the complete lake multipolygon. Later builds
+verify every pinned hash. No terrain is fabricated: terrainRequirements is a gate
+for the integration owner. No Python package is needed by the game at runtime.
 """
 import argparse
 from concurrent.futures import ThreadPoolExecutor
@@ -104,7 +105,66 @@ def contains(ring, point):
     return inside
 
 
-def build(cache):
+def overlap_metadata(buildings, base_path):
+    """Pin source-paired suppression evidence without deleting any source geometry.
+
+    ACT/base footprints retain priority in the small snapshot overlap. Elevated
+    roof/connector parts remain separate source features. Polygon intersections,
+    rather than centroids or generous distance radii, identify duplicate bodies.
+    """
+    from shapely.geometry import Polygon
+    from shapely.strtree import STRtree
+    raw = base_path.read_bytes()
+    base = json.loads(raw)['buildings']
+    base_ids = {building['id'] for building in base}
+    def footprint(points):
+        ring = [tuple(point) for point in points]
+        if ring[0] == ring[-1]:
+            ring.pop()
+        first = min(range(len(ring)), key=lambda i: ring[i])
+        ring = ring[first:] + ring[:first]
+        return min(tuple(ring), tuple([ring[0]] + list(reversed(ring[1:]))))
+    exact = {footprint(building['points']) for building in base}
+    polygons = [Polygon(building['points']) for building in base]
+    assert all(p.is_valid for p in polygons), 'Invalid base polygon needs explicit source review'
+    tree = STRtree(polygons)
+    suppressions, retained_parts = [], []
+    new_count = 0
+    for building in buildings:
+        if building['id'] in base_ids or footprint(building['points']) in exact:
+            continue
+        new_count += 1
+        polygon = Polygon(building['points'])
+        assert polygon.is_valid, f'Invalid north polygon: {building["id"]}'
+        pairs = []
+        for index in tree.query(polygon, predicate='intersects'):
+            other = polygons[index]
+            intersection = polygon.intersection(other).area
+            ratio = intersection / min(polygon.area, other.area)
+            iou = intersection / (polygon.area + other.area - intersection)
+            if ratio > .5 or iou > .35:
+                pairs.append(dict(baseId=base[index]['id'], baseSource=base[index]['source'],
+                                  baseAreaSquareMetres=round(other.area, 2),
+                                  intersectionSquareMetres=round(intersection, 2),
+                                  minAreaRatio=round(ratio, 5), iou=round(iou, 5)))
+        if not pairs:
+            continue
+        tags = building['sourceTags']
+        elevated = tags.get('building') == 'roof' or (tags.get('covered') == 'yes' and tags.get('level') not in {None, '0'})
+        if elevated:
+            retained_parts.append(dict(northId=building['id'], reason='Mapped roof or elevated connector part'))
+            continue
+        suppressions.append(dict(northId=building['id'], sourceId=building['sourceId'],
+                                 northAreaSquareMetres=round(polygon.area, 2),
+                                 pairs=sorted(pairs, key=lambda pair: pair['baseId'])))
+    return dict(baseSha256=hashlib.sha256(raw).hexdigest(),
+                method='Shapely polygon intersection of exact projected source outlines; base source has priority',
+                rule='intersection/min(area)>0.5 OR intersection/union>0.35; paired base ID must be present at merge',
+                newFootprintsBeforeSuppression=new_count, suppressions=suppressions,
+                retainedSourceParts=retained_parts)
+
+
+def build(cache, base_path):
     manifest = json.loads((cache / 'manifest.json').read_text())
     objects = {}
     for file in manifest['files']:
@@ -197,6 +257,7 @@ def build(cache):
                           projection='Local equirectangular metres; x east, z south', origin=[LON0, LAT0],
                           source=manifest, sourceExtent=[WEST, SOUTH, EAST, NORTH],
                           lakeRelation=3400115, lakeComplete=True,
+                          buildingOverlap=overlap_metadata(buildings, base_path),
                           notes=['Full lake relation outer and inner rings use exact shared OSM node IDs.',
                                  'Road/access/bridge tags retained; these are not surveyed road deck heights.',
                                  'Building heights and destination approach require separate interpretation.']),
@@ -214,11 +275,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cache', type=Path, required=True)
     parser.add_argument('--fetch', action='store_true')
+    parser.add_argument('--base', type=Path, default=ROOT / 'Games/Capital Drive/data/canberra.json')
     parser.add_argument('--output', type=Path, default=ROOT / 'Games/Capital Drive/data/canberra-north.json')
     args = parser.parse_args()
     if args.fetch:
         fetch(args.cache)
-    overlay = build(args.cache)
+    overlay = build(args.cache, args.base)
     args.output.write_text(json.dumps(overlay, separators=(',', ':')) + '\n')
     print(json.dumps({key: len(overlay[key]) for key in ('roads', 'buildings', 'areas', 'landmarks')}))
 

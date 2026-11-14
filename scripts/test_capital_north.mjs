@@ -29,6 +29,24 @@ for (const file of north.meta.source.files) {
   assert(!file.file.includes('/'), 'cache filenames have no machine-specific paths');
 }
 assert.equal(north.meta.source.license, 'ODbL-1.0');
+const overlap = north.meta.buildingOverlap;
+assert.equal(overlap.baseSha256, digest, 'overlap audit is pinned to unchanged base bytes');
+assert.equal(overlap.newFootprintsBeforeSuppression, 3580);
+assert.equal(overlap.suppressions.length, 51, 'source-paired overlapping ground bodies are suppressed');
+assert.equal(overlap.retainedSourceParts.length, 4, 'explicit roof parts remain independently mapped');
+assert.equal(merged.mapExpansion.overlapSuppressedBuildings, 51);
+assert.equal(merged.mapExpansion.addedBuildings, 3529);
+for (const record of overlap.suppressions) {
+  assert(north.buildings.some(b => b.id === record.northId && b.sourceId === record.sourceId), 'raw source geometry remains available');
+  assert(!merged.buildings.some(b => b.id === record.northId), `duplicate ${record.northId} has retained base body`);
+  assert(record.northAreaSquareMetres > 0);
+  for (const pair of record.pairs) {
+    assert(base.buildings.some(b => b.id === pair.baseId));
+    assert(pair.minAreaRatio > .5 || pair.iou > .35);
+    assert(pair.intersectionSquareMetres > 0 && pair.baseAreaSquareMetres > 0);
+  }
+}
+for (const record of overlap.retainedSourceParts) assert(merged.buildings.some(b => b.id === record.northId));
 for (const road of north.roads) {
   assert.equal(road.nodes.length, road.points.length);
   assert.equal(road.type, road.sourceTags.highway);
@@ -74,5 +92,11 @@ assert.deepEqual(clipped.roads.slice(1).map(r => r.nodes), [[0, 1], [2, 3]]);
 assert(clipped.roads.every(r => r.oneway === 1));
 assert.equal(clipped.roads[0].sourceTags.bridge, 'yes', 'retained base bridge gets exact source tags');
 assert.equal(clipped.buildings.length, 1, 'rotation/reversal invariant exact footprint deduplication');
+const sourceBody = { id: 'north-body', sourceId: 'way/99', points: [[2, 0], [3, 0], [3, 1], [2, 0]] };
+const pairedExtension = { ...extension, buildings: [sourceBody], meta: { ...extension.meta,
+  buildingOverlap: { suppressions: [{ northId: sourceBody.id, sourceId: sourceBody.sourceId, pairs: [{ baseId: 'old' }] }] } } };
+assert.equal(applyMapExpansion(fixture, pairedExtension).buildings.length, 1, 'paired base body suppresses overlap');
+assert.deepEqual(applyMapExpansion({ ...fixture, buildings: [] }, pairedExtension).buildings, [sourceBody], 'missing paired base body cannot hide the source building');
+assert.equal(applyMapExpansion(fixture, { ...pairedExtension, buildings: [{ ...sourceBody, sourceId: 'way/100' }] }).buildings.length, 2, 'suppression requires exact source identity');
 assert.throws(() => applyMapExpansion(fixture, { ...extension, meta: { origin: [1, 0] } }), /origin/);
-console.log(`PASS north: ${north.roads.length} source runs, ${north.buildings.length} source footprints; full lake + 7 islands; both bridges connect spawn/Civic; ${route.length}-edge route; immutable base sha256 ${digest}; terrain gate explicit`);
+console.log(`PASS north: ${north.roads.length} source runs, ${north.buildings.length} source footprints; 51 paired overlap bodies suppressed, 4 roof parts retained; full lake + 7 islands; both bridges connect spawn/Civic; ${route.length}-edge route; immutable base sha256 ${digest}; terrain gate explicit`);

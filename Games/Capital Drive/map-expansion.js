@@ -80,10 +80,20 @@ export function applyMapExpansion(base, north = {}) {
   }
   const buildingIds = new Set(base.buildings.map(building => String(building.id)));
   const footprints = new Set(base.buildings.map(building => footprintKey(building.points)));
+  // Source-paired intersections are precomputed by the developer importer.
+  // A suppression cannot hide an outline when its retained base body is absent.
+  const overlapSuppressions = new Map((north.meta?.buildingOverlap?.suppressions || [])
+    .filter(record => record.pairs.some(pair => buildingIds.has(String(pair.baseId))))
+    .map(record => [record.northId, record.sourceId]));
   const buildings = [...base.buildings];
+  let overlapSuppressedBuildings = 0;
   for (const building of north.buildings || []) {
     const key = footprintKey(building.points);
     if (buildingIds.has(String(building.id)) || footprints.has(key)) continue;
+    if (overlapSuppressions.get(building.id) === building.sourceId && overlapSuppressions.has(building.id)) {
+      overlapSuppressedBuildings++;
+      continue;
+    }
     buildingIds.add(String(building.id)); footprints.add(key); buildings.push(building);
   }
   // An old constituent shoreline must not coexist with its full multipolygon.
@@ -106,6 +116,6 @@ export function applyMapExpansion(base, north = {}) {
   for (const key of ['maxX', 'maxZ']) bounds[key] = Math.max(bounds[key], north.bounds[key]);
   return { ...base, bounds, roads, buildings, areas, landmarks,
     terrainRequirements: north.terrainRequirements,
-    mapExpansion: { source: north.meta, addedSegments, addedBuildings: buildings.length - base.buildings.length },
+    mapExpansion: { source: north.meta, addedSegments, addedBuildings: buildings.length - base.buildings.length, overlapSuppressedBuildings },
   };
 }
