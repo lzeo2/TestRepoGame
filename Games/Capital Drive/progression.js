@@ -61,10 +61,11 @@ export function createProgression(map, saved = null, options = {}) {
     { id: 'priority-parcel', name: 'Priority parcel', type: 'delivery', reward: 1000, time: 110, requires: ['crescent-circuit', 'wagon-recovery'], stages: [south, north] },
   ];
   const state = { cash: 1000, ownedVehicles: [{ id: 'lantern', color: '#e7e6df', health: 100, stored: false }], completedJobs: [], activeJob: null,
-    equipment:{pistol:false},fitnessLevel:0,robberyCooldowns:{},activity:null,message: 'Career ready. Take the Crescent parcel job.' };
+    equipment:{pistol:false},gear:{scanner:false,flares:0},fitnessLevel:0,robberyCooldowns:{},activity:null,message: 'Career ready. Take the Crescent parcel job.' };
   if (saved !== null) {
-    if (!object(saved) || !exactKeys(saved, ['version', 'cash', 'ownedVehicles', 'completedJobs','equipment','fitnessLevel','robberyCooldowns']) || saved.version !== 1 || !Number.isSafeInteger(saved.cash) || saved.cash < 0 || saved.cash > MAX_CASH || !Array.isArray(saved.ownedVehicles) || saved.ownedVehicles.length < 1 || saved.ownedVehicles.length > CARS.length || !Array.isArray(saved.completedJobs) || saved.completedJobs.length > jobs.length) throw new Error('Unsupported or corrupt career save.');
+    if (!object(saved) || !exactKeys(saved, ['version', 'cash', 'ownedVehicles', 'completedJobs','equipment','gear','fitnessLevel','robberyCooldowns']) || saved.version !== 1 || !Number.isSafeInteger(saved.cash) || saved.cash < 0 || saved.cash > MAX_CASH || !Array.isArray(saved.ownedVehicles) || saved.ownedVehicles.length < 1 || saved.ownedVehicles.length > CARS.length || !Array.isArray(saved.completedJobs) || saved.completedJobs.length > jobs.length) throw new Error('Unsupported or corrupt career save.');
     if(saved.equipment!==undefined&&(!object(saved.equipment)||!exactKeys(saved.equipment,WEAPON_IDS)||typeof saved.equipment.pistol!=='boolean'||Object.values(saved.equipment).some(value=>typeof value!=='boolean')))throw new Error('Invalid saved equipment.');
+    if(saved.gear!==undefined&&(!object(saved.gear)||!exactKeys(saved.gear,['scanner','flares'])||typeof saved.gear.scanner!=='boolean'||!Number.isInteger(saved.gear.flares)||saved.gear.flares<0||saved.gear.flares>12))throw new Error('Invalid saved gear.');
     if(saved.fitnessLevel!==undefined&&(!Number.isInteger(saved.fitnessLevel)||saved.fitnessLevel<0||saved.fitnessLevel>3))throw new Error('Invalid saved fitness.');
     if(saved.robberyCooldowns!==undefined&&(!object(saved.robberyCooldowns)||!exactKeys(saved.robberyCooldowns,[...services.filter(s=>s.robbery).map(s=>s.id),...LEGACY_SHOP_IDS])||Object.values(saved.robberyCooldowns).some(v=>!Number.isFinite(v)||v<0||v>180)))throw new Error('Invalid saved shop cooldown.');
     const ids = new Set();
@@ -77,6 +78,7 @@ export function createProgression(map, saved = null, options = {}) {
     state.ownedVehicles = copy(saved.ownedVehicles);
     state.completedJobs = [...saved.completedJobs];
     state.equipment=copy(saved.equipment||{pistol:false});state.fitnessLevel=saved.fitnessLevel||0;state.robberyCooldowns=copy(saved.robberyCooldowns||{});
+    state.gear=copy(saved.gear||{scanner:false,flares:0});
   }
   const serviceSite = source => source && ({ ...source, ...(options.servicePosition?.(source) || {}) });
   const serviceAllowed = (site, ctx) => !options.canUseService || options.canUseService(site, ctx);
@@ -304,6 +306,14 @@ export function createProgression(map, saved = null, options = {}) {
       if(!Number.isFinite(ctx.health)||ctx.health>=100)return result(false,'Health is already full.');
       cost=site.price;effect={heal:site.heal};
     }else if(site.type==='arms'){
+      if(item==='scanner'||item==='flares'){
+        if(item==='scanner'&&state.gear.scanner)return result(false,'Scanner already owned.');
+        if(item==='flares'&&state.gear.flares>9)return result(false,'No room for a full three-flare pack.');
+        const cost=item==='scanner'?500:120;
+        if(!spend(cost))return result(false,'Not enough cash.');
+        if(item==='scanner')state.gear.scanner=true;else state.gear.flares+=3;
+        return result(true,item==='scanner'?'Police scanner purchased.':'Three flares purchased.',{cost,gear:copy(state.gear)},'service-purchase');
+      }
       const ammoOnly=item==='ammo'||(typeof item==='string'&&item.startsWith('ammo:'));
       const weaponId=item==='ammo'?'pistol':ammoOnly?item.slice(5):item;
       const profile=weaponById(weaponId),multiplier=site.priceMultiplier??1;
@@ -347,6 +357,12 @@ export function createProgression(map, saved = null, options = {}) {
     if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.onFoot || ctx.wanted > 0 || state.activeJob || state.activity || !Number.isSafeInteger(amount) || amount < 8 || amount > 400) return result(false, 'Yoober booking unavailable.');
     if (!spend(amount)) return result(false, 'Not enough cash for this fare.');
     return result(true, `Yoober fare paid: $${amount}.`, { cost: amount }, 'ride-purchase');
+  }
+  function consumeFlare(ctx) {
+    if(!validContext(ctx)||ctx.sandbox||ctx.recovering||!ctx.onFoot||ctx.interior||ctx.passenger||ctx.bus||ctx.ride||state.activity||state.activeJob?.type==='ride')return result(false,'Throw flares outside on foot.');
+    if(state.gear.flares<1)return result(false,'Buy a flare pack first.');
+    state.gear.flares--;
+    return result(true,'Flare thrown.',{flares:state.gear.flares},'flare-used');
   }
   function prepareStarterVehicle(ctx){
     if(!validContext(ctx)||ctx.sandbox||ctx.recovering||state.activeJob||state.activity)return {ok:false,message:'Starter vehicle unavailable.'};
@@ -410,10 +426,10 @@ export function createProgression(map, saved = null, options = {}) {
     if(state.fitnessLevel>=3||!spend(active.cost))return result(false,'Training is unavailable.',{},'activity-ended');
     state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{cost:active.cost},'workout-complete');
   }
-  return { state, jobs, garage,get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,finishWorkout,payRental,payRide,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
+  return { state, jobs, garage,get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,finishWorkout,payRental,payRide,consumeFlare,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
     cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
-    serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns }); },
+    serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,gear:state.gear,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns }); },
     drainEvents() { return events.splice(0); },
   };
 }

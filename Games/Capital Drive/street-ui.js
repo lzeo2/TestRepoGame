@@ -133,6 +133,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       hint=state.carjacking?`Taking vehicle · ${Math.round(state.carjacking.progress*100)}%`:activity?`${activity.name} · stay nearby`:service?`E ${service.name}`:`${nearby?'E enter car · ':''}WASD walk · Shift sprint`;
     }
     if(state.mode==='vehicle'&&state.vehicleHealth<=0)hint='Vehicle disabled · E to step out';
+    if(state.mode==='foot'&&!state.passenger&&!state.recovery&&(sandbox()||progression.state.gear?.flares>0))hint+=` · B throw flare${sandbox()?'':` (${progression.state.gear.flares})`}`;
     text('interaction-hint', interactionHint()||hint);
     const recovery=state.recovery,screen=byId('recovery-screen');
     if(screen){screen.hidden=!recovery;if(recovery){
@@ -154,7 +155,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       const available=!sandbox()&&ctx.onFoot&&!ctx.recovering&&Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)<=site.radius&&!progression.state.activity&&progression.canUseService(site,ctx);
       const reason=sandbox()?'Purchases are available in Street Life and Campaign.':ctx.recovering?'Recover before trading.':!ctx.onFoot?'Step out of your vehicle to trade.':progression.state.activity?'Finish your current activity first.':Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)>site.radius?'Follow the route and move closer to this location.':!progression.canUseService(site,ctx)?(site.dealer?'This contact is not trading right now.':'Enter the shop and approach its counter.') :'';
       const status=document.createElement('p');status.className='service-state';status.textContent=reason||`Ready to trade · Cash ${money(progression.state.cash)}`;
-      const purchase=(label,item,cost,blocked='')=>{
+      const purchase=(label,item,cost,blocked='',destination=row)=>{
         const why=reason||blocked||(progression.state.cash<cost?'Not enough cash.':'');
         const b=actionButton(label,()=>{
           const r=progression.purchaseService(site.id,item,context());
@@ -162,7 +163,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
           feedback(r,true);renderServices();
         });b.dataset.serviceItem=item;b.dataset.reason=why;b.title=why;b.disabled=!!why;
         if(!reason&&(blocked||progression.state.cash<cost)){const note=document.createElement('small');note.textContent=blocked||'Not enough cash';b.append(document.createElement('br'),note);}
-        row.append(b);
+        destination.append(b);
       };
       const activity=(label,type,blocked=false)=>{
         const b=actionButton(label,()=>{const r=feedback(progression.startActivity(site.id,type,context()));if(r.ok)closeDialogs();else renderServices();});
@@ -185,7 +186,15 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
         }
       }
       if(site.dealer){const tag=document.createElement('span');tag.className='eyebrow';tag.textContent='Street contact';entry.append(tag);}
-      if(site.type==='arms'){const navigation=document.createElement('div');navigation.className='button-row';navigation.append(route);entry.append(title,detail,status,navigation,row);}
+      if(site.type==='arms'){
+        const navigation=document.createElement('div');navigation.className='button-row';navigation.append(route);entry.append(title,detail,status,navigation,row);
+        const heading=document.createElement('h4');heading.textContent='Equipment';
+        const description=document.createElement('p');description.textContent=`Police scanner shows nearby faint patrols on the map, even without wanted stars. Flares ${progression.state.gear?.flares||0}/12 · B throw flare on foot.`;
+        const gearRow=document.createElement('div');gearRow.className='button-row service-actions';
+        purchase('Police scanner $500','scanner',500,progression.state.gear?.scanner?'Owned':'',gearRow);
+        purchase('3 flares $120','flares',120,progression.state.gear?.flares>9?'No room for a full three-flare pack':'',gearRow);
+        entry.append(heading,description,gearRow);
+      }
       else entry.append(title,detail,status,row);
       container.append(entry);
     }
