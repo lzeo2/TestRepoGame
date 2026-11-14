@@ -2,7 +2,7 @@
 """Bounded native character, PowerPunt, noodle encounter and gym evidence.
 
 Use an outer watchdog: timeout 600s python3 -B scripts/test_capital_life_browser.py
---scenario all --capture --output <fresh-external-directory>. No installs or state
+--scenario rowan-lunch --capture --output <fresh-external-directory>. No installs or state
 grants. Free roam map travel establishes presentation, never career completion.
 """
 import argparse
@@ -22,6 +22,7 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 BUDGET = 560
+COMPONENT_BUDGET = 100
 
 
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
@@ -31,10 +32,11 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--scenario', choices=['campaign', 'restaurant', 'gym', 'scenery', 'all'], default='all')
+    parser.add_argument('--scenario', choices=['campaign', 'rowan-lunch', 'noodle-component', 'restaurant', 'gym', 'scenery', 'all'], default='all')
     parser.add_argument('--capture', action='store_true')
     parser.add_argument('--output', required=True, type=Path)
     args = parser.parse_args()
+    budget = COMPONENT_BUDGET if args.scenario=='noodle-component' else BUDGET
     output = args.output.resolve()
     if output == ROOT or ROOT in output.parents:
         parser.error('--output must be outside the repository')
@@ -50,10 +52,10 @@ def main():
     base = f'http://127.0.0.1:{server.server_port}'
 
     def expired(signum, frame):
-        raise TimeoutError(f'Life browser run exceeded {BUDGET} seconds')
+        raise TimeoutError(f'Life browser run exceeded {budget} seconds')
 
     prior = signal.signal(signal.SIGALRM, expired)
-    signal.alarm(BUDGET)
+    signal.alarm(budget)
 
     def check(value, label):
         assert value, label
@@ -61,7 +63,7 @@ def main():
         print('PASS', label, flush=True)
 
     def snap():
-        return page.evaluate('capitalDriveSnapshot()')
+        return page.evaluate('capitalComponentSnapshot()' if args.scenario=='noodle-component' else 'capitalDriveSnapshot()')
 
     def record(label):
         state = snap()
@@ -105,7 +107,7 @@ def main():
         frames()
         focus()
 
-    def ready(context):
+    def ready(context, document=None):
         nonlocal page
         page = context.new_page()
         page.set_default_timeout(12000)
@@ -115,9 +117,11 @@ def main():
         page.on('response', lambda response: requests.append(f'{response.status} {response.url}') if response.status >= 400 else None)
         page.on('request', lambda request: external.append(request.url) if urlsplit(request.url).scheme in ('http', 'https') and urlsplit(request.url).netloc != urlsplit(base).netloc else None)
         page.route('**/*', lambda route: route.continue_() if urlsplit(route.request.url).scheme not in ('http', 'https') or urlsplit(route.request.url).netloc == urlsplit(base).netloc else route.abort())
-        page.goto(base+'/Games/Capital%20Drive/', wait_until='load', timeout=60000)
-        page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=60000)
-        check(not snap()['rendering']['compatibility'], 'Native '+args.scenario+' context has WebGL')
+        if document:
+            page.route('**/__capital-life-component',lambda route:route.fulfill(content_type='text/html',body=document))
+        page.goto(base+('/__capital-life-component' if document else '/Games/Capital%20Drive/'), wait_until='load', timeout=60000)
+        page.wait_for_function('window.capitalComponentSnapshot?.().ready' if document else 'window.capitalDriveSnapshot?.().ready', timeout=60000)
+        check(not snap()['rendering']['compatibility'], ('Component ' if document else 'Native ')+args.scenario+' context has WebGL')
 
     def start(mode):
         page.locator(f'[data-game-mode="{mode}"]').click()
@@ -125,7 +129,7 @@ def main():
         page.wait_for_function('(mode)=>capitalDriveSnapshot().started&&capitalDriveSnapshot().gameMode===mode', arg=mode)
         focus()
 
-    def walk(target, tolerance=.5, seconds=40, admitted=None):
+    def walk(target, tolerance=.5, seconds=40, admitted=None, sprint=False):
         end, last, stalled = time.monotonic()+seconds, None, 0
         while time.monotonic() < end:
             state = snap()
@@ -145,6 +149,8 @@ def main():
                 held.append('w' if forward > 0 else 's')
             if abs(lateral) >= .38:
                 held.append('d' if lateral > 0 else 'a')
+            if sprint and distance > 3:
+                held.append('Shift')
             focus()
             for key in held:
                 page.keyboard.down(key)
@@ -233,6 +239,34 @@ def main():
                 observations.append({'failureCapture':str(error)})
         context.close()
 
+    def corporate_presentation():
+        before=snap()['presentation']['serial']
+        door=snap()['interiors']['publicEntries'][0]
+        walk(door,tolerance=1.5)
+        plan=enter('mall')
+        station=next(st for st in plan['activities'] if st['kind']=='presentation')
+        pos=local(plan,station); unit=next(r for r in plan['rooms'] if r.get('id')=='unit-west-1'); gap=local(plan,unit)
+        walk(room(plan,0,gap['z']),tolerance=.4)
+        walk(room(plan,-6,gap['z']),tolerance=.4)
+        walk(room(plan,-6,pos['z']),tolerance=.3)
+        walk(station,tolerance=.35)
+        pulse('q'); wait(lambda s:s['miniGame']['active'] and s['miniGame']['kind']=='presentation','PowerPunt admission')
+        for index,key in enumerate(('x','y','x'),1):
+            pulse(key)
+            wait(lambda s:s['miniGame']['index']==index,'PowerPunt edit '+str(index))
+        state=wait(lambda s:s['presentation']['serial']>before and s['presentation']['outcome']=='outage' and s['campaign']['active']['stage']==1,'Actual PowerPunt outage and campaign stage')
+        check(state['campaign']['active']['stage']==1, 'Actual PowerPunt outage advances to the outside goal')
+        capture('corporate-powerpunt-outage')
+        # Walk through the same open unit gap before returning down the hall.
+        walk(room(plan,-6,pos['z']),tolerance=.3)
+        walk(room(plan,-6,gap['z']),tolerance=.4)
+        walk(room(plan,0,gap['z']),tolerance=.4)
+        leave(plan)
+        wait(lambda s:'corporate-present-tense' in s['campaign']['intros']['corporate'],'Corporate introduction reward',seconds=15)
+        completed=record('corporate actual first mission complete')
+        check(completed['career']['cash']==1100 and completed['campaign']['next']=='corporate-lunch-breakpoint','Only the completed corporate mission pays its actual $100 reward')
+        return completed
+
     def campaign_case(browser):
         missions, appearances = [], []
         for hero in ('student','basement','corporate'):
@@ -254,31 +288,7 @@ def main():
                     continue
                 page.locator('#campaign-start').click(); frames(); focus()
                 check(snap()['campaign']['active']['id']==missions[-1], 'Corporate mission begins through the visible campaign button')
-                before=snap()['presentation']['serial']
-                door=snap()['interiors']['publicEntries'][0]
-                walk(door,tolerance=1.5)
-                plan=enter('mall')
-                station=next(st for st in plan['activities'] if st['kind']=='presentation')
-                pos=local(plan,station); unit=next(r for r in plan['rooms'] if r.get('id')=='unit-west-1'); gap=local(plan,unit)
-                walk(room(plan,0,gap['z']),tolerance=.4)
-                walk(room(plan,-6,gap['z']),tolerance=.4)
-                walk(room(plan,-6,pos['z']),tolerance=.3)
-                walk(station,tolerance=.35)
-                pulse('q'); wait(lambda s:s['miniGame']['active'] and s['miniGame']['kind']=='presentation','PowerPunt admission')
-                for index,key in enumerate(('x','y','x'),1):
-                    pulse(key)
-                    wait(lambda s:s['miniGame']['index']==index,'PowerPunt edit '+str(index))
-                state=wait(lambda s:s['presentation']['serial']>before and s['presentation']['outcome']=='outage','Actual PowerPunt outage')
-                check(state['campaign']['active']['stage']==1, 'Actual PowerPunt outage advances to the outside goal')
-                capture('corporate-powerpunt-outage')
-                # Walk through the same open unit gap before returning down the hall.
-                walk(room(plan,-6,pos['z']),tolerance=.3)
-                walk(room(plan,-6,gap['z']),tolerance=.4)
-                walk(room(plan,0,gap['z']),tolerance=.4)
-                leave(plan)
-                wait(lambda s:'corporate-present-tense' in s['campaign']['intros']['corporate'],'Corporate introduction reward',seconds=15)
-                completed=record('corporate actual first mission complete')
-                check(completed['career']['cash']==1100 and completed['campaign']['next']=='corporate-lunch-breakpoint','Only the completed corporate mission pays its actual $100 reward')
+                corporate_presentation()
                 page.reload(wait_until='load'); page.wait_for_function('window.capitalDriveSnapshot?.().ready',timeout=60000)
                 page.locator('[data-game-mode="campaign"]').click();page.locator('#start-button').click()
                 wait(lambda s:s['started'] and s['gameMode']=='campaign','Restored corporate start')
@@ -287,6 +297,158 @@ def main():
             finally:
                 finish_context(context,hero)
         check(len(set(missions))==3 and len(set(appearances))==3,'Three campaign heroes have distinct initial missions and appearances')
+
+    def frozen_encounter(state):
+        return {key:state[key] for key in ('roomPeople','encounter','campaign','gameplay')}
+
+    def rowan_lunch_case(browser):
+        context=browser.new_context(viewport={'width':1280,'height':800})
+        try:
+            ready(context)
+            page.locator('[data-game-mode="campaign"]').click()
+            page.locator('#intro-characters [data-character="corporate"]').click()
+            page.locator('#start-button').click()
+            wait(lambda s:s['started'] and s['gameMode']=='campaign' and s['gameplay']['mode']=='foot','Fresh Rowan campaign start')
+            initial=record('rowan fresh career')
+            check(initial['career']['cash']==1000 and not any(initial['campaign']['intros'].values()),'Fresh Rowan has only actual starting cash and no earned introductions')
+            page.locator('#campaign-start').click(); frames(); focus()
+            corporate_presentation()
+            page.locator('#jobs-button').click()
+            baseline=record('rowan partial intro before switches')
+            for hero in ('student','basement','corporate'):
+                choice=page.locator('#campaign-characters [data-character="'+hero+'"]')
+                check(choice.is_enabled(),'Partial Rowan introduction permits visible '+hero+' selection')
+                choice.click(); frames()
+                state=record('partial intro selected '+hero)
+                check(state['campaign']['character']==hero and state['playerAppearance']=='player:'+hero,'Visible '+hero+' switch updates selected identity and appearance')
+                check(state['focus']==baseline['focus'] and state['player']==baseline['player'] and state['career']['cash']==baseline['career']['cash'] and state['campaign']['intros']==baseline['campaign']['intros'],'Partial intro '+hero+' selection neither travels nor earns progress')
+            page.reload(wait_until='load');page.wait_for_function('window.capitalDriveSnapshot?.().ready',timeout=60000)
+            page.locator('[data-game-mode="campaign"]').click();page.locator('#start-button').click()
+            wait(lambda s:s['started'] and s['gameMode']=='campaign','Rowan actual progress reload')
+            restored=record('partial Rowan intro restored')
+            check(restored['campaign']['character']=='corporate' and restored['campaign']['intros']['corporate']==['corporate-present-tense'] and restored['career']['cash']==1100,'Reload preserves selected Rowan and the actually earned partial introduction')
+            page.locator('#campaign-start').click();frames();focus()
+            check(snap()['campaign']['active']['id']=='corporate-lunch-breakpoint','Visible campaign button starts actual Lunch breakpoint')
+            page.locator('#jobs-button').click()
+            choices=page.locator('#campaign-characters [data-character]')
+            check(choices.count()==3 and all(choices.nth(i).is_disabled() for i in range(3)),'Active Lunch breakpoint locks all three visible hero choices')
+            capture('rowan-lunch-hero-lock')
+            page.locator('#campaign-resume').click();frames();focus()
+            # The retained Centre body crosses Bunda's mapped road. This public
+            # detour was swept against actual geometry and generated parked cars.
+            for waypoint in ({'x':-263,'z':-4173},{'x':-257,'z':-4122},{'x':-273.5,'z':-4111.5},{'x':-336.5,'z':-4083},{'x':-431,'z':-4275},{'x':-360.5,'z':-4341},{'x':-357.5,'z':-4366.5},{'x':-366.5,'z':-4405.5}):
+                walk(waypoint,tolerance=1,seconds=80,sprint=True)
+                record('native public walking waypoint')
+            door=next(site['frontage'] for site in snap()['services'] if site['id']=='store-5656111023')
+            walk(door,tolerance=2.1)
+            capture('rowan-lunch-native-arrival')
+            plan=enter('shop')
+            counter=plan['counter']
+            walk(room(plan,0,local(plan,counter)['z']),tolerance=.4)
+            walk(counter,tolerance=1.8)
+            wait(lambda s:s['campaign']['active']['stage']==1,'Actual restaurant counter advances lunch encounter stage')
+            guest=next(person for person in snap()['roomPeople'] if person.get('character')=='booth-guest')
+            guest_local=local(plan,guest)
+            walk(room(plan,0,local(plan,counter)['z']),tolerance=.4)
+            walk(room(plan,0,guest_local['z']),tolerance=.3)
+            def can_talk(state):
+                live=next(person for person in state['roomPeople'] if person['id']==guest['id'])
+                return math.hypot(state['focus']['x']-live['x'],state['focus']['z']-live['z'])<=2.1 and 'talk' in page.locator('#interaction-hint').inner_text().lower()
+            walk(room(plan,.7,guest_local['z']),admitted=can_talk)
+            look(guest)
+            serial=snap()['encounter']['serial']
+            pulse('e');page.locator('#npc-dialog').wait_for(state='visible')
+            check(page.locator('[data-dialogue-choice]').count()==2,'Actual career booth E opens both normal dialogue answers')
+            capture('rowan-lunch-normal-dialogue')
+            # The ordinary apology answer must still trigger this mission's
+            # authored sequence, without requiring a synthetic confrontation.
+            page.locator('[data-dialogue-choice="apologise"]').click()
+            page.locator('#pause-button').click()
+            windup=record('rowan noodle windup paused')
+            throwing=next(person for person in windup['roomPeople'] if person['id']==guest['id'])
+            check(windup['encounter']['phase']=='noodle-windup' and throwing['noodleThrow']['phase']=='windup' and windup['encounter']['serial']==serial,'Normal apology begins actual noodle windup without premature credit')
+            page.wait_for_timeout(500)
+            check(frozen_encounter(snap())==frozen_encounter(windup),'Paused read-only people, gameplay and campaign snapshots remain identical during noodle windup')
+            capture('rowan-noodle-windup-paused')
+            close('pause-dialog')
+            flight=wait(lambda s:s['encounter']['phase']=='noodle-flight','Actual noodle flight',seconds=15)
+            page.locator('#pause-button').click()
+            flight=record('rowan noodle trajectory paused')
+            throwing=next(person for person in flight['roomPeople'] if person['id']==guest['id'])
+            trajectory=throwing['noodleThrow']
+            check(trajectory and trajectory['phase']=='flight' and trajectory['from'] and trajectory['to'] and flight['encounter']['serial']==serial,'Live noodle flight exposes its actual trajectory before encounter credit')
+            page.wait_for_timeout(500)
+            check(frozen_encounter(snap())==frozen_encounter(flight),'Normal Pause freezes the read-only noodle trajectory snapshot')
+            capture('rowan-noodle-flight-paused')
+            close('pause-dialog')
+            state=wait(lambda s:s['encounter']['serial']>serial and s['encounter']['outcome']=='noodle-fight' and s['campaign']['active']['stage']==2,'Actual throw then guest melee and campaign stage',seconds=15)
+            page.locator('#pause-button').click()
+            state=record('rowan actual guest punch paused')
+            attacker=next(person for person in state['roomPeople'] if person['id']==guest['id'])
+            check(state['encounter']['phase']=='complete' and attacker['attackSerial']>0 and attacker['attackTimer']>0,'Only actual noodle throw and actual NPC punch complete the career encounter')
+            check(state['campaign']['active']['stage']==2 and state['career']['cash']==1100,'Actual encounter advances exit stage without early lunch reward')
+            page.wait_for_timeout(500)
+            check(frozen_encounter(snap())==frozen_encounter(state),'Normal Pause freezes actual guest punch and encounter completion')
+            capture('rowan-noodle-punch-paused')
+            close('pause-dialog')
+            walk(room(plan,0,10.6),tolerance=.3);leave(plan)
+            done=wait(lambda s:'corporate-lunch-breakpoint' in s['campaign']['intros']['corporate'],'Actual lunch exit reward',seconds=20)
+            check(done['career']['cash']==1250 and done['campaign']['active'] is None,'Actual counter, noodle fight and normal exit award lunch $150 exactly once')
+            capture('rowan-lunch-earned-complete')
+        finally:
+            finish_context(context,'rowan-lunch')
+
+    def noodle_component_case(browser):
+        document = """<!doctype html><meta charset="utf-8"><style>
+body{margin:0;background:#222;color:white;font:16px sans-serif}header{padding:12px;background:#151515}button{padding:12px;margin:4px}canvas{display:block}#status{color:#ffc978}
+</style><header><strong>PROGRAMMATIC COMPONENT PREVIEW: supplied-dt restaurant fixture</strong><div>No native campaign, travel, save, cash or reward evidence.</div><button id="begin">Begin dialogue</button><button id="reply">Reply: apology</button><button id="play">Play to next captured phase</button><button id="clear">Clear and dispose</button><span id="status">Ready</span></header><script type="module">
+import * as THREE from '/assets/car-arcade/vendor/three.module.js';
+import {createInteriors} from '/Games/Capital%20Drive/interiors.js';
+import {createInteriorView} from '/Games/Capital%20Drive/interior-view.js';
+import {createInteriorPeople} from '/Games/Capital%20Drive/interior-people.js';
+import {createInteriorPeopleView} from '/Games/Capital%20Drive/interior-people-view.js';
+import {createActorView} from '/Games/Capital%20Drive/actor-view.js';
+import {MAPPED_STORES} from '/Games/Capital%20Drive/stores.js';
+const store=MAPPED_STORES.find(s=>s.id==='store-5656111023');
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x303945);
+scene.add(new THREE.HemisphereLight(0xffffff,0x77716a,2));
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setSize(1280,650);document.body.append(renderer.domElement);
+const interiors=createInteriors({buildings:[{...store.building,id:store.buildingId}],landmarks:[]},{stores:[store],heightAt:()=>0});
+const entry=interiors.entries[0],plan=interiors.enter(entry,{x:entry.x-Math.sin(entry.yaw),z:entry.z-Math.cos(entry.yaw)});
+const roomView=createInteriorView(scene),people=createInteriorPeople(),view=createInteriorPeopleView(scene,()=>0),hero=createActorView(scene,()=>0,{policeLimit:0});
+roomView.load(plan);people.load(plan);view.load(plan);hero.setPlayerAppearance('player:corporate');
+const guest=people.snapshot().find(p=>p.character==='booth-guest'),o=plan.origin,c=Math.cos(o.yaw),sn=Math.sin(o.yaw);
+const gz=sn*(guest.x-o.x)+c*(guest.z-o.z),actor={x:o.x+c*.7+sn*gz,z:o.z-sn*.7+c*gz,y:0,health:100,speed:0};actor.yaw=Math.atan2(-(guest.x-actor.x),-(guest.z-actor.z));
+const midpoint={x:(actor.x+guest.x)/2,z:(actor.z+guest.z)/2};
+const camera=new THREE.PerspectiveCamera(44,1280/650,.05,100);camera.position.set(midpoint.x-c*1.5-sn*3.4,2.3,midpoint.z+sn*1.5-c*3.4);camera.lookAt(midpoint.x,1.05,midpoint.z);
+let playing=false,disposed=false,stop='flight',elapsed=0;const events=[];
+const ctx={actor,hasLineOfSight:interiors.hasLineOfSight};
+document.querySelector('#begin').onclick=()=>{const r=people.startDialogue(guest.id,{...ctx,scriptedFight:true});if(!r.ok)throw Error(JSON.stringify(r));};
+document.querySelector('#reply').onclick=()=>{const r=people.respondDialogue(guest.id,'apologise',ctx);if(!r.ok)throw Error(JSON.stringify(r));playing=true;};
+document.querySelector('#play').onclick=()=>{stop='punch';playing=true;};
+document.querySelector('#clear').onclick=()=>{playing=false;people.clear();view.clear();roomView.clear();view.dispose();roomView.dispose();hero.dispose();disposed=true;};
+function draw(){requestAnimationFrame(draw);if(disposed)return;const dt=playing?1/60:0;elapsed+=dt;people.update(dt,ctx);events.push(...people.drainEvents());const live=people.snapshot(),g=live.find(p=>p.id===guest.id);view.update(live,dt);hero.update({mode:'foot',actor,weapon:'unarmed',attackTimer:0},{dt,focus:actor});if(stop==='flight'&&g.noodleThrow?.phase==='flight'&&g.noodleThrow.time>=.23)playing=false;if(stop==='punch'&&g.attackSerial>0&&g.attackTimer<.41)playing=false;document.querySelector('#status').textContent=(playing?'Playing: ':'Paused: ')+people.encounter.phase;renderer.render(scene,camera);}
+window.capitalComponentSnapshot=()=>({ready:true,componentPreview:true,label:'Programmatic component preview; no native career evidence',rendering:{compatibility:false},playing,elapsed,disposed,encounter:people.encounter,roomPeople:people.snapshot(),view:view.stats,interiorView:{...roomView.stats},events:structuredClone(events)});draw();
+</script>"""
+        context=browser.new_context(viewport={'width':1280,'height':800})
+        try:
+            ready(context,document)
+            check(snap()['componentPreview'],'Evidence is explicitly a programmatic component preview')
+            page.locator('#begin').click();page.locator('#reply').click()
+            state=wait(lambda s:not s['playing'] and s['encounter']['phase']=='noodle-flight','Component owner reaches actual flight')
+            guest=next(p for p in state['roomPeople'] if p.get('character')=='booth-guest')
+            check(guest['noodleThrow']['from'] and guest['noodleThrow']['to'] and state['view']['throwSegmentLimit']==12 and state['view']['drawCalls']<=6,'Component flight has actual source trajectory, twelve strand limit and six-draw bound')
+            capture('programmatic-component-noodle-flight')
+            page.wait_for_timeout(300);check(snap()==state,'Component Pause freezes supplied-dt owner and read-only snapshots')
+            page.locator('#play').click()
+            state=wait(lambda s:not s['playing'] and s['encounter']['outcome']=='noodle-fight','Component owner emits actual throw then melee')
+            check(any(e['type']=='noodles-throw' for e in state['events']) and any(e['type']=='retaliation' and e['kind']=='melee' for e in state['events']),'Programmatic component records actual owner throw and actual melee events')
+            capture('programmatic-component-noodle-punch')
+            page.locator('#clear').click()
+            state=record('programmatic component disposed')
+            check(state['disposed'] and not state['roomPeople'] and state['view']['drawCalls']==0 and state['view']['geometryCount']==0 and state['interiorView']['meshes']==0,'Component clear and dispose release people and lazy room geometry')
+        finally:
+            finish_context(context,'noodle-component')
 
     def restaurant_case(browser):
         context=browser.new_context(viewport={'width':1280,'height':800})
@@ -439,7 +601,7 @@ def main():
             scenarios=['campaign','restaurant','gym','scenery'] if args.scenario=='all' else [args.scenario]
             for scenario in scenarios:
                 try:
-                    {'campaign':campaign_case,'restaurant':restaurant_case,'gym':gym_case,'scenery':scenery_case}[scenario](browser)
+                    {'campaign':campaign_case,'rowan-lunch':rowan_lunch_case,'noodle-component':noodle_component_case,'restaurant':restaurant_case,'gym':gym_case,'scenery':scenery_case}[scenario](browser)
                 except Exception:
                     if page and not page.is_closed():
                         try: capture(scenario+'-failure-state')
@@ -453,7 +615,7 @@ def main():
     finally:
         signal.alarm(0);signal.signal(signal.SIGALRM,prior)
         server.shutdown();server.server_close();thread.join(timeout=2)
-        report={'status':'FAIL' if failure else 'PASS','scenario':args.scenario,'failure':failure,'checks':checks,'errors':errors,'requests':requests,'external':external,'observations':observations,'elapsedSeconds':round(time.monotonic()-started,2),'budgetSeconds':BUDGET,'screenshots':sorted(path.name for path in output.glob('*.png')),'limitations':['Software WebGL only; native GPU/N100 performance is unmeasured.','Campaign case naturally earns only the corporate first chapter; lunch travel, other full introductions and the shared meeting are not completed.','Restaurant and all-machine gym cases use Free roam map travel; they do not establish paid career workouts or campaign encounter credit.','Scenery coverage is limited to the actual recorded source descriptors and wildlife approach.','Screenshots require separate visual review.']}
+        report={'status':'FAIL' if failure else 'PASS','scenario':args.scenario,'componentPreview':args.scenario=='noodle-component','failure':failure,'checks':checks,'errors':errors,'requests':requests,'external':external,'observations':observations,'elapsedSeconds':round(time.monotonic()-started,2),'budgetSeconds':budget,'screenshots':sorted(path.name for path in output.glob('*.png')),'limitations':['Software WebGL only; native GPU/N100 performance is unmeasured.','noodle-component is a programmatic supplied-dt module fixture; it proves no native career travel, mission, save, cash or reward.','Campaign case earns the corporate first chapter; rowan-lunch additionally checks native lunch travel and encounter when selected. Other full introductions and the shared meeting are not covered.','Restaurant and all-machine gym cases use Free roam map travel; they do not establish paid career workouts or campaign encounter credit.','Scenery coverage is limited to the actual recorded source descriptors and wildlife approach.','Screenshots require separate visual review.']}
         (output/'results.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2),flush=True)
     if failure: raise SystemExit(1)
 
