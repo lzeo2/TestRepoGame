@@ -12,6 +12,23 @@ const bytes = await readFile(join(game, 'data/stores.json'));
 const moduleBytes = await readFile(join(game, 'stores.js'));
 const { MAPPED_STORES, LEGACY_SHOP_IDS } = await import(`data:text/javascript;base64,${moduleBytes.toString('base64')}`);
 const payload = JSON.parse(bytes);
+const precinctBytes = await readFile(join(game, 'data/shopping-precincts.json'));
+const precinctModuleBytes = await readFile(join(game, 'shopping-precincts.js'));
+const precinctPayload = JSON.parse(precinctBytes);
+const { SHOPPING_PRECINCTS, SHOPPING_BUILDING_IDS } = await import(`data:text/javascript;base64,${precinctModuleBytes.toString('base64')}`);
+assert.deepEqual(SHOPPING_PRECINCTS,precinctPayload.precincts);
+assert.deepEqual(SHOPPING_BUILDING_IDS,['act-87705-0']);
+assert(Object.isFrozen(SHOPPING_PRECINCTS[0].paths[0].points[0]));
+assert.equal(SHOPPING_PRECINCTS.length,5);
+assert(SHOPPING_PRECINCTS[0].paths.length>0);
+assert(SHOPPING_PRECINCTS.every(p=>Object.isFrozen(p) && p.boundary.length>=4 && p.source.version>0));
+assert.deepEqual(SHOPPING_PRECINCTS.find(p=>p.sourceName==='Manuka Terrace').buildings[0].points,JSON.parse(await readFile(join(game,'data/canberra.json'))).buildings.find(b=>b.id==='act-87705-0').points);
+for (const id of [358293199,439239650,439239719,6275666787,12918449444,12918449448,11906941518]) assert(MAPPED_STORES.some(s=>s.id===`store-${id}`));
+for (let i=0;i<MAPPED_STORES.length;i++) for(let j=0;j<i;j++) {
+  const a=MAPPED_STORES[i].frontage,b=MAPPED_STORES[j].frontage;
+  assert(Math.hypot(a.x-b.x,a.z-b.z)>=(a.width+b.width)/2+0.795,'facade units retain clear separation');
+}
+
 const mapBytes = await readFile(join(game, 'data/canberra.json'));
 const addressBytes = await readFile(join(game, 'data/addresses.json'));
 const profileBytes = await readFile(join(game, 'data/road-profiles.json'));
@@ -33,7 +50,7 @@ function closest(p,a,b) {
 assert.deepEqual(MAPPED_STORES,payload.stores);
 assert.deepEqual(LEGACY_SHOP_IDS,['crescent-kiosk','manuka-store']);
 assert(Object.isFrozen(MAPPED_STORES) && Object.isFrozen(LEGACY_SHOP_IDS));
-assert(MAPPED_STORES.length>=6 && MAPPED_STORES.length<=12);
+assert(MAPPED_STORES.length>=15 && MAPPED_STORES.length<=25);
 assert.equal(new Set(MAPPED_STORES.map(s=>s.id)).size,MAPPED_STORES.length);
 assert.equal(hash(mapBytes),payload.meta.mapSha256);
 assert.equal(hash(profileBytes),payload.meta.roadProfilesSha256);
@@ -53,6 +70,7 @@ for (const store of MAPPED_STORES) {
   assert.equal(store.source.type,'node');
   const sourcePoint=[(store.source.lon-map.meta.origin[0])*111320*Math.cos(map.meta.origin[1]*Math.PI/180),(map.meta.origin[1]-store.source.lat)*111320];
   assert(distance(sourcePoint,[store.sourcePosition.x,store.sourcePosition.z])<0.002);
+  assert.equal(store.frontage.confidence,'estimated');
   const building=map.buildings.find(b=>b.id===store.buildingId);
   assert(building);
   assert.deepEqual(store.building,{points:building.points,height:building.height});
@@ -77,6 +95,12 @@ for (const store of MAPPED_STORES) {
   assert(roadDistance>road.width/2+0.5,'interaction beside carriageway');
   assert(roadDistance<48,'bounded public street approach');
 }
+for (const path of SHOPPING_PRECINCTS[0].paths) {
+  for (let k=1;k<path.points.length;k++) {
+    const a=path.points[k-1],b=path.points[k];
+    for(let i=0;i<=12;i++) assert(!map.buildings.some(building=>inside([a[0]+(b[0]-a[0])*i/12,a[1]+(b[1]-a[1])*i/12],building.points)),`${path.id}: exterior path avoids source building`);
+  }
+}
 // Cache verification is explicit: CI can run geometry checks without developer downloads.
 const cacheIndex=process.argv.indexOf('--cache');
 const cache=cacheIndex>=0 ? process.argv[cacheIndex+1] : process.env.CAPITAL_STORES_CACHE;
@@ -90,15 +114,28 @@ if (cache) {
   for (const store of MAPPED_STORES) {
     const source=sources.get(`${store.source.type}/${store.source.id}`);
     for (const key of ['type','id','lat','lon','version','timestamp']) assert.equal(source[key],store.source[key]);
-    assert(source.tags.shop && source.tags.name===store.sourceName);
+    assert((source.tags.shop || ['cafe','restaurant','fast_food'].includes(source.tags.amenity)) && source.tags.name===store.sourceName);
+  }
+  for (const precinct of SHOPPING_PRECINCTS) {
+    const source=sources.get(`way/${precinct.source.id}`);
+    const points=source.nodes.map(id=>{ const n=sources.get(`node/${id}`); return [(n.lon-map.meta.origin[0])*111320*Math.cos(map.meta.origin[1]*Math.PI/180),(map.meta.origin[1]-n.lat)*111320]; });
+    assert.equal(points.length,precinct.boundary.length);
+    points.forEach((p,i)=>assert(distance(p,precinct.boundary[i])<0.001));
+    for (const path of [...precinct.paths,...precinct.parking]) {
+      const way=sources.get(`way/${path.source.id}`);
+      assert(way && path.points.length===way.nodes.length);
+      way.nodes.forEach((id,i)=>{ const n=sources.get(`node/${id}`); assert(distance(path.points[i],[(n.lon-map.meta.origin[0])*111320*Math.cos(map.meta.origin[1]*Math.PI/180),(map.meta.origin[1]-n.lat)*111320])<0.001); });
+    }
   }
   const output=await mkdtemp(join(tmpdir(),'capital-stores-'));
   try {
     for (let run=0;run<2;run++) {
-      const result=spawnSync('python3',['-B','scripts/build_capital_stores.py','--cache',cache,'--output',join(output,'stores.json'),'--module-output',join(output,'stores.js')],{cwd:root,encoding:'utf8',timeout:30000});
+      const result=spawnSync('python3',['-B','scripts/build_capital_stores.py','--cache',cache,'--output',join(output,'stores.json'),'--module-output',join(output,'stores.js'),'--precinct-output',join(output,'shopping-precincts.json'),'--precinct-module-output',join(output,'shopping-precincts.js')],{cwd:root,encoding:'utf8',timeout:30000});
       assert.equal(result.status,0,result.stderr);
       assert.deepEqual(await readFile(join(output,'stores.json')),bytes,'JSON regeneration is byte-identical');
       assert.deepEqual(await readFile(join(output,'stores.js')),moduleBytes,'module regeneration is byte-identical');
+      assert.deepEqual(await readFile(join(output,'shopping-precincts.json')),precinctBytes,'precinct JSON regeneration is byte-identical');
+      assert.deepEqual(await readFile(join(output,'shopping-precincts.js')),precinctModuleBytes,'precinct module regeneration is byte-identical');
     }
   } finally { await rm(output,{recursive:true,force:true}); }
   assert.deepEqual(await readFile(join(game,'data/canberra.json')),mapBytes,'map preserved');
