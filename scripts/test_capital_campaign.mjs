@@ -14,6 +14,7 @@ const legacyIds = ['late-parcel', 'under-the-awning', 'borrowed-wheels', 'quiet-
 
 let campaign = createCampaign(map);
 assert.equal(campaign.current(), null);
+assert.equal(campaign.nextRequiredCharacter(), null);
 assert.equal(campaign.start(ctx).ok, false, 'new campaigns require a hero');
 assert.deepEqual(campaign.characters.map(c => c.id), ['student', 'corporate', 'basement']);
 assert.ok(Object.isFrozen(campaign.characters[0].start));
@@ -53,6 +54,11 @@ function finishMission(value) {
   const mission = value.current();
   assert.ok(mission, 'mission available');
   assert.equal(value.start({ ...ctx, wanted: mission.incident ? 1 : 0 }).ok, true);
+  const activeCharacter = value.state.character;
+  for (const hero of ['student', 'corporate', 'basement']) {
+    assert.equal(value.selectCharacter(hero, ctx).ok, false, 'every active chapter locks character selection');
+  }
+  assert.equal(value.state.character, activeCharacter);
   let guard = 0;
   while (value.state.active && guard++ < 12) {
     const target = value.state.active.target;
@@ -76,6 +82,7 @@ function finishMission(value) {
   const completions = value.drainEvents().filter(e => e.type === 'complete');
   assert.equal(completions.length, 1, `${mission.id} pays exactly once`);
   assert.equal(completions[0].id, mission.id);
+  assert.equal(completions[0].reward, mission.reward);
   tick(value, ctx);
   assert.equal(value.drainEvents().length, 0, 'no reward replay');
   return mission.id;
@@ -113,9 +120,46 @@ for (const hero of heroes) {
 
 assert.equal(new Set(openings).size, 6, 'six original, different opening missions');
 assert.equal(campaign.current().id, 'three-receipts');
+assert.equal(campaign.nextRequiredCharacter(), null, 'the shared meeting accepts any protagonist');
 assert.equal(finishMission(campaign), 'three-receipts');
 assert.equal(campaign.state.meeting, true);
-for (const id of legacyIds) assert.equal(finishMission(campaign), id, 'six existing chapters retained in order');
+const chapterOwners = ['basement', 'student', 'corporate', 'corporate', 'student', 'basement'];
+const chapterRewards = [350, 450, 700, 800, 1000, 1200];
+for (let index = 0; index < legacyIds.length; index++) {
+  const id = legacyIds[index], owner = chapterOwners[index];
+  for (const wrongHero of heroes.filter(hero => hero !== owner)) {
+    assert.equal(campaign.selectCharacter(wrongHero, ctx).ok, true, 'any hero may be selected between courier missions');
+    assert.equal(campaign.current(), null, `${wrongHero} cannot take ${owner}'s mission`);
+    assert.equal(campaign.nextRequiredCharacter().id, owner);
+    assert.ok(Object.isFrozen(campaign.nextRequiredCharacter()), 'required hero metadata is immutable');
+    const before = campaign.serialize();
+    assert.equal(campaign.start(ctx).ok, false, 'wrong hero cannot start the next shared chapter');
+    assert.match(campaign.start(ctx).message, new RegExp(campaign.nextRequiredCharacter().name));
+    tick(campaign, ctx);
+    assert.deepEqual(campaign.serialize(), before, 'wrong hero cannot advance the global prefix');
+    assert.deepEqual(campaign.drainEvents(), [], 'wrong hero earns no reward');
+    campaign = createCampaign(map, campaign.serialize());
+    assert.equal(campaign.current(), null, 'wrong-owner gate survives reload');
+    assert.equal(campaign.nextRequiredCharacter().id, owner);
+  }
+  assert.equal(campaign.selectCharacter(owner, ctx).ok, true);
+  assert.equal(campaign.nextRequiredCharacter(), null, 'selected owner can begin without another switch');
+  assert.equal(campaign.current().character, owner);
+  assert.equal(campaign.current().reward, chapterRewards[index], 'owner assignment preserves each original reward');
+  assert.equal(finishMission(campaign), id, 'six existing chapters retain their global order and reward');
+  campaign = createCampaign(map, campaign.serialize());
+  assert.deepEqual(campaign.state.completed, legacyIds.slice(0, index + 1), 'each completed prefix survives reload without replay');
+}
+for (const hero of heroes) {
+  campaign.selectCharacter(hero, ctx);
+  const owned = campaign.chapters.filter(chapter => legacyIds.includes(chapter.id));
+  assert.equal(owned.length, 2, 'each protagonist owns two later courier missions');
+  assert.ok(owned.every(chapter => chapter.character === hero));
+  assert.equal(campaign.current(), null, 'finished heroes cannot replay completed missions');
+  assert.equal(campaign.nextRequiredCharacter(), null);
+  assert.equal(campaign.start(ctx).ok, false);
+  assert.deepEqual(campaign.drainEvents(), []);
+}
 assert.equal(campaign.current(), null);
 assert.deepEqual(campaign.state.completed, legacyIds);
 assert.ok(campaign.isCompleted('student-paper-chase'));
@@ -126,6 +170,8 @@ assert.deepEqual(createCampaign(map, campaign.serialize()).serialize(), campaign
 const legacy = createCampaign(map, { version: 1, completed: ['late-parcel'] });
 assert.equal(legacy.current().id, 'under-the-awning');
 assert.equal(legacy.state.character, 'legacy');
+assert.equal(legacy.nextRequiredCharacter(), null, 'untouched legacy saves preserve their original owner-free route');
+assert.equal(legacy.chapters.length, 6, 'legacy journal keeps all six old chapters');
 assert.equal(legacy.drainEvents().length, 0, 'migration never grants rewards');
 assert.equal(legacy.serialize().version, 2);
 assert.equal(legacy.selectCharacter('corporate', ctx).ok, true, 'legacy players can try new heroes');
@@ -135,8 +181,18 @@ assert.deepEqual(createCampaign(map, legacy.serialize()).state.completed, ['late
 finishMission(legacy); finishMission(legacy);
 for (const hero of ['student', 'basement']) { legacy.selectCharacter(hero, ctx); finishMission(legacy); finishMission(legacy); }
 assert.equal(finishMission(legacy), 'three-receipts');
-assert.equal(legacy.current().id, 'under-the-awning', 'new stories return to retained shared progress without replaying the first reward');
+assert.equal(legacy.current(), null, 'new heroes retain ownership gates after legacy migration');
+assert.equal(legacy.nextRequiredCharacter().id, 'student');
+legacy.selectCharacter('student', ctx);
+assert.equal(legacy.current().id, 'under-the-awning', 'correct owner resumes retained shared progress without replaying the first reward');
 assert.deepEqual(legacy.state.completed, ['late-parcel']);
+
+const oldRoute = createCampaign(map, { version: 1, completed: [] });
+for (const id of legacyIds) {
+  assert.equal(oldRoute.nextRequiredCharacter(), null);
+  assert.equal(finishMission(oldRoute), id, 'untouched legacy route plays all six chapters without owner gates');
+}
+assert.deepEqual(createCampaign(map, oldRoute.serialize()).state.completed, legacyIds);
 
 const oldPlay = createCampaign(map, { version: 1, completed: [] });
 oldPlay.start(ctx);
@@ -257,4 +313,4 @@ assert.equal(relocated.current().reward,200);assert.equal(relocated.current().st
 assert.equal(createCampaign(map,meetingSave).current().stages[0].x,923,'default fixture meeting unchanged');
 assert.deepEqual(createCampaign(map,{version:1,completed:[]},{meetingPoint:{x:15,z:25}}).current(),createCampaign(map,{version:1,completed:[]}).current(),'meeting override preserves six legacy chapter targets and rewards');
 for(const invalid of [null,{}, {x:NaN,z:0},{x:0,z:Infinity}])assert.throws(()=>createCampaign(map,null,{meetingPoint:invalid}),/finite/);
-console.log('PASS campaign: interleaved independent introductions and partial-save reload; active-mission switching lock; noodle-fight-only lunch credit; three-character convergence; retained six chapters; strict v1/v2 migration; replay and recovery gates');
+console.log('PASS campaign: interleaved independent introductions and partial-save reload; active-mission switching lock; noodle-fight-only lunch credit; three-character convergence; character-owned courier chapters; retained six chapters; strict v1/v2 migration; replay and recovery gates');

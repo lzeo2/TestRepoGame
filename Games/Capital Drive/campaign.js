@@ -18,28 +18,28 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   const bridge = place('commonwealth-bridge', { x: -1230, z: -2840, name: 'Commonwealth Avenue Bridge' });
   const target = (point, label, kind = 'drive', extra = {}) => ({ x: point.x, z: point.z, label, kind, radius: 26, hold: 1, ...extra });
   const shared = freeze([
-    { id: 'late-parcel', name: '1. Late parcel', contact: 'Mara, local courier', reward: 350, time: 360,
-      briefing: 'A replacement driver has not shown up. Take the sealed parcel from the Crescent to the Manuka shopfront. Keep the car in one piece.',
+    { id: 'late-parcel', character: 'basement', name: '1. Late parcel', contact: 'Mara, local courier', reward: 350, time: 360,
+      briefing: 'Milo, a replacement driver has not shown up. Take the sealed parcel from the Crescent to the Manuka shopfront. Keep the car in one piece.',
       outro: 'Mara: You know these streets. There is more work if you want it.',
       stages: [target(map.spawn, 'Collect the parcel on the Crescent'), target(shop, 'Stop outside Coals', 'drive', { stop: true })] },
-    { id: 'under-the-awning', name: '2. Under the awning', contact: 'Mara', reward: 450, time: 300,
-      briefing: 'The shopkeeper has a ledger for Mara. Park nearby, walk inside Coals and collect it at the counter. Then return to your car.',
+    { id: 'under-the-awning', character: 'student', name: '2. Under the awning', contact: 'Mara', reward: 450, time: 300,
+      briefing: 'Kit, the shopkeeper has a ledger for Mara. Park nearby, walk inside Coals and collect it at the counter. Then return to your car.',
       outro: 'Mara: Those missing deliveries all passed through the same depot.',
       stages: [target(shop, 'Enter Coals and reach its counter', 'interior', { storeId: shop.id, radius: 2.5, hold: 2 }), target(shop, 'Return to a car outside Coals', 'drive')] },
-    { id: 'borrowed-wheels', name: '3. Borrowed wheels', contact: 'Jules, garage mechanic', reward: 700, time: 480,
-      briefing: 'Jules wants a working example of the depot fleet. Take an occupied vehicle on the street, then bring it to the Kingston meeting point. Police must lose you before handover.',
+    { id: 'borrowed-wheels', character: 'corporate', name: '3. Borrowed wheels', contact: 'Jules, garage mechanic', reward: 700, time: 480,
+      briefing: 'Rowan, Jules wants a working example of the depot fleet. Take an occupied vehicle on the street, then bring it to the Kingston meeting point. Police must lose you before handover.',
       outro: 'Jules: Same depot markings. Someone has been selling the parcels twice.',
       stages: [target(shop, 'Take an occupied street vehicle', 'stolen', { anywhere: true }), target(kingston, 'Deliver the stolen vehicle in Kingston', 'drive', { stolen: true, clear: true, stop: true })] },
-    { id: 'quiet-streets', name: '4. Quiet streets', contact: 'Jules', reward: 800, time: 540, incident: true,
-      briefing: 'The handover has drawn attention. Leave the patrols behind, reach the Red Hill meeting point and stay out of sight until the search ends.',
+    { id: 'quiet-streets', character: 'corporate', name: '4. Quiet streets', contact: 'Jules', reward: 800, time: 540, incident: true,
+      briefing: 'Rowan, the handover has drawn attention. Leave the patrols behind, reach the Red Hill meeting point and stay out of sight until the search ends.',
       outro: 'Jules: We are clear. Mara has found the final delivery address across the lake.',
       stages: [target(redHill, 'Lose the police and wait at Red Hill', 'escape', { clear: true, hold: 7, radius: 45 })] },
-    { id: 'across-the-water', name: '5. Across the water', contact: 'Mara', reward: 1000, time: 660,
-      briefing: 'Take the recovered ledger to the city. Follow the route across Commonwealth Avenue Bridge, then stop at the Canberra Centre public approach.',
+    { id: 'across-the-water', character: 'student', name: '5. Across the water', contact: 'Mara', reward: 1000, time: 660,
+      briefing: 'Kit, take the recovered ledger to the city. Follow the route across Commonwealth Avenue Bridge, then stop at the Canberra Centre public approach.',
       outro: 'Mara: Delivered. The missing stock is accounted for, and the depot cannot pin it on us.',
       stages: [target(bridge, 'Cross Commonwealth Avenue Bridge', 'drive', { radius: 75, hold: 0 }), target(centre, 'Stop at Canberra Centre', 'drive', { stop: true, radius: 40 })] },
-    { id: 'home-by-the-lake', name: '6. Home by the lake', contact: 'Mara', reward: 1200, time: 720,
-      briefing: 'One last run home. Return to Manuka, park outside Coals and meet Mara on foot. The rest of Canberra is yours after that.',
+    { id: 'home-by-the-lake', character: 'basement', name: '6. Home by the lake', contact: 'Mara', reward: 1200, time: 720,
+      briefing: 'Milo, one last run home. Return to Manuka, park outside Coals and meet Mara on foot. The rest of Canberra is yours after that.',
       outro: 'Mara: Good driving. The next shift is yours to choose. Campaign complete.',
       stages: [target(shop, 'Return to Manuka', 'drive', { stop: true }), target(shop, 'Meet Mara outside Coals on foot', 'foot', { hold: 3, radius: 12 })] },
   ]);
@@ -113,9 +113,20 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     const opening = intros[state.character][state.intros[state.character].length];
     if (opening) return opening;
     if (!allIntroduced()) return null;
-    return !state.meeting ? meeting : shared[state.completed.length] || null;
+    if (!state.meeting) return meeting;
+    const chapter = shared[state.completed.length];
+    return chapter?.character === state.character ? chapter : null;
   };
-  const chapters = () => state.character === 'legacy' ? shared : [...(intros[state.character] || []), meeting, ...shared];
+  const chapters = () => state.character === 'legacy' ? shared : [...(intros[state.character] || []), meeting, ...shared.filter(chapter => chapter.character === state.character)];
+  const nextRequiredCharacter = () => {
+    if (state.character === 'legacy' || !allIntroduced() || !state.meeting) return null;
+    const chapter = shared[state.completed.length];
+    return chapter && chapter.character !== state.character ? characters.find(hero => hero.id === chapter.character) : null;
+  };
+  const requiredMessage = () => {
+    const hero = nextRequiredCharacter();
+    return hero ? `Switch to ${hero.name} for ${shared[state.completed.length].name}.` : null;
+  };
   const isCompleted = id => state.completed.includes(id) || (id === meeting.id && state.meeting) || ids.some(hero => state.intros[hero].includes(id));
   function validContext(ctx) {
     return ctx && finitePoint(ctx.pose) && typeof ctx.onFoot === 'boolean' && Number.isSafeInteger(ctx.respawnSerial) && Number.isFinite(ctx.wanted) && ctx.wanted >= 0 && ctx.wanted <= 5;
@@ -127,7 +138,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.campaign) return { ok: false, message: 'Campaign unavailable here.' };
     if (!ids.includes(id)) return { ok: false, message: 'Choose an available character.' };
     if (!canSelectCharacter(id)) return { ok: false, message: 'Finish or cancel the active mission before switching characters.' };
-    state.character = id; state.failed = false; state.message = `${characters.find(c => c.id === id).name}: ${current()?.briefing || 'Choose another character to bring the three stories together.'}`;
+    state.character = id; state.failed = false; state.message = `${characters.find(c => c.id === id).name}: ${current()?.briefing || requiredMessage() || (allIntroduced() && state.meeting ? 'Campaign complete.' : 'Choose another character to bring the three stories together.')}`;
     return { ok: true, message: state.message };
   }
   const serial = value => Number.isSafeInteger(value?.serial) && value.serial >= 0 ? value.serial : 0;
@@ -136,7 +147,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.campaign) return { ok: false, message: 'Campaign unavailable here.' };
     if (state.active) return { ok: false, message: 'Mission already active.' };
     const chapter = current();
-    if (!chapter) return { ok: false, message: !state.character ? 'Choose a character first.' : !allIntroduced() && state.character !== 'legacy' ? 'Choose another character to complete their introduction.' : 'Campaign complete.' };
+    if (!chapter) return { ok: false, message: !state.character ? 'Choose a character first.' : requiredMessage() || (!allIntroduced() && state.character !== 'legacy' ? 'Choose another character to complete their introduction.' : 'Campaign complete.') };
     state.active = { id: chapter.id, name: chapter.name, reward: chapter.reward, stage: 0, target: clone(chapter.stages[0]), remaining: chapter.time, elapsed: 0, held: 0, serial: ctx.respawnSerial, sawWanted: ctx.wanted > 0, baselines: baselines(ctx) };
     state.failed = false; state.message = chapter.briefing;
     events.push({ type: 'started', id: chapter.id, incident: Boolean(chapter.incident) });
@@ -180,9 +191,9 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
       events.push({ type: 'complete', id: chapter.id, reward: chapter.reward, message: chapter.outro });
     }
   }
-  return { state, characters, get chapters() { return chapters(); }, current, start, update, selectCharacter, canSelectCharacter, isCompleted,
+  return { state, characters, get chapters() { return chapters(); }, current, nextRequiredCharacter, start, update, selectCharacter, canSelectCharacter, isCompleted,
     cancel: () => fail('Mission cancelled. Open Campaign to retry.'),
     serialize: () => clone({ version: 2, character: state.character, intros: state.intros, meeting: state.meeting, legacy: state.legacy, completed: state.completed }),
-    journal: () => freeze(clone({ character: state.character, introductions: ids.map(id => ({ character: id, chapters: intros[id].map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })), meeting: state.meeting, shared: shared.map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })),
+    journal: () => freeze(clone({ character: state.character, introductions: ids.map(id => ({ character: id, chapters: intros[id].map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })), meeting: state.meeting, shared: shared.map(item => ({ id: item.id, character: item.character, name: item.name, complete: isCompleted(item.id) })) })),
     snapshot: () => freeze(clone({ ...state, next: current()?.id || null, switching: ids.filter(canSelectCharacter) })), drainEvents: () => events.splice(0) };
 }
