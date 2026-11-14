@@ -23,6 +23,13 @@ for(const plan of plans) {
   if(plan.variant==='noodles') {
     for(const role of ['cook','cashier','diner']) assert(before.some(p=>p.role===role),`restaurant ${role}`);
     assert(before.filter(p=>p.seated).length>=3);
+    if(plan.noodleCook) {
+      const cook=before.find(p=>p.character==='noodle-puller'),guest=before.find(p=>p.character==='booth-guest');
+      assert(cook&&guest,'authored markers populate kitchen window and actual corner booth');
+      assert.equal(cook.gesture,'pull-noodles');assert(guest.earmuffs&&guest.seated);
+      assert.equal(cook.x,plan.noodleCook.x);assert.equal(cook.z,plan.noodleCook.z);
+      assert.equal(guest.x,plan.boothGuest.x);assert.equal(guest.z,plan.boothGuest.z);
+    }
     const pass=plan.furniture.find(f=>f.kind==='kitchen-pass');
     for(const p of before) {
       const c=Math.cos(plan.origin.yaw),s=Math.sin(plan.origin.yaw),localX=c*(p.x-plan.origin.x)-s*(p.z-plan.origin.z);
@@ -30,7 +37,7 @@ for(const plan of plans) {
       else {
         const passX=c*(pass.x-plan.origin.x)-s*(pass.z-plan.origin.z);
         assert(localX<passX-pass.width/2-p.radius,'staff stay behind the left service pass');
-        assert(Math.abs(p.yaw-plan.origin.yaw-Math.PI/2)<1e-6,'staff face the public aisle');
+        assert(Math.abs(p.yaw-(p.gesture==='pull-noodles'?plan.noodleCook.yaw:plan.origin.yaw+Math.PI/2))<1e-6,'staff face their work station');
         for(const box of plan.furniture) {
           const bc=Math.cos(box.yaw),bs=Math.sin(box.yaw),x=bc*(p.x-box.x)-bs*(p.z-box.z),z=bs*(p.x-box.x)+bc*(p.z-box.z);
           assert(Math.hypot(Math.max(0,Math.abs(x)-box.width/2),Math.max(0,Math.abs(z)-box.depth/2))>=p.radius,'staff do not overlap kitchen solids');
@@ -60,9 +67,51 @@ for(const plan of plans) {
   pool.load(plan);assert.deepEqual(pool.snapshot(),before,'visits reset deterministic population');
 }
 assert.deepEqual(pool.clipMovement({x:0,z:0},NaN,0),{dx:0,dz:0,blocked:true});
+// Explicit anchor fixture also covers older room plans without the new optional markers.
+const encounterPlan=structuredClone(make('shop','noodles',-.4,6.2));
+const origin=encounterPlan.origin;
+const world=(x,z)=>({x:origin.x+Math.cos(origin.yaw)*x+Math.sin(origin.yaw)*z,z:origin.z-Math.sin(origin.yaw)*x+Math.cos(origin.yaw)*z});
+encounterPlan.noodleCook={...world(-2.15,2.1),yaw:origin.yaw+Math.PI};
+encounterPlan.boothGuest={...world(encounterPlan.width/2-.48,10.6),yaw:origin.yaw-Math.PI/2};
+const rear=encounterPlan.furniture.find(f=>f.kind==='noodle-table'&&Math.hypot(f.x-world(2.05,10.6).x,f.z-world(2.05,10.6).z)<.1);
+if(rear)Object.assign(rear,world(1.8,10.6));
+pool.load(encounterPlan);
+const cook=pool.snapshot().find(p=>p.character==='noodle-puller'),guest=pool.snapshot().find(p=>p.character==='booth-guest');
+assert(cook&&guest,'window cook and actual booth guest spawn');
+assert.equal(cook.gesture,'pull-noodles');assert(guest.seated&&guest.earmuffs);assert.equal(guest.seatHeight,.55);
+const actor={...world(encounterPlan.width/2-.48,9.4)},seen=()=>true,blocked=()=>false;
+const context={actor,hasLineOfSight:seen};
+assert.equal(pool.nearestDialogue(actor,{hasLineOfSight:blocked}),null);
+assert.equal(pool.nearestDialogue({x:0,z:-100},{hasLineOfSight:seen}),null);
+assert.equal(pool.nearestDialogue(actor),null,'dialogue requires a live visibility check');
+assert.equal(pool.startDialogue('missing',context).ok,false);
+assert.equal(pool.encounter.serial,0);
+const dialogue=pool.startDialogue(guest.id,context);assert(dialogue.ok&&Object.isFrozen(dialogue.dialogue));
+assert.equal(pool.startDialogue(guest.id,context).ok,false,'once per visit');
+assert.equal(pool.respondDialogue(guest.id,'invalid',context).ok,false);
+assert.equal(pool.respondDialogue(guest.id,'apologise',{actor,hasLineOfSight:blocked}).ok,false);
+assert(pool.respondDialogue(guest.id,'apologise',context).ok);
+assert.equal(pool.encounter.serial,1);assert.equal(pool.encounter.outcome,'peaceful');
+assert.equal(pool.respondDialogue(guest.id,'confront',context).ok,false);
+assert.deepEqual(pool.drainEvents().map(e=>e.type),['encounter-complete'],'talking creates no offence or money');
+pool.load(encounterPlan);assert.equal(pool.encounter.serial,1,'visit clear cannot rewind serial');
+assert(pool.startDialogue(guest.id,context).ok);assert(pool.respondDialogue(guest.id,'confront',context).ok);
+const frozen=pool.snapshot();pool.update(0,context);assert.deepEqual(pool.snapshot(),frozen);
+for(let i=0;i<12;i++)pool.update(.1,{actor,hasLineOfSight:blocked});
+assert.equal(pool.drainEvents().length,0,'walls prevent retaliation and completion');assert.equal(pool.encounter.serial,1);
+pool.update(.1,context);const fight=pool.drainEvents();
+assert.deepEqual(fight.map(e=>e.type),['retaliation','encounter-complete']);
+assert.equal(fight[0].damage,5);assert.equal(pool.encounter.serial,2);assert.equal(pool.encounter.outcome,'confrontation');
+for(let i=0;i<10;i++)pool.update(.1,context);assert.equal(pool.drainEvents().length,0,'retaliation cooldown');
+for(let i=0;i<15;i++)pool.update(.1,{actor:{x:actor.x+100,z:actor.z},hasLineOfSight:seen});assert.equal(pool.drainEvents().length,0,'distance rechecked live');
+const strikeOrigin={x:guest.x,z:guest.z-1,yaw:Math.PI};
+assert(pool.strike({...strikeOrigin,damage:100,range:2,hasLineOfSight:seen}).hits>0);
+for(let i=0;i<15;i++)pool.update(.1,context);assert.equal(pool.drainEvents().filter(e=>e.type==='retaliation').length,0,'dead guest cannot retaliate');
+plans.push(encounterPlan);
 const threeURL=url(await read('../assets/car-arcade/vendor/three.module.js')),THREE=await import(threeURL);
 const utilsURL=url((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace('./three.module.js',threeURL));
-const {createInteriorPeopleView}=await import(url((await read('../Games/Capital Drive/interior-people-view.js'))
+const modelURL=url((await read('../Games/Capital Drive/person-model.js')).replace('../../assets/car-arcade/vendor/three.module.js',threeURL));
+const {createInteriorPeopleView}=await import(url((await read('../Games/Capital Drive/interior-people-view.js')).replace('./person-model.js',modelURL)
  .replace('../../assets/car-arcade/vendor/three.module.js',threeURL).replace('../../assets/car-arcade/vendor/BufferGeometryUtils.js',utilsURL)));
 const scene=new THREE.Scene(),view=createInteriorPeopleView(scene,()=>3);
 assert.equal(scene.children.length,0,'no inactive geometry');assert.equal(view.stats.geometryCount,0);
@@ -78,6 +127,16 @@ for(const plan of plans) {
   root.children[0].material.addEventListener('dispose',()=>disposedMaterial++);
   function matrices(){for(const mesh of root.children)assert(mesh.instanceMatrix.array.every(Number.isFinite),'finite transforms');}
   matrices();
+  for(const mesh of root.children)assert(mesh.count<=mesh.instanceMatrix.count,'bounded instance capacity');
+  assert(view.stats.sharedModel);assert.equal(view.stats.noodleSegmentLimit,36);
+  if(plan.noodleCook) {
+    const people=pool.snapshot(),accessories=root.children[5],before=Array.from(accessories.instanceMatrix.array);
+    view.update(people.map(p=>({...p,phase:p.phase+.7})),.1);matrices();
+    assert.notDeepEqual(Array.from(accessories.instanceMatrix.array),before,'supplied phase animates hand-pulled strands');
+    const calmCount=accessories.count;
+    view.update(people.map(p=>p.character==='noodle-puller'?{...p,reaction:'stunned',stun:1}:p),.1);
+    assert.equal(accessories.count,calmCount-36,'stun hides noodle strands');
+  }
   if(plan.exercise) {
     const original=pool.snapshot();view.update(original,0,{activity:{active:true,kind:'bench',lift:1,reps:3}});matrices();
     assert.equal(root.children[0].count,original.length+1,'temporary lying player');assert(view.stats.drawCalls<=6);
@@ -89,4 +148,4 @@ for(const plan of plans) {
 }
 assert.equal(disposedGeometry,plans.length*6);assert.equal(disposedMaterial,plans.length);assert.equal(disposedMesh,plans.length*6);
 view.dispose();view.dispose();view.load(plans[0]);view.update([],1);assert(view.stats.disposed);assert.equal(scene.children.length,0);
-console.log('PASS active-only adult roles, seated dining, protected doors/counters/aisles, short walking paths, swept contacts, dt0 pause, six lazy draws, bench poses/bar, finite transforms and exact disposal');
+console.log('PASS active adult roles, real booth/window anchors, authoritative peaceful/hostile encounters, live LOS/health/radius/cooldown gates, swept contacts, pause, shared rounded parts, 36 moving noodle segments, six lazy draws, bench poses and exact disposal');
