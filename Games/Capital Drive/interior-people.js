@@ -1,5 +1,5 @@
 // Fictional adult occupants of the single loaded room. No clock, storage or economy owner.
-const LIMIT = 16, BODY_RADIUS = .28;
+const LIMIT = 16, BODY_RADIUS = .28, THROW_WINDUP = .75, THROW_FLIGHT = .55;
 const finite = n => Number.isFinite(n);
 const point = p => p && finite(p.x) && finite(p.z);
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -42,7 +42,7 @@ export function createInteriorPeople() {
     people.push({id:`${plan.id}-adult-${index}`, role, adult:true, x:position.x,z:position.z,y:plan.floorY,
       yaw, radius:BODY_RADIUS, seated:Boolean(seat), seatHeight:seat ? (seat.kind === 'stool' ? .69 : seat.kind === 'banquette' ? .55 : .45) : 0,
       character, earmuffs:character==='booth-guest', palette:index%6, hair:character==='booth-guest'?3:index%4, apron:role==='cook'||role==='cashier'||role==='shopkeeper',
-      health:100, reaction:'calm', fear:0, anger:0, angerOffender:null, retaliationCooldown:0, attackTimer:0, attackSerial:0, stun:0, knockdown:0, reactionTimer:0, hitCooldown:0, playerHitTimer:0, crimePhase:null,
+      noodleThrow:null, health:100, reaction:'calm', fear:0, anger:0, angerOffender:null, retaliationCooldown:0, attackTimer:0, attackSerial:0, stun:0, knockdown:0, reactionTimer:0, hitCooldown:0, playerHitTimer:0, crimePhase:null,
       roomId:plan.id, storeId:plan.storeId || null,
       gesture, phase:index*1.73, speed:0, home:{x:position.x,z:position.z},target,progress:0,direction:1});
     return true;
@@ -93,7 +93,7 @@ export function createInteriorPeople() {
       }
     }
     const guest=people.find(p=>p.character==='booth-guest');
-    encounterState=guest ? {roomId:plan.id,storeId:plan.storeId||null,personId:guest.id,character:'booth-guest',phase:'idle',outcome:null} : null;
+    encounterState=guest ? {roomId:plan.id,storeId:plan.storeId||null,personId:guest.id,character:'booth-guest',phase:'idle',outcome:null,scriptedFight:false,throwEmitted:false} : null;
     return snapshot();
   }
   function update(dt,{actor,activity,hasLineOfSight} = {}) {
@@ -114,12 +114,20 @@ export function createInteriorPeople() {
         if (p.stun <= 0 && p.knockdown <= 0) p.reaction = 'compliant';
       }
       if(coerced || p.health<=0 || p.stun>0 || p.knockdown>0 || p.reaction!=='angry')p.attackTimer=0;
-      if (!coerced && p.health>0 && p.reaction==='angry' && p.angerOffender==='player' && p.retaliationCooldown<=0 &&
-          point(actor) && Math.hypot(actor.x-p.x,actor.z-p.z)<=2.1 && typeof hasLineOfSight==='function' && hasLineOfSight(p,actor)) {
+      updateNoodleThrow(p,step,actor,hasLineOfSight);
+      if (encounterState?.personId===p.id && encounterState.scriptedFight && encounterState.phase==='angry' && p.reaction==='calm') {
+        encounterState.phase='interrupted';encounterState.throwEmitted=false;
+      }
+      if (!p.noodleThrow && !coerced && p.health>0 && p.reaction==='angry' && p.angerOffender==='player' && p.retaliationCooldown<=0 &&
+          point(actor) && Math.hypot(actor.x-p.x,actor.z-p.z)<=2.1 && typeof hasLineOfSight==='function' && hasLineOfSight(p,actor) &&
+          (!encounterState?.scriptedFight || encounterState.personId!==p.id || liveThrowTarget(p,actor,hasLineOfSight))) {
         if(emit({type:'retaliation',kind:'melee',x:p.x,z:p.z,personId:p.id,targetId:'player',damage:5})) {
           p.retaliationCooldown=2.2;p.attackTimer=.65;p.attackSerial++;
           p.yaw=Math.atan2(actor.x-p.x,actor.z-p.z);
-          if (encounterState?.personId===p.id && encounterState.phase==='angry') completeEncounter('confrontation');
+          if (encounterState?.personId===p.id && encounterState.phase==='angry') {
+            if (!encounterState.scriptedFight) completeEncounter('confrontation');
+            else if (encounterState.throwEmitted) completeEncounter('noodle-fight');
+          }
         }
       }
       if (coerced || p.reaction !== 'calm' || !p.target) continue;
@@ -134,20 +142,54 @@ export function createInteriorPeople() {
       p.yaw = Math.atan2((p.target.x-p.home.x)*p.direction,(p.target.z-p.home.z)*p.direction);
     }
   }
+  function liveThrowTarget(p,actor,hasLineOfSight) {
+    return p.health>0 && p.stun<=0 && p.knockdown<=0 && !p.crimePhase && point(actor) &&
+      (!finite(actor.health) || actor.health>0) && Math.hypot(actor.x-p.x,actor.z-p.z)<=2.1 &&
+      typeof hasLineOfSight==='function' && hasLineOfSight(p,actor);
+  }
+  function updateNoodleThrow(p,step,actor,hasLineOfSight) {
+    const flight=p.noodleThrow;
+    if (!flight || encounterState?.personId!==p.id) return;
+    const interrupted=p.health<=0 || p.stun>0 || p.knockdown>0 || p.crimePhase || p.reaction!=='angry';
+    if (interrupted) {
+      encounterState.phase='interrupted';encounterState.throwEmitted=false;
+      if (flight.phase==='windup') {p.noodleThrow=null;return;}
+    }
+    // A released bowl follows its captured trajectory even if its target moves away.
+    if (flight.phase==='windup') {
+      if (!liveThrowTarget(p,actor,hasLineOfSight)) return;
+      p.yaw=Math.atan2(actor.x-p.x,actor.z-p.z);
+    }
+    flight.time=Math.min(flight.duration,flight.time+step);
+    if (flight.time<flight.duration) return;
+    if (flight.phase==='windup') {
+      if (!emit({type:'noodles-throw',kind:'noodles',personId:p.id,targetId:'player',x:p.x,z:p.z})) return;
+      encounterState.throwEmitted=true;encounterState.phase='noodle-flight';
+      flight.phase='flight';flight.time=0;flight.duration=THROW_FLIGHT;
+      const y=p.y+(p.seated?p.seatHeight-.90:0)+1.34;
+      flight.from={x:p.x+Math.sin(p.yaw)*.4,y,z:p.z+Math.cos(p.yaw)*.4};
+      flight.to={x:actor.x,y:p.y+1.2,z:actor.z};
+    } else {
+      p.noodleThrow=null;
+      if (encounterState.phase==='noodle-flight') {encounterState.phase='angry';p.retaliationCooldown=.35;}
+    }
+  }
   function emit(event) { if(events.length>=32)return false;events.push(Object.freeze(event));return true; }
-  function encounter() { return Object.freeze({serial:encounterSerial,...(encounterState||{roomId:null,storeId:null,personId:null,character:'booth-guest',phase:'idle',outcome:null})}); }
+  function encounter() { const {scriptedFight,throwEmitted,...state}=encounterState||{};return Object.freeze({serial:encounterSerial,...(encounterState?state:{roomId:null,storeId:null,personId:null,character:'booth-guest',phase:'idle',outcome:null})}); }
   function dialoguePerson(id, actor, hasLineOfSight) {
     return plan && point(actor) && typeof hasLineOfSight==='function' && people.find(p=>p.id===id && p.character==='booth-guest' &&
       p.health>0 && p.stun<=0 && p.knockdown<=0 && !p.crimePhase && p.reaction==='calm' &&
       Math.hypot(actor.x-p.x,actor.z-p.z)<=2.1 && hasLineOfSight(actor,p));
   }
   function nearestDialogue(actor,{hasLineOfSight}={}) {
-    if(!['idle','dialogue'].includes(encounterState?.phase)) return null;
+    if(!['idle','dialogue','interrupted'].includes(encounterState?.phase)) return null;
     const p=dialoguePerson(encounterState.personId,actor,hasLineOfSight);
     return p ? Object.freeze({id:p.id,character:p.character,label:'Talk to the booth guest',x:p.x,z:p.z,radius:2.1}) : null;
   }
-  function startDialogue(id,{actor,hasLineOfSight}={}) {
-    if(!['idle','dialogue'].includes(encounterState?.phase) || !dialoguePerson(id,actor,hasLineOfSight)) return Object.freeze({ok:false,reason:'Move close to the booth guest.'});
+  function startDialogue(id,{actor,hasLineOfSight,scriptedFight=false}={}) {
+    if(!['idle','dialogue','interrupted'].includes(encounterState?.phase) || !dialoguePerson(id,actor,hasLineOfSight)) return Object.freeze({ok:false,reason:'Move close to the booth guest.'});
+    if (encounterState.phase==='interrupted') {encounterState.throwEmitted=false;encounterState.outcome=null;}
+    if (scriptedFight===true) encounterState.scriptedFight=true;
     encounterState.phase='dialogue';
     return Object.freeze({ok:true,dialogue:Object.freeze({id,title:'Booth guest',line:'You left your bag on the floor! Pick it up! Want to argue about it?',
       choices:Object.freeze([Object.freeze({id:'apologise',label:'Sorry, I will move it.'}),Object.freeze({id:'confront',label:'Back off.'})])})});
@@ -159,6 +201,11 @@ export function createInteriorPeople() {
   function respondDialogue(id,choice,{actor,hasLineOfSight}={}) {
     const p=dialoguePerson(id,actor,hasLineOfSight);
     if(encounterState?.phase!=='dialogue' || !p || !['apologise','confront'].includes(choice)) return Object.freeze({ok:false,reason:'The conversation has ended.'});
+    if (encounterState.scriptedFight) {
+      encounterState.throwEmitted=false;encounterState.phase='noodle-windup';if(clearPoint(p))p.seated=false;p.anger=1;p.angerOffender='player';p.reaction='angry';p.reactionTimer=12;
+      p.noodleThrow={actorId:p.id,targetId:'player',phase:'windup',time:0,duration:THROW_WINDUP,from:null,to:null};
+      return Object.freeze({ok:true,message:choice==='apologise'?'Too late! Watch the bowl!':'You want an argument? Here it comes!',outcome:null});
+    }
     if(choice==='apologise') {
       completeEncounter('peaceful');
       return Object.freeze({ok:true,message:'Keep the walkway clear next time.',outcome:'peaceful'});
@@ -240,7 +287,8 @@ export function createInteriorPeople() {
     if (hits.length) report({x,z,offenderId},kind,candidates[0].p);
     return {hits:hits.length,people:hits};
   }
-  function snapshot() { return people.map(({home,target,progress,direction,playerHitTimer,...p})=>Object.freeze({...p,
+  function snapshot() { return people.map(({home,target,progress,direction,playerHitTimer,noodleThrow,...p})=>Object.freeze({...p,
+    noodleThrow:noodleThrow ? Object.freeze({...noodleThrow,from:noodleThrow.from?Object.freeze({...noodleThrow.from}):null,to:noodleThrow.to?Object.freeze({...noodleThrow.to}):null}) : null,
     threatened:playerHitTimer>0,lastPlayerHit:playerHitTimer>0,crimePhase:p.health>0?p.crimePhase:null})); }
   function clear() { plan=null;people=[];elapsed=0;crime=null;reportCooldown=0;events.length=0;encounterState=null; }
   return {load,update,nearestDialogue,startDialogue,respondDialogue,get encounter(){return encounter();},clipMovement,snapshot,clear,strike,alert,setCrime,getCrimeTarget,
