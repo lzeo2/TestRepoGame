@@ -292,7 +292,20 @@ def main():
         page.locator('#search-results button').filter(has_text='Kingston shops').first.click()
         page.locator('#map-route-button').click()
         close('map-dialog')
-        before = wait(lambda s: s.get('guidance') is not None, 'Normal map search and Set route create GPS guidance', 12)
+        before = wait(lambda s: s.get('guidance') is not None and s.get('roadGuidance', {}).get('visible', 0) > 0,
+                      'Normal map search and Set route create GPS and road guidance', 12)
+
+        def road_arrows(state, label):
+            view, car = state['roadGuidance'], state['player']
+            arrows = view['arrows']
+            check(1 <= view['visible'] <= 3 and len(arrows) == view['visible'], label + ' shows one to three actual world arrows')
+            check(all(all(isinstance(arrow.get(k), (int, float)) and math.isfinite(arrow[k]) for k in ('x', 'z', 'y', 'yaw')) for arrow in arrows),
+                  label + ' exposes finite world arrow positions and headings')
+            check(all((arrow['x'] - car['x']) * -math.sin(car['yaw']) + (arrow['z'] - car['z']) * -math.cos(car['yaw']) > 0 for arrow in arrows),
+                  label + ' places every road arrow ahead of the actual car')
+            return arrows
+
+        before_arrows = road_arrows(before, 'Selected driving route')
         guidance = before['guidance']
         check(guidance['kind'] in ('left', 'right', 'uturn') and guidance['distance'] > 0 and guidance['remaining'] >= guidance['distance'],
               'Actual Kingston road route exposes a turn and positive road distance')
@@ -310,7 +323,38 @@ def main():
               'Actual driving changes the distance to the next road turn')
         check(page.locator('#navigation-distance').inner_text() != text_before,
               'Visible GPS distance changes with actual driven progress')
+        after_arrows = road_arrows(after, 'Normally driven route')
+        check(any(math.hypot(a['x'] - b['x'], a['z'] - b['z']) > .5 or
+                  math.hypot((a['x'] - after['player']['x']) - (b['x'] - before['player']['x']),
+                             (a['z'] - after['player']['z']) - (b['z'] - before['player']['z'])) > 1
+                  for a, b in zip(after_arrows, before_arrows)),
+              'Real driving advances world road arrow positions relative to the car')
         brake()
+        capture('world-road-arrows-desktop')
+        # Use the real orbit control so the narrow phone frame includes the
+        # actual road marker when the starter car is beside the public lane.
+        state = snap()
+        car, camera = state['player'], state['camera']
+        arrow = min(state['roadGuidance']['arrows'], key=lambda a: math.hypot(a['x'] - car['x'], a['z'] - car['z']))
+        tx, tz = -math.sin(car['yaw']) * 5, -math.cos(car['yaw']) * 5
+        vx, vz = arrow['x'] - car['x'] - tx, arrow['z'] - car['z'] - tz
+        radius = math.hypot(camera['x'] - car['x'], camera['z'] - car['z'])
+        aa, bb, cc = vx * vx + vz * vz, -2 * (tx * vx + tz * vz), tx * tx + tz * tz - radius * radius
+        along = (-bb + math.sqrt(max(0, bb * bb - 4 * aa * cc))) / (2 * aa)
+        desired = math.atan2(tx - along * vx, tz - along * vz) - car['yaw']
+        desired = math.atan2(math.sin(desired), math.cos(desired))
+        delta = math.atan2(math.sin(camera['orbit'] - desired), math.cos(camera['orbit'] - desired))
+        rect = page.locator('#world canvas').bounding_box()
+        cx, cy = rect['x'] + rect['width'] / 2, rect['y'] + rect['height'] / 2
+        page.mouse.move(cx, cy)
+        page.mouse.down()
+        try:
+            page.mouse.move(cx + delta / .006, cy, steps=12)
+        finally:
+            page.mouse.up()
+        frames()
+        check(abs(math.atan2(math.sin(snap()['camera']['orbit'] - desired), math.cos(snap()['camera']['orbit'] - desired))) < .08,
+              'Normal mouse orbit frames the actual nearby world road arrow')
         page.set_viewport_size({'width': 390, 'height': 844})
         box = page.locator('#navigation-hud').bounding_box()
         check(page.evaluate('document.documentElement.scrollWidth<=innerWidth') and box and box['x'] >= 0 and box['x'] + box['width'] <= 391,
@@ -320,6 +364,16 @@ def main():
         pulse('m')
         capture('gps-next-turn-map')
         close('map-dialog')
+        pulse('e')
+        on_foot = wait(lambda s: s['gameplay']['mode'] == 'foot' and s['roadGuidance']['visible'] == 0,
+                       'Normal E exit hides the driving-only world road arrows', 12)
+        check(on_foot['roadGuidance']['visible'] == 0, 'World road arrows stay hidden during actual on-foot gameplay')
+        pulse('m')
+        page.locator('#clear-route').click()
+        close('map-dialog')
+        cleared = wait(lambda s: s['routePoints'] == 0 and s['destination'] is None and s['roadGuidance']['visible'] == 0,
+                       'Normal map Clear route removes the world arrow route', 12)
+        check(cleared['roadGuidance']['visible'] == 0, 'Cleared routes leave no world road arrows')
         check(snap()['career']['cash'] == 1000 and not snap()['career']['completedJobs'], 'GPS selection and driving preserve the actual career wallet')
 
     def teleport_point(point):
