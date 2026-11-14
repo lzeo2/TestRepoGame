@@ -176,11 +176,14 @@ def main():
         state = challenge(kind)
         check(len(state['sequence']) == length, f'{kind} has {length} explicit sequence keys')
         for index in range(length):
-            page.wait_for_function(f'()=>{{const c={expression};return c?.active&&c.phase==="cue"&&c.index==={index};}}', timeout=10000)
-            state = challenge(kind)
-            visible = page.evaluate('''()=>({count:document.querySelectorAll('#activity-sequence kbd').length,
-                current:[...document.querySelectorAll('#activity-sequence .current')].map(e=>e.dataset.key),
-                cue:document.querySelector('#activity-cue').textContent})''')
+            observed = page.wait_for_function(f'''()=>{{const c={expression};
+                const cue=document.querySelector('#activity-cue').textContent;
+                const current=[...document.querySelectorAll('#activity-sequence .current')].map(e=>e.dataset.key);
+                if(c?.active&&c.phase==="cue"&&c.index==={index}&&c.cueRemaining>.65&&cue.startsWith('PRESS ')&&current[0]===c.expectedKey)
+                    return {{expectedKey:c.expectedKey,count:document.querySelectorAll('#activity-sequence kbd').length,current,cue}};
+                return false;}}''', timeout=10000).json_value()
+            state = observed
+            visible = observed
             check(visible['count'] == length and len(visible['current']) == 1,
                   f'{kind} cue {index+1} identifies one current key in the full sequence')
             check(visible['current'][0] == state['expectedKey'] and visible['cue'].startswith('PRESS '),
@@ -307,6 +310,12 @@ def main():
             pulse('e')
             page.wait_for_function('capitalDriveSnapshot().gameplay.carjacking?.challenge?.active')
             capture('car-unlock-eight-key-sequence')
+            # Capturing a software-rendered frame uses part of the real window.
+            # Cancel normally and retry; never extend or bypass the game clock.
+            pulse('e')
+            check(snap()['gameplay']['carjacking'] is None, 'E cancels the pictured car attempt')
+            pulse('e')
+            page.wait_for_function('capitalDriveSnapshot().gameplay.carjacking?.challenge?.active')
             complete('car', 8)
             page.wait_for_function('capitalDriveSnapshot().gameplay.mode==="vehicle"&&capitalDriveSnapshot().gameplay.vehicle.stolen')
             check(snap()['gameplay']['carjacking'] is None, 'Eight correct normal cue inputs claim the parked car once')
