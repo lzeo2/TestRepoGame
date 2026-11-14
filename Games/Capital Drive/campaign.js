@@ -7,7 +7,8 @@ const freeze = value => {
   return value;
 };
 
-export function createCampaign(map, saved = null) {
+export function createCampaign(map, saved = null, { meetingPoint } = {}) {
+  if (meetingPoint !== undefined && !finitePoint(meetingPoint)) throw new Error('Campaign meeting point must be finite.');
   const place = (id, fallback) => map.landmarks.find(p => p.id === id) || fallback;
   const shop = map.landmarks.find(p => p.store && /coals/i.test(p.name));
   if (!finitePoint(map.spawn) || !finitePoint(shop)) throw new Error('Campaign requires the mapped spawn and Coals.');
@@ -84,7 +85,7 @@ export function createCampaign(map, saved = null) {
   const meeting = freeze({ id: 'three-receipts', name: 'Three receipts', contact: 'Kit, Rowan, Milo and Mara', reward: 200, time: 600,
     briefing: 'All three introductions are complete. Meet on foot at the Kingston public approach. Kit has the stickers, Rowan has a ruined presentation and Milo has the delivery receipt. Mara can connect the depot code.',
     outro: 'Mara: Three strangers, one depot. We follow the parcels together. The late shift starts on the Crescent.',
-    stages: [target(kingston, 'Meet the three couriers at the Kingston public approach', 'foot', { radius: 16, hold: 5 }), target(map.spawn, 'Drive to the Crescent for the late shift', 'drive', { stop: true })] });
+    stages: [target(meetingPoint || kingston, 'Meet the three couriers at the Kingston public approach', 'foot', { radius: 16, hold: 5 }), target(map.spawn, 'Drive to the Crescent for the late shift', 'drive', { stop: true })] });
   const ids = characters.map(c => c.id);
   const emptyIntros = () => Object.fromEntries(ids.map(id => [id, []]));
   const state = { character: null, intros: emptyIntros(), meeting: false, legacy: false, completed: [], active: null, message: 'Choose a character to begin.', failed: false };

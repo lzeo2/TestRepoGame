@@ -1,0 +1,60 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {applyMapExpansion} from '../Games/Capital Drive/map-expansion.js';
+import {createSimulation} from '../Games/Capital Drive/simulation.js';
+import {createCampaignScenes} from '../Games/Capital Drive/campaign-scenes.js';
+import {createCampaign} from '../Games/Capital Drive/campaign.js';
+import {generateParkedCars} from '../Games/Capital Drive/parking-layout.js';
+const read=path=>readFile(new URL(path,import.meta.url),'utf8');
+const map=applyMapExpansion(JSON.parse(await read('../Games/Capital Drive/data/canberra.json')),JSON.parse(await read('../Games/Capital Drive/data/canberra-north.json')));
+const barriers=JSON.parse(await read('../Games/Capital Drive/data/highway-barriers.json')).barriers.filter(item=>item.sourceLayer==='0'&&['no','false','0'].includes(item.sourceBridge));
+map.barriers=[...(map.barriers||[]),...barriers];
+const simulation=createSimulation(map,{trafficCount:0});
+simulation.setParkedCars(generateParkedCars(map,{isClear:(x,z,radius,pose)=>simulation.canOccupy(pose,{length:4.8,width:2})}));
+const scenes=createCampaignScenes(map,simulation), kingston=map.landmarks.find(place=>place.id==='kingston');
+assert(scenes.meetingPoint&&Object.isFrozen(scenes.meetingPoint));
+assert(simulation.canOccupy({...scenes.meetingPoint,yaw:0},{length:1,width:.8}),'meeting goal itself is physically clear');
+assert(Math.hypot(scenes.meetingPoint.x-kingston.x,scenes.meetingPoint.z-kingston.z)<60,'authored approach remains in Kingston');
+const mission={id:'three-receipts',stage:0,target:{...scenes.meetingPoint,radius:16}},pose={x:mission.target.x+6,z:mission.target.z+6,yaw:0};
+const ctx={mode:'campaign',mission,character:'student',pose}, before=structuredClone(ctx);
+scenes.update(ctx,.1);assert.deepEqual(ctx,before,'cast never changes player pose or campaign state');
+assert.equal(scenes.people.length,2,'actual expanded-map Kingston supports both other protagonists with source rails and parked cars');
+assert.deepEqual(scenes.people.map(p=>p.appearanceId),['player:corporate','player:basement']);
+assert(Object.isFrozen(scenes.people)&&scenes.people.every(Object.isFrozen));
+for(const person of scenes.people){
+ assert(simulation.canOccupy(person,{length:1,width:.8}),'cast avoids source bodies/water/barriers and cars');
+ assert(Math.hypot(person.x-mission.target.x,person.z-mission.target.z)<=12);
+ assert(map.roads.some(road=>String(road.id)===person.sourceRoadId));
+}
+assert(Math.hypot(scenes.people[0].x-scenes.people[1].x,scenes.people[0].z-scenes.people[1].z)>=1.2);
+assert.equal(scenes.dialogueLines.length,2);assert(Object.isFrozen(scenes.dialogueLines));
+const paused=scenes.people;scenes.update(ctx,0);assert.equal(scenes.people,paused,'zero dt freezes cast descriptors');
+scenes.update({...ctx,paused:true},.1);assert.equal(scenes.people,paused,'pause freezes gestures');
+scenes.update(ctx,.1);assert(scenes.people[0].gesturePhase>paused[0].gesturePhase);
+for(const invalid of [{mode:'free'},{recovering:true},{interior:{}},{mission:null},{mission:{...mission,stage:1}},{mission:{...mission,id:'late-parcel'}}]){
+ scenes.update({...ctx,...invalid},.1);assert.equal(scenes.people.length,0,'scene exists only in the outside campaign meeting stage');scenes.update(ctx,.1);
+}
+scenes.update({...ctx,character:'basement'},.1);assert.deepEqual(scenes.people.map(p=>p.appearanceId),['player:student','player:corporate']);
+const blocked=createCampaignScenes(map,{canOccupy:()=>false,moveActor:()=>{throw Error('blocked candidates must not sweep');}});
+blocked.update(ctx,.1);assert.equal(blocked.people.length,0,'blocked cast is omitted rather than teleported');
+const original=createCampaignScenes(map,simulation);original.update({...ctx,mission:{...mission,target:{...kingston,radius:16}}},.1);assert.equal(original.people.length,0,'unsafe schematic landmark centre does not invent source pavement');
+const saved={version:2,character:'student',intros:{student:['student-paper-chase','student-extra-credit'],corporate:['corporate-present-tense','corporate-lunch-breakpoint'],basement:['basement-touch-grass','basement-first-delivery']},meeting:false,legacy:false,completed:[]};
+const campaign=createCampaign({...map,landmarks:[...map.landmarks,{id:'fixture-coals',name:'Coals',store:true,x:0,z:0}]},saved,{meetingPoint:scenes.meetingPoint});assert.equal(campaign.current().stages[0].x,scenes.meetingPoint.x);
+const url=source=>`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
+const threeURL=url(await read('../assets/car-arcade/vendor/three.module.js')),THREE=await import(threeURL);
+const personURL=url((await read('../Games/Capital Drive/person-model.js')).replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL)));
+const {appearanceForPerson}=await import(personURL);
+const {createCampaignScenesView}=await import(url((await read('../Games/Capital Drive/campaign-scenes-view.js')).replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL)).replace("'./person-model.js'",JSON.stringify(personURL))));
+const scene=new THREE.Scene(),view=createCampaignScenesView(scene,()=>4),root=scene.children[0];
+view.update(scenes.people,mission.target);assert.equal(view.stats.people,2);assert.equal(view.stats.drawCalls,7);assert.equal(view.stats.geometries,3);assert.equal(view.stats.materials,1);
+const torso=root.getObjectByName('Meeting torso'),tint=new THREE.Color();
+scenes.people.forEach((p,i)=>{torso.getColorAt(i,tint);assert.equal(tint.getHex(),appearanceForPerson(p.appearanceId).shirt);});
+const resources=root.children.map(mesh=>[mesh.geometry,mesh.instanceMatrix.array,mesh.instanceColor.array]);
+const initialArm=[...root.getObjectByName('Meeting arms').instanceMatrix.array];scenes.update({...ctx,character:'basement'},.1);view.update(scenes.people,mission.target);assert.notDeepEqual([...root.getObjectByName('Meeting arms').instanceMatrix.array],initialArm,'supplied gesture phase animates a talking hand');
+for(let i=0;i<200;i++){scenes.update({...ctx,character:'basement'},.1);view.update(scenes.people,mission.target);root.children.forEach((mesh,n)=>{assert.equal(mesh.geometry,resources[n][0]);assert.equal(mesh.instanceMatrix.array,resources[n][1]);assert.equal(mesh.instanceColor.array,resources[n][2]);});}
+view.update(scenes.people,{x:9999,z:9999});assert.equal(view.stats.drawCalls,0);
+view.update([{...scenes.people[0],x:NaN}],mission.target);assert.equal(view.stats.people,0);
+const geometries=new Set(root.children.map(mesh=>mesh.geometry));let released=0,instances=0,materials=0;
+geometries.forEach(g=>g.addEventListener('dispose',()=>released++));root.children.forEach(m=>m.addEventListener('dispose',()=>instances++));root.children[0].material.addEventListener('dispose',()=>materials++);
+view.dispose();view.dispose();view.update(scenes.people,mission.target);assert.equal(released,3);assert.equal(instances,7);assert.equal(materials,1);assert.equal(scene.children.length,0);
+console.log(`PASS transient three-character meeting: actual expanded Kingston source roads/rails/parked clearance, immutable guards/pause, shared identities, gestures, seven stable pooled draws and exact disposal; approach ${scenes.meetingPoint.x.toFixed(3)},${scenes.meetingPoint.z.toFixed(3)}`);
