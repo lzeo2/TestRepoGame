@@ -519,8 +519,11 @@ function openCampaign(){
   openDialog('campaign-dialog');
 }
 function openNpcDialogue(person){
-  const result=roomPeople.startDialogue(person.id,{actor:focus(),hasLineOfSight:visible});
-  if(!result.ok){notify(result.message||'Move closer.');return;}
+  const lunch=gameMode==='campaign'&&campaign.state.character==='corporate'&&campaign.state.active?.id==='corporate-lunch-breakpoint';
+  if(lunch&&campaign.state.active.stage===0){notify('Visit the counter before speaking to the booth guest.');return;}
+  const scriptedFight=lunch&&campaign.state.active.target.kind==='encounter';
+  const result=roomPeople.startDialogue(person.id,{actor:focus(),hasLineOfSight:visible,scriptedFight});
+  if(!result.ok){notify(result.reason||result.message||'Move closer.');return;}
   const dialogue=result.dialogue;dialogueId=dialogue.id;
   $('npc-title').textContent=dialogue.title;$('npc-line').textContent=dialogue.line;$('npc-status').textContent='';
   $('npc-choices').replaceChildren();
@@ -528,7 +531,7 @@ function openNpcDialogue(person){
     const button=document.createElement('button');button.textContent=choice.label;button.dataset.dialogueChoice=choice.id;
     button.addEventListener('click',()=>{
       const answer=roomPeople.respondDialogue(dialogueId,choice.id,{actor:focus(),hasLineOfSight:visible});
-      if(!answer.ok){$('npc-status').textContent=answer.message||'Conversation ended.';return;}
+      if(!answer.ok){$('npc-status').textContent=answer.reason||answer.message||'Conversation ended.';return;}
       closeDialogs();notify(answer.message);dialogueId=null;
     });$('npc-choices').append(button);
   }
@@ -1304,7 +1307,7 @@ function animate(time) {
       activities.step(1/60,miniInput(),{...careerContext(),visible:!miniState.station||visible(focus(),miniState.station)});
       streetDealers.update(1/60,{focus:focus(),wanted:gameplay.state.wanted,shots:gameplay.state.shots});
       roomPeople.setCrime(progression.state.activity);pedestrians.setCrime(progression.state.activity);
-      roomPeople.update(1/60,{actor:gameplay.state.actor,activity:activities.snapshot(),hasLineOfSight:visible});
+      roomPeople.update(1/60,{actor:{...gameplay.state.actor,health:gameplay.state.health},activity:activities.snapshot(),hasLineOfSight:visible});
       micromobility?.step(1/60,{throttle:Math.max(0,input().throttle),brake:Math.max(0,-input().throttle),steer:input().steer},{pose:gameplay.state.actor,onFoot:gameplay.state.mode==='foot',recovering:!!gameplay.state.recovery,moveActor:moveBody});
       updateRentalHack(1/60);
       campaign.update(1/60,careerContext());
