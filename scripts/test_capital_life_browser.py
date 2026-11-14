@@ -418,6 +418,14 @@ def main():
                 page.set_viewport_size({'width':width,'height':height})
                 page.locator('#campaign-start').click()
                 page.locator('#cutscene-dialog').wait_for(state='visible')
+                check(page.evaluate("document.activeElement?.id==='cutscene-skip'"),'Cutscene '+label+' initially focuses Skip')
+                page.keyboard.press('Tab')
+                check(page.evaluate("document.activeElement?.id==='cutscene-cancel'"),'Cutscene '+label+' Tab reaches Back to briefing')
+                page.keyboard.press('Tab')
+                check(page.evaluate("document.activeElement?.id==='cutscene-skip'"),'Cutscene '+label+' Tab wraps within the overlay')
+                page.keyboard.press('Shift+Tab')
+                check(page.evaluate("document.activeElement?.id==='cutscene-cancel'"),'Cutscene '+label+' Shift+Tab wraps within the overlay')
+                check(page.evaluate("[...document.querySelector('#game').children].filter(e=>e.id!=='cutscene-dialog').every(e=>e.inert)"),'Cutscene '+label+' makes background siblings inert')
                 dom=page.evaluate("""()=>{
                   const describe=e=>{const s=getComputedStyle(e),r=e.getBoundingClientRect();return {tag:e.tagName,id:e.id,className:e.className,open:e.open??null,rect:{x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom},display:s.display,visibility:s.visibility,background:s.backgroundColor,opacity:s.opacity,position:s.position,zIndex:s.zIndex,before:{background:getComputedStyle(e,'::before').backgroundColor,height:getComputedStyle(e,'::before').height},after:{background:getComputedStyle(e,'::after').backgroundColor,height:getComputedStyle(e,'::after').height}}};
                   return {viewport:{width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth},selected:['#cutscene-dialog','.cutscene-caption','#toast'].map(s=>describe(document.querySelector(s))),points:[100,200].map(y=>({x:Math.min(640,innerWidth/2),y,stack:document.elementsFromPoint(Math.min(640,innerWidth/2),y).map(describe),opaqueCovering:[...document.querySelectorAll('body *')].filter(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.left<Math.min(640,innerWidth/2)&&r.right>Math.min(640,innerWidth/2)&&r.top<y&&r.bottom>y&&s.display!=='none'&&s.visibility!=='hidden'&&s.backgroundColor!=='rgba(0, 0, 0, 0)'&&s.opacity!=='0';}).map(describe)}))};
@@ -433,6 +441,11 @@ def main():
                 check(caption['y']>height*.45 and caption['bottom']<=height,'Cutscene '+label+' places readable captions at the bottom')
                 capture('cutscene-ui-'+label)
                 if label=='desktop':
+                    page.keyboard.press('Escape')
+                    page.locator('#campaign-dialog').wait_for(state='visible')
+                    check(snap()['campaign']['active'] is None and snap()['career']['cash']==1000,'Cutscene UI actual Escape returns to briefing without mission or reward')
+                    page.locator('#campaign-start').click()
+                    page.locator('#cutscene-dialog').wait_for(state='visible')
                     page.locator('#cutscene-cancel').click()
                     page.locator('#campaign-dialog').wait_for(state='visible')
                     check(snap()['campaign']['active'] is None,'Cutscene UI normal Cancel retains the briefing without starting a mission')
@@ -440,6 +453,7 @@ def main():
                     page.locator('#cutscene-skip').click()
                     wait(lambda s:s['campaign']['active'] is not None,'Cutscene UI normal Skip starts the actual mission')
                     check(snap()['career']['cash']==1000,'Cutscene UI inputs do not grant career rewards')
+                    check(page.evaluate("[...document.querySelector('#game').children].every(e=>!e.inert)"),'Cutscene Skip restores background interaction')
         finally:
             finish_context(context,'cutscene-ui')
 
