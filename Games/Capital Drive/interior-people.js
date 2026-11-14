@@ -79,6 +79,12 @@ export function createInteriorPeople() {
       for (const counter of furniture.filter(f=>f.kind==='counter')) {
         const p = world(counter,0,counter.depth/2+.65); add('shopkeeper',p,{yaw:counter.yaw+Math.PI,gesture:'serve'});
       }
+    } else if (plan.type === 'school') {
+      for (const side of [-1,1]) {
+        for (const z of [3,7.5,12]) {
+          if (pocket(side<0?'custodian':'school-staff',side*2.6,z,true)) break;
+        }
+      }
     } else if (plan.type === 'gym') {
       let count = 0;
       for (let z=3;z<plan.depth-1 && count<5;z+=2.2) for (const side of [-1,1]) {
