@@ -497,7 +497,17 @@ export function createSimulation(map, options = {}) {
       const targetZ = pose.z - (car.overtake > 0 ? car.edge.dx * passOffset : 0);
       const movement = moveVehicle(car, targetX - car.x, targetZ - car.z);
       if (movement.blocked) { car.edge = priorEdge; car.position = priorPosition; car.x = priorPose.x; car.z = priorPose.z; car.speed = 0; }
-      else car.yaw += angleDelta(car.yaw, pose.yaw) * Math.min(1, dt * 9);
+      else {
+        const turn = angleDelta(car.yaw, pose.yaw) * Math.min(1, dt * 9);
+        const turnSteps = Math.max(1, Math.ceil(Math.abs(turn) / 0.05));
+        // Translation was swept with the prior heading. Check the rotating body
+        // too, so a turning corner cannot overlap and permanently lock its peer.
+        for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
+          const nextPose = { x: car.x, z: car.z, yaw: car.yaw + turn / turnSteps };
+          if (!canOccupy(nextPose, { ignoreId: car.id })) break;
+          car.yaw = nextPose.yaw;
+        }
+      }
     }
   }
   function resolveImpact(nx, nz, depth) {
