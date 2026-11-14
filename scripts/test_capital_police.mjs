@@ -16,9 +16,9 @@ const simulation=createSimulation(map,{trafficCount:0});
 Object.assign(simulation.player,{x:-150,z:-150});
 const edge=simulation.graph.edges[0],start=pointOnLane(edge,10);
 const unit={id:'police:fixture',...start,speed:0,health:100,mode:'vehicle',car:{id:'police:fixture',...start,speed:0,active:true,length:4.8,width:1.9}};
-const state={police:[unit],wanted:1,sandbox:false,mode:'vehicle',heat:100};
-// Suppress extra spawns for this isolated road-following test.
-const near=simulation.nearestRoad,occupy=simulation.canOccupy;simulation.nearestRoad=()=>null;simulation.canOccupy=()=>false;
+// Disabled units fill the other slots without replacing physical queries.
+const disabled=()=>[1,2,3].map(i=>({id:`disabled:${i}`,x:-150,z:-150,health:0,mode:'vehicle'}));
+const state={police:[unit,...disabled()],wanted:1,sandbox:false,mode:'vehicle',heat:100};
 const target={x:90,z:102,speed:12};
 const controller=createPolice(simulation);controller.report(target);
 let maximumStep=0,maximumTurn=0,turned=false,moved=0;
@@ -30,7 +30,38 @@ for(let i=0;i<1200;i++) {
   if(unit.car.z<70) assert(unit.car.x<20,'does not cut diagonally toward the target');
 }
 assert(moved>50);assert(turned);assert(maximumStep<0.4);assert(maximumTurn<=1.1/60+1e-8);
-simulation.nearestRoad=near;simulation.canOccupy=occupy;
+// An actual patrol turning at the bend must keep its corner clear of a standing adult.
+const turning=createSimulation(map,{trafficCount:0});
+Object.assign(turning.player,{x:-150,z:-150});
+const turnStart=pointOnLane(turning.graph.edges[0],98);
+const patrol={id:'turning-patrol',...turnStart,speed:6,length:4.8,width:1.9,active:true};
+const turningUnit={id:patrol.id,...turnStart,health:100,mode:'vehicle',car:patrol};
+const turningState={police:[turningUnit,...disabled()],wanted:3,mode:'vehicle',heat:100};
+const standing={id:'standing-adult',x:patrol.x+2.2,z:patrol.z+1.302,radius:.35};
+function personGap(pose) {
+  const dx=standing.x-pose.x,dz=standing.z-pose.z;
+  const across=Math.abs(Math.cos(pose.yaw)*dx-Math.sin(pose.yaw)*dz)-patrol.width/2;
+  const along=Math.abs(Math.sin(pose.yaw)*dx+Math.cos(pose.yaw)*dz)-patrol.length/2;
+  return Math.hypot(Math.max(0,across),Math.max(0,along))+Math.min(0,Math.max(across,along))-standing.radius;
+}
+assert(personGap(patrol)>0,'adult begins just clear of the patrol corner');
+turning.setExternalVehicles([patrol]);turning.setExternalPeople([standing]);
+const turnController=createPolice(turning);turnController.report(target);
+let acceptedTurns=0;
+for(let i=0;i<120;i++) {
+  const before={...patrol};turnController.step(1/60,turningState,target);
+  if(i===0) assert.equal(patrol.yaw,before.yaw,'blocked corner rotation preserves the prior heading');
+  if(patrol.yaw!==before.yaw) acceptedTurns++;
+  for(let sample=0;sample<=40;sample++) {
+    const t=sample/40;
+    assert(personGap({...before,yaw:before.yaw+(patrol.yaw-before.yaw)*t})>=-1e-8,'every sampled turning corner stays clear');
+    assert(personGap({...patrol,x:before.x+(patrol.x-before.x)*t,z:before.z+(patrol.z-before.z)*t})>=-1e-8,'translation after heading selection stays clear');
+  }
+  assert(Math.hypot(patrol.x-before.x,patrol.z-before.z)<.5,'person contact never teleports the patrol');
+}
+assert(acceptedTurns>0,'patrol resumes turning once its corner clears the adult');
+assert.deepEqual(standing,{id:'standing-adult',x:turnStart.x+2.2,z:turnStart.z+1.302,radius:.35},'patrol never pushes the adult');
+console.log('Capital police: registered standing adult blocks corner rotation with dense turn/translation clearance PASS');
 // A stopped patrol leaves a persistent car, pursues on foot and returns to it.
 Object.assign(unit,{x:0,z:0,mode:'vehicle'});Object.assign(unit.car,{x:0,z:0,speed:0,yaw:0});
 state.mode='foot';state.wanted=1;target.x=3;target.z=0;target.speed=0;
