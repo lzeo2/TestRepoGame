@@ -5,6 +5,25 @@ import { createProgression } from '../Games/Capital Drive/progression.js';
 import { createEquipment } from '../Games/Capital Drive/equipment.js';
 import { createEquipmentView } from '../Games/Capital Drive/equipment-view.js';
 import { createStreetUI } from '../Games/Capital Drive/street-ui.js';
+import { createSimulation } from '../Games/Capital Drive/simulation.js';
+
+// The checked throw path starts beside the thrower, who is now a live body.
+{
+  const source={bounds:{minX:-50,maxX:50,minZ:-50,maxZ:50},roads:[],buildings:[],spawn:{x:30,z:30,yaw:0}};
+  const simulation=createSimulation(source,{trafficCount:0});
+  const person={id:'player-body',x:0,z:0,radius:.35};
+  simulation.setExternalPeople([person]);
+  let debits=0;
+  const gear=createEquipment({consumeFlare:()=>{debits++;return true;},heightAt:()=>0,
+    hasLineOfSight:simulation.hasLineOfSight,canOccupy:simulation.canOccupy});
+  const context={pose:{x:0,z:0,yaw:0},onFoot:true,sandbox:false};
+  assert(gear.throwFlare(context).ok,'thrower own body does not block the checked flare path');
+  assert.equal(debits,1);
+  gear.reset();
+  simulation.setExternalPeople([person,{id:'other-adult',x:0,z:-2,radius:.32}]);
+  assert(!gear.throwFlare(context).ok,'other adults still block flare placement');
+  assert.equal(debits,1,'blocked throw never spends inventory');
+}
 
 const map = JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra.json', import.meta.url), 'utf8'));
 const legacy = { version: 1, cash: 5000, ownedVehicles: [{ id: 'lantern', color: '#e7e6df', health: 100, stored: false }], completedJobs: [], equipment: { pistol: false } };

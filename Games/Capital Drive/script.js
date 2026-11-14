@@ -101,7 +101,7 @@ let mapSelection = null, mapDrag = null;
 const mapView = { zoom: 1, x: null, z: null };
 const pedestrianFocus={id:'player',x:0,z:0,yaw:0,speed:0};
 const occupantPoses=new Map(),occupantInputs=[];
-const pedestrianContacts=[],externalPeopleContacts=[];
+const pedestrianContacts=[],externalPeopleContacts=[],auxiliaryContacts=[];
 const playerContact={id:'player-body',x:0,z:0,radius:.35};
 const desiredCamera = new THREE.Vector3(), lookTarget = new THREE.Vector3();
 function freezeCopy(value) {
@@ -1162,14 +1162,20 @@ function syncExternalVehicles(){
 }
 function syncExternalPeople(){
   externalPeopleContacts.length=0;
+  let count=0;
+  const add=(person,radius)=>{
+    const body=auxiliaryContacts[count]||(auxiliaryContacts[count]={});count++;
+    body.id=person.id;body.x=person.x;body.z=person.z;body.radius=radius;body.active=person.active!==false;
+    externalPeopleContacts.push(body);
+  };
   for(const person of pedestrians.writeContacts(pedestrianContacts))externalPeopleContacts.push(person);
-  for(const person of streetDealers.snapshot())externalPeopleContacts.push(person);
-  for(const person of rideService?.people||[])if(person.active)externalPeopleContacts.push(person);
-  for(const officer of gameplay.state.police)if(officer.health>0&&officer.mode==='foot')externalPeopleContacts.push(officer);
+  for(const person of streetDealers.snapshot())add(person,.34);
+  for(const person of rideService?.people||[])if(person.active)add(person,.38);
+  for(const officer of gameplay.state.police)if(officer.health>0&&officer.mode==='foot')add(officer,.35);
   const job=progression.state.activeJob;
   if(job?.type==='ride'&&job.stage===0&&!job.passenger){
     const pose=job.waitingPose||job.target;
-    if(pose)externalPeopleContacts.push({id:'waiting-fare',x:pose.x,z:pose.z,radius:.32});
+    if(pose)add({id:'waiting-fare',x:pose.x,z:pose.z},.32);
   }
   if(!interiors.active&&gameplay.state.mode==='foot'&&!gameplay.state.passenger&&!gameplay.state.recovery){
     playerContact.x=gameplay.state.actor.x;playerContact.z=gameplay.state.actor.z;

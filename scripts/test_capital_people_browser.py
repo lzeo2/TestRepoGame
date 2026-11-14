@@ -149,11 +149,15 @@ def main():
                 state = record('native Free roam driving', 'capitalDriveSnapshot()')
                 check(state['pedestrians']['visible'] > 0, 'Native Free roam has visible pedestrian batches')
                 check(state['occupants']['drivers'] > 0, 'Native Free roam has visible traffic-driver batches')
+                check(state['peopleContacts']['count'] >= state['pedestrians']['count'] + len(state['streetDealers']['people'])
+                      and state['peopleContacts']['queries'] > 0, 'Vehicle collision index includes street people and dealer bodies')
                 page.locator('#world canvas').focus()
                 page.keyboard.press('e')
                 page.wait_for_function('capitalDriveSnapshot().gameplay.mode==="foot"&&capitalDriveSnapshot().actors.playerVisible', timeout=15000)
                 before = record('native E exit', 'capitalDriveSnapshot()')
                 check(before['actors']['playerVisible'], 'Normal E exit displays the adult player')
+                check(before['peopleContacts']['count'] >= before['pedestrians']['count'] + len(before['streetDealers']['people']) + 1,
+                      'Normal exit adds the on-foot player body to vehicle contacts')
                 page.keyboard.down('w')
                 try:
                     page.wait_for_timeout(450)

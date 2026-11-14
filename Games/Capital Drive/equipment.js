@@ -18,7 +18,7 @@ export function createEquipment({ consumeFlare, hasLineOfSight, canOccupy, heigh
     for (let distance = .5; distance <= REACH; distance += .5) {
       const next = { x: ctx.pose.x - Math.sin(yaw) * distance, z: ctx.pose.z - Math.cos(yaw) * distance, yaw };
       const y = heightAt(next.x, next.z);
-      if (!Number.isFinite(y) || Math.abs(y - startY) > 1.5 || !hasLineOfSight(ctx.pose, next) || !canOccupy(next, { length: 1, width: .5 }))
+      if (!Number.isFinite(y) || Math.abs(y - startY) > 1.5 || !hasLineOfSight(ctx.pose, next) || !canOccupy(next, { length: 1, width: .5, ignorePersonId: 'player-body' }))
         return failure('No clear flare landing point.');
       target = { ...next, y };
     }
