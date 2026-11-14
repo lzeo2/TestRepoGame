@@ -304,6 +304,7 @@ function refreshModeUI() {
   $('teleport-button').disabled = !isSandbox() || !mapSelection;
   $('recover-button').hidden = !isSandbox();
   $('jobs-button').hidden = isSandbox();
+  $('dev-code-section').hidden=isSandbox();
   $('store-car-button').hidden = isSandbox();
   $('paint-label').textContent = isSandbox() ? 'Paint' : `Paint · $${progression.garage.paintCost}`;
   $('repair-car-button').textContent = isSandbox() ? 'Repair vehicle' : `Repair · $${progression.garage.repairCost}`;
@@ -317,6 +318,7 @@ function openDialog(id) {
   if (!simulation || !started) return;
   clearInput();
   for (const d of dialogs) if (d.open) d.close();
+  if(id==='pause-dialog')resetDevEntry();
   $(id).showModal();
   if (id === 'map-dialog') { refreshModeUI(); fitMapCanvas(); drawMap($('full-map'), true); }
 }
@@ -327,6 +329,18 @@ $('map-button').addEventListener('click', () => openDialog('map-dialog'));
 $('minimap-button').addEventListener('click', () => openDialog('map-dialog'));
 $('pause-button').addEventListener('click', () => openDialog('pause-dialog'));
 $('pause-garage-button').addEventListener('click', () => { streetUI.renderGarage(); openDialog('garage-dialog'); });
+function resetDevEntry(){
+  $('dev-code-section').open=false;$('dev-code-input').value='';$('dev-code-status').textContent='';
+}
+$('pause-dialog').addEventListener('close',resetDevEntry);
+$('dev-code-form').addEventListener('submit',event=>{
+  event.preventDefault();
+  const value=$('dev-code-input').value;$('dev-code-input').value='';
+  if(!started||!$('pause-dialog').open||isSandbox())return;
+  const result=progression.redeemDevCode(value,careerContext());
+  if(result.ok){saveCareer();streetUI.refresh();}
+  $('dev-code-status').textContent=result.ok?(careerError?'Applied for this session. Saving is unavailable.':'Applied.'):result.message;
+});
 $('resume-button').addEventListener('click', closeDialogs);
 $('start-button').addEventListener('click', () => {
   if (!simulation || !gameplay || !streetUI) return;
