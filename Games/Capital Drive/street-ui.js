@@ -1,3 +1,4 @@
+import {WEAPONS,weaponById} from './weapons.js';
 // DOM adapter only. World movement, career time and persistence belong to the controller.
 export function createStreetUI({ gameplay, progression, simulation, vehicles, notify,
   openDialog, closeDialogs, onVehicleSelected, onRoute, saveCareer, isSandbox,campaign,isCampaign=()=>false,onJobs,interactionHint=()=>null,onWorkout }) {
@@ -7,7 +8,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
   const context = () => ({ pose: gameplay.focus(), onFoot: gameplay.state.mode === 'foot',
     vehicle: { ...gameplay.state.vehicle, color: paintColor(gameplay.state.vehicle.color) }, wanted: gameplay.state.wanted,
     vehicleHealth: gameplay.state.vehicleHealth, respawnSerial: gameplay.state.respawnSerial,health:gameplay.state.health,
-    weapon:gameplay.state.weapon,reserveAmmo:gameplay.state.reserveAmmo,recovering:!!gameplay.state.recovery,sandbox:sandbox() });
+    weapon:gameplay.state.weapon,reserveAmmo:gameplay.state.reserveAmmo,ammunition:Object.fromEntries(WEAPONS.map(w=>[w.id,gameplay.getAmmo(w.id)])),recovering:!!gameplay.state.recovery,sandbox:sandbox() });
   const remember = () => progression.update(0, context());
   const money = value => `$${Math.round(value).toLocaleString('en-AU')}`;
   const paintColor = value => typeof value === 'number' ? `#${value.toString(16).padStart(6, '0')}` : value;
@@ -116,7 +117,8 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
     text('wanted-level','★'.repeat(state.wanted)+'☆'.repeat(5-state.wanted));
     const stars=byId('wanted-level');if(stars){stars.setAttribute('aria-label',`Wanted ${state.wanted} of 5 stars`);stars.dataset.pursuit=state.pursuit;}
     text('pursuit-status', sandbox() ? 'No police' : state.pursuit === 'pursuit' ? 'In sight' : state.pursuit === 'search' ? 'Searching' : 'Clear');
-    text('weapon-label', state.weapon === 'pistol' ? state.reloading > 0 ? 'Pistol · reloading' : `Pistol · ${state.ammo}/${state.reserveAmmo}` : 'Fists');
+    const armed=weaponById(state.weapon);
+    text('weapon-label',armed?`${armed.name} · ${state.reloading>0?'reloading':`${state.ammo}/${state.reserveAmmo}`}`:'Fists');
     text('job-title', activity?.name||active?.name||'');
     text('job-description', activity?progression.services.find(s=>s.id===activity.serviceId)?.name:active?.target.label||'');
     const job = active && (mission?campaign.chapters:progression.jobs).find(item => item.id === active.id);
@@ -142,38 +144,53 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
   function renderServices(){
     const container=byId('services-list');if(!container)return;container.replaceChildren();
     const ctx=context();
-    for(const site of [...progression.services].sort((a,b)=>Math.hypot(a.x-ctx.pose.x,a.z-ctx.pose.z)-Math.hypot(b.x-ctx.pose.x,b.z-ctx.pose.z))){
+    const filter=byId('services-filter')?.value||'all';
+    for(const site of [...progression.services].filter(site=>filter==='all'||site.type===filter).sort((a,b)=>Math.hypot(a.x-ctx.pose.x,a.z-ctx.pose.z)-Math.hypot(b.x-ctx.pose.x,b.z-ctx.pose.z))){
       const entry=document.createElement('article');entry.className='job-option';entry.dataset.serviceId=site.id;
       const title=document.createElement('h3');title.textContent=site.name;
       const detail=document.createElement('p');detail.textContent=`${site.road} · ${Math.round(Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z))} m`;
       const row=document.createElement('div');row.className='button-row service-actions';
       const route=actionButton('Route',()=>{onRoute(site);closeDialogs();});route.dataset.serviceRoute=site.id;row.append(route);
       const available=!sandbox()&&ctx.onFoot&&!ctx.recovering&&Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)<=site.radius&&!progression.state.activity&&progression.canUseService(site,ctx);
-      const purchase=(label,item,cost,blocked=false)=>{
+      const reason=sandbox()?'Purchases are available in Street Life and Campaign.':ctx.recovering?'Recover before trading.':!ctx.onFoot?'Step out of your vehicle to trade.':ctx.wanted>0?'Lose your wanted stars before trading.':progression.state.activity?'Finish your current activity first.':Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)>site.radius?'Follow the route and move closer to this location.':!progression.canUseService(site,ctx)?(site.dealer?'This contact is not trading right now.':'Enter the shop and approach its counter.') :'';
+      const status=document.createElement('p');status.className='service-state';status.textContent=reason||`Ready to trade · Cash ${money(progression.state.cash)}`;
+      const purchase=(label,item,cost,blocked='')=>{
+        const why=reason||blocked||(progression.state.cash<cost?'Not enough cash.':'');
         const b=actionButton(label,()=>{
           const r=progression.purchaseService(site.id,item,context());
-          if(r.ok){if(r.heal)gameplay.heal(r.heal);if(r.ammo)gameplay.addAmmo(r.ammo);if(r.pistol)gameplay.setWeapon('pistol');}
+          if(r.ok){if(r.heal)gameplay.heal(r.heal);if(r.ammo)gameplay.addAmmo(r.ammo,r.weaponId);if(r.weaponId&&item!== 'ammo'&&!item.startsWith('ammo:'))gameplay.setWeapon(r.weaponId);}
           feedback(r,true);renderServices();
-        });b.dataset.serviceItem=item;b.disabled=!available||ctx.wanted>0||progression.state.cash<cost||blocked;row.append(b);
+        });b.dataset.serviceItem=item;b.dataset.reason=why;b.title=why;b.disabled=!!why;
+        if(!reason&&(blocked||progression.state.cash<cost)){const note=document.createElement('small');note.textContent=blocked||'Not enough cash';b.append(document.createElement('br'),note);}
+        row.append(b);
       };
       const activity=(label,type,blocked=false)=>{
         const b=actionButton(label,()=>{const r=feedback(progression.startActivity(site.id,type,context()));if(r.ok)closeDialogs();else renderServices();});
-        b.dataset.serviceActivity=type;b.disabled=!available||!!progression.state.activeJob||blocked;row.append(b);
+        b.dataset.serviceActivity=type;b.disabled=!available||!!progression.state.activeJob||blocked;b.dataset.reason=!available?reason:progression.state.activeJob?'Finish your active job first.':blocked?(progression.state.robberyCooldowns[site.id]>0?'The till is recovering.':'Equip an owned firearm first.'):'';b.title=b.dataset.reason;row.append(b);
       };
       if(site.type==='food'||site.type==='retail'){
-        if(site.type==='food')purchase(`Food ${money(site.price)} · +${site.heal} health`,'food',site.price,ctx.health>=100);
-        activity('Rob till','robbery',!progression.state.equipment.pistol||ctx.weapon!=='pistol'||progression.state.robberyCooldowns[site.id]>0);
+        if(site.type==='food')purchase(`Food ${money(site.price)} · +${site.heal} health`,'food',site.price,ctx.health>=100?'Health is full.':'');
+        activity('Rob till','robbery',!weaponById(ctx.weapon)||!progression.state.equipment[ctx.weapon]||progression.state.robberyCooldowns[site.id]>0);
       }else if(site.type==='gym'){
         const price=site.price*(progression.state.fitnessLevel+1);
         detail.textContent+=` · Fitness ${progression.state.fitnessLevel}/3`;
         const train=actionButton('Use the bench',()=>onWorkout?.());train.disabled=sandbox()||!available||ctx.wanted>0;row.append(train);
       }else{
-        purchase(`Pistol ${money(site.price)}`,'pistol',site.price,progression.state.equipment.pistol);
-        purchase(`24 rounds ${money(site.ammoPrice)}`,'ammo',site.ammoPrice,!progression.state.equipment.pistol||ctx.reserveAmmo>96);
+        row.classList.add('weapon-stock');
+        for(const weapon of WEAPONS.filter(w=>!site.weaponIds||site.weaponIds.includes(w.id))){
+          const owned=!!progression.state.equipment[weapon.id],reserve=ctx.ammunition[weapon.id].reserveAmmo,multiplier=site.priceMultiplier||1;
+          purchase(`${weapon.name} ${money(Math.ceil(weapon.price*multiplier))}`,weapon.id,Math.ceil(weapon.price*multiplier),owned?'Owned':'');
+          const cap=weapon.id==='pistol'?120:weapon.reserveCap;
+          purchase(`${weapon.ammoPack} ${weapon.name} rounds ${money(Math.ceil(weapon.ammoPrice*multiplier))}`,`ammo:${weapon.id}`,Math.ceil(weapon.ammoPrice*multiplier),!owned?'Buy this weapon first':reserve>cap-weapon.ammoPack?'No room for this ammo pack':'');
+        }
       }
-      entry.append(title,detail,row);container.append(entry);
+      if(site.dealer){const tag=document.createElement('span');tag.className='eyebrow';tag.textContent='Street contact';entry.append(tag);}
+      if(site.type==='arms'){const navigation=document.createElement('div');navigation.className='button-row';navigation.append(route);entry.append(title,detail,status,navigation,row);}
+      else entry.append(title,detail,status,row);
+      container.append(entry);
     }
   }
+  listen('services-filter','change',renderServices);
   listen('services-button','click',()=>{renderServices();openDialog('services-dialog');});
   listen('pause-services-button','click',()=>{renderServices();openDialog('services-dialog');});
   listen('jobs-button', 'click', () => { if(onJobs)onJobs();else{renderJobs();openDialog('jobs-dialog');} });

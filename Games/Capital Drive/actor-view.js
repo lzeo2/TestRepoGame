@@ -61,11 +61,45 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
     piece(elbow, 'Sleeve cuff', palette.jacket, [0, -.13, 0], [.135, .26, .16]);
     piece(elbow, 'Hand', palette.skin, [0, -.30, 0], [.11, .13, .12]);
   }
-  const pistol = joint(elbows[1], 'Pistol', 0, -.32, -.08);
-  pistol.rotation.x = -Math.PI / 2;
-  piece(pistol, 'Pistol slide', palette.gun, [0, 0, -.09], [.075, .09, .24]);
-  piece(pistol, 'Pistol grip', palette.gun, [0, -.07, -.005], [.065, .13, .075]);
+  // Original box silhouettes share the same hand socket and one draw each.
+  const weapons = Object.create(null);
+  for (const [id, name, parts] of [
+    ['pistol', 'Pistol', [
+      ['slide', [0, 0, -.09], [.075, .09, .24]],
+      ['grip', [0, -.07, -.005], [.065, .13, .075]],
+    ]],
+    ['shotgun', 'Shotgun', [
+      ['receiver', [0, 0, -.11], [.095, .11, .25]],
+      ['barrel', [0, .025, -.48], [.055, .055, .57]],
+      ['pump foregrip', [0, -.045, -.38], [.11, .09, .23]],
+      ['grip', [0, -.09, .015], [.075, .17, .09]],
+      ['stock', [0, -.025, .21], [.085, .14, .30]],
+    ]],
+    ['smg', 'SMG', [
+      ['receiver', [0, 0, -.10], [.11, .14, .30]],
+      ['short barrel', [0, .025, -.30], [.06, .06, .14]],
+      ['grip', [0, -.10, .015], [.075, .17, .09]],
+      ['magazine', [0, -.18, -.14], [.07, .24, .08]],
+      ['short stock', [0, -.015, .15], [.065, .065, .20]],
+      ['stock heel', [0, -.045, .26], [.075, .13, .045]],
+    ]],
+    ['carbine', 'Carbine', [
+      ['receiver', [0, .015, -.12], [.09, .13, .31]],
+      ['handguard', [0, .015, -.36], [.10, .11, .24]],
+      ['long barrel', [0, .035, -.58], [.045, .045, .26]],
+      ['grip', [0, -.10, .015], [.07, .18, .09]],
+      ['magazine', [0, -.15, -.13], [.07, .18, .11]],
+      ['long stock', [0, -.005, .24], [.08, .11, .36]],
+      ['stock heel', [0, -.025, .43], [.09, .18, .055]],
+    ]],
+  ]) {
+    const weapon = joint(elbows[1], name, 0, -.32, -.08);
+    weapon.rotation.x = -Math.PI / 2; weapon.visible = false;
+    for (const [part, position, size] of parts) piece(weapon, `${name} ${part}`, palette.gun, position, size);
+    weapons[id] = weapon;
+  }
 
+  const weaponEntries = Object.entries(weapons);
   const batchMaterial = new THREE.MeshLambertMaterial({ vertexColors: true }); materials.add(batchMaterial);
   function batchStatic(parent, mat = batchMaterial) {
     const meshes = parent.children.filter(object => object.isMesh);
@@ -138,10 +172,10 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
   const arrow = piece(marker, 'Objective arrow', palette.marker, [0, 3.2, 0], [1, 1, 1], arrowGeometry); arrow.rotation.x = Math.PI;
   marker.visible = false; actor.visible = false;
   let phase = 0, clock = 0, disposed = false;
-  const counters = { police: 0, officers: 0, shots: 0, playerVisible: false, objectiveVisible: false, meshes: 0, triangles: 0, drawCalls: 0 };
+  const counters = { police: 0, officers: 0, shots: 0, playerVisible: false, objectiveVisible: false, meshes: 0, triangles: 0, drawCalls: 0, activeWeapon: null, weaponMeshes: weaponEntries.length };
   root.traverse(object => { if (object.isMesh) { counters.meshes++; counters.triangles += (object.geometry.index?.count || object.geometry.attributes.position.count) / 3 * (object.isInstancedMesh ? object.instanceMatrix.count : 1); } });
   function ground(x, z) { return finite(heightAt(x, z)); }
-  function near(value, focus, radius = CULL_DISTANCE) { return value && Number.isFinite(value.x) && Number.isFinite(value.z) && Math.hypot(value.x - focus.x, value.z - focus.z) < radius; }
+  function near(value, focus, radius = CULL_DISTANCE) { return !!value && Number.isFinite(value.x) && Number.isFinite(value.z) && Math.hypot(value.x - focus.x, value.z - focus.z) < radius; }
   function update(state, { dt = 0, focus = state.actor, objective = null } = {}) {
     if (disposed) return;
     const step = clamp(dt, 0, .1); clock += step;
@@ -162,12 +196,17 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
         arms[i].rotation.set(-swing * .7, 0, (i ? -1 : 1) * .08);
         elbows[i].rotation.x = -.12;
       }
-      pistol.visible = state.weapon === 'pistol';
-      if (state.aiming && pistol.visible) {
+      const firearm = weapons[state.weapon];
+      for (const [id, weapon] of weaponEntries) weapon.visible = id === state.weapon;
+      if (state.aiming && firearm) {
         arms[1].rotation.x = Math.PI / 2 + clamp(state.attackTimer, 0, .15); elbows[1].rotation.x = 0;
-        arms[0].rotation.x = 1.12; arms[0].rotation.z = -.35; elbows[0].rotation.x = .40;
+        arms[0].rotation.x = state.weapon === 'pistol' ? 1.12 : 1.35;
+        arms[0].rotation.z = .72; elbows[0].rotation.x = state.weapon === 'pistol' ? .40 : -.20;
       }
-      if (finite(state.reloading) > 0) { arms[1].rotation.x = .65; elbows[1].rotation.x = 1.2; arms[0].rotation.x = .9; }
+      if (firearm && finite(state.reloading) > 0) {
+        arms[1].rotation.x = .65; elbows[1].rotation.x = 1.2;
+        arms[0].rotation.x = .9; arms[0].rotation.z = .55; elbows[0].rotation.x = .55;
+      }
       if (finite(state.attackTimer) > 0 && state.weapon === 'unarmed') { arms[1].rotation.x = 1.1 + Math.sin(clamp(state.attackTimer / .3, 0, 1) * Math.PI) * .9; elbows[1].rotation.x = -.25; body.rotation.y = -.22; } else body.rotation.y = 0;
     }
     counters.police = 0; counters.officers = 0;
@@ -222,6 +261,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
     streaks.instanceMatrix.needsUpdate = impacts.instanceMatrix.needsUpdate = true;
     marker.visible = near(objective, center, 850);
     if (marker.visible) { marker.position.set(objective.x, ground(objective.x, objective.z), objective.z); arrow.position.y = 3.2 + Math.sin(clock * 2) * .15; }
+    counters.activeWeapon = actor.visible && weapons[state.weapon] ? state.weapon : null;
     counters.playerVisible = actor.visible; counters.objectiveVisible = marker.visible; counters.drawCalls = 0;
     root.traverseVisible(object => { if (object.isMesh) counters.drawCalls++; });
   }
@@ -233,7 +273,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
       root.traverse(object => { if (object.isInstancedMesh) object.dispose(); });
       for (const geometry of geometries) geometry.dispose();
       for (const value of materials) value.dispose();
-      counters.drawCalls = counters.police = counters.officers = counters.shots = 0; counters.playerVisible = counters.objectiveVisible = false;
+      counters.drawCalls = counters.police = counters.officers = counters.shots = 0; counters.activeWeapon = null; counters.playerVisible = counters.objectiveVisible = false;
     },
   };
 }

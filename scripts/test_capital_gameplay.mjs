@@ -36,8 +36,12 @@ Object.assign(game.state.actor, { x: 10, z: 0, yaw: -Math.PI / 2 });
 game.addAmmo(84); game.setWeapon('pistol'); game.step(1 / 60, { aim: true, aimYaw: -Math.PI / 2, fire: true });
 assert(strikeArgs.range > 4.8 && strikeArgs.range < 5);
 assert.equal(game.state.ammo, 11); assert.equal(game.state.shots.length, 1);
+assert.deepEqual(game.getAmmo('pistol'), { ammo: 11, reserveAmmo: 72 }, 'legacy aliases share the independent pistol pool');
+const heldAmmunition = game.snapshot().ammunition;
+assert(Object.isFrozen(heldAmmunition.pistol));
 game.step(1 / 60, { fire: true }); assert.equal(game.state.ammo, 11, 'fire cooldown');
 assert(game.reload()); tick(1.5); assert.equal(game.state.ammo, 12); assert.equal(game.state.reserveAmmo, 71);
+assert.deepEqual(heldAmmunition.pistol, { ammo: 11, reserveAmmo: 72 }, 'ammunition snapshots stay detached during reload');
 assert.equal(game.state.wanted > 0, true);
 // Police on the opposite side of the building must search and cannot arrest through it.
 game.state.police.splice(0, game.state.police.length, ...Array.from({ length: 4 }, (_, i) => ({ id: `test${i}`, x: 23, z: i, yaw: 0, speed: 0, health: 100, searchTime: 0 })));
