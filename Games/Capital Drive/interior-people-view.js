@@ -44,12 +44,16 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
   }
   function person(p,lying=false) {
     const index=Math.abs(Math.trunc(finite(p.palette)))%6,skin=SKINS[index],shirt=PALETTES[index];
-    const phase=finite(p.phase),moving=finite(p.speed)>0,gesture=p.gesture || 'idle',seated=Boolean(p.seated);
+    const phase=finite(p.phase),coerced=p.health>0 && p.crimePhase,down=finite(p.knockdown)>0 || p.health===0;
+    const moving=!coerced && finite(p.speed)>0,gesture=p.gesture || 'idle',seated=!coerced && !down && Boolean(p.seated);
     body.position.set(p.x,Number.isFinite(p.y)?p.y:finite(heightAt(p.x,p.z)),p.z);
     body.rotation.set(0,finite(p.yaw),0);body.scale.set(1,1,1);
     if (lying) {
       body.rotation.x=Math.PI/2;body.position.x-=Math.sin(finite(p.yaw))*.83;body.position.z-=Math.cos(finite(p.yaw))*.83;
-    } else if (seated) body.position.y+=finite(p.seatHeight)-.90;
+    } else if (down) {body.rotation.x=Math.PI/2;body.position.y+=.18;}
+    else if (seated) body.position.y+=finite(p.seatHeight)-.90;
+    else if (coerced && p.crimePhase==='emptying') body.rotation.x=.20;
+    else if (finite(p.stun)>0) {body.rotation.z=.12;body.scale.y=.88;}
     body.updateMatrix();
     put(0,[0,0,0],[0,0,0],[1,1,1],shirt);
     put(1,[0,0,0],[0,0,0],[1,1,1],skin);
@@ -63,6 +67,18 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
       } else {
         put(3,[sign*.115,.49,0],[stride,0,0],[.17,.83,.19],0x364452);
         put(3,[sign*.115,.07,.055],[0,0,0],[.19,.13,.30],0x252b2d);
+      }
+      if (coerced && !down && !lying) {
+        if (p.crimePhase==='intimidation') {
+          put(4,[sign*.34,1.53,0],[0,0,-sign*.3],[.13,.36,.14],skin);
+          put(4,[sign*.41,1.84,.03],[0,0,sign*.12],[.12,.30,.13],skin);
+        } else {
+          const emptying=p.crimePhase==='emptying';
+          const reach=emptying ? .28+Math.sin(phase*3)*.06 : .38;
+          put(4,[sign*.29,1.25,.15],[1.0,0,0],[.13,.36,.14],skin);
+          put(4,[sign*.25,emptying?1.02:1.18,reach],[Math.PI/2,0,0],[.12,.34,.13],skin);
+        }
+        continue;
       }
       let reach=0,lift=0;
       if (gesture==='eat') {reach=.18;lift=.06+Math.sin(phase*2+side)*.09;}
@@ -78,6 +94,7 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
       put(4,[sign*.29,1.22+lift,reach],[moving?-stride:0,0,sign*.08],[.13,.36,.14],skin);
       put(4,[sign*.27,1.05+lift,.10+reach],[seated?-Math.PI/3:-.3,0,0],[.12,.29,.13],skin);
     }
+    if(coerced && !down && p.crimePhase==='handover') put(5,[0,1.08,.57],[0,0,0],[.24,.24,.15],0x997a50);
     if(p.apron) put(5,[0,1.05,.143],[0,0,0],[.33,.63,.025],p.role==='cook'?0xddd5bd:0xb9ad89);
   }
   function update(people,dt,{activity} = {}) {

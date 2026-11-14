@@ -185,10 +185,12 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
   const civic = (map.landmarks || []).find(p => p.id === 'canberra-centre');
   const populationAt = target => paths.length ? (civic && Math.hypot(target.x - civic.x, target.z - civic.z) < 650 ? MAX_POPULATION : POPULATION) : 0;
   const pool = [], residents = [], events = [];
-  const peopleCells = new Map();
+  const peopleCells = new Map(), peopleById = new Map();
+  let crime = null;
   function rebuildPeopleGrid() {
-    peopleCells.clear();
+    peopleCells.clear(); peopleById.clear();
     for (const p of pool) {
+      peopleById.set(p.id, p);
       const key = `${Math.floor(p.x / PEOPLE_CELL)},${Math.floor(p.z / PEOPLE_CELL)}`;
       if (!peopleCells.has(key)) peopleCells.set(key, []);
       peopleCells.get(key).push(p);
@@ -223,6 +225,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
     person.reactionTimer = 0; person.stun = 0; person.knockdown = 0;
     person.recklessExposure = 0; person.drivingReportCooldown = 0;
     person.hitCooldown = 0; person.witnessCooldown = 0; person.retaliationCooldown = 0;
+    person.playerHitTimer = 0; person.crimePhase = null;
     Object.assign(person, pointAlong(path, distance));
     person.y = heightAt(person.x, person.z) + PAVEMENT_LIFT;
     person.site = safeSite(path, distance) && person.ambient !== 'walk' ? { ...pointAlong(path, distance), distance, yaw: person.yaw + (person.direction < 0 ? Math.PI : 0) } : null;
@@ -242,6 +245,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
   for (const p of residents) p.initialDirection = p.direction;
   function resetPopulation(player) {
     if (disposed) return;
+    crime = null;
     pool.length = 0;
     pool.push(...residents.slice(0, populationAt(player)));
     stats.count = pool.length;
@@ -331,9 +335,10 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
     }
     for (let i = 0; i < visible.length; i++) {
       const p = visible[i], detailed = i < DETAIL_COUNT;
-      const sitting = p.routine === 'coffee' && p.reaction === 'calm';
-      const working = p.routine === 'work' && p.reaction === 'calm';
-      const phone = p.routine === 'phone' && p.reaction === 'calm';
+      const coerced = p.crimePhase && p.health > 0;
+      const sitting = !coerced && p.routine === 'coffee' && p.reaction === 'calm';
+      const working = !coerced && p.routine === 'work' && p.reaction === 'calm';
+      const phone = !coerced && p.routine === 'phone' && p.reaction === 'calm';
       const lower = sitting ? 1.12 - 0.83 / p.height : 0;
       stats.seated += Number(sitting); stats.working += Number(working);
       const swing = p.stopped ? 0 : Math.sin(p.phase) * (p.reaction === 'flee' ? 0.85 : 0.5);
@@ -343,20 +348,21 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
       part('head', p, 0, 1.62 - lower, 0, 0.135, 0.17, 0.13, p.skin);
       part('hair', p, 0, 1.72 - lower, 0.015, 0.139, 0.09, 0.13, p.hair);
       for (const side of [-1, 1]) {
-        const armAction = sitting || phone ? -1.1 : working ? -0.8 + Math.sin(p.phase) * 0.25 : null;
-        part('arms', p, side * 0.29, 1.06 - lower, armAction !== null ? -0.13 : -Math.sin(swing * side) * 0.12, 0.075, 0.19, 0.075, p.shirt, p.reaction === 'angry' ? -1.1 : p.reaction === 'panic' ? -2.1 : armAction ?? -swing * side);
+        const armAction = coerced ? (p.crimePhase === 'intimidation' ? -2.4 : p.crimePhase === 'emptying' ? -0.65 : -1.4) : sitting || phone ? -1.1 : working ? -0.8 + Math.sin(p.phase) * 0.25 : null;
+        part('arms', p, side * 0.29, 1.06 - lower, armAction !== null ? -0.13 : -Math.sin(swing * side) * 0.12, 0.075, 0.19, 0.075, p.shirt, coerced ? armAction : p.reaction === 'angry' ? -1.1 : p.reaction === 'panic' ? -2.1 : armAction ?? -swing * side);
         const footLocalZ = sitting ? -0.39 : Math.sin(swing * side) * 0.22 - 0.045;
         const footX = p.x + (Math.cos(yaw) * side * 0.105 + Math.sin(yaw) * footLocalZ) * p.height;
         const footZ = p.z + (-Math.sin(yaw) * side * 0.105 + Math.cos(yaw) * footLocalZ) * p.height;
         const ground = (heightAt(footX, footZ) + PAVEMENT_LIFT - p.y) / p.height;
         part('legs', p, side * 0.105, sitting ? 0.48 : 0.43 + ground, sitting ? -0.17 : Math.sin(swing * side) * 0.13, 0.085, 0.235, 0.085, p.trousers, sitting ? -1.4 : swing * side);
         part('shoes', p, side * 0.105, 0.055 + ground, sitting ? -0.39 : footLocalZ, 0.17, 0.11, 0.28, 0x303030);
-        if (detailed) part('hands', p, side * 0.3, 0.76 - lower, armAction !== null ? -0.32 : -Math.sin(swing * side) * 0.22, 0.062, 0.075, 0.065, p.skin);
+        if (detailed) part('hands', p, side * 0.3, coerced ? (p.crimePhase === 'intimidation' ? 1.59 : p.crimePhase === 'emptying' ? 0.86 : 1.12) : 0.76 - lower, armAction !== null ? -0.32 : -Math.sin(swing * side) * 0.22, 0.062, 0.075, 0.065, p.skin);
       }
       if (sitting) {
         part('cups', p, 0.28, 0.9 - lower, -0.32, 0.065, 0.085, 0.065, 0xf1e7d1);
         part('cups', p, 0.28, 0.98 - lower, -0.32, 0.05, 0.008, 0.05, 0x65412d);
       }
+      if (coerced && p.crimePhase === 'handover') part('tools', p, 0.28, 1.05, -0.35, 0.18, 0.2, 0.12, 0x9e8159);
       if (phone || working) part('tools', p, 0.28, working ? 0.96 : 1.23, -0.28, working ? 0.2 : 0.075, working ? 0.28 : 0.14, 0.025, working ? 0xc9b796 : 0x242a32);
       if (detailed && (p.bag || p.ambient === 'work')) part('bags', p, 0, 1.13 - lower, 0.19, 0.31, 0.39, 0.15, 0x544b3e);
     }
@@ -454,6 +460,8 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
       }).sort((a, b) => a.distance - b.distance);
     for (const { p } of candidates.slice(0, gun ? 1 : 3)) {
       p.health = Math.max(0, p.health - power); p.hitCooldown = 0.4;
+      if (p.health === 0) p.crimePhase = null;
+      if (offenderId === 'player' && kind === 'melee') p.playerHitTimer = 12;
       react(p, { x, z, offenderId }, kind, true);
       p.stun = 0.65;
       if (p.health === 0 || power >= 35) { p.knockdown = 2.8; p.reaction = 'knockdown'; }
@@ -469,7 +477,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
     dt = Math.min(dt, 0.1); recycleTimer += dt;
     for (const p of pool) {
       const gap = Math.hypot(p.x - player.x, p.z - player.z);
-      for (const key of ['drivingReportCooldown', 'hitCooldown', 'witnessCooldown', 'retaliationCooldown', 'stun', 'knockdown', 'reactionTimer', 'yieldTimer']) p[key] = Math.max(0, p[key] - dt);
+      for (const key of ['drivingReportCooldown', 'hitCooldown', 'witnessCooldown', 'retaliationCooldown', 'stun', 'knockdown', 'reactionTimer', 'yieldTimer', 'playerHitTimer']) p[key] = Math.max(0, p[key] - dt);
       if (p.reactionTimer <= 0 && p.knockdown <= 0 && p.stun <= 0) {
         p.reaction = 'calm'; p.fear = 0; p.anger = 0; p.angerOffender = null; p.health = Math.min(100, p.health + dt * 20);
       } else if (p.knockdown > 0) p.reaction = 'knockdown';
@@ -497,7 +505,12 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
         // Alarm is visible feedback; it does not itself establish an offence.
         react(p, { x: source.x, z: source.z, offenderId: frightening ? 'player' : String(source.id || 'npc:traffic') }, 'traffic alarm', false, false);
       }
-      if (p.reaction === 'angry' && p.angerOffender === 'player' && gap < 2.1 && p.retaliationCooldown <= 0 &&
+      const coerced = p.crimePhase && p.health > 0;
+      if (coerced) {
+        p.routine = 'interrupted'; p.returning = Boolean(p.site); p.fear = Math.max(p.fear, 0.8);
+        if (p.knockdown <= 0 && p.stun <= 0) p.reaction = 'compliant';
+      }
+      if (!coerced && p.reaction === 'angry' && p.angerOffender === 'player' && gap < 2.1 && p.retaliationCooldown <= 0 &&
         (!hasLineOfSight || hasLineOfSight(p, player))) {
         emit({ type: 'retaliation', kind: 'melee', x: p.x, z: p.z, personId: p.id, targetId: 'player', damage: 5 });
         p.retaliationCooldown = 2.2;
@@ -523,8 +536,8 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
       }
       const ambientStop = p.reaction === 'calm' && ['coffee', 'work', 'phone', 'wait'].includes(p.routine);
       const caution = Math.min(11, 5 + Math.abs(player.speed || 0) * 0.12);
-      p.stopped = ambientStop || p.knockdown > 0 || p.stun > 0 || p.reaction === 'angry' || (p.reaction === 'calm' && p.yieldTimer <= 0 && gap < caution) || traffic.some(car => Math.hypot(car.x - p.x, car.z - p.z) < 4.5);
-      const escape = ambientStop ? 0 : gap < 7 ? 0.45 : 0;
+      p.stopped = coerced || ambientStop || p.knockdown > 0 || p.stun > 0 || p.reaction === 'angry' || (p.reaction === 'calm' && p.yieldTimer <= 0 && gap < caution) || traffic.some(car => Math.hypot(car.x - p.x, car.z - p.z) < 4.5);
+      const escape = coerced ? p.escape : ambientStop ? 0 : gap < 7 ? 0.45 : 0;
       p.escape += Math.max(-dt * 0.6, Math.min(dt * 0.9, escape - p.escape));
       if (!p.stopped) {
         const previousDistance = p.distance;
@@ -537,6 +550,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
         if (blocked) { p.distance = previousDistance; p.direction *= -1; }
         p.phase += dt * p.speed * (p.reaction === 'flee' ? 9 : 5.2);
       }
+      if (coerced) p.phase += dt;
       if (ambientStop) p.phase += dt * (p.routine === 'work' ? 2 : 0.6);
       Object.assign(p, pointAlong(p.path, p.distance));
       p.x += p.nx * p.escape; p.z += p.nz * p.escape;
@@ -576,8 +590,20 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
     }
     rebuildPeopleGrid(); render(player);
   }
+  function getCrimeTarget(id) {
+    if (!(typeof id === 'number' && Number.isInteger(id)) && !(typeof id === 'string' && /^(ped:)?\d+$/.test(id))) return null;
+    const key = typeof id === 'number' ? id : Number(id.replace(/^ped:/, ''));
+    const p = peopleById.get(key);
+    return p ? Object.freeze({ id: `ped:${p.id}`, kind: 'pedestrian', x: p.x, z: p.z, health: p.health,
+      threatened: p.playerHitTimer > 0, lastPlayerHit: p.playerHitTimer > 0 }) : null;
+  }
+  function setCrime(activity) {
+    crime = activity && ['robbery', 'mugging'].includes(activity.type) && ['intimidation', 'emptying', 'handover'].includes(activity.phase)
+      ? { targetId: String(activity.targetId), phase: activity.phase } : null;
+    for (const p of pool) p.crimePhase = p.health > 0 && crime?.targetId === `ped:${p.id}` ? crime.phase : null;
+  }
   resetPopulation(spawn);
-  return { update, resetPopulation, clipMovement, stats, alert, strike,
+  return { update, resetPopulation, clipMovement, stats, alert, strike, setCrime, getCrimeTarget,
     drainEvents() { return events.splice(0); },
     snapshot() { return Object.freeze(pool.map(p => Object.freeze({ id: p.id, x: p.x, y: p.y, z: p.z,
       yaw: p.routine === 'coffee' && p.reaction === 'calm' ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0), roadId: p.path.roadId, roadName: p.path.name,
@@ -585,11 +611,12 @@ export function createPedestrians(scene, map, heightAt, { entrances = [] } = {})
       routine: p.routine, ambient: p.ambient, routineClock: p.routineClock, returning: p.returning, personality: p.personality,
       seat: p.ambient === 'coffee' && p.site ? Object.freeze({ x: p.site.x, z: p.site.z, yaw: p.site.yaw }) : null,
       routineSite: p.site ? Object.freeze({ x: p.site.x, z: p.site.z, roadId: p.path.roadId }) : null,
+      threatened: p.playerHitTimer > 0, lastPlayerHit: p.playerHitTimer > 0, crimePhase: p.health > 0 ? p.crimePhase : null,
       health: p.health, reaction: p.reaction, fear: p.fear, anger: p.anger,
       stun: p.stun, knockdown: p.knockdown, reactionTimer: p.reactionTimer }))); },
     dispose() {
       if (disposed) return;
-      disposed = true; events.length = 0; peopleCells.clear(); pathCells.clear(); scene.remove(group); capsule.dispose(); sphere.dispose(); box.dispose(); cup.dispose(); material.dispose();
+      disposed = true; events.length = 0; crime = null; peopleCells.clear(); peopleById.clear(); pathCells.clear(); scene.remove(group); capsule.dispose(); sphere.dispose(); box.dispose(); cup.dispose(); material.dispose();
       for (const mesh of Object.values(batches)) mesh.dispose();
     } };
 }
