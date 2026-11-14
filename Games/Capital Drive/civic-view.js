@@ -4,6 +4,15 @@ import { roadProfile } from './road-network.js';
 export const CIVIC_BUILDING_IDS=Object.freeze(['osm-46081156','osm-584970594','osm-584970595']);
 const approachEdge=[[-231.17,-4135.75],[-266.14,-4209.99]];
 const approachLength=Math.hypot(approachEdge[1][0]-approachEdge[0][0],approachEdge[1][1]-approachEdge[0][1]);
+// This is the same authored exterior door drawn below, tied to the retained Bunda facade.
+// Its indoor concourse is original and does not represent surveyed tenancies or a floorplan.
+export const CIVIC_INTERIOR_ENTRIES=Object.freeze([Object.freeze({
+  id:'interior-canberra-centre',buildingId:'osm-46081156',type:'mall',name:'Capitol Centre',
+  x:(approachEdge[0][0]+approachEdge[1][0])/2,
+  z:(approachEdge[0][1]+approachEdge[1][1])/2,
+  yaw:Math.atan2(-(approachEdge[1][1]-approachEdge[0][1]),approachEdge[1][0]-approachEdge[0][0]),
+  width:24,depth:26,entranceNote:'Estimated public-facing door on a retained source facade; original indoor layout.',
+})]);
 export const CIVIC_LANDMARKS=Object.freeze([Object.freeze({
   id:'canberra-centre',name:'Canberra Centre',radius:150,
   x:(approachEdge[0][0]+approachEdge[1][0])/2+(approachEdge[1][1]-approachEdge[0][1])/approachLength*4,

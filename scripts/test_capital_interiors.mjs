@@ -129,4 +129,62 @@ for (const entry of actual.entries) {
 actualView.dispose();
 assert.equal(actualScene.children.length, 0);
 assert.equal(actual.stats.generatedPlans, actualStores.length);
-console.log(`PASS lazy interiors: door-only entry, furnished rooms, single active plan, saved return pose, swept collision/door gaps, indoor sight, reset/disposal; fixture shop ${shopTriangles} triangles; ${actualStores.length} actual mapped shops <=${maximumTriangles} triangles / 1 draw`);
+
+const roadURL = moduleURL(await read('../Games/Capital Drive/road-network.js'));
+const civicSource = (await read('../Games/Capital Drive/civic-view.js'))
+  .replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadURL);
+const { CIVIC_INTERIOR_ENTRIES } = await import(moduleURL(civicSource));
+const north = JSON.parse(await read('../Games/Capital Drive/data/canberra-north.json'));
+const publicDoor = CIVIC_INTERIOR_ENTRIES[0];
+assert.equal(createInteriors(actualMap, { publicEntries: CIVIC_INTERIOR_ENTRIES }).entries.length, 0, 'public descriptor requires its retained source building');
+assert.equal(createInteriors(north, { publicEntries: [{ ...publicDoor, x: publicDoor.x + 500 }] }).entries.length, 0, 'map-only travel points cannot become public doors');
+const mall = createInteriors(north, { publicEntries: CIVIC_INTERIOR_ENTRIES });
+const mallScene = new THREE.Scene(), mallView = createInteriorView(mallScene);
+assert.equal(mall.entries.length, 1);
+assert.equal(mall.stats.generatedPlans, 0); assert.equal(mallView.stats.meshes, 0);
+const ms = Math.sin(publicDoor.yaw), mc = Math.cos(publicDoor.yaw);
+const point = (x, z) => ({ x: publicDoor.x + mc * x + ms * z, z: publicDoor.z - ms * x + mc * z });
+const visitor = { ...point(0, -1.5), y: 0, yaw: 0.7 }, outsideMall = { ...visitor };
+assert.equal(mall.findEntry(point(0, -4)), null, 'landmark approach is outside door interaction range');
+assert.equal(mall.findEntry(point(0, 1.1)), null, 'cannot enter through the inside of the exterior body');
+const mallEntry = mall.findEntry(visitor);
+assert(mallEntry && mallEntry.type === 'mall');
+assert(!('furniture' in mallEntry) && !('rooms' in mallEntry));
+assert.equal(mall.enter({ ...mallEntry }, visitor), false);
+const mallPlan = mall.enter(mallEntry, visitor);
+assert.equal(mallPlan.counter, null, 'original mall fixtures do not expose a paid service counter');
+assert(!('storeId' in mallPlan)); assert(!('siteId' in mallPlan));
+assert.equal(mallPlan.rooms.filter(r => r.kind === 'mall-unit').length, 4);
+assert.equal(mallPlan.doors.filter(d => d.kind === 'unit').length, 4);
+assert.equal(mallPlan.furniture.filter(f => f.kind === 'shelves').length, 4);
+assert.equal(mallPlan.furniture.filter(f => f.kind === 'counter').length, 4);
+assert.equal(mallPlan.furniture.filter(f => f.kind === 'bench').length, 2);
+assert(mall.hasLineOfSight(point(0, 2), point(0, 25)), 'concourse remains open past the benches');
+function walkTo(x, z) {
+  const target = point(x, z), dx = target.x - visitor.x, dz = target.z - visitor.z;
+  const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.35));
+  for (let i = 0; i < steps; i++) assert.equal(mall.moveActor(visitor, dx / steps, dz / steps).blocked, false, `mall route to ${x},${z} stays clear`);
+  assert(Math.hypot(visitor.x - target.x, visitor.z - target.z) < 1e-6);
+}
+for (const z of [7.5, 18.5]) for (const side of [-1, 1]) {
+  walkTo(0, z); walkTo(side * 7.5, z); walkTo(side * 7.5, z + 2);
+  assert(!mall.nearExit(visitor), 'a side unit cannot accidentally trigger the public exit');
+  walkTo(side * 7.5, z); walkTo(0, z);
+}
+const partitionTester = { ...point(0, 4) };
+assert(mall.moveActor(partitionTester, mc * 7, -ms * 7).blocked, 'unit walls are solid away from their doors');
+assert(!mall.hasLineOfSight(point(0, 4), point(7.5, 4)), 'mall partition occludes sight outside the doorway');
+walkTo(0, 1.65); assert(mall.nearExit(visitor));
+mallView.load(mallPlan);
+assert(mallView.stats.draws <= 4 && mallView.stats.triangles < 3000);
+const mallTriangles = mallView.stats.triangles;
+let mallDisposed = 0;
+mallScene.children[0].children[0].geometry.addEventListener('dispose', () => mallDisposed++);
+assert(mall.leave(visitor)); mallView.clear();
+assert.equal(mall.active, null); assert.equal(mall.stats.activePlans, 0); assert.equal(mallDisposed, 1);
+assert.deepEqual({ x: visitor.x, z: visitor.z, y: visitor.y, yaw: visitor.yaw }, outsideMall, 'exit returns to saved actual Bunda door approach');
+const returnPlan = mall.enter(mall.findEntry(visitor), visitor);
+assert.notEqual(returnPlan, mallPlan); assert.deepEqual(returnPlan, mallPlan);
+mallView.load(returnPlan); mall.reset(visitor); mallView.dispose(); mallView.dispose();
+assert.equal(mallScene.children.length, 0); assert.equal(mall.stats.activePlans, 0);
+console.log(`PASS lazy interiors: door-only entry, furnished rooms, saved return, swept collision/door gaps, sight/disposal; ${actualStores.length} mapped shops <=${maximumTriangles} triangles; source-tied Civic concourse/four reachable units ${mallTriangles} triangles / 1 draw`);

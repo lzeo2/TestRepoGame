@@ -5,7 +5,7 @@ const url=source=>`data:text/javascript;base64,${Buffer.from(source).toString('b
 const threeURL=url(await read('../assets/car-arcade/vendor/three.module.js')),THREE=await import(threeURL);
 const roadURL=url(await read('../Games/Capital Drive/road-network.js'));
 const source=await read('../Games/Capital Drive/civic-view.js');
-const {createCivicView,CIVIC_BUILDING_IDS,CIVIC_LANDMARKS}=await import(url(source
+const {createCivicView,CIVIC_BUILDING_IDS,CIVIC_LANDMARKS,CIVIC_INTERIOR_ENTRIES}=await import(url(source
  .replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL))
  .replace("'./road-network.js'",JSON.stringify(roadURL))));
 const north=JSON.parse(await read('../Games/Capital Drive/data/canberra-north.json'));
@@ -27,6 +27,30 @@ const distance=(x,z,a,b)=>{
  return Math.hypot(x-a[0]-t*dx,z-a[1]-t*dz);
 };
 const anchor=CIVIC_LANDMARKS[0];
+assert(Object.isFrozen(CIVIC_INTERIOR_ENTRIES)&&Object.isFrozen(CIVIC_INTERIOR_ENTRIES[0]));
+assert.equal(CIVIC_INTERIOR_ENTRIES.length,1);
+const door=CIVIC_INTERIOR_ENTRIES[0],mainCentre=north.buildings.find(b=>b.id===door.buildingId);
+assert.equal(door.type,'mall');assert.equal(door.buildingId,'osm-46081156');
+assert.equal(door.width,24);assert.equal(door.depth,26);
+assert(mainCentre.points.some((a,i,points)=>distance(door.x,door.z,a,points[(i+1)%points.length])<.0001),'mall entrance is on the exact retained source facade');
+assert(Math.abs(Math.hypot(anchor.x-door.x,anchor.z-door.z)-4)<1e-9,'interior door and public exterior approach share one facade midpoint');
+assert(Math.abs(anchor.x-door.x+Math.sin(door.yaw)*4)<1e-9);
+assert(Math.abs(anchor.z-door.z+Math.cos(door.yaw)*4)<1e-9,'indoor yaw points away from the exterior approach');
+assert(contains(door.x+Math.sin(door.yaw),door.z+Math.cos(door.yaw),mainCentre.points),'door inward normal enters its source body');
+assert(!contains(door.x-Math.sin(door.yaw),door.z-Math.cos(door.yaw),mainCentre.points),'outward normal leaves the source body');
+for(const x of [-door.width/2,0,door.width/2])for(const z of [.2,door.depth/2,door.depth]) {
+ const wx=door.x+Math.cos(door.yaw)*x+Math.sin(door.yaw)*z,wz=door.z-Math.sin(door.yaw)*x+Math.cos(door.yaw)*z;
+ assert(contains(wx,wz,mainCentre.points),'bounded original concourse remains in the source building vicinity');
+}
+assert(!('rooms' in door)&&!('furniture' in door),'public descriptor does not allocate interior rooms');
+const entryPanels=root.children.find(m=>m.name==='Civic glazing and entry panels').geometry.attributes.position;
+let panelVertices=0;
+for(let i=0;i<entryPanels.count;i++) {
+ const dx=entryPanels.getX(i)-door.x,dz=entryPanels.getZ(i)-door.z;
+ const inward=Math.sin(door.yaw)*dx+Math.cos(door.yaw)*dz,along=Math.cos(door.yaw)*dx-Math.sin(door.yaw)*dz;
+ if(Math.abs(inward+.09)<.001&&Math.abs(along)<1.25)panelVertices++;
+}
+assert(panelVertices>=12,'visible double-door panels coincide with the exported interior entrance');
 assert(!north.buildings.some(b=>contains(anchor.x,anchor.z,b.points)),'destination is an exterior approach, never source centroid inside body');
 assert(!north.roads.some(r=>r.points.slice(1).some((b,i)=>distance(anchor.x,anchor.z,r.points[i],b)<r.width/2+2)),'public approach leaves driving lanes clear');
 for(const building of north.buildings.filter(b=>CIVIC_BUILDING_IDS.includes(b.id))) {

@@ -24,7 +24,7 @@ function contact(p, box, radius) {
   return Math.hypot(Math.max(0, Math.abs(q.x) - box.width / 2), Math.max(0, Math.abs(q.z) - box.depth / 2)) < radius;
 }
 
-export function createInteriors(map, { heightAt = () => 0, stores = [] } = {}) {
+export function createInteriors(map, { heightAt = () => 0, stores = [], publicEntries = [] } = {}) {
   const buildings = new Map((map.buildings || []).map(b => [String(b.id), b]));
   const entries = [], index = new Map(), identities = new Set();
   const storeBuildings = new Set(stores.map(s => String(s.buildingId)));
@@ -56,6 +56,19 @@ export function createInteriors(map, { heightAt = () => 0, stores = [] } = {}) {
       type: 'shop', name: store.name, x: f.x, z: f.z, yaw: f.yaw,
       width: clamp((f.width || 7) * 0.9, 5.4, 12), depth: 10 });
   }
+  for (const entry of publicEntries) {
+    const building = buildings.get(String(entry.buildingId));
+    if (entry.type !== 'mall' || !entry.id || !validPoint(entry) || !building?.points?.length) continue;
+    // Public entries must be tied to a real exterior edge, never a map-only travel target.
+    const onFacade = building.points.some((a, i, points) => {
+      const b = points[(i + 1) % points.length], dx = b[0] - a[0], dz = b[1] - a[1];
+      const t = clamp(((entry.x - a[0]) * dx + (entry.z - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1);
+      return Math.hypot(entry.x - a[0] - t * dx, entry.z - a[1] - t * dz) < 0.4;
+    });
+    if (!onFacade) continue;
+    add({ id: entry.id, buildingId: building.id, type: 'mall', name: entry.name || 'Shopping concourse',
+      x: entry.x, z: entry.z, yaw: entry.yaw, width: 24, depth: 26 });
+  }
   Object.freeze(entries);
   let active = null, outside = null, generatedPlans = 0;
   function findEntry(pose) {
@@ -82,8 +95,8 @@ export function createInteriors(map, { heightAt = () => 0, stores = [] } = {}) {
       list.push(item); return item;
     }
     const wall = (x, z, w, d) => box(walls, 'wall', x, z, w, d, 2.65, 0xd6ccba);
-    const door = (kind, x, z) => {
-      const point = { ...worldPoint(origin, x, z), yaw: origin.yaw, y: floorY, kind, width: 1.5 };
+    const door = (kind, x, z, width = 1.5) => {
+      const point = { ...worldPoint(origin, x, z), yaw: origin.yaw, y: floorY, kind, width };
       doors.push(point); return point;
     };
     const gap = 1.5, sideWidth = (width - gap) / 2;
@@ -127,6 +140,25 @@ export function createInteriors(map, { heightAt = () => 0, stores = [] } = {}) {
       furnish('bath', width / 2 - 0.85, depth - 1.5, 1.15, 2.1, 0.6, 0xd8dfd8);
       furnish('basin', right - 0.4, split + 0.65, 0.85, 0.6, 0.9, 0xd8dfd8);
       furnish('toilet', right - 0.65, depth - 1.2, 0.6, 0.8, 0.7, 0xd8dfd8);
+    } else if (entry.type === 'mall') {
+      const hall = 6, unitWidth = (width - hall) / 2, unitDepth = 11, unitGap = 3;
+      rooms.push({ kind: 'concourse', ...worldPoint(origin, 0, depth / 2), width: hall, depth });
+      for (const side of [-1, 1]) {
+        const wallX = side * hall / 2, centreX = side * (hall / 2 + unitWidth / 2);
+        for (const centreZ of [7.5, 18.5]) {
+          const unitId = `unit-${side < 0 ? 'west' : 'east'}-${centreZ < 13 ? 'front' : 'rear'}`;
+          rooms.push({ id: unitId, kind: 'mall-unit', ...worldPoint(origin, centreX, centreZ), width: unitWidth, depth: unitDepth });
+          const segmentLength = (unitDepth - unitGap) / 2;
+          wall(wallX, centreZ - (unitDepth + unitGap) / 4, 0.16, segmentLength);
+          wall(wallX, centreZ + (unitDepth + unitGap) / 4, 0.16, segmentLength);
+          door('unit', wallX, centreZ, unitGap);
+          // Every unit has a clear entrance and turning space between its shelves and till.
+          box(furniture, 'shelves', side * (width / 2 - 0.6), centreZ - 0.5, 0.7, 6.5, 1.75, 0x8e8d73);
+          box(furniture, 'counter', centreX, centreZ + 3.8, 2.4, 0.9, 1.05, 0xa08a68);
+        }
+        for (const z of [2, 13, 24]) wall(centreX, z, unitWidth, 0.16);
+        box(furniture, 'bench', side * 1.85, 13, 0.75, 2.6, 0.65, 0x938268);
+      }
     } else {
       box(furniture, 'counter', width / 2 - 1.15, depth - 2.2, 1.7, 1, 1.05, 0x9a7e59);
       counter = { ...worldPoint(origin, width / 2 - 1.15, depth - 3.15), y: floorY, yaw: origin.yaw, radius: 1.6 };
@@ -134,7 +166,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [] } = {}) {
       if (width > 7) box(furniture, 'shelves', -0.7, depth / 2, 0.85, 2.8, 1.4, 0x8e8d73);
       rooms.push({ kind: 'shop', ...worldPoint(origin, 0, depth / 2), width, depth });
     }
-    return freeze({ id: entry.id, buildingId: entry.buildingId, storeId: entry.storeId || null,
+    return freeze({ id: entry.id, buildingId: entry.buildingId, ...(entry.type === 'mall' ? {} : { storeId: entry.storeId || null }),
       type: entry.type, name: entry.name, origin, width, depth, floorY, spawn, exit, counter,
       walls, doors, furniture, rooms, layoutNote: 'Original plausible layout; not a surveyed interior.' });
   }

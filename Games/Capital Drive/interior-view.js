@@ -31,9 +31,10 @@ export function createInteriorView(scene) {
     }
     const o = plan.origin, c = Math.cos(o.yaw), s = Math.sin(o.yaw);
     box(o.x + s * plan.depth / 2, plan.floorY - 0.08, o.z + c * plan.depth / 2,
-      plan.width, 0.16, plan.depth, o.yaw, plan.type === 'shop' ? 0xb3b1a0 : 0xa88e70);
+      plan.width, 0.16, plan.depth, o.yaw, plan.type === 'house' ? 0xa88e70 : 0xb3b1a0);
     for (const room of plan.rooms || []) {
-      const color = { living: 0xaa9c84, kitchen: 0xb8b6a4, bedroom: 0x9b9e90, bathroom: 0xb2c1bb, shop: 0xb3b1a0 }[room.kind];
+      const color = { living: 0xaa9c84, kitchen: 0xb8b6a4, bedroom: 0x9b9e90, bathroom: 0xb2c1bb,
+        shop: 0xb3b1a0, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e }[room.kind];
       box(room.x, plan.floorY + 0.006, room.z, room.width - 0.12, 0.012, room.depth - 0.12, o.yaw, color);
     }
     for (const wall of plan.walls) {
@@ -46,6 +47,9 @@ export function createInteriorView(scene) {
       if (item.kind === 'shelves') {
         detail(item, -w / 2 + 0.04, h / 2, 0, 0.08, h, d, color);
         for (const end of [-1, 1]) detail(item, 0, h / 2, end * (d / 2 - 0.035), w, h, 0.07, color);
+      } else if (item.kind === 'bench') {
+        detail(item, 0, h - 0.09, 0, w, 0.18, d, color);
+        for (const end of [-1, 1]) detail(item, 0, (h - 0.18) / 2, end * (d / 2 - 0.3), w * 0.65, h - 0.18, 0.15, 0x5e6458);
       } else if (/table/.test(item.kind)) {
         detail(item, 0, h - 0.05, 0, w, 0.1, d, color);
         for (const x of [-1, 1]) for (const z of [-1, 1]) detail(item, x * (w / 2 - 0.09), h / 2,
