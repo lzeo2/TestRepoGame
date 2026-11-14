@@ -4,7 +4,8 @@ Owner follow-up: map more parody shops and make the layout faithful to shopping
 centres such as Manuka; consider what makes suburbs/neighbourhoods feel real and
 implement that. Existing Capital Drive245, no new game/catalog entry. Prior
 merge-all authorization persists. Keep the forgiving driving rules and traffic
-instancing from PR13. Source geography/addresses/terrain stay unchanged.
+instancing from PR13. Preserve the base geographic snapshot; add a separately
+provenanced northern overlay for the requested lake/Civic expansion.
 
 Use bounded disjoint Sol workers, explicit commits and exclusive index windows.
 Root owns integration, UI/physics/QA/written source and maintenance evidence.
@@ -94,3 +95,47 @@ desktop/phone, signs/robbery gates, no errors/external requests and measured dra
 geometry budgets. Source numerical checks do not certify N100 performance or
 Street View reconstruction. Preserve failures and resource cleanup; update manual
 and inventory only after source commits. Merge completed PR under standing order.
+
+## Additional owner scope and interfaces
+
+The owner also requested enterable buildings, lazy furnished house interiors,
+backyards, a Telopea school fence, Canberra Centre and the route across Lake
+Burley Griffin, performance work and a campaign. These extend this pass. Interior
+rooms are original plausible layouts, not surveyed private floorplans. Entry is
+an explicit on-foot E interaction at the actual building, not map travel.
+
+M4 owns new interiors.js, interior-view.js and scripts/test_capital_interiors.mjs.
+createInteriors(map,{heightAt,stores}) supplies findEntry(pose), enter(entry,actor),
+leave(actor), moveActor(actor,dx,dz,radius), hasLineOfSight(a,b), snapshot(),
+reset(actor) and active (null or one plan). Entry/leave mutate supplied actor
+position and preserve outside return pose. Descriptors may be indexed; full room
+plans/furniture are generated only on enter and discarded on leave. Houses have
+furnished living/kitchen/bed/bath spaces with door gaps and optional backyard exit;
+mapped shops have shelves/counter. Active plans expose floorY, spawn, exit,
+counter and bounded walls/furniture. createInteriorView(scene) supplies load(plan),
+clear(), stats and dispose(), owning only active interior meshes. Root integrates
+movement routing, interior camera/render scene, shop counters and UI. Street Life
+cannot use map travel and Free roam cannot earn.
+
+M5 owns new campus.js, campus-view.js, scripts/test_capital_campus.mjs. Exact cached
+OSM Telopea amenity=school site boundary governs the fence. Export CAMPUS_BARRIERS,
+CAMPUS_GATES, CAMPUS_BOUNDARY and CAMPUS_BUILDING_IDS. createCampusView(scene,map,
+heightAt) supplies update(focus), stats and dispose. Gate openings align sourced
+entrances where available, explicitly estimated otherwise. Same segments drive
+view and collision. Root adds barriers; M3 suppresses the old short school fence.
+
+M6 initially owns scripts/build_capital_north.py, data/canberra-north.json,
+map-expansion.js and scripts/test_capital_north.mjs. Bound source fetch/build work
+to20minutes, retaining raw downloads outside Git. Extract real OSM roads/buildings/
+water from inner south through the two bridges to Civic/Canberra Centre. Preserve
+original coordinates, source IDs, one-way/access/bridge tags and attribution.
+Runtime merge deduplicates exact road segments and graph nodes; no base snapshot
+rewrite. Record missing terrain/model work for a separate bounded follow-up.
+Root owns bridge water/height physics, terrain integration, centre model and
+navigation/UI changes after source inspection. No rectangular invented lake.
+
+Root owns an original short ordered Canberra campaign with explicit mission
+briefings, success/failure/retry and saved chapter progress, separate from repeatable
+Street Life jobs. Campaign shares career rules and has no map teleport. Do not
+copy GTA dialogue, characters, missions or art. Retain corruption/denied-storage
+guards and completed-mission state across character recovery.
