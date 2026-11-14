@@ -10,6 +10,9 @@ const CARS = [
 ];
 const COLOR = /^#[0-9a-f]{6}$/i;
 const MAX_CASH = 1000000000;
+const RIDE_MODELS = ['lantern', 'orchard', 'gravel', 'relay'];
+const RIDE_STOP_SECONDS = 2;
+const RIDE_STOP_SPEED = .8;
 const copy = value => JSON.parse(JSON.stringify(value));
 const near = (a, b, radius = 17) => a && Math.hypot(a.x - b.x, a.z - b.z) <= radius;
 const point = (x, z, label) => ({ x, z, label });
@@ -49,6 +52,12 @@ export function createProgression(map, saved = null, options = {}) {
       { ...point(263.85, -215.82, 'Kennedy Street pickup'), roadId: '5117419-0' },
       { ...point(411.48, -107.54, 'Kennedy Street checkpoint'), roadId: '5117419-0' },
       { ...point(707.93, 106.77, 'Kennedy Street drop'), roadId: '673311537-0' }] },
+    { id: 'yoober-crescent', name: 'Yoober Crescent local fare', type: 'ride', legitimate: true, reward: 45, time: 120, requires: [], stages: [
+      { ...point(-342.84, -382.24, 'Crescent passenger pickup'), roadId: '454766146-0' },
+      { ...point(-322.32, -348.02, 'Crescent passenger drop-off'), roadId: '454766146-0' }] },
+    { id: 'yoober-franklin', name: 'Yoober Franklin Street fare', type: 'ride', legitimate: true, reward: 110, time: 180, requires: [], stages: [
+      { ...point(-412.29, 160.2, 'Franklin passenger pickup'), roadId: '488671941-0' },
+      { ...point(-297.93, 240.71, 'Franklin passenger drop-off'), roadId: '488671941-0' }] },
     { id: 'priority-parcel', name: 'Priority parcel', type: 'delivery', reward: 1000, time: 110, requires: ['crescent-circuit', 'wagon-recovery'], stages: [south, north] },
   ];
   const state = { cash: 1000, ownedVehicles: [{ id: 'lantern', color: '#e7e6df', health: 100, stored: false }], completedJobs: [], activeJob: null,
@@ -94,6 +103,18 @@ export function createProgression(map, saved = null, options = {}) {
     return true;
   }
   function currentOwned(id) { return state.ownedVehicles.find(car => car.id === id); }
+  function rideGuard(ctx, active = false) {
+    if (!validContext(ctx)) return 'A valid player position is required.';
+    if (ctx.sandbox || ctx.recovering) return 'Yoober is unavailable here.';
+    if ((!active && state.activeJob) || state.activity) return 'Finish or cancel the current activity first.';
+    if (ctx.wanted > 0) return 'Lose the police before taking a fare.';
+    if (ctx.onFoot || !object(ctx.vehicle)) return 'Drive an owned four-door car first.';
+    const owned = currentOwned(ctx.vehicle.modelId);
+    if (!RIDE_MODELS.includes(ctx.vehicle.modelId) || !owned || owned.stored || ctx.vehicle.stolen !== false) return 'Use an owned, legal four-door car.';
+    if (ctx.vehicleHealth < 50 || ctx.vehicleHealth > 100) return 'Repair the car to at least 50% condition.';
+    return '';
+  }
+  function rideEligibility(ctx) { return rideGuard(ctx); }
   function garageGuard() {
     if (!atGarage()) return result(false, 'Visit the Crescent garage first.');
     if (context.wanted > 0) return result(false, 'Lose the police before using the garage.');
@@ -105,10 +126,12 @@ export function createProgression(map, saved = null, options = {}) {
     if (state.activeJob||state.activity) return result(false, 'Finish or cancel the current activity first.');
     const job = jobs.find(item => item.id === id);
     if (!job) return result(false, 'Unknown job.');
+    if (job.type === 'ride') { const reason = rideEligibility(ctx); if (reason) return result(false, reason); }
     if (job.legitimate && (ctx.wanted > 0 || ctx.vehicle?.stolen)) return result(false, 'Use a legal vehicle and lose the police before this delivery.');
     if (job.requires.some(required => !state.completedJobs.includes(required))) return result(false, 'Complete the earlier jobs to unlock this job.');
     serial = ctx.respawnSerial;
     state.activeJob = { id, type: job.type, name: job.name, stage: 0, target: copy(job.stages[0]), remaining: job.time, reward: job.reward, elapsed: 0, clearTime: 0, sawWanted: ctx.wanted > 0 };
+    if (job.type === 'ride') Object.assign(state.activeJob, { passenger: false, stopTime: 0, modelId: null });
     return result(true, `Started ${job.name}. Reach ${state.activeJob.target.label}.`, { jobId: id }, 'job-started');
   }
   function advance(job, active) {
@@ -124,8 +147,14 @@ export function createProgression(map, saved = null, options = {}) {
   }
   function update(dt, ctx) {
     if (!Number.isFinite(dt) || dt < 0) throw new Error('Career dt must be finite and nonnegative.');
-    if (!remember(ctx)) return;
-    if (dt === 0 && state.activity?.type !== 'work') return;
+    if (!remember(ctx)) {
+      if (state.activeJob?.type === 'ride') {
+        if (state.activeJob.passenger) fail('Fare interrupted. No pay earned.');
+        else state.activeJob.stopTime = 0;
+      }
+      return;
+    }
+    if (dt === 0 && state.activity?.type !== 'work' && state.activeJob?.type !== 'ride') return;
     for(const id of Object.keys(state.robberyCooldowns))state.robberyCooldowns[id]=Math.max(0,state.robberyCooldowns[id]-Math.min(dt,.25));
     const activity=state.activity;
     if(activity?.type==='work'){
@@ -153,7 +182,7 @@ export function createProgression(map, saved = null, options = {}) {
         }
       }
     }
-    if (dt === 0) return;
+    if (dt === 0 && state.activeJob?.type !== 'ride') return;
     if (serial !== null && serial !== ctx.respawnSerial && state.activeJob) { serial = ctx.respawnSerial; fail('Job ended after respawn.'); return; }
     serial = ctx.respawnSerial;
     const active = state.activeJob;
@@ -164,7 +193,22 @@ export function createProgression(map, saved = null, options = {}) {
     active.remaining = Math.max(0, active.remaining - dt);
     if (active.remaining === 0) { fail('Job time expired.'); return; }
     const driving = !ctx.onFoot && object(ctx.vehicle) && ctx.vehicleHealth > 0;
-    if (job.type === 'theft') {
+    if (job.type === 'ride') {
+      const reason = rideGuard(ctx, true);
+      if (active.passenger && (reason || ctx.vehicle.modelId !== active.modelId)) { fail('Fare interrupted. No pay earned.'); return; }
+      const stopped = !reason && near(ctx.pose, active.target, 10) && Number.isFinite(ctx.pose.speed) && Math.abs(ctx.pose.speed) <= RIDE_STOP_SPEED;
+      // A long frame or a previous interrupted stop cannot board or pay instantly.
+      if (active.stopModelId !== ctx.vehicle?.modelId) active.stopTime = 0;
+      active.stopModelId = stopped ? ctx.vehicle.modelId : null;
+      active.stopTime = stopped ? Math.min(RIDE_STOP_SECONDS, active.stopTime + Math.min(dt, .1)) : 0;
+      if (active.stopTime + 1e-9 >= RIDE_STOP_SECONDS) {
+        active.stopTime = 0;
+        if (!active.passenger) {
+          active.passenger = true; active.modelId = ctx.vehicle.modelId;
+          advance(job, active);
+        } else complete(job);
+      }
+    } else if (job.type === 'theft') {
       if (active.stage === 0) {
         if (driving && ctx.vehicle.modelId === job.modelId && ctx.vehicle.stolen === true && near(ctx.pose, active.target)) advance(job, active);
       } else if (driving && ctx.vehicle.modelId === job.modelId && ctx.vehicle.stolen === true && ctx.wanted === 0 && near(ctx.pose, active.target)) complete(job);
@@ -254,7 +298,7 @@ export function createProgression(map, saved = null, options = {}) {
   }
   function equippedFirearm(ctx){return WEAPON_IDS.includes(ctx.weapon)&&state.equipment[ctx.weapon]===true;}
   function purchaseService(id,item,ctx){
-    const site=serviceGuard(id,ctx);if(!site.id)return site;
+    const site=serviceGuard(id,ctx,{allowWanted:true});if(!site.id)return site;
     let cost,effect;
     if(site.type==='food'&&item==='food'){
       if(!Number.isFinite(ctx.health)||ctx.health>=100)return result(false,'Health is already full.');
@@ -298,6 +342,11 @@ export function createProgression(map, saved = null, options = {}) {
     if(!validContext(ctx)||ctx.sandbox||ctx.recovering||!ctx.onFoot||ctx.wanted>0||![20,30].includes(amount))return result(false,'Hire unavailable.');
     if(!spend(amount))return result(false,'Not enough cash for this ride.');
     return result(true,`Ride hired for $${amount}.`,{cost:amount},'rental-started');
+  }
+  function payRide(amount, ctx) {
+    if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.onFoot || ctx.wanted > 0 || state.activeJob || state.activity || !Number.isSafeInteger(amount) || amount < 8 || amount > 400) return result(false, 'Yoober booking unavailable.');
+    if (!spend(amount)) return result(false, 'Not enough cash for this fare.');
+    return result(true, `Yoober fare paid: $${amount}.`, { cost: amount }, 'ride-purchase');
   }
   function redeemDevCode(value, ctx) {
     if (!validContext(ctx) || ctx.sandbox || ctx.recovering) return result(false, 'Developer codes are unavailable here.');
@@ -354,7 +403,7 @@ export function createProgression(map, saved = null, options = {}) {
     if(state.fitnessLevel>=3||!spend(active.cost))return result(false,'Training is unavailable.',{},'activity-ended');
     state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{cost:active.cost},'workout-complete');
   }
-  return { state, jobs, garage,get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,finishWorkout,payRental,redeemDevCode,startShift,finishShift,
+  return { state, jobs, garage,get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,finishWorkout,payRental,payRide,rideEligibility,redeemDevCode,startShift,finishShift,
     cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
     serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns }); },
