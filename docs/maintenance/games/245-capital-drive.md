@@ -18,10 +18,10 @@ artwork or branded vehicle assets are used.
 - `simulation.js`: indexed car/actor collision, directed OSM graph, 40 nearby
   reactive traffic cars (cap 56), bounded overtaking/road rage, vehicle claims,
   parked/abandoned descriptors, polygon line of sight and safe teleport.
-- `gameplay.js`: foot/sprint/jump, car entry/theft, fists/pistol/aim/reload,
+- `gameplay.js`: foot/sprint/jump, car entry/theft, four firearms/aim/reload,
   health, witnessed offences, eight-cue car locks and delayed recovery. `police.js`
   owns up to four road patrols, dismounted officers, sight/search/escape and arrest.
-- `progression.js`: recurring ordered jobs, costs/rewards/unlocks, owned garage,
+- `progression.js`: recurring ordered jobs, costs/rewards/unlocks, saved four-weapon ownership and owned garage,
   condition-preserving retrieval, food/gun/ammo purchases, playable fitness/paid work, timed robbery,
   cooldowns and strict legacy-compatible career-save validation.
 - `street-ui.js`: jobs/garage/shops, five-star HUD and recovery feedback; no clock
@@ -60,7 +60,7 @@ exits a moving car, enters a nearby empty car, or starts taking an occupied car.
 Unfamiliar parked and occupied cars require an eight-key timed unlock sequence.
 Occupied drivers must stop first; remain close and visible throughout. Cars you
 have already driven stay unlocked for immediate re-entry. **E** cancels an attempt.
-**1/2** chooses fists/owned pistol; purchase the pistol at the supplies outlet first;
+**1–5** chooses fists/pistol/shotgun/SMG/carbine; buy owned weapons at supplies or fictional street contacts first;
 right mouse aims, left mouse attacks/fires, F melees and R reloads on foot.
 **Q** starts the nearby interior mini-game or paid shop task; **T** opens the
 Lemon hire phone. At the gym bench hold **X+Y**, then press **ArrowUp** on each
@@ -146,6 +146,35 @@ OFL font remain. All runtime data/imports/assets are local; developer caches and
 browser/geodata tooling stay outside the repository.
 
 ## Audit findings
+
+### Arms, quieter adults and parking correction, 14 November 2026
+
+The later [arms and streets contract](../../capital-drive-arms-and-streets-contract.md)
+and [verification receipt](../../verification/capital-drive-arms-streets-2026-11-14.md) supersede the single-pistol,80/160crowd and narrow-curb decoration descriptions
+below. Four original arcade firearms have independent ammo pools and visual
+silhouettes; shared profiles govern economy, combat and UI. Legacy v1 ownership
+saves remain valid. Three original fictional adult contacts offer local stock;
+K's weapons filter/Route and E beside a contact expose actual stock. Every purchase
+requires valid on-foot proximity, clear view, available stock/cash/cap and a clear
+wanted/recovery/activity state. Disabled buttons explain their reason.
+
+Canalside's old approach is physically clear in actual expanded-map sweeps/LOS.
+The reported loading cursor was the disabled-button CSS, not network loading.
+Owned items, full ammo packs, wanted, funds and distance now display clear states.
+Prices/controls, native sale evidence and limitations are in the new receipt.
+
+Public crowd caps are36 suburban/64 Civic. Chairs/cups, phones and work gestures
+interrupt into panic/fleeing; selected assertive adults retaliate only against a
+close actual aggressor with LOS/cooldown. Source/door-safe sites, separation and
+paused routines are covered. At most11 crowd draws plus six small contact draws.
+
+The original2,360decorative cars included2,065public-lane physical overlaps.
+Parking now uses source parking aisles and truly wide safe curbs, rejecting
+invalid narrow curb slots. Visible/physical positions share887validated slots;
+the original parking-only replay improved36stops to17. A later crossing-priority
+fix clears two reproduced permanent junction cycles with physical sweeps intact.
+Current fixed-parking40-carreplay:7/18stopped at60/120s, versus17/26beforepriority.
+These results do not claim that all independent junction/building delays are repaired.
 
 ### Visible cues and distributed vehicle locks, 14 November 2026
 
@@ -340,7 +369,7 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The reusable runner checks45authored modules and40pure suites (126commands), fails
+The reusable runner checks49authored modules and47pure suites (144commands), fails
 on missing files or actual command errors and bounds subprocess lifetimes. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
 unavailable WebGL, denied storage and hidden teleport guards. Actual-map physics

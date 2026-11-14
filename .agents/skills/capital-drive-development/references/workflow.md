@@ -366,3 +366,34 @@ consume real response time. Capture, cancel through normal input, then retry a
 fresh session rather than extending the game clock or deleting a failed run.
 The pause-entry check is `--dev-browser`; configured values stay out of public
 copy. A grant through that UI proves the form/save path, not legitimate job pay.
+
+
+## Weapon economy, adult routines and road clearance
+
+Trace `weapons.js` into Gameplay, Progression and street UI before editing. Keep
+current ammo aliases compatible, preserve independent pools on switching, and
+clip each pellet before target adapters. Canonical firearm hit kinds must reach
+pedestrian adapters; new gun IDs are trace/model identities. Duplicate ownership,
+wrong-stock ammo, full packs, remote/panicked contacts, sandbox, recovery and
+wanted state cannot spend cash. Validate old pistol-only v1 saves and strict new
+optional weapon booleans. Root owns the sole save writer.
+
+K lists current eligibility and costs; actual disabled states use explanatory
+copy and a not-allowed cursor. Never relocate a service or remove a guard just
+because a purchase was denied: test actual approach geometry, mode, ownership,
+funds, ammo and wanted state first. For native acceptance spend actual starting
+money through normal controls; do not grant a save or use sandbox money as proof.
+A foot route may need the real school gate and a normal detour around cars.
+
+Keep ambient chairs/cups/work sites source-safe and clear of known doors. Lower
+density does not remove swept contacts, aggressor attribution, ordinary-driving
+protections or pause behavior. Injury/gunfire interrupts routines; sight/cooldown
+and personality govern retaliation. View code owns no independent clocks.
+
+For traffic jams reproduce the actual generator and seed. Lane offsets, physical
+width and predictive brake clearance all matter: narrow-road decorative parking
+can block an entire directed route. Source parking aisles provide off-through-road
+slots. Test whole-car clearance, deterministic physical occupancy, mission target
+retention, buses, pause and local spatial queries. Do not release queues by
+ignoring collisions or teleporting cars. Separate legitimate player blockage from
+mutual junction/turning deadlocks and source-building overlap findings.

@@ -15,7 +15,8 @@ Read repository `AGENTS.md`, `docs/CODE_QUALITY.md`,
 `docs/capital-drive-district-sources.md`,
 `docs/capital-drive-living-interiors-contract.md` and
 `docs/capital-drive-living-sources.md` and
-`docs/capital-drive-unlock-contract.md`.
+`docs/capital-drive-unlock-contract.md` and
+`docs/capital-drive-arms-and-streets-contract.md`.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -108,3 +109,12 @@ the focused `--browser --theft-browser --output` flow for visible cues and actua
 scooter/car inputs. `--dev-browser` retains a bounded pause-entry regression; do
 not publish configured inputs in UI/help/receipts. The full source runner includes
 the new challenge, car and scooter-controller authority suites.
+
+
+Weapon changes use the shared weapons catalogue, independent Gameplay ammo pools
+and Progression's strict legacy ownership/cash owner. Use the bounded
+`--browser --store-browser --output` flow for actual career purchasing and
+`--browser --dealers-browser --output` for free equipment/contact input. Store disabled reasons must match location/ownership/funds/cap/mode guards;
+never style a denied action as loading. Street contacts are fictional, not real
+people or allegations attached to source POIs. New parking must pass whole-body
+clearance against the same traffic lanes and be used for both art and physics.
