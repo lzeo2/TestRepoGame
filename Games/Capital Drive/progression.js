@@ -348,6 +348,13 @@ export function createProgression(map, saved = null, options = {}) {
     if (!spend(amount)) return result(false, 'Not enough cash for this fare.');
     return result(true, `Yoober fare paid: $${amount}.`, { cost: amount }, 'ride-purchase');
   }
+  function prepareStarterVehicle(ctx){
+    if(!validContext(ctx)||ctx.sandbox||ctx.recovering||state.activeJob||state.activity)return {ok:false,message:'Starter vehicle unavailable.'};
+    const starter=currentOwned('lantern');
+    if(starter.health>0)return {ok:true,vehicle:copy(starter),assisted:false};
+    starter.health=35;starter.stored=false;
+    return result(true,'Starter car repaired to 35% condition. Visit the garage for a full repair.',{vehicle:copy(starter),assisted:true},'roadside-repair');
+  }
   function redeemDevCode(value, ctx) {
     if (!validContext(ctx) || ctx.sandbox || ctx.recovering) return result(false, 'Developer codes are unavailable here.');
     if (typeof value !== 'string' || value.trim().toLowerCase() !== 'alopsd') return result(false, 'Code not recognised.');
@@ -403,7 +410,7 @@ export function createProgression(map, saved = null, options = {}) {
     if(state.fitnessLevel>=3||!spend(active.cost))return result(false,'Training is unavailable.',{},'activity-ended');
     state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{cost:active.cost},'workout-complete');
   }
-  return { state, jobs, garage,get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,finishWorkout,payRental,payRide,rideEligibility,redeemDevCode,startShift,finishShift,
+  return { state, jobs, garage,get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,finishWorkout,payRental,payRide,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
     cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
     serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns }); },
