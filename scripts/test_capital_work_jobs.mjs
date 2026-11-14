@@ -36,6 +36,24 @@ function fixture(kind = 'noodle', options = {}) {
   return { store, interiors, activities, plan, station, ctx, progression, start, tick, complete, override: value => { override = value; } };
 }
 
+const controllerSource=await readFile(new URL('../Games/Capital Drive/script.js',import.meta.url),'utf8');
+const startFunction=controllerSource.match(/function beginMini\(id\)\{[\s\S]*?\n\}/)?.[0];
+assert(startFunction,'production activity controller is present');
+const {bind}=await import('data:text/javascript;base64,'+Buffer.from(`export function bind(env){
+  const {interiors,activities,progression,paused,focus,careerContext,isSandbox,notify,clearInput}=env;
+  ${startFunction}
+ return beginMini;}`).toString('base64'));
+for(const kind of ['noodle','stock']){
+  const f=fixture(kind);
+  const begin=bind({...f,paused:()=>false,focus:()=>f.ctx.pose,careerContext:()=>f.ctx,isSandbox:()=>false,notify(){},clearInput(){}});
+  begin();assert.equal(f.progression.state.activity?.type,'work');
+  const session=f.activities.snapshot().sessionId;
+  begin();assert.equal(f.activities.snapshot().sessionId,session,'repeated Q retains the active playable session');
+  assert.equal(f.progression.state.activity?.type,'work','repeated Q cannot silently cancel its paid shift');
+  f.complete();assert(f.progression.finishShift(f.ctx,true).ok);
+  assert.equal(f.progression.state.cash,1000+(kind==='noodle'?60:45));
+}
+
 for (const kind of ['noodle', 'stock']) {
   const f = fixture(kind), p = f.progression, reward = kind === 'noodle' ? 60 : 45;
   assert.equal(p.startShift(f.store.id, f.ctx).ok, false, 'a task must be active before starting paid work');

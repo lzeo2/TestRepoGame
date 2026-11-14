@@ -144,7 +144,7 @@ function servicePosition(site){
 function miniInput(){return {x:keys.has('KeyX')||miniKeys.has('x'),y:keys.has('KeyY')||miniKeys.has('y'),up:keys.has('ArrowUp')||miniKeys.has('up')};}
 function stopMini(){activities.cancel();progression?.cancelActivity();clearInput();}
 function beginMini(id){
-  if(!interiors?.active||paused())return;
+  if(!interiors?.active||paused()||activities.snapshot().active)return;
   const station=id?interiors.active.activities.find(s=>s.id===id):activities.nearest(focus());
   if(!station){notify('Walk to an activity station.');return;}
   if(station.kind==='bench'&&!isSandbox()&&progression.state.fitnessLevel<3){
