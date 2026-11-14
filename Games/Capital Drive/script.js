@@ -21,6 +21,7 @@ import {createServicesView} from './services-view.js';
 import {MAPPED_STORES} from './stores.js';
 import {createStorefrontsView} from './storefronts-view.js';
 import {createTrafficView} from './traffic-view.js';
+import {createNoodleShopView,NOODLE_SHOP_ID} from './noodle-shop-view.js';
 import {SHOPPING_BUILDING_IDS} from './shopping-precincts.js';
 import {createShoppingView,SHOPPING_CLEARINGS} from './shopping-view.js';
 import {CAMPUS_BARRIERS,CAMPUS_BUILDING_IDS,CAMPUS_GATES} from './campus.js';
@@ -46,7 +47,7 @@ const vehicles = [
   { id: 'finch', name: 'City hatchback', note: 'Small and nimble', label: 'HATCH' },
 ];
 let map, simulation, world, renderer, scene, camera, playerMesh, route = [], destination = null;
-let trafficView,storefrontsView,shoppingView,campusView,civicView;
+let trafficView,storefrontsView,shoppingView,campusView,civicView,noodleShopView;
 let interiors,interiorScene,interiorView,indoorActorView,campaign,terrainSampler;
 let parkedChunks = [], selectedCar = 'lantern', selectedPaint = '#e7e6df';
 let quality = 'low', started = false, disposed = false, lastTime = 0, accumulator = 0, lastRender = 0, hudTime = 0;
@@ -843,7 +844,7 @@ function animate(time) {
   for(const officer of gameplay.state.police)if(officer.health>0&&officer.car)seated(officer.car,officer.mode==='vehicle','relay');
   occupantsView?.update(activeDt,{focus:p,cars:occupantInputs});
   if (++frameCount % 8 === 0) {
-    world.update(p, time / 1000); neighbourhood?.update(p); landmarkView?.update(p, time / 1000);storefrontsView?.update(p);shoppingView?.update(p);campusView?.update(p);civicView?.update(p);
+    world.update(p, time / 1000); neighbourhood?.update(p); landmarkView?.update(p, time / 1000);storefrontsView?.update(p);shoppingView?.update(p);campusView?.update(p);civicView?.update(p);noodleShopView?.update(p);
     syncParkedVisibility();
     for (const chunk of parkedChunks) chunk.group.visible = Math.hypot(chunk.x - p.x, chunk.z - p.z) < 600;
   }
@@ -916,7 +917,8 @@ async function boot() {
   const sun = new THREE.DirectionalLight(0xfff0ce, 2.0); sun.position.set(-300, 450, 180); scene.add(sun);
   world = compatibility ? { heightAt: () => 0, update() {}, dispose() {}, stats: {} } : createWorldView(scene, map);
   civicView=compatibility?emptyView():createCivicView(scene,map,terrainSampler.heightAt);
-  map.barriers.push(...(civicView.barriers||[]));
+  noodleShopView=compatibility?emptyView():createNoodleShopView(scene,terrainSampler.heightAt);
+  map.barriers.push(...(civicView.barriers||[]),...(noodleShopView.obstacles||[]));
   simulation=createSimulation(map,{isOnBridge:terrainSampler.isOnBridge});
   world.update(simulation.player, 0);
   pedestrians = createPedestrians(scene, map, world.heightAt);
@@ -961,7 +963,7 @@ async function boot() {
   actorView = compatibility ? { update() {}, dispose() {}, stats: {} } : createActorView(scene, world.heightAt);
   occupantsView=compatibility?{update(){},addExit(){},dispose(){},stats:{}}:createVehicleOccupantsView(scene,world.heightAt);
   servicesView=compatibility?{update(){},dispose(){},stats:{}}:createServicesView(scene,world.heightAt);
-  storefrontsView=compatibility?{update(){},dispose(){},stats:{}}:createStorefrontsView(scene,world.heightAt);
+  storefrontsView=compatibility?{update(){},dispose(){},stats:{}}:createStorefrontsView(scene,world.heightAt,{excludeIds:[NOODLE_SHOP_ID]});
   trafficView=compatibility?{update(){},dispose(){},stats:{}}:createTrafficView(scene,world.heightAt,simulation.traffic);
   shoppingView=compatibility?emptyView():createShoppingView(scene,map,world.heightAt);
   campusView=compatibility?emptyView():createCampusView(scene,map,world.heightAt);
@@ -1011,7 +1013,7 @@ async function boot() {
     landmarks: Object.freeze({ ...landmarkView.stats }), actors: Object.freeze({ ...actorView.stats }),
     services:freezeCopy(progression.services),activity:freezeCopy(progression.state.activity),
     buses:freezeCopy(buses.snapshot()),busView:Object.freeze({...busView.stats}),occupants:Object.freeze({...occupantsView.stats}),
-    serviceView:Object.freeze({...servicesView.stats}),storefronts:Object.freeze({...storefrontsView.stats}),poolGates:freezeCopy(POOL_GATE_APPROACHES),campus:freezeCopy(campusView.stats),campusGates:freezeCopy(CAMPUS_GATES),shopping:freezeCopy(shoppingView.stats),civic:freezeCopy(civicView.stats),interiorView:freezeCopy(interiorView.stats),
+    serviceView:Object.freeze({...servicesView.stats}),storefronts:Object.freeze({...storefrontsView.stats}),poolGates:freezeCopy(POOL_GATE_APPROACHES),campus:freezeCopy(campusView.stats),campusGates:freezeCopy(CAMPUS_GATES),shopping:freezeCopy(shoppingView.stats),civic:freezeCopy(civicView.stats),noodleShop:freezeCopy(noodleShopView.stats),interiorView:freezeCopy(interiorView.stats),
     trafficSample: freezeCopy(simulation.traffic.slice(0, 8).map(({ id, x, z, speed, active, behaviour, honkCount }) => ({ id, x, z, speed, active, behaviour, honkCount }))) });
   raf = requestAnimationFrame(animate);
 }
@@ -1021,7 +1023,7 @@ window.addEventListener('pagehide', () => {
   if (audio) audio.context.close().catch(error => console.warn('Could not release audio:', error.message));
   for (const resource of parkedResources) resource.dispose();
   streetUI?.dispose(); actorView?.dispose(); landmarkView?.dispose();busView?.dispose();occupantsView?.dispose();servicesView?.dispose();trafficView?.dispose();storefrontsView?.dispose();
-  shoppingView?.dispose();campusView?.dispose();civicView?.dispose();interiorView?.dispose();indoorActorView?.dispose();
+  shoppingView?.dispose();campusView?.dispose();civicView?.dispose();noodleShopView?.dispose();interiorView?.dispose();indoorActorView?.dispose();
   pedestrians?.dispose(); neighbourhood?.dispose(); world?.dispose(); disposeCars(); renderer?.dispose();
 });
 boot().catch(error => {

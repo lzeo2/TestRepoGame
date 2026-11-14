@@ -24,7 +24,7 @@ MODULES = (
     'buses.js', 'bus-view.js', 'vehicle-occupants-view.js', 'districts.js',
     'services.js', 'services-view.js', 'stores.js', 'storefronts-view.js', 'traffic-view.js',
     'shopping-precincts.js','shopping-view.js','suburb-character.js','campus.js','campus-view.js',
-    'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js',
+    'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js','noodle-shop-view.js',
 )
 SUITES = (
     'test_capital_drive.mjs', 'test_capital_pedestrians.mjs',
@@ -37,7 +37,7 @@ SUITES = (
     'test_capital_services_view.mjs', 'test_capital_stores.mjs', 'test_capital_storefronts.mjs',
     'test_capital_traffic_view.mjs', 'test_capital_sites.mjs',
     'test_capital_shopping.mjs','test_capital_campus.mjs','test_capital_interiors.mjs',
-    'test_capital_campaign.mjs','test_capital_north.mjs','test_capital_terrain.mjs','test_capital_civic.mjs','test_capital_crossings.mjs',
+    'test_capital_campaign.mjs','test_capital_north.mjs','test_capital_terrain.mjs','test_capital_civic.mjs','test_capital_crossings.mjs','test_capital_noodle_shop.mjs',
 )
 DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json','shopping-precincts.json','canberra-north.json','north-terrain.json')
 
@@ -75,9 +75,11 @@ def main():
     parser.add_argument('--output', type=Path, help='Explicit external directory for browser artifacts and runner report; required with --browser.')
     parser.add_argument('--classic-browser', action='store_true', help='Use the retained earlier Street Life browser suite instead of the expansion suite.')
     parser.add_argument('--expansion-browser', action='store_true', help='Use the retained earlier expansion browser suite.')
+    parser.add_argument('--priority-shop-browser',action='store_true',help='Use the focused restaurant browser flow with --browser.')
     parser.add_argument('--dry-run', action='store_true', help='List required files and exact commands without running them or creating directories.')
     args = parser.parse_args()
-    if args.classic_browser and args.expansion_browser:parser.error('Choose one earlier browser suite')
+    if sum([args.classic_browser,args.expansion_browser,args.priority_shop_browser])>1:parser.error('Choose one browser flow')
+    if args.priority_shop_browser and not args.browser:parser.error('--priority-shop-browser requires --browser')
     browser_suite='scripts/test_capital_drive_browser.py' if args.classic_browser else 'scripts/test_capital_expansion_browser.py' if args.expansion_browser else 'scripts/test_capital_district_browser.py'
     if args.browser != (args.output is not None):
         parser.error('--browser and --output must be used together')
@@ -98,7 +100,7 @@ def main():
     commands.append((['git', 'diff', '--check'], 120))
     if args.browser:
         suite = browser_suite
-        commands.append(([sys.executable, '-B', suite, '--output', str(output)], 600))
+        commands.append(([sys.executable, '-B', suite, '--output', str(output)]+(['--priority-shop'] if args.priority_shop_browser else []), 600))
     missing = [str(path) for path in required if not (ROOT / path).is_file()]
     if missing:
         for path in missing:

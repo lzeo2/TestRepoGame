@@ -4,6 +4,11 @@ import { MAPPED_STORES } from './stores.js';
 
 // Original bitmap alphabet; no fonts, real logos or source-business labels.
 const GLYPHS = {
+ '0':'01110 10001 10011 10101 11001 10001 01110','1':'00100 01100 00100 00100 00100 00100 01110',
+ '2':'01110 10001 00001 00010 00100 01000 11111','3':'11110 00001 00001 01110 00001 00001 11110',
+ '4':'00010 00110 01010 10010 11111 00010 00010','5':'11111 10000 10000 11110 00001 00001 11110',
+ '6':'01110 10000 10000 11110 10001 10001 01110','7':'11111 00001 00010 00100 01000 01000 01000',
+ '8':'01110 10001 10001 01110 10001 10001 01110','9':'01110 10001 10001 01111 00001 00001 01110',
  A:'01110 10001 10001 11111 10001 10001 10001',B:'11110 10001 10001 11110 10001 10001 11110',
  C:'01111 10000 10000 10000 10000 10000 01111',D:'11110 10001 10001 10001 10001 10001 11110',
  E:'11111 10000 10000 11110 10000 10000 11111',F:'11111 10000 10000 11110 10000 10000 10000',
@@ -22,10 +27,11 @@ const GLYPHS = {
 };
 const RANGE = 180;
 
-export function createStorefrontsView(scene,heightAt) {
+export function createStorefrontsView(scene,heightAt,{excludeIds=[]}={}) {
+  const stores=MAPPED_STORES.filter(store=>!excludeIds.includes(store.id));
   const root=new THREE.Group();root.name='Mapped parody storefronts';scene.add(root);
   const atlasWidth=1024,rowHeight=32;
-  const atlasHeight=2**Math.ceil(Math.log2(Math.max(32,MAPPED_STORES.length*2*rowHeight)));
+  const atlasHeight=2**Math.ceil(Math.log2(Math.max(32,stores.length*2*rowHeight)));
   const pixels=new Uint8Array(atlasWidth*atlasHeight*4);
   function writeText(label,row) {
     const upper=label.toUpperCase(),scale=Math.min(3,Math.floor((atlasWidth-16)/(upper.length*6)));
@@ -49,7 +55,7 @@ export function createStorefrontsView(scene,heightAt) {
   const textMaterial=new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false});
   const solids=[],texts=[],ranges=[];
   let solidOffset=0,textOffset=0;
-  MAPPED_STORES.forEach((store,index)=>{
+  stores.forEach((store,index)=>{
     const f=store.frontage,angle=f.yaw+Math.PI;
     const ground=heightAt(f.x,f.z);
     if(!Number.isFinite(ground)) throw new Error('Storefront requires finite terrain height');
@@ -124,7 +130,7 @@ export function createStorefrontsView(scene,heightAt) {
   }
   update(null);
   return {update,
-    get stats(){return Object.freeze({sites:MAPPED_STORES.length,visible,drawCalls:visible?2:0,triangles:(solidGeometry.index.count+textGeometry.index.count)/3,geometryCount:2,materialCount:2,textureCount:1,cullDistance:RANGE,disposed});},
+    get stats(){return Object.freeze({sites:stores.length,visible,drawCalls:visible?2:0,triangles:(solidGeometry.index.count+textGeometry.index.count)/3,geometryCount:2,materialCount:2,textureCount:1,cullDistance:RANGE,disposed});},
     dispose(){if(disposed)return;disposed=true;visible=0;scene.remove(root);solidGeometry.dispose();textGeometry.dispose();solidMaterial.dispose();textMaterial.dispose();texture.dispose();},
   };
 }

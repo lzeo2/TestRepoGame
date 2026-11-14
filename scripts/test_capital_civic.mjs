@@ -17,6 +17,14 @@ assert(view.stats.centreTriangles<=16000);assert(view.stats.bridgeTriangles<2000
 assert(view.stats.drawCalls===0);assert(Object.isFrozen(CIVIC_BUILDING_IDS));
 assert(Object.isFrozen(CIVIC_LANDMARKS)&&Object.isFrozen(CIVIC_LANDMARKS[0]));
 assert(!source.includes('requestAnimationFrame'),'controller owns sole clock');
+// Texture U must increase toward the outside observer's right, not the ring tangent.
+const signGeometry=root.children.find(mesh=>mesh.name.includes('signs')).geometry;
+const sp=signGeometry.attributes.position,su=signGeometry.attributes.uv;
+const centreX=(sp.getX(0)+sp.getX(1))/2,centreZ=(sp.getZ(0)+sp.getZ(1))/2;
+const outsideX=CIVIC_LANDMARKS[0].x-centreX,outsideZ=CIVIC_LANDMARKS[0].z-centreZ;
+const rightX=outsideZ,rightZ=-outsideX;
+assert(((sp.getX(1)-sp.getX(0))*rightX+(sp.getZ(1)-sp.getZ(0))*rightZ)*(su.getX(1)-su.getX(0))>0,'Centre sign reads left to right from the public approach');
+
 const contains=(x,z,points)=>{
  let hit=false;for(let i=0,j=points.length-1;i<points.length;j=i++){
  const a=points[i],b=points[j];if((a[1]>z)!==(b[1]>z)&&x<(b[0]-a[0])*(z-a[1])/(b[1]-a[1])+a[0])hit=!hit;

@@ -47,7 +47,7 @@ export function createCivicView(scene,map,heightAt) {
     quad(body,...backing,0x303f43);
     const points=[[-width/2,-h/2],[width/2,-h/2],[width/2,h/2],[-width/2,h/2]].map(p=>[x+tx*p[0],base+p[1],z+tz*p[0]]);
     const v0=1-(labelIndex+1)/4,v1=1-labelIndex/4;
-    const uvs=[[0,v0],[1,v0],[1,v1],[0,v1]];
+    const uvs=[[1,v0],[0,v0],[0,v1],[1,v1]];
     for(const i of [0,1,2,0,2,3]){signs.positions.push(...points[i]);signs.uvs.push(...uvs[i]);}
   }
   let facadeSpans=0;

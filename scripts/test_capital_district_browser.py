@@ -27,6 +27,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True, type=Path,
                         help='Fresh or empty evidence directory outside the repository; prior artifacts fail.')
+    parser.add_argument('--priority-shop',action='store_true',help='Run the focused Lambzhou reference, entry and counter review.')
     args = parser.parse_args()
     output = args.output.resolve()
     if output == ROOT or ROOT in output.parents:
@@ -233,185 +234,233 @@ def main():
             # LIFO guarantees browser.close runs before the Playwright manager exits.
             stack.callback(browser.close)
             try:
-                context = browser.new_context(viewport={'width': 1280, 'height': 800})
-                page = context.new_page()
-                ready(page)
-                start(page, 'campaign')
-                check(snap(page)['interiors']['generatedPlans'] == 0, 'Startup indexes doors without generating room plans')
-                if page.locator('#campaign-dialog').is_visible():
-                    close(page, 'campaign-dialog')
-                page.keyboard.press('j')
-                check(page.locator('#campaign-dialog').is_visible() and
-                      'parcel' in page.locator('#campaign-briefing').inner_text().lower(),
-                      'Campaign J opens original first-mission briefing')
-                check(page.locator('#campaign-chapters li').count() == 6, 'Campaign lists six ordered chapters')
-                capture(page, 'campaign-briefing')
-                page.locator('#campaign-start').click()
-                focus_world(page)
-                page.wait_for_function('capitalDriveSnapshot().campaign.active?.stage===1', timeout=20000)
-                active = record(page, 'campaign normal spawn pickup')['campaign']['active']
-                check(active['remaining'] < 360 and active['stage'] == 1,
-                      'Active mission timer advances and real spawn pickup reaches stage two')
-                result = search(page, 'Coals')
-                check('Coals' in result.first.inner_text(), 'Campaign search resolves mapped Coals')
-                result.first.click()
-                check(not page.locator('#teleport-button').is_visible(), 'Campaign hides map teleport button')
-                before = snap(page)['focus']
-                page.locator('#full-map').focus()
-                page.keyboard.press('Enter')
-                check(snap(page)['focus'] == before and snap(page)['routePoints'] > 0,
-                      'Campaign map Enter handler sets a route without moving actor')
-                capture(page, 'campaign-map-route')
-                close(page, 'map-dialog')
-                capture(page, 'campaign-active')
-                page.keyboard.down('w')
-                try:
-                    page.wait_for_function('Math.abs(capitalDriveSnapshot().player.speed)>1.5', timeout=15000)
-                finally:
-                    page.keyboard.up('w')
-                moving = record(page, 'normal driving before E')
-                page.keyboard.press('e')
-                check(snap(page)['gameplay']['mode'] == 'vehicle' and abs(snap(page)['player']['speed']) < .1,
-                      'First E stops moving car and keeps player seated')
-                page.keyboard.press('e')
-                check(snap(page)['gameplay']['mode'] == 'foot', 'Second E exits stopped car')
-                check(math.hypot(moving['player']['x']-before['x'], moving['player']['z']-before['z']) > .1,
-                      'Normal keyboard drive changes car position')
-                context.close()
-
-                context = browser.new_context(viewport={'width': 1280, 'height': 800})
-                page = context.new_page()
-                ready(page)
-                start(page, 'free')
-                initial_cash = snap(page)['career']['cash']
-                for query, label in [('Canberra Centre', 'Canberra Centre'), ('Coles', 'Coals')]:
-                    result = search(page, query)
-                    check(label in result.first.inner_text(), 'Free roam source search resolves '+label)
+                if args.priority_shop:
+                    context=browser.new_context(viewport={'width':1280,'height':800})
+                    page=context.new_page();ready(page);start(page,'free')
+                    initial=snap(page)
+                    check(initial['interiors']['generatedPlans']==0,'No restaurant room is generated at startup')
+                    centre=initial['interiors']['publicEntries'][0]
+                    teleport_point(page,centre['x']-math.sin(centre['yaw'])*35,centre['z']-math.cos(centre['yaw'])*35)
+                    foot(page);look(page,centre['x'],centre['z']);page.wait_for_timeout(4400)
+                    capture(page,'civic-corrected-sign')
+                    result=search(page,'Lanzhou 1919')
+                    check('Lambzhou 1919' in result.first.inner_text(),'Real restaurant name resolves to its mapped parody')
+                    result.first.click();teleport_selection(page)
+                    store=next(item for item in snap(page)['services'] if item['id']=='store-5656111023')
+                    door=store['frontage'];yaw=door['yaw']
+                    teleport_point(page,door['x']-math.sin(yaw)*14,door['z']-math.cos(yaw)*14)
+                    foot(page);look(page,door['x'],door['z']);page.wait_for_timeout(4400)
+                    capture(page,'lambzhou-1919-frontage');state=snap(page)
+                    check(state['noodleShop']['visible'] and state['noodleShop']['drawCalls']<=3,'Dedicated restaurant exterior visible within three draws')
+                    check(state['noodleShop']['triangles']<=5000,'Restaurant exterior stays within geometry budget')
+                    check(state['storefronts']['sites']==20,'Dedicated facade does not duplicate the twenty generic storefronts')
+                    around_car_to_door(page,door)
+                    plan=enter(page,'shop')
+                    check(plan.get('variant')=='noodles' and plan['storeId']==store['id'],'Source restaurant enters its specialised noodle room')
+                    check(plan['depth']==12 and plan['counter'] is not None,'Restaurant has dining depth and a functional counter approach')
+                    check({'noodle-dining','noodle-kitchen'}<={r['kind'] for r in plan['rooms']},'Restaurant includes dining and open kitchen spaces')
+                    check({'noodle-bowl','chopsticks','condiments'}<={d['kind'] for d in plan['details']},'Original bowls, chopsticks and condiments are present')
+                    check(snap(page)['interiorView']['triangles']<=3000,'Lazy noodle interior stays below three thousand triangles')
+                    walk(page,room_point(plan,0,4.3),tolerance=.35)
+                    target=room_point(plan,-3,4.3);look(page,target['x'],target['z'])
+                    capture(page,'lambzhou-booths-and-tables')
+                    walk(page,room_point(plan,0,7.7),tolerance=.4)
+                    target=room_point(plan,0,11);look(page,target['x'],target['z'])
+                    capture(page,'lambzhou-open-kitchen')
+                    page.keyboard.press('e')
+                    check(page.locator('#services-dialog').is_visible(),'E at the restaurant counter opens shop actions')
+                    check('Lambzhou 1919' in page.locator('#services-list article').first.inner_text(),'Current indoor restaurant is first in the shop list')
+                    check(page.locator('[data-service-activity=robbery]:enabled').count()==0,'Free roam cannot rob the restaurant for career cash')
+                    close(page,'services-dialog')
+                    walk(page,room_point(plan,0,3),tolerance=.35);leave(page,plan)
+                    check(snap(page)['career']['cash']==initial['career']['cash'],'Restaurant visit cannot change sandbox career cash')
+                    teleport_point(page,-600,2148);page.wait_for_timeout(900)
+                    check(not snap(page)['noodleShop']['visible'],'Restaurant exterior culls when leaving Civic')
+                    check(snap(page)['interiors']['activePlans']==0 and snap(page)['interiorView']['meshes']==0,'Leaving keeps no restaurant room meshes')
+                    context.close();page=None
+                    check(not errors,'No page or console errors')
+                    check(not requests,'No failed requests or HTTP errors')
+                    check(not external,'No external runtime requests attempted')
+                else:
+                    context = browser.new_context(viewport={'width': 1280, 'height': 800})
+                    page = context.new_page()
+                    ready(page)
+                    start(page, 'campaign')
+                    check(snap(page)['interiors']['generatedPlans'] == 0, 'Startup indexes doors without generating room plans')
+                    if page.locator('#campaign-dialog').is_visible():
+                        close(page, 'campaign-dialog')
+                    page.keyboard.press('j')
+                    check(page.locator('#campaign-dialog').is_visible() and
+                          'parcel' in page.locator('#campaign-briefing').inner_text().lower(),
+                          'Campaign J opens original first-mission briefing')
+                    check(page.locator('#campaign-chapters li').count() == 6, 'Campaign lists six ordered chapters')
+                    capture(page, 'campaign-briefing')
+                    page.locator('#campaign-start').click()
+                    focus_world(page)
+                    page.wait_for_function('capitalDriveSnapshot().campaign.active?.stage===1', timeout=20000)
+                    active = record(page, 'campaign normal spawn pickup')['campaign']['active']
+                    check(active['remaining'] < 360 and active['stage'] == 1,
+                          'Active mission timer advances and real spawn pickup reaches stage two')
+                    result = search(page, 'Coals')
+                    check('Coals' in result.first.inner_text(), 'Campaign search resolves mapped Coals')
                     result.first.click()
-                    check(page.locator('#teleport-button').is_visible(), 'Free roam offers map travel')
-                    teleport_selection(page)
-                    foot(page)
-                    if label == 'Canberra Centre':
-                        centre = next(place for place in snap(page)['places'] if place['id'] == 'canberra-centre')
-                        look(page, centre['x']+8, centre['z']-5)
-                        check(snap(page)['civic']['visible'], 'Source Civic exterior visible at public approach')
-                        capture(page, 'source-centre-public-approach')
-                        mall=snap(page)['interiors']['publicEntries'][0]
-                        teleport_point(page,mall['x']-math.sin(mall['yaw'])*35,mall['z']-math.cos(mall['yaw'])*35)
-                        foot(page);look(page,mall['x'],mall['z'])
-                        capture(page,'centre-street-exterior')
-                        teleport_point(page,mall['x']-math.sin(mall['yaw'])*10,mall['z']-math.cos(mall['yaw'])*10)
-                        foot(page);around_car_to_door(page,mall)
-                        plan=enter(page,'mall')
-                        check(sum(room['kind']=='mall-unit' for room in plan['rooms'])==4,'Centre concourse has four original units')
-                        check(plan['counter'] is None and not plan.get('storeId'),'Public concourse has no invented economic service')
-                        walk(page,room_point(plan,0,7.5),tolerance=.6)
-                        walk(page,room_point(plan,7.5,7.5),tolerance=.6)
-                        capture(page,'centre-entered-concourse-unit')
-                        walk(page,room_point(plan,0,7.5),tolerance=.6)
-                        leave(page,plan)
-                store = next(item for item in snap(page)['services'] if item['name'] == 'Coals')
-                frontage = store['frontage']
-                look(page, frontage['x'], frontage['z'])
-                capture(page, 'coals-source-frontage')
-                # Search arrival places our own car in front of the door. Walk around
-                # its end, then along the facade; do not walk through its collider.
-                def storefront_point(tangent, depth):
-                    yaw = frontage['yaw']
-                    return {'x': frontage['x']+math.cos(yaw)*tangent+math.sin(yaw)*depth,
-                            'z': frontage['z']-math.sin(yaw)*tangent+math.cos(yaw)*depth}
-                for waypoint in [storefront_point(5, -6), storefront_point(5, -1.2), frontage]:
-                    walk(page, waypoint, tolerance=.9 if waypoint is not frontage else 2.4, seconds=25)
-                plan = enter(page, 'shop')
-                capture(page, 'shop-lazy-interior')
-                # Follow an aisle beside the shelving, then approach the counter.
-                origin, width = plan['origin'], plan['width']
-                def local(x, z):
-                    return {'x': origin['x']+math.cos(origin['yaw'])*x+math.sin(origin['yaw'])*z,
-                            'z': origin['z']-math.sin(origin['yaw'])*x+math.cos(origin['yaw'])*z}
-                # Leave steering margin beside the shelf collider for discrete WASD.
-                aisle = min(width/2-1.35, 1.0)
-                for waypoint in [local(aisle, 1.8), local(aisle, 6.5), plan['counter']]:
-                    walk(page, waypoint, tolerance=.75)
-                page.keyboard.press('e')
-                check(page.locator('#services-dialog').is_visible(), 'Normal indoor counter E opens shop actions')
-                check(page.locator('[data-service-activity=robbery]:enabled').count() == 0,
-                      'Free roam indoor till cannot earn career cash')
-                close(page, 'services-dialog')
-                capture(page, 'shop-counter')
-                for waypoint in [local(aisle, 6.5), local(aisle, 1.8)]:
-                    walk(page, waypoint, tolerance=.8)
-                leave(page, plan)
+                    check(not page.locator('#teleport-button').is_visible(), 'Campaign hides map teleport button')
+                    before = snap(page)['focus']
+                    page.locator('#full-map').focus()
+                    page.keyboard.press('Enter')
+                    check(snap(page)['focus'] == before and snap(page)['routePoints'] > 0,
+                          'Campaign map Enter handler sets a route without moving actor')
+                    capture(page, 'campaign-map-route')
+                    close(page, 'map-dialog')
+                    capture(page, 'campaign-active')
+                    page.keyboard.down('w')
+                    try:
+                        page.wait_for_function('Math.abs(capitalDriveSnapshot().player.speed)>1.5', timeout=15000)
+                    finally:
+                        page.keyboard.up('w')
+                    moving = record(page, 'normal driving before E')
+                    page.keyboard.press('e')
+                    check(snap(page)['gameplay']['mode'] == 'vehicle' and abs(snap(page)['player']['speed']) < .1,
+                          'First E stops moving car and keeps player seated')
+                    page.keyboard.press('e')
+                    check(snap(page)['gameplay']['mode'] == 'foot', 'Second E exits stopped car')
+                    check(math.hypot(moving['player']['x']-before['x'], moving['player']['z']-before['z']) > .1,
+                          'Normal keyboard drive changes car position')
+                    context.close()
 
-                house = next(item for item in snap(page)['interiors']['entrySample'] if item['type'] == 'house')
-                teleport_point(page, house['x']-math.sin(house['yaw'])*8,
-                               house['z']-math.cos(house['yaw'])*8)
-                foot(page)
-                look(page, house['x'], house['z'])
-                capture(page, 'house-rendered-door-approach')
-                around_car_to_door(page,house)
-                plan = enter(page, 'house')
-                check({room['kind'] for room in plan['rooms']} == {'living', 'kitchen', 'bedroom', 'bathroom'},
-                      'Lazy house contains four distinct rooms')
-                check({'sofa', 'kitchen-bench', 'bed', 'bath', 'toilet'} <=
-                      {item['kind'] for item in plan['furniture']}, 'House has living/kitchen/bed/bath furnishings')
-                walk(page,room_point(plan,0,3.1),tolerance=.3)
-                walk(page,room_point(plan,-1.5,3.1),tolerance=.35)
-                target=room_point(plan,-4,2.6);look(page,target['x'],target['z'])
-                capture(page, 'house-living-room-interior')
-                walk(page,room_point(plan,0,3.1),tolerance=.3)
-                capture(page, 'house-four-room-interior')
-                leave(page, plan)
-
-                north = json.loads((ROOT/'Games/Capital Drive/data/canberra-north.json').read_text())
-                bridge = next(road for road in north['roads'] if road.get('sourceId') == 'way/4878920')
-                a, b = bridge['points'][0], bridge['points'][-1]
-                bx, bz = (a[0]+b[0])/2, (a[1]+b[1])/2
-                teleport_point(page, bx, bz)
-                foot(page)
-                look(page, b[0], b[1])
-                capture(page, 'source-bridge-deck')
-                look(page, bx+250, bz+100)
-                capture(page, 'source-lake-shoreline')
-                gate = next(g for g in snap(page)['campusGates'] if g['sourceWay']=='1284808827-0')
-                gx,gz=gate['outside'];ix,iz=gate['inside'];span=math.hypot(gx-ix,gz-iz)
-                teleport_point(page,gx+(gx-ix)/span*8,gz+(gz-iz)/span*8)
-                foot(page)
-                look(page, gate['x'], gate['z'])
-                check(snap(page)['campus']['visible'], 'Source school fence visible near mapped gate')
-                capture(page, 'source-school-fence-gate')
-                around_car_to_door(page,{'x':gx,'z':gz})
-                walk(page,{'x':gx,'z':gz},tolerance=.35)
-                walk(page,{'x':gate['inside'][0],'z':gate['inside'][1]},tolerance=.6,seconds=25)
-                check(math.hypot(snap(page)['focus']['x']-gate['inside'][0],snap(page)['focus']['z']-gate['inside'][1])<1,'Normal walk crosses the source-aligned school gate')
-                capture(page,'school-gate-entered')
-                check(snap(page)['career']['cash'] == initial_cash, 'Free roam travel/interior exploration preserves career cash')
-                context.close()
-
-                for theme in ('dark', 'light'):
-                    phone = browser.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True)
-                    page = phone.new_page()
+                    context = browser.new_context(viewport={'width': 1280, 'height': 800})
+                    page = context.new_page()
                     ready(page)
                     start(page, 'free')
-                    page.locator('#pause-button').click()
-                    page.locator('#theme').select_option(theme)
-                    page.locator('#change-mode-button').click()
-                    check(page.locator('#start-panel').is_visible(), 'Phone '+theme+' returns to mode selection')
-                    check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),
-                          'Phone '+theme+' start layout has no horizontal overflow')
-                    capture(page, 'phone-'+theme+'-start-layout')
-                    page.locator('[data-game-mode="free"]').click()
-                    page.locator('#start-button').click()
-                    page.locator('#map-button').click()
-                    check(page.locator('#map-dialog').is_visible(), 'Phone '+theme+' opens map from its button')
-                    check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),
-                          'Phone '+theme+' map layout has no horizontal overflow')
-                    capture(page, 'phone-'+theme+'-map-layout')
-                    phone.close()
-                page = None
-                check(not errors, 'No page or console errors')
-                check(not requests, 'No failed requests or HTTP errors')
-                check(not external, 'No external runtime requests attempted')
+                    initial_cash = snap(page)['career']['cash']
+                    for query, label in [('Canberra Centre', 'Canberra Centre'), ('Coles', 'Coals')]:
+                        result = search(page, query)
+                        check(label in result.first.inner_text(), 'Free roam source search resolves '+label)
+                        result.first.click()
+                        check(page.locator('#teleport-button').is_visible(), 'Free roam offers map travel')
+                        teleport_selection(page)
+                        foot(page)
+                        if label == 'Canberra Centre':
+                            centre = next(place for place in snap(page)['places'] if place['id'] == 'canberra-centre')
+                            look(page, centre['x']+8, centre['z']-5)
+                            check(snap(page)['civic']['visible'], 'Source Civic exterior visible at public approach')
+                            capture(page, 'source-centre-public-approach')
+                            mall=snap(page)['interiors']['publicEntries'][0]
+                            teleport_point(page,mall['x']-math.sin(mall['yaw'])*35,mall['z']-math.cos(mall['yaw'])*35)
+                            foot(page);look(page,mall['x'],mall['z'])
+                            capture(page,'centre-street-exterior')
+                            teleport_point(page,mall['x']-math.sin(mall['yaw'])*10,mall['z']-math.cos(mall['yaw'])*10)
+                            foot(page);around_car_to_door(page,mall)
+                            plan=enter(page,'mall')
+                            check(sum(room['kind']=='mall-unit' for room in plan['rooms'])==4,'Centre concourse has four original units')
+                            check(plan['counter'] is None and not plan.get('storeId'),'Public concourse has no invented economic service')
+                            walk(page,room_point(plan,0,7.5),tolerance=.6)
+                            walk(page,room_point(plan,7.5,7.5),tolerance=.6)
+                            capture(page,'centre-entered-concourse-unit')
+                            walk(page,room_point(plan,0,7.5),tolerance=.6)
+                            leave(page,plan)
+                    store = next(item for item in snap(page)['services'] if item['name'] == 'Coals')
+                    frontage = store['frontage']
+                    look(page, frontage['x'], frontage['z'])
+                    capture(page, 'coals-source-frontage')
+                    # Search arrival places our own car in front of the door. Walk around
+                    # its end, then along the facade; do not walk through its collider.
+                    def storefront_point(tangent, depth):
+                        yaw = frontage['yaw']
+                        return {'x': frontage['x']+math.cos(yaw)*tangent+math.sin(yaw)*depth,
+                                'z': frontage['z']-math.sin(yaw)*tangent+math.cos(yaw)*depth}
+                    for waypoint in [storefront_point(5, -6), storefront_point(5, -1.2), frontage]:
+                        walk(page, waypoint, tolerance=.9 if waypoint is not frontage else 2.4, seconds=25)
+                    plan = enter(page, 'shop')
+                    capture(page, 'shop-lazy-interior')
+                    # Follow an aisle beside the shelving, then approach the counter.
+                    origin, width = plan['origin'], plan['width']
+                    def local(x, z):
+                        return {'x': origin['x']+math.cos(origin['yaw'])*x+math.sin(origin['yaw'])*z,
+                                'z': origin['z']-math.sin(origin['yaw'])*x+math.cos(origin['yaw'])*z}
+                    # Leave steering margin beside the shelf collider for discrete WASD.
+                    aisle = min(width/2-1.35, 1.0)
+                    for waypoint in [local(aisle, 1.8), local(aisle, 6.5), plan['counter']]:
+                        walk(page, waypoint, tolerance=.75)
+                    page.keyboard.press('e')
+                    check(page.locator('#services-dialog').is_visible(), 'Normal indoor counter E opens shop actions')
+                    check(page.locator('[data-service-activity=robbery]:enabled').count() == 0,
+                          'Free roam indoor till cannot earn career cash')
+                    close(page, 'services-dialog')
+                    capture(page, 'shop-counter')
+                    for waypoint in [local(aisle, 6.5), local(aisle, 1.8)]:
+                        walk(page, waypoint, tolerance=.8)
+                    leave(page, plan)
+
+                    house = next(item for item in snap(page)['interiors']['entrySample'] if item['type'] == 'house')
+                    teleport_point(page, house['x']-math.sin(house['yaw'])*8,
+                                   house['z']-math.cos(house['yaw'])*8)
+                    foot(page)
+                    look(page, house['x'], house['z'])
+                    capture(page, 'house-rendered-door-approach')
+                    around_car_to_door(page,house)
+                    plan = enter(page, 'house')
+                    check({room['kind'] for room in plan['rooms']} == {'living', 'kitchen', 'bedroom', 'bathroom'},
+                          'Lazy house contains four distinct rooms')
+                    check({'sofa', 'kitchen-bench', 'bed', 'bath', 'toilet'} <=
+                          {item['kind'] for item in plan['furniture']}, 'House has living/kitchen/bed/bath furnishings')
+                    walk(page,room_point(plan,0,3.1),tolerance=.3)
+                    walk(page,room_point(plan,-1.5,3.1),tolerance=.35)
+                    target=room_point(plan,-4,2.6);look(page,target['x'],target['z'])
+                    capture(page, 'house-living-room-interior')
+                    walk(page,room_point(plan,0,3.1),tolerance=.3)
+                    capture(page, 'house-four-room-interior')
+                    leave(page, plan)
+
+                    north = json.loads((ROOT/'Games/Capital Drive/data/canberra-north.json').read_text())
+                    bridge = next(road for road in north['roads'] if road.get('sourceId') == 'way/4878920')
+                    a, b = bridge['points'][0], bridge['points'][-1]
+                    bx, bz = (a[0]+b[0])/2, (a[1]+b[1])/2
+                    teleport_point(page, bx, bz)
+                    foot(page)
+                    look(page, b[0], b[1])
+                    capture(page, 'source-bridge-deck')
+                    look(page, bx+250, bz+100)
+                    capture(page, 'source-lake-shoreline')
+                    gate = next(g for g in snap(page)['campusGates'] if g['sourceWay']=='1284808827-0')
+                    gx,gz=gate['outside'];ix,iz=gate['inside'];span=math.hypot(gx-ix,gz-iz)
+                    teleport_point(page,gx+(gx-ix)/span*8,gz+(gz-iz)/span*8)
+                    foot(page)
+                    look(page, gate['x'], gate['z'])
+                    check(snap(page)['campus']['visible'], 'Source school fence visible near mapped gate')
+                    capture(page, 'source-school-fence-gate')
+                    around_car_to_door(page,{'x':gx,'z':gz})
+                    walk(page,{'x':gx,'z':gz},tolerance=.35)
+                    walk(page,{'x':gate['inside'][0],'z':gate['inside'][1]},tolerance=.6,seconds=25)
+                    check(math.hypot(snap(page)['focus']['x']-gate['inside'][0],snap(page)['focus']['z']-gate['inside'][1])<1,'Normal walk crosses the source-aligned school gate')
+                    capture(page,'school-gate-entered')
+                    check(snap(page)['career']['cash'] == initial_cash, 'Free roam travel/interior exploration preserves career cash')
+                    context.close()
+
+                    for theme in ('dark', 'light'):
+                        phone = browser.new_context(viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True)
+                        page = phone.new_page()
+                        ready(page)
+                        start(page, 'free')
+                        page.locator('#pause-button').click()
+                        page.locator('#theme').select_option(theme)
+                        page.locator('#change-mode-button').click()
+                        check(page.locator('#start-panel').is_visible(), 'Phone '+theme+' returns to mode selection')
+                        check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),
+                              'Phone '+theme+' start layout has no horizontal overflow')
+                        capture(page, 'phone-'+theme+'-start-layout')
+                        page.locator('[data-game-mode="free"]').click()
+                        page.locator('#start-button').click()
+                        page.locator('#map-button').click()
+                        check(page.locator('#map-dialog').is_visible(), 'Phone '+theme+' opens map from its button')
+                        check(page.evaluate('document.documentElement.scrollWidth<=innerWidth'),
+                              'Phone '+theme+' map layout has no horizontal overflow')
+                        capture(page, 'phone-'+theme+'-map-layout')
+                        phone.close()
+                    page = None
+                    check(not errors, 'No page or console errors')
+                    check(not requests, 'No failed requests or HTTP errors')
+                    check(not external, 'No external runtime requests attempted')
             except Exception as error:
                 failure = f'{type(error).__name__}: {error}'
                 observations.append({'failure': failure})

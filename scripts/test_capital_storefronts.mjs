@@ -79,3 +79,6 @@ view.dispose();view.dispose();view.update(MAPPED_STORES[0]);
 assert.equal(scene.children.length,0);assert.equal(geometries,2);assert.equal(materials,2);assert.equal(textures,1);
 assert.equal(view.stats.disposed,true);assert.equal(view.stats.visible,0);
 console.log(`Capital storefronts PASS: ${MAPPED_STORES.length} registry-matched facades, ${view.stats.triangles} triangles, two batches, oriented atlas, 180m culling and idempotent disposal`);
+
+const managed=createStorefrontsView(scene,heightAt,{excludeIds:['store-5656111023']});
+assert.equal(managed.stats.sites,MAPPED_STORES.length-1);managed.update(MAPPED_STORES.find(s=>s.id==='store-5656111023'));assert.equal(managed.stats.visible,0,'dedicated northern restaurant has no duplicate generic frontage');managed.dispose();
