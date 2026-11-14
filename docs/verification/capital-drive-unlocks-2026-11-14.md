@@ -49,7 +49,7 @@ M15's first form test omitted the existing campaign payload from its expected
 save. It passed the first10checks before this harness assertion failed. The
 corrected check includes campaign and verifies reload without changing runtime.
 
-M19 attempt1 failed after25checks because its selector expected a strong child
+M19 attempt1 failed after12checks because its selector expected a strong child
 inside the cue, whereas the cue element itself is strong. Attempt2 passed29checks
 through the complete scooter flow and car elapsed-time denial, then a Stop click
 raced the deliberately short car timeout. The corrected harness observes actual
