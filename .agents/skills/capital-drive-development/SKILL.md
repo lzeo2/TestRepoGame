@@ -10,7 +10,9 @@ Read repository `AGENTS.md`, `docs/CODE_QUALITY.md`,
 `docs/maintenance/README.md`, `docs/maintenance/games/245-capital-drive.md`,
 `docs/maintenance/inventory.json`, `docs/capital-drive-street-life-contract.md`
 `docs/capital-drive-expansion-contract.md` and
-`docs/capital-drive-stores-pool-contract.md`.
+`docs/capital-drive-stores-pool-contract.md`,
+`docs/capital-drive-precinct-character-contract.md` and
+`docs/capital-drive-district-sources.md`.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -45,7 +47,7 @@ regeneration, maintenance refresh, save reset or push.
 
 For explicitly needed browser evidence, choose a fresh directory outside the
 repository and pass it with `--browser --output`. Browser checks use a temporary
-localhost server and terminate it. The default is the mapped stores/pool suite.
+localhost server and terminate it. The default is the district/campaign suite. Earlier store/pool runs are retained as dated evidence.
 `--expansion-browser` and `--classic-browser` retain the earlier suites. Normal
 E first stops a moving car and a second E exits; the harness must respect that.
 Browser closure must run before leaving the Playwright context (ExitStack/LIFO),
@@ -66,3 +68,18 @@ When profiling lag, preserve the instanced traffic adapter and local parked-car
 queries. Do not restore a separate full model for every traffic car. Medical
 recovery is character-health based; a wrecked car must allow exit. Ordinary
 road travel and foot movement must not generate reckless vehicle reports.
+
+Campaign is a third mode with saved ordered chapters. Its completion and rewards
+share the career save write; active missions remain transient. No sandbox travel
+may advance a chapter. House/shop/Centre room plans and meshes are generated only
+on entry and discarded on leave. Counter actions require the matching active room.
+Use the rendered door descriptors, never an independent drifting entrance estimate.
+North map/terrain live in separate local sidecars. Apply the source overlap guards,
+retain lake island holes, and use the same indexed bridge corridor for visible
+deck height and water exemptions. Compact lighting attributes have bounded errors;
+never infer whole-device performance from a buffer-byte comparison.
+
+The priority-shop browser option reuses the bounded harness for the sourced noodle
+restaurant. Its two official interior photo references inform original geometry;
+reference photos/logos/murals stay outside runtime assets. Both source caches are
+required for a reproducible21-store build.

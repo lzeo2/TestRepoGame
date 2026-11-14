@@ -5,10 +5,10 @@
 ## Identity and status
 
 Operator-authorized original Canberra open-world preview, catalog 245, static entry
-`Games/Capital Drive/index.html`. Two modes share one runtime: **Street Life** has
+`Games/Capital Drive/index.html`. Three modes share one runtime: **Campaign** has six ordered original missions, **Street Life** has
 jobs, cash, a garage, foot combat and police; **Free roam** has all cars, local
-address search and map teleporting. The mapped district is the inner south.
-Whole-city expansion and a cinematic campaign remain future work. No GTA code,
+address search and map teleporting. The mapped area covers the inner south and a source-derived lake/Civic corridor.
+Whole-city coverage and cinematic storytelling remain future work. No GTA code,
 artwork or branded vehicle assets are used.
 
 ## Implementation map
@@ -25,9 +25,9 @@ artwork or branded vehicle assets are used.
   condition-preserving retrieval, food/gun/ammo purchases, timed fitness/robbery,
   cooldowns and strict legacy-compatible career-save validation.
 - `street-ui.js`: jobs/garage/shops, five-star HUD and recovery feedback; no clock
-  or storage owner. `services.js` combines seven mapped parody stores with fictional gym/arms sites.
+  or storage owner. `services.js` combines twenty-one mapped parody stores with fictional gym/arms sites.
   `stores.js`/`data/stores.json` pin source nodes and estimated public frontages.
-  `storefronts-view.js` presents seven facades in two batches.
+  `storefronts-view.js` presents twenty generic-capable facades plus a separately managed noodle restaurant in two batches.
 - `actor-view.js`: original articulated adult, generic patrol cars, pooled brief
   effects/objective marker and dismounted officers. `vehicle-occupants-view.js`
   presents up to 64 seated drivers and 12 displaced adults; `services-view.js`
@@ -54,7 +54,7 @@ artwork or branded vehicle assets are used.
 
 ## Gameplay and controls
 
-Choose Street Life or Free roam, then start beside Telopea Park School. WASD or
+Choose Campaign, Street Life or Free roam, then start beside Telopea Park School. WASD or
 arrows drive/walk, Shift boosts/sprints, Space handbrakes/jumps. **E** stops then
 exits a moving car, enters a nearby empty car, or starts taking an occupied car.
 An occupied car must brake and stay close through the 1.8 second taking action.
@@ -81,14 +81,14 @@ last-seen ground; hiding cools the search. Arrest or defeat deducts up to $250,
 transfers through a 3.4 second fade/recovery sequence, restores the player at a
 bounded road approach and preserves completed jobs. The penalty is applied once.
 
-Nine service points can be routed to from Shops, including seven actual mapped
-parody stores such as Coals. Visit a clear storefront approach on foot: food
+Twenty-three service points can be routed to from Shops, including twenty-one actual mapped
+parody stores such as Coals. Enter a mapped shop on foot and visit its counter: food
 costs $35 for 35 health, the supplies dealer sells a $450 pistol and $60 ammunition,
 and eight-second gym sessions cost $120 per current upgrade step to improve
 sprinting through three levels. Taking a shop till requires an equipped owned
 pistol and four uninterrupted nearby seconds; the witnessed offence raises
 wanted level. Each till pays once and retains its 180 active-second empty cooldown
-through reload. Store interactions also require building-unobstructed sight.
+through reload. Store interactions also require the active matching interior and clear sight to its counter; leaving interrupts a till action. Generic gym/supplies activities remain exterior.
 Retired fictional food-marker cooldown keys remain valid in older saves. Free
 roam cannot purchase, train or earn robbery cash. See [store sources](../../capital-drive-store-sources.md).
 
@@ -106,12 +106,12 @@ blur/hidden tabs clear held input and pause clocks. `pagehide` saves valid caree
 state and releases loop/audio/graphics; adapters own no second RAF.
 
 `capital-drive-v1` still stores validated discovered IDs. It accepts the original
-seven IDs plus five runtime landmark IDs and seven mapped store IDs. `capital-drive-career-v1` separately
+seven IDs plus runtime landmark IDs and twenty-one mapped store IDs. `capital-drive-career-v1` separately
 stores version 1, cash, owned vehicles (paint/condition/stored flag), completed
 job IDs, pistol ownership, fitness level and till cooldowns. The three new fields
 are optional on legacy v1 input and strictly validated when present. Ammunition
 and active training/robbery are transient; an owned gun starts with 24 rounds
-when starting a career session. Unknown fields still reject the save. Active jobs and wanted state are transient. Oversized, corrupt or denied
+when starting a career session. The controller also accepts an optional validated campaign field with an ordered completed-chapter prefix, saved atomically with career cash. Legacy saves start at chapter one. Unknown fields still reject the save. Active jobs and wanted state are transient. Oversized, corrupt or denied
 sources report failure and remain unwritten. Sandbox never writes career state.
 Only this game's keys are read/written; no origin-wide clear.
 
@@ -139,6 +139,58 @@ OFL font remain. All runtime data/imports/assets are local; developer caches and
 browser/geodata tooling stay outside the repository.
 
 ## Audit findings
+
+### Precincts, lazy rooms, Civic and campaign, 14 November 2026
+
+The owner requested more faithful Manuka precincts, believable neighbourhoods,
+enterable homes/shops with backyards, Telopea fencing, the lake/Centre connection,
+performance work and a campaign. See the [source record](../../capital-drive-district-sources.md)
+and [verification receipt](../../verification/capital-drive-districts-2026-11-14.md).
+Twenty source-backed Manuka parody shops occupy five distinct precincts;
+Lambzhou1919 is a separately detailed twenty-first store at Civic. Exact-source
+paving and inferred frontage units are separated; no surveyed tenancy/parking
+plan is claimed. Six original campaign chapters have briefings, timed objectives,
+recovery failure/retry, single rewards and saved completion. J opens Campaign in
+that mode; Campaign has no map teleport, while Free roam never advances it.
+
+`interiors.js` generates one furnished layout on explicit E entry at a rendered
+door, with wall/furniture collision, door gaps and same-door return. `interior-view.js`
+creates/disposes only its active meshes. Houses use plausible living/kitchen/bed/
+bath arrangements, shops shelves/counters and the Centre an original four-unit
+concourse. These are not actual private floorplans or an exact mall interior.
+`suburb-character.js` and neighbourhood geometry add bounded rear gardens,
+coherent frontages, local palettes and clearer tree shading. Source footprints
+and nearest public roads guide these approximations; cadastral lots are not known.
+
+`shopping-view.js`, `campus.js`/`campus-view.js` and `civic-view.js` own dedicated
+centre/paving, Telopea boundary and Civic/bridge presentation. Same campus/parapet
+segments govern collision. The214-point school site has186 closed fence spans
+and11 estimated public-path openings; decorative old school fencing is suppressed.
+Open roof-only shelters render as canopies and permit movement underneath.
+
+`map-expansion.js` merges the local north sidecar and suppresses51 audited
+OSM/ACT duplicate bodies only while their paired base IDs remain present.
+Original base map, address and profile bytes stay unchanged. Both lake bridges
+connect to Civic on the real directed graph. The full lake polygon retains its
+island holes; western portions extend beyond the drivable rectangle. `terrain.js`
+shares ACT-derived ground, estimated continuous bridge decks and radius-aware
+water exemptions with rendering/collision. North terrain is259×157 at roughly25m
+cells with a100m seam blend, not a native DEM or bathymetry model. The fixed
+normal555.93mAHD lake surface is not a live water-level reading.
+
+Static world/neighbourhood normals and colours use normalized byte attributes;
+positions/UVs/triangle counts are preserved. A paired merged-map fixture measured
+1,073,925,468→563,969,097 attribute bytes (47.49% less). This is buffer storage,
+not total browser RAM or an N100 FPS measurement. Exterior graphics buffers are
+not updated/rendered while inside. Native hardware acceptance remains open.
+
+Priority `noodle-shop-view.js` adds a source-positioned Lambzhou1919 facade,
+searchable under Lanzhou1919. Two actual official Canberra interior photos inform
+the original timber/booth/blue-seat/open-kitchen room. It loads only on E entry,
+uses2,412triangles/one draw and disposes on exit; its facade uses1,438/three.
+Four exterior furniture footprints share movement geometry. No copyrighted photo/
+mural/logo is bundled, and the entrance/floorplan remain estimates.
+
 
 ### Mapped stores, pool enclosure and forgiving driving, 14 November 2026
 

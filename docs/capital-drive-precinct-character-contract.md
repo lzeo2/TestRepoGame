@@ -139,3 +139,24 @@ briefings, success/failure/retry and saved chapter progress, separate from repea
 Street Life jobs. Campaign shares career rules and has no map teleport. Do not
 copy GTA dialogue, characters, missions or art. Retain corruption/denied-storage
 guards and completed-mission state across character recovery.
+
+## Priority noodle restaurant follow-up
+
+The owner prioritised Lanzhou1919 at Canberra Centre. M15 verified retained OSM
+node5656111023 inside exact source footprint584970594; M16 extends the store
+builder/registry to21 entries with an explicit north cache and preserves the old
+20 descriptors. The business remains an original parody, Lambzhou1919, with
+real-name/typo search aliases. The official chain and Centre directory establish
+the Bunda Street branch. No tagged restaurant entrance exists: its facade unit
+is explicitly estimated. Two official Canberra interior photographs were viewed
+for timber, seating, tile and open-kitchen cues; photos/mural/logos are not copied
+into game assets.
+
+M17 owns a bounded original dedicated facade adapter and source alignment,
+readability, road/door clearance and disposal tests. M18 owns the lazy specialised
+restaurant room and geometry tests, preserving generic shops/houses/concourse.
+Root excludes only this store from the generic facade adapter, integrates the
+same furniture footprints as physical obstacles, runs real input/counter/search
+checks, reviews frames, updates sources/skill and completes release. The noodle
+adapter target is at mostthree exterior draws/5,000 triangles; room at mosttwo
+draws/3,000 triangles, with no extra runtime remote assets or per-object lights.

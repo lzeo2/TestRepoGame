@@ -149,10 +149,10 @@ python3 -B scripts/check_capital_drive.py --dry-run
 python3 -B scripts/check_capital_drive.py
 ```
 
-The runner enumerates25 authored modules and21 pure suites in its `MODULES`
+The runner enumerates37 authored modules and30 pure suites in its `MODULES`
 and `SUITES` constants, including roads, buses, police, occupants and services.
 It checks every syntax entry, executes every suite (drive receives the actual map
-argument), then runs `git diff --check`:68 commands in the pure pass. Keep these
+argument), then runs `git diff --check`:98 commands in the pure pass. Keep these
 explicit lists current when adding a required module; a missing file fails.
 Missing modules/data/suites fail; nothing silently skips. Each pure command has a
 120 second limit; total run is bounded to 900 seconds. Actual exit codes are printed.
@@ -172,7 +172,7 @@ localhost server, shuts it down in `finally`, and writes results/screenshots the
 The runner has a 600 second browser limit, kills the test process group on timeout
 on the target Linux environment, and writes `runner-results.json` alongside the
 browser's `results.json`. A failed run is still failed if screenshots exist.
-The default browser suite is `scripts/test_capital_stores_pool_browser.py`;
+The default browser suite is `scripts/test_capital_district_browser.py`;
 `--expansion-browser` selects the prior expansion suite, while
 `--classic-browser` selects the earlier retained suite. Optional `--walk-kiosk`
 is available on the expansion script directly. It must use actual keys and a
@@ -239,8 +239,8 @@ forecourt approach and mouse orbit, retaining the actual capture.
 Rebuild with explicit external paths and compare both generated files:
 
 ```sh
-python3 -B scripts/build_capital_stores.py --cache <external-cache> --output <temporary-json> --module-output <temporary-js>
-node scripts/test_capital_stores.mjs --cache <external-cache>
+python3 -B scripts/build_capital_stores.py --cache <external-cache> --north-cache <external-north-cache> --output <temporary-json> --module-output <temporary-js> --precinct-output <temporary-precinct-json> --precinct-module-output <temporary-precinct-js>
+node scripts/test_capital_stores.mjs --cache <external-cache> --north-cache <external-north-cache>
 ```
 
 The selection is bounded to source-verified retail POIs with a clear public
@@ -266,3 +266,41 @@ input and permits E exit. Impact velocity governs damage; health-only knockout
 starts medical transfer. Reckless pedestrian reports require actual close
 vehicle danger and a cooldown; normal50km/h driving or foot movement must stay
 clear. Pass a stable speed0 foot focus and the actual witness sight callback.
+
+## Campaign, rooms and northern map
+
+Use `docs/capital-drive-district-sources.md` for exact builder arguments and source
+limits. The OSM north builder needs external Shapely for its pinned overlap audit;
+the optional ACT terrain importer uses external geodata packages. Preserve the
+base snapshot and source node IDs. A new overlay must pass source hash/rebuild,
+directed route, island-hole area, physical bridge/water and seam tests. Water is
+flat at its documented design level; the bridge sampler must not raise terrain.
+
+The controller strips and validates the optional campaign payload before legacy
+Progression validation, then writes chapter completion and rewards atomically in
+the same career key. Completed chapters must form a prefix; recovery fails only
+the transient mission. Test retries, sandbox denial and duplicate reward events.
+Do not grant saves/state as positive browser completion evidence.
+
+`neighbourhood.entries` is the shared list of rendered house doors. Public Centre
+entries are tied to exact source facade edges. Only one room plan/view may be
+active; entering requires normal on-foot proximity and leaving returns to the same
+saved outside pose. Indoor movement/camera use interior walls; exterior police
+retain their own movement. Service positions resolve to the active counter and
+leaving interrupts a robbery. Test source shops and lazy lifecycle/disposal.
+
+For graphics changes, count buffer bytes separately from draw calls and frame
+time. Normalized byte colours/normals preserve positions and UVs with explicit
+component error bounds. GPU/native performance remains a separate measurement.
+Retain failed normal-input runs and name harness causes; never walk through a car
+or shelf in a test to manufacture a pass.
+
+The priority noodle restaurant has a dedicated facade adapter; exclude its ID
+from generic storefront geometry. Keep real-name aliases while displaying the
+parody. Its service position must resolve to the lazy room's counter, not the
+exterior approach. The stores builder/regression now requires both retained south
+and north caches. Preserve the old20 descriptors when extending this registry.
+Use `--browser --priority-shop-browser --output <fresh-external-directory>` for
+source search, normal E entry, restaurant detail/counter/exit, sandbox denial,
+culling, errors and a fresh corrected Civic-sign frame. This focused flow does
+not replace the full district or hardware checks.
