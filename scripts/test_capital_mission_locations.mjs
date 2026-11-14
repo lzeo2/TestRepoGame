@@ -3,12 +3,17 @@ import { readFile } from 'node:fs/promises';
 const source = await readFile(new URL('../Games/Capital Drive/mission-locations.js', import.meta.url), 'utf8');
 const { selectStoryHomes, createMissionGuide } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 const house = (id, x, z = 0) => ({ id, buildingId: `act-${id}`, type: 'house', name: 'House', x, z, yaw: 0 });
-const houses = [house('blocked', 0), house('b', 10), house('a', -10), { ...house('fake', 1), buildingId: null },
+const houses = [house('far', 1000), house('blocked', 0), house('b', 10), house('a', -10), { ...house('fake', 1), buildingId: null },
   { ...house('shop', 1), type: 'shop' }, { ...house('nan', 1), yaw: NaN }];
 const map = { landmarks: [{ id: 'kingston', x: 0, z: 0 }], buildings: houses.filter(e => e.buildingId).map(e => ({ id: e.buildingId })) };
 const original = JSON.stringify({ map, houses });
 const probes = [];
-const homes = selectStoryHomes(map, houses, { canApproach: p => { probes.push(p); return p.x !== 0; }, roadName: p => p.id === 'a' ? 'Eyre Street' : '' });
+let roadQueries = 0;
+const homes = selectStoryHomes(map, houses, { canApproach: p => { probes.push(p); return p.x !== 0; }, roadName: p => {
+  roadQueries++; return p.id === 'a' ? 'Eyre Street' : '';
+} });
+assert.deepEqual(probes.map(p => p.x), [0, -10], 'only nearest blocked then next clear door need physical queries');
+assert.equal(roadQueries, 1, 'only the selected home needs a street lookup');
 assert.equal(homes.basement.roomId, 'a', 'equal distances use stable entry id');
 assert.equal(homes.basement.buildingId, 'act-a', 'actual source identity survives');
 assert.equal(homes.basement.x, -10, 'house coordinates remain the real door');

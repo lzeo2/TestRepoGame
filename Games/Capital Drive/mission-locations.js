@@ -20,20 +20,27 @@ export function selectStoryHomes(map, entries, { canApproach = () => true, roadN
   if (!kingston || !Array.isArray(entries) || typeof canApproach !== 'function' || typeof roadName !== 'function')
     return Object.freeze({ basement: null });
   const sourceIds = Array.isArray(map.buildings) ? new Set(map.buildings.map(b => b?.id).filter(identity)) : null;
-  let best = null, bestDistance = Infinity;
+  const candidates = [];
   for (const entry of entries) {
     if (!validEntry(entry) || entry.type !== 'house' || (sourceIds && !sourceIds.has(entry.buildingId))) continue;
-    const door = copyEntry(entry), outside = approach(door);
-    if (canApproach(outside) !== true) continue;
-    const distance = Math.hypot(door.x - kingston.x, door.z - kingston.z);
-    if (distance < bestDistance || (distance === bestDistance && (!best || door.id < best.id))) {
-      best = door; bestDistance = distance;
-    }
+    const distance = Math.hypot(entry.x - kingston.x, entry.z - kingston.z);
+    if (Number.isFinite(distance)) candidates.push({ entry, distance });
+  }
+  candidates.sort((a, b) => a.distance - b.distance ||
+    (a.entry.id < b.entry.id ? -1 : a.entry.id > b.entry.id ? 1 : 0));
+  // Physical clearance can query the whole local world. Stop at the first
+  // clear door rather than paying that cost for every house in the export.
+  let best = null, outside = null;
+  for (const { entry } of candidates) {
+    const probe = approach(entry);
+    if (canApproach(probe) !== true) continue;
+    best = copyEntry(entry); outside = probe;
+    break;
   }
   if (!best) return Object.freeze({ basement: null });
   return Object.freeze({ basement: Object.freeze({ id: best.id, roomId: best.id,
     buildingId: best.buildingId, type: 'house', name: "Milo's safehouse", street: name(roadName(best)),
-    x: best.x, z: best.z, yaw: best.yaw, approach: approach(best) }) });
+    x: best.x, z: best.z, yaw: best.yaw, approach: outside }) });
 }
 
 const INTERIOR_KINDS = new Set(['school-alarm', 'presentation', 'home-action', 'work', 'robbery', 'interior', 'encounter']);
