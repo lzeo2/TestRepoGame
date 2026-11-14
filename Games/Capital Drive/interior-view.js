@@ -114,7 +114,12 @@ export function createInteriorView(scene) {
         for (const x of [-1, 1]) for (const z of [-1, 1]) detail(item, x * (w / 2 - 0.09), h / 2,
           z * (d / 2 - 0.09), 0.09, h - 0.1, 0.09, color);
       } else detail(item, 0, h / 2, 0, w, h, d, color);
-      if (item.kind === 'alarm-panel') {
+      if (item.kind === 'ledger-case') {
+        detail(item, 0, h - .07, 0, w + .02, .06, d + .02, 0x8a9a83);
+        detail(item, 0, h * .57, -d / 2 - .015, .22, .12, .025, 0xd1bb7b);
+        for (const x of [-.2, .2]) detail(item, x, h * .58, -d / 2 - .03, .04, .22, .03, 0x394c48);
+        detail(item, 0, h + .035, 0, .23, .07, .08, 0x394c48);
+      } else if (item.kind === 'alarm-panel') {
         detail(item, -w / 2 - .012, h / 2, 0, .025, .3, .3, 0xead9ae);
         detail(item, -w / 2 - .03, h * .72, 0, .025, .035, .2, 0x97362e);
       } else if (item.kind === 'office-desk') {

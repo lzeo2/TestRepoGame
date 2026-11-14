@@ -213,6 +213,11 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
   }
   function build(entry) {
     const { width, depth } = entry, floorY = entry.y + 0.14;
+    // Story homes are bound after exterior descriptors exist. Read the binding
+    // only on entry, so ordinary houses keep their original lazy room plans.
+    const home = map.storyHomes?.basement;
+    const storyHome = entry.type === 'house' && home?.roomId === entry.id &&
+      String(home.buildingId) === String(entry.buildingId) ? home : null;
     const origin = { x: entry.x, z: entry.z, yaw: entry.yaw };
     const walls = [], furniture = [], doors = [], rooms = [], details = [], activities = [];
     function box(list, kind, x, z, w, d, h, color, y = 0, yaw = 0) {
@@ -277,6 +282,11 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       station('television', 'tv', 'Watch the television', -1.65, 1.4, Math.PI);
       station('cooking', 'cooking', 'Cook at the kitchen bench', 3.6, 3.1, Math.PI / 2);
       station('rest', 'rest', 'Rest beside the bed', -1.65, 9.3, -Math.PI / 2);
+      if (storyHome) {
+        // Fictional mission furniture at the hall end, clear of all four doors.
+        furnish('ledger-case', 0, depth - .7, .65, .5, .68, 0x5c7067);
+        station('stash', 'stock', 'Pack the ledger case', 0, depth - 1.75, 0, 1.2);
+      }
     } else if (entry.type === 'mall') {
       const hall = 10, unitWidth = (width - hall) / 2, unitDepth = (depth - 6) / 2, unitGap = 5;
       const centres = [3 + unitDepth / 2, 3 + unitDepth * 1.5];
@@ -405,7 +415,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
     }
     return freeze({ id: entry.id, buildingId: entry.buildingId, ...(['mall', 'gym', 'school'].includes(entry.type) ? {} : { storeId: entry.storeId || null }),
       ...(entry.serviceId ? { serviceId: entry.serviceId } : {}), ...(entry.schoolId ? { schoolId: entry.schoolId } : {}),
-      type: entry.type, ...(entry.variant ? { variant: entry.variant } : {}), name: entry.name, origin, width, depth, floorY, spawn, exit, counter,
+      type: entry.type, ...(entry.variant ? { variant: entry.variant } : {}), name: typeof storyHome?.name === 'string' && storyHome.name.trim() ? storyHome.name : entry.name, origin, width, depth, floorY, spawn, exit, counter,
       walls, doors, furniture, rooms, activities, ...(noodleCook ? { noodleCook, boothGuest } : {}),
       ...(entry.type === 'mall' ? { levels: [{ y: floorY, label: 'Ground floor' }], sourceExtent: entry.sourceExtent, reference: 'Monaro Mall 1963 materials; original partial ground-floor wing. Tenancies and corridors are interpreted.' } : {}), ...(exercise ? { exercise } : {}), ...(details.length ? { details } : {}), layoutNote: 'Original plausible layout; not a surveyed interior.' });
   }

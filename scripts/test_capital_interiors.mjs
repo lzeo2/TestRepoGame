@@ -3,13 +3,13 @@ import { readFile } from 'node:fs/promises';
 const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
 const { createInteriors, createGymEntry, createSchoolEntry } = await import(moduleURL(await read('../Games/Capital Drive/interiors.js')));
-function assertActivitiesReachable(interiors, plan) {
+function assertActivitiesReachable(interiors, plan, step = 0.35) {
   assert(Object.isFrozen(plan.activities) && plan.activities.length > 0, `${plan.type} has immutable activities`);
   const ids = new Set();
   const c = Math.cos(plan.origin.yaw), sin = Math.sin(plan.origin.yaw);
   const point = (x, z) => ({ x: plan.origin.x + c * x + sin * z, z: plan.origin.z - sin * x + c * z });
   const local = p => ({ x: c * (p.x - plan.origin.x) - sin * (p.z - plan.origin.z), z: sin * (p.x - plan.origin.x) + c * (p.z - plan.origin.z) });
-  const step = 0.35, queue = [[0, 0]], visited = new Set(['0,0']), reached = new Set();
+  const queue = [[0, 0]], visited = new Set(['0,0']), reached = new Set();
   for (const station of plan.activities) {
     assert(Object.isFrozen(station)); assert(!ids.has(station.id)); ids.add(station.id);
     assert(['bench', 'treadmill', 'curls', 'rower', 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade', 'presentation', 'alarm'].includes(station.kind));
@@ -483,4 +483,68 @@ console.log('PASS all 26 source-tied shops: visible/reachable counters and activ
   assert.deepEqual(visitor, { ...before, speed: 0 }); assert.equal(school.stats.activePlans, 0);
   view.dispose(); campus.dispose(); assert.equal(scene.children.length, 0);
   console.log('PASS Telopea original school wing: exact source body, retained gate11/rocks/fence public approach, finite lazy one-draw room, reachable alarm, classroom/staff partitions and exit disposal');
+}
+
+// An actual generated house door receives story metadata only after construction.
+{
+  const { createNeighbourhoodDetails } = await import('../Games/Capital Drive/neighbourhood.js');
+  const homeMap = JSON.parse(await read('../Games/Capital Drive/data/canberra.json'));
+  const exteriorScene = new THREE.Scene();
+  const exterior = createNeighbourhoodDetails(exteriorScene, homeMap, () => 0, { lowGraphics: true, streaming: true });
+  homeMap.interiorEntries = exterior.entries;
+  const houses = createInteriors(homeMap);
+  assert(houses.entries.length > 100, 'real generated house descriptors remain available');
+  assert.equal(houses.stats.generatedPlans, 0);
+  const selected = houses.entries.find(entry => entry.type === 'house');
+  const sine = Math.sin(selected.yaw), cosine = Math.cos(selected.yaw);
+  const visitor = { x: selected.x - sine * 1.5, z: selected.z - cosine * 1.5, y: 0, yaw: selected.yaw };
+  const original = { ...visitor };
+  let ordinary = houses.enter(houses.findEntry(visitor), visitor);
+  assert.equal(ordinary.name, 'House'); assert(!ordinary.activities.some(s => s.id.endsWith('-stash')));
+  assert(houses.leave(visitor));
+  // This late binding matches the controller's boot order exactly.
+  homeMap.storyHomes = { basement: { roomId: selected.id, buildingId: selected.buildingId,
+    name: "Milo's safehouse", street: 'Fictional story address', x: selected.x, z: selected.z, approach: { ...visitor } } };
+  const plan = houses.enter(houses.findEntry(visitor), visitor);
+  assert.equal(plan.name, "Milo's safehouse"); assert.equal(plan.id, selected.id); assert.equal(plan.type, 'house');
+  assert.equal(plan.storeId, null); assert.equal(plan.counter, null);
+  assertActivitiesReachable(houses, plan, .3);
+  const station = plan.activities.find(s => s.id === `${selected.id}-stash`);
+  assert(station && Object.isFrozen(station)); assert.equal(station.kind, 'stock');
+  assert.equal(station.label, 'Pack the ledger case');
+  const prop = plan.furniture.find(f => f.kind === 'ledger-case'); assert(prop && Object.isFrozen(prop));
+  for (const kind of ['bed', 'bath', 'basin', 'kitchen-bench', 'television']) assert(plan.furniture.some(f => f.kind === kind));
+  assert.equal(plan.activities.length, ordinary.activities.length + 1);
+  assert(houses.hasLineOfSight(visitor, station), 'ledger task is visible from the open central hall');
+  const { createInteriorActivities } = await import('../Games/Capital Drive/interior-activities.js');
+  const tasks = createInteriorActivities(); tasks.load(plan);
+  const ctx = { pose: { ...station }, onFoot: true, wanted: 0, health: 100, visible: true, sandbox: false };
+  assert(tasks.start(station.id, ctx)); tasks.step(3.5, {}, ctx);
+  for (const key of ['x', 'up', 'y', 'x']) { tasks.step(.05, {}, ctx); tasks.step(.05, { [key]: true }, ctx); }
+  const events = tasks.drainEvents(); assert.equal(events.length, 1);
+  assert.equal(events[0].type, 'complete'); assert.equal(events[0].kind, 'stock');
+  assert.equal(events[0].planId, selected.id); assert.equal(events[0].id, station.id);
+  assert.equal(events[0].sessionId, tasks.snapshot().sessionId); assert(!('heal' in events[0]));
+  tasks.step(10, { x: true }, ctx); assert.deepEqual(tasks.drainEvents(), []);
+  const otherEntry = houses.entries.find(entry => entry.id !== selected.id), otherActor = {
+    x: otherEntry.x - Math.sin(otherEntry.yaw) * 1.5, z: otherEntry.z - Math.cos(otherEntry.yaw) * 1.5, y: 0, yaw: otherEntry.yaw };
+  const otherHouses = createInteriors(homeMap), otherPlan = otherHouses.enter(otherHouses.findEntry(otherActor), otherActor);
+  assert.equal(otherPlan.name, 'House'); assert(!otherPlan.activities.some(s => s.id.endsWith('-stash')));
+  otherHouses.leave(otherActor);
+  const scene = new THREE.Scene(), view = createInteriorView(scene); view.load(plan);
+  assert.equal(view.stats.meshes, 1); assert.equal(view.stats.draws, 1); assert(view.stats.triangles < 3000);
+  scene.traverse(mesh => { if (mesh.isMesh) for (const attr of Object.values(mesh.geometry.attributes)) assert(attr.array.every(Number.isFinite)); });
+  assert(houses.nearExit(visitor));
+  let disposed = 0; scene.children[0].children[0].geometry.addEventListener('dispose', () => disposed++);
+  assert(houses.leave(visitor)); view.clear(); assert.equal(disposed, 1);
+  assert.deepEqual(visitor, { ...original, speed: 0 });
+  const revisit = houses.enter(houses.findEntry(visitor), visitor); assert.deepEqual(revisit, plan);
+  assert.notEqual(revisit, plan); houses.leave(visitor);
+  homeMap.storyHomes.basement = { ...homeMap.storyHomes.basement, buildingId: 'unrelated-building' };
+  ordinary = houses.enter(houses.findEntry(visitor), visitor);
+  assert.equal(ordinary.name, 'House'); assert(!ordinary.furniture.some(f => f.kind === 'ledger-case'));
+  assert(!ordinary.activities.some(s => s.id.endsWith('-stash')), 'wrong source building cannot receive the story task');
+  houses.leave(visitor); view.dispose(); exterior.dispose();
+  assert.equal(scene.children.length, 0); assert.equal(exteriorScene.children.length, 0);
+  console.log('PASS late-bound actual story house: furnished kitchen/bed/bath, immutable reachable ledger task in shared hall, unchanged ordinary houses, one finite lazy mesh, exact exit and disposal');
 }
