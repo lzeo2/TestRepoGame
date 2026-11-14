@@ -70,12 +70,39 @@ export function createBusView(scene, heightAt) {
     return group;
   }
   for (let i = 0; i < 2; i++) buses.push(build(i));
+  let passenger = null;
+  const passengerPose = new THREE.Object3D();
+  function passengerBatch() {
+    if (passenger) return passenger;
+    const parts = [];
+    function part(color, x, y, z, w, h, d) {
+      const shape = new THREE.BoxGeometry(w, h, d).translate(x, y, z);
+      const shade = new THREE.Color(color), colors = new Float32Array(shape.attributes.position.count * 3);
+      for (let i = 0; i < colors.length; i += 3) shade.toArray(colors, i);
+      shape.setAttribute('color', new THREE.BufferAttribute(colors, 3)); parts.push(shape);
+    }
+    part(0x435b7a, -.77, 2.06, -2.6, .43, .58, .28);
+    part(0xb88766, -.77, 2.51, -2.62, .28, .34, .27);
+    part(0x39352e, -.77, 2.67, -2.6, .29, .08, .27);
+    for (const x of [-.91, -.63]) {
+      part(0x303b47, x, 1.65, -2.85, .18, .18, .61);
+      part(0x303b47, x, 1.4, -3.06, .17, .48, .17);
+      part(0xb88766, x === -.91 ? -1.03 : -.51, 1.98, -2.79, .13, .15, .42);
+    }
+    const merged = mergeGeometries(parts, false); parts.forEach(shape => shape.dispose()); geometry.add(merged);
+    passenger = new THREE.InstancedMesh(merged, bodyMaterial, 1); passenger.name = 'Seated bus player passenger';
+    passenger.count = 0; passenger.visible = false; passenger.frustumCulled = false;
+    passenger.instanceMatrix.setUsage(THREE.DynamicDrawUsage); root.add(passenger);
+    stats.geometries = geometry.size; stats.triangles += merged.index.count / 3;
+    return passenger;
+  }
   let disposed = false;
-  const stats = { buses: 0, drawCalls: 4, triangles: 0, geometries: geometry.size, materials: materials.size, disposed: false };
+  const stats = { buses: 0, passengers: 0, drawCalls: 0, maxDrawCalls: 5, triangles: 0, geometries: geometry.size, materials: materials.size, disposed: false };
   geometry.forEach(value => { stats.triangles += value.index ? value.index.count / 3 : value.attributes.position.count / 3; });
   function update(vehicles, focus) {
     if (disposed) return;
-    stats.buses = 0;
+    stats.buses = 0; stats.passengers = 0;
+    if (passenger) { passenger.count = 0; passenger.visible = false; }
     buses.forEach((group, i) => {
       const bus = vehicles[i];
       group.visible = !!bus?.active && Number.isFinite(bus.x) && Number.isFinite(bus.z) && Number.isFinite(bus.yaw) &&
@@ -85,12 +112,19 @@ export function createBusView(scene, heightAt) {
       group.visible = Number.isFinite(y);
       if (!group.visible) return;
       group.position.set(bus.x, y + .03, bus.z); group.rotation.y = bus.yaw; stats.buses++;
+      if (bus.playerAboard && !stats.passengers) {
+        const mesh = passengerBatch();
+        passengerPose.position.copy(group.position); passengerPose.rotation.set(0, bus.yaw, 0); passengerPose.updateMatrix();
+        mesh.setMatrixAt(0, passengerPose.matrix); mesh.instanceMatrix.needsUpdate = true; mesh.count = 1; mesh.visible = true;
+        stats.passengers = 1;
+      }
     });
+    stats.drawCalls = stats.buses * 2 + stats.passengers;
   }
   function dispose() {
     if (disposed) return;
-    disposed = true; root.removeFromParent(); geometry.forEach(value => value.dispose()); materials.forEach(value => value.dispose());
-    stats.buses = 0; stats.disposed = true;
+    disposed = true; root.removeFromParent(); passenger?.dispose(); geometry.forEach(value => value.dispose()); materials.forEach(value => value.dispose());
+    stats.buses = 0; stats.passengers = 0; stats.drawCalls = 0; stats.disposed = true;
   }
   update([], null);
   return { update, stats, dispose };
