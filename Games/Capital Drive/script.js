@@ -1,3 +1,4 @@
+import {createRenderGate,renderProfile,chooseRenderQuality} from './render-gate.js';
 import {setupGameCache} from './cache-client.js';
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { createCar, disposeCars } from '../../assets/car-arcade/models.js';
@@ -93,7 +94,8 @@ let gymEntries=[],wildlifeView,streetAssetsView,highwayBarriersView,localDetails
 let campaignScenes,campaignScenesView;
 let presentationOutcome={serial:0,roomId:null,outcome:null},workCompletion={serial:0,storeId:null};
 let schoolEntry,schoolAlarmOutcome={serial:0,roomId:null,outcome:null},heistOutcome={serial:0,storeId:null,kind:null};
-const cutscenes=createCutscenes();
+const cutscenes=createCutscenes(),renderGate=createRenderGate();
+let viewRevision=0,renderedFrames=0;
 let pendingCutscene=null,cutsceneAnchor=null,windowFocused=true;
 let homeActionOutcome={serial:0,roomId:null,outcome:null},missionLocations,missionGuideState=null,indoorObjective;
 let dialogueId=null,playerAppearanceId='player',protagonists;
@@ -854,12 +856,17 @@ function recover() {
   cameraReady = false; clearInput(); notify('Back on the road.');
 }
 $('recover-button').addEventListener('click', () => { recover(); closeDialogs(); });
-$('quality').addEventListener('change', () => { quality = $('quality').value; resize(); });
+$('quality').addEventListener('change', () => {
+  quality=$('quality').value;resize();
+  try{localStorage.setItem('capital-drive-rendering-v1',quality);}
+  catch{$('save-status').textContent='Graphics preference could not be saved.';}
+});
 $('theme').addEventListener('change', () => document.body.classList.toggle('light', $('theme').value === 'light'));
 $('clear-route').addEventListener('click', () => { route = []; destination = null; drawMap($('full-map'), true); });
 
 function selectVehicle(id) {
   if (!scene) return;
+  viewRevision++;
   selectedCar = id;
   if (playerMesh) scene.remove(playerMesh);
   playerMesh = createCar(id, { color: selectedPaint });
@@ -1325,8 +1332,9 @@ function restoreParkedCars() {
   }
 }
 function resize() {
+  viewRevision++;
   if (!renderer) return;
-  const w = window.innerWidth, h = window.innerHeight, scale = Math.min(1, (quality === 'low' ? 960 : 1440) / w, (quality === 'low' ? 540 : 900) / h);
+  const w = window.innerWidth, h = window.innerHeight,profile=renderProfile(quality),scale=Math.min(1,profile.width/w,profile.height/h);
   renderer.setSize(Math.round(w * scale), Math.round(h * scale), false);
   camera.aspect = w / h; camera.updateProjectionMatrix(); cameraReady = false;
   if ($('map-dialog').open) { fitMapCanvas(); drawMap($('full-map'), true); }
@@ -1525,14 +1533,15 @@ function animate(time) {
     audio.gain.gain.setTargetAtTime(active ? .022 : 0, audio.context.currentTime, .08);
     audio.oscillator.frequency.setTargetAtTime(35 + Math.abs(simulation.player.speed) * 3.4, audio.context.currentTime, .08);
   }
-  if (time - lastRender < (quality === 'low' ? 1000 / 30 : 1000 / 60) - 1) return;
+  if (time - lastRender < (1000/renderProfile(quality).fps) - 1) return;
+  if(!renderGate.shouldRender({paused:paused(),hidden:document.hidden,cinematic:cutscenes.snapshot().active,tracking,revision:viewRevision,pendingChunks:(world.stats.queuedChunks||0)+(neighbourhood.stats.queue||0)}))return;
   const renderDt = Math.min(.1, (time - (lastRender || time)) / 1000); lastRender = time;
   const p = focus(), activeDt = paused()&&!tracking ? 0 : renderDt;
   if(!interiors.active){
   pedestrianFocus.x=p.x;pedestrianFocus.z=p.z;pedestrianFocus.yaw=p.yaw;pedestrianFocus.speed=gameplay.state.mode==='vehicle'?p.speed:0;
   pedestrians?.update(pedestrianFocus, activeDt, simulation.traffic,simulation.hasLineOfSight);
   placeCar(playerMesh, simulation.player, activeDt);
-  trafficView?.update(p,{lowGraphics:quality==='low'});
+  trafficView?.update(p,{lowGraphics:quality!=='standard'});
   updateAbandonedMeshes(p, activeDt);
   busView?.update(buses.vehicles,p);servicesView?.update(p);signalsView?.update(simulation.trafficLights.heads,p);
   equipmentView?.update(equipment.snapshot(),p);
@@ -1609,7 +1618,7 @@ function animate(time) {
   if(!interiors.active)desiredCamera.y = Math.max(desiredCamera.y, world.heightAt(desiredCamera.x, desiredCamera.z) + .65);
   camera.position.lerp(desiredCamera, interiors.active?1:cameraReady ? 1 - Math.exp(-renderDt * 5.5) : 1);
   camera.lookAt(lookTarget); cameraReady = true;
-  renderer.render(interiors.active&&!compatibility?interiorScene:scene, camera);
+  renderer.render(interiors.active&&!compatibility?interiorScene:scene, camera);renderedFrames++;
   hudTime += renderDt;
   if (hudTime > .18) { updateHud(); streetUI.refresh();renderMissionGuide(); hudTime = 0; }
 }
@@ -1640,6 +1649,11 @@ async function boot() {
   compatibility = !context;
   if (context) {
     renderer = new THREE.WebGLRenderer({ canvas, context, antialias: false, powerPreference: 'low-power' });
+    const debug=context.getExtension('WEBGL_debug_renderer_info');
+    const rendererName=debug?context.getParameter(debug.UNMASKED_RENDERER_WEBGL):context.getParameter(context.RENDERER);
+    let savedQuality=null;
+    try{savedQuality=localStorage.getItem('capital-drive-rendering-v1');}catch{savedQuality=null;}
+    quality=chooseRenderQuality(savedQuality,rendererName);$('quality').value=quality;
     renderer.setPixelRatio(1); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
   } else renderer = createCompatibilityRenderer(document.createElement('canvas'));
   renderer.domElement.tabIndex = 0;
@@ -1787,7 +1801,7 @@ async function boot() {
     visibleTraffic: trafficView.stats.visible||0,trafficView:Object.freeze({...trafficView.stats}), destination: destination?.id ?? null, routePoints: route.length,routePath:freezeCopy(route.map(p=>({x:p[0],z:p[1]}))),streetDealers:freezeCopy({services:streetDealers.services,people:streetDealers.snapshot(),view:dealerView.stats}),
     mapSelection: mapSelection ? Object.freeze({ ...mapSelection }) : null,
     mapView: Object.freeze({ zoom: mapView.zoom, ...map.bounds, x: fullMapProjection().cx, z: fullMapProjection().cz, scale: fullMapProjection().scale }),
-    rendering: Object.freeze({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, quality, compatibility }), world: Object.freeze({ ...world.stats }),
+    rendering: Object.freeze({ frames:renderedFrames,calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, quality, compatibility }), world: Object.freeze({ ...world.stats }),
     pedestrians: Object.freeze({ ...pedestrians.stats, sample: Object.freeze(pedestrians.snapshot().slice(0,8)),routineSample:freezeCopy(pedestrians.snapshot().filter(p=>['coffee','work'].includes(p.ambient)).slice(0,12)) }), neighbourhood: Object.freeze({ ...neighbourhood.stats }),
     landmarks: Object.freeze({ ...landmarkView.stats }), actors: Object.freeze({ ...actorView.stats }),
     services:freezeCopy(progression.services),activity:freezeCopy(progression.state.activity),
