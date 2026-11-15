@@ -38,6 +38,10 @@ artwork or branded vehicle assets are used.
   retained fictional Kingston gym/arms sites and three source-backed parody gyms.
   `stores.js`/`data/stores.json` pin source nodes and estimated public frontages.
   `storefronts-view.js` presents twenty generic-capable facades plus a separately managed noodle restaurant in two batches.
+- `tutorial.js` observes nine guided-control lessons. The controller owns its
+  separate small preference and menu-action serials, with no career rewards.
+  `activity-ui.js` caches the existing panel's nodes and avoids unchanged DOM
+  writes while activity scoring/payment stays with its original owner.
 - `actor-view.js`: original articulated adult, generic patrol cars, pooled brief
   effects/objective marker and dismounted officers. `vehicle-occupants-view.js`
   presents up to 64 seated drivers and 12 displaced adults; `services-view.js`
@@ -90,6 +94,14 @@ artwork or branded vehicle assets are used.
   anchors and seven parody store approaches are merged at runtime; the geographic source snapshot is not rewritten.
 
 ## Gameplay and controls
+
+Fresh players can leave Guided controls checked for nine short playable lessons.
+The guide observes real camera movement, walking, car entry/driving/stopping,
+manual routing and menu actions. Skip or replay from Controls & help, F1 or Pause;
+existing careers opt in. Lesson progress is saved separately from career money
+and missions. Attacks are disabled during guided controls and return when it
+ends or is skipped. Help is available before starting; it groups the full controls
+by task rather than placing every key on the start panel.
 
 Choose Campaign, Street Life or Free roam. Campaign initially places Kit Vale
 (18, Telopea student), Rowan Pike (29, Civic analyst) or Milo Finch (26, basement
@@ -218,6 +230,29 @@ browser/geodata tooling stay outside the repository.
 
 ## Audit findings
 
+### Guided controls and interface work, latest15 November2026
+
+The [tutorial/UI contract](../../capital-drive-tutorial-and-ui-contract.md) and
+[receipt](../../verification/capital-drive-tutorial-ui-2026-11-15.md) describe this
+continuation. First-run guided play is optional and replayable, uses actual
+observations with fresh baselines, and gives no cash or mission credit. Menus
+pause the world; only their real successful named actions can credit a matching
+menu lesson. Stale counters, pause/teleport jumps and passenger motion cannot
+substitute for walking/driving. Strict tiny UI preferences use a separate key.
+
+The start panel is shorter, Help uses native expandable topics, mobile header
+targets are at least44px, and light-theme focus/progress/stars have stronger
+contrast. Shop/garage/help shortcuts remain in Pause on narrow screens. Toasts
+and ordinary interaction hints clear the player status/minimap. Successful manual
+Set route returns to play and starts at actual player focus, including on foot.
+
+The hidden activity panel previously rewrote properties and queried controls on
+every RAF, including outdoors and paused. The cached adapter preserves real
+event draining and scoring, while3600unchanged-render fixtures record no extra
+DOM writes, queries or element creation. Active cues/progress still follow the
+actual activity snapshot. The paired profile receipt distinguishes these DOM
+savings from graphics/process CPU; N100 hardware remains unmeasured.
+
 ### Crew catch-up, latest15 November2026
 
 The owner requested companions teleport to the player. Shared-mission crew now
@@ -253,7 +288,7 @@ campaign rewards and original campaign prefixes. Cancel/finish restores checked
 body/car/health/ammo. A blocked return retains its snapshot for explicit Retry
 return; it cannot be overwritten or trigger per-frame placement loops.
 
-The current worker closure is97files/15,648,142bytes. On controlled warm visits,
+The current worker closure is99files/15,672,251bytes. On controlled warm visits,
 the six map Responses are read directly from its pinned active cache revision,
 so no page map-fetch requests are needed. A750ms bounded failure falls back to
 ordinary loading. Cold loading, parsing/indexing and scene construction remain.
@@ -741,9 +776,9 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The current reusable runner checks78game JavaScript files and92pure Node suites
-plus two Python cache checks (265 syntax/source commands), fails on missing files or command errors and bounds
-subprocess lifetimes. The indoor-pursuit receipt records the latest run,
+The current reusable runner checks80game JavaScript files and95pure Node suites
+plus two Python cache checks (273 syntax/source commands), fails on missing files or command errors and bounds
+subprocess lifetimes. The tutorial/UI receipt records the latest run,
 while the earlier230/230 story/streaming and220/220 city-life results remain
 separately dated. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
