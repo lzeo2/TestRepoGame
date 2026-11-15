@@ -1,6 +1,7 @@
 import { createPolice } from './police.js';
 import { createVehicleChallenge } from './vehicle-challenges.js';
 import { WEAPONS, weaponById } from './weapons.js';
+import { createShotRays, resolveShotRay, MAX_AIM_PITCH } from './ballistics.js';
 import { createProtagonistState } from './protagonist-state.js';
 // Pure Street Life rules. The controller owns time, driving, persistence and rendering.
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -17,10 +18,10 @@ const freeze = value => {
 const MAX_SHOT_TRACES = 16;
 
 export function createGameplay(map, simulation, options = {}) {
-  const state = { mode: 'vehicle', actor: { x: 0, z: 0, yaw: 0, speed: 0, jumpHeight: 0,
+  const state = { mode: 'vehicle', actor: { x: 0, z: 0, yaw: 0, speed: 0, jumpHeight: 0, aimPitch: 0,
     impactTime: 0, impactDuration: 0, impactStrength: 0, impactYaw: 0, impactSerial: 0 },
     health: 100, vehicleHealth: 100, weapon: 'unarmed', ammo: 0, reserveAmmo: 0,
-    aiming: false, reloading: 0, attackTimer: 0, wanted: 0, pursuit: 'clear', heat: 0,
+    aiming: false, aimPitch: 0, combatFeedback: { shotSerial: 0, hitSerial: 0, hits: 0, recoil: 0 }, reloading: 0, attackTimer: 0, wanted: 0, pursuit: 'clear', heat: 0,
     police: [], shots: [], respawnSerial: 0, vehicle: { modelId: 'lantern', color: 0xd4d7d3, stolen: false },
     carjacking: null, recovery: null, event: '', message: '', sandbox: Boolean(options.sandbox) };
   const ammunition = Object.fromEntries(WEAPONS.map(weapon => [weapon.id, { ammo: 0, reserveAmmo: 0 }]));
@@ -31,7 +32,7 @@ export function createGameplay(map, simulation, options = {}) {
   for (const field of ['ammo', 'reserveAmmo']) Object.defineProperty(state, field, {
     enumerable: true, get: () => activePool()[field], set: value => { activePool()[field] = value; },
   });
-  let fireCooldown = 0, meleeCooldown = 0, jumpVelocity = 0, shotSerial = 0;
+  let fireCooldown = 0, meleeCooldown = 0, jumpVelocity = 0, shotSerial = 0, triggerHeld = false;
   let previousCrashes = simulation.player.crashes || 0, witnessCooldown = 0;
   let retaliationCooldown = 0, crashCooldown = 0, recklessCooldown = 0;
   let impactX = 0, impactZ = 0, impactCooldown = 0;
@@ -160,48 +161,70 @@ export function createGameplay(map, simulation, options = {}) {
     return Math.max(0, lo - 0.05);
   }
   function attack(kind) {
-    if(options.canAttack?.()===false) return;
+    if(options.canAttack?.()===false || options.isPiloting?.()) return false;
     const weapon = weaponById(kind), actor = state.actor;
-    if (weapon && (!ownsWeapon(kind) || fireCooldown > 0 || state.reloading > 0)) return;
-    if (!weapon && meleeCooldown > 0) return;
-    if (weapon && state.ammo <= 0) { reload(); return; }
-    if (weapon) { state.ammo--; fireCooldown = weapon.interval * powerFactor('gunAttack'); shotSerial++; } else meleeCooldown = 0.55;
+    if (weapon && (!ownsWeapon(kind) || fireCooldown > 1e-9 || state.reloading > 0)) return false;
+    if (!weapon && meleeCooldown > 0) return false;
+    if (weapon && state.ammo <= 0) {
+      if (!reload()) { fireCooldown = .25; emit('dry-fire', 'No ammunition.', { weapon: kind }); }
+      return false;
+    }
+    if (weapon) { state.ammo--; fireCooldown += weapon.interval * powerFactor('gunAttack'); shotSerial++; } else meleeCooldown = 0.55;
     state.attackTimer = weapon ? 0.15 : 0.3;
     if(!weapon)state.attackSerial=(state.attackSerial||0)+1;
-    const requestedRange = weapon ? (state.aiming ? weapon.aimRange : weapon.range) : 2.3;
-    const pellets = weapon ? clamp(Math.floor(weapon.pellets), 1, 6) : 1;
     const adapterKind = weapon && kind !== 'pistol' ? 'firearm' : kind;
     let hits = 0, policeHits = 0;
-    const struckPolice = new Set();
-    for (let pellet = 0; pellet < pellets; pellet++) {
-      // A fixed fan for buckshot and a repeating offset for automatics avoid random/global clocks.
-      const spread = weapon?.spread || 0;
-      const offset = pellets > 1 ? (pellet / (pellets - 1) * 2 - 1) * spread :
-        spread * (((shotSerial - 1) % 5) / 2 - 1);
-      const yaw = actor.yaw + offset, dx = -Math.sin(yaw), dz = -Math.cos(yaw);
-      const range = clippedRange(actor, yaw, requestedRange);
-      const result = options.pedestrians?.strike?.({ x: actor.x, z: actor.z, yaw,
-        range, damage: weapon ? weapon.damage : 25, kind: adapterKind, hasLineOfSight: visible }) || { hits: 0 };
-      hits += result.hits || 0;
-      let pelletPoliceHits = 0;
-      for (const police of state.police) {
-        const px = police.x - actor.x, pz = police.z - actor.z;
-        const along = px * dx + pz * dz, across = Math.abs(px * dz - pz * dx);
-        // One victim cannot receive six complete damage applications from a fan.
-        if (!struckPolice.has(police) && sameSpace(police) && police.health > 0 && along >= 0 && along <= range &&
-          across < (weapon ? 1.5 : 1.8) && visible(actor, police)) {
-          police.health = Math.max(0, police.health - (weapon ? weapon.policeDamage : 20));
-          struckPolice.add(police); pelletPoliceHits++; policeHits++;
+    if (weapon) {
+      const ground = (x,z) => finite(options.heightAt?.(x,z));
+      const space = interiorId(), muzzleY = ground(actor.x,actor.z) + 1.35 + actor.jumpHeight;
+      const supplied = options.getShotTargets?.();
+      const civilians = supplied || (options.pedestrians?.snapshot?.() || []);
+      const targets = civilians.map(person => ({ ...person, feetY: person.feetY ?? person.y ?? ground(person.x,person.z),
+        interiorId: person.interiorId === undefined ? space : person.interiorId }));
+      for (const police of state.police) if (police.mode === 'foot' && police.health > 0 && sameSpace(police)) targets.push({ ...police,
+        feetY: police.feetY ?? police.y ?? ground(police.x,police.z), police,
+        damage: amount => { police.health = Math.max(0,police.health-amount); return true; } });
+      const struck = new Set();
+      const rays = createShotRays({ x:actor.x,y:muzzleY,z:actor.z,yaw:actor.yaw,pitch:state.aimPitch,
+        range:state.aiming?weapon.aimRange:weapon.range,pellets:weapon.pellets,spread:weapon.spread,aiming:state.aiming,serial:shotSerial,interiorId:space });
+      for (const ray of rays) {
+        // Legacy adapters still receive exact ray geometry; controller adapters supply 3D solids.
+        const obstruction = options.traceShot ? options.traceShot(ray) : clippedRange(actor,ray.yaw,ray.range*Math.cos(ray.pitch))/Math.cos(ray.pitch);
+        const hit = resolveShotRay(ray,{targets,blockDistance:Number.isFinite(obstruction)?obstruction:0});
+        let damaged = false;
+        if (hit.target && !struck.has(hit.target)) {
+          struck.add(hit.target);
+          const spec = { ...ray, range:hit.distance+.02, damage:weapon.damage, kind:adapterKind,
+            targetId:hit.target.id, shotSerial, endX:hit.endX,endY:hit.endY,endZ:hit.endZ,
+            hasLineOfSight:(from,to)=> Math.hypot(to.x-hit.target.x,to.z-hit.target.z)<.01 && visible(from,to) };
+          const result = hit.target.damage ? hit.target.damage(hit.target.police?weapon.policeDamage:weapon.damage,spec) : options.pedestrians?.strike?.(spec);
+          damaged = result === true || Boolean(result?.hits);
+          if (damaged) { if(hit.target.police)policeHits++;else hits++; }
+        } else if (!supplied && !hit.target) {
+          // Preserve the legacy strike observation contract without allowing a cone hit.
+          options.pedestrians?.strike?.({ ...ray, range:hit.distance, damage:weapon.damage, kind:adapterKind, shotSerial, hasLineOfSight:()=>false });
         }
+        state.shots.push({ ...ray,shotSerial,endX:hit.endX,endY:hit.endY,endZ:hit.endZ,range:hit.distance,life:.13,kind,hit:damaged });
       }
-      if (weapon) state.shots.push({ x: actor.x, z: actor.z, endX: actor.x + dx * range, endZ: actor.z + dz * range,
-        yaw, range, life: 0.13, kind, interiorId:interiorId(), hit: Boolean(result.hits || pelletPoliceHits) });
+      const feedback = state.combatFeedback;
+      feedback.shotSerial = shotSerial; feedback.hits = hits+policeHits;
+      if(feedback.hits) feedback.hitSerial++;
+      feedback.recoil = Math.min(1,feedback.recoil+(weapon.recoil||.2)*(state.aiming?.7:1));
+    } else {
+      const result=options.pedestrians?.strike?.({x:actor.x,z:actor.z,yaw:actor.yaw,range:2.3,damage:25,kind:adapterKind,hasLineOfSight:visible});
+      hits=result?.hits||0;
+      for(const police of state.police) if(sameSpace(police)&&police.mode==='foot'&&police.health>0) {
+        const px=police.x-actor.x,pz=police.z-actor.z,dx=-Math.sin(actor.yaw),dz=-Math.cos(actor.yaw);
+        if(px*dx+pz*dz>=0&&distance(actor,police)<=2.3&&Math.abs(px*dz-pz*dx)<1.8&&visible(actor,police)){police.health=Math.max(0,police.health-20);policeHits++;}
+      }
     }
     if (weapon || hits || policeHits) options.pedestrians?.alert?.({ x: actor.x, z: actor.z, radius: weapon ? 90 : 18, kind: adapterKind, hasLineOfSight: visible });
     if (state.shots.length > MAX_SHOT_TRACES) state.shots.splice(0, state.shots.length - MAX_SHOT_TRACES);
     if (weapon || hits || policeHits) reportOffence(policeHits ? 'attack on police' : weapon ? 'gunfire' : 'assault', policeHits ? 2 : 1,
       { witnessed: policeHits ? true : undefined });
-    emit('attack', hits || policeHits ? 'Impact.' : weapon ? 'Shot fired.' : 'Swing.');
+    emit('attack', hits || policeHits ? 'Impact.' : weapon ? 'Shot fired.' : 'Swing.', { weapon:weapon?.id||null,
+      shotSerial,hitSerial:state.combatFeedback.hitSerial,hits:hits+policeHits,recoil:state.combatFeedback.recoil });
+    return true;
   }
   function respawn(reason) {
     // Approximate public road approaches: Manuka police station / Canberra Hospital.
@@ -348,7 +371,10 @@ export function createGameplay(map, simulation, options = {}) {
     if (needsMedicalRecovery()) { beginRecovery('knockout'); return; }
     const takingVehicle = Boolean(state.carjacking);
     updateCarjacking(dt, input);
-    fireCooldown = Math.max(0, fireCooldown - dt); meleeCooldown = Math.max(0, meleeCooldown - dt);
+    fireCooldown = input.fire && triggerHeld ? fireCooldown-dt : Math.max(0, fireCooldown-dt);
+    triggerHeld = Boolean(input.fire);
+    state.combatFeedback.recoil *= Math.exp(-12*dt);
+    meleeCooldown = Math.max(0, meleeCooldown - dt);
     witnessCooldown = Math.max(0, witnessCooldown - dt);
     crashCooldown = Math.max(0, crashCooldown - dt); recklessCooldown = Math.max(0, recklessCooldown - dt);
     retaliationCooldown = Math.max(0, retaliationCooldown - dt); state.attackTimer = Math.max(0, state.attackTimer - dt);
@@ -357,7 +383,7 @@ export function createGameplay(map, simulation, options = {}) {
       state.reloading = Math.max(0, state.reloading - dt);
       if (state.reloading === 0) {
         const weapon = weaponById(state.weapon);
-        if (weapon && ownsWeapon(weapon.id)) { const amount = Math.min(weapon.magazine - state.ammo, state.reserveAmmo); state.ammo += amount; state.reserveAmmo -= amount; }
+        if (weapon && ownsWeapon(weapon.id)) { const amount = Math.min(weapon.magazine - state.ammo, state.reserveAmmo); state.ammo += amount; state.reserveAmmo -= amount; emit('reload-complete','Reloaded.',{weapon:weapon.id}); }
       }
     }
     if(state.passenger){
@@ -377,6 +403,8 @@ export function createGameplay(map, simulation, options = {}) {
         impactX *= drag; impactZ *= drag;
       } else if (length > 0) simulation.moveActor(state.actor, x / Math.max(1, length) * speed * dt, z / Math.max(1, length) * speed * dt, 0.45);
       state.actor.speed = distance(before, state.actor) / dt;
+      state.aimPitch = clamp(finite(input.aimPitch),-MAX_AIM_PITCH,MAX_AIM_PITCH);
+      state.actor.aimPitch = state.aimPitch;
       state.aiming = Boolean(!struck && input.aim && weaponById(state.weapon));
       if (!struck && Number.isFinite(input.aimYaw) && (state.aiming || input.fire || input.melee)) state.actor.yaw = input.aimYaw;
       else if (length > 0 && !struck) state.actor.yaw = yawFor(x, z);
@@ -386,8 +414,10 @@ export function createGameplay(map, simulation, options = {}) {
         if (state.actor.jumpHeight === 0) jumpVelocity = 0;
       }
       if (!struck && (input.melee || (input.fire && state.weapon === 'unarmed'))) attack('melee');
-      else if (!struck && input.fire && weaponById(state.weapon)) attack(state.weapon);
-    } else state.aiming = false;
+      else if (!struck && input.fire && weaponById(state.weapon)) {
+        for(let count=0;count<6;count++) { if(!attack(state.weapon)){fireCooldown=Math.max(0,fireCooldown);break;}if(fireCooldown>1e-9)break; }
+      } else fireCooldown=Math.max(0,fireCooldown);
+    } else { state.aiming = false; fireCooldown=Math.max(0,fireCooldown); triggerHeld=false; }
     const crashes = simulation.player.crashes || 0;
     if (state.mode === 'vehicle' && crashes > previousCrashes && crashCooldown <= 0) {
       // Contact count includes low-speed scraping: only impact velocity causes damage.
@@ -445,7 +475,8 @@ export function createGameplay(map, simulation, options = {}) {
       aiming: false, reloading: 0, attackTimer: 0, attackSerial:0, wanted: 0, pursuit: 'clear', heat: 0, sandbox: Boolean(sandbox),
       event: '', message: '', arrestProgress: 0, recovery: null, carjacking: null });
     state.police.length = 0; state.shots.length = 0;
-    policeEvents.length=0;policeController.reset(); clearAmmo(state.sandbox); shotSerial = 0;
+    policeEvents.length=0;policeController.reset(); clearAmmo(state.sandbox); shotSerial = 0; triggerHeld = false;
+    state.aimPitch=0;state.actor.aimPitch=0;Object.assign(state.combatFeedback,{shotSerial:0,hitSerial:0,hits:0,recoil:0});
     fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0; crashCooldown = 0; recklessCooldown = 0; jumpVelocity = 0; witnessCooldown = 0;
     previousCrashes = simulation.player.crashes || 0;
     options.pedestrians?.drainEvents?.();
