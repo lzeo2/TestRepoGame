@@ -465,27 +465,31 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
   function strike({ x, z, yaw = 0, range = 2, damage = 20, kind = 'melee', hasLineOfSight, offenderId = 'player' } = {}) {
     const people = [];
     if (disposed || ![x, z, yaw, range, damage].every(Number.isFinite)) return { hits: 0, people };
-    const reach = Math.max(0, Math.min(100, range)), power = Math.max(0, Math.min(100, damage));
+    const explosion = kind === 'explosion';
+    if (explosion && typeof hasLineOfSight !== 'function') return { hits: 0, people };
+    const reach = Math.max(0, Math.min(explosion ? 8 : 100, range)), power = Math.max(0, Math.min(100, damage));
     const gun = ['pistol', 'gunshot', 'firearm', 'shot', 'fire'].includes(kind);
     const candidates = peopleIn(x - reach, x + reach, z - reach, z + reach).map(p => ({ p, distance: Math.hypot(p.x - x, p.z - z) }))
       .filter(({ p, distance }) => {
         const forward = (p.x - x) * -Math.sin(yaw) + (p.z - z) * -Math.cos(yaw);
         const lateral = Math.abs((p.x - x) * Math.cos(yaw) - (p.z - z) * Math.sin(yaw));
         return power > 0 && p.health > 0 && p.hitCooldown <= 0 && distance <= reach &&
-          forward >= -0.3 && (gun ? lateral <= 0.55 : forward >= distance * 0.25) &&
-          (!hasLineOfSight || hasLineOfSight({ x, z }, p));
+          (explosion ? distance < reach : forward >= -0.3 && (gun ? lateral <= 0.55 : forward >= distance * 0.25)) &&
+          (explosion || !hasLineOfSight || hasLineOfSight({ x, z }, p));
       }).sort((a, b) => a.distance - b.distance);
-    for (const { p } of candidates.slice(0, gun ? 1 : 3)) {
-      p.health = Math.max(0, p.health - power); p.hitCooldown = 0.4;
+    for (const { p, distance } of candidates.slice(0, explosion ? 12 : gun ? 1 : 3)) {
+      if (explosion && hasLineOfSight({ x, z }, p) !== true) continue;
+      const dealt = explosion ? power * (1 - distance / reach) : power;
+      p.health = Math.max(0, p.health - dealt); p.hitCooldown = 0.4;
       if (p.health === 0) p.crimePhase = null;
       if (offenderId === 'player' && kind === 'melee') p.playerHitTimer = 12;
-      react(p, { x, z, offenderId }, kind, true);
+      react(p, { x, z, offenderId }, kind, true, !explosion || p.health > 0);
       p.stun = 0.65;
-      if (p.health === 0 || power >= 35) { p.knockdown = 2.8; p.reaction = 'knockdown'; }
+      if (p.health === 0 || dealt >= 35) { p.knockdown = 2.8; p.reaction = 'knockdown'; }
       else p.reaction = 'stunned';
       people.push(descriptor(p));
     }
-    if (people.length) alert({ x, z, radius: gun ? 40 : 16, kind, hasLineOfSight, offenderId });
+    if (people.length && !explosion) alert({ x, z, radius: gun ? 40 : 16, kind, hasLineOfSight, offenderId });
     return { hits: people.length, people };
   }
   function applyVehicleImpacts(contacts, dt) {
