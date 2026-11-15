@@ -188,7 +188,7 @@ def main():
         page.locator('#mission-dev-picker').wait_for(state='visible')
         check(page.locator('#dev-code-input').input_value() == '', 'Accepted private entry clears masked code before any evidence capture')
         options = page.locator('#mission-dev-select option')
-        check(options.count() == 13, 'Private selector exposes all thirteen mission options')
+        check(options.count() == 16, 'Private selector exposes all sixteen mission options')
         check(career_prefixes(snap()) == career_prefixes(original), 'Unlocking selector preserves starting cash and all career progress prefixes')
         page.locator('#mission-dev-select').select_option('home-by-the-lake')
         page.locator('#mission-dev-play').click()

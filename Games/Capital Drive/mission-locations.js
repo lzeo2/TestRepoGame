@@ -82,7 +82,7 @@ export function createMissionGuide(entries, storyHomes = {}) {
     if (!matchingRoom) return result(`Enter ${location} at the marked door.`, location,
       home?.approach || entry.approach, false, entry.id);
 
-    const stationKind = STATION_KINDS[goal.kind];
+    const stationKind = goal.kind === 'work' && goal.stationKind === 'noodle' ? 'noodle' : STATION_KINDS[goal.kind];
     if (stationKind) {
       const stationId = identity(goal.stationId) ? goal.stationId :
         goal.kind === 'home-action' ? `${entry.id}-stash` : null;
