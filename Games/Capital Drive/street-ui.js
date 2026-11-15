@@ -1,3 +1,4 @@
+import {GARAGE_MODS} from './progression.js';
 import {WEAPONS,weaponById} from './weapons.js';
 // DOM adapter only. World movement, career time and persistence belong to the controller.
 export function createStreetUI({ gameplay, progression, simulation, vehicles, notify,
@@ -106,10 +107,25 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
         if (result.ok && result.vehicle) selectVehicle(result.vehicle);
         feedback(result, true); renderGarage();
       });
-      container.append(button);
+      const entry=document.createElement('article');entry.className='job-option';entry.append(button);
+      if(owned&&!sandbox()){
+        const heading=document.createElement('h4');heading.textContent='Vehicle upgrades';entry.append(heading);
+        for(const mod of GARAGE_MODS){
+          const tier=owned.mods?.[mod.id]||0,cost=mod.costs[tier];
+          const detail=document.createElement('p');detail.textContent=`${mod.name} ${tier}/2 · ${mod.description}.`;
+          const reason=progression.upgradeEligibility(vehicle.id,mod.id,context());
+          const upgrade=actionButton(cost===undefined?'Maximum tier':`Fit ${mod.name.toLowerCase()} ${tier+1} · ${money(cost)}`,()=>{
+            const result=progression.upgradeVehicle(vehicle.id,mod.id,context());feedback(result,true);renderGarage();
+          });
+          upgrade.disabled=Boolean(reason);upgrade.title=reason||mod.description;
+          entry.append(detail,upgrade);
+          if(reason){const status=document.createElement('p');status.textContent=reason;entry.append(status);}
+        }
+      }
+      container.append(entry);
     }
     syncPaint();
-    text('garage-description', sandbox() ? 'Choose any original fictional vehicle and paint.' : `Visit ${progression.garage.name} to buy, retrieve, repair, store or paint a vehicle.`);
+    text('garage-description', sandbox() ? 'Choose any original fictional vehicle and paint.' : `Visit ${progression.garage.name} to buy, retrieve, repair, store, paint or upgrade a vehicle.`);
   }
   function refresh() {
     const state = gameplay.state, mission=isCampaign()?campaign?.state.active:null,active = mission||progression.state.activeJob,activity=progression.state.activity;

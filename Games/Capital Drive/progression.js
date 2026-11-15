@@ -9,6 +9,13 @@ const CARS = [
   { id: 'relay', name: 'Executive tourer', price: 3200 },
   { id: 'atlas', name: 'Weekend ute', price: 2600 },
 ];
+export const GARAGE_MODS = Object.freeze([
+  {id:'engine',name:'Engine',costs:Object.freeze([350,700]),description:'More acceleration and road speed'},
+  {id:'brakes',name:'Brakes',costs:Object.freeze([250,500]),description:'Shorter braking distance'},
+  {id:'handling',name:'Handling',costs:Object.freeze([300,600]),description:'Sharper steering and tyre grip'},
+].map(Object.freeze));
+const stockMods = () => ({engine:0,brakes:0,handling:0});
+const validMods = mods => object(mods) && exactKeys(mods,GARAGE_MODS.map(mod=>mod.id)) && GARAGE_MODS.every(mod=>Number.isInteger(mods[mod.id])&&mods[mod.id]>=0&&mods[mod.id]<=mod.costs.length);
 const COLOR = /^#[0-9a-f]{6}$/i;
 const MAX_CASH = 1000000000;
 const RIDE_MODELS = ['lantern', 'orchard', 'gravel', 'relay'];
@@ -62,7 +69,7 @@ export function createProgression(map, saved = null, options = {}) {
       { ...point(-297.93, 240.71, 'Franklin passenger drop-off'), roadId: '488671941-0' }] },
     { id: 'priority-parcel', name: 'Priority parcel', type: 'delivery', reward: 1000, time: 110, requires: ['crescent-circuit', 'wagon-recovery'], stages: [south, north] },
   ];
-  const state = { cash: 1000, ownedVehicles: [{ id: 'lantern', color: '#e7e6df', health: 100, stored: false }], completedJobs: [], activeJob: null,
+  const state = { cash: 1000, ownedVehicles: [{ id: 'lantern', color: '#e7e6df', health: 100, stored: false, mods:stockMods() }], completedJobs: [], activeJob: null,
     equipment:{pistol:false},gear:{scanner:false,flares:0},fitnessLevel:0,robberyCooldowns:{},muggingCooldowns:{},activity:null,message: 'Career ready. Take the Crescent parcel job.' };
   if (saved !== null) {
     if (!object(saved) || !exactKeys(saved, ['version', 'cash', 'ownedVehicles', 'completedJobs','equipment','gear','fitnessLevel','robberyCooldowns','muggingCooldowns']) || saved.version !== 1 || !Number.isSafeInteger(saved.cash) || saved.cash < 0 || saved.cash > MAX_CASH || !Array.isArray(saved.ownedVehicles) || saved.ownedVehicles.length < 1 || saved.ownedVehicles.length > CARS.length || !Array.isArray(saved.completedJobs) || saved.completedJobs.length > jobs.length) throw new Error('Unsupported or corrupt career save.');
@@ -73,12 +80,12 @@ export function createProgression(map, saved = null, options = {}) {
     if(saved.muggingCooldowns!==undefined&&(!object(saved.muggingCooldowns)||Object.keys(saved.muggingCooldowns).some(id=>!MUGGING_ID.test(id))||Object.values(saved.muggingCooldowns).some(v=>!Number.isFinite(v)||v<0||v>180)))throw new Error('Invalid saved mugging cooldown.');
     const ids = new Set();
     for (const car of saved.ownedVehicles) {
-      if (!object(car) || !exactKeys(car, ['id', 'color', 'health', 'stored']) || !CARS.some(item => item.id === car.id) || ids.has(car.id) || !COLOR.test(car.color) || !Number.isFinite(car.health) || car.health < 0 || car.health > 100 || typeof car.stored !== 'boolean') throw new Error('Invalid saved garage.');
+      if (!object(car) || !exactKeys(car, ['id', 'color', 'health', 'stored', 'mods']) || !CARS.some(item => item.id === car.id) || ids.has(car.id) || !COLOR.test(car.color) || !Number.isFinite(car.health) || car.health < 0 || car.health > 100 || typeof car.stored !== 'boolean' || (car.mods!==undefined&&!validMods(car.mods))) throw new Error('Invalid saved garage.');
       ids.add(car.id);
     }
     if (!ids.has('lantern') || new Set(saved.completedJobs).size !== saved.completedJobs.length || saved.completedJobs.some(id => !jobs.some(job => job.id === id)) || saved.completedJobs.some(id => jobs.find(job => job.id === id).requires.some(required => !saved.completedJobs.includes(required)))) throw new Error('Invalid saved career progress.');
     state.cash = saved.cash;
-    state.ownedVehicles = copy(saved.ownedVehicles);
+    state.ownedVehicles = saved.ownedVehicles.map(car=>({...copy(car),mods:copy(car.mods||stockMods())}));
     state.completedJobs = [...saved.completedJobs];
     state.equipment=copy(saved.equipment||{pistol:false});state.fitnessLevel=saved.fitnessLevel||0;state.robberyCooldowns=copy(saved.robberyCooldowns||{});
     state.gear=copy(saved.gear||{scanner:false,flares:0});
@@ -258,9 +265,36 @@ export function createProgression(map, saved = null, options = {}) {
     if (!car || currentOwned(id)) return result(false, 'Vehicle unknown or already owned.');
     if (!spend(car.price)) return result(false, 'Not enough cash to buy this vehicle.');
     rememberOwnedVehicle();
-    const owned = { id, color: '#e7e6df', health: 100, stored: true };
+    const owned = { id, color: '#e7e6df', health: 100, stored: true, mods:stockMods() };
     state.ownedVehicles.push(owned);
     return result(true, `${car.name} purchased and stored.`, { vehicle: copy(owned), cost: car.price });
+  }
+  function upgradeEligibility(id,modId,ctx) {
+    if(!validContext(ctx))return 'A valid player position is required.';
+    if(ctx.sandbox||ctx.recovering||ctx.passenger||ctx.interior)return 'Garage upgrades are unavailable here.';
+    if(!near(ctx.pose,garage,garage.radius))return 'Visit the Crescent garage first.';
+    if(ctx.wanted>0)return 'Lose the police before using the garage.';
+    if(state.activity||state.activeJob)return 'Finish or cancel the current activity first.';
+    const car=currentOwned(id),mod=GARAGE_MODS.find(item=>item.id===modId);
+    if(!car||!mod)return 'Choose an owned vehicle and a known upgrade.';
+    if(ctx.onFoot||car.stored||ctx.vehicle?.modelId!==id||ctx.vehicle.stolen!==false)return 'Drive this owned, legal vehicle into the garage.';
+    if(ctx.vehicleHealth<=0||ctx.vehicleHealth>100)return 'Repair this vehicle before upgrading.';
+    if(!Number.isFinite(ctx.pose.speed)||Math.abs(ctx.pose.speed)>.8)return 'Stop the vehicle before upgrading.';
+    if(car.mods[modId]>=mod.costs.length)return 'Maximum tier fitted.';
+    if(state.cash<mod.costs[car.mods[modId]])return 'Not enough cash for this upgrade.';
+    return '';
+  }
+  function upgradeVehicle(id,modId,ctx) {
+    const reason=upgradeEligibility(id,modId,ctx);
+    if(reason)return result(false,reason);
+    remember(ctx);rememberOwnedVehicle();
+    const car=currentOwned(id),mod=GARAGE_MODS.find(item=>item.id===modId),cost=mod.costs[car.mods[modId]];
+    spend(cost);car.mods[modId]++;
+    return result(true,`${mod.name} tier ${car.mods[modId]} fitted.`,{vehicle:copy(car),modId,tier:car.mods[modId],cost},'vehicle-upgraded');
+  }
+  function vehicleMods(vehicle) {
+    const car=vehicle?.stolen===false&&currentOwned(vehicle.modelId);
+    return copy(car&&!car.stored?car.mods:stockMods());
   }
   function repairVehicle() {
     const blocked = garageGuard(); if (blocked) return blocked;
@@ -551,7 +585,7 @@ export function createProgression(map, saved = null, options = {}) {
     if(state.fitnessLevel>=3||!spend(active.cost))return result(false,'Training is unavailable.',{},'activity-ended');
     state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{serviceId:active.serviceId,cost:active.cost,kind:active.station.kind},'workout-complete');
   }
-  return { state, jobs, garage,get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,startMugging,robberyEligibility,workoutEligibility,finishWorkout,payRental,payRide,consumeFlare,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
+  return { state, jobs, garage,get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, upgradeVehicle, upgradeEligibility, vehicleMods, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,startMugging,robberyEligibility,workoutEligibility,finishWorkout,payRental,payRide,consumeFlare,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
     cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;workoutPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
     serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,gear:state.gear,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns,muggingCooldowns:state.muggingCooldowns }); },
