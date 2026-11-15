@@ -786,7 +786,7 @@ python3 -B scripts/generate_sitemap.py --check
 
 The current reusable runner checks92game JavaScript files and115pure Node suites
 plus two Python cache checks (325 syntax/source commands), fails on missing files or command errors and bounds
-subprocess lifetimes. The tutorial/UI receipt records the latest run,
+subprocess lifetimes. The [crew/city/flight receipt](../../verification/capital-drive-crew-city-flight-2026-11-15.md) records the latest source/native run,
 while the earlier230/230 story/streaming and220/220 city-life results remain
 separately dated. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover

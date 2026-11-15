@@ -83,8 +83,9 @@ clearly labeled. An extension attempt sampled its pause baseline before the
 Pause click actionability delay; the corrected test samples after the actual
 dialog is visible and still requires exact frozen time.
 
-Final native flight/city/touch runs, stored-map/offline results and deployment
-hashes are appended after observation. Profiles are software-WebGL observations;
+Final native flight/city/touch, stored-map/offline and profile results follow
+below. Deployment hashes are retained separately with the exact merged revision.
+Profiles are software-WebGL observations;
 they cannot establish Intel N100 performance. Source geometry is an original
 arcade interpretation: airport terrain/massing and house lot boundaries are
 estimates, terminal rooms/airline services are absent, and traffic cars retain
