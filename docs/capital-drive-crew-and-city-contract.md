@@ -63,7 +63,7 @@ The [airport source record](capital-drive-airport-sources.md) distinguishes OSM
 roads, footprints and airfield surfaces from estimated architecture and terrain.
 The new seventh local map sidecar connects Pialligo and Terminal avenues to the
 original network. The terminal exterior and two runway axes are represented;
-there are no flights, airline systems or enterable terminal in this continuation.
+there are no airline services or enterable terminal rooms in this continuation.
 Airport geometry streams in500m cells, at most28resident/two builds per update.
 Its queue cannot keep a paused interior rendering. Existing source tiles and
 their heights remain intact; the eastern apron and terrain transition are marked
@@ -82,6 +82,30 @@ Performance,320otherwise, hidden indoors. There are no weather textures,
 postprocessing, added light grids or shadows. Night has a playable ambient floor.
 These resource bounds do not establish N100 frame rates.
 
+## Stealable jets
+
+Two original unbranded jets occupy fictional checked stands inside the sourced
+apron polygons. Search for a jet stand, approach its actual door on foot and
+complete the existing eight-cue vehicle challenge. Career theft reports an
+offence; Free roam practices without writing progression. No click awards cash
+or skips a mission. Active work, missions and other rides prevent admission.
+
+Flight uses the same supplied world time. W/S adjusts throttle, A/D turns,
+Space climbs and Shift descends; mobile uses the movement stick and explicit
+CLIMB/DESCEND buttons. The pilot seat supplies actual altitude to the camera.
+The old car remains parked, attacks and unrelated transport are blocked, and
+flight cannot advance ground jobs or mission stages. Ground and wing probes,
+source-building heights, terrain and bounds constrain movement; this is a
+simplified arcade flight model. Land and stop before a swept, checked exit.
+An unexitable wreck offers medical rescue through the existing recovery owner.
+Police use physical altitude for sight, arrest and gun range rather than
+shooting a distant airborne pilot as though they were on the pavement.
+
+The view retains two original meshes, two draws and292triangles. No flight
+services, external aircraft assets, weapons, real-world aircraft schedules or
+unbounded effects are added. Native theft/takeoff/landing/exit checks complement
+the source physics, collision and controller regressions.
+
 ## Reproduction
 
 Run the source runner, then the bounded native flows on a stable source tree:
@@ -90,6 +114,7 @@ Run the source runner, then the bounded native flows on a stable source tree:
 python3 -B scripts/check_capital_drive.py
 python3 -B scripts/test_capital_touch_browser.py --capture --output <fresh-external-dir>
 python3 -B scripts/test_capital_extension_browser.py --capture --crew --output <another-fresh-external-dir>
+python3 -B scripts/test_capital_aircraft_browser.py --capture --output <third-fresh-external-dir>
 ```
 
 The extension harness labels seeded campaign progress as a fixture; subsequent

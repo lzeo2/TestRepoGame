@@ -17,6 +17,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 GAME = Path('Games/Capital Drive')
 MODULES = (
+    'aircraft.js', 'aircraft-view.js',
     'hero-powers.js', 'ordnance.js', 'ordnance-view.js', 'atmosphere.js', 'atmosphere-view.js', 'airport.js', 'airport-view.js', 'vehicle-damage.js', 'vehicle-damage-view.js',
     'touch-joystick.js',
     'tutorial.js', 'activity-ui.js',
@@ -30,6 +31,7 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
+    'test_capital_airport_ground.mjs', 'test_capital_aircraft.mjs', 'test_capital_aircraft_controller.mjs',
     'test_capital_signed_for.mjs', 'test_capital_crew_seats.mjs', 'test_capital_npc_ragdoll.mjs', 'test_capital_mission_ally_switch.mjs', 'test_capital_garage_mods.mjs', 'test_capital_ordnance.mjs', 'test_capital_throwable_economy.mjs', 'test_capital_campaign_expansion.mjs', 'test_capital_airport.mjs', 'test_capital_hero_powers.mjs', 'test_capital_atmosphere.mjs', 'test_capital_backyards.mjs', 'test_capital_blast_people.mjs', 'test_capital_vehicle_damage.mjs', 'test_capital_extension_integration.mjs',
     'test_capital_touch_joystick.mjs', 'test_capital_touch_controller.mjs',
     'test_capital_tutorial.mjs', 'test_capital_tutorial_controller.mjs', 'test_capital_activity_ui.mjs',

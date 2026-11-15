@@ -250,9 +250,9 @@ def main():
                 maps = {path for path in manifest_paths if path.endswith('.json')}
                 essential = modules | maps
                 runtime_maps = {GAME_PATH + 'data/' + name + '.json' for name in (
-                    'canberra', 'addresses', 'road-profiles', 'canberra-north', 'north-terrain', 'traffic-signals')}
+                    'canberra', 'addresses', 'road-profiles', 'canberra-north', 'north-terrain', 'traffic-signals', 'airport')}
                 check(manifest_paths <= urls and runtime_maps <= maps and bool(modules),
-                      'Saved cache contains the complete manifest, shared modules and all six runtime JSON data files')
+                      'Saved cache contains the complete manifest, shared modules and all seven runtime JSON data files')
                 start_and_drive(page)
                 check(snapshot(page)['career']['cash'] == 1000, 'Ordinary driving grants no career cash')
                 page.goto(base + '/__capital_cache_blank', wait_until='load')
@@ -265,7 +265,7 @@ def main():
                 check(page.evaluate('!!navigator.serviceWorker.controller'), 'New game page is controlled by its installed game worker')
                 warm_counts = server.bodies(mark)
                 observations.append({'label': 'warm origin body counts', 'counts': dict(warm_counts)})
-                check(not (set(warm_counts) & essential), 'Warm full-game boot reuses all modules and six JSON files with zero origin bodies')
+                check(not (set(warm_counts) & essential), 'Warm full-game boot reuses all modules and seven JSON files with zero origin bodies')
                 context.set_offline(True)
                 mark = len(server.events)
                 ready(page, reload=True)
