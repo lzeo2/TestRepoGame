@@ -19,6 +19,15 @@
 
 ## Static setup and module ownership
 
+For the crew/city continuation use the actual controller adapters and the
+`test_capital_extension_integration.mjs` regression. Keep personal checkpoint
+ammo separate from a live ally's health. Copy the old pose before transferring a
+body; preserve the two-person companion roster on the next ordinary tick. Only
+replace the car identity on a real claim/retrieval, not re-entry. Include all
+seven local map files in boot and stored-map tests. Suspended exterior chunk
+queues must not keep paused interiors rendering. The crew/city contract lists
+the two bounded native flows and their explicitly labeled fixture limitations.
+
 Serve the repository root, not the game folder, because imports use shared local
 assets. No npm setup, build step or node_modules is needed. Node pure suites load
 local browser modules and local Three.js; they do not require a GPU. Optional

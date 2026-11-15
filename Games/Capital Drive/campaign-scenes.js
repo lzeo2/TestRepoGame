@@ -215,7 +215,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
       armed:typeof ctx.armed==='boolean'?ctx.armed:former.armed??true,mode:'following',speed:0,
       seated:false,vehicleId:null,vehicleKey:null,seatIndex:null,carModelId:null,followTime:0,followStartDistance:0,stuck:false});
     allies[allies.indexOf(selected)]=former;
-    const heroes=HEROES.filter(value=>value!==next&&ctx.mission.companions.includes(value)).slice(0,2);
+    const heroes=HEROES.filter(value=>value!==next&&(ctx.mission.companions.includes(value)||value===previous)).slice(0,2);
     signature=`allies:${ctx.mission.id}:${next}:${heroes.join(':')}`;
     publishAllies();return promoted;
   }

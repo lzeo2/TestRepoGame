@@ -35,7 +35,14 @@ for(let z=base.bounds.minZ;z<2000;z+=19.37){assert(Math.abs(sampler.groundHeight
 for(const s of map.airport.surfaces)for(const p of s.points)assert(Number.isFinite(sampler.heightAt(...p)));
 assert.equal(sampler.groundHeightAt(anchor.x,anchor.z),25);
 // Terminal body retains the same exact source footprint for static collision.
-const sim=createSimulation(map,{trafficCount:0,parkedCount:0});
+const sim=createSimulation(map,{trafficCount:0,parkedCount:0,isOnBridge:sampler.isOnBridge});
+let clearApproachEdges=0;
+for(const edge of outward){
+ const x=(edge.from.x+edge.to.x)/2,z=(edge.from.z+edge.to.z)/2;if(x<=base.bounds.maxX)continue;
+ const yaw=Math.atan2(-(edge.to.x-edge.from.x),-(edge.to.z-edge.from.z));
+ assert(sim.canOccupy({x,z,yaw},{length:4.5,width:1.8}),`new source approach admits actual car body: ${edge.road.sourceId}`);clearApproachEdges++;
+}
+assert(clearApproachEdges>100,'vehicle clearance covers new eastern approach, including Pialligo bridge');
 const centre=terminal.points.reduce((a,p)=>({x:a.x+p[0]/terminal.points.length,z:a.z+p[1]/terminal.points.length}),{x:0,z:0});
 assert.equal(sim.canOccupy({...centre,yaw:0},{length:4.5,width:1.8}),false,'terminal remains a physical body');
 const scene=new THREE.Scene(),view=createAirportView(scene,map,sampler.heightAt);assert.equal(view.stats.residentChunks,0,'distant airport allocates no geometry');

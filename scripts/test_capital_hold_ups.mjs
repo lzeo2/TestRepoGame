@@ -23,7 +23,7 @@ const ticks = (p, ctx, count) => { for (let i = 0; i < count; i++) p.update(.05,
 const denied = (p, action) => { const before = p.serialize(); assert.equal(action().ok, false); assert.deepEqual(p.serialize(), before); };
 {
   const f = fixture(), p = f.p;
-  assert.deepEqual(p.state.muggingCooldowns, {}); assert.deepEqual(p.state.gear, legacy.gear); assert.deepEqual(p.state.equipment, legacy.equipment);
+  assert.deepEqual(p.state.muggingCooldowns, {}); assert.deepEqual(p.state.gear, {...legacy.gear,grenades:0,smokeGrenades:0}); assert.deepEqual(p.state.equipment, legacy.equipment);
   assert.deepEqual(createProgression(map, p.serialize()).serialize(), p.serialize());
   const cooldowns = Object.fromEntries(Array.from({ length: 160 }, (_, id) => [`ped:${id}`, id % 181]));
   assert.deepEqual(createProgression(map, { ...legacy, muggingCooldowns: cooldowns }).state.muggingCooldowns, cooldowns);

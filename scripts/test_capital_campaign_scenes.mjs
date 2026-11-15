@@ -363,7 +363,7 @@ console.log('PASS manual-car crew seats: bounded capacity, distinct seats, ident
 // companion, reset a wounded hero, move the car or advance the campaign.
 const exchangeSim=createSimulation({...seatMap,spawn:{x:-80,z:-80,yaw:0}},{trafficCount:0});
 const exchangeScenes=createCampaignScenes(seatMap,exchangeSim);
-const exchangeCtx={...fc,pose:{x:0,z:10,yaw:0},health:61};
+const exchangeCtx={...fc,mission:{...fc.mission,companions:['corporate','basement']},pose:{x:0,z:10,yaw:0},health:61};
 exchangeScenes.update(exchangeCtx,.1);assert.equal(exchangeScenes.people.length,2);
 const initialSelected=exchangeScenes.people[0];
 assert(exchangeScenes.receiveHit({kind:'shot',targetId:initialSelected.id,from:{x:initialSelected.x+1,z:initialSelected.z},to:initialSelected,damage:25}));
@@ -381,7 +381,7 @@ assert.equal(formerLead.armed,false,'demotion retains the supplied actual armed 
 assert.equal(formerLead.health,61);assert.equal(formerLead.x,exchangeCtx.pose.x);assert.equal(formerLead.z,exchangeCtx.pose.z);
 assert.deepEqual(exchangeSim.player,playerCarBefore,'leadership never relocates or claims the player car');
 assert.deepEqual(exchangeCtx.pose,{x:0,z:10,yaw:0},'scene transfer never moves the caller body');
-const secondCtx={...exchangeCtx,character:'corporate',pose:{x:promoted.x,z:promoted.z,yaw:promoted.yaw},health:55};
+const secondCtx={...exchangeCtx,mission:{...exchangeCtx.mission,companions:['student','basement']},character:'corporate',pose:{x:promoted.x,z:promoted.z,yaw:promoted.yaw},health:55};
 exchangeContacts(secondCtx);exchangeScenes.update(secondCtx,.1);
 assert.equal(exchangeScenes.people.length,2);assert(!exchangeScenes.people.some(person=>person.id===promoted.id));
 assert.equal(exchangeScenes.people.find(person=>person.id===formerLead.id).health,61,'the next ordinary tick retains the transferred roster');

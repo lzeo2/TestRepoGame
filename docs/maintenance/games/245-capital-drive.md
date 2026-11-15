@@ -15,6 +15,14 @@ artwork or branded vehicle assets are used.
 
 ## Implementation map
 
+The [crew/city continuation contract](../../capital-drive-crew-and-city-contract.md)
+records analog mobile joysticks, keyboard aiming, live crew seats/window fire and
+safe shared-stage character transfers, three appended mission chains, timed hero
+powers, grenade/smoke stock and effects, actual garage physics upgrades, street
+NPC ragdolls, player-car crumpling/fire, physical rear gardens, day/night/weather
+and the sourced airport road extension. Airport terrain/massing are explicitly
+estimated; traffic cars do not deform and terminal interiors/flights are absent.
+
 - `script.js`: sole loop, input/camera/modes, local loading, maps/routes, parked
   and abandoned meshes, storage and module integration.
 - `simulation.js`: indexed car/actor collision, directed OSM graph, 40 nearby
@@ -776,8 +784,8 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The current reusable runner checks80game JavaScript files and95pure Node suites
-plus two Python cache checks (273 syntax/source commands), fails on missing files or command errors and bounds
+The current reusable runner checks90game JavaScript files and112pure Node suites
+plus two Python cache checks (317 syntax/source commands), fails on missing files or command errors and bounds
 subprocess lifetimes. The tutorial/UI receipt records the latest run,
 while the earlier230/230 story/streaming and220/220 city-life results remain
 separately dated. Browser

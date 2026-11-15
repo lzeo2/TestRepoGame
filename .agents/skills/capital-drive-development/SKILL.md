@@ -31,6 +31,9 @@ Vehicle launches and player ragdolls also read
 `docs/capital-drive-vehicle-impact-contract.md`.
 Tutorial, interface and activity presentation changes also read
 `docs/capital-drive-tutorial-and-ui-contract.md`.
+Mobile controls, crew boarding/switching, powers, throwables, garage modifications,
+airport, backyards, weather and car damage also read
+`docs/capital-drive-crew-and-city-contract.md` and its linked airport sources.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 

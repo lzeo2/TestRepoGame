@@ -14,11 +14,12 @@ const map={bounds:{minX:-500,maxX:500,minZ:-500,maxZ:500},roads:[{id:'main',poin
 const simulation=createSimulation(map,{trafficCount:0});
 const gameplay=createGameplay(map,simulation,{hasWeapon:()=>true});
 const heroes=PROTAGONIST_IDS.map((id,i)=>({id,start:{x:i*100-100,z:12,yaw:0}}));
-const campaign={state:{character:'student',active:null},characters:heroes,selectCharacter(id){this.state.character=id;return {ok:true};}};
+const campaign={state:{character:'student',active:null},characters:heroes,selectCharacter(id){this.state.character=id;return {ok:true};},companionSwitchReason:()=> 'Finish or cancel the active mission before switching characters.'};
 let capturedOutside=null;
 const interiors={active:null,get exteriorPose(){return capturedOutside;},entries:[{id:'test-room'}]};
 const counters={mesh:0,population:0,save:0};
 const env={gameplay,simulation,campaign,interiors,protagonists:createProtagonistState(null,{bounds:map.bounds}),PROTAGONIST_IDS,WEAPONS,prepareCharacterStart,CIVIC_INTERIOR_ENTRIES:[],
+  heroPowers:{cancelActive(){}},ordnance:{reset(){}},campaignScenes:{people:[],canExchangeLeader:()=>false},
   developerReturn:null,started:true,gameMode:'campaign',progression:{state:{cash:5432,equipment:{pistol:true},activeJob:null,activity:null}},
   activities:{snapshot:()=>({active:null})},micromobility:{snapshot:()=>({active:null}),reset(){}},buses:{reset(){}},rideService:{reset(){}},equipment:{reset(){}},
   cutscenes:{snapshot:()=>({active:false})},streetChallenge:()=>null,careerContext:()=>({}),

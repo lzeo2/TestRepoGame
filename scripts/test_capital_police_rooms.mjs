@@ -43,9 +43,14 @@ registry.enter({...plan,id:'active'},{...entry,id:'active'},{outside:{x:0,z:-2},
 assert.equal(registry.snapshot().length,5);assert(Object.isFrozen(registry.snapshot()));
 // Execute actual controller visibility logic to guard room/outdoor shot boundaries.
 const source=await readFile(new URL('../Games/Capital Drive/script.js',import.meta.url),'utf8');
-const body=source.slice(source.indexOf('function visible(a,b){'),source.indexOf('function clearInterior(){'));
-const visible=Function('policeRooms','simulation',body+';return visible;')(registry,simulation);
+const body=source.slice(source.indexOf('function visible('),source.indexOf('function clearInterior(){'));
+const visible=Function('policeRooms','simulation','ordnance',body+';return visible;')(registry,simulation,undefined);
 assert.equal(visible({...target,interiorId:'elsewhere'},target),false);
 assert.equal(visible({...target,interiorId:null},target),false);
 assert.equal(visible({x:-20,z:-20,interiorId:null},{x:-21,z:-20,interiorId:null}),true,'outdoor allies retain outdoor cover while player is indoors');
+const smoky=Function('policeRooms','simulation','ordnance',body+';return visible;')(registry,simulation,{blocksSight:()=>true});
+const outside=[{x:-20,z:-20,interiorId:null},{x:-21,z:-20,interiorId:null}];
+assert.equal(smoky(...outside),false,'smoke blocks ordinary outdoor sight');
+assert.equal(smoky(...outside,true),true,'blast obstruction uses physical geometry without smoke immunity');
+assert.equal(smoky({...target,interiorId:'elsewhere'},target,true),false,'ignoring smoke never crosses room domains');
 console.log('PASS real room pursuit registry: door entry, bounded retained exit/navigation, safehouse, five-room cap and actual controller LOS domains');
