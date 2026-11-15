@@ -99,7 +99,7 @@ export function createInteriorPeople() {
       }
     }
     const guest=people.find(p=>p.character==='booth-guest');
-    encounterState=guest ? {roomId:plan.id,storeId:plan.storeId||null,personId:guest.id,character:'booth-guest',phase:'idle',outcome:null,scriptedFight:false,throwEmitted:false} : null;
+    encounterState=guest ? {roomId:plan.id,storeId:plan.storeId||null,personId:guest.id,character:'booth-guest',phase:'idle',outcome:null,scriptedFight:false,explicitFight:false,throwEmitted:false} : null;
     return snapshot();
   }
   function update(dt,{actor,activity,hasLineOfSight} = {}) {
@@ -121,12 +121,11 @@ export function createInteriorPeople() {
       }
       if(coerced || p.health<=0 || p.stun>0 || p.knockdown>0 || p.reaction!=='angry')p.attackTimer=0;
       updateNoodleThrow(p,step,actor,hasLineOfSight);
-      if (encounterState?.personId===p.id && encounterState.scriptedFight && encounterState.phase==='angry' && p.reaction==='calm') {
+      if (encounterState?.personId===p.id && (encounterState.scriptedFight || encounterState.explicitFight) && encounterState.phase==='angry' && p.reaction==='calm') {
         encounterState.phase='interrupted';encounterState.throwEmitted=false;
       }
       if (!p.noodleThrow && !coerced && p.health>0 && p.reaction==='angry' && p.angerOffender==='player' && p.retaliationCooldown<=0 &&
-          point(actor) && Math.hypot(actor.x-p.x,actor.z-p.z)<=2.1 && typeof hasLineOfSight==='function' && hasLineOfSight(p,actor) &&
-          (!encounterState?.scriptedFight || encounterState.personId!==p.id || liveThrowTarget(p,actor,hasLineOfSight))) {
+          liveThrowTarget(p,actor,hasLineOfSight)) {
         if(emit({type:'retaliation',kind:'melee',x:p.x,z:p.z,personId:p.id,targetId:'player',damage:5})) {
           p.retaliationCooldown=2.2;p.attackTimer=.65;p.attackSerial++;
           p.yaw=Math.atan2(actor.x-p.x,actor.z-p.z);
@@ -181,7 +180,7 @@ export function createInteriorPeople() {
     }
   }
   function emit(event) { if(events.length>=32)return false;events.push(Object.freeze(event));return true; }
-  function encounter() { const {scriptedFight,throwEmitted,...state}=encounterState||{};return Object.freeze({serial:encounterSerial,...(encounterState?state:{roomId:null,storeId:null,personId:null,character:'booth-guest',phase:'idle',outcome:null})}); }
+  function encounter() { const {scriptedFight,explicitFight,throwEmitted,...state}=encounterState||{};return Object.freeze({serial:encounterSerial,...(encounterState?state:{roomId:null,storeId:null,personId:null,character:'booth-guest',phase:'idle',outcome:null})}); }
   function dialoguePerson(id, actor, hasLineOfSight) {
     return plan && point(actor) && typeof hasLineOfSight==='function' && people.find(p=>p.id===id && p.character==='booth-guest' &&
       p.health>0 && p.stun<=0 && p.knockdown<=0 && !p.crimePhase && p.reaction==='calm' &&
@@ -201,7 +200,7 @@ export function createInteriorPeople() {
     }
     encounterState.phase='dialogue';
     return Object.freeze({ok:true,dialogue:Object.freeze({id,title:'Booth guest',line:'You left your bag on the floor! Pick it up! Want to argue about it?',
-      choices:Object.freeze([Object.freeze({id:'apologise',label:'Sorry, I will move it.'}),Object.freeze({id:'confront',label:'Back off.'})])})});
+      choices:Object.freeze([Object.freeze({id:'apologise',label:'Sorry, I will move it.'}),Object.freeze({id:'confront',label:'Back off.'}),Object.freeze({id:'fight',label:'Fight'})])})});
   }
   function completeEncounter(outcome) {
     encounterState.phase='complete';encounterState.outcome=outcome;encounterSerial++;
@@ -209,9 +208,10 @@ export function createInteriorPeople() {
   }
   function respondDialogue(id,choice,{actor,hasLineOfSight}={}) {
     const p=dialoguePerson(id,actor,hasLineOfSight);
-    if(encounterState?.phase!=='dialogue' || !p || !['apologise','confront'].includes(choice)) return Object.freeze({ok:false,reason:'The conversation has ended.'});
-    if (encounterState.scriptedFight) {
-      encounterState.throwEmitted=false;encounterState.phase='noodle-windup';if(clearPoint(p))p.seated=false;p.anger=1;p.angerOffender='player';p.reaction='angry';p.reactionTimer=12;
+    if(encounterState?.phase!=='dialogue' || !p || !['apologise','confront','fight'].includes(choice)) return Object.freeze({ok:false,reason:'The conversation has ended.'});
+    encounterState.explicitFight=choice==='fight';
+    if (encounterState.scriptedFight || encounterState.explicitFight) {
+      encounterState.throwEmitted=false;encounterState.phase='noodle-windup';if(clearPoint(p))p.seated=false;p.anger=1;p.angerOffender='player';p.reaction='angry';p.reactionTimer=encounterState.scriptedFight?12:20;
       p.noodleThrow={actorId:p.id,targetId:'player',phase:'windup',time:0,duration:THROW_WINDUP,from:null,to:null};
       return Object.freeze({ok:true,message:choice==='apologise'?'Too late! Watch the bowl!':'You want an argument? Here it comes!',outcome:null});
     }
