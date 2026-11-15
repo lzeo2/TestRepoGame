@@ -27,6 +27,7 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
+    'test_capital_mission_hud.mjs',
     'test_capital_game_data.mjs', 'test_capital_dev_missions.mjs',
     'test_capital_interior_navigation.mjs', 'test_capital_police_rooms.mjs',
     'test_capital_cache.mjs', 'test_capital_protagonist_state.mjs', 'test_capital_character_switching.mjs', 'test_capital_collision_performance.mjs', 'test_capital_render_gate.mjs',

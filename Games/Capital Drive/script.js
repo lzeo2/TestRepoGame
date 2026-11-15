@@ -555,10 +555,12 @@ function openWork(){
   else {streetUI.renderJobs();openDialog('jobs-dialog');}
 }
 function startCampaignMission(){
+  if(developerReturn?.blocked){notify('Retry return in Pause > Developer before starting another mission.');return;}
   const result=campaign.start(careerContext());
   if(result.ok){if(campaign.state.active.combat===false)gameplay.setWeapon('unarmed');closeDialogs();routeTo(campaignNavigationTarget());}else notify(result.message);
 }
 function playCampaignIntro(){
+  if(developerReturn?.blocked){notify('Retry return in Pause > Developer before starting another mission.');return;}
   const chapter=campaign.current();
   if(gameMode!=='campaign'||campaign.state.active||!chapter)return;
   syncPlayerAppearance();
@@ -605,7 +607,7 @@ function openCampaign(){
     if(item.id===chapter?.id)li.setAttribute('aria-current','step');
     $('campaign-chapters').append(li);
   }
-  $('campaign-start').disabled=!!active||!chapter||gameMode!=='campaign';
+  $('campaign-start').disabled=!!active||!chapter||gameMode!=='campaign'||!!developerReturn?.blocked;
   $('campaign-start').textContent=campaign.state.failed?'Retry mission':'Start mission';
   $('campaign-cancel').disabled=!active;
   openDialog('campaign-dialog');
@@ -671,6 +673,7 @@ function protagonistCheckpoint(){
     health:state.health,weapon:state.weapon,ammunition:Object.fromEntries(WEAPONS.map(weapon=>[weapon.id,gameplay.getAmmo(weapon.id)]))};
 }
 function characterSwitchReason(){
+  if(developerReturn?.blocked)return 'Return from the mission preview before switching characters.';
   if(campaign.state.active)return 'Finish or cancel the active mission before switching characters.';
   if(!started)return '';
   const state=gameplay.state;
@@ -759,7 +762,7 @@ $('campaign-start').addEventListener('click',()=>{
   if(gameMode!=='campaign')return;
   playCampaignIntro();
 });
-$('campaign-cancel').addEventListener('click',()=>{campaign.cancel();finishDeveloperPreview();openCampaign();});
+$('campaign-cancel').addEventListener('click',()=>{campaign.cancel();finishDeveloperPreview(true);openCampaign();});
 $('campaign-resume').addEventListener('click',closeDialogs);
 function saveCareer() {
   if (careerError || isSandbox() || !started) return;
@@ -829,19 +832,24 @@ function showDeveloperMissions(){
     option.textContent=`${hero?.name||'Crew'} · ${chapter.name}`;select.append(option);
   }
 }
-function finishDeveloperPreview(){
-  if(!developerReturn||campaign.state.active||gameplay.state.recovery)return;
-  const back=developerReturn;developerReturn=null;
+function finishDeveloperPreview(retry=false){
+  if(!developerReturn)return true;
+  if(campaign.state.active||gameplay.state.recovery||developerReturn.blocked&&!retry)return false;
+  const back=developerReturn;
   clearInterior();rideService?.reset();buses?.reset();micromobility?.reset();equipment?.reset();
   gameMode=back.mode;selectedGameMode=back.mode;gameplay.reset({sandbox:isSandbox()});syncExternalVehicles();
   const result=gameplay.restoreProtagonist(back.body);
-  if(!result.ok)notify('The preview ended. Your previous parking place is obstructed.');
+  if(result.ok)developerReturn=null;
+  else {back.blocked=true;notify('Your return place is blocked. Original state is kept. Retry return in Pause > Developer.');}
+  $('mission-dev-return').hidden=!!result.ok;
   refreshProtagonistVehicle();syncPlayerAppearance();refreshModeUI();
   destination=null;route=[];lastJobTarget='';cameraReady=false;clearInput();pedestrians.resetPopulation(focus());
+  return result.ok;
 }
+$('mission-dev-return').addEventListener('click',()=>{campaign.cancel();finishDeveloperPreview(true);});
 $('mission-dev-play').addEventListener('click',()=>{
   if(!missionToolsUnlocked||!started||gameplay.state.recovery)return;
-  if(developerReturn){campaign.cancel();finishDeveloperPreview();}
+  if(developerReturn){campaign.cancel();if(!finishDeveloperPreview(true))return;}
   const chapter=campaign.developerChapters().find(chapter=>chapter.id===$('mission-dev-select').value);
   const hero=campaign.characters.find(hero=>hero.id===chapter?.character);if(!chapter||!hero)return;
   saveCareer();developerReturn={mode:gameMode,body:protagonistCheckpoint(),campaign:campaign.serialize()};
@@ -904,7 +912,7 @@ for (const button of document.querySelectorAll('[data-game-mode]')) button.addEv
   renderCharacterChoices();
 });
 $('change-mode-button').addEventListener('click', () => {
-  if(developerReturn){campaign.cancel();finishDeveloperPreview();}
+  if(developerReturn){campaign.cancel();if(!finishDeveloperPreview(true))return;}
   saveCareer(); closeDialogs(); started = false; clearInput(); $('start-panel').hidden = false;
   document.body.classList.add('intro-open');
 });
