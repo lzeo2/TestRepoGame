@@ -1,3 +1,4 @@
+import { createInteriorCollider } from './interior-navigation.js';
 // Original plausible rooms, anchored to rendered doors; these are not surveyed floorplans.
 const ENTRY_RANGE = 2.8;
 const CELL = 32;
@@ -18,10 +19,6 @@ function localPoint(origin, p) {
 function worldPoint(origin, x, z) {
   const c = Math.cos(origin.yaw), s = Math.sin(origin.yaw);
   return { x: origin.x + c * x + s * z, z: origin.z - s * x + c * z };
-}
-function contact(p, box, radius) {
-  const q = localPoint(box, p);
-  return Math.hypot(Math.max(0, Math.abs(q.x) - box.width / 2), Math.max(0, Math.abs(q.z) - box.depth / 2)) < radius;
 }
 
 function insideOutline(x, z, points) {
@@ -196,7 +193,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       x: entry.x, z: entry.z, yaw: entry.yaw, ...(entry.type === 'mall' ? mallDimensions(entry, building) : { width: entry.type === 'school' ? 12 : 14, depth: 16 }) });
   }
   Object.freeze(entries);
-  let active = null, outside = null, generatedPlans = 0;
+  let active = null, collider = null, outside = null, generatedPlans = 0;
   function findEntry(pose) {
     if (active || !validPoint(pose)) return null;
     let best = null, bestDistance = ENTRY_RANGE;
@@ -422,71 +419,29 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
   function enter(entry, actor) {
     if (active || !actor || !entries.includes(entry) || findEntry(actor) !== entry) return false;
     outside = { x: actor.x, z: actor.z, yaw: actor.yaw, y: actor.y };
-    active = build(entry); generatedPlans++;
+    active = build(entry); collider = createInteriorCollider(active); generatedPlans++;
     Object.assign(actor, active.spawn, { speed: 0 });
     return active;
   }
   function leave(actor) {
     if (!active || !actor) return false;
     Object.assign(actor, outside, { speed: 0 });
-    active = null; outside = null;
+    active = null; collider = null; outside = null;
     return true;
   }
   function nearExit(pose, radius = 1.8) {
     return Boolean(active && validPoint(pose) && Number.isFinite(radius) && radius > 0 && distance(active.exit, pose) <= radius);
   }
-  function clear(p, radius) {
-    const q = localPoint(active.origin, p);
-    if (q.x < -active.width / 2 + radius || q.x > active.width / 2 - radius || q.z < radius || q.z > active.depth - radius) return false;
-    return ![...active.walls, ...active.furniture].some(box => contact(p, box, radius));
-  }
   function moveActor(actor, dx, dz, radius = 0.45) {
-    if (!active || !validPoint(actor) || ![dx, dz, radius].every(Number.isFinite) || radius <= 0) return { moved: false, blocked: true, distance: 0 };
-    radius = clamp(radius, 0.1, 2);
-    const before = { x: actor.x, z: actor.z }, length = Math.hypot(dx, dz), scale = length > 8 ? 8 / length : 1;
-    dx *= scale; dz *= scale;
-    const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / Math.min(0.2, radius * 0.5)));
-    let blocked = scale < 1;
-    for (let i = 0; i < steps; i++) {
-      const x = actor.x + dx / steps, z = actor.z + dz / steps;
-      if (clear({ x, z }, radius)) { actor.x = x; actor.z = z; }
-      else {
-        blocked = true;
-        if (clear({ x, z: actor.z }, radius)) actor.x = x;
-        else if (clear({ x: actor.x, z }, radius)) actor.z = z;
-      }
-    }
-    actor.y = active.floorY;
-    const movedDistance = distance(before, actor);
-    return { moved: movedDistance > 0.00001, blocked, distance: movedDistance, x: actor.x, z: actor.z };
+    return collider ? collider.moveActor(actor, dx, dz, radius) : { moved: false, blocked: true, distance: 0 };
   }
   function hasLineOfSight(a, b) {
-    if (!active || !validPoint(a) || !validPoint(b)) return false;
-    const inBounds = p => {
-      const q = localPoint(active.origin, p);
-      return Math.abs(q.x) < active.width / 2 && q.z > 0 && q.z < active.depth;
-    };
-    if (!inBounds(a) || !inBounds(b)) return false;
-    // Slab clipping tests the segment against each oriented solid, including thin walls.
-    for (const box of [...active.walls, ...active.furniture.filter(f => f.height >= 1.5)]) {
-      const p = localPoint(box, a), q = localPoint(box, b);
-      let min = 0, max = 1;
-      for (const [axis, half] of [['x', box.width / 2], ['z', box.depth / 2]]) {
-        const delta = q[axis] - p[axis];
-        if (Math.abs(delta) < 1e-9) { if (Math.abs(p[axis]) > half) { min = 2; break; } }
-        else {
-          const t1 = (-half - p[axis]) / delta, t2 = (half - p[axis]) / delta;
-          min = Math.max(min, Math.min(t1, t2)); max = Math.min(max, Math.max(t1, t2));
-        }
-      }
-      if (min <= max) return false;
-    }
-    return true;
+    return collider ? collider.hasLineOfSight(a, b) : false;
   }
   return { entries, findEntry, enter, leave, nearExit, moveActor, hasLineOfSight,
     snapshot: () => ({ active: active?.id || null, buildingId: active?.buildingId || null, type: active?.type || null,
       descriptors: entries.length, generatedPlans, activePlans: active ? 1 : 0 }),
-    reset(actor) { if (active && actor) return leave(actor); active = null; outside = null; return true; },
+    reset(actor) { if (active && actor) return leave(actor); active = null; collider = null; outside = null; return true; },
     get exteriorPose() { return outside ? Object.freeze({ ...outside }) : null; },
     get active() { return active; },
     get stats() { return { descriptors: entries.length, generatedPlans, activePlans: active ? 1 : 0 }; } };
