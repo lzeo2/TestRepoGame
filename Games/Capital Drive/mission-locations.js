@@ -43,8 +43,8 @@ export function selectStoryHomes(map, entries, { canApproach = () => true, roadN
     x: best.x, z: best.z, yaw: best.yaw, approach: outside }) });
 }
 
-const INTERIOR_KINDS = new Set(['school-alarm', 'presentation', 'home-action', 'work', 'robbery', 'interior', 'encounter']);
-const STATION_KINDS = { 'school-alarm': 'alarm', presentation: 'presentation', 'home-action': 'stock', work: 'stock' };
+const INTERIOR_KINDS = new Set(['school-alarm', 'presentation', 'home-action', 'work', 'robbery', 'interior', 'encounter', 'fight', 'evidence']);
+const STATION_KINDS = { 'school-alarm': 'alarm', presentation: 'presentation', 'home-action': 'stock', work: 'stock', evidence: 'evidence' };
 
 export function createMissionGuide(entries, storyHomes = {}) {
   const byId = new Map(), byStore = new Map(), homes = new Map();
@@ -73,6 +73,13 @@ export function createMissionGuide(entries, storyHomes = {}) {
         indoors, entryId, stationId });
     }
     const fallback = () => result(name(goal.label), name(goal.location, name(goal.label)), goal);
+    if (goal.kind === 'recon') {
+      const entry = byStore.get(goal.storeId);
+      const subject = entry ? (goal.subject === 'departure' ? entry.approach : { x: entry.x - Math.sin(entry.yaw) * .25, z: entry.z - Math.cos(entry.yaw) * .25 }) : goal;
+      if (!point(subject) || typeof goal.targetId !== 'string') return fallback();
+      const directions = result(`${name(goal.label)}. Stand 2 to 18m away, hold a steady view, then press I or SCAN.`, entry?.name || name(goal.location, goal.label), subject);
+      return Object.freeze({ ...directions, recon: Object.freeze({ targetId: goal.targetId, x: subject.x, z: subject.z, y: 1.6, space: null, minDistance: 2, maxDistance: 18, hold: 1.1 }) });
+    }
     if (!INTERIOR_KINDS.has(goal.kind)) return fallback();
     const entry = identity(goal.roomId) ? byId.get(goal.roomId) : byStore.get(goal.storeId);
     if (!entry || (identity(goal.storeId) && entry.storeId !== goal.storeId)) return fallback();
@@ -92,12 +99,12 @@ export function createMissionGuide(entries, storyHomes = {}) {
       return result(`Press E or Q at ${name(station.label, 'the marked station')}.`, location,
         station, true, entry.id, station.id);
     }
-    if (goal.kind === 'encounter') {
+    if (goal.kind === 'encounter' || goal.kind === 'fight') {
       const guest = (Array.isArray(people) ? people : []).find(p => point(p) && p.roomId === plan.id &&
         p.character === 'booth-guest' && Number.isFinite(p.health) && p.health > 0 &&
         (!identity(goal.storeId) || p.storeId === goal.storeId));
       if (!guest) return fallback();
-      return result(`Speak to Dot at the marked booth in ${location}.`, location, guest, true, entry.id);
+      return result(goal.kind === 'fight' ? `Challenge Pink Earmuffs at the marked booth in ${location}, then win the fight.` : `Speak to Dot at the marked booth in ${location}.`, location, guest, true, entry.id);
     }
     if (!point(plan.counter)) return fallback();
     const instruction = goal.kind === 'robbery' ?
