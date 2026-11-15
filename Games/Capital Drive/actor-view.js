@@ -3,7 +3,9 @@ import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUt
 import { createCar } from '../../assets/car-arcade/models.js';
 import { appearanceForPerson, createPersonGeometries, PERSON_MODEL } from './person-model.js';
 
-const POLICE_LIMIT = 4, SHOT_LIMIT = 8, CULL_DISTANCE = 380;
+const POLICE_LIMIT = 4, SHOT_LIMIT = 8, PLAYER_FLASH_LIMIT = 4, CULL_DISTANCE = 380;
+const IMPACT_LIMIT = SHOT_LIMIT + POLICE_LIMIT + PLAYER_FLASH_LIMIT;
+const FLASH_DURATION = .055, MAX_AIM_PITCH = Math.PI * 70 / 180;
 const MELEE_POSES = [[0,.45,1.15,-.12,0],[.2,.30,1.4,-.20,.005],[.5,1.95,-.30,.24,-.075],[1,0,-.12,0,0]];
 const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallback;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, finite(value)));
@@ -210,6 +212,8 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
     const weapon = joint(elbows[1], name, 0, -.28, -.08);
     weapon.rotation.x = -Math.PI / 2; weapon.visible = false;
     for (const [part, position, size] of parts) piece(weapon, `${name} ${part}`, palette.gun, position, size);
+    // The barrel tip is measured from the owned merged silhouette below.
+    weapon.userData.muzzleY = id === 'pistol' ? 0 : id === 'carbine' ? .035 : .025;
     weapons[id] = weapon;
   }
 
@@ -233,6 +237,10 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
   }
   const joints = []; actor.traverse(object => { if (object.isGroup) joints.push(object); });
   for (const group of joints) batchStatic(group);
+  for (const [, weapon] of weaponEntries) {
+    weapon.children[0].geometry.computeBoundingBox();
+    weapon.userData.muzzleZ = weapon.children[0].geometry.boundingBox.min.z;
+  }
 
   // Merged parts retain fixed colour slots; changing a hero reuses every buffer.
   const playerSlots = { jacket: 'shirt', pants: 'trousers', skin: 'skin', hair: 'hair', shoe: 'shoes' };
@@ -304,7 +312,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
   const muzzlePose=new THREE.Object3D();
   const officerWorld = new THREE.Object3D(), officerLimb = new THREE.Object3D(), officerMatrix = new THREE.Matrix4();
   const streaks = new THREE.InstancedMesh(box, palette.yellow, SHOT_LIMIT);
-  const impacts = new THREE.InstancedMesh(sphere, palette.yellow, SHOT_LIMIT);
+  const impacts = new THREE.InstancedMesh(sphere, palette.yellow, IMPACT_LIMIT);
   streaks.name = 'Brief shot streaks'; impacts.name = 'Non-graphic impacts';
   streaks.frustumCulled = impacts.frustumCulled = false;
   root.add(streaks, impacts); streaks.visible = impacts.visible = false;
@@ -317,6 +325,8 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
   const arrow = piece(marker, 'Objective arrow', palette.marker, [0, 3.2, 0], [1, 1, 1], arrowGeometry); arrow.rotation.x = Math.PI;
   marker.visible = false; actor.visible = false;
   let phase = 0, clock = 0, disposed = false, lastAttackTimer = 0, lastAttackSerial = null, punchingArm = 0;
+  let lastShotSerial = 0, flashRemaining = 0;
+  const playerMuzzle = new THREE.Vector3();
   const counters = { police: 0, officers: 0, shots: 0, playerVisible: false, objectiveVisible: false, meshes: 0, triangles: 0, drawCalls: 0, activeWeapon: null, weaponMeshes: weaponEntries.length };
   root.traverse(object => { if (object.isMesh) { counters.meshes++; counters.triangles += (object.geometry.index?.count || object.geometry.attributes.position.count) / 3 * (object.isInstancedMesh ? object.instanceMatrix.count : 1); } });
   function ground(x, z) { return finite(heightAt(x, z)); }
@@ -327,6 +337,20 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
     const step = clamp(dt, 0, .1); clock += step;
     const center = { x: finite(focus?.x), z: finite(focus?.z) };
     const pose = state.actor || {};
+    const shotSerial = finite(state.combatFeedback?.shotSerial, finite(state.shotSerial));
+    const recoil = clamp(state.combatFeedback?.recoil ?? state.shotKick, 0, 1);
+    const newShot = shotSerial > 0 && shotSerial !== lastShotSerial;
+    lastShotSerial = shotSerial;
+    flashRemaining = Math.max(0, flashRemaining - step);
+    const livePlayerShot = (state.shots || []).some(shot => shot.kind === state.weapon && shot.shotSerial === shotSerial &&
+      finite(shot.life) > .13 - FLASH_DURATION && near(shot, center, 200) &&
+      [shot.endX, shot.endZ].every(Number.isFinite) && (shot.y === undefined || Number.isFinite(shot.y)) &&
+      (shot.endY === undefined || Number.isFinite(shot.endY)) &&
+      Math.hypot(shot.endX-shot.x, (shot.endY ?? 0)-(shot.y ?? 0), shot.endZ-shot.z) <= 2000);
+    // Only a supplied shot edge can start a flash; room-filtered empty lists
+    // clear it immediately, including when coordinates overlap another room.
+    if (newShot && livePlayerShot) flashRemaining = FLASH_DURATION;
+    if (!livePlayerShot || state.mode !== 'foot' || finite(state.reloading) > 0 || finite(pose.impactTime) > 0) flashRemaining = 0;
     actor.visible = state.mode === 'foot' && near(pose, center);
     if (actor.visible) {
       const speed = clamp(Math.abs(finite(pose.speed)), 0, 12);
@@ -349,9 +373,12 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       }
       const firearm = weapons[state.weapon];
       for (const [id, weapon] of weaponEntries) weapon.visible = id === state.weapon;
-      if (state.aiming && firearm) {
-        arms[1].rotation.x = Math.PI / 2 + clamp(state.attackTimer, 0, .15); elbows[1].rotation.x = 0;
-        arms[0].rotation.x = state.weapon === 'pistol' ? 1.12 : 1.35;
+      if (firearm && (state.aiming || attack > 0 || recoil > .001)) {
+        const pitch = clamp(pose.aimPitch ?? state.aimPitch, -MAX_AIM_PITCH, MAX_AIM_PITCH);
+        const kick = recoil * .12;
+        body.rotation.x = 0;
+        arms[1].rotation.set(Math.PI / 2 + pitch + kick, 0, 0); elbows[1].rotation.x = 0;
+        arms[0].rotation.x = (state.weapon === 'pistol' ? 1.12 : 1.35) + pitch + kick;
         arms[0].rotation.z = .72; elbows[0].rotation.x = state.weapon === 'pistol' ? .40 : -.20;
       }
       if (firearm && finite(state.reloading) > 0) {
@@ -416,10 +443,14 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
     for (const shot of state.shots || []) {
       if (counters.shots >= SHOT_LIMIT) break;
       if (!(finite(shot.life) > 0 && near(shot, center, 200) && Number.isFinite(shot.endX) && Number.isFinite(shot.endZ))) continue;
-      effectStart.set(shot.x, ground(shot.x, shot.z) + 1.35, shot.z);
-      effectEnd.set(shot.endX, ground(shot.endX, shot.endZ) + 1.1, shot.endZ);
+      // Absent heights preserve legacy ground-relative descriptors. Explicit
+      // invalid heights are rejected rather than manufacturing a different ray.
+      if ((shot.y !== undefined && !Number.isFinite(shot.y)) || (shot.endY !== undefined && !Number.isFinite(shot.endY))) continue;
+      effectStart.set(shot.x, shot.y ?? ground(shot.x, shot.z) + 1.35, shot.z);
+      effectEnd.set(shot.endX, shot.endY ?? ground(shot.endX, shot.endZ) + 1.1, shot.endZ);
       effectDirection.copy(effectEnd).sub(effectStart);
       const length = effectDirection.length();
+      if (!Number.isFinite(length) || length > 2000) continue;
       effectPose.position.copy(effectStart).add(effectEnd).multiplyScalar(.5);
       effectPose.scale.set(.025, .025, Math.max(.01, length)); effectPose.quaternion.identity();
       if (length > .001) effectPose.quaternion.setFromUnitVectors(forward, effectDirection.normalize());
@@ -429,7 +460,14 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       counters.shots++;
     }
     let impactCount=counters.shots;
-    for(let i=0;i<muzzleCount && impactCount<SHOT_LIMIT;i++) impacts.setMatrixAt(impactCount++,muzzleMatrices[i]);
+    for(let i=0;i<muzzleCount && impactCount<IMPACT_LIMIT;i++) impacts.setMatrixAt(impactCount++,muzzleMatrices[i]);
+    if (actor.visible && flashRemaining > 0 && weapons[state.weapon] && impactCount < IMPACT_LIMIT) {
+      const weapon = weapons[state.weapon];
+      actor.updateMatrixWorld(true);
+      playerMuzzle.set(0, weapon.userData.muzzleY, weapon.userData.muzzleZ).applyMatrix4(weapon.matrixWorld);
+      effectPose.position.copy(playerMuzzle); effectPose.scale.set(.09, .09, .09); effectPose.quaternion.identity();
+      effectPose.updateMatrix(); impacts.setMatrixAt(impactCount++, effectPose.matrix);
+    }
     streaks.count=counters.shots;impacts.count=impactCount;
     streaks.visible=counters.shots>0;impacts.visible=impactCount>0;
     streaks.instanceMatrix.needsUpdate = impacts.instanceMatrix.needsUpdate = true;
