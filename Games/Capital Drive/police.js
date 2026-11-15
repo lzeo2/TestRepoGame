@@ -20,8 +20,9 @@ export function createPolice(simulation, options = {}) {
     }
     else remember(point);
   }
+  function playerGap(unit,target){const altitude=options.playerAltitude?.();const horizontal=gap(unit,target);return Number.isFinite(altitude)&&altitude>0?Math.hypot(horizontal,altitude):horizontal;}
   function sees(unit,target,room) {
-    if (unit.health<=0 || gap(unit,target)>=145 || (unit.interiorId || null)!==(room?.id || null)) return false;
+    if (unit.health<=0 || playerGap(unit,target)>=145 || (unit.interiorId || null)!==(room?.id || null)) return false;
     if (unit.interiorId) return !room.safehouse && room.hasLineOfSight(unit,target);
     return simulation.hasLineOfSight(unit,target);
   }
@@ -249,7 +250,7 @@ export function createPolice(simulation, options = {}) {
     if(playerThreat && state.health!==0 && (unit.interiorId || null)===(room?.id || null) && !room?.safehouse) candidates.push({...target,id:'player'});
     for(const ally of options.getAllies?.() || []) if(!unit.interiorId && !ally.interiorId && (state.wanted>=3 || ally.mode==='combat' || ally.shot?.remaining>0) && ally.active!==false && ally.health>0 && ally.armed &&
       Number.isFinite(ally.x) && Number.isFinite(ally.z)) candidates.push(ally);
-    const victim=candidates.filter(person=>gap(unit,person)<=52 && (unit.interiorId ? room?.hasLineOfSight(unit,person) : simulation.hasLineOfSight(unit,person)))
+    const victim=candidates.filter(person=>(person.id==='player'?playerGap(unit,person):gap(unit,person))<=52 && (unit.interiorId ? room?.hasLineOfSight(unit,person) : simulation.hasLineOfSight(unit,person)))
       .sort((a,b)=>gap(unit,a)-gap(unit,b))[0];
     if(!victim) return;
     unit.aiming=true;unit.aimTarget={x:victim.x,z:victim.z};
@@ -314,7 +315,7 @@ export function createPolice(simulation, options = {}) {
       }
       fire(unit,state,target,dt,returning,room);
       unit.seesPlayer=sees(unit,target,room);
-      if(unit.mode==='foot' && unit.seesPlayer && gap(unit,target)<3.4 && Math.abs(target.speed)<2) arresting=true;
+      if(unit.mode==='foot' && unit.seesPlayer && playerGap(unit,target)<3.4 && Math.abs(target.speed)<2) arresting=true;
     }
     if(seen) { state.pursuit='pursuit';state.heat=28+state.wanted*9; }
     else { state.pursuit='search';state.heat=Math.max(0,state.heat-dt);if(state.heat<=0) { state.wanted=0;state.pursuit='clear';state.police.length=0;routes.clear();options.onEscape?.(); } }

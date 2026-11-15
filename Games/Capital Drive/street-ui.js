@@ -1,3 +1,4 @@
+import {GARAGE_MODS} from './progression.js';
 import {WEAPONS,weaponById} from './weapons.js';
 // DOM adapter only. World movement, career time and persistence belong to the controller.
 export function createStreetUI({ gameplay, progression, simulation, vehicles, notify,
@@ -106,10 +107,25 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
         if (result.ok && result.vehicle) selectVehicle(result.vehicle);
         feedback(result, true); renderGarage();
       });
-      container.append(button);
+      const entry=document.createElement('article');entry.className='job-option';entry.append(button);
+      if(owned&&!sandbox()){
+        const heading=document.createElement('h4');heading.textContent='Vehicle upgrades';entry.append(heading);
+        for(const mod of GARAGE_MODS){
+          const tier=owned.mods?.[mod.id]||0,cost=mod.costs[tier];
+          const detail=document.createElement('p');detail.textContent=`${mod.name} ${tier}/2 · ${mod.description}.`;
+          const reason=progression.upgradeEligibility(vehicle.id,mod.id,context());
+          const upgrade=actionButton(cost===undefined?'Maximum tier':`Fit ${mod.name.toLowerCase()} ${tier+1} · ${money(cost)}`,()=>{
+            const result=progression.upgradeVehicle(vehicle.id,mod.id,context());feedback(result,true);renderGarage();
+          });
+          upgrade.disabled=Boolean(reason);upgrade.title=reason||mod.description;
+          entry.append(detail,upgrade);
+          if(reason){const status=document.createElement('p');status.textContent=reason;entry.append(status);}
+        }
+      }
+      container.append(entry);
     }
     syncPaint();
-    text('garage-description', sandbox() ? 'Choose any original fictional vehicle and paint.' : `Visit ${progression.garage.name} to buy, retrieve, repair, store or paint a vehicle.`);
+    text('garage-description', sandbox() ? 'Choose any original fictional vehicle and paint.' : `Visit ${progression.garage.name} to buy, retrieve, repair, store, paint or upgrade a vehicle.`);
   }
   function refresh() {
     const state = gameplay.state, mission=isCampaign()?campaign?.state.active:null,active = mission||progression.state.activeJob,activity=progression.state.activity;
@@ -193,10 +209,13 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       if(site.type==='arms'){
         const navigation=document.createElement('div');navigation.className='button-row';navigation.append(route);entry.append(title,detail,status,navigation,row);
         const heading=document.createElement('h4');heading.textContent='Equipment';
-        const description=document.createElement('p');description.textContent=`Police scanner shows nearby faint patrols on the map, even without wanted stars. Flares ${progression.state.gear?.flares||0}/12 · B throw flare on foot.`;
+        const description=document.createElement('p');description.textContent=`Police scanner shows nearby faint patrols on the map, even without wanted stars. Flares ${progression.state.gear?.flares||0}/12 · B throw flare on foot. Grenades ${progression.state.gear?.grenades||0}/6 · Smoke grenades ${progression.state.gear?.smokeGrenades||0}/6 · V grenade · C smoke on foot.`;
         const gearRow=document.createElement('div');gearRow.className='button-row service-actions';
         purchase('Police scanner $500','scanner',500,progression.state.gear?.scanner?'Owned':'',gearRow);
         purchase('3 flares $120','flares',120,progression.state.gear?.flares>9?'No room for a full three-flare pack':'',gearRow);
+        const throwableReason=ctx.passenger||!Number.isFinite(ctx.health)||ctx.health<=0||ctx.health>100?'Recover before trading.':'';
+        purchase('Grenade $120','grenade',120,throwableReason||(progression.state.gear?.grenades>=6?'Throwable inventory is full.':''),gearRow);
+        purchase('Smoke grenade $80','smoke',80,throwableReason||(progression.state.gear?.smokeGrenades>=6?'Throwable inventory is full.':''),gearRow);
         entry.append(heading,description,gearRow);
       }
       else entry.append(title,detail,status,row);

@@ -31,6 +31,9 @@ Vehicle launches and player ragdolls also read
 `docs/capital-drive-vehicle-impact-contract.md`.
 Tutorial, interface and activity presentation changes also read
 `docs/capital-drive-tutorial-and-ui-contract.md`.
+Mobile controls, crew boarding/switching, powers, throwables, garage modifications,
+airport, backyards, weather and car damage also read
+`docs/capital-drive-crew-and-city-contract.md` and its linked airport sources.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -88,7 +91,7 @@ recovery is character-health based; a wrecked car must allow exit. Ordinary
 road travel and foot movement must not generate reckless vehicle reports.
 
 Campaign is a third mode with three separately ordered introductions, a shared
-meeting and the retained six chapters. Its strict v2 save preserves v1 progress;
+meeting and nine shared chapters. Its strict v2 save preserves v1 progress;
 permit switching between any missions while preserving independent partial intro
 prefixes. Lock switching only during an active mission (plus invalid/recovery
 context guards). Restore that hero’s own checked location/health/car/ammo, without

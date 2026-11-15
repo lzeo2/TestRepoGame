@@ -260,9 +260,12 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     const gap = distance(driver, { x, z }), forward = (driver.x - x) * -Math.sin(yaw) + (driver.z - z) * -Math.cos(yaw);
     const lateral = Math.abs((driver.x - x) * Math.cos(yaw) - (driver.z - z) * Math.sin(yaw));
     const gun = ['pistol', 'shotgun', 'smg', 'carbine', 'gunshot', 'firearm', 'shot', 'fire'].includes(kind);
-    if (damage <= 0 || gap > Math.max(0, Math.min(100, range)) || forward < -.3 ||
-      (gun ? lateral > .55 : forward < gap * .25) || !(hasLineOfSight || simulation.hasLineOfSight)({ x, z }, driver)) return result;
-    driver.health = Math.max(0, driver.health - Math.min(100, damage)); driver.hitCooldown = .4;
+    const explosion = kind === 'explosion', reach = Math.max(0, Math.min(explosion ? 8 : 100, range));
+    const sight = hasLineOfSight || simulation.hasLineOfSight;
+    if (damage <= 0 || gap > reach || (explosion ? gap >= reach : forward < -.3 || (gun ? lateral > .55 : forward < gap * .25)) ||
+      typeof sight !== 'function' || (explosion ? sight({ x, z }, driver) !== true : !sight({ x, z }, driver))) return result;
+    const dealt = Math.min(100, damage) * (explosion ? 1 - gap / reach : 1);
+    driver.health = Math.max(0, driver.health - dealt); driver.hitCooldown = .4;
     driver.reaction = driver.health > 0 ? 'returning' : 'knockdown';
     result.hits = 1; result.people.push(copy(driver)); return result;
   }

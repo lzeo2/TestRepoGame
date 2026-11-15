@@ -1,4 +1,5 @@
 import { expansionPlaces } from './map-expansion.js';
+import { roadProfile } from './road-network.js';
 
 // Original fiction. Mission rooms and encounters are authored, not surveyed private spaces.
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -16,6 +17,18 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   if (!finitePoint(map.spawn) || !finitePoint(shop)) throw new Error('Campaign requires the mapped spawn and Coals.');
   const centre = place('canberra-centre', { x: -456, z: -4500, name: 'Canberra Centre' });
   const kingston = place('kingston', { x: 923, z: 285, name: 'Kingston' });
+  // GPS ends at named road vertices. Keep the parcel arrival on that same
+  // public network rather than the schematic shops centre beyond the route.
+  let deliveryApproach = kingston, deliveryDistance = 110;
+  for (const road of map.roads || []) {
+    if (!road.name || !['residential', 'living_street', 'tertiary', 'secondary', 'primary', 'unclassified'].includes(road.type) || !roadProfile(road).trafficAllowed) continue;
+    for (let index = 0; index < road.points.length; index++) {
+      if ((road.oneway === 1 && index === road.points.length - 1) || (road.oneway === -1 && index === 0) || road.points.length < 2) continue;
+      const point = { x: road.points[index][0], z: road.points[index][1], name: `Kingston public approach on ${road.name}` };
+      const gap = distance(point, kingston);
+      if (gap < deliveryDistance) { deliveryApproach = point; deliveryDistance = gap; }
+    }
+  }
   const home = map.storyHomes?.basement || { roomId: 'story-milo-home', name: "Milo's safehouse", street: 'Kingston', x: kingston.x, z: kingston.z };
   if (!finitePoint(home) || typeof home.roomId !== 'string' || !home.roomId) throw new Error('Campaign home requires a finite entry and room identity.');
   const homeApproach = finitePoint(home.approach) ? home.approach : home;
@@ -36,6 +49,13 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   const scene = (id, title, ...lines) => ({ id, title, lines: lines.map(([speaker, text]) => ({ speaker, text, duration: 3.5 })) });
   const crew = owner => ['student', 'corporate', 'basement'].filter(id => id !== owner);
   const target = (point, label, kind = 'drive', extra = {}) => ({ x: point.x, z: point.z, label, kind, radius: 26, hold: 1, ...extra });
+  const noodle = place('store-5656111023', { id: 'store-5656111023', x: -367.096, z: -4406.948, name: 'Lambzhou 1919' });
+  const bookshop = place('store-12918449444', shop);
+  const paperback = place('store-439239650', shop);
+  const wholefoods = place('store-6275666787', shop);
+  const crossingRoad = sourceBridge && map.roads.find(road => road.sourceId === sourceBridge.sourceId && roadProfile(road).trafficAllowed);
+  const crossingVertex = crossingRoad?.points.reduce((north, point) => !north || point[1] < north[1] ? point : north, null);
+  const bridgeCrossing = crossingVertex ? { x: crossingVertex[0], z: crossingVertex[1] } : bridge;
   const shared = freeze([
     { id: 'late-parcel', character: 'basement', name: '1. Depot interception', contact: 'Mara, local fixer', reward: 350, time: 360, incident: true, wantedLevel: 3,
       cutscene: scene('late-parcel', 'The debt changes hands', ['Milo', 'The depot sold my debt twice. We need a getaway car before we intercept its collection.'], ['Mara', 'Kit and Rowan can cover you on foot outside. Get the vehicle to Coals and shake the search.']),
@@ -65,10 +85,24 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     { id: 'home-by-the-lake', character: 'basement', name: '6. Split the score', contact: 'Mara', reward: 1200, time: 720,
       cutscene: scene('home-by-the-lake', 'Three shares, no debt', ['Milo', 'We started with a missing refund, a broken presentation and a debt collector.'], ['Mara', `Return to ${homeLocation}. Pack the recovered ledger inside, then meet us outside to split the money.`]),
       briefing: `Milo, drive to ${homeLocation} and park at its public approach. Enter your home and finish packing the recovered ledger at the case table. Leave through the same door and lose any police outside before the final split. Kit and Rowan cover the street.`,
-      outro: 'Mara: Three equal shares. The fake debts are gone. Campaign complete.',
+      outro: 'Mara: Three equal shares. The fake debts are gone. Rowan found another depot account in the ledger.',
       stages: [target(homeApproach, `Park outside ${homeLocation}`, 'drive', { clear: true, stop: true }), target(home, `Inside ${homeLocation}: pack the recovered ledger at the case table`, 'home-action', homeTask), target(homeApproach, `Leave ${homeLocation} on foot and clear the search for the split`, 'foot', { clear: true, hold: 3, radius: 12 })] },
+    { id: 'shelf-life', character: 'corporate', name: '7. Shelf life', contact: 'Mara', reward: 1350, time: 1080,
+      cutscene: scene('shelf-life', 'A second set of books', ['Rowan', 'Two stock orders repeat the depot charges. I can compare them by covering the actual shifts.'], ['Mara', 'Start at The Book Moo in Kingston, then cross the bridge to Lambzhou. Kit and Milo cover the street.']),
+      briefing: `Rowan, stop outside ${bookshop.name}, enter and finish a real stock shift. Drive across Commonwealth Avenue Bridge to ${noodle.name} and complete a noodle shift there. Leave the restaurant on foot and clear any search before comparing the two orders. The crew covers outside.`,
+      outro: 'Rowan: Both orders paid the same shell account. The ledger lists two cash collections tomorrow.',
+      stages: [target(bookshop, `Stop outside ${bookshop.name} for the first stock order`, 'drive', { stop: true }), target(bookshop, `Inside ${bookshop.name}: complete a stock shift`, 'work', { storeId: bookshop.id, hold: 0 }), target(bridgeCrossing, 'Cross Commonwealth Avenue Bridge to its north public-road approach', 'drive', { radius: 45, hold: 0 }), target(noodle, `Inside ${noodle.name}: complete the noodle shift`, 'work', { storeId: noodle.id, stationKind: 'noodle', hold: 0 }), target(noodle, 'Leave Lambzhou on foot and clear the search to compare the orders', 'foot', { clear: true, radius: 18, hold: 3 })] },
+    { id: 'two-till-problem', character: 'student', name: '8. Two till problem', contact: 'Mara', reward: 1600, time: 1080,
+      cutscene: scene('two-till-problem', 'Separate collections', ['Kit', 'The ledger splits one collection between two tills. Taking only one leaves the depot a way back in.'], ['Mara', 'Paperback Chain first, Scoot Wholefoods second. Complete both handovers, then get the crew to Red Hill.']),
+      briefing: `Kit, drive to ${paperback.name}, enter and complete its real till robbery while the crew covers outside. Drive to ${wholefoods.name} and complete that separate till handover. Both fresh receipts are required. Escape to Red Hill and lose the police before regrouping.`,
+      outro: 'Kit: Two collections recovered. Milo has the last copy of the account ready to go.',
+      stages: [target(paperback, `Stop outside ${paperback.name}`, 'drive', { stop: true }), target(paperback, `Complete the ${paperback.name} till handover`, 'robbery', { storeId: paperback.id, hold: 0 }), target(wholefoods, `Drive to ${wholefoods.name} for the second collection`, 'drive', { stop: true }), target(wholefoods, `Complete the separate ${wholefoods.name} till handover`, 'robbery', { storeId: wholefoods.id, hold: 0 }), target(redHill, 'Escape with both receipts and regroup at Red Hill', 'escape', { clear: true, radius: 45, hold: 5 })] },
+    { id: 'carbon-copy', character: 'basement', name: '9. Carbon copy', contact: 'Mara', reward: 1900, time: 1200,
+      cutscene: scene('carbon-copy', 'One copy stays outside', ['Milo', 'The original is packed away. I am making a second copy, because I finally understand receipts.'], ['Mara', 'Pack it at home. Bring a stolen getaway car across the bridge, finish a kitchen shift at Lambzhou, then return to Kingston.']),
+      briefing: `Milo, return inside ${homeLocation} and finish a new packing task for the copy. Bring a stolen street car across Commonwealth Avenue Bridge. At ${noodle.name}, complete a fresh noodle shift to check the last account. Drive to ${deliveryApproach.name || 'the Kingston public approach'}, stop and step out for the final handover with the search clear. Kit and Rowan cover the street.`,
+      outro: 'Mara: The collections are returned, the account is closed and all three copies agree. Campaign complete.',
+      stages: [target(home, `Inside ${homeLocation}: pack a fresh copy at the case table`, 'home-action', homeTask), target(map.spawn, 'Bring a stolen getaway car; the crew covers outside', 'stolen', { anywhere: true }), target(bridgeCrossing, 'Cross Commonwealth Avenue Bridge to its north approach in the stolen car', 'drive', { stolen: true, radius: 45, hold: 0 }), target(noodle, `Inside ${noodle.name}: finish a fresh noodle shift for the final account`, 'work', { storeId: noodle.id, stationKind: 'noodle', hold: 0 }), target(deliveryApproach, `Return to ${deliveryApproach.name || 'the Kingston public approach'} and stop`, 'drive', { clear: true, stop: true }), target(deliveryApproach, 'Step out on foot and clear the search for the final handover', 'foot', { clear: true, radius: 16, hold: 3 })] },
   ].map(chapter => ({ ...chapter, companions: crew(chapter.character) })));
-  const noodle = place('store-5656111023', { x: -367.096, z: -4406.948, name: 'Lambzhou 1919' });
   const mall = { x: -248.655, z: -4172.87 };
   const characters = freeze([
     { id: 'student', name: 'Kit Vale', age: 18, tagline: 'A Telopea student with one last errand and very little patience.', appearance: 'student', start: { ...map.spawn }, onFoot: true },
@@ -103,9 +137,9 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
         outro: 'Milo: Actual work. Actual wages. Disturbingly effective.',
         stages: [target(home, `Inside ${homeLocation}: pack your case at the case table`, 'home-action', homeTask), target(homeApproach, `Step outside ${homeLocation} through the same door; E beside your car to get in`, 'foot', { radius: 12, hold: 1 }), target(shop, 'Drive your car to Coals and stop outside; E exits', 'drive', { stop: true }), target(shop, 'Inside Coals: complete the stock shift', 'work', { storeId: shop.id, hold: 0 })] },
       { id: 'basement-first-delivery', name: 'Signed for', cutscene: scene('basement-first-delivery', 'A real receipt', ['Mara', 'One parcel, one signature. Keep the receipt this time.'], ['Milo', 'If the depot tries charging twice, I want proof.']), contact: 'Mara, local courier', reward: 150, time: 600,
-        briefing: 'Collect Mara\'s sealed parcel outside Coals on foot. Press E beside your car to get in, then drive to Kingston and stop before handover. Press E to exit and deliver the parcel on foot.',
+        briefing: `Collect Mara's sealed parcel outside Coals on foot. Press E beside your car to get in, then drive to ${deliveryApproach.name || 'Kingston'} and stop before handover. Press E to exit and deliver the parcel on foot.`,
         outro: 'Milo: The parcel has the same depot code as two other receipts. Mara wants all three people together.',
-        stages: [target(shop, 'Collect the sealed parcel outside Coals', 'foot', { radius: 12 }), target(kingston, 'Drive to the Kingston meeting approach and stop; E exits', 'drive', { stop: true }), target(kingston, 'Hand over the parcel on foot', 'foot', { radius: 16, hold: 2 })] },
+        stages: [target(shop, 'Collect the sealed parcel outside Coals', 'foot', { radius: 12 }), target(deliveryApproach, `Drive to ${deliveryApproach.name || 'the Kingston meeting approach'} and stop; E exits`, 'drive', { stop: true }), target(deliveryApproach, 'Hand over the parcel on foot', 'foot', { radius: 16, hold: 2 })] },
     ],
   });
   const meeting = freeze({ id: 'three-receipts', name: 'Three receipts', cutscene: scene('three-receipts', 'One fraudulent depot', ['Mara', 'Kit lost a club refund. Rowan approved the account. Milo got the fake debt. The same depot charged all three.'], ['Mara', 'Meet at Kingston. We take back the money and the ledger together.']), contact: 'Kit, Rowan, Milo and Mara', reward: 200, time: 600,
@@ -146,6 +180,10 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   const allIntroduced = () => ids.every(id => state.intros[id].length === intros[id].length);
   const current = () => {
     if (developerChapter) return developerChapter;
+    if (state.active) {
+      const chapter = shared.find(chapter => chapter.id === state.active.id);
+      if (chapter) return chapter;
+    }
     if (!state.character) return null;
     if (state.character === 'legacy') return shared[state.completed.length] || null;
     const opening = intros[state.character][state.intros[state.character].length];
@@ -157,6 +195,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   };
   const chapters = () => state.character === 'legacy' ? shared : [...(intros[state.character] || []), meeting, ...shared.filter(chapter => chapter.character === state.character)];
   const nextRequiredCharacter = () => {
+    if (state.active) return null;
     if (state.character === 'legacy' || !allIntroduced() || !state.meeting) return null;
     const chapter = shared[state.completed.length];
     return chapter && chapter.character !== state.character ? characters.find(hero => hero.id === chapter.character) : null;
@@ -178,6 +217,30 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     if (!canSelectCharacter(id)) return { ok: false, message: 'Finish or cancel the active mission before switching characters.' };
     state.character = id; state.failed = false; state.message = `${characters.find(c => c.id === id).name}: ${current()?.briefing || requiredMessage() || (allIntroduced() && state.meeting ? 'Campaign complete.' : 'Choose another character to bring the three stories together.')}`;
     return { ok: true, message: state.message };
+  }
+  function companionSwitchReason(id, ctx) {
+    if (!validContext(ctx) || ctx.sandbox || ctx.campaign !== true) return 'Campaign unavailable here.';
+    const active = state.active, chapter = shared.find(chapter => chapter.id === active?.id);
+    if (!chapter || active.developer || !ids.includes(state.character)) return 'Switch allies during a shared crew mission.';
+    const goal = chapter.stages[active.stage];
+    if (!goal || !['foot', 'drive', 'escape'].includes(goal.kind) || active.target.kind !== goal.kind) return 'Finish this mission action before switching allies.';
+    if (ctx.recovering || !Number.isFinite(ctx.health) || ctx.health <= 0 || ctx.respawnSerial !== active.serial || ctx.impactTime > 0) return 'Recover before switching allies.';
+    if (ctx.interior || ctx.passenger || ctx.carjacking || ctx.activeJob || ctx.activity || ctx.cutscene || ctx.heistActive || ctx.homeActionActive) return 'Finish the current action before switching allies.';
+    if (!ids.includes(id) || id === state.character || !active.companions.includes(id)) return 'Choose an ally in the current crew.';
+    const ally = ctx.companion;
+    if (!ally || ally.id !== `campaign-ally:${id}` || ally.appearanceId !== `player:${id}` || !finitePoint(ally) || !Number.isFinite(ally.yaw) || ally.active !== true || !Number.isFinite(ally.health) || ally.health <= 0) return 'That ally is unavailable.';
+    if (ally.seated || ally.mode === 'passenger') return 'Let that ally leave the vehicle before switching.';
+    return '';
+  }
+  function canSwitchCompanion(id, ctx) { return companionSwitchReason(id, ctx) === ''; }
+  function switchCompanion(id, ctx) {
+    const reason = companionSwitchReason(id, ctx);
+    if (reason) return { ok: false, message: reason };
+    if (ctx.switchSafe !== true) return { ok: false, message: 'A clear crew handover is required.' };
+    const previous = state.character, index = state.active.companions.indexOf(id);
+    state.active.companions[index] = previous;
+    state.character = id;
+    return { ok: true, message: `Now controlling ${characters.find(hero => hero.id === id).name}.` };
   }
   const serial = value => Number.isSafeInteger(value?.serial) && value.serial >= 0 ? value.serial : 0;
   const baselines = (ctx, previous = {}) => Object.fromEntries(Object.entries({ presentation: serial(ctx.presentation), encounter: serial(ctx.encounter), work: serial(ctx.workCompletion), schoolAlarm: serial(ctx.schoolAlarm), heist: serial(ctx.heist), homeAction: serial(ctx.homeAction) }).map(([kind, value]) => [kind, Math.max(value, previous[kind] || 0)]));
@@ -249,7 +312,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
       events.push({ type: 'complete', id: chapter.id, reward: chapter.reward, message: chapter.outro });
     }
   }
-  return { state, characters, get chapters() { return chapters(); }, current, nextRequiredCharacter, start, startDeveloper, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, isCompleted,
+  return { state, characters, get chapters() { return chapters(); }, current, nextRequiredCharacter, start, startDeveloper, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, companionSwitchReason, canSwitchCompanion, switchCompanion, isCompleted,
     cancel: () => fail('Mission cancelled. Open Campaign to retry.'),
     serialize: () => clone({ version: 2, character: state.character, intros: state.intros, meeting: state.meeting, legacy: state.legacy, completed: state.completed }),
     journal: () => freeze(clone({ character: state.character, introductions: ids.map(id => ({ character: id, chapters: intros[id].map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })), meeting: state.meeting, shared: shared.map(item => ({ id: item.id, character: item.character, name: item.name, complete: isCompleted(item.id) })) })),

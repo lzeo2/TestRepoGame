@@ -197,7 +197,7 @@ export function createSimulation(map, options = {}) {
   let externalVehicles = [], peopleIndex = new SpatialGrid(8);
   const vehicleImpacts=[];
   function recordVehicleImpact(vehicle,person,dx,dz){
-    if(person.id!=='player-body')return;
+    if(person.id!=='player-body'&&!/^ped:\d+$/.test(person.id))return;
     const travel=Math.hypot(dx,dz),gap=Math.hypot(person.x-vehicle.x,person.z-vehicle.z);
     const measured=Number.isFinite(vehicle.vx)&&Number.isFinite(vehicle.vz)?Math.hypot(vehicle.vx,vehicle.vz):Math.abs(vehicle.speed||0);
     if(travel<1e-9||gap<1e-9||!Number.isFinite(measured)||typeof vehicle.id!=='string')return;
@@ -717,15 +717,20 @@ export function createSimulation(map, options = {}) {
     let forward = player.vx * fx + player.vz * fz;
     let lateral = player.vx * -fz + player.vz * fx;
     const braking = Boolean(input.brake);
-    const acceleration = throttle * (forward * throttle < -0.5 ? 20 : input.boost ? 17 : 11.5);
+    const mods=options.vehicleMods?.()||{},power=options.powerModifiers?.()||{};
+    const tier=kind=>clamp(Number.isInteger(mods[kind])?mods[kind]:0,0,2);
+    const engine=(1+tier('engine')*.12)*clamp(Number(power.engine)||1,1,1.25);
+    const brakeForce=1+tier('brakes')*.15;
+    const grip=(1+tier('handling')*.08)*clamp(Number(power.handling)||1,1,1.25);
+    const acceleration = throttle * (forward * throttle < -0.5 ? 20*brakeForce : (input.boost ? 17 : 11.5)*engine);
     forward += acceleration * dt;
-    if (braking) forward = Math.sign(forward) * Math.max(0, Math.abs(forward) - 24 * dt);
+    if (braking) forward = Math.sign(forward) * Math.max(0, Math.abs(forward) - 24 * brakeForce * dt);
     const drag = (player.offroad ? 0.9 : 0.14) + (input.handbrake ? 0.65 : 0);
     forward *= Math.exp(-drag * dt);
     if (!throttle) forward = Math.sign(forward) * Math.max(0, Math.abs(forward) - 0.6 * dt);
     forward = clamp(forward, -12, player.offroad ? 27 : input.boost ? 54 : 46);
     const turnRate = -player.steer * forward * 0.075 / (1 + Math.abs(forward) * 0.035);
-    const turn = turnRate * dt * (input.handbrake ? 1.42 : 1);
+    const turn = turnRate * dt * (input.handbrake ? 1.42 : 1) * grip;
     const turnSteps = Math.max(1, Math.ceil(Math.abs(turn) / 0.05));
     for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
       const nextPose = { x: player.x, z: player.z, yaw: player.yaw + turn / turnSteps,

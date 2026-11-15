@@ -7,13 +7,21 @@
 Operator-authorized original Canberra open-world preview, catalog 245, static entry
 `Games/Capital Drive/index.html`. Three modes share one runtime. **Campaign** has
 three fictional adult protagonists, two opening missions each, a shared Kingston
-meeting and six assigned shared heist chapters. **Street Life** has jobs, cash, a
+meeting and nine assigned shared heist chapters. **Street Life** has jobs, cash, a
 garage, foot combat and police; **Free roam** has all cars, local address search
 and map teleporting. The mapped area covers the inner south and a source-derived
 lake/Civic corridor. Airport and whole-city coverage remain later work. No GTA code,
 artwork or branded vehicle assets are used.
 
 ## Implementation map
+
+The [crew/city continuation contract](../../capital-drive-crew-and-city-contract.md)
+records analog mobile joysticks, keyboard aiming, live crew seats/window fire and
+safe shared-stage character transfers, three appended mission chains, timed hero
+powers, grenade/smoke stock and effects, actual garage physics upgrades, street
+NPC ragdolls, player-car crumpling/fire, physical rear gardens, day/night/weather
+and the sourced airport road extension. Airport terrain/massing are explicitly
+estimated; traffic cars do not deform and terminal interiors/airline services are absent. Two original stealable jets add bounded arcade flight.
 
 - `script.js`: sole loop, input/camera/modes, local loading, maps/routes, parked
   and abandoned meshes, storage and module integration.
@@ -776,9 +784,9 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The current reusable runner checks80game JavaScript files and95pure Node suites
-plus two Python cache checks (273 syntax/source commands), fails on missing files or command errors and bounds
-subprocess lifetimes. The tutorial/UI receipt records the latest run,
+The current reusable runner checks92game JavaScript files and115pure Node suites
+plus two Python cache checks (325 syntax/source commands), fails on missing files or command errors and bounds
+subprocess lifetimes. The [crew/city/flight receipt](../../verification/capital-drive-crew-city-flight-2026-11-15.md) records the latest source/native run,
 while the earlier230/230 story/streaming and220/220 city-life results remain
 separately dated. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover

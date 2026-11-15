@@ -11,6 +11,7 @@ const ctx = { pose: { x: 0, z: 0, speed: 0 }, onFoot: false, vehicle: { stolen: 
   wanted: 0, respawnSerial: 0, campaign: true, sandbox: false };
 const tick = (campaign, context, count = 15) => { for (let i = 0; i < count; i++) campaign.update(.1, context); };
 const legacyIds = ['late-parcel', 'under-the-awning', 'borrowed-wheels', 'quiet-streets', 'across-the-water', 'home-by-the-lake'];
+const continuationIds = ['shelf-life', 'two-till-problem', 'carbon-copy'];
 
 let campaign = createCampaign(map);
 assert.equal(campaign.current(), null);
@@ -96,6 +97,7 @@ function finishMission(value, developer = false) {
       context.interior = { storeId: target.storeId, roomId: 'noodle-room' };
       context.encounter = { serial: ++serial, storeId: target.storeId, roomId: 'noodle-room', character: 'booth-guest', phase: 'complete', outcome: 'noodle-fight' };
     }
+    if (target.kind === 'escape' && !value.state.active.sawWanted) value.update(.1, { ...context, wanted: 1 });
     tick(value, context, Math.ceil(Math.max(target.hold || 0, 1.5) * 10) + 2);
   }
   assert.equal(value.state.active, null, `${mission.id} completed`);
@@ -111,8 +113,8 @@ function finishMission(value, developer = false) {
 }
 const preview = createCampaign(map);
 const previewChapters = preview.developerChapters();
-assert.equal(previewChapters.length, 13);
-assert.equal(new Set(previewChapters.map(chapter => chapter.id)).size, 13);
+assert.equal(previewChapters.length, 16);
+assert.equal(new Set(previewChapters.map(chapter => chapter.id)).size, 16);
 assert.ok(Object.isFrozen(previewChapters) && previewChapters.every(chapter => Object.isFrozen(chapter) && Object.isFrozen(chapter.start) && Object.isFrozen(chapter.target)));
 for (const chapter of previewChapters) {
   const saved = preview.serialize(), journal = preview.journal(), normalId = preview.current()?.id;
@@ -246,6 +248,11 @@ for (let index = 0; index < legacyIds.length; index++) {
   campaign = createCampaign(map, campaign.serialize());
   assert.deepEqual(campaign.state.completed, legacyIds.slice(0, index + 1), 'each completed prefix survives reload without replay');
 }
+for (const id of continuationIds) {
+  const owner = campaign.nextRequiredCharacter()?.id || campaign.state.character;
+  assert.equal(campaign.selectCharacter(owner, ctx).ok, true);
+  assert.equal(finishMission(campaign), id, 'the new continuation follows the preserved original prefix');
+}
 for (const hero of heroes) {
   campaign.selectCharacter(hero, ctx);
   const owned = campaign.chapters.filter(chapter => legacyIds.includes(chapter.id));
@@ -257,7 +264,7 @@ for (const hero of heroes) {
   assert.deepEqual(campaign.drainEvents(), []);
 }
 assert.equal(campaign.current(), null);
-assert.deepEqual(campaign.state.completed, legacyIds);
+assert.deepEqual(campaign.state.completed, [...legacyIds, ...continuationIds]);
 assert.ok(campaign.isCompleted('student-paper-chase'));
 assert.ok(Object.isFrozen(campaign.journal().introductions[0].chapters[0]));
 assert.ok(Object.isFrozen(campaign.snapshot()));
@@ -267,7 +274,7 @@ const legacy = createCampaign(map, { version: 1, completed: ['late-parcel'] });
 assert.equal(legacy.current().id, 'under-the-awning');
 assert.equal(legacy.state.character, 'legacy');
 assert.equal(legacy.nextRequiredCharacter(), null, 'untouched legacy saves preserve their original owner-free route');
-assert.equal(legacy.chapters.length, 6, 'legacy journal keeps all six old chapters');
+assert.equal(legacy.chapters.length, 9, 'legacy journal keeps the original six and appended continuation');
 assert.equal(legacy.drainEvents().length, 0, 'migration never grants rewards');
 assert.equal(legacy.serialize().version, 2);
 assert.equal(legacy.selectCharacter('corporate', ctx).ok, true, 'legacy players can try new heroes');
@@ -380,7 +387,7 @@ for (const hero of heroes) {
   metadataCampaign.selectCharacter(hero, ctx);
   for (const mission of metadataCampaign.chapters) missionDefinitions.set(mission.id, mission);
 }
-assert.equal(missionDefinitions.size, 13, 'all existing mission identities are retained');
+assert.equal(missionDefinitions.size, 16, 'all existing mission identities and three new crew chapters are retained');
 for (const mission of missionDefinitions.values()) {
   assert.ok(Object.isFrozen(mission.cutscene.lines[0]), 'backstory data is immutable');
   assert.equal(mission.cutscene.id, mission.id);

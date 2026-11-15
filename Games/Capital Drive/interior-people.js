@@ -275,25 +275,32 @@ export function createInteriorPeople() {
   function strike({x,z,yaw=0,range=2,damage=20,kind='melee',hasLineOfSight,offenderId='player'} = {}) {
     const hits = [];
     if (!plan || ![x,z,yaw,range,damage].every(finite)) return {hits:0,people:hits};
-    const reach=clamp(range,0,100), power=clamp(damage,0,100);
+    const explosion=kind==='explosion';
+    if(explosion && typeof hasLineOfSight!=='function') return {hits:0,people:hits};
+    const reach=clamp(range,0,explosion?8:100), power=clamp(damage,0,100);
     const gun=['pistol','gunshot','firearm','shot','fire'].includes(kind);
     const candidates=people.map(p=>({p,distance:Math.hypot(p.x-x,p.z-z)})).filter(({p,distance})=>{
       const forward=(p.x-x)*-Math.sin(yaw)+(p.z-z)*-Math.cos(yaw);
       const lateral=Math.abs((p.x-x)*Math.cos(yaw)-(p.z-z)*Math.sin(yaw));
-      return power>0 && p.health>0 && p.hitCooldown<=0 && distance<=reach && forward>=-.3 &&
-        (gun ? lateral<=.55 : forward>=distance*.25) && (!hasLineOfSight || hasLineOfSight({x,z},p));
+      return power>0 && p.health>0 && p.hitCooldown<=0 && distance<=reach &&
+        (explosion ? distance<reach : forward>=-.3 && (gun ? lateral<=.55 : forward>=distance*.25)) &&
+        (explosion || !hasLineOfSight || hasLineOfSight({x,z},p));
     }).sort((a,b)=>a.distance-b.distance);
-    for (const {p} of candidates.slice(0,gun?1:3)) {
-      p.health=Math.max(0,p.health-power); p.hitCooldown=.4; p.stun=.65;p.attackTimer=0;
+    let witness=null;
+    for (const {p,distance} of candidates.slice(0,explosion?12:gun?1:3)) {
+      if(explosion && hasLineOfSight({x,z},p)!==true) continue;
+      const dealt=explosion?power*(1-distance/reach):power;
+      p.health=Math.max(0,p.health-dealt); p.hitCooldown=.4; p.stun=.65;p.attackTimer=0;
       if (offenderId==='player' && kind==='melee') p.playerHitTimer=12;
-      if (p.health===0 || power>=35) p.knockdown=2.8;
+      if (p.health===0 || dealt>=35) p.knockdown=2.8;
       if (p.health===0) p.crimePhase=null;
       p.anger=!gun && p.character==='booth-guest' && p.health>0 && Math.hypot(p.x-x,p.z-z)<=2.6 ? 1 : 0;
       p.angerOffender=p.anger?offenderId:null;
       frighten(p,10);
+      if(!explosion || p.health>0) witness ||= p;
       hits.push(Object.freeze({id:p.id,x:p.x,z:p.z,health:p.health,reaction:p.reaction}));
     }
-    if (hits.length) report({x,z,offenderId},kind,candidates[0].p);
+    if (hits.length) report({x,z,offenderId},kind,witness);
     return {hits:hits.length,people:hits};
   }
   function snapshot() { return people.map(({home,target,progress,direction,playerHitTimer,noodleThrow,...p})=>Object.freeze({...p,

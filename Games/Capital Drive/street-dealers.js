@@ -113,16 +113,19 @@ export function createStreetDealers(map,{avoidPoints=[]}={}) {
   function strike({x,z,yaw=0,range=2,damage=20,kind='melee',hasLineOfSight}={}) {
     const hit=[];
     if(![x,z,yaw,range,damage].every(Number.isFinite))return {hits:0,people:hit};
-    const gun=['pistol','shotgun','smg','carbine','gunshot','firearm','shot','fire'].includes(kind),reach=clamp(range,0,100),power=clamp(damage,0,100);
+    const explosion=kind==='explosion';
+    if(explosion&&typeof hasLineOfSight!=='function')return {hits:0,people:hit};
+    const gun=['pistol','shotgun','smg','carbine','gunshot','firearm','shot','fire'].includes(kind),reach=clamp(range,0,explosion?8:100),power=clamp(damage,0,100);
     const candidates=people.map(p=>({p,d:distance(p,{x,z})})).filter(({p,d})=> {
       const forward=(p.x-x)*-Math.sin(yaw)+(p.z-z)*-Math.cos(yaw),lateral=Math.abs((p.x-x)*Math.cos(yaw)-(p.z-z)*Math.sin(yaw));
-      return power>0&&p.health>0&&p.hitCooldown===0&&d<=reach&&forward>=-.3&&(gun?lateral<=.55:forward>=d*.25)&&(!hasLineOfSight||hasLineOfSight({x,z},p));
+      return power>0&&p.health>0&&p.hitCooldown===0&&d<=reach&&(explosion?d<reach:forward>=-.3&&(gun?lateral<=.55:forward>=d*.25))&&(!hasLineOfSight||(explosion?hasLineOfSight({x,z},p)===true:hasLineOfSight({x,z},p)));
     }).sort((a,b)=>a.d-b.d);
-    for(const {p} of candidates.slice(0,gun?1:3)) {
-      p.health=Math.max(0,p.health-power);p.hitCooldown=.4;p.panic=MAX_PANIC;p.reaction=p.health===0?'knockdown':'injured';
+    for(const {p,d} of candidates.slice(0,explosion?6:gun?1:3)) {
+      const dealt=explosion?power*(1-d/reach):power;
+      p.health=Math.max(0,p.health-dealt);p.hitCooldown=.4;p.panic=MAX_PANIC;p.reaction=p.health===0?'knockdown':'injured';
       hit.push(Object.freeze({id:p.id,x:p.x,z:p.z,health:p.health,reaction:p.reaction}));
     }
-    if(hit.length)alert({x,z,radius:gun?40:16,hasLineOfSight});
+    if(hit.length&&!explosion)alert({x,z,radius:gun?40:16,hasLineOfSight});
     return {hits:hit.length,people:hit};
   }
   function clipMovement(actor,dx,dz,radius=.45) {

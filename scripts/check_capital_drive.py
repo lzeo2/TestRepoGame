@@ -17,6 +17,9 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 GAME = Path('Games/Capital Drive')
 MODULES = (
+    'aircraft.js', 'aircraft-view.js',
+    'hero-powers.js', 'ordnance.js', 'ordnance-view.js', 'atmosphere.js', 'atmosphere-view.js', 'airport.js', 'airport-view.js', 'vehicle-damage.js', 'vehicle-damage-view.js',
+    'touch-joystick.js',
     'tutorial.js', 'activity-ui.js',
     'script.js', 'game-data.js', 'dev-missions.js', 'interior-navigation.js', 'police-rooms.js', 'cache-client.js', 'cache-manifest.js', 'service-worker.js', 'protagonist-state.js', 'render-gate.js', 'cutscenes.js', 'mission-locations.js', 'simulation.js', 'navigation.js', 'map-projection.js', 'navigation-guidance.js', 'road-guidance-view.js', 'traffic-lights.js', 'traffic-lights-view.js', 'equipment.js', 'equipment-view.js',
     'world-view.js', 'neighbourhood.js', 'person-model.js', 'wildlife-view.js', 'street-assets.js', 'street-assets-view.js', 'highway-barriers.js', 'highway-barriers-view.js', 'local-details-view.js', 'character-start.js', 'campaign-scenes.js', 'campaign-scenes-view.js', 'pedestrians.js', 'gameplay.js', 'ride-service.js', 'ride-service-view.js',
@@ -28,6 +31,9 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
+    'test_capital_airport_ground.mjs', 'test_capital_aircraft.mjs', 'test_capital_aircraft_controller.mjs',
+    'test_capital_signed_for.mjs', 'test_capital_crew_seats.mjs', 'test_capital_npc_ragdoll.mjs', 'test_capital_mission_ally_switch.mjs', 'test_capital_garage_mods.mjs', 'test_capital_ordnance.mjs', 'test_capital_throwable_economy.mjs', 'test_capital_campaign_expansion.mjs', 'test_capital_airport.mjs', 'test_capital_hero_powers.mjs', 'test_capital_atmosphere.mjs', 'test_capital_backyards.mjs', 'test_capital_blast_people.mjs', 'test_capital_vehicle_damage.mjs', 'test_capital_extension_integration.mjs',
+    'test_capital_touch_joystick.mjs', 'test_capital_touch_controller.mjs',
     'test_capital_tutorial.mjs', 'test_capital_tutorial_controller.mjs', 'test_capital_activity_ui.mjs',
     'test_capital_vehicle_impacts.mjs', 'test_capital_ragdoll.mjs',
     'test_capital_mission_hud.mjs',
@@ -47,7 +53,7 @@ SUITES = (
     'test_capital_shopping.mjs','test_capital_campus.mjs','test_capital_interiors.mjs',
     'test_capital_campaign.mjs','test_capital_north.mjs','test_capital_terrain.mjs','test_capital_civic.mjs','test_capital_crossings.mjs','test_capital_noodle_shop.mjs','test_capital_interior_people.mjs','test_capital_interior_activities.mjs','test_capital_micromobility.mjs','test_capital_civic_extras.mjs','test_capital_work_jobs.mjs','test_capital_skate_opening.mjs','test_capital_dev_codes.mjs','test_capital_vehicle_challenges.mjs','test_capital_car_theft.mjs','test_capital_scooter_hack.mjs','test_capital_weapons.mjs','test_capital_weapon_economy.mjs','test_capital_weapon_art.mjs','test_capital_street_dealers.mjs','test_capital_npc_routines.mjs','test_capital_traffic_queues.mjs','test_capital_junction_queues.mjs',
 )
-DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json','shopping-precincts.json','canberra-north.json','north-terrain.json','civic-extras.json','traffic-signals.json','street-assets.json','highway-barriers.json')
+DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json','shopping-precincts.json','canberra-north.json','north-terrain.json','civic-extras.json','traffic-signals.json','street-assets.json','highway-barriers.json','airport.json')
 
 
 def run_command(command, timeout):
