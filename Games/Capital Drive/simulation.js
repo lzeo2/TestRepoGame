@@ -197,7 +197,7 @@ export function createSimulation(map, options = {}) {
   let externalVehicles = [], peopleIndex = new SpatialGrid(8);
   const vehicleImpacts=[];
   function recordVehicleImpact(vehicle,person,dx,dz){
-    if(person.id!=='player-body')return;
+    if(person.id!=='player-body'&&!/^ped:\d+$/.test(person.id))return;
     const travel=Math.hypot(dx,dz),gap=Math.hypot(person.x-vehicle.x,person.z-vehicle.z);
     const measured=Number.isFinite(vehicle.vx)&&Number.isFinite(vehicle.vz)?Math.hypot(vehicle.vx,vehicle.vz):Math.abs(vehicle.speed||0);
     if(travel<1e-9||gap<1e-9||!Number.isFinite(measured)||typeof vehicle.id!=='string')return;
