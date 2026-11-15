@@ -70,3 +70,15 @@ assert.equal(roomOwner.snapshot().find(person=>person.id===guest.id).health,75);
 assert.equal(ray.targetId,boundTarget.id,'adapter does not mutate the global shot identity');
 assert.equal(boundTarget.damage(25,{...ray,interiorId:'other'}),false,'native room authority remains intact');
 console.log('PASS real indoor shot handoff: global resolution, native validated damage, unchanged trace identity and wrong-room rejection');
+
+const hudEnv={gameplay:{state:{mode:'vehicle',passenger:false,recovery:null}},focus:()=>({x:0,z:0}),paused:()=>false};
+const hudGate=Function('env',`with(env){${extract('reconCameraVisible')};return reconCameraVisible;}`)(hudEnv);
+const subject={active:true,objective:{x:0,z:5}};
+assert.equal(hudGate(subject),false,'travel in a car retains navigation rather than the scanning panel');
+hudEnv.gameplay.state.mode='foot';assert.equal(hudGate(subject),true);
+assert.equal(hudGate({...subject,objective:{x:0,z:41}}),false,'far on-foot travel retains normal route UI');
+hudEnv.gameplay.state.passenger=true;assert.equal(hudGate(subject),false);hudEnv.gameplay.state.passenger=false;
+hudEnv.paused=()=>true;assert.equal(hudGate(subject),false);hudEnv.paused=()=>false;
+hudEnv.gameplay.state.recovery={};assert.equal(hudGate(subject),false);
+assert.equal(hudGate({active:false,objective:null}),false);
+console.log('PASS recon camera admission: nearby on-foot framing only; far travel, driving, passengers, pause and recovery keep normal UI');

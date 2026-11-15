@@ -873,9 +873,14 @@ const combatNode=id=>{if(!combatNodes.has(id))combatNodes.set(id,$(id));return c
 function combatValue(id,key,value){const node=combatNode(id);if(node[key]!==value)node[key]=value;}
 function combatStyle(id,key,value){const style=combatNode(id).style;if(style[key]!==value)style[key]=value;}
 function combatClass(node,key,value){if(node.classList.contains(key)!==value)node.classList.toggle(key,value);}
+function reconCameraVisible(recon){
+  const state=gameplay.state,pose=focus(),subject=recon.objective;
+  return !!(recon.active&&subject&&!paused()&&!state.recovery&&state.mode==='foot'&&!state.passenger&&
+    Math.hypot(pose.x-subject.x,pose.z-subject.z)<=40);
+}
 function renderCombatUI(){
   const state=gameplay.state,recon=reconnaissance.snapshot(),fight=roomPeople.encounter;
-  const reconVisible=!!recon.active&&!paused(),fightVisible=!!interiors.active&&!!fight.missionId&&fight.session>0&&!paused();
+  const reconVisible=reconCameraVisible(recon),fightVisible=!!interiors.active&&!!fight.missionId&&fight.session>0&&!paused();
   combatClass(document.body,'reconning',reconVisible);combatClass(document.body,'fighting',fightVisible);
   combatValue('recon-hud','hidden',!reconVisible);combatValue('recon-status','textContent',recon.reason);
   combatValue('recon-progress','value',recon.objective?recon.held/recon.objective.hold:0);combatValue('recon-scan','disabled',!recon.ready);
@@ -2051,7 +2056,7 @@ function animate(time) {
   dealerView?.update(streetDealers.snapshot(),interiors.active?{x:Infinity,z:Infinity}:p,activeDt);
   if(interiors.active){
     const angle=footCameraYaw,ground=interiors.active.floorY;
-    const frame=footCameraFrame(p,{yaw:angle,pitch:footLookPitch,ground,aiming:gameplay.state.aiming||reconnaissance.snapshot().active,indoors:true});
+    const frame=footCameraFrame(p,{yaw:angle,pitch:footLookPitch,ground,aiming:gameplay.state.aiming||reconCameraVisible(reconnaissance.snapshot()),indoors:true});
     desiredCamera.set(frame.camera.x,frame.camera.y,frame.camera.z);
     const ahead={x:desiredCamera.x,z:desiredCamera.z};
     const cameraClear=interiors.hasLineOfSight(p,ahead);
@@ -2071,7 +2076,7 @@ function animate(time) {
     desiredCamera.set(p.x+Math.sin(angle)*distance,p.y+7+orbitHeight,p.z+Math.cos(angle)*distance);
     lookTarget.set(p.x-Math.sin(p.yaw)*10,p.y+Math.tan(lookPitch)*(distance+10),p.z-Math.cos(p.yaw)*10);
   } else if (onFoot) {
-    const aiming=gameplay.state.aiming||reconnaissance.snapshot().active;
+    const aiming=gameplay.state.aiming||reconCameraVisible(reconnaissance.snapshot());
     const frame=footCameraFrame(p,{yaw:footCameraYaw,pitch:footLookPitch,ground:world.heightAt(p.x,p.z),aiming});
     desiredCamera.set(frame.camera.x,frame.camera.y,frame.camera.z);
     lookTarget.set(frame.target.x,frame.target.y,frame.target.z);
