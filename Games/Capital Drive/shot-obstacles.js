@@ -1,3 +1,4 @@
+import { BY_ID } from '../../assets/car-arcade/fleet.js';
 // One immutable broad phase for world solids. Rooms remain lazy, owned by interiors.
 const EPS = 1e-8;
 function inside(x,z,points) {
@@ -56,7 +57,7 @@ export function createShotObstacles(map,{heightAt=()=>0}={}) {
       const key=`${x},${z}`;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(solid);
     }
   }
-  function trace(ray,room=null) {
+  function trace(ray,room=null,vehicles=[]) {
     if(![ray.x,ray.y,ray.z,ray.dx,ray.dy,ray.dz,ray.range].every(Number.isFinite)||ray.range<=0)return 0;
     let nearest=ray.range;
     if(room) {
@@ -87,6 +88,20 @@ export function createShotObstacles(map,{heightAt=()=>0}={}) {
         }
         previous=current;
       }
+    }
+    // Vehicle descriptors are live inputs to the firing attempt, never cached poses.
+    const ignored=new Set(ray.ignoreVehicleIds||[]),seen=new Set();
+    for(const vehicle of vehicles) {
+      if(!vehicle || vehicle.active===false || ignored.has(vehicle.id) || seen.has(vehicle.id) ||
+        (vehicle.interiorId||null)!==(ray.interiorId||null) || ![vehicle.x,vehicle.z].every(Number.isFinite))continue;
+      if(vehicle.id!==undefined)seen.add(vehicle.id);
+      const model=BY_ID[vehicle.modelId];
+      const dimension=(name,fallback)=>Number.isFinite(vehicle[name])&&vehicle[name]>0?vehicle[name]:model?.[name]||fallback;
+      const id=String(vehicle.id||'');
+      const height=dimension('height',vehicle.kind==='aircraft'||id.startsWith('jet:')?2.8:vehicle.kind==='bus'||id.startsWith('bus:')?3:1.6);
+      nearest=Math.min(nearest,rayBoxDistance(ray,{x:vehicle.x,z:vehicle.z,yaw:Number.isFinite(vehicle.yaw)?vehicle.yaw:0,
+        y:Number.isFinite(vehicle.y)?vehicle.y:heightAt(vehicle.x,vehicle.z)+.18,
+        width:dimension('width',1.9),depth:dimension('length',4.8),height}));
     }
     return nearest===ray.range?nearest:Math.max(0,nearest-.005);
   }

@@ -256,9 +256,16 @@ export function createPolice(simulation, options = {}) {
     unit.aiming=true;unit.aimTarget={x:victim.x,z:victim.z};
     unit.yaw=Math.atan2(-(victim.x-unit.x),-(victim.z-unit.z));
     if(unit.fireCooldown>0) return;
-    unit.fireCooldown=1.1;unit.shotTimer=.13;
-    events.push({kind:'shot',interiorId:unit.interiorId || null,officerId:unit.id,targetId:victim.id,from:{x:unit.x,z:unit.z},
-      to:{x:victim.x,z:victim.z},damage:9});
+    unit.fireCooldown=1.1;
+    const base=point=>Number.isFinite(point.feetY)?point.feetY:Number.isFinite(point.y)?point.y:
+      unit.interiorId&&Number.isFinite(room?.floorY)?room.floorY:options.heightAt?.(point.x,point.z)||0;
+    const ground=unit.interiorId&&Number.isFinite(room?.floorY)?room.floorY:options.heightAt?.(unit.x,unit.z)||0;
+    const from={x:unit.x,y:ground+1.35,z:unit.z};
+    const altitude=victim.id==='player'&&!Number.isFinite(victim.y)&&!Number.isFinite(victim.feetY)?Math.max(0,options.playerAltitude?.()||0):0;
+    const to={...victim,y:base(victim)+1.2+altitude};
+    if(options.shotClear?.(from,to,{unit,state,room,interiorId:unit.interiorId||null,playerAltitude:altitude})===false)return;
+    unit.shotTimer=.13;
+    events.push({kind:'shot',interiorId:unit.interiorId || null,officerId:unit.id,targetId:victim.id,from,to,damage:9});
     if(events.length>16) events.splice(0,events.length-16);
   }
   function step(dt,state,target) {

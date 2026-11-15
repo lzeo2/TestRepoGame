@@ -46,7 +46,7 @@ export function createGameplay(map, simulation, options = {}) {
   const theftChallenge = createVehicleChallenge();
   function clearTheftChallenge() { theftChallenge.clear(); theftChallenge.drainEvents(); }
   const policeEvents=[];
-  const policeController = createPolice(simulation, { getAllies:options.getAllies, playerAltitude:options.playerAltitude, getInterior:options.getInterior, resolveInterior:options.resolveInterior, onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
+  const policeController = createPolice(simulation, { shotClear:options.policeShotClear, heightAt:options.heightAt, getAllies:options.getAllies, playerAltitude:options.playerAltitude, getInterior:options.getInterior, resolveInterior:options.resolveInterior, onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
   const passengerPose=()=>{const pose=options.passengerPose?.();return pose&&Number.isFinite(pose.x)&&Number.isFinite(pose.z)?pose:null;};
   Object.defineProperty(state,'passenger',{enumerable:true,get:()=>!!passengerPose()});
   const focus = () => passengerPose()||(state.mode === 'foot' ? state.actor : simulation.player);
@@ -163,6 +163,7 @@ export function createGameplay(map, simulation, options = {}) {
   function attack(kind) {
     if(options.canAttack?.()===false || options.isPiloting?.()) return false;
     const weapon = weaponById(kind), actor = state.actor;
+    if(weapon&&options.canFireWeapon?.()===false)return false;
     if (weapon && (!ownsWeapon(kind) || fireCooldown > 1e-9 || state.reloading > 0)) return false;
     if (!weapon && meleeCooldown > 0) return false;
     if (weapon && state.ammo <= 0) {
