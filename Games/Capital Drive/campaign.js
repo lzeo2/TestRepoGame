@@ -159,6 +159,10 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   const allIntroduced = () => ids.every(id => state.intros[id].length === intros[id].length);
   const current = () => {
     if (developerChapter) return developerChapter;
+    if (state.active) {
+      const chapter = shared.find(chapter => chapter.id === state.active.id);
+      if (chapter) return chapter;
+    }
     if (!state.character) return null;
     if (state.character === 'legacy') return shared[state.completed.length] || null;
     const opening = intros[state.character][state.intros[state.character].length];
@@ -170,6 +174,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   };
   const chapters = () => state.character === 'legacy' ? shared : [...(intros[state.character] || []), meeting, ...shared.filter(chapter => chapter.character === state.character)];
   const nextRequiredCharacter = () => {
+    if (state.active) return null;
     if (state.character === 'legacy' || !allIntroduced() || !state.meeting) return null;
     const chapter = shared[state.completed.length];
     return chapter && chapter.character !== state.character ? characters.find(hero => hero.id === chapter.character) : null;
@@ -191,6 +196,30 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     if (!canSelectCharacter(id)) return { ok: false, message: 'Finish or cancel the active mission before switching characters.' };
     state.character = id; state.failed = false; state.message = `${characters.find(c => c.id === id).name}: ${current()?.briefing || requiredMessage() || (allIntroduced() && state.meeting ? 'Campaign complete.' : 'Choose another character to bring the three stories together.')}`;
     return { ok: true, message: state.message };
+  }
+  function companionSwitchReason(id, ctx) {
+    if (!validContext(ctx) || ctx.sandbox || ctx.campaign !== true) return 'Campaign unavailable here.';
+    const active = state.active, chapter = shared.find(chapter => chapter.id === active?.id);
+    if (!chapter || active.developer || !ids.includes(state.character)) return 'Switch allies during a shared crew mission.';
+    const goal = chapter.stages[active.stage];
+    if (!goal || !['foot', 'drive', 'escape'].includes(goal.kind) || active.target.kind !== goal.kind) return 'Finish this mission action before switching allies.';
+    if (ctx.recovering || !Number.isFinite(ctx.health) || ctx.health <= 0 || ctx.respawnSerial !== active.serial || ctx.impactTime > 0) return 'Recover before switching allies.';
+    if (ctx.interior || ctx.passenger || ctx.carjacking || ctx.activeJob || ctx.activity || ctx.cutscene || ctx.heistActive || ctx.homeActionActive) return 'Finish the current action before switching allies.';
+    if (!ids.includes(id) || id === state.character || !active.companions.includes(id)) return 'Choose an ally in the current crew.';
+    const ally = ctx.companion;
+    if (!ally || ally.id !== `campaign-ally:${id}` || ally.appearanceId !== `player:${id}` || !finitePoint(ally) || !Number.isFinite(ally.yaw) || ally.active !== true || !Number.isFinite(ally.health) || ally.health <= 0) return 'That ally is unavailable.';
+    if (ally.seated || ally.mode === 'passenger') return 'Let that ally leave the vehicle before switching.';
+    return '';
+  }
+  function canSwitchCompanion(id, ctx) { return companionSwitchReason(id, ctx) === ''; }
+  function switchCompanion(id, ctx) {
+    const reason = companionSwitchReason(id, ctx);
+    if (reason) return { ok: false, message: reason };
+    if (ctx.switchSafe !== true) return { ok: false, message: 'A clear crew handover is required.' };
+    const previous = state.character, index = state.active.companions.indexOf(id);
+    state.active.companions[index] = previous;
+    state.character = id;
+    return { ok: true, message: `Now controlling ${characters.find(hero => hero.id === id).name}.` };
   }
   const serial = value => Number.isSafeInteger(value?.serial) && value.serial >= 0 ? value.serial : 0;
   const baselines = (ctx, previous = {}) => Object.fromEntries(Object.entries({ presentation: serial(ctx.presentation), encounter: serial(ctx.encounter), work: serial(ctx.workCompletion), schoolAlarm: serial(ctx.schoolAlarm), heist: serial(ctx.heist), homeAction: serial(ctx.homeAction) }).map(([kind, value]) => [kind, Math.max(value, previous[kind] || 0)]));
@@ -262,7 +291,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
       events.push({ type: 'complete', id: chapter.id, reward: chapter.reward, message: chapter.outro });
     }
   }
-  return { state, characters, get chapters() { return chapters(); }, current, nextRequiredCharacter, start, startDeveloper, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, isCompleted,
+  return { state, characters, get chapters() { return chapters(); }, current, nextRequiredCharacter, start, startDeveloper, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, companionSwitchReason, canSwitchCompanion, switchCompanion, isCompleted,
     cancel: () => fail('Mission cancelled. Open Campaign to retry.'),
     serialize: () => clone({ version: 2, character: state.character, intros: state.intros, meeting: state.meeting, legacy: state.legacy, completed: state.completed }),
     journal: () => freeze(clone({ character: state.character, introductions: ids.map(id => ({ character: id, chapters: intros[id].map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })), meeting: state.meeting, shared: shared.map(item => ({ id: item.id, character: item.character, name: item.name, complete: isCompleted(item.id) })) })),
