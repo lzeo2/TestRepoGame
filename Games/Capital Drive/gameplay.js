@@ -36,17 +36,19 @@ export function createGameplay(map, simulation, options = {}) {
   const theftChallenge = createVehicleChallenge();
   function clearTheftChallenge() { theftChallenge.clear(); theftChallenge.drainEvents(); }
   const policeEvents=[];
-  const policeController = createPolice(simulation, { getAllies:options.getAllies, onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
+  const policeController = createPolice(simulation, { getAllies:options.getAllies, getInterior:options.getInterior, resolveInterior:options.resolveInterior, onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
   const passengerPose=()=>{const pose=options.passengerPose?.();return pose&&Number.isFinite(pose.x)&&Number.isFinite(pose.z)?pose:null;};
   Object.defineProperty(state,'passenger',{enumerable:true,get:()=>!!passengerPose()});
   const focus = () => passengerPose()||(state.mode === 'foot' ? state.actor : simulation.player);
+  const interiorId = () => options.getInterior?.()?.id || null;
+  const sameSpace = person => (person.interiorId || null) === interiorId();
   const visible = (a, b) => simulation.hasLineOfSight(a, b);
   function emit(kind, message, extra = {}) {
     state.event = kind; state.message = message;
     options.onEvent?.({ kind, message, ...extra });
   }
   function witnesses(point) {
-    return state.police.some(p => p.health > 0 && distance(p, point) < 130 && visible(p, point)) ||
+    return state.police.some(p => p.health > 0 && sameSpace(p) && distance(p, point) < 130 && visible(p, point)) ||
       (options.pedestrians?.snapshot?.() || []).some(p => p.health !== 0 && distance(p, point) < 65 && visible(p, point)) ||
       simulation.nearbyVehicles(point.x, point.z, 55).some(v => v.id !== 'player' && visible(v, point));
   }
@@ -177,14 +179,14 @@ export function createGameplay(map, simulation, options = {}) {
         const px = police.x - actor.x, pz = police.z - actor.z;
         const along = px * dx + pz * dz, across = Math.abs(px * dz - pz * dx);
         // One victim cannot receive six complete damage applications from a fan.
-        if (!struckPolice.has(police) && police.health > 0 && along >= 0 && along <= range &&
+        if (!struckPolice.has(police) && sameSpace(police) && police.health > 0 && along >= 0 && along <= range &&
           across < (weapon ? 1.5 : 1.8) && visible(actor, police)) {
           police.health = Math.max(0, police.health - (weapon ? weapon.policeDamage : 20));
           struckPolice.add(police); pelletPoliceHits++; policeHits++;
         }
       }
       if (weapon) state.shots.push({ x: actor.x, z: actor.z, endX: actor.x + dx * range, endZ: actor.z + dz * range,
-        yaw, range, life: 0.13, kind, hit: Boolean(result.hits || pelletPoliceHits) });
+        yaw, range, life: 0.13, kind, interiorId:interiorId(), hit: Boolean(result.hits || pelletPoliceHits) });
     }
     if (weapon || hits || policeHits) options.pedestrians?.alert?.({ x: actor.x, z: actor.z, radius: weapon ? 90 : 18, kind: adapterKind, hasLineOfSight: visible });
     if (state.shots.length > MAX_SHOT_TRACES) state.shots.splice(0, state.shots.length - MAX_SHOT_TRACES);
@@ -269,18 +271,18 @@ export function createGameplay(map, simulation, options = {}) {
     if (pool.reserveAmmo >= weapon.reserveCap) return false;
     pool.reserveAmmo = clamp(pool.reserveAmmo + quantity, 0, weapon.reserveCap); return true;
   }
-  function addShot(from,to,kind) {
+  function addShot(from,to,kind,space=interiorId()) {
     const range=distance(from,to);
     state.shots.push({x:from.x,z:from.z,endX:to.x,endZ:to.z,
-      yaw:yawFor(to.x-from.x,to.z-from.z),range,life:.13,kind,hit:true});
+      yaw:yawFor(to.x-from.x,to.z-from.z),range,life:.13,kind,interiorId:space,hit:true});
     if(state.shots.length>MAX_SHOT_TRACES) state.shots.splice(0,state.shots.length-MAX_SHOT_TRACES);
   }
   function strikePolice({from,targetId,damage,range}={}) {
     if(state.recovery || !from || ![from.x,from.z,damage,range].every(Number.isFinite) || damage<=0 || range<=0) return false;
     const unit=state.police.find(person=>person.id===targetId && person.health>0 && person.active!==false && person.mode==='foot');
-    if(!unit || distance(from,unit)>Math.min(28,range) || !visible(from,unit)) return false;
+    if(!unit || unit.interiorId || distance(from,unit)>Math.min(28,range) || !visible(from,unit)) return false;
     unit.health=Math.max(0,unit.health-clamp(damage,1,12));
-    addShot(from,unit,'pistol');return true;
+    addShot(from,unit,'pistol',null);return true;
   }
   function heal(amount) {
     if (state.recovery || !Number.isFinite(amount) || amount <= 0 || state.health >= 100) return false;
@@ -369,7 +371,7 @@ export function createGameplay(map, simulation, options = {}) {
     if (!state.sandbox && state.health <= 0) { beginRecovery('knockout'); return; }
     policeController.step(dt, state, focus());
     for(const event of policeController.drainEvents()) {
-      addShot(event.from,event.to,'pistol');
+      addShot(event.from,event.to,'pistol',event.interiorId || null);
       if(event.targetId==='player') state.health=Math.max(0,state.health-event.damage);
       else policeEvents.push(event);
     }
