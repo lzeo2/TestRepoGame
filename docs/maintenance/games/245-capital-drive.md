@@ -218,6 +218,18 @@ browser/geodata tooling stay outside the repository.
 
 ## Audit findings
 
+### Crew catch-up, latest15 November2026
+
+The owner requested companions teleport to the player. Shared-mission crew now
+recruit near the actual player and catch up when over35m away, including during
+driving/transit, or after about3active seconds stuck over10m away. Bounded local
+landing checks avoid physical obstructions and other adults; failed placement
+retains the crew for a throttled retry. Health, identity and cooldowns survive;
+dead companions stay down. Normal nearby following and combat still use physical
+sweeps. Objective changes alone do not relocate the crew. Indoor hiding and the
+fixed Kingston meeting remain. See the [story contract](../../capital-drive-story-and-streaming-contract.md)
+and [fresh receipt](../../verification/capital-drive-crew-catchup-2026-11-15.md).
+
 ### Indoor pursuit, driving starts and direct stored maps, latest15 November2026
 
 The [indoor pursuit contract](../../capital-drive-indoor-pursuit-contract.md) and
@@ -241,7 +253,7 @@ campaign rewards and original campaign prefixes. Cancel/finish restores checked
 body/car/health/ammo. A blocked return retains its snapshot for explicit Retry
 return; it cannot be overwritten or trigger per-frame placement loops.
 
-The current worker closure is97files/15,644,373bytes. On controlled warm visits,
+The current worker closure is97files/15,648,142bytes. On controlled warm visits,
 the six map Responses are read directly from its pinned active cache revision,
 so no page map-fetch requests are needed. A750ms bounded failure falls back to
 ordinary loading. Cold loading, parsing/indexing and scene construction remain.

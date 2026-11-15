@@ -480,7 +480,13 @@ character-start placement checks the actual expanded map and parked bodies.
 `campaign-scenes.js` supplies two other adults during the meeting and the six
 shared heists, with shared car/foot contacts. Ground allies follow and exchange
 authoritative shots with visible foot police outdoors; they do not board cars or
-join indoor rooms. Its view cannot grant mission credit. The selected
+join indoor rooms. The owner-requested catch-up recruits near the actual player
+and permits checked teleport when distant/stuck, with bounded throttled local
+placement, health/identity/cooldown preservation and no resurrection. Keep the
+fixed Kingston meeting and ordinary nearby sweeps. Target-only changes do not
+relocate allies; pause/interior/recovery retain their guards. Test actual roads,
+cars, adults, doors, blocked retries, transit and dead crew before shipping.
+Its view cannot grant mission credit. The selected
 hero must remain consistent in foot, cockpit, transit and workout adapters.
 `interior-people.js` owns live dialogue, peaceful/confrontational outcomes and
 attributed retaliation. Rowan's active lunch encounter uses scriptedFight:true: a

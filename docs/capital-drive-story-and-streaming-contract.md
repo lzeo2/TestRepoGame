@@ -109,11 +109,20 @@ stable for saves.
 
 The six shared chapters request the other two heroes as transient ground allies.
 [`campaign-scenes.js`](../Games/Capital%20Drive/campaign-scenes.js) admits at most
-two on checked source-road approaches. They follow with bounded physical sweeps,
-remain subject to adult/body and world collision, and can stop at obstacles. They
-do not board cars or supply a whole-city path planner. They are hidden indoors;
-they provide street cover outside an interior robbery. Local placement at a new
-mission is not a continuous crew travel simulation.
+two near the actual player on checked clear ground. They follow with bounded
+physical sweeps and remain subject to adult/body and world collision. At the
+owner's request, living companions can teleport to a clear nearby position when
+over35m behind or when following is stuck over10m away for about3active seconds.
+Landing searches are bounded and throttled; an obstructed search leaves their
+existing state intact for a later attempt. A new objective alone does not move
+them. Catch-up preserves identity, health and combat cooldowns, removes stale
+shots and never revives a downed companion or moves the player.
+
+They do not board cars or supply a whole-city path planner. They are hidden
+indoors and provide street cover outside an interior robbery. Pause, recovery,
+mission end and mode guards still apply. The stationary Kingston story meeting
+retains its source-road placement rather than following the player. This is
+explicit companion catch-up, not a player travel or mission-completion shortcut.
 
 Allies target at most four supplied live dismounted police descriptors within
 28 metres and clear sight. Shots do at most 12 damage with a 1.1-second cooldown;
