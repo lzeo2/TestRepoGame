@@ -233,3 +233,87 @@ combat.state.health=1;
 for(let i=0;i<100 && !combat.state.recovery;i++)combat.step(1/60);
 assert.equal(combat.state.recovery?.reason,'knockout','police gunshot death uses existing recovery');
 console.log('Capital gameplay: injected attack guard, actual ally police damage/reach/LOS, sidearm player damage and recovery PASS');
+
+// Protagonist checkpoints restore body/car/ammo only after live placement passes.
+const { WEAPONS: checkpointWeapons } = await moduleFrom('../Games/Capital Drive/weapons.js');
+const checkpointAmmo = amount => Object.fromEntries(checkpointWeapons.map(weapon => [weapon.id,
+  { ammo: Math.min(amount, weapon.magazine), reserveAmmo: Math.min(amount * 3, weapon.reserveCap) }]));
+const studentCheckpoint = { mode: 'foot', actor: { x: -60, z: -30, yaw: .3 },
+  vehicle: { x: -70, z: -30, yaw: .7, modelId: 'orchard', color: '#aabbcc', health: 48, stolen: true },
+  health: 63, weapon: 'pistol', ammunition: checkpointAmmo(2) };
+const corporateCheckpoint = { mode: 'vehicle', actor: { x: 80, z: 60, yaw: -.2 },
+  vehicle: { x: 80, z: 60, yaw: -.9, modelId: 'finch', color: 0x123456, health: 92, stolen: false },
+  health: 87, weapon: 'shotgun', ammunition: checkpointAmmo(0) };
+corporateCheckpoint.ammunition.shotgun.reserveAmmo = 7;
+let restoreChanges = 0;
+const restoreSimulation = createSimulation(map, { trafficCount: 0 });
+const restoreGame = createGameplay(map, restoreSimulation, { hasWeapon: () => true, onVehicleChanged: () => { restoreChanges++; } });
+const restoreSnapshot = () => ({ gameplay: restoreGame.snapshot(), player: { ...restoreSimulation.player } });
+assert.deepEqual(restoreGame.restoreProtagonist(studentCheckpoint), { ok: true, adjusted: false });
+assert.equal(restoreGame.state.mode, 'foot');
+assert.equal(restoreGame.state.health, 63); assert.equal(restoreGame.state.vehicleHealth, 48);
+assert.deepEqual(restoreGame.state.vehicle, { modelId: 'orchard', color: '#aabbcc', stolen: true });
+assert.equal(restoreSimulation.player.modelId, 'orchard'); assert.equal(restoreSimulation.player.color, 0xaabbcc);
+assert.equal(restoreSimulation.player.x, -70); assert.equal(restoreGame.state.actor.x, -60);
+assert.deepEqual(restoreGame.state.ammunition, studentCheckpoint.ammunition);
+assert.equal(restoreChanges, 0, 'restore cannot invoke the controller callback that moves cars beside actors');
+assert.deepEqual(restoreGame.restoreProtagonist(corporateCheckpoint), { ok: true, adjusted: false });
+assert.equal(restoreGame.state.mode, 'vehicle'); assert.equal(restoreGame.state.health, 87);
+assert.equal(restoreGame.state.vehicleHealth, 92); assert.equal(restoreGame.state.vehicle.stolen, false);
+assert.equal(restoreSimulation.player.modelId, 'finch'); assert.equal(restoreSimulation.player.x, 80);
+assert.equal(restoreSimulation.player.color, 0x123456); assert.equal(restoreSimulation.player.speed, 0);
+assert.equal(restoreGame.state.weapon, 'shotgun');
+restoreGame.setWeapon('unarmed'); restoreGame.setWeapon('shotgun');
+assert.deepEqual(restoreGame.getAmmo('shotgun'), { ammo: 0, reserveAmmo: 7 }, 'empty restored magazine does not auto-load on later equip');
+assert.deepEqual(restoreGame.restoreProtagonist(studentCheckpoint), { ok: true, adjusted: false });
+assert.deepEqual(restoreGame.state.ammunition, studentCheckpoint.ammunition, 'switching back restores exact independent pools');
+for (const invalid of [null, { ...studentCheckpoint, health: NaN }, { ...studentCheckpoint, extra: true },
+  { ...studentCheckpoint, actor: { x: 9999, z: 0, yaw: 0 } }, { ...studentCheckpoint, health: 0 }]) {
+  const before = restoreSnapshot();
+  assert.equal(restoreGame.restoreProtagonist(invalid).ok, false);
+  assert.deepEqual(restoreSnapshot(), before, 'invalid checkpoints change no live fields');
+}
+const unownedGame = createGameplay(map, createSimulation(map, { trafficCount: 0 }));
+const unownedBefore = unownedGame.snapshot();
+assert.equal(unownedGame.restoreProtagonist(studentCheckpoint).reason, 'unowned-weapon');
+assert.deepEqual(unownedGame.snapshot(), unownedBefore);
+for (const [field, value] of [['wanted', 1], ['recovery', { reason: 'knockout' }], ['carjacking', { id: 'car' }]]) {
+  restoreGame.state[field] = value;
+  const before = restoreSnapshot();
+  assert.equal(restoreGame.restoreProtagonist(corporateCheckpoint).reason, 'busy');
+  assert.deepEqual(restoreSnapshot(), before);
+  restoreGame.state[field] = field === 'wanted' ? 0 : null;
+}
+assert.equal(passengerGame.restoreProtagonist(studentCheckpoint).ok, true);
+attached = { x: 0, z: 0 }; const attachedBefore = passengerGame.snapshot();
+assert.equal(passengerGame.restoreProtagonist(studentCheckpoint).reason, 'busy');
+assert.deepEqual(passengerGame.snapshot(), attachedBefore); attached = null;
+
+const blockedCheckpoint = structuredClone(studentCheckpoint);
+blockedCheckpoint.vehicle.x = 16; blockedCheckpoint.vehicle.z = 0;
+blockedCheckpoint.actor.x = 16; blockedCheckpoint.actor.z = 10;
+assert.equal(restoreGame.restoreProtagonist(blockedCheckpoint).adjusted, true, 'stale wall poses receive only bounded nearby clear placement');
+assert(restoreSimulation.canOccupy(restoreSimulation.player, { ignoreId: 'player' }));
+assert.equal(restoreSimulation.moveActor({ ...restoreGame.state.actor }, 0, 0, .45).blocked, false);
+assert(Math.hypot(restoreSimulation.player.x - 16, restoreSimulation.player.z) <= 12.000001);
+assert(Math.hypot(restoreGame.state.actor.x - 16, restoreGame.state.actor.z - 10) <= 6.000001);
+const canOccupy = restoreSimulation.canOccupy, moveActor = restoreSimulation.moveActor;
+for (const failBody of ['car', 'actor']) {
+  if (failBody === 'car') restoreSimulation.canOccupy = () => false;
+  else restoreSimulation.moveActor = () => ({ blocked: true });
+  Object.assign(restoreSimulation.player, { speed: 3, vx: 1, vz: 2, steer: .4 });
+  const before = restoreSnapshot();
+  assert.equal(restoreGame.restoreProtagonist(studentCheckpoint).ok, false);
+  assert.deepEqual(restoreSnapshot(), before, 'failed body placement rolls back original car model, color, motion and all gameplay state');
+  restoreSimulation.canOccupy = canOccupy; restoreSimulation.moveActor = moveActor;
+}
+// A recent shot/jump/reload must not leak private clocks into the resumed hero.
+restoreGame.restoreProtagonist(studentCheckpoint);
+restoreGame.step(1 / 60, { fire: true, jump: true });
+restoreGame.state.wanted = 0;
+restoreGame.restoreProtagonist(studentCheckpoint);
+restoreGame.step(1 / 60, { fire: true });
+assert.equal(restoreGame.getAmmo('pistol').ammo, 1, 'restoration clears the previous hero fire cooldown');
+assert.equal(restoreGame.state.actor.jumpHeight, 0, 'restoration clears jump velocity');
+assert.equal(restoreGame.state.reloading, 0);
+console.log('Capital gameplay: protagonist body/car state, exact independent ammunition, safe bounded placement/rollback, ownership and activity guards PASS');
