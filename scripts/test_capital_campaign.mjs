@@ -51,10 +51,10 @@ assert.equal(campaign.selectCharacter('student', ctx).ok, true);
 
 // Every objective is exercised through the same live-context predicates as the controller.
 let serial = 0;
-function finishMission(value) {
+function finishMission(value, developer = false) {
   const mission = value.current();
   assert.ok(mission, 'mission available');
-  assert.equal(value.start({ ...ctx, wanted: mission.wantedLevel || (mission.incident ? 1 : 0) }).ok, true);
+  if (!developer) assert.equal(value.start({ ...ctx, wanted: mission.wantedLevel || (mission.incident ? 1 : 0) }).ok, true);
   assert.equal(value.state.active.combat, mission.combat !== false, 'controller receives the chapter combat policy');
   assert.deepEqual(value.state.active.companions, mission.companions || []);
   assert.deepEqual(value.state.active.cutscene, mission.cutscene);
@@ -99,14 +99,89 @@ function finishMission(value) {
     tick(value, context, Math.ceil(Math.max(target.hold || 0, 1.5) * 10) + 2);
   }
   assert.equal(value.state.active, null, `${mission.id} completed`);
-  const completions = value.drainEvents().filter(e => e.type === 'complete');
+  const completionEvents = value.drainEvents();
+  const completions = completionEvents.filter(e => e.type === (developer ? 'developer-complete' : 'complete'));
+  if (developer) assert.equal(completionEvents.some(event => event.type === 'complete'), false, 'preview cannot emit a career reward');
   assert.equal(completions.length, 1, `${mission.id} pays exactly once`);
   assert.equal(completions[0].id, mission.id);
-  assert.equal(completions[0].reward, mission.reward);
+  assert.equal(completions[0].reward, developer ? 0 : mission.reward);
   tick(value, ctx);
   assert.equal(value.drainEvents().length, 0, 'no reward replay');
   return mission.id;
 }
+const preview = createCampaign(map);
+const previewChapters = preview.developerChapters();
+assert.equal(previewChapters.length, 13);
+assert.equal(new Set(previewChapters.map(chapter => chapter.id)).size, 13);
+assert.ok(Object.isFrozen(previewChapters) && previewChapters.every(chapter => Object.isFrozen(chapter) && Object.isFrozen(chapter.start) && Object.isFrozen(chapter.target)));
+for (const chapter of previewChapters) {
+  const saved = preview.serialize(), journal = preview.journal(), normalId = preview.current()?.id;
+  const developerContext = { ...ctx, developer: true, wanted: 1 };
+  for (const invalid of [ctx, { ...developerContext, developer: 1 }, { ...developerContext, sandbox: true }, { ...developerContext, recovering: true }, { ...developerContext, campaign: false }, { ...developerContext, pose: { x: NaN, z: 0 } }, { ...developerContext, respawnSerial: -1 }]) {
+    assert.equal(preview.startDeveloper(chapter.id, invalid).ok, false);
+    assert.deepEqual(preview.serialize(), saved);
+  }
+  assert.equal(preview.startDeveloper('unknown', developerContext).ok, false);
+  assert.equal(preview.startDeveloper(chapter.id, developerContext).ok, true, 'locked fresh careers can preview every real mission');
+  assert.equal(preview.current().id, chapter.id);
+  assert.equal(preview.state.active.character, chapter.character);
+  assert.equal(preview.state.character, null, 'preview owner never selects or changes the saved character');
+  assert.equal(preview.state.active.developer, true);
+  assert.equal(preview.state.active.reward, 0);
+  assert.equal(preview.startDeveloper(chapter.id, developerContext).ok, false, 'an active mission cannot be replaced');
+  assert.equal(preview.start(ctx).ok, false);
+  assert.deepEqual(preview.serialize(), saved, 'starting preview preserves all serialized prefixes');
+  assert.deepEqual(preview.journal(), journal);
+  assert.deepEqual(createCampaign(map, preview.serialize()).serialize(), saved, 'reload never restores transient preview');
+  const stage = preview.state.active.stage;
+  tick(preview, { ...ctx, pose: { x: 999999, z: 999999 } }, 30);
+  assert.equal(preview.state.active.stage, stage, 'preview still needs the actual objective');
+  assert.deepEqual(preview.serialize(), saved);
+  finishMission(preview, true);
+  assert.deepEqual(preview.serialize(), saved, 'preview success cannot advance any career prefix');
+  assert.deepEqual(preview.journal(), journal);
+  assert.equal(preview.current()?.id, normalId, 'normal mission returns after preview');
+  assert.equal(preview.startDeveloper(chapter.id, developerContext).ok, true);
+  preview.cancel(); preview.drainEvents();
+  assert.equal(preview.current()?.id, normalId);
+  assert.deepEqual(preview.serialize(), saved, 'cancellation clears only transient mission');
+  assert.equal(preview.startDeveloper(chapter.id, developerContext).ok, true);
+  tick(preview, { ...ctx, recovering: true });
+  assert.equal(preview.state.active, null);
+  assert.equal(preview.current()?.id, normalId);
+  assert.deepEqual(preview.serialize(), saved, 'recovery failure preserves career progress');
+  preview.drainEvents();
+}
+assert.equal(preview.selectCharacter('student', ctx).ok, true);
+for (const chapter of previewChapters) {
+  const saved = preview.serialize();
+  assert.equal(preview.startDeveloper(chapter.id, { ...ctx, developer: true }).ok, true, 'any selected hero can preview every chapter owner');
+  assert.equal(preview.state.active.character, chapter.character);
+  assert.equal(preview.state.character, 'student');
+  assert.deepEqual(preview.serialize(), saved);
+  preview.cancel(); preview.drainEvents();
+  assert.equal(preview.current().id, 'student-paper-chase');
+  assert.deepEqual(preview.serialize(), saved);
+}
+assert.equal(preview.selectCharacter('basement', ctx).ok, true);
+assert.equal(preview.characters.find(hero => hero.id === 'basement').onFoot, false, 'preview metadata preserves Milo\'s car start');
+finishMission(preview);
+assert.deepEqual(preview.state.intros.basement, ['basement-touch-grass'], 'normal completion still works after developer previews');
+assert.equal(preview.start(ctx).ok, true);
+const normalActive = structuredClone(preview.state.active);
+assert.equal(preview.startDeveloper('home-by-the-lake', { ...ctx, developer: true }).ok, false);
+assert.deepEqual(preview.state.active, normalActive, 'preview cannot replace an ordinary active mission');
+preview.cancel(); preview.drainEvents();
+preview.selectCharacter('student', ctx);
+const previewSave = preview.serialize();
+const staleAlarm = { serial: 12, roomId: 'interior-telopea-school', outcome: 'triggered' };
+assert.equal(preview.startDeveloper('student-paper-chase', { ...ctx, developer: true, schoolAlarm: staleAlarm }).ok, true);
+tick(preview, { ...ctx, onFoot: true, interior: { roomId: staleAlarm.roomId }, schoolAlarm: staleAlarm });
+assert.equal(preview.state.active.stage, 0, 'preview also rejects receipts from before admission');
+tick(preview, { ...ctx, pose: { x: 999999, z: 999999 } }, 5000);
+assert.equal(preview.state.active, null, 'preview expires through the actual mission timer');
+assert.deepEqual(preview.serialize(), previewSave, 'timeout never grants completion');
+assert.equal(preview.drainEvents().some(event => ['complete', 'developer-complete'].includes(event.type)), false);
 campaign.drainEvents();
 const openings = [];
 const heroes = ['student', 'corporate', 'basement'];
