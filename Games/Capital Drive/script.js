@@ -678,6 +678,7 @@ function characterSwitchReason(){
   if(!started)return '';
   const state=gameplay.state;
   if(state.health<=0||state.recovery)return 'Recover before switching characters.';
+  if(state.actor.impactTime>0)return 'Recover from the impact before switching characters.';
   if(state.wanted)return 'Lose the police before switching characters.';
   if(state.passenger||buses?.passenger||rideService?.activeFare)return 'End your passenger ride before switching characters.';
   if(micromobility?.snapshot().active)return 'End your rental before switching characters.';
@@ -849,6 +850,7 @@ function finishDeveloperPreview(retry=false){
 $('mission-dev-return').addEventListener('click',()=>{campaign.cancel();finishDeveloperPreview(true);});
 $('mission-dev-play').addEventListener('click',()=>{
   if(!missionToolsUnlocked||!started||gameplay.state.recovery)return;
+  if(gameplay.state.health<=0||gameplay.state.actor.impactTime>0){notify('Recover from the impact before starting a mission preview.');return;}
   if(developerReturn){campaign.cancel();if(!finishDeveloperPreview(true))return;}
   const chapter=campaign.developerChapters().find(chapter=>chapter.id===$('mission-dev-select').value);
   const hero=campaign.characters.find(hero=>hero.id===chapter?.character);if(!chapter||!hero)return;

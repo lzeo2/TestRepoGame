@@ -48,6 +48,7 @@ for(const [set,clear,reason] of [
   [()=>gameplay.state.wanted=1,()=>gameplay.state.wanted=0,'police'],
   [()=>gameplay.state.recovery={},()=>gameplay.state.recovery=null,'Recover'],
   [()=>gameplay.state.health=0,()=>gameplay.state.health=61,'Recover'],
+  [()=>gameplay.state.actor.impactTime=1,()=>gameplay.state.actor.impactTime=0,'Recover'],
   [()=>campaign.state.active={},()=>campaign.state.active=null,'mission'],
   [()=>env.progression.state.activeJob={},()=>env.progression.state.activeJob=null,'work'],
   [()=>env.progression.state.activity={},()=>env.progression.state.activity=null,'activity'],
