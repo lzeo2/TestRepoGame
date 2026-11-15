@@ -69,6 +69,12 @@ function worker(data, { scope = 'https://arcade.test/Games/Capital%20Drive/', st
     return result;
   }
   return { dispatch, requests, storage, scope, claims: () => claims, skips: () => skips,
+    describe: async (urls, clientURL = new URL('index.html', scope).href) => {
+      let reply;
+      await dispatch('message', { data: { type: 'CAPITAL_CACHE_FILES', urls }, source: { url: clientURL },
+        ports: [{ postMessage: message => { reply = structuredClone(message); } }] });
+      return reply;
+    },
     get: (path, method = 'GET') => dispatch('fetch', { request: new Request(new URL(path, scope), { method }) }) };
 }
 
@@ -82,6 +88,22 @@ await first.dispatch('activate');
 assert.equal(first.claims(), 1, 'default activation claims game clients');
 const installedName = (await first.storage.keys())[0];
 assert.equal(installedName, `capital-drive-files-v1-${encodeURIComponent(new URL(first.scope).pathname)}-${data.manifest.version}`);
+const mapURL = new URL('data/map.json', first.scope).href;
+const mapFile = data.manifest.files.find(file => file.url === 'data/map.json');
+const expectedDescription = { type: 'CAPITAL_CACHE_FILES', cacheName: installedName,
+  files: [{ url: mapURL, key: `${mapURL}?capital-file=${mapFile.sha256}` }] };
+const storedKeys = [...first.storage.stores].map(([name, values]) => [name, [...values.keys()]]);
+assert.deepEqual(await first.describe([mapURL]), expectedDescription, 'active worker supplies only its own content-addressed descriptor');
+for (const urls of [[], [new URL('unknown.json', first.scope).href], [new URL('script.js', first.scope).href],
+  [mapURL + '?other=1'], ['https://other.test/data/map.json'], [mapURL, 'https://other.test/data/map.json']]) {
+  assert.equal(await first.describe(urls), undefined, 'unlisted or non-JSON requests get no descriptor');
+}
+for (const clientURL of ['https://other.test/Games/Capital%20Drive/index.html',
+  'https://arcade.test/Games/Another/index.html', 'https://arcade.test/Games/Capital%20Drive-sibling/index.html']) {
+  assert.equal(await first.describe([mapURL], clientURL), undefined, 'other clients cannot request descriptors');
+}
+assert.deepEqual([...first.storage.stores].map(([name, values]) => [name, [...values.keys()]]), storedKeys, 'descriptors never mutate CacheStorage');
+assert.equal(first.requests.length, data.manifest.files.length, 'descriptors never fetch files');
 for (const file of data.manifest.files) {
   const response = await first.get(file.url);
   assert.equal(response.intercepted, true);
@@ -101,6 +123,8 @@ for (const path of ['./', './?campaign=1', 'index.html?campaign=1']) {
 const updatedData = fixture({ 'script.js': 'export const ready=2;' });
 const updated = worker(updatedData, { storage: first.storage });
 await updated.dispatch('install');
+assert.deepEqual(await first.describe([mapURL]), expectedDescription, 'waiting installation cannot change the active worker descriptor');
+assert.notEqual((await updated.describe([mapURL])).cacheName, installedName, 'each worker retains its own manifest revision');
 assert.deepEqual(updated.requests.map(request => request.url), [new URL('script.js', first.scope).href], 'unchanged digest keys reuse prior complete files');
 assert((await first.storage.keys()).includes(installedName), 'install preserves previous playable revision');
 await first.storage.open('another-game-offline');
@@ -152,5 +176,7 @@ assert.equal(await (await denied.get('script.js')).response.text(), data.bodies[
 const nested = worker(data, { scope: 'https://arcade.test/preview/Games/Capital%20Drive/' });
 await nested.dispatch('install');
 assert(nested.requests.every(request => request.url.startsWith('https://arcade.test/preview/')), 'relative closure stays inside deployment base');
+const nestedDescription = await nested.describe([new URL('data/map.json', nested.scope).href]);
+assert(nestedDescription.cacheName.startsWith(`capital-drive-files-v1-${encodeURIComponent(new URL(nested.scope).pathname)}-`), 'descriptors preserve encoded-space deployment prefixes');
 
-console.log('Capital Drive response-cache regression passed: install integrity, revision reuse, exact request authority, isolated cleanup and deployment base.');
+console.log('Capital Drive response-cache regression passed: install integrity, revision reuse, read-only active descriptors, exact request authority, isolated cleanup and deployment base.');

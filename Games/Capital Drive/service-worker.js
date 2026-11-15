@@ -67,6 +67,25 @@ self.addEventListener('activate', event => {
     await self.clients.claim();
   })());
 });
+self.addEventListener('message', event => {
+  const data = event.data;
+  const port = event.ports?.[0];
+  if (data?.type !== 'CAPITAL_CACHE_FILES' || !port || !Array.isArray(data.urls) ||
+      !data.urls.length || data.urls.length > entries.size) return;
+  if (event.source?.url) {
+    const client = new URL(event.source.url);
+    if (client.origin !== base.origin || !client.pathname.startsWith(base.pathname)) return;
+  }
+  const files = [];
+  for (const url of data.urls) {
+    const file = entries.get(url);
+    if (!file || !file.url.startsWith('data/') || !file.url.endsWith('.json') ||
+        new URL(url).origin !== base.origin) return;
+    files.push({ url, key: keyFor(url, file) });
+  }
+  // The page asks its controller, so a waiting revision cannot change these keys.
+  port.postMessage({ type: 'CAPITAL_CACHE_FILES', cacheName, files });
+});
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
