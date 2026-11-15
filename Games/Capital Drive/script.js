@@ -1065,7 +1065,7 @@ for (const button of document.querySelectorAll('[data-drive]')) {
 }
 function interact() {
   if (!gameplay || paused()) return;
-  if(gameplay.state.recovery)return;
+  if(gameplay.state.recovery||gameplay.state.actor.impactTime>0)return;
   if(progression.state.activity?.interactive){progression.cancelActivity();notify('Hold-up cancelled.');return;}
   const victim=crimeCandidate();
   if(victim){const result=victim.type==='robbery'?progression.startActivity(victim.serviceId,'robbery',careerContext()):progression.startMugging(victim.targetId,careerContext());notify(result.message);return;}

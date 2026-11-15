@@ -195,8 +195,25 @@ export function createSimulation(map, options = {}) {
   }
   const parkedCars = [], abandonedCars = [];
   let externalVehicles = [], peopleIndex = new SpatialGrid(8);
+  const vehicleImpacts=[];
+  function recordVehicleImpact(vehicle,person,dx,dz){
+    if(person.id!=='player-body')return;
+    const travel=Math.hypot(dx,dz),gap=Math.hypot(person.x-vehicle.x,person.z-vehicle.z);
+    const measured=Number.isFinite(vehicle.vx)&&Number.isFinite(vehicle.vz)?Math.hypot(vehicle.vx,vehicle.vz):Math.abs(vehicle.speed||0);
+    if(travel<1e-9||gap<1e-9||!Number.isFinite(measured)||typeof vehicle.id!=='string')return;
+    const velocity=Math.min(60,measured);
+    const closing=(dx*(person.x-vehicle.x)+dz*(person.z-vehicle.z))/(travel*gap);
+    const speed=velocity*Math.max(0,closing);
+    if(speed<1)return;
+    const prior=vehicleImpacts.find(event=>event.offenderId===vehicle.id&&event.targetId===person.id);
+    if(prior&&prior.speed>=speed)return;
+    if(prior)vehicleImpacts.splice(vehicleImpacts.indexOf(prior),1);
+    if(vehicleImpacts.length>=32)vehicleImpacts.shift();
+    vehicleImpacts.push(Object.freeze({targetId:person.id,offenderId:vehicle.id,speed,
+      vx:dx/travel*velocity,vz:dz/travel*velocity,interiorId:null}));
+  }
   const peopleStats = { count: 0, cells: 0, queries: 0, lastCandidates: 0, maxCandidates: 0, blocked: 0 };
-  function blockedByPeople() { peopleStats.blocked++; return false; }
+  function blockedByPeople(person,onContact) { onContact?.(person);peopleStats.blocked++; return false; }
   // Geometry is refreshed once by the controller, never by per-car snapshots.
   // Down adults remain bodies; their state owner explicitly marks absent bodies inactive.
   function setExternalPeople(list = []) {
@@ -243,7 +260,7 @@ export function createSimulation(map, options = {}) {
     }
     return distance;
   }
-  function peopleVehicleClear(pose, length, width, fromPose, ignorePersonId) {
+  function peopleVehicleClear(pose, length, width, fromPose, ignorePersonId, onContact) {
     const travel = fromPose ? Math.hypot(pose.x-fromPose.x,pose.z-fromPose.z) : 0;
     if (fromPose && (![fromPose.x,fromPose.z,fromPose.yaw].every(Number.isFinite) || travel > 64)) return blockedByPeople();
     const turn = fromPose ? angleDelta(fromPose.yaw,pose.yaw) : 0, corner = Math.hypot(length,width)/2;
@@ -261,8 +278,8 @@ export function createSimulation(map, options = {}) {
         if (priorDepth > 1e-9) {
           // Permit only travel directly out of an existing body contact, never through it.
           const epsilon = 1e-5, near = {x:prior.x+(end.x-prior.x)*epsilon,z:prior.z+(end.z-prior.z)*epsilon};
-          if (endDepth >= priorDepth-1e-9 || boxDistance(near,width/2,length/2) < boxDistance(prior,width/2,length/2)-1e-10) return blockedByPeople();
-        } else if (segmentBoxDistance(prior,end,width/2,length/2) < person.radius-1e-9) return blockedByPeople();
+          if (endDepth >= priorDepth-1e-9 || boxDistance(near,width/2,length/2) < boxDistance(prior,width/2,length/2)-1e-10) return blockedByPeople(person,onContact);
+        } else if (segmentBoxDistance(prior,end,width/2,length/2) < person.radius-1e-9) return blockedByPeople(person,onContact);
         continue;
       }
       // Bound each swept corner arc to 2cm. The inflated clear-body test covers
@@ -272,7 +289,7 @@ export function createSimulation(map, options = {}) {
       for (let i=1;i<=steps;i++) {
         const t=i/steps, sample = {x:fromPose.x+(pose.x-fromPose.x)*t,z:fromPose.z+(pose.z-fromPose.z)*t,yaw:fromPose.yaw+turn*t};
         const local=personLocal(person,sample), depth=person.radius-boxDistance(local,width/2,length/2);
-        if (Math.max(priorDepth,depth)+margin > 1e-9) return blockedByPeople();
+        if (Math.max(priorDepth,depth)+margin > 1e-9) return blockedByPeople(person,onContact);
         priorDepth=depth;
       }
     }
@@ -319,24 +336,26 @@ export function createSimulation(map, options = {}) {
     }
     return true;
   }
-  function canOccupy(pose, { ignoreId = pose?.id, fromPose, ignorePersonId, ...options } = {}) {
+  function vehicleClear(pose, { ignoreId = pose?.id, fromPose, ignorePersonId, ...options } = {}, onContact) {
     let { length, width } = vehicleSize(pose, options);
     if (!staticVehicleClear(pose, { length, width })) return false;
     length = clamp(length, 1, 16); width = clamp(width, 0.5, 4);
-    if (!peopleVehicleClear(pose,length,width,fromPose,ignorePersonId)) return false;
+    if (!peopleVehicleClear(pose,length,width,fromPose,ignorePersonId,onContact)) return false;
     return ![player, ...traffic, ...parkedIndex.query(pose.x,pose.z,Math.hypot(length,width)/2+4), ...abandonedCars, ...externalVehicles].some(car =>
       car !== pose && car.id !== ignoreId && car.active !== false && vehicleOverlap(pose, length, width, car));
   }
+  function canOccupy(pose,options){return vehicleClear(pose,options);}
   function moveVehicle(vehicle, dx, dz, options = {}) {
     const { length, width } = vehicleSize(vehicle, options);
     if (!vehicle || ![vehicle.x, vehicle.z, vehicle.yaw, dx, dz].every(Number.isFinite)) return { moved: false, blocked: true, distance: 0 };
     const startX = vehicle.x, startZ = vehicle.z, requested = Math.hypot(dx, dz), scale = requested > 8 ? 8 / requested : 1;
     dx *= scale; dz *= scale;
+    const onContact=person=>recordVehicleImpact(vehicle,person,dx,dz);
     const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.2));
     let blocked = scale < 1;
     for (let i = 0; i < steps; i++) {
       const pose = { x: vehicle.x + dx / steps, z: vehicle.z + dz / steps, yaw: vehicle.yaw };
-      if (!canOccupy(pose, { length, width, ignoreId: vehicle.id, fromPose: vehicle })) { blocked = true; break; }
+      if (!vehicleClear(pose, { length, width, ignoreId: vehicle.id, fromPose: vehicle },onContact)) { blocked = true; break; }
       vehicle.x = pose.x; vehicle.z = pose.z;
     }
     const distance = Math.hypot(vehicle.x - startX, vehicle.z - startZ);
@@ -393,7 +412,7 @@ export function createSimulation(map, options = {}) {
     const target = spawn || fallback;
     Object.assign(player, { x: target.x, z: target.z, yaw: target.yaw || 0, speed: 0, vx: 0, vz: 0, steer: 0,
       odometer: 0, crashes: 0, lastImpactSpeed:0, offroad: false });
-    crashCooldown = 0; stopRequests.clear(); trafficLights.reset();
+    crashCooldown = 0; stopRequests.clear(); vehicleImpacts.length=0; trafficLights.reset();
   }
   // Teleport keeps the current heading unless an explicit finite yaw is supplied.
   // It changes position/motion only; discovery and trip statistics belong to callers.
@@ -832,7 +851,7 @@ export function createSimulation(map, options = {}) {
     return true;
   }
   return { player, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, nearestRoad, setParkedCars,
-    setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop,
+    setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop, drainVehicleImpacts:()=>vehicleImpacts.splice(0),
     get peopleContacts() { return Object.freeze({ ...peopleStats }); },
     setPlayerVehicle, nearbyVehicles, claimVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
 }
