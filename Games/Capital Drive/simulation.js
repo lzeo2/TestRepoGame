@@ -22,8 +22,9 @@ export function projectSegment(x, z, a, b) {
 }
 
 class SpatialGrid {
-  constructor(size = 64) { this.size = size; this.cells = new Map(); }
+  constructor(size = 64) { this.size = size; this.cells = new Map(); this.extents = new WeakMap(); }
   insert(item, minX, minZ, maxX, maxZ) {
+    this.extents.set(item, { minX, minZ, maxX, maxZ });
     for (let x = Math.floor(minX / this.size); x <= Math.floor(maxX / this.size); x++) {
       for (let z = Math.floor(minZ / this.size); z <= Math.floor(maxZ / this.size); z++) {
         const key = `${x},${z}`;
@@ -34,9 +35,16 @@ class SpatialGrid {
   }
   query(x, z, radius) {
     const found = new Set();
+    const minX = x - radius, maxX = x + radius, minZ = z - radius, maxZ = z + radius;
     for (let ix = Math.floor((x - radius) / this.size); ix <= Math.floor((x + radius) / this.size); ix++) {
       for (let iz = Math.floor((z - radius) / this.size); iz <= Math.floor((z + radius) / this.size); iz++) {
-        for (const item of this.cells.get(`${ix},${iz}`) || []) found.add(item);
+        for (const item of this.cells.get(`${ix},${iz}`) || []) {
+          if (found.has(item)) continue;
+          const box = this.extents.get(item);
+          // Cell membership is deliberately coarse. Retain touching boxes, but
+          // avoid polygon/vehicle narrow phases outside the actual query square.
+          if (box.maxX >= minX && box.minX <= maxX && box.maxZ >= minZ && box.minZ <= maxZ) found.add(item);
+        }
       }
     }
     return found;
@@ -284,6 +292,10 @@ export function createSimulation(map, options = {}) {
   function vehicleOverlap(a, al, aw, b) {
     const dimensions = vehicleSize(b);
     const bl = clamp(dimensions.length, 1, 16), bw = clamp(dimensions.width, 0.5, 4);
+    // Half-perimeters enclose both rotated bodies without trigonometry. Only
+    // definitely distant pairs skip the existing separating-axis narrow phase.
+    const radius = (al + aw + bl + bw) / 2, dx = a.x - b.x, dz = a.z - b.z;
+    if (dx * dx + dz * dz > radius * radius) return false;
     const axes = [a.yaw || 0, b.yaw || 0].flatMap(yaw =>
       [[-Math.sin(yaw), -Math.cos(yaw)], [Math.cos(yaw), -Math.sin(yaw)]]);
     const af = [-Math.sin(a.yaw || 0), -Math.cos(a.yaw || 0)], ar = [-af[1], af[0]];
@@ -402,7 +414,7 @@ export function createSimulation(map, options = {}) {
           if (contact) return { ...contact, reason };
         }
       }
-      for (const car of [...parkedIndex.query(candidate.x, candidate.z, 1.8), ...abandonedCars]) {
+      for (const car of [...parkedIndex.query(candidate.x, candidate.z, 3.8), ...abandonedCars]) {
         if (!car.active) continue;
         const dx = candidate.x - car.x, dz = candidate.z - car.z, gap = Math.hypot(dx, dz);
         if (gap < 3.8) return { nx: gap > 0.001 ? dx / gap : 1, nz: gap > 0.001 ? dz / gap : 0,
@@ -718,7 +730,7 @@ export function createSimulation(map, options = {}) {
       const contact = physicalContact(buildingIndex,building,player.x,player.z,1.55);
       if (contact) resolveImpact(contact.nx, contact.nz, contact.depth + 0.02);
     }
-    for (const car of [...parkedIndex.query(player.x, player.z, 1.55), ...abandonedCars]) {
+    for (const car of [...parkedIndex.query(player.x, player.z, 3.55), ...abandonedCars]) {
       if (!car.active) continue;
       const dx = player.x - car.x, dz = player.z - car.z, gap = Math.hypot(dx, dz);
       if (gap < 3.55) resolveImpact(gap > 0.001 ? dx / gap : Math.cos(car.yaw),

@@ -4,7 +4,7 @@ const read=p=>readFile(new URL(p,import.meta.url),'utf8');
 const url=s=>`data:text/javascript;base64,${Buffer.from(s).toString('base64')}`;
 const {createInteriorPeople}=await import(url(await read('../Games/Capital Drive/interior-people.js')));
 const {createInteriors,createSchoolEntry}=await import(url(await read('../Games/Capital Drive/interiors.js')));
-function make(type,variant,yaw=.7,width=8) {
+function make(type,variant,yaw=.7,width=8,withRoom=false) {
   const building={id:'b',type:type==='house'?'house':'retail',height:4,points:[[-12,0],[12,0],[12,30],[-12,30]]};
   const options={heightAt:()=>3};
   const map={buildings:[building],interiorEntries:[{buildingId:'b',x:0,z:0,nx:Math.sin(yaw),nz:Math.cos(yaw)}]};
@@ -13,7 +13,8 @@ function make(type,variant,yaw=.7,width=8) {
   const interiors=createInteriors(map,options),entry=interiors.entries[0];
   assert(entry,`${type} fixture entry`);
   const actor={x:entry.x-Math.sin(yaw),z:entry.z-Math.cos(yaw),y:3,yaw};
-  return interiors.enter(entry,actor);
+  const plan=interiors.enter(entry,actor);
+  return withRoom ? {plan,interiors} : plan;
 }
 const schoolMap=JSON.parse(await read('../Games/Capital Drive/data/canberra.json'));
 const schoolDoor=createSchoolEntry(schoolMap);assert(schoolDoor,'actual retained school building has an entry');
@@ -98,6 +99,58 @@ for(const plan of plans) {
 }
 assert(schoolInteriors.leave(schoolVisitor));assert.equal(schoolInteriors.stats.activePlans,0,'school plan disposes on exit');
 assert.deepEqual(pool.clipMovement({x:0,z:0},NaN,0),{dx:0,dz:0,blocked:true});
+// The ordinary Fight choice is reachable from the real restaurant aisle without crossing a seat/table.
+for(const yaw of [.7,-1.2]) {
+  const {plan,interiors}=make('shop','noodles',yaw,6.2,true),ordinary=createInteriorPeople();
+  ordinary.load(plan);
+  const guest=ordinary.snapshot().find(p=>p.character==='booth-guest'),actor={...plan.spawn};
+  const world=(x,z)=>({x:plan.origin.x+Math.cos(yaw)*x+Math.sin(yaw)*z,z:plan.origin.z-Math.sin(yaw)*x+Math.cos(yaw)*z});
+  for(const target of [world(0,10.6),world(.55,10.6)]) {
+    const dx=target.x-actor.x,dz=target.z-actor.z,steps=Math.ceil(Math.hypot(dx,dz)/.15);
+    for(let i=0;i<steps;i++) {
+      const move=ordinary.clipMovement(actor,dx/steps,dz/steps,.45);
+      assert.equal(move.blocked,false,'approach does not cross another adult');
+      assert.equal(interiors.moveActor(actor,move.dx,move.dz,.45).blocked,false,'approach uses actual clear floor');
+    }
+    assert(Math.hypot(actor.x-target.x,actor.z-target.z)<1e-6);
+  }
+  const context={actor,hasLineOfSight:interiors.hasLineOfSight},serial=ordinary.encounter.serial;
+  assert.equal(ordinary.nearestDialogue(actor,context).id,guest.id);
+  const dialogue=ordinary.startDialogue(guest.id,{...context,scriptedFight:false});
+  assert(dialogue.dialogue.choices.some(c=>c.id==='fight'&&c.label==='Fight'));
+  assert(ordinary.respondDialogue(guest.id,'fight',context).ok);
+  assert.equal(ordinary.encounter.phase,'noodle-windup');assert.equal(ordinary.encounter.serial,serial);
+  const paused=ordinary.snapshot();ordinary.update(0,context);assert.deepEqual(ordinary.snapshot(),paused);
+  for(let i=0;i<10;i++)ordinary.update(.1,{actor,hasLineOfSight:()=>false});
+  assert.equal(ordinary.drainEvents().length,0,'blocked ordinary windup cannot throw or complete');
+  for(let i=0;i<8;i++)ordinary.update(.1,context);
+  assert.deepEqual(ordinary.drainEvents().map(e=>e.type),['noodles-throw']);
+  assert.equal(ordinary.encounter.serial,serial,'ordinary throw alone earns no encounter credit');
+  for(let i=0;i<6;i++)ordinary.update(.1,context);
+  assert.equal(ordinary.encounter.serial,serial,'flight alone earns no encounter credit');
+  const strike={x:actor.x,z:actor.z,yaw:Math.atan2(actor.x-guest.x,actor.z-guest.z),range:2.3,damage:25,kind:'melee',hasLineOfSight:interiors.hasLineOfSight};
+  const hit=ordinary.strike(strike);assert(hit.people.some(p=>p.id===guest.id&&p.health===75),'actual player punch reduces Dot health');
+  ordinary.drainEvents();
+  for(let i=0;i<6;i++)ordinary.update(.1,context);
+  assert.equal(ordinary.drainEvents().length,0,'stun interrupts the current punch fairly');
+  for(let i=0;i<5;i++)ordinary.update(.1,{actor:{...actor,health:0},hasLineOfSight:interiors.hasLineOfSight});
+  assert.equal(ordinary.drainEvents().length,0,'dead target cannot receive retaliation or completion');
+  ordinary.update(.1,context);
+  assert.deepEqual(ordinary.drainEvents().map(e=>e.type),['retaliation','encounter-complete'],'Dot fights back after a real player strike and stun');
+  assert.equal(ordinary.encounter.outcome,'confrontation','ordinary Fight cannot supply mission noodle-fight outcome');
+  assert.equal(ordinary.encounter.serial,serial+1);
+  for(let i=0;i<80;i++)ordinary.update(.1,{actor:{x:actor.x+100,z:actor.z},hasLineOfSight:()=>true});
+  assert.equal(ordinary.drainEvents().length,0,'remote player cannot be attacked');
+  ordinary.update(.1,context);
+  assert.deepEqual(ordinary.drainEvents().map(e=>e.type),['retaliation'],'ordinary fight remains active beyond the old six-second window');
+  ordinary.strike({...strike,kind:'pistol',damage:10});ordinary.drainEvents();
+  for(let i=0;i<30;i++)ordinary.update(.1,context);
+  assert.equal(ordinary.drainEvents().filter(e=>e.type==='retaliation').length,0,'gun damage ends fist retaliation');
+  ordinary.load(plan);ordinary.startDialogue(guest.id,context);ordinary.respondDialogue(guest.id,'fight',context);
+  ordinary.clear();ordinary.update(.1,context);
+  assert.equal(ordinary.drainEvents().length,0);assert.equal(ordinary.snapshot().length,0,'room exit clears the entire fight');
+  assert.equal(ordinary.encounter.serial,serial+1,'room exit cannot complete a pending ordinary fight');
+}
 // Explicit anchor fixture also covers older room plans without the new optional markers.
 const encounterPlan=structuredClone(make('shop','noodles',-.4,6.2));
 const origin=encounterPlan.origin;
@@ -178,7 +231,7 @@ omittedContext.startDialogue(guest.id,context);omittedContext.respondDialogue(gu
 assert.equal(omittedContext.encounter.phase,'noodle-windup','invalid explicit override cannot mutate a pending mission context');
 // Rowan's story encounter must physically throw before the same guest emits melee.
 let throwPose=null,flightPose=null;
-for (const choice of ['apologise','confront']) {
+for (const choice of ['apologise','confront','fight']) {
   pool.load(encounterPlan);const serial=pool.encounter.serial;
   assert(pool.startDialogue(guest.id,{...context,scriptedFight:true}).ok);
   assert(pool.startDialogue(guest.id,context).ok,'Esc/resume preserves the story encounter');
@@ -381,4 +434,4 @@ const retained=new THREE.Color();scene.children[0].children[0].getColorAt(live.l
 assert(Math.abs(retained.r-wanted.r)+Math.abs(retained.g-wanted.g)+Math.abs(retained.b-wanted.b)<1e-6,'hero preset survives room lifecycle');
 view.clear();
 view.dispose();view.dispose();view.load(plans[0]);view.update([],1);assert(view.stats.disposed);assert.equal(scene.children.length,0);
-console.log('PASS active adult roles, real booth/window anchors, authoritative peaceful/hostile encounters, live LOS/health/radius/cooldown gates, swept contacts, pause, shared rounded parts, 36 moving noodle segments, six lazy draws, four equipment-linked workout poses, emitted NPC punch poses, mission-only noodle throws before actual melee, released flight after target departure, safe nonlethal and departed-target timeout retries, explicit mission context downgrade, actual lazy school adult staff and alarm reactions, immutable trajectories and exact disposal');
+console.log('PASS active adult roles, real booth/window anchors, reachable ordinary Fight and player strikes with live retaliation, authoritative peaceful/hostile encounters, live LOS/health/radius/cooldown gates, swept contacts, pause, shared rounded parts, 36 moving noodle segments, six lazy draws, four equipment-linked workout poses, emitted NPC punch poses, mission noodle throws before actual melee, released flight after target departure, safe nonlethal and departed-target timeout retries, explicit mission context downgrade, actual lazy school adult staff and alarm reactions, immutable trajectories and exact disposal');

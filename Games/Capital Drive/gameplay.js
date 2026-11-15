@@ -1,6 +1,7 @@
 import { createPolice } from './police.js';
 import { createVehicleChallenge } from './vehicle-challenges.js';
 import { WEAPONS, weaponById } from './weapons.js';
+import { createProtagonistState } from './protagonist-state.js';
 // Pure Street Life rules. The controller owns time, driving, persistence and rendering.
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const finite = n => Number.isFinite(n) ? n : 0;
@@ -392,7 +393,64 @@ export function createGameplay(map, simulation, options = {}) {
     previousCrashes = simulation.player.crashes || 0;
     options.pedestrians?.drainEvents?.();
   }
+  function restoreProtagonist(checkpoint) {
+    if (state.wanted || state.recovery || state.carjacking || state.passenger) return { ok: false, reason: 'busy' };
+    let saved;
+    try { saved = createProtagonistState(null, { bounds: map.bounds }).capture('student', checkpoint); }
+    catch { return { ok: false, reason: 'invalid-checkpoint' }; }
+    if (saved.health <= 0) return { ok: false, reason: 'unconscious-checkpoint' };
+    if (saved.weapon !== 'unarmed' && !ownsWeapon(saved.weapon)) return { ok: false, reason: 'unowned-weapon' };
+
+    // Placement may adjust a stale pose, but never seeks a distant road. Nothing
+    // in Gameplay changes until both live bodies have a checked resting place.
+    const previous = { ...simulation.player };
+    const rollback = reason => {
+      for (const key of Object.keys(simulation.player)) if (!Object.hasOwn(previous, key)) delete simulation.player[key];
+      Object.assign(simulation.player, previous);
+      return { ok: false, reason };
+    };
+    const candidates = function* (origin, radii) {
+      yield { x: origin.x, z: origin.z, yaw: origin.yaw };
+      for (const radius of radii) for (let i = 0; i < 16; i++) {
+        const angle = i * Math.PI / 8;
+        yield { x: origin.x + Math.cos(angle) * radius, z: origin.z + Math.sin(angle) * radius, yaw: origin.yaw };
+      }
+    };
+    let actor, adjusted = false;
+    try {
+      simulation.setPlayerVehicle({ modelId: saved.vehicle.modelId, color: Number.parseInt(saved.vehicle.color.slice(1), 16) });
+      let placed = false;
+      for (const candidate of candidates(saved.vehicle, [2, 4, 8, 12])) {
+        const result = simulation.teleport(candidate);
+        if (result.ok && distance(simulation.player, saved.vehicle) <= 12.000001 &&
+          simulation.canOccupy(simulation.player, { ignoreId: 'player' })) { placed = true; break; }
+      }
+      if (!placed) return rollback('vehicle-blocked');
+      adjusted = distance(simulation.player, saved.vehicle) > .000001;
+      actor = { ...saved.actor, speed: 0, jumpHeight: 0 };
+      if (saved.mode === 'foot') {
+        let clear = false;
+        for (const candidate of candidates(saved.actor, [1, 2, 4, 6])) {
+          const checked = { ...candidate, speed: 0, jumpHeight: 0 };
+          if (!simulation.moveActor(checked, 0, 0, .45).blocked) { actor = checked; clear = true; break; }
+        }
+        if (!clear) return rollback('actor-blocked');
+        adjusted ||= distance(actor, saved.actor) > .000001;
+      }
+    } catch { return rollback('placement-unavailable'); }
+    reset();
+    state.mode = saved.mode; Object.assign(state.actor, actor);
+    state.health = saved.health; state.vehicleHealth = saved.vehicle.health;
+    state.vehicle = { modelId: saved.vehicle.modelId, color: saved.vehicle.color, stolen: saved.vehicle.stolen };
+    for (const weapon of WEAPONS) {
+      Object.assign(ammunition[weapon.id], saved.ammunition[weapon.id]);
+      // Resuming an empty magazine must not trigger first-equip auto-loading.
+      if (ownsWeapon(weapon.id)) equipped.add(weapon.id);
+    }
+    state.weapon = saved.weapon;
+    return { ok: true, adjusted };
+  }
   reset();
-  return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, reset, addAmmo, getAmmo, heal, strikePolice, drainPoliceEvents:()=>policeEvents.splice(0),
+  return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, reset, restoreProtagonist, addAmmo, getAmmo, heal, strikePolice, drainPoliceEvents:()=>policeEvents.splice(0),
     snapshot: () => freeze(JSON.parse(JSON.stringify(state))) };
 }

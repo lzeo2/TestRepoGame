@@ -44,8 +44,9 @@ saved. Denied/corrupt saves remain unwritten. Between any two missions, J opens
 Campaign and permits switching to any of the three adults, even partway through
 an introduction. Each ordered intro prefix is retained independently, and v2
 saves accept multiple partial introductions. Active missions lock selection;
-completion, cancellation or failure releases it. Mid-session selection does not
-teleport or grant cash. `character-start.js` only prepares an explicitly initial
+completion, cancellation or failure releases it. The later [cache/performance continuation](capital-drive-cache-and-performance-contract.md)
+restores each hero’s separate saved pose, health, car and ammo on selection,
+without granting cash. `character-start.js` prepares a hero’s first-visit
 spawn, separately parks the car and checks a clear foot pose; all three starts
 were tested against actual expanded geometry and parked cars.
 

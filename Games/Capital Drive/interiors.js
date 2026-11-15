@@ -487,6 +487,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
     snapshot: () => ({ active: active?.id || null, buildingId: active?.buildingId || null, type: active?.type || null,
       descriptors: entries.length, generatedPlans, activePlans: active ? 1 : 0 }),
     reset(actor) { if (active && actor) return leave(actor); active = null; outside = null; return true; },
+    get exteriorPose() { return outside ? Object.freeze({ ...outside }) : null; },
     get active() { return active; },
     get stats() { return { descriptors: entries.length, generatedPlans, activePlans: active ? 1 : 0 }; } };
 }

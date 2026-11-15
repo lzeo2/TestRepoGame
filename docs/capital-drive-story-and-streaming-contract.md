@@ -17,7 +17,9 @@ shared chapters. [`progression.js`](../Games/Capital%20Drive/progression.js) own
 cash, wages, robberies and owned equipment. Campaign completion emits one reward;
 the controller adds it to the existing capped wallet and writes progression and
 campaign in the same career record. Selecting another hero changes identity and
-appearance between missions without moving the player or awarding money.
+appearance between missions. The later
+[cache/performance continuation](capital-drive-cache-and-performance-contract.md)
+now restores each hero’s own location, health, car and ammo; rewards stay shared.
 
 Active missions and cutscenes are transient. Strict v2 campaign saves retain all
 three independently ordered partial introduction prefixes, the selected hero,
@@ -26,7 +28,7 @@ path. An active mission locks hero selection; cancellation, timeout and recovery
 end that lock while retaining completed chapters. Invalid/recovery/sandbox context
 cannot start or advance the campaign. The initial placement helper,
 [`character-start.js`](../Games/Capital%20Drive/character-start.js), checks separate
-car and foot positions only at initial start. Campaign travel has no map teleport.
+car and foot positions for a hero’s first visit; later visits use their checkpoint. Campaign travel has no map teleport.
 
 [`cutscenes.js`](../Games/Capital%20Drive/cutscenes.js) accepts supplied time and
 copies bounded original caption scenes: at most six lines and 24 seconds. It owns
