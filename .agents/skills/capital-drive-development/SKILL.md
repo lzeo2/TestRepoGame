@@ -207,7 +207,11 @@ eviction and disposal. Report buffer bytes separately from RAM and device FPS.
 Mission guides target the same door/station descriptors as collision and rendering.
 New school, home and robbery outcomes require the matching live terminal owner and
 fresh serial; no caller boolean, stale receipt or caption timer grants completion.
-Ground allies remain outdoors and never teleport or board cars implicitly.
+Ground allies remain outdoors and do not board cars implicitly. The owner
+explicitly requested companion catch-up: bounded checked relocation to the
+actual player is allowed for distant/stuck living crew. Preserve health, identity,
+cooldowns, pause and blocked-placement retries; never teleport the player,
+revive a downed ally or relocate merely because a mission target changed.
 
 
 The game worker stores only the generated local asset closure. After final runtime

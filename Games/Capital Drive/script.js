@@ -1581,7 +1581,7 @@ function animate(time) {
     accumulator += dt;
     while (accumulator >= 1 / 60) {
       const walking = gameplay.state.mode === 'foot';
-      campaignScenes?.update({mission:campaign.state.active,character:currentHero()?.id||campaign.state.character,mode:gameMode,pose:focus(),health:gameplay.state.health,playerMode:gameplay.state.mode,hostiles:gameplay.state.police,paused:false,recovering:!!gameplay.state.recovery,interior:!!interiors.active},1/60);
+      campaignScenes?.update({mission:campaign.state.active,character:currentHero()?.id||campaign.state.character,mode:gameMode,pose:focus(),health:gameplay.state.health,playerMode:gameplay.state.passenger?'passenger':gameplay.state.mode,hostiles:gameplay.state.police,paused:false,recovering:!!gameplay.state.recovery,interior:!!interiors.active},1/60);
       for(const event of campaignScenes.drainEvents())if(event.type==='ally-shot')gameplay.strikePolice(event);
       syncExternalVehicles();
       syncExternalPeople();
@@ -1790,7 +1790,7 @@ async function boot() {
   missionLocations=createMissionGuide(interiors.entries,map.storyHomes);
   const home=map.storyHomes.basement;if(home)map.searchPlaces.push({...home,id:'milo-safehouse',aliases:['Milo','safehouse','home'],description:'Milo’s safehouse'});
   addressSearch=createAddressSearch(map,addressData);
-  campaignScenes=createCampaignScenes(map,simulation);
+  campaignScenes=createCampaignScenes(map,simulation,{entrances:interiors.entries});
   campaignScenesView=compatibility?emptyView():createCampaignScenesView(scene,world.heightAt);
   interiorScene=new THREE.Scene();interiorScene.background=new THREE.Color(0xccc3ad);
   interiorScene.add(new THREE.HemisphereLight(0xfff8df,0x70685b,2));
