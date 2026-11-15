@@ -30,6 +30,12 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+def skip_guided_tutorial(page):
+    tutorial = page.locator('#guided-tutorial')
+    if tutorial.count():
+        tutorial.uncheck()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--scenario', choices=['campaign', 'rowan-lunch', 'school-story', 'cutscene-ui', 'noodle-component', 'restaurant', 'gym', 'scenery', 'all'], default='all')
@@ -125,6 +131,7 @@ def main():
 
     def start(mode):
         page.locator(f'[data-game-mode="{mode}"]').click()
+        skip_guided_tutorial(page)
         page.locator('#start-button').click()
         page.wait_for_function('(mode)=>capitalDriveSnapshot().started&&capitalDriveSnapshot().gameMode===mode', arg=mode)
         focus()
@@ -285,6 +292,7 @@ def main():
                 choices = page.locator('#intro-characters [data-character]')
                 check(choices.count()==3 and all(choices.nth(i).is_visible() and choices.nth(i).is_enabled() for i in range(3)), 'Fresh campaign exposes three enabled character choices: '+hero)
                 page.locator(f'#intro-characters [data-character="{hero}"]').click()
+                skip_guided_tutorial(page)
                 page.locator('#start-button').click()
                 wait(lambda s:s['started'] and s['gameMode']=='campaign' and s['gameplay']['mode']=='foot' and s['actors']['playerVisible'], hero+' native start')
                 state=record(hero+' initial campaign')
@@ -298,7 +306,9 @@ def main():
                 check(snap()['campaign']['active']['id']==missions[-1], 'Corporate mission begins through the visible campaign button')
                 corporate_presentation()
                 page.reload(wait_until='load'); page.wait_for_function('window.capitalDriveSnapshot?.().ready',timeout=60000)
-                page.locator('[data-game-mode="campaign"]').click();page.locator('#start-button').click()
+                page.locator('[data-game-mode="campaign"]').click()
+                skip_guided_tutorial(page)
+                page.locator('#start-button').click()
                 wait(lambda s:s['started'] and s['gameMode']=='campaign','Restored corporate start')
                 restored=snap()
                 check(restored['campaign']['character']=='corporate' and restored['campaign']['intros']['corporate']==['corporate-present-tense'] and restored['playerAppearance']==appearances[-1], 'Reload preserves corporate appearance and actually earned progress')
@@ -315,6 +325,7 @@ def main():
             ready(context)
             page.locator('[data-game-mode="campaign"]').click()
             page.locator('#intro-characters [data-character="corporate"]').click()
+            skip_guided_tutorial(page)
             page.locator('#start-button').click()
             wait(lambda s:s['started'] and s['gameMode']=='campaign' and s['gameplay']['mode']=='foot','Fresh Rowan campaign start')
             initial=record('rowan fresh career')
@@ -331,7 +342,9 @@ def main():
                 check(state['campaign']['character']==hero and state['playerAppearance']=='player:'+hero,'Visible '+hero+' switch updates selected identity and appearance')
                 check(state['focus']==baseline['focus'] and state['player']==baseline['player'] and state['career']['cash']==baseline['career']['cash'] and state['campaign']['intros']==baseline['campaign']['intros'],'Partial intro '+hero+' selection neither travels nor earns progress')
             page.reload(wait_until='load');page.wait_for_function('window.capitalDriveSnapshot?.().ready',timeout=60000)
-            page.locator('[data-game-mode="campaign"]').click();page.locator('#start-button').click()
+            page.locator('[data-game-mode="campaign"]').click()
+            skip_guided_tutorial(page)
+            page.locator('#start-button').click()
             wait(lambda s:s['started'] and s['gameMode']=='campaign','Rowan actual progress reload')
             restored=record('partial Rowan intro restored')
             check(restored['campaign']['character']=='corporate' and restored['campaign']['intros']['corporate']==['corporate-present-tense'] and restored['career']['cash']==1100,'Reload preserves selected Rowan and the actually earned partial introduction')
@@ -412,6 +425,7 @@ def main():
             ready(context)
             page.locator('[data-game-mode="campaign"]').click()
             page.locator('#intro-characters [data-character="student"]').click()
+            skip_guided_tutorial(page)
             page.locator('#start-button').click()
             wait(lambda s:s['started'] and s['gameMode']=='campaign','Fresh Kit cutscene UI start')
             for label,width,height in (('desktop',1280,800),('mobile',390,844)):
@@ -463,6 +477,7 @@ def main():
             ready(context)
             page.locator('[data-game-mode="campaign"]').click()
             page.locator('#intro-characters [data-character="student"]').click()
+            skip_guided_tutorial(page)
             page.locator('#start-button').click()
             wait(lambda s:s['started'] and s['gameMode']=='campaign' and s['gameplay']['mode']=='foot','Fresh Kit career start')
             initial=record('school story actual fresh Kit')

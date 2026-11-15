@@ -62,6 +62,8 @@ def main():
         check(not snap(p)['rendering']['compatibility'], 'Software WebGL available')
     def start(p, mode):
         p.locator(f'[data-game-mode={mode}]').click()
+        if p.locator('#guided-tutorial').count():
+            p.locator('#guided-tutorial').uncheck()
         p.locator('#start-button').click()
         p.wait_for_function('(m)=>capitalDriveSnapshot().started && capitalDriveSnapshot().gameMode===m', arg=mode)
     def close(p, dialog):

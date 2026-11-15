@@ -173,6 +173,8 @@ def main():
 
     def start():
         page.locator('[data-game-mode="campaign"]').click()
+        if page.locator('#guided-tutorial').count():
+            page.locator('#guided-tutorial').uncheck()
         page.locator('#start-button').click()
         wait(lambda s:s['started'] and s['gameMode']=='campaign' and s['gameplay']['mode']=='foot', 'Campaign on-foot start')
         close('campaign-dialog')

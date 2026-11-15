@@ -133,6 +133,8 @@ def main():
         page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=45000)
         check(not snap()['rendering']['compatibility'], 'Software WebGL is available for ' + mode)
         page.locator(f'[data-game-mode="{mode}"]').click()
+        if page.locator('#guided-tutorial').count():
+            page.locator('#guided-tutorial').uncheck()
         page.locator('#start-button').click()
         wait(lambda s: s['started'] and s['gameMode'] == mode, 'Normal mode selection starts ' + mode, 12)
         focus()

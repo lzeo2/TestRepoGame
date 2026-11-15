@@ -94,6 +94,8 @@ def main():
         p.locator(f'[data-game-mode="{mode}"]').click()
         check(p.locator(f'[data-game-mode="{mode}"]').get_attribute('aria-pressed') == 'true',
               mode + ' mode selection is reflected in UI')
+        if p.locator('#guided-tutorial').count():
+            p.locator('#guided-tutorial').uncheck()
         p.locator('#start-button').click()
         p.wait_for_function('(mode)=>capitalDriveSnapshot().started && capitalDriveSnapshot().gameMode===mode', arg=mode)
         focus_world(p)

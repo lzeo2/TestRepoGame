@@ -219,6 +219,8 @@ def main():
             page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=45000)
             check(not snap()['rendering']['compatibility'], 'Software WebGL available')
             page.locator('[data-game-mode="free"]').click()
+            if page.locator('#guided-tutorial').count():
+                page.locator('#guided-tutorial').uncheck()
             page.locator('#start-button').click()
             page.wait_for_function('capitalDriveSnapshot().started&&capitalDriveSnapshot().gameMode==="free"')
             focus_world()

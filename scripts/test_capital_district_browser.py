@@ -23,6 +23,12 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+def skip_guided_tutorial(page):
+    tutorial = page.locator('#guided-tutorial')
+    if tutorial.count():
+        tutorial.uncheck()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True, type=Path,
@@ -95,6 +101,7 @@ def main():
         p.locator(f'[data-game-mode="{mode}"]').click()
         check(p.locator(f'[data-game-mode="{mode}"]').get_attribute('aria-pressed') == 'true',
               mode + ' mode selection is reflected in UI')
+        skip_guided_tutorial(p)
         p.locator('#start-button').click()
         p.wait_for_function('(mode)=>capitalDriveSnapshot().started && capitalDriveSnapshot().gameMode===mode', arg=mode)
         focus_world(p)
@@ -460,6 +467,7 @@ def main():
                               'Phone '+theme+' start layout has no horizontal overflow')
                         capture(page, 'phone-'+theme+'-start-layout')
                         page.locator('[data-game-mode="free"]').click()
+                        skip_guided_tutorial(page)
                         page.locator('#start-button').click()
                         page.locator('#map-button').click()
                         check(page.locator('#map-dialog').is_visible(), 'Phone '+theme+' opens map from its button')

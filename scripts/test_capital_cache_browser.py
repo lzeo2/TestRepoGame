@@ -100,6 +100,12 @@ class CountedHandler(http.server.SimpleHTTPRequestHandler):
             super().do_GET()
 
 
+def skip_guided_tutorial(page):
+    tutorial = page.locator('#guided-tutorial')
+    if tutorial.count():
+        tutorial.uncheck()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True, type=Path)
@@ -165,6 +171,7 @@ def main():
 
     def start_and_drive(page):
         page.locator('[data-game-mode="street"]').click()
+        skip_guided_tutorial(page)
         page.locator('#start-button').click()
         page.wait_for_function('capitalDriveSnapshot().started && capitalDriveSnapshot().gameMode === "street"')
         before = snapshot(page)['player']
@@ -321,6 +328,7 @@ def main():
 
                 page.locator('[data-game-mode="campaign"]').click()
                 page.locator('#intro-characters [data-character="student"]').click()
+                skip_guided_tutorial(page)
                 page.locator('#start-button').click()
                 page.wait_for_function('capitalDriveSnapshot().started && capitalDriveSnapshot().gameMode === "campaign"')
                 page.locator('#campaign-dialog').wait_for(state='visible')
@@ -369,6 +377,7 @@ def main():
                 page.locator('[data-game-mode="campaign"]').click()
                 check(page.locator('#intro-characters [data-character="basement"]').get_attribute('aria-pressed') == 'true',
                       'Reload selects the saved Milo in the real Campaign UI')
+                skip_guided_tutorial(page)
                 page.locator('#start-button').click()
                 page.locator('#campaign-dialog').wait_for(state='visible')
                 restored = observe(page, 'Milo restored by normal Start after reload')

@@ -109,6 +109,8 @@ def main():
         page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=45000)
         check(not snap()['rendering']['compatibility'], 'Actual software WebGL renderer available')
         page.locator('[data-game-mode="street"]').click()
+        if page.locator('#guided-tutorial').count():
+            page.locator('#guided-tutorial').uncheck()
         page.locator('#start-button').click()
         wait(lambda s: s['started'] and s['gameMode'] == 'street', 'Normal Street Life start')
         focus()
