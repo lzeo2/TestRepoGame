@@ -82,3 +82,11 @@ hudEnv.paused=()=>true;assert.equal(hudGate(subject),false);hudEnv.paused=()=>fa
 hudEnv.gameplay.state.recovery={};assert.equal(hudGate(subject),false);
 assert.equal(hudGate({active:false,objective:null}),false);
 console.log('PASS recon camera admission: nearby on-foot framing only; far travel, driving, passengers, pause and recovery keep normal UI');
+
+let sightQueries=0,smokeQueries=0;
+const sightEnv={interiors:{active:null},world:{heightAt:()=>0},ordnance:{blocksSight(){smokeQueries++;return false;}},traceWorldShot(ray){sightQueries++;return ray.range;}};
+const sightGate=Function('env',`with(env){${extract('reconSight')};return reconSight;}`)(sightEnv);
+assert.equal(sightGate({x:0,z:0},{x:5000,z:5000,y:1.6}),false);assert.equal(sightGate({x:0,z:0},{x:0,z:2,y:Infinity}),false);
+assert.equal(sightQueries,0);assert.equal(smokeQueries,0,'oversized or invalid recon rays stop before all physical queries');
+assert.equal(sightGate({x:0,z:0},{x:0,z:8,y:1.6}),true);assert.equal(sightQueries,1);assert.equal(smokeQueries,1);
+console.log('PASS controller recon sight bound: nonfinite/over40m rays never query smoke, cars, terrain or solids; real near sight remains authoritative');

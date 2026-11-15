@@ -849,7 +849,7 @@ function policeShotClear(from,to,{room,interiorId}={}){
 function reconSight(from,to){
   const y=(interiors.active?.floorY??world.heightAt(from.x,from.z))+1.6;
   const dx=to.x-from.x,dy=to.y-y,dz=to.z-from.z,distance=Math.hypot(dx,dy,dz);
-  if(!(distance>0)||ordnance?.blocksSight({...from,y},to,{interiorId:to.space||null}))return false;
+  if(!Number.isFinite(distance)||distance<=0||distance>40||ordnance?.blocksSight({...from,y},to,{interiorId:to.space||null}))return false;
   const ray={x:from.x,y,z:from.z,dx:dx/distance,dy:dy/distance,dz:dz/distance,range:Math.max(.01,distance-.15),interiorId:to.space||null};
   return traceWorldShot(ray)>=ray.range-.02;
 }

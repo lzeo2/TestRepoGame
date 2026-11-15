@@ -34,3 +34,32 @@ assert.equal(recon.snapshot().receipt, null); assert.equal(recon.snapshot().held
 recon.clear(); assert.equal(recon.snapshot().active, false); assert.deepEqual(recon.drainEvents(), []);
 assert.throws(() => recon.step(NaN, live));
 console.log('Capital recon: supplied time, steady yaw/pitch, physical sight, fresh scan edge, mission/space binding, interruption and once-only receipt PASS');
+
+// A distant or unframed subject must never trigger map/terrain ray traversal.
+for (const pose of [{x:0,z:-5000,speed:0},{x:0,z:7,speed:0},{x:0,z:0,speed:1}]) {
+ const trial=createRecon();trial.setObjective(active,descriptor);let rays=0;
+ for(let tick=0;tick<600;tick++)trial.step(1/60,{...live,pose,hasLineOfSight:()=>{rays++;return true;}});
+ assert.equal(rays,0,'far, too-close or moving travel performs no physical sight queries');
+ assert.equal(trial.snapshot().held,0);
+}
+for (const change of [{yaw:0},{pitch:.7},{onFoot:false},{paused:true},{health:0}]) {
+ const trial=createRecon();trial.setObjective(active,descriptor);let rays=0;
+ observe(trial,{...live,...change,hasLineOfSight:()=>{rays++;return true;}});
+ assert.equal(rays,0,'invalid or unframed views perform no physical sight queries');
+}
+const bounded=createRecon();bounded.setObjective(active,descriptor);let actualQueries=0;
+observe(bounded,{...live,hasLineOfSight:()=>{actualQueries++;return false;}},3);
+assert.equal(actualQueries,3,'eligible framing still checks actual cover each supplied tick');
+assert.equal(bounded.snapshot().ready,false);assert.match(bounded.snapshot().reason,/blocked/i);
+observe(bounded,{...live,hasLineOfSight:()=>{actualQueries++;return true;}});
+bounded.step(.1,{...live,scan:true,hasLineOfSight:()=>true});assert.equal(bounded.snapshot().receipt.outcome,'documented');
+console.log('PASS recon sight budget: zero rays during far/too-close/moving/unframed/invalid travel; eligible views retain physical cover and fresh scan receipts');
+
+for(const maxDistance of [Infinity,1e100,NaN]) {
+ const trial=createRecon();trial.setObjective(active,{...descriptor,maxDistance});let rays=0;
+ observe(trial,{...live,pose:{x:0,z:-5000,speed:0},hasLineOfSight:()=>{rays++;return true;}});
+ assert.equal(trial.snapshot().objective.maxDistance,18);assert.equal(rays,0,'malformed future ranges cannot reopen city-wide sight scans');
+}
+const invalidHeight=createRecon();invalidHeight.setObjective(active,{...descriptor,y:Infinity});assert.equal(invalidHeight.snapshot().active,false);
+const invalidEye=createRecon();invalidEye.setObjective(active,descriptor);let eyeQueries=0;
+observe(invalidEye,{...live,eyeHeight:Infinity,hasLineOfSight:()=>{eyeQueries++;return true;}});assert.equal(eyeQueries,0);
