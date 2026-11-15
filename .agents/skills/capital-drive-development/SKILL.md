@@ -34,6 +34,9 @@ Tutorial, interface and activity presentation changes also read
 Mobile controls, crew boarding/switching, powers, throwables, garage modifications,
 airport, backyards, weather and car damage also read
 `docs/capital-drive-crew-and-city-contract.md` and its linked airport sources.
+Vertical shooting, camera feedback, deliberate recon, evidence tasks and modern
+Pink Earmuffs fights also read `docs/capital-drive-combat-and-recon-contract.md`
+and its linked verification receipt.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -66,8 +69,11 @@ root from its own file. It requires all documented modules/suites and fails on a
 missing file or failed command. It installs nothing and runs no full-fleet test,
 regeneration, maintenance refresh, save reset or push.
 
-For explicitly needed browser evidence, choose a fresh directory outside the
-repository and pass it with `--browser --output`. Browser checks use a temporary
+For fresh combat/recon evidence, use the standalone native command in the
+combat/recon contract. Earlier browser flows require review against current
+controls and encounter semantics before serving as current acceptance.
+For other explicitly needed browser evidence, choose a fresh directory outside
+the repository and pass it with `--browser --output`. Browser checks use a temporary
 localhost server and terminate it. The default is the district/campaign suite. Earlier store/pool runs are retained as dated evidence.
 `--expansion-browser` and `--classic-browser` retain the earlier suites. Normal
 E first stops a moving car and a second E exits; the harness must respect that.
@@ -91,7 +97,7 @@ recovery is character-health based; a wrecked car must allow exit. Ordinary
 road travel and foot movement must not generate reckless vehicle reports.
 
 Campaign is a third mode with three separately ordered introductions, a shared
-meeting and nine shared chapters. Its strict v2 save preserves v1 progress;
+meeting and thirteen shared chapters. Its strict v2 save preserves v1 progress;
 permit switching between any missions while preserving independent partial intro
 prefixes. Lock switching only during an active mission (plus invalid/recovery
 context guards). Restore that hero’s own checked location/health/car/ammo, without

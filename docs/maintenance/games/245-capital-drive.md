@@ -7,13 +7,21 @@
 Operator-authorized original Canberra open-world preview, catalog 245, static entry
 `Games/Capital Drive/index.html`. Three modes share one runtime. **Campaign** has
 three fictional adult protagonists, two opening missions each, a shared Kingston
-meeting and nine assigned shared heist chapters. **Street Life** has jobs, cash, a
+meeting and thirteen assigned shared chapters, including reconnaissance and prepared heists. **Street Life** has jobs, cash, a
 garage, foot combat and police; **Free roam** has all cars, local address search
 and map teleporting. The mapped area covers the inner south and a source-derived
-lake/Civic corridor. Airport and whole-city coverage remain later work. No GTA code,
+lake/Civic corridor. A sourced road extension reaches the airport; whole-city coverage remains later work. No GTA code,
 artwork or branded vehicle assets are used.
 
 ## Implementation map
+
+The [combat/recon contract](../../capital-drive-combat-and-recon-contract.md)
+records vertical mouse/keyboard/touch aiming, physical shot cover and adult body
+hits, supplied-time muzzle/audio/reticle feedback, stable frame scheduling,
+recon scans, a separate evidence-case task and actual Pink Earmuffs melee victory.
+`ballistics.js`, `shot-obstacles.js`, `camera-control.js` and `recon.js` keep those
+rules outside the controller. Legacy campaign prefixes and once-only rewards
+remain valid; modern fight retries keep the actual indoor objective marker.
 
 The [crew/city continuation contract](../../capital-drive-crew-and-city-contract.md)
 records analog mobile joysticks, keyboard aiming, live crew seats/window fire and
@@ -122,7 +130,7 @@ Unfamiliar parked and occupied cars require an eight-key timed unlock sequence.
 Occupied drivers must stop first; remain close and visible throughout. Cars you
 have already driven stay unlocked for immediate re-entry. **E** cancels an attempt.
 **1–5** chooses fists/pistol/shotgun/SMG/carbine; buy owned weapons at supplies or fictional street contacts first;
-right mouse aims, left mouse attacks/fires, F melees and R reloads on foot.
+hold Z or right mouse to aim, move the mouse to aim up/down; Page Up/Down and the touch LOOK stick also change elevation. Left mouse attacks/fires, F melees and R reloads on foot. Recon missions require a steady marked view and a fresh I or SCAN press; evidence cases use X/Y and ↑. Pink victory stages require fists after her noodle throw, then a real knockout.
 **Q** starts the nearby interior mini-game or paid shop task; **T** opens the
 Yoober/Lemon phone. Book outside on foot, walk beside the stopped Yoober and E
 boards; E exits at the destination or requests a stop during travel. Drive for
@@ -779,14 +787,14 @@ imports with retained source hashes; never turn rendering estimates into data.
 
 ```sh
 python3 -B scripts/check_capital_drive.py
-python3 -B scripts/check_capital_drive.py --browser --life-browser --output <external-output>
+timeout 600s python3 -B scripts/test_capital_combat_recon_browser.py --capture --output <external-output>
 python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The current reusable runner checks92game JavaScript files and115pure Node suites
-plus two Python cache checks (325 syntax/source commands), fails on missing files or command errors and bounds
-subprocess lifetimes. The [crew/city/flight receipt](../../verification/capital-drive-crew-city-flight-2026-11-15.md) records the latest source/native run,
+The current reusable runner checks96game JavaScript files and126pure Node suites
+plus two Python cache checks (351 syntax/source commands), fails on missing files or command errors and bounds
+subprocess lifetimes. The [combat/recon receipt](../../verification/capital-drive-combat-recon-2026-11-15.md) records the latest source/native run. The [crew/city/flight receipt](../../verification/capital-drive-crew-city-flight-2026-11-15.md) retains the preceding release,
 while the earlier230/230 story/streaming and220/220 city-life results remain
 separately dated. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
@@ -802,6 +810,6 @@ Profile a repeatable inner-south route on the intended N100; refine landmark
 approaches/terrain seams and ordinary architecture from further verified views.
 Improve officer navigation, driver lane changes, damage presentation and job
 variety while completing native career evidence for the three-character story.
-Airport coverage is a later expansion. Expand Canberra with bounded source
+Airport terminal interiors and airline services remain future work. Expand Canberra with bounded source
 snapshots and address coverage. Preserve a playable smaller district and
 honest evidence rather than claiming a completed city or cinematic GTA equivalent.

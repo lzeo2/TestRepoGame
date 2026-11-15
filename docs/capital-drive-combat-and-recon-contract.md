@@ -117,8 +117,15 @@ Waiting only readies the scan. A fresh I press or SCAN action after readiness
 creates a receipt bound to mission ID, stage, target ID, logical space and serial.
 Holding I early cannot bank a later automatic success. The phone's recon action
 closes dialogs and returns focus to the camera. The world subject marker, steady
-progress and ready state describe that same live objective. Physical cover and
-smoke can block observation.
+progress and ready state describe that same live objective. The scanning panel
+and close camera appear only on foot within40m of the subject; driving and far
+travel retain normal map/route guidance. During nearby framing, the route card
+is hidden so it cannot overlap the camera panel. Physical cover and
+smoke can block observation. Cheap distance, facing, speed and steadiness checks
+run before physical sight: far travel and unframed views perform zero map rays.
+Authored distances are sanitized to2–18m, nonfinite heights are rejected, and
+the controller rejects any invalid or over40m three-dimensional recon ray before
+smoke, vehicle or solid queries. This guard does not shorten weapon/police rays.
 
 Campaign accepts only a fresh matching documented receipt for the current recon
 stage. The controller similarly accepts an evidence receipt only from a completed
@@ -210,8 +217,11 @@ whole sealed-account heist, a mission-bound native evidence receipt, the final
 rematch reward or natural completion of all13shared chapters. Captures cover
 selected desktop/mobile and light/dark states, with at most six frames.
 
-Fresh native and CPU-profile acceptance remain pending when this contract is
-written. No passing counts, audible sound acceptance, whole-campaign native
-completion or Intel N100 frame-rate improvement are claimed here. Pure state,
-geometry and scheduling checks establish their tested boundaries; software WebGL,
-source hashes, CPU samples and target-hardware FPS remain distinct evidence.
+The [verification receipt](verification/capital-drive-combat-recon-2026-11-15.md)
+records351final source commands,48combined native checks and16final recon checks,
+plus two matched candidate profile runs. Actual hit/cue proof is retained from a
+same-runtime attempt with an unrelated later navigation failure. Source/counter
+checks prove the final recon sight bound; inactive Free-roam profiles do not
+measure that mission path. Audible quality, whole-campaign native completion
+and Intel N100 frame-rate improvement remain unmeasured. Software WebGL, source
+hashes, CPU samples and target-hardware FPS remain distinct evidence.
