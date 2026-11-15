@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bounded normal-input police room entry or fresh Milo car-start evidence.
+"""Bounded normal-input police entry, Milo start or private mission UI evidence.
 
 timeout 240s python3 -B scripts/test_capital_indoor_police_browser.py \
   --scenario police --capture --output <fresh-external-directory>
@@ -30,11 +30,25 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--scenario', choices=['police', 'milo'], default='police')
+    parser.add_argument('--scenario', choices=['police', 'milo', 'developer'], default='police')
+    parser.add_argument('--code-file', type=Path, help='Private selector code in an external file; never recorded')
     parser.add_argument('--capture', action='store_true')
     parser.add_argument('--output', required=True, type=Path)
     args = parser.parse_args()
-    budget = BUDGET if args.scenario == 'police' else 90
+    secret = ''
+    if args.scenario == 'developer':
+        if not args.code_file:
+            parser.error('--code-file is required for developer UI verification')
+        code_path = args.code_file.resolve()
+        if code_path == ROOT or ROOT in code_path.parents:
+            parser.error('--code-file must be outside the repository')
+        try:
+            secret = code_path.read_text().strip()
+        except OSError:
+            parser.error('Cannot read the external private selector code')
+        if not secret or len(secret) > 32:
+            parser.error('External private selector code has an invalid length')
+    budget = {'police': BUDGET, 'milo': 90, 'developer': 100}[args.scenario]
     output = args.output.resolve()
     if output == ROOT or ROOT in output.parents:
         parser.error('--output must be outside the repository')
@@ -151,6 +165,51 @@ def main():
         origin = plan['origin']
         return math.sin(origin['yaw'])*(pose['x']-origin['x'])+math.cos(origin['yaw'])*(pose['z']-origin['z'])
 
+    def career_prefixes(state):
+        campaign = state['campaign']
+        return {'cash': state['career']['cash'], **{key: campaign[key] for key in ('character', 'intros', 'completed', 'meeting', 'legacy')}}
+
+    def developer_case():
+        page.locator('#campaign-resume').click()
+        wait(lambda s: not s['paused'], 'Normal Return to game closes initial briefing')
+        original = record('fresh Kit before private selector')
+        check(original['campaign']['character'] == 'student' and original['campaign']['active'] is None and original['career']['cash'] == 1000 and not any(original['campaign']['intros'].values()) and not original['campaign']['completed'], 'Fresh Kit has no active mission or earned progress before private selector')
+        page.locator('#pause-button').click()
+        page.locator('#pause-dialog').wait_for(state='visible')
+        page.locator('#dev-code-section summary').click()
+        check(page.locator('#dev-code-input').get_attribute('type') == 'password', 'Private selector code field is masked')
+        check(page.locator('#mission-dev-picker').is_hidden(), 'Mission picker starts hidden')
+        page.locator('#dev-code-input').fill('invalid-native-selector-code')
+        page.locator('#dev-code-form button[type="submit"]').click()
+        page.wait_for_function('document.querySelector("#dev-code-status").textContent.length>0')
+        check(page.locator('#mission-dev-picker').is_hidden() and page.locator('#dev-code-input').input_value() == '', 'Wrong code keeps mission picker hidden and clears masked entry')
+        page.locator('#dev-code-input').fill(secret)
+        page.locator('#dev-code-form button[type="submit"]').click()
+        page.locator('#mission-dev-picker').wait_for(state='visible')
+        check(page.locator('#dev-code-input').input_value() == '', 'Accepted private entry clears masked code before any evidence capture')
+        options = page.locator('#mission-dev-select option')
+        check(options.count() == 13, 'Private selector exposes all thirteen mission options')
+        check(career_prefixes(snap()) == career_prefixes(original), 'Unlocking selector preserves starting cash and all career progress prefixes')
+        page.locator('#mission-dev-select').select_option('home-by-the-lake')
+        page.locator('#mission-dev-play').click()
+        preview = wait(lambda s: s['campaign']['active'] and s['campaign']['active'].get('developer') is True, 'Visible Start mission preview begins locked chapter')
+        wait(lambda s: s['playerAppearance'] == 'player:basement', 'Preview owner appearance becomes Milo')
+        page.wait_for_function('document.querySelector("#mode-label").textContent.includes("Milo")')
+        preview = record('actual private selector starts locked Milo chapter')
+        check(preview['campaign']['active']['id'] == 'home-by-the-lake' and preview['campaign']['active']['character'] == 'basement' and preview['gameplay']['mode'] == 'vehicle' and preview['playerAppearance'] == 'player:basement', 'Locked shared mission starts as developer preview with actual Milo body and HUD owner')
+        check(career_prefixes(preview) == career_prefixes(original) and preview['campaign']['active']['reward'] == 0, 'Developer preview preserves original career prefixes and offers no mission reward')
+        capture('private-selector-preview-active')
+        pulse('j')
+        page.locator('#campaign-dialog').wait_for(state='visible')
+        page.locator('#campaign-cancel').click()
+        restored = wait(lambda s: s['campaign']['active'] is None and s['playerAppearance'] == original['playerAppearance'], 'Normal J Cancel restores previous protagonist')
+        check(career_prefixes(restored) == career_prefixes(original), 'Normal preview Cancel preserves cash, introductions and completed career prefixes')
+        check(restored['gameMode'] == original['gameMode'] and restored['gameplay']['mode'] == original['gameplay']['mode'] and math.hypot(restored['focus']['x']-original['focus']['x'], restored['focus']['z']-original['focus']['z']) < .15, 'Normal preview Cancel restores prior mode and physical body position')
+        check(math.hypot(restored['player']['x']-original['player']['x'], restored['player']['z']-original['player']['z']) < .15 and all(restored['gameplay'][key] == original['gameplay'][key] for key in ('health', 'weapon', 'ammo', 'reserveAmmo')), 'Normal preview Cancel restores previous parked car, health and equipped ammunition')
+        page.locator('#campaign-resume').click()
+        wait(lambda s: not s['paused'], 'Normal Return to game resumes restored Kit')
+        capture('private-selector-cancel-restored')
+
     def police_case():
         initial = record('fresh Kit campaign')
         check(initial['career']['cash'] == 1000 and not any(initial['campaign']['intros'].values()), 'Fresh Kit has starting cash and no earned introductions')
@@ -235,13 +294,15 @@ def main():
                 page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=60000)
                 check(not snap()['rendering']['compatibility'], 'Native context has software WebGL')
                 page.locator('[data-game-mode="campaign"]').click()
-                hero = 'student' if args.scenario == 'police' else 'basement'
+                hero = 'basement' if args.scenario == 'milo' else 'student'
                 page.locator(f'#intro-characters [data-character="{hero}"]').click()
                 page.locator('#start-button').click()
                 wait(lambda s: s['started'] and s['gameMode'] == 'campaign', 'Fresh campaign starts through visible UI')
                 focus()
                 if args.scenario == 'police':
                     police_case()
+                elif args.scenario == 'developer':
+                    developer_case()
                 else:
                     state = record('fresh Milo campaign vehicle start')
                     check(state['campaign']['character'] == 'basement' and state['gameplay']['mode'] == 'vehicle', 'Fresh selected Milo starts inside his car')
@@ -262,19 +323,22 @@ def main():
                 check(not external, 'No external runtime requests attempted')
             except Exception:
                 try:
+                    if args.scenario == 'developer' and page.locator('#dev-code-input').is_visible():
+                        page.locator('#dev-code-input').fill('')
                     capture(args.scenario+'-failure-state')
                 except Exception:
                     pass
                 raise
     except Exception as error:
-        failure = f'{type(error).__name__}: {error}'
+        detail = str(error).replace(secret, '[redacted]') if secret else str(error)
+        failure = f'{type(error).__name__}: {detail}'
     finally:
         signal.alarm(0)
         signal.signal(signal.SIGALRM, prior)
         server.shutdown()
         server.server_close()
         thread.join(timeout=2)
-        report = {'status': 'FAIL' if failure else 'PASS', 'scenario': args.scenario, 'failure': failure, 'checks': checks, 'errors': errors, 'requests': requests, 'external': external, 'elapsedSeconds': round(time.monotonic()-started, 2), 'budgetSeconds': budget, 'screenshots': sorted(path.name for path in output.glob('*.png')), 'limitations': ['Software WebGL only; target hardware performance remains unmeasured.', 'Police case proves normal-input ordinary-room entry only when its assertion passes. Safehouse exclusion, evasion and mission completion are not native acceptance here.', 'Milo case proves only a fresh campaign vehicle start and brief movement; wanted career jobs and rewards are not exercised.']}
+        report = {'status': 'FAIL' if failure else 'PASS', 'scenario': args.scenario, 'failure': failure, 'checks': checks, 'errors': errors, 'requests': requests, 'external': external, 'elapsedSeconds': round(time.monotonic()-started, 2), 'budgetSeconds': budget, 'screenshots': sorted(path.name for path in output.glob('*.png')), 'limitations': ['Software WebGL only; target hardware performance remains unmeasured.', 'Police case proves normal-input ordinary-room entry only when its assertion passes. Safehouse exclusion, evasion and mission completion are not native acceptance here.', 'Milo case proves only a fresh campaign vehicle start and brief movement; wanted career jobs and rewards are not exercised.', 'Developer case uses the configured private UI exception; locked chapter preview is not ordinary career unlock or mission completion evidence.']}
         (output/'results.json').write_text(json.dumps(report, indent=2)+'\n')
         print(json.dumps(report, indent=2), flush=True)
     if failure:
