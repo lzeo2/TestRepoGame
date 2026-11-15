@@ -179,6 +179,8 @@ def main():
             page.keyboard.press('m')
             page.locator('[data-place="redhill"]').get_by_role('button', name='Set route').click()
             check(snap(page)['routePoints'] > 10, 'Red Hill route follows the connected road graph')
+            if not page.locator('#map-dialog').is_visible():
+                page.locator('#map-button').click()
             page.screenshot(path=str(output / 'canberra-map.png'))
             page.locator('[data-place="redhill"]').get_by_role('button', name='Start nearby').click()
             page.wait_for_function('capitalDriveSnapshot().discovered.includes("redhill")')
