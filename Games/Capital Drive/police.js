@@ -5,7 +5,7 @@ const gap = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
 const angle = a => Math.atan2(Math.sin(a),Math.cos(a));
 export function createPolice(simulation, options = {}) {
   const planner = createRoutePlanner(simulation.graph);
-  const routes = new Map(), tactics = new Map(), events = [];
+  const routes = new Map(), tactics = new Map(), approaches = new Map(), events = [];
   let serial = 0, arrest = 0, spawnDelay = 0, lastSeen = { ...simulation.player };
   const knownRooms = new Set();
   const currentInterior = () => options.getInterior?.() || null;
@@ -81,7 +81,34 @@ export function createPolice(simulation, options = {}) {
     if(best) {unit.x=best.candidate.x;unit.z=best.candidate.z;unit.yaw=Math.atan2(-Math.cos(best.direction),-Math.sin(best.direction));}
     unit.speed=gap(before,unit)/dt;
   }
-  function reset() { routes.clear(); tactics.clear(); events.length=0; knownRooms.clear(); arrest = 0; spawnDelay = 0; remember(simulation.player); }
+  function approachWaypoint(unit,room) {
+    const points=Array.isArray(room.approach)?room.approach:[];
+    if(!points.length) return room.outside;
+    let path=approaches.get(unit.id);
+    if(!path || path.roomId!==room.id) {
+      path={roomId:room.id,index:0};approaches.set(unit.id,path);
+      // A clear swept shortcut may join a later corridor segment. LOS alone
+      // cannot authorize skipping the source gate or a narrow body obstruction.
+      for(let i=Math.min(points.length,12)-1;i>0;i--) {
+        const point=points[i],probe={x:unit.x,z:unit.z};
+        if(!simulation.hasLineOfSight(unit,point)) continue;
+        const result=simulation.moveActor(probe,point.x-unit.x,point.z-unit.z,.45);
+        if(!result.blocked && gap(probe,point)<.1){path.index=i;break;}
+      }
+    }
+    while(path.index<points.length && gap(unit,points[path.index])<1.05) path.index++;
+    return points[path.index] || room.outside;
+  }
+  function roomRoadArrival(unit,room) {
+    if(!room || room.safehouse || gap(unit.car,room.outside)>90) return false;
+    const route=routes.get(unit.id);
+    if(!route) return false;
+    const edge=route.edges[route.index];
+    const atEnd=edge && route.index===route.edges.length-1 &&
+      edge.length-((unit.car.x-edge.from.x)*edge.dx+(unit.car.z-edge.from.z)*edge.dz)<=8;
+    return atEnd || route.stuck>.75 || (!edge && route.age>.75);
+  }
+  function reset() { approaches.clear(); routes.clear(); tactics.clear(); events.length=0; knownRooms.clear(); arrest = 0; spawnDelay = 0; remember(simulation.player); }
   const lanePoint = (edge,t) => ({ x:edge.from.x+edge.dx*t+edge.dz*edge.laneOffset,
     z:edge.from.z+edge.dz*t-edge.dx*edge.laneOffset,yaw:edge.yaw });
   const publicEdges = simulation.graph.edges.filter(edge => roadProfile(edge.road).trafficAllowed);
@@ -236,7 +263,7 @@ export function createPolice(simulation, options = {}) {
   function step(dt,state,target) {
     if(!Number.isFinite(dt) || dt<=0) return;
     dt=Math.min(dt,.05);
-    if (state.sandbox || state.wanted<=0) { state.police.length=0; routes.clear();tactics.clear();events.length=0;knownRooms.clear(); state.pursuit='clear'; return; }
+    if (state.sandbox || state.wanted<=0) { state.police.length=0; routes.clear();tactics.clear();approaches.clear();events.length=0;knownRooms.clear(); state.pursuit='clear'; return; }
     const room=currentInterior();
     const entry=room && (room.known || knownRooms.has(room.id)) ? room : null;
     const outsideTarget=entry?.outside || lastSeen;
@@ -257,9 +284,10 @@ export function createPolice(simulation, options = {}) {
       const destination=room?outsideTarget:(unit.seesPlayer?target:lastSeen);
       let returning=false;
       if(unit.mode==='vehicle') {
-        const dismount=gap(unit.car,destination)<24 && (state.mode==='foot' || Math.abs(target.speed)<2);
+        let dismount=(gap(unit.car,destination)<24 && (state.mode==='foot' || Math.abs(target.speed)<2)) || roomRoadArrival(unit,entry);
         drive(unit,destination,dt,dismount,state.wanted);
-        if(dismount && unit.car.speed<0.5) {
+        dismount ||= roomRoadArrival(unit,entry);
+        if(dismount && Math.abs(unit.car.speed)<0.5) {
           for(const side of [-1,1]) {
             const pose={x:unit.car.x+Math.cos(unit.car.yaw)*2*side,z:unit.car.z-Math.sin(unit.car.yaw)*2*side};
             const result=simulation.moveActor(pose,0,0,0.45);
@@ -277,7 +305,7 @@ export function createPolice(simulation, options = {}) {
         const decision=room?{door:null}:returnDecision(unit,unit.seesPlayer?destination:{...destination,speed:0},state,dt);
         const door=decision.door && boardingDoor(unit);
         const reboard=!!door;returning=reboard;
-        const goal=door || destination;
+        const goal=door || (entry && !entry.safehouse ? approachWaypoint(unit,entry) : destination);
         walk(unit,goal,dt,null,state,target,reboard?4.2:5.2);
         if(entry && !entry.safehouse) transition(unit,entry,state,target,true);
         if(reboard && gap(unit,goal)<1.2 && simulation.hasLineOfSight(unit,goal)) {

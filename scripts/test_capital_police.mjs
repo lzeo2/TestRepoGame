@@ -339,3 +339,57 @@ occupiedDoor.player.x+=4;
 occupiedDoor.ai.step(1/60,occupiedDoor.status,occupiedDoor.player);
 assert.equal(occupiedDoor.officer.interiorId,null,'reset clears remembered indoor reports');
 console.log('Capital police: checked room entry, same-space fire/arrest, wall LOS, retained-room exit, safehouse, unseen entry, landing clearance, pause/reset PASS');
+
+// Native regression: the nearest legal school road stops 37 metres from its
+// actual door. The car must stop there, then use the mapped gate on foot.
+const {CAMPUS_BARRIERS,CAMPUS_GATES}=await load('../Games/Capital Drive/campus.js');
+const schoolMap=applyRoadProfiles({...actualSource,barriers:[...CAMPUS_BARRIERS]},profiles);
+const schoolSim=createSimulation(schoolMap,{trafficCount:0});
+Object.assign(schoolSim.player,{x:-600,z:-600});
+const gate=CAMPUS_GATES.find(gate=>gate.id==='telopea-gate-11');
+const schoolRoom={id:'interior-telopea-school',known:true,safehouse:false,playerInside:true,
+  outside:{x:-296.17964979456633,z:-378.60790990665384},inside:{x:1000,z:1000},exit:{x:1000,z:1000},
+  approach:[{x:gate.path[1][0],z:gate.path[1][1]},{x:gate.x,z:gate.z},
+    {x:gate.path[0][0],z:gate.path[0][1]},{x:-296.17964979456633,z:-378.60790990665384}],
+  moveActor(actor,dx,dz){actor.x+=dx;actor.z+=dz;return {blocked:false};},
+  hasLineOfSight:()=>true,nextWaypoint:(from,to)=>to};
+const schoolCar={id:'school-road-stop',x:-330.35607248374134,z:-361.84808383543935,
+  yaw:-2.5639754106958317,speed:0,length:4.8,width:1.9,active:true};
+const schoolOfficer={id:schoolCar.id,...schoolCar,health:100,mode:'vehicle',interiorId:null,car:schoolCar};
+const schoolState={police:[schoolOfficer,...disabled()],wanted:1,mode:'foot',weapon:'unarmed',health:100,heat:37};
+const schoolTarget={x:1008,z:1000,speed:0};
+const schoolAI=createPolice(schoolSim,{getInterior:()=>schoolRoom,resolveInterior:()=>schoolRoom});
+schoolAI.report(schoolTarget);
+let schoolDismount=null,schoolEntry=null,schoolGateGap=Infinity,schoolPrevious={...schoolCar};
+for(let frame=0;frame<1800;frame++) {
+  schoolSim.setExternalVehicles([schoolCar]);
+  const before={...schoolOfficer};schoolAI.step(1/60,schoolState,schoolTarget);
+  if(schoolOfficer.mode==='foot' && schoolDismount===null) {
+    schoolDismount=frame/60;
+    assert(Math.hypot(schoolOfficer.x-schoolCar.x,schoolOfficer.z-schoolCar.z)<2.1,'dismount is beside the real stopped patrol');
+  }
+  if(schoolOfficer.mode==='vehicle')assert(Math.hypot(schoolCar.x-schoolPrevious.x,schoolCar.z-schoolPrevious.z)<.5,'approach never teleports the car');
+  if(schoolOfficer.mode==='foot' && !schoolOfficer.interiorId) {
+    schoolGateGap=Math.min(schoolGateGap,Math.hypot(schoolOfficer.x-gate.x,schoolOfficer.z-gate.z));
+    if(before.mode==='foot')assert(Math.hypot(schoolOfficer.x-before.x,schoolOfficer.z-before.z)<.1,'gate approach is continuous swept walking');
+  }
+  schoolPrevious={...schoolCar};
+  if(schoolOfficer.interiorId){schoolEntry=frame/60;break;}
+}
+assert(schoolDismount!==null && schoolDismount<5,'known room dismounts on its stalled legal road within seconds');
+assert(schoolGateGap<2.3,'school pursuit physically crosses gate11 rather than its fence');
+assert(schoolEntry!==null && schoolEntry<30,'37-metre road stop continues through gate to checked room entry');
+assert.equal(schoolAI.drainEvents().length,0,'one-star school search preserves proportional gunfire rules');
+console.log('Capital police: actual school stalled-road dismount, physical gate11 approach and checked entry PASS',JSON.stringify({dismount:schoolDismount,entry:schoolEntry,gateGap:schoolGateGap}));
+for(const protectedHouse of [false,true]) {
+  const room={...schoolRoom,known:protectedHouse,safehouse:protectedHouse};
+  const car={...schoolCar,id:`school-guard:${protectedHouse}`,x:-330.35607248374134,z:-361.84808383543935,speed:0};
+  const officer={id:car.id,...car,health:100,mode:'vehicle',interiorId:null,car};
+  const state={...schoolState,police:[officer,...disabled()],wanted:1,heat:37};
+  const ai=createPolice(schoolSim,{getInterior:()=>room,resolveInterior:()=>room});
+  if(protectedHouse)ai.report(schoolTarget);
+  for(let frame=0;frame<120;frame++){schoolSim.setExternalVehicles([car]);ai.step(1/60,state,schoolTarget);}
+  assert.equal(officer.mode,'vehicle',`${protectedHouse?'safehouse':'unknown room'} cannot use expanded entrance dismount`);
+  assert.equal(officer.interiorId,null);
+}
+console.log('Capital police: expanded road arrival excludes unknown rooms and protected safehouse PASS');
