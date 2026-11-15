@@ -75,6 +75,7 @@ const crewCtx={...ctx,mission:crewMission,health:100,playerMode:'foot',hostiles:
 const actualCrew=createCampaignScenes(map,simulation);actualCrew.update(crewCtx,.1);
 assert.equal(actualCrew.people.length,2);assert.deepEqual(actualCrew.people.map(p=>p.id),['campaign-ally:corporate','campaign-ally:basement']);
 for(const ally of actualCrew.people){assert.equal(ally.health,100);assert(ally.armed);assert(simulation.canOccupy(ally,{length:1,width:.8}));assert(map.roads.some(road=>String(road.id)===ally.sourceRoadId));}
+for(const ally of actualCrew.people)assert(Math.hypot(ally.x-crewCtx.pose.x,ally.z-crewCtx.pose.z)<15,'initial crew recruits beside the actual player');
 const actualBefore=actualCrew.people;
 actualCrew.update({...crewCtx,mission:{...crewMission,stage:1,target:{x:9999,z:9999}}},.1);
 for(let i=0;i<2;i++)assert(Math.hypot(actualCrew.people[i].x-actualBefore[i].x,actualCrew.people[i].z-actualBefore[i].z)<=.381,'next target cannot teleport an ally');
@@ -99,11 +100,23 @@ const sharedCampaign=createCampaign(fullMap,{version:1,completed:[]}),sharedCrew
 assert.equal(sharedCampaign.chapters.length,6);
 for(const chapter of sharedCampaign.chapters){
  sharedCrew.clear();sharedCrew.update({mode:'campaign',character:chapter.character,mission:{...chapter,target:chapter.stages[0]},pose:fullMap.spawn},.1);
- assert.equal(sharedCrew.people.length,2,`${chapter.id} recruits both allies at its actual first objective`);
+ assert.equal(sharedCrew.people.length,2,`${chapter.id} recruits both allies near the actual player`);
  for(const ally of sharedCrew.people){assert(fullSim.canOccupy(ally,{length:1,width:.8}));assert(fullMap.roads.some(road=>String(road.id)===ally.sourceRoadId));}
 }
-sharedCrew.dispose();
-console.log(`PASS all six heist crews at actual source objectives; ${actualHome.name}, ${actualHome.street}, ${actualHome.roomId}, door ${actualHome.x.toFixed(3)},${actualHome.z.toFixed(3)}, approach ${actualHome.approach.x.toFixed(3)},${actualHome.approach.z.toFixed(3)}`);
+const actualTravel={...crewCtx,pose:fullMap.spawn,mission:{...crewMission,target:{x:9999,z:9999}}};
+const sourceTravel=createCampaignScenes(fullMap,fullSim);sourceTravel.update({...actualTravel,pose:{...scenes.meetingPoint,yaw:0}},.1);
+const sourceBefore=sourceTravel.people;
+assert(sourceBefore.every(ally=>Math.hypot(ally.x-fullMap.spawn.x,ally.z-fullMap.spawn.z)>35));
+sourceTravel.update(actualTravel,.1);
+assert.equal(sourceTravel.people.length,2);
+for(let i=0;i<2;i++) {
+ const ally=sourceTravel.people[i];assert.equal(ally.id,sourceBefore[i].id);
+ assert(Math.hypot(ally.x-fullMap.spawn.x,ally.z-fullMap.spawn.z)<15,'actual merged-map travel catches crew up near the player, independent of objective');
+ assert(fullSim.canOccupy(ally,{length:1,width:.8}),'actual source buildings, water, rails and parked cars exclude unsafe landings');
+ for(const door of fullMap.interiorEntries)assert(Math.hypot(ally.x-door.x,ally.z-door.z)>=1.4,'actual source doors retain clear space');
+}
+sourceTravel.dispose();sharedCrew.dispose();
+console.log(`PASS all six heist crews beside the actual player; ${actualHome.name}, ${actualHome.street}, ${actualHome.roomId}, door ${actualHome.x.toFixed(3)},${actualHome.z.toFixed(3)}, approach ${actualHome.approach.x.toFixed(3)},${actualHome.approach.z.toFixed(3)}`);
 const fixtureMap={bounds:{minX:-100,maxX:100,minZ:-100,maxZ:100},spawn:{x:-50,z:-50,yaw:0},landmarks:[{id:'kingston',x:0,z:5}],roads:[{id:'public',type:'residential',width:6,points:[[-50,0],[50,0]]}],buildings:[{id:'wall',points:[[6,-20],[6.3,-20],[6.3,20],[6,20]],height:4}]};
 const crewSim=createSimulation(fixtureMap,{trafficCount:0}),crew=createCampaignScenes(fixtureMap,crewSim);
 const fc={...crewCtx,mission:{...crewMission,target:{x:0,z:5,radius:16}},pose:{x:-4,z:8,yaw:0}};
@@ -157,6 +170,108 @@ for(let i=0;i<100;i++){
 assert(moved>1,'followers actually walk using the swept world collider');
 for(const exit of [{mission:null},{mode:'free'},{recovering:true},{health:0}]){crew.update({...fc,...exit},.1);assert.equal(crew.people.length,0);assert.equal(crew.drainEvents().length,0);crew.update(fc,.1);}
 crew.dispose();crew.dispose();crew.update(fc,.1);assert.equal(crew.people.length,0);assert.equal(crew.receiveHit(hit),false);
+
+// Catch-up uses real Simulation collision and supplied time, without replacing
+// crew identity/health or pulling them toward a changed objective.
+const travelMap={bounds:{minX:-200,maxX:200,minZ:-200,maxZ:200},spawn:{x:-150,z:-150,yaw:0},landmarks:[],
+ roads:[{id:'travel-road',type:'residential',width:6,points:[[-190,-30],[190,-30]]}],
+ buildings:[{id:'long-wall',points:[[-.2,-100],[.2,-100],[.2,100],[-.2,100]],height:4}],
+ barriers:[{id:'landing-rail',points:[[46,13],[54,13],[54,13.3],[46,13.3]]}],
+ areas:[{id:'landing-water',type:'water',points:[[54,6],[59,6],[59,12],[54,12]]}],
+ interiorEntries:[{x:50,z:12.5}]};
+const travelSim=createSimulation(travelMap,{trafficCount:0});
+travelSim.setParkedCars([{id:'landing-car',x:50,z:6,yaw:0,length:4.8,width:2,active:true}]);
+const travel=createCampaignScenes(travelMap,travelSim),travelCtx={...fc,pose:{x:-50,z:10,yaw:0},mission:{...crewMission,target:{x:150,z:150}}};
+travel.update(travelCtx,.1);assert.equal(travel.people.length,2);
+for(const ally of travel.people)assert(Math.hypot(ally.x-travelCtx.pose.x,ally.z-travelCtx.pose.z)<=6,'distant first objective cannot recruit distant crew');
+const initialTravel=travel.people,injured=initialTravel[0],dead=initialTravel[1];
+const wound=ally=>({kind:'shot',targetId:ally.id,from:{x:ally.x+1,z:ally.z},to:ally,damage:25});
+assert(travel.receiveHit(wound(injured)));for(let i=0;i<4;i++)assert(travel.receiveHit(wound(dead)));
+const farCtx={...travelCtx,pose:{x:50,z:10,yaw:0},playerMode:'passenger'},deadBefore=travel.people[1];
+const held=travel.people;
+for(const frozen of [{paused:true},{}, {interior:{id:'test-room'}}]) {
+ travel.update({...farCtx,...frozen},Object.keys(frozen).length? .1:0);
+ if(frozen.interior)assert.equal(travel.people.length,0);else assert.equal(travel.people,held,'pause and zero dt freeze relocation');
+}
+const adult={id:'adult-at-landing',x:52.5,z:10,radius:.5,active:true};travelSim.setExternalPeople([...held,adult]);
+travel.update(farCtx,.1);
+const caught=travel.people[0];assert.equal(caught.id,injured.id);assert.equal(caught.appearanceId,injured.appearanceId);assert.equal(caught.health,75);assert.equal(caught.armed,true);
+assert(Math.hypot(caught.x-farCtx.pose.x,caught.z-farCtx.pose.z)<=6,'passenger travel catches up the living crew');
+assert.equal(caught.speed,0);assert.equal(caught.shot,null);assert.equal(travel.drainEvents().length,0);
+assert(travelSim.canOccupy(caught,{length:1,width:.8,ignorePersonId:caught.id}));
+assert(Math.hypot(caught.x-adult.x,caught.z-adult.z)>=.9);assert(Math.hypot(caught.x-50,caught.z-12.5)>=1.4,'landing leaves real doorway clear');
+assert.deepEqual(travel.people[1],deadBefore,'catch-up and interior return never move or resurrect a downed ally');
+travel.update({...farCtx,pose:{x:100,z:10,yaw:0},playerMode:'vehicle'},.1);
+assert(Math.hypot(travel.people[0].x-caught.x,travel.people[0].z-caught.z)<=.381,'driving travel observes the shared retry cooldown');
+for(let i=0;i<13;i++)travel.update({...farCtx,pose:{x:100,z:10,yaw:0},playerMode:'vehicle'},.1);
+assert(Math.hypot(travel.people[0].x-100,travel.people[0].z-10)<7,'driving crew catches up after the cooldown');
+travel.dispose();
+
+const shotSim=createSimulation(travelMap,{trafficCount:0}),shotCrew=createCampaignScenes(travelMap,shotSim);
+shotCrew.update(travelCtx,.1);
+const nearbyCop={id:'police:catchup-fixture',mode:'foot',active:true,health:100,x:-48,z:10};
+let fireFrame=null;
+for(let i=0;i<15;i++) {
+ const prior=shotCrew.people;shotCrew.update({...travelCtx,hostiles:[nearbyCop]},.1);
+ assert(shotCrew.people.every((ally,index)=>Math.hypot(ally.x-prior[index].x,ally.z-prior[index].z)<=.381),'nearby combat engagement never snaps companions');
+ if(shotCrew.people.some(ally=>ally.shot)){fireFrame=shotCrew.people;break;}
+}
+assert(fireFrame,'real nearby police produces a queued shot and tracer');
+shotCrew.update({...travelCtx,pose:{x:80,z:30,yaw:0},hostiles:[nearbyCop]},.1);
+assert.equal(shotCrew.drainEvents().length,0,'relocation discards queued shots from the old position');
+for(let i=0;i<2;i++) {
+ assert.equal(shotCrew.people[i].shot,null);assert.equal(shotCrew.people[i].cooldown,Math.max(0,fireFrame[i].cooldown-.1),'relocation preserves the remaining firing cooldown');
+}
+shotCrew.dispose();
+
+// The wall spans the entire local fan. Actual failed foot progress for three
+// seconds permits a checked landing on the player's side, below the 35m trigger.
+const stuckSim=createSimulation(travelMap,{trafficCount:0}),stuckCrew=createCampaignScenes(travelMap,stuckSim);
+const stuckCtx={...travelCtx,pose:{x:-12,z:10,yaw:0}};stuckCrew.update(stuckCtx,.1);
+const across={...stuckCtx,pose:{x:12,z:10,yaw:0}};let caughtAcross=false;
+for(let tick=0;tick<110;tick++) {
+ const prior=stuckCrew.people;stuckSim.setExternalPeople(prior);stuckCrew.update(across,.1);
+ for(let i=0;i<2;i++) {
+  const ally=stuckCrew.people[i],distance=Math.hypot(ally.x-prior[i].x,ally.z-prior[i].z);
+  if(distance>.381) {
+   assert(tick>=30,'stuck catch-up requires actual attempted following time');
+   assert(Math.hypot(prior[i].x-across.pose.x,prior[i].z-across.pose.z)<35,'this exercises stuck rather than distant catch-up');
+   assert(ally.x>1&&Math.hypot(ally.x-12,ally.z-10)<=6);assert(stuckSim.canOccupy(ally,{length:1,width:.8,ignorePersonId:ally.id}));caughtAcross=true;
+  } else assert(!(ally.x>-.52&&ally.x<.52),'ordinary foot movement cannot cross the wall');
+ }
+}
+assert(caughtAcross,'stuck living companions escape a real wall with a checked local landing');stuckCrew.dispose();
+
+// A completely blocked fan retains existing actors and retries on the shared
+// cooldown. Count local nearest-road queries, excluding ordinary foot sweeps.
+let roadQueries=0;
+const retrySim=createSimulation(travelMap,{trafficCount:0}),retryAdapter={...retrySim,
+ nearestRoad(x,z){roadQueries++;return retrySim.nearestRoad(x,z);}};
+retrySim.setParkedCars([66,70,74].map(x=>({id:`blocked-pad:${x}`,x,z:30,yaw:0,length:16,width:4,active:true})));
+const retryCrew=createCampaignScenes(travelMap,retryAdapter);retryCrew.update(travelCtx,.1);assert.equal(retryCrew.people.length,2);roadQueries=0;
+const distant={...travelCtx,pose:{x:70,z:30,yaw:0},playerMode:'passenger'},retryBefore=retryCrew.people;
+retryCrew.update(distant,.1);assert(roadQueries>0&&roadQueries<=50,'two actors use at most two fixed 24-candidate fans plus centre queries');
+assert.deepEqual(retryCrew.people.map(p=>[p.id,p.x,p.z,p.health]),retryBefore.map(p=>[p.id,p.x,p.z,p.health]),'blocked catch-up does not invent a spawn');
+const firstQueries=roadQueries;
+for(let i=0;i<12;i++)retryCrew.update(distant,.1);
+assert.equal(roadQueries,firstQueries,'blocked retries do not scan on every frame');
+retrySim.setParkedCars([]);retryCrew.update(distant,.1);assert(roadQueries>firstQueries&&roadQueries-firstQueries<=50);
+assert(retryCrew.people.every(ally=>Math.hypot(ally.x-70,ally.z-30)<=6),'a later clear fan recovers both existing allies');
+assert(Math.hypot(retryCrew.people[0].x-retryCrew.people[1].x,retryCrew.people[0].z-retryCrew.people[1].z)>=1.2);
+retryCrew.dispose();
+let admitRecruit=false,recruitQueries=0;
+const blockedRecruit=createCampaignScenes(travelMap,{...retrySim,
+ nearestRoad(x,z){recruitQueries++;return retrySim.nearestRoad(x,z);},
+ canOccupy(p,options){return admitRecruit&&retrySim.canOccupy(p,options);}},
+ {entrances:[{id:'public-school-door',x:-50,z:12.5}]});
+blockedRecruit.update(travelCtx,.1);assert.equal(blockedRecruit.people.length,0);assert(recruitQueries<=50);
+const failedRecruitQueries=recruitQueries;
+for(let i=0;i<12;i++)blockedRecruit.update(travelCtx,.1);
+assert.equal(recruitQueries,failedRecruitQueries,'initially blocked recruitment uses the same retry cooldown');
+admitRecruit=true;blockedRecruit.update(travelCtx,.1);assert.equal(blockedRecruit.people.length,2,'missing identities recruit when the fan becomes clear');
+for(const ally of blockedRecruit.people)assert(Math.hypot(ally.x+50,ally.z-12.5)>=1.4,'public entry descriptors supplied by the controller stay clear');
+blockedRecruit.dispose();
+console.log('PASS bounded crew catch-up: actual merged-map travel, safe local fan, source doors/walls/cars/water/adults, stuck3s, passenger/driving cooldown, blocked retry query bound, pause/zero dt, indoor return and no healing/resurrection');
 
 const url=source=>`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const threeURL=url(await read('../assets/car-arcade/vendor/three.module.js')),THREE=await import(threeURL);
