@@ -45,7 +45,7 @@ export function createGameplay(map, simulation, options = {}) {
   const theftChallenge = createVehicleChallenge();
   function clearTheftChallenge() { theftChallenge.clear(); theftChallenge.drainEvents(); }
   const policeEvents=[];
-  const policeController = createPolice(simulation, { getAllies:options.getAllies, getInterior:options.getInterior, resolveInterior:options.resolveInterior, onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
+  const policeController = createPolice(simulation, { getAllies:options.getAllies, playerAltitude:options.playerAltitude, getInterior:options.getInterior, resolveInterior:options.resolveInterior, onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
   const passengerPose=()=>{const pose=options.passengerPose?.();return pose&&Number.isFinite(pose.x)&&Number.isFinite(pose.z)?pose:null;};
   Object.defineProperty(state,'passenger',{enumerable:true,get:()=>!!passengerPose()});
   const focus = () => passengerPose()||(state.mode === 'foot' ? state.actor : simulation.player);
@@ -137,7 +137,7 @@ export function createGameplay(map, simulation, options = {}) {
   }
   function setWeapon(id) {
     const weapon = weaponById(id);
-    if (state.recovery || state.actor.impactTime > 0 || (id !== 'unarmed' && !weapon) ||
+    if (options.isPiloting?.() || state.recovery || state.actor.impactTime > 0 || (id !== 'unarmed' && !weapon) ||
       (state.reloading > 0 && id !== state.weapon)) return false;
     if (weapon && !ownsWeapon(id)) return false;
     if (weapon && !equipped.has(id)) {
@@ -148,7 +148,7 @@ export function createGameplay(map, simulation, options = {}) {
   }
   function reload() {
     const weapon = weaponById(state.weapon);
-    if (state.recovery || state.actor.impactTime > 0 || !weapon || !ownsWeapon(weapon.id) || state.ammo >= weapon.magazine || state.reserveAmmo <= 0 || state.reloading > 0) return false;
+    if (options.isPiloting?.() || state.recovery || state.actor.impactTime > 0 || !weapon || !ownsWeapon(weapon.id) || state.ammo >= weapon.magazine || state.reserveAmmo <= 0 || state.reloading > 0) return false;
     state.reloading = weapon.reload * powerFactor('reload'); emit('reload', 'Reloading.'); return true;
   }
   function clippedRange(actor, yaw, requestedRange) {

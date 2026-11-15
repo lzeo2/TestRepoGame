@@ -136,7 +136,7 @@ export function createProgression(map, saved = null, options = {}) {
   }
   function startJob(id, ctx) {
     if (!remember(ctx)) return result(false, 'A valid player position is required.');
-    if (ctx.sandbox || ctx.recovering) return result(false, 'Jobs are unavailable here.');
+    if (ctx.sandbox || ctx.recovering || ctx.passenger) return result(false, 'Jobs are unavailable here.');
     if (state.activeJob||state.activity) return result(false, 'Finish or cancel the current activity first.');
     const job = jobs.find(item => item.id === id);
     if (!job) return result(false, 'Unknown job.');
