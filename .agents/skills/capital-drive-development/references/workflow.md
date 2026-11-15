@@ -142,7 +142,7 @@ fresh source evidence; never edit expectations just to admit an accidental rebui
 
 ## Performance and pure verification
 
-Target remains N100/8GB with a capped 60 Hz simulation and 30/60 render options.
+Target remains N100/8GB with a capped 60 Hz simulation and 20/30/60 render options.
 Source-level budgets are guards, not hardware FPS acceptance. Keep traffic default 40,
 hard limit 56; police at most 4; pooled shots and pedestrians bounded. Current
 landmark suite requires five sites, ten merged meshes and fewer than 16000
@@ -159,10 +159,10 @@ python3 -B scripts/check_capital_drive.py --dry-run
 python3 -B scripts/check_capital_drive.py
 ```
 
-The runner enumerates80 game JavaScript files and95 pure Node suites in its `MODULES`
+The runner enumerates96 game JavaScript files and126 pure Node suites in its `MODULES`
 and `SUITES` constants, including roads, buses, police, occupants and services.
 It checks every syntax entry, executes every suite (drive receives the actual map
-argument), then runs `git diff --check` plus two Python cache checks:273 commands in the tutorial/UI pass. Keep these
+argument), then runs `git diff --check` plus two Python cache checks:351 commands in the combat/recon pass. Keep these
 explicit lists current when adding a required module; a missing file fails.
 Missing modules/data/suites fail; nothing silently skips. Each pure command has a
 120 second limit; total run is bounded to 900 seconds. Actual exit codes are printed.
@@ -713,3 +713,55 @@ controls, coach/HUD spacing and Help keyboard/Escape behavior. Paired profiles
 use the same viewport, quality and normal-input duration, with tutorial unchecked
 and service workers blocked to exclude cache installation. Keep failed native
 approaches and concurrent-source caveats instead of describing them as final.
+
+
+## Vertical combat and reconnaissance changes
+
+Read `docs/capital-drive-combat-and-recon-contract.md` before changing this flow.
+Keep positive-up pitch identical in input, actor arms, actual rays, cover and
+camera framing. Test a sky miss, ground clip, elevated target, nearest body,
+vehicle roof and room boundaries; damage must come from the selected live owner.
+The controller prefixes global target IDs but translates back to the owner's
+native ID when applying damage. Exercise the real indoor owner through that
+adapter, rather than testing each side alone. Police cover checks run on firing
+cadence, with explicit occupied-target-only vehicle exemptions.
+
+A scan requires stable on-foot framing and a fresh input after neutral.
+Reject distant, moving or unframed views before calling physical LOS; assert
+zero ray queries during travel. Keep the2–18m authored range sanitized and the
+controller recon ray bounded before smoke/vehicle/solid work. Mission,
+stage, subject, room and serial must match a new receipt. Evidence tasks require
+the exact live case station/session; time or an old receipt must not pay. Modern
+Pink fights require her thrown bowl and an actual attributed melee win; guns,
+waiting, interrupted KOs and her punches cannot advance. Preserve an accessible
+rematch and indoor marker. Keep legacy completed campaign prefixes unchanged.
+
+After the source runner, exercise the standalone native flow with a fresh
+external output, explicitly labeling seeded earlier chapters and checkpoints:
+
+```sh
+timeout 600s python3 -B scripts/test_capital_combat_recon_browser.py --capture --output ../capital-drive-evidence/combat-recon-native
+```
+
+Run browser QA, profiling and the full source runner sequentially on the shared
+heavy CPU slot. For paired profiling export the exact baseline and candidate,
+use matching 3D/quality/duration/viewport options, retain raw profiles and source
+hashes, and report renderer frames with CPU costs. Cloud software graphics cannot
+establish N100 FPS. Do not turn a faster microbenchmark or a frame target into a
+whole-device performance claim.
+
+
+For example, populate two fresh external export directories from the exact Git
+revisions, including `Games/Capital Drive`, `assets/car-arcade`, `assets/fonts` and the root
+`favicon.svg`,
+then profile each with the same options:
+
+```sh
+python3 -B scripts/profile_capital_drive.py --root ../capital-drive-evidence/baseline-export --output ../capital-drive-evidence/baseline-profile --mode 3d --quality low --seconds 8
+python3 -B scripts/profile_capital_drive.py --root ../capital-drive-evidence/candidate-export --output ../capital-drive-evidence/candidate-profile --mode 3d --quality low --seconds 8
+```
+
+Keep each output fresh. Record the exported revision and byte equality against
+Git before using it; do not profile the live site as an immutable baseline.
+The profiler blocks service workers to separate renderer CPU from cache behavior;
+run the dedicated cache browser test for stored-map/offline evidence.

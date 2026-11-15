@@ -17,7 +17,7 @@ const workoutHandoff = controller.slice(controller.indexOf('{', handoffStart) + 
 function controllerHandoff(f) {
   let saves = 0;
   const consume = runInNewContext(`event => {${workoutHandoff}}`, {
-    progression: f.progression, isWorkoutKind, careerContext: () => f.ctx, saveCareer: () => saves++,
+    recordEvidence: () => false, progression: f.progression, isWorkoutKind, careerContext: () => f.ctx, saveCareer: () => saves++,
   });
   return { consume, get saves() { return saves; } };
 }

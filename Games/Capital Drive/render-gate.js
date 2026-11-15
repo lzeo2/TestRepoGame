@@ -23,3 +23,17 @@ export function createRenderGate() {
     },
   };
 }
+
+// Keep the intended cadence after small late frames; never render a burst to
+// repay a long stall. The controller remains the only RAF owner.
+export function createFramePacer(){
+  let next=null,previousFps=null;
+  return {ready(time,fps){
+    if(!Number.isFinite(time)||!Number.isFinite(fps)||fps<=0)return false;
+    const interval=1000/Math.max(1,Math.min(60,fps));
+    if(next===null||fps!==previousFps){next=time;previousFps=fps;}
+    if(time+.5<next)return false;
+    next=time-next>interval*2?time+interval:next+interval;
+    return true;
+  },reset(){next=null;previousFps=null;}};
+}

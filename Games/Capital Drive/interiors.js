@@ -410,6 +410,11 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       rooms.push({ kind: 'shop', ...worldPoint(origin, 0, depth / 2), width, depth });
       station('stock', 'stock', 'Sort the shelf stock', width / 2 - 1.55, 3.8, Math.PI / 2);
     }
+    if (entry.storeId === 'store-358293199') {
+      // Original fictional ledger case, with a clear rear-aisle standing pose.
+      box(furniture, 'ledger-case', -.9, depth - .65, .8, .5, .65, 0x536c61);
+      station('evidence', 'evidence', 'Secure the ledger case', -.9, depth - 1.6, 0, 1.25);
+    }
     return freeze({ id: entry.id, buildingId: entry.buildingId, ...(['mall', 'gym', 'school'].includes(entry.type) ? {} : { storeId: entry.storeId || null }),
       ...(entry.serviceId ? { serviceId: entry.serviceId } : {}), ...(entry.schoolId ? { schoolId: entry.schoolId } : {}),
       type: entry.type, ...(entry.variant ? { variant: entry.variant } : {}), name: typeof storyHome?.name === 'string' && storyHome.name.trim() ? storyHome.name : entry.name, origin, width, depth, floorY, spawn, exit, counter,

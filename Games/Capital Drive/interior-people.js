@@ -1,5 +1,7 @@
 // Fictional adult occupants of the single loaded room. No clock, storage or economy owner.
+import {rayTargetDistance} from './ballistics.js';
 const LIMIT = 16, BODY_RADIUS = .28, THROW_WINDUP = .75, THROW_FLIGHT = .55;
+const FIGHT_WINDUP=.65, FIGHT_RECOVER=.85;
 const finite = n => Number.isFinite(n);
 const point = p => p && finite(p.x) && finite(p.z);
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -17,7 +19,7 @@ function touches(p, box, radius) {
 }
 export function createInteriorPeople() {
   let plan = null, people = [], elapsed = 0, crime = null, reportCooldown = 0, encounterSerial = 0, encounterState = null;
-  const events = [];
+  const events = [], shotBodies=[];
   const employee = p => ['cashier', 'shopkeeper', 'cook'].includes(p.role);
   function protectedPoint(p) {
     const q = local(plan.origin,p);
@@ -42,7 +44,7 @@ export function createInteriorPeople() {
     people.push({id:`${plan.id}-adult-${index}`, role, adult:true, x:position.x,z:position.z,y:plan.floorY,
       yaw, radius:BODY_RADIUS, seated:Boolean(seat), seatHeight:seat ? (seat.kind === 'stool' ? .69 : seat.kind === 'banquette' ? .55 : .45) : 0,
       character, earmuffs:character==='booth-guest', palette:index%6, hair:character==='booth-guest'?3:index%4, apron:role==='cook'||role==='cashier'||role==='shopkeeper',
-      noodleThrow:null, health:100, reaction:'calm', fear:0, anger:0, angerOffender:null, retaliationCooldown:0, attackTimer:0, attackSerial:0, stun:0, knockdown:0, reactionTimer:0, hitCooldown:0, playerHitTimer:0, crimePhase:null,
+      noodleThrow:null, fightPhase:null, fightTime:0, health:100, reaction:'calm', fear:0, anger:0, angerOffender:null, retaliationCooldown:0, attackTimer:0, attackSerial:0, stun:0, knockdown:0, reactionTimer:0, hitCooldown:0, playerHitTimer:0, crimePhase:null,
       roomId:plan.id, storeId:plan.storeId || null,
       gesture, phase:index*1.73, speed:0, home:{x:position.x,z:position.z},target,progress:0,direction:1});
     return true;
@@ -99,7 +101,8 @@ export function createInteriorPeople() {
       }
     }
     const guest=people.find(p=>p.character==='booth-guest');
-    encounterState=guest ? {roomId:plan.id,storeId:plan.storeId||null,personId:guest.id,character:'booth-guest',phase:'idle',outcome:null,scriptedFight:false,explicitFight:false,throwEmitted:false} : null;
+    encounterState=guest ? {roomId:plan.id,storeId:plan.storeId||null,personId:guest.id,character:'booth-guest',phase:'idle',outcome:null,scriptedFight:false,explicitFight:false,throwEmitted:false,victoryRequired:false,victory:false,meleeHits:0,fightActive:false,missionId:null,session:0} : null;
+    for(const p of people) shotBodies.push(Object.freeze({id:p.id,get x(){return p.x;},get z(){return p.z;},feetY:plan.floorY,height:1.8,radius:.36,interiorId:plan.id,get health(){return p.health;}}));
     return snapshot();
   }
   function update(dt,{actor,activity,hasLineOfSight} = {}) {
@@ -112,7 +115,7 @@ export function createInteriorPeople() {
       for (const key of ['hitCooldown', 'playerHitTimer', 'stun', 'knockdown', 'reactionTimer', 'retaliationCooldown', 'attackTimer']) p[key] = Math.max(0, p[key] - step);
       if (p.reactionTimer <= 0 && p.stun <= 0 && p.knockdown <= 0) {
         p.reaction = 'calm'; p.fear = 0; p.anger=0; p.angerOffender=null;
-        p.health = Math.min(100, p.health + step * 10);
+        if(!(encounterState?.personId===p.id && encounterState.victoryRequired)) p.health = Math.min(100, p.health + step * 10);
       } else p.reaction = p.knockdown > 0 ? 'knockdown' : p.stun > 0 ? 'stunned' : p.anger ? 'angry' : 'panic';
       const coerced = p.health > 0 && p.crimePhase;
       if (coerced) {
@@ -121,6 +124,10 @@ export function createInteriorPeople() {
       }
       if(coerced || p.health<=0 || p.stun>0 || p.knockdown>0 || p.reaction!=='angry')p.attackTimer=0;
       updateNoodleThrow(p,step,actor,hasLineOfSight);
+      if(encounterState?.personId===p.id && encounterState.victoryRequired && encounterState.fightActive) {
+        updateFight(p,step,actor,hasLineOfSight);
+        continue;
+      }
       if (encounterState?.personId===p.id && (encounterState.scriptedFight || encounterState.explicitFight) && encounterState.phase==='angry' && p.reaction==='calm') {
         encounterState.phase='interrupted';encounterState.throwEmitted=false;
       }
@@ -149,15 +156,62 @@ export function createInteriorPeople() {
   }
   function liveThrowTarget(p,actor,hasLineOfSight) {
     return p.health>0 && p.stun<=0 && p.knockdown<=0 && !p.crimePhase && point(actor) &&
+      (actor.interiorId==null || actor.interiorId===plan.id) &&
       (!finite(actor.health) || actor.health>0) && Math.hypot(actor.x-p.x,actor.z-p.z)<=2.1 &&
       typeof hasLineOfSight==='function' && hasLineOfSight(p,actor);
+  }
+  function sameRoomActor(actor) {
+    if(!point(actor) || (actor.interiorId!=null && actor.interiorId!==plan.id) || (finite(actor.health)&&actor.health<=0)) return false;
+    const q=local(plan.origin,actor);
+    return Math.abs(q.x)<=plan.width/2+.1 && q.z>=-.1 && q.z<=plan.depth+.1;
+  }
+  function retryFight(p,reason) {
+    encounterState.phase='retry';encounterState.fightActive=false;encounterState.throwEmitted=false;encounterState.victory=false;
+    encounterState.message=reason;p.fightPhase=null;p.fightTime=0;p.attackTimer=0;p.anger=0;p.angerOffender=null;
+  }
+  function updateFight(p,step,actor,hasLineOfSight) {
+    if(p.health<=0) {retryFight(p,'No win yet. Talk to Dot and choose Rematch to restart the fist fight.');return;}
+    if(!sameRoomActor(actor)) {retryFight(p,'Fight interrupted. Return and talk to Dot for a fresh rematch.');return;}
+    p.reactionTimer=Math.max(p.reactionTimer,2);p.anger=1;p.angerOffender='player';
+    if(p.noodleThrow) return;
+    if(!encounterState.throwEmitted) {retryFight(p,'The bowl throw was interrupted. Talk to Dot for a fresh rematch.');return;}
+    if(p.stun>0 || p.knockdown>0) {p.fightPhase='stagger';p.fightTime=0;encounterState.phase='stagger';return;}
+    p.reaction='angry';
+    const distance=Math.hypot(actor.x-p.x,actor.z-p.z), visible=typeof hasLineOfSight==='function'&&hasLineOfSight(p,actor);
+    p.yaw=Math.atan2(actor.x-p.x,actor.z-p.z);
+    if(p.fightPhase==='windup') {
+      p.fightTime=Math.max(0,p.fightTime-step);encounterState.phase='windup';
+      if(p.fightTime>1e-6)return;
+      if(distance<=1.65&&visible)emit({type:'retaliation',kind:'melee',x:p.x,z:p.z,personId:p.id,targetId:'player',damage:7});
+      p.attackSerial++;p.attackTimer=.65;p.fightPhase='recover';p.fightTime=FIGHT_RECOVER;encounterState.phase='recover';return;
+    }
+    if(p.fightPhase==='recover') {
+      p.fightTime=Math.max(0,p.fightTime-step);encounterState.phase='recover';
+      if(p.fightTime>1e-6)return;
+    }
+    p.fightPhase='guard';encounterState.phase='guard';
+    if(distance<=1.65&&visible) {p.fightPhase='windup';p.fightTime=FIGHT_WINDUP;encounterState.phase='windup';return;}
+    // Follow only the actual room floor, never stepping through furniture or adults.
+    if(distance>1.2&&visible) {
+      const travel=Math.min(distance-1.2,step*1.35),dx=(actor.x-p.x)/distance*travel,dz=(actor.z-p.z)/distance*travel;
+      const candidate={x:p.x+dx,z:p.z+dz};
+      const q=local(plan.origin,candidate);
+      if(Math.abs(q.x)<plan.width/2-BODY_RADIUS&&q.z>.4&&q.z<plan.depth-.4&&
+        !(plan.walls||[]).some(b=>touches(candidate,b,BODY_RADIUS))&&
+        !(plan.furniture||[]).some(b=>touches(candidate,b,BODY_RADIUS))&&
+        !people.some(other=>other!==p&&Math.hypot(candidate.x-other.x,candidate.z-other.z)<BODY_RADIUS+other.radius)) {
+        p.x=candidate.x;p.z=candidate.z;p.speed=1.35;p.seated=false;
+      }
+    }
   }
   function updateNoodleThrow(p,step,actor,hasLineOfSight) {
     const flight=p.noodleThrow;
     if (!flight || encounterState?.personId!==p.id) return;
     const interrupted=p.health<=0 || p.stun>0 || p.knockdown>0 || p.crimePhase || p.reaction!=='angry';
     if (interrupted) {
-      encounterState.phase='interrupted';encounterState.throwEmitted=false;
+      if(encounterState.victoryRequired) {
+        if(!encounterState.victory&&encounterState.phase!=='retry')retryFight(p,'The bowl throw was interrupted. Talk to Dot and choose Rematch.');
+      } else {encounterState.phase='interrupted';encounterState.throwEmitted=false;}
       if (flight.phase==='windup') {p.noodleThrow=null;return;}
     }
     // A released bowl follows its captured trajectory even if its target moves away.
@@ -180,19 +234,30 @@ export function createInteriorPeople() {
     }
   }
   function emit(event) { if(events.length>=32)return false;events.push(Object.freeze(event));return true; }
-  function encounter() { const {scriptedFight,explicitFight,throwEmitted,...state}=encounterState||{};return Object.freeze({serial:encounterSerial,...(encounterState?state:{roomId:null,storeId:null,personId:null,character:'booth-guest',phase:'idle',outcome:null})}); }
+  function encounter() {
+    const {scriptedFight,explicitFight,throwEmitted,...state}=encounterState||{},p=people.find(person=>person.id===encounterState?.personId);
+    return Object.freeze({serial:encounterSerial,...(encounterState?state:{roomId:null,storeId:null,personId:null,character:'booth-guest',phase:'idle',outcome:null}),
+      playerHits:encounterState?.meleeHits||0,health:p?.health??0,dotHealth:p?.health??0,windup:p?.fightPhase==='windup'?p.fightTime:0,won:encounterState?.victory===true});
+  }
   function dialoguePerson(id, actor, hasLineOfSight) {
     return plan && point(actor) && typeof hasLineOfSight==='function' && people.find(p=>p.id===id && p.character==='booth-guest' &&
-      p.health>0 && p.stun<=0 && p.knockdown<=0 && !p.crimePhase && p.reaction==='calm' &&
+      ((encounterState.victoryRequired && ['retry','dialogue'].includes(encounterState.phase)) || (p.health>0 && p.stun<=0 && p.knockdown<=0 && !p.crimePhase && p.reaction==='calm')) &&
+      (actor.interiorId==null || actor.interiorId===plan.id) &&
       Math.hypot(actor.x-p.x,actor.z-p.z)<=2.1 && hasLineOfSight(actor,p));
   }
   function nearestDialogue(actor,{hasLineOfSight}={}) {
-    if(!['idle','dialogue','interrupted'].includes(encounterState?.phase)) return null;
+    if(!['idle','dialogue','interrupted','retry'].includes(encounterState?.phase)) return null;
     const p=dialoguePerson(encounterState.personId,actor,hasLineOfSight);
     return p ? Object.freeze({id:p.id,character:p.character,label:'Talk to the booth guest',x:p.x,z:p.z,radius:2.1}) : null;
   }
-  function startDialogue(id,{actor,hasLineOfSight,scriptedFight}={}) {
-    if(!['idle','dialogue','interrupted'].includes(encounterState?.phase) || !dialoguePerson(id,actor,hasLineOfSight)) return Object.freeze({ok:false,reason:'Move close to the booth guest.'});
+  function startDialogue(id,{actor,hasLineOfSight,scriptedFight,victoryRequired,missionId}={}) {
+    if(!['idle','dialogue','interrupted','retry'].includes(encounterState?.phase) || !dialoguePerson(id,actor,hasLineOfSight)) return Object.freeze({ok:false,reason:'Move close to the booth guest.'});
+    const rematch=encounterState.phase==='retry';
+    if(encounterState.phase!=='dialogue') {
+      encounterState.victoryRequired=victoryRequired===true || rematch;
+      encounterState.missionId=typeof missionId==='string'?missionId:null;
+      encounterState.rematch=rematch;
+    }
     if (encounterState.phase==='interrupted') {encounterState.throwEmitted=false;encounterState.outcome=null;}
     if (typeof scriptedFight==='boolean') {
       encounterState.scriptedFight=scriptedFight;
@@ -200,7 +265,7 @@ export function createInteriorPeople() {
     }
     encounterState.phase='dialogue';
     return Object.freeze({ok:true,dialogue:Object.freeze({id,title:'Booth guest',line:'You left your bag on the floor! Pick it up! Want to argue about it?',
-      choices:Object.freeze([Object.freeze({id:'apologise',label:'Sorry, I will move it.'}),Object.freeze({id:'confront',label:'Back off.'}),Object.freeze({id:'fight',label:'Fight'})])})});
+      choices:Object.freeze([Object.freeze({id:'apologise',label:'Sorry, I will move it.'}),Object.freeze({id:'confront',label:'Back off.'}),Object.freeze({id:'fight',label:rematch?'Rematch':'Fight'})])})});
   }
   function completeEncounter(outcome) {
     encounterState.phase='complete';encounterState.outcome=outcome;encounterSerial++;
@@ -210,7 +275,21 @@ export function createInteriorPeople() {
     const p=dialoguePerson(id,actor,hasLineOfSight);
     if(encounterState?.phase!=='dialogue' || !p || !['apologise','confront','fight'].includes(choice)) return Object.freeze({ok:false,reason:'The conversation has ended.'});
     encounterState.explicitFight=choice==='fight';
+    if(encounterState.rematch && choice!=='fight') return Object.freeze({ok:false,reason:'Choose Rematch to restart the fist fight.'});
     if (encounterState.scriptedFight || encounterState.explicitFight) {
+      encounterState.session++;encounterState.meleeHits=0;encounterState.victory=false;encounterState.outcome=null;encounterState.fightActive=true;
+      if(encounterState.rematch) {p.health=100;p.stun=0;p.knockdown=0;p.hitCooldown=0;p.reactionTimer=0;encounterState.rematch=false;}
+      p.fightPhase='guard';p.fightTime=0;
+      if(encounterState.victoryRequired&&p.seated) {
+        let best=null,bestDistance=Infinity;
+        for(const offset of [0,Math.PI/2,-Math.PI/2,Math.PI/4,-Math.PI/4]) {
+          const distance=Math.abs(offset)===Math.PI/4?1.35:.95,angle=p.yaw+offset;
+          const stand={x:p.x+Math.sin(angle)*distance,z:p.z+Math.cos(angle)*distance};
+          const toActor=Math.hypot(stand.x-actor.x,stand.z-actor.z);
+          if(toActor<bestDistance&&clearPoint(stand)&&!people.some(other=>other!==p&&Math.hypot(stand.x-other.x,stand.z-other.z)<.65)) {best=stand;bestDistance=toActor;}
+        }
+        if(best){p.x=best.x;p.z=best.z;p.seated=false;}
+      }
       encounterState.throwEmitted=false;encounterState.phase='noodle-windup';if(clearPoint(p))p.seated=false;p.anger=1;p.angerOffender='player';p.reaction='angry';p.reactionTimer=encounterState.scriptedFight?12:20;
       p.noodleThrow={actorId:p.id,targetId:'player',phase:'windup',time:0,duration:THROW_WINDUP,from:null,to:null};
       return Object.freeze({ok:true,message:choice==='apologise'?'Too late! Watch the bowl!':'You want an argument? Here it comes!',outcome:null});
@@ -272,7 +351,7 @@ export function createInteriorPeople() {
     report({x,z,offenderId},kind,witness);
     return count;
   }
-  function strike({x,z,yaw=0,range=2,damage=20,kind='melee',hasLineOfSight,offenderId='player'} = {}) {
+  function strike({x,z,yaw=0,range=2,damage=20,kind='melee',hasLineOfSight,offenderId='player',interiorId} = {}) {
     const hits = [];
     if (!plan || ![x,z,yaw,range,damage].every(finite)) return {hits:0,people:hits};
     const explosion=kind==='explosion';
@@ -290,23 +369,48 @@ export function createInteriorPeople() {
     for (const {p,distance} of candidates.slice(0,explosion?12:gun?1:3)) {
       if(explosion && hasLineOfSight({x,z},p)!==true) continue;
       const dealt=explosion?power*(1-distance/reach):power;
-      p.health=Math.max(0,p.health-dealt); p.hitCooldown=.4; p.stun=.65;p.attackTimer=0;
-      if (offenderId==='player' && kind==='melee') p.playerHitTimer=12;
-      if (p.health===0 || dealt>=35) p.knockdown=2.8;
-      if (p.health===0) p.crimePhase=null;
-      p.anger=!gun && p.character==='booth-guest' && p.health>0 && Math.hypot(p.x-x,p.z-z)<=2.6 ? 1 : 0;
-      p.angerOffender=p.anger?offenderId:null;
-      frighten(p,10);
+      applyHit(p,dealt,kind,offenderId,{x,z,interiorId},!explosion&&typeof hasLineOfSight==='function'&&hasLineOfSight({x,z},p)===true);
       if(!explosion || p.health>0) witness ||= p;
       hits.push(Object.freeze({id:p.id,x:p.x,z:p.z,health:p.health,reaction:p.reaction}));
     }
     if (hits.length) report({x,z,offenderId},kind,witness);
     return {hits:hits.length,people:hits};
   }
+  function applyHit(p,dealt,kind,offenderId,source,visible) {
+    const gun=['pistol','gunshot','firearm','shot','fire'].includes(kind);
+    p.health=Math.max(0,p.health-dealt);p.hitCooldown=.4;p.stun=.65;p.attackTimer=0;
+    if(offenderId==='player'&&kind==='melee')p.playerHitTimer=12;
+    if(p.health===0||dealt>=35)p.knockdown=2.8;
+    if(p.health===0)p.crimePhase=null;
+    p.anger=!gun&&p.character==='booth-guest'&&p.health>0&&Math.hypot(p.x-source.x,p.z-source.z)<=2.6?1:0;
+    p.angerOffender=p.anger?offenderId:null;frighten(p,10);
+    if(encounterState?.personId!==p.id || !encounterState.fightActive)return;
+    const validMelee=offenderId==='player'&&kind==='melee'&&encounterState.throwEmitted&&sameRoomActor(source)&&visible;
+    if(validMelee)encounterState.meleeHits++;
+    if(p.health===0) {
+      if(validMelee&&encounterState.meleeHits>=2&&p.knockdown>0) {
+        encounterState.victory=true;encounterState.fightActive=false;p.fightPhase='down';
+        completeEncounter('noodle-victory');
+      } else if(encounterState.victoryRequired)retryFight(p,'No win yet. Land at least two fist hits after the bowl throw. Talk to Dot and choose Rematch.');
+    } else if(encounterState.victoryRequired && (gun||kind==='explosion'||!validMelee)) {
+      retryFight(p,'Fists only for this fight. Talk to Dot and choose Rematch.');
+    }
+  }
+  function shotTargets() { return Object.freeze(shotBodies.slice()); }
+  function hitByShot(id,damage,ray) {
+    if(!plan||!finite(damage)||damage<=0||damage>100||!ray||ray.interiorId!==plan.id||
+      (ray.targetId!=null&&ray.targetId!==id)||![ray.x,ray.y,ray.z,ray.dx,ray.dy,ray.dz,ray.range].every(finite)||
+      ray.range<=0||ray.range>500||Math.abs(Math.hypot(ray.dx,ray.dy,ray.dz)-1)>.001)return false;
+    const index=people.findIndex(p=>p.id===id&&p.health>0&&p.hitCooldown<=0);
+    if(index<0||!finite(rayTargetDistance(ray,shotBodies[index])))return false;
+    const p=people[index];applyHit(p,damage,'firearm','player',ray,true);
+    report({x:ray.x,z:ray.z,offenderId:'player'},'firearm',p);
+    return true;
+  }
   function snapshot() { return people.map(({home,target,progress,direction,playerHitTimer,noodleThrow,...p})=>Object.freeze({...p,
     noodleThrow:noodleThrow ? Object.freeze({...noodleThrow,from:noodleThrow.from?Object.freeze({...noodleThrow.from}):null,to:noodleThrow.to?Object.freeze({...noodleThrow.to}):null}) : null,
     threatened:playerHitTimer>0,lastPlayerHit:playerHitTimer>0,crimePhase:p.health>0?p.crimePhase:null})); }
-  function clear() { plan=null;people=[];elapsed=0;crime=null;reportCooldown=0;events.length=0;encounterState=null; }
-  return {load,update,nearestDialogue,startDialogue,respondDialogue,get encounter(){return encounter();},clipMovement,snapshot,clear,strike,alert,setCrime,getCrimeTarget,
+  function clear() { plan=null;people=[];shotBodies.length=0;elapsed=0;crime=null;reportCooldown=0;events.length=0;encounterState=null; }
+  return {load,update,nearestDialogue,startDialogue,respondDialogue,get encounter(){return encounter();},clipMovement,snapshot,clear,strike,shotTargets,hitByShot,alert,setCrime,getCrimeTarget,
     drainEvents(){return events.splice(0);},get stats(){return Object.freeze({active:plan?.id || null,count:people.length,limit:LIMIT,elapsed});}};
 }

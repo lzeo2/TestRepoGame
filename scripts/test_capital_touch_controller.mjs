@@ -16,7 +16,7 @@ const env={keys:new Set(),touch:new Set(),actionTouch:new Set(),miniKeys:new Set
   moveStick:stick(()=>({...move}),()=>{move={x:0,y:0,active:false};}),
   lookStick:stick(()=>({...look}),()=>{look={x:0,y:0,active:false};}),
   THREE:{MathUtils:{clamp:(value,min,max)=>Math.max(min,Math.min(max,value))}},
-  footCameraYaw:0,orbitHeight:0,orbit:0,lookPitch:0,orbitHold:0,
+  footCameraYaw:0,footLookPitch:0,MAX_AIM_PITCH:1.22,orbitHeight:0,orbit:0,lookPitch:0,orbitHold:0,
   tutorialSerials:{orbitSerial:0},mouseAim:false,mouseFire:false,dragging:false,pointer:null,mapDrag:null,
   gameplay:{state:{mode:'foot',actor:{impactTime:0},recovery:null,passenger:false}},
   activities:{snapshot:()=>({active:false})},rentalHack:{snapshot:()=>({active:false})},micromobility:{snapshot:()=>({active:false})},
@@ -35,7 +35,7 @@ env.actionTouch.add('aim');env.actionTouch.add('fire');assert(api.walkingInput()
 env.canPlayerAttack=()=>false;assert(!api.walkingInput().fire&&!api.walkingInput().aim);
 env.gameplay.state.passenger=true;assert.deepEqual(api.walkingInput(),{});env.gameplay.state.passenger=false;
 env.footCameraYaw=0;look={x:1,y:.5,active:true};api.updateTouchCamera(.05);
-near(env.footCameraYaw,-.105);near(env.orbitHeight,.1);assert.equal(env.tutorialSerials.orbitSerial,1);
+near(env.footCameraYaw,-.105);near(env.footLookPitch,-.0425);assert.equal(env.tutorialSerials.orbitSerial,1);
 env.gameplay.state.mode='vehicle';api.updateTouchCamera(10);
 near(env.orbit,-.1575);near(env.lookPitch,-.045);assert.equal(env.tutorialSerials.orbitSerial,2);
 const camera=[env.orbit,env.lookPitch];api.updateTouchCamera(0);assert.deepEqual([env.orbit,env.lookPitch],camera);

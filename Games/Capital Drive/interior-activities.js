@@ -2,7 +2,9 @@
 const KEYS = ['x', 'y', 'up'];
 export const WORKOUT_KINDS = Object.freeze(['bench', 'treadmill', 'curls', 'rower']);
 export const isWorkoutKind = kind => WORKOUT_KINDS.includes(kind);
-const KINDS = new Set([...WORKOUT_KINDS, 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade', 'presentation', 'alarm']);
+const KINDS = new Set([...WORKOUT_KINDS, 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade', 'presentation', 'alarm', 'evidence']);
+const EVIDENCE_CODE = Object.freeze([2, 1, 3]);
+const EVIDENCE_SETTLE = .25;
 const PRESENTATION_KEYS = Object.freeze(['x', 'y', 'x']);
 const WORKOUTS = {
   treadmill: { target: 12, prepare: .4, window: .85, motion: .25 },
@@ -34,7 +36,7 @@ export function createInteriorActivities() {
     events.push({ type, reason, id: session.station.id, kind: session.kind,
       planId, sessionId: session.sessionId, score: session.score, reps: session.reps,
       sandbox: session.sandbox, station: { ...session.station },
-      ...(['presentation', 'alarm'].includes(session.kind) ? { stationId: session.station.id, outcome: session.outcome ?? null } : {}),
+      ...(['presentation', 'alarm', 'evidence'].includes(session.kind) ? { stationId: session.station.id, outcome: session.outcome ?? null } : {}),
       ...(type === 'complete' && session.kind === 'rest' ? { heal: 20 } : {}) });
     return true;
   }
@@ -65,7 +67,8 @@ export function createInteriorActivities() {
   }
   function invalidContext(station, context) {
     if (context?.recovering) return 'recovery';
-    if (station.kind === 'alarm') {
+    if (station.kind === 'evidence' && context?.planId !== planId) return 'room-changed';
+    if (station.kind === 'alarm' || station.kind === 'evidence') {
       if (context?.sandbox) return 'sandbox';
       if (context?.paused && !running()) return 'paused';
       if (!Number.isFinite(context?.health) || context.health <= 0) return 'health';
@@ -74,7 +77,7 @@ export function createInteriorActivities() {
     if (station.kind === 'presentation' && context?.visible === false) return 'occluded';
     if (context?.onFoot !== true) return 'not-on-foot';
     if (!Number.isFinite(context?.wanted) || context.wanted < 0 || context.wanted > 5 ||
-        (context.wanted > 0 && !['noodle', 'stock'].includes(station.kind))) return 'wanted';
+        (context.wanted > 0 && !['noodle', 'stock', 'evidence'].includes(station.kind))) return 'wanted';
     if (!finitePoint(context?.pose) || distance(context.pose, station) > station.radius) return 'left-station';
     if (running() && Boolean(context.sandbox) !== session.sandbox) return 'mode-changed';
     return null;
@@ -84,10 +87,10 @@ export function createInteriorActivities() {
     if (running() || !station || invalidContext(station, context)) return false;
     const kind = station.kind;
     session = { station, sessionId: ++serial, kind, label: station.label,
-      phase: kind === 'alarm' ? 'ready' : kind === 'presentation' ? 'edit' : kind === 'bench' ? 'grip' : kind === 'stock' ? 'memorise' : kind === 'rest' ? 'rest' :
+      phase: kind === 'alarm' || kind === 'evidence' ? 'ready' : kind === 'presentation' ? 'edit' : kind === 'bench' ? 'grip' : kind === 'stock' ? 'memorise' : kind === 'rest' ? 'rest' :
         isWorkoutKind(kind) || kind === 'tv' || kind === 'arcade' ? 'prepare' : 'recipe',
       phaseTime: 0, elapsed: 0, progress: 0, reps: 0, lift: 0, score: 0,
-      mistakes: 0, reason: null, index: 0, hits: 0, sandbox: Boolean(context.sandbox),
+      mistakes: 0, reason: null, index: 0, hits: 0, ...(kind === 'evidence' ? { dialValue: 0 } : {}), sandbox: Boolean(context.sandbox),
       duration: kind === 'rest' ? 8 : isWorkoutKind(kind) ? 60 : 40 };
     previous = heldKeys(null);
     return true;
@@ -264,6 +267,41 @@ export function createInteriorActivities() {
       }
     }
   }
+  function evidence(dt, held, edges) {
+    const s = session, pressed = KEYS.filter(key => edges[key]);
+    const released = !KEYS.some(key => held[key]);
+    const reset = reason => {
+      mistake(reason);
+      if (running()) { s.phase = 'ready'; s.phaseTime = 0; s.index = 0; s.dialValue = 0; s.progress = 0; s.score = 0; }
+    };
+    if (s.phase === 'ready') {
+      if (released) { s.phase = 'dial'; s.phaseTime = 0; }
+      return;
+    }
+    if (s.phase === 'settle') {
+      s.phaseTime += dt;
+      if (pressed.length) { reset('Too early. Release and wait for the dial to settle.'); return; }
+      if (!released && s.phaseTime > 1.2) { reset('Held control. Release every key before continuing.'); return; }
+      if (released && s.phaseTime + 1e-9 >= EVIDENCE_SETTLE) { s.phase = 'dial'; s.phaseTime = 0; }
+      return;
+    }
+    if (!pressed.length) return;
+    if (pressed.length !== 1 || KEYS.some(key => key !== pressed[0] && held[key])) {
+      reset('Use one case control at a time. Release all keys to retry.'); return;
+    }
+    if (pressed[0] === 'up') {
+      if (s.dialValue !== EVIDENCE_CODE[s.index]) { reset('Checksum mismatch. Start again at channel 1.'); return; }
+      s.index++; s.progress = s.index / EVIDENCE_CODE.length; s.score = s.index * 100; s.reason = null;
+      if (s.index === EVIDENCE_CODE.length) {
+        s.outcome = 'secured'; finish('complete', 'Ledger case secured.'); return;
+      }
+      s.dialValue = 0;
+    } else {
+      s.dialValue = (s.dialValue + (pressed[0] === 'x' ? 1 : 3)) % 4;
+      s.reason = null;
+    }
+    s.phase = 'settle'; s.phaseTime = 0;
+  }
   function reflex(dt, edges) {
     const s = session, target = s.kind === 'arcade' ? 8 : 5;
     s.phaseTime += dt;
@@ -300,6 +338,7 @@ export function createInteriorActivities() {
     else if (WORKOUTS[s.kind]) workout(dt, held, edges);
     else if (s.kind === 'presentation') presentation(dt, held, edges);
     else if (s.kind === 'alarm') alarm(dt, held, edges);
+    else if (s.kind === 'evidence') evidence(dt, held, edges);
     else if (RECIPES[s.kind]) sequence(dt, edges);
     else reflex(dt, edges);
     return snapshot();
@@ -310,7 +349,7 @@ export function createInteriorActivities() {
     if (s.phase === 'complete') return `${s.reason} Score ${s.score}. Q to play again.`;
     if (s.phase === 'failed') return `${s.reason} Q to retry. E cancels.`;
     if (s.phase === 'cancelled') return 'Activity cancelled. Q to retry at the station.';
-    if (s.kind === 'alarm' || s.kind === 'presentation') return `${s.reason ? `${s.reason} ` : ''}${instruction()} E stops.`;
+    if (s.kind === 'alarm' || s.kind === 'presentation' || s.kind === 'evidence') return `${s.reason ? `${s.reason} ` : ''}${instruction()} E stops.`;
     if (s.kind === 'bench') return `Hold X + Y. ${s.phase === 'cue' ? 'LIFT: press ArrowUp now!' :
       s.phase === 'lift' ? 'Keep holding while the bar returns.' : 'Wait for the LIFT cue, then press ArrowUp.'} ${s.reps}/6 reps. ${s.mistakes}/3 mistakes.`;
     if (WORKOUTS[s.kind]) return `${s.reason ? `${s.reason} ` : ''}${instruction()} ${s.reps}/${WORKOUTS[s.kind].target} ${s.kind === 'treadmill' ? 'steps' : s.kind === 'rower' ? 'strokes' : 'curls'}. ${s.mistakes}/3 mistakes. E stops.`;
@@ -324,6 +363,7 @@ export function createInteriorActivities() {
   function instruction() {
     const s = session;
     if (!s || !running()) return '';
+    if (s.kind === 'evidence') return s.phase === 'ready' ? 'Release all keys to read the case checksum.' : s.phase === 'settle' ? 'Release all keys. Wait for the dial to settle.' : `Case code ${EVIDENCE_CODE.join(' / ')}. Channel ${s.index + 1}/${EVIDENCE_CODE.length}: dial ${s.dialValue}, target ${EVIDENCE_CODE[s.index]}. X increases, Y decreases (0 to 3); ArrowUp confirms.`;
     if (s.kind === 'alarm') return s.phase === 'ready' ? 'Release all keys to begin the fictional game sequence.' : s.phase === 'arm' ? 'Game cue 1: press and hold X.' : s.phase === 'hold' ? 'Keep holding X until the release cue.' : s.phase === 'release' ? 'Release X and keep all keys clear.' : 'Game cue 2: press Y once to trigger the fictional alarm.';
     if (s.kind === 'presentation') return s.phase === 'sync' ? `PowerPunt is syncing. Stay at the desk for ${Math.max(0, 1.2 - s.phaseTime).toFixed(1)} seconds.` : `PowerPunt edit ${s.index + 1}/3: press ${KEY_LABEL[PRESENTATION_KEYS[s.index]]} once. Release between edits.`;
     if (s.kind === 'bench') return s.phase === 'grip' ? 'Hold X + Y together to grip the bar.' : s.phase === 'cue' ? 'LIFT: keep X + Y held and press ArrowUp once.' : 'Keep X + Y held. Wait for LIFT.';
@@ -338,19 +378,20 @@ export function createInteriorActivities() {
   }
   function snapshot() {
     const s = session;
-    const sequence = s ? RECIPES[s.kind] ?? (s.kind === 'alarm' ? ['x', 'y'] : s.kind === 'presentation' ? PRESENTATION_KEYS : s.kind === 'bench' ? Array(6).fill('up') : WORKOUTS[s.kind] ? Array.from({length: WORKOUTS[s.kind].target}, (_, i) => s.kind === 'rower' ? 'xy' : i % 2 ? 'y' : 'x') :
+    const sequence = s ? RECIPES[s.kind] ?? (s.kind === 'evidence' ? ['up', 'up', 'up'] : s.kind === 'alarm' ? ['x', 'y'] : s.kind === 'presentation' ? PRESENTATION_KEYS : s.kind === 'bench' ? Array(6).fill('up') : WORKOUTS[s.kind] ? Array.from({length: WORKOUTS[s.kind].target}, (_, i) => s.kind === 'rower' ? 'xy' : i % 2 ? 'y' : 'x') :
       s.kind === 'tv' || s.kind === 'arcade' ? Array(s.kind === 'arcade' ? 8 : 5).fill('up') : []) : [];
-    const index = s ? RECIPES[s.kind] || s.kind === 'presentation' || s.kind === 'alarm' ? s.index : isWorkoutKind(s.kind) ? s.reps : s.hits : 0;
+    const index = s ? RECIPES[s.kind] || s.kind === 'presentation' || s.kind === 'alarm' || s.kind === 'evidence' ? s.index : isWorkoutKind(s.kind) ? s.reps : s.hits : 0;
     const cue = s?.phase === 'cue';
     const cueWindow = s?.kind === 'bench' ? 1.05 : WORKOUTS[s?.kind]?.window ?? (s?.kind === 'tv' || s?.kind === 'arcade' ? 1 : 0);
     const expectedKey = running() ? sequence[index] ?? null : null;
     return { active: running(), planId, sessionId: s?.sessionId ?? null,
       kind: s?.kind ?? null, label: s?.label ?? '', phase: s?.phase ?? 'idle', prompt: prompt(),
       sequence: Object.freeze([...sequence]), index,
-      expectedKey, inputKeys: Object.freeze(!running() ? [] : s.kind === 'bench' ? ['x', 'y', 'up'] : s.kind === 'rower' ? ['x', 'y'] : expectedKey ? [expectedKey] : []),
+      expectedKey, inputKeys: Object.freeze(!running() ? [] : s.kind === 'bench' || s.kind === 'evidence' ? ['x', 'y', 'up'] : s.kind === 'rower' ? ['x', 'y'] : expectedKey ? [expectedKey] : []),
+      ...(s?.kind === 'evidence' ? { evidenceCode: EVIDENCE_CODE, dialValue: s.dialValue, channel: s.index } : {}),
       instruction: instruction(), exercisePose: isWorkoutKind(s?.kind) ? s.kind : null, outcome: s?.outcome ?? null,
       cue, memorising: s?.phase === 'memorise', requiresGrip: s?.kind === 'bench' || s?.kind === 'rower' && s.phase === 'drive',
-      acceptsInput: running() && (cue || s.phase === 'recipe' || s.phase === 'repeat' || s.phase === 'release' || s.phase === 'edit' || s.kind === 'alarm'),
+      acceptsInput: running() && (cue || s.phase === 'recipe' || s.phase === 'repeat' || s.phase === 'release' || s.phase === 'edit' || s.kind === 'alarm' || s.kind === 'evidence' && s.phase === 'dial'),
       cueWindow, cueRemaining: cue ? Math.max(0, cueWindow - s.phaseTime) : 0,
       progress: s?.progress ?? 0, reps: s?.reps ?? 0, lift: s?.lift ?? 0, score: s?.score ?? 0,
       remaining: s ? Math.max(0, s.duration - s.elapsed) : 0, mistakes: s?.mistakes ?? 0,
@@ -359,7 +400,7 @@ export function createInteriorActivities() {
   }
   function clear() { cancel('room-cleared'); stations = []; planId = null; session = null; previous = heldKeys(null); }
   return { load, nearest, start, step, cancel, clear, snapshot,
-    drainEvents: () => events.splice(0).map(event => ['presentation', 'alarm'].includes(event.kind)
+    drainEvents: () => events.splice(0).map(event => ['presentation', 'alarm', 'evidence'].includes(event.kind)
       ? Object.freeze({ ...event, station: Object.freeze({ ...event.station }) })
       : { ...event, station: { ...event.station } }) };
 }

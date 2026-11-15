@@ -3,6 +3,7 @@ import {CAMPUS_BOUNDARY} from './campus.js';
 import {MANUKA_POOL_SITE} from './landmarks.js';
 import {MAPPED_STORES} from './stores.js';
 import {EXTRA_STORES, SKATEPARK} from './civic-extras.js';
+import {rayTargetDistance} from './ballistics.js';
 
 // Original adult characters. These estimates imply no real person or business trades arms.
 const CONTACTS = [
@@ -82,10 +83,22 @@ function placements(map,avoidPoints) {
   return Object.freeze(selected);
 }
 
-export function createStreetDealers(map,{avoidPoints=[]}={}) {
+export function createStreetDealers(map,{avoidPoints=[],heightAt=()=>0}={}) {
   const services=placements(map||{},Array.isArray(avoidPoints)?avoidPoints.filter(valid):[]);
   let people=[];
   function reset() {people=services.map((s,i)=>({...s,health:100,panic:0,hitCooldown:0,phase:i*2.1,palette:i,role:'dealer',reaction:'calm'}));}
+  function shotDescriptor(p) {return Object.freeze({id:p.id,x:p.x,z:p.z,feetY:heightAt(p.x,p.z)+.05,height:1.8,radius:.36,interiorId:null,health:p.health});}
+  function shotTargets() {return Object.freeze(people.filter(p=>p.health>0).map(shotDescriptor));}
+  function damagePerson(p,damage) {
+    p.health=Math.max(0,p.health-damage);p.hitCooldown=.4;p.panic=MAX_PANIC;p.reaction=p.health===0?'knockdown':'injured';
+    return Object.freeze({id:p.id,x:p.x,z:p.z,health:p.health,reaction:p.reaction});
+  }
+  function hitByShot(id,damage,ray) {
+    const result={hits:0,people:[]},p=people.find(p=>p.id===id);
+    if(!p||p.health<=0||p.hitCooldown>0||!ray||!Number.isFinite(damage)||damage<=0||
+      !Number.isFinite(rayTargetDistance(ray,shotDescriptor(p))))return result;
+    result.people.push(damagePerson(p,Math.min(100,damage)));result.hits=1;return result;
+  }
   function canTrade(id) {const p=people.find(p=>p.id===id);return Boolean(p&&p.health===100&&p.panic===0);}
   function nearest(pose,radius=3) {
     if(!valid(pose)||!Number.isFinite(radius)||radius<0)return null;
@@ -122,8 +135,7 @@ export function createStreetDealers(map,{avoidPoints=[]}={}) {
     }).sort((a,b)=>a.d-b.d);
     for(const {p,d} of candidates.slice(0,explosion?6:gun?1:3)) {
       const dealt=explosion?power*(1-d/reach):power;
-      p.health=Math.max(0,p.health-dealt);p.hitCooldown=.4;p.panic=MAX_PANIC;p.reaction=p.health===0?'knockdown':'injured';
-      hit.push(Object.freeze({id:p.id,x:p.x,z:p.z,health:p.health,reaction:p.reaction}));
+      hit.push(damagePerson(p,dealt));
     }
     if(hit.length&&!explosion)alert({x,z,radius:gun?40:16,hasLineOfSight});
     return {hits:hit.length,people:hit};
@@ -152,6 +164,6 @@ export function createStreetDealers(map,{avoidPoints=[]}={}) {
     return {dx:x-actor.x,dz:z-actor.z,blocked};
   }
   reset();
-  return {services,nearest,canTrade,update,clipMovement,strike,alert,reset,drainEvents(){return [];},
+  return {services,nearest,canTrade,update,clipMovement,strike,alert,reset,shotTargets,hitByShot,drainEvents(){return [];},
     snapshot(){return Object.freeze(people.map(p=>Object.freeze({...p,weaponIds:p.weaponIds})));}};
 }

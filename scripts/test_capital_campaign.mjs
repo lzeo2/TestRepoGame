@@ -11,7 +11,7 @@ const ctx = { pose: { x: 0, z: 0, speed: 0 }, onFoot: false, vehicle: { stolen: 
   wanted: 0, respawnSerial: 0, campaign: true, sandbox: false };
 const tick = (campaign, context, count = 15) => { for (let i = 0; i < count; i++) campaign.update(.1, context); };
 const legacyIds = ['late-parcel', 'under-the-awning', 'borrowed-wheels', 'quiet-streets', 'across-the-water', 'home-by-the-lake'];
-const continuationIds = ['shelf-life', 'two-till-problem', 'carbon-copy'];
+const continuationIds = ['shelf-life', 'two-till-problem', 'carbon-copy', 'paper-trail-survey', 'exit-interview', 'sealed-account', 'earmuffs-rematch'];
 
 let campaign = createCampaign(map);
 assert.equal(campaign.current(), null);
@@ -70,7 +70,7 @@ function finishMission(value, developer = false) {
   let guard = 0;
   while (value.state.active && guard++ < 12) {
     const target = value.state.active.target;
-    const context = { ...ctx, pose: { ...target, speed: 0 }, vehicle: { stolen: true }, onFoot: ['foot', 'interior', 'work', 'presentation', 'encounter', 'school-alarm', 'robbery', 'home-action'].includes(target.kind) || target.foot === true };
+    const context = { ...ctx, pose: { ...target, speed: 0 }, vehicle: { stolen: true }, onFoot: ['foot', 'interior', 'work', 'presentation', 'encounter', 'school-alarm', 'robbery', 'home-action', 'recon', 'evidence', 'fight'].includes(target.kind) || target.foot === true };
     if (target.kind === 'interior') context.interior = { storeId: target.storeId, roomId: 'shop-room', atCounter: true };
     if (target.kind === 'work') {
       context.interior = { storeId: target.storeId, roomId: 'shop-room' };
@@ -93,10 +93,12 @@ function finishMission(value, developer = false) {
       context.interior = { roomId: target.roomId };
       context.presentation = { serial: ++serial, roomId: target.roomId, outcome: 'outage' };
     }
-    if (target.kind === 'encounter') {
+    if (target.kind === 'encounter' || target.kind === 'fight') {
       context.interior = { storeId: target.storeId, roomId: 'noodle-room' };
-      context.encounter = { serial: ++serial, storeId: target.storeId, roomId: 'noodle-room', character: 'booth-guest', phase: 'complete', outcome: 'noodle-fight' };
+      context.encounter = { serial: ++serial, storeId: target.storeId, roomId: 'noodle-room', character: 'booth-guest', phase: 'complete', outcome: target.victory ? 'noodle-victory' : 'noodle-fight', victory: target.victory === true, missionId: mission.id };
     }
+    if (target.kind === 'recon') context.recon = { serial: ++serial, missionId: mission.id, stage: value.state.active.stage, targetId: target.targetId, space: null, kind: 'recon', outcome: 'documented' };
+    if (target.kind === 'evidence') { context.interior = { storeId: target.storeId, roomId: 'coals-room' }; context.evidence = { serial: ++serial, missionId: mission.id, roomId: 'coals-room', storeId: target.storeId, outcome: 'secured' }; }
     if (target.kind === 'escape' && !value.state.active.sawWanted) value.update(.1, { ...context, wanted: 1 });
     tick(value, context, Math.ceil(Math.max(target.hold || 0, 1.5) * 10) + 2);
   }
@@ -113,8 +115,8 @@ function finishMission(value, developer = false) {
 }
 const preview = createCampaign(map);
 const previewChapters = preview.developerChapters();
-assert.equal(previewChapters.length, 16);
-assert.equal(new Set(previewChapters.map(chapter => chapter.id)).size, 16);
+assert.equal(previewChapters.length, 20);
+assert.equal(new Set(previewChapters.map(chapter => chapter.id)).size, 20);
 assert.ok(Object.isFrozen(previewChapters) && previewChapters.every(chapter => Object.isFrozen(chapter) && Object.isFrozen(chapter.start) && Object.isFrozen(chapter.target)));
 for (const chapter of previewChapters) {
   const saved = preview.serialize(), journal = preview.journal(), normalId = preview.current()?.id;
@@ -274,7 +276,7 @@ const legacy = createCampaign(map, { version: 1, completed: ['late-parcel'] });
 assert.equal(legacy.current().id, 'under-the-awning');
 assert.equal(legacy.state.character, 'legacy');
 assert.equal(legacy.nextRequiredCharacter(), null, 'untouched legacy saves preserve their original owner-free route');
-assert.equal(legacy.chapters.length, 9, 'legacy journal keeps the original six and appended continuation');
+assert.equal(legacy.chapters.length, 13, 'legacy journal keeps the original six and appended continuation');
 assert.equal(legacy.drainEvents().length, 0, 'migration never grants rewards');
 assert.equal(legacy.serialize().version, 2);
 assert.equal(legacy.selectCharacter('corporate', ctx).ok, true, 'legacy players can try new heroes');
@@ -387,7 +389,7 @@ for (const hero of heroes) {
   metadataCampaign.selectCharacter(hero, ctx);
   for (const mission of metadataCampaign.chapters) missionDefinitions.set(mission.id, mission);
 }
-assert.equal(missionDefinitions.size, 16, 'all existing mission identities and three new crew chapters are retained');
+assert.equal(missionDefinitions.size, 20, 'all existing mission identities and three new crew chapters are retained');
 for (const mission of missionDefinitions.values()) {
   assert.ok(Object.isFrozen(mission.cutscene.lines[0]), 'backstory data is immutable');
   assert.equal(mission.cutscene.id, mission.id);
@@ -421,17 +423,17 @@ tick(corporate, counter);
 assert.equal(corporate.state.active.stage, 1, 'encounter predating booth stage is stale');
 tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11, outcome: null } });
 assert.equal(corporate.state.active.stage, 1);
-for (const outcome of ['peaceful', 'confrontation']) {
+for (const outcome of ['peaceful', 'confrontation', 'noodle-fight']) {
   tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11, outcome } });
   assert.equal(corporate.state.active.stage, 1, `${outcome} does not count as Rowan's noodle fight`);
 }
 for (const mismatch of [{ phase: 'confronting' }, { roomId: 'wrong-room' }, { storeId: 'coals' }, { character: 'employee' }]) {
-  tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11, outcome: 'noodle-fight', ...mismatch } });
+  tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11, outcome: 'noodle-victory', victory: true, missionId: 'corporate-lunch-breakpoint', ...mismatch } });
   assert.equal(corporate.state.active.stage, 1, 'only a complete matching guest encounter counts');
 }
 tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 10, outcome: 'noodle-fight' } });
 assert.equal(corporate.state.active.stage, 1, 'old noodle fights do not count');
-tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11, outcome: 'noodle-fight' } });
+tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11, outcome: 'noodle-victory', victory: true, missionId: 'corporate-lunch-breakpoint' } });
 assert.equal(corporate.state.active.stage, 2);
 assert.deepEqual(corporate.state.intros.corporate, ['corporate-present-tense'], 'fight alone does not skip the exit');
 tick(corporate, { ...ctx, onFoot: true, wanted: 1, pose: { ...corporate.state.active.target } }, 35);
@@ -630,4 +632,4 @@ const onSourceRoad = sourceRoad.points.slice(1).some((b, index) => {
 });
 assert.ok(onSourceRoad, 'source bridge mission target lies on an actual public-road segment');
 assert.ok(Math.hypot(bridgeGoal.x + 1230, bridgeGoal.z + 2840) > bridgeGoal.radius, 'regression catches the old off-road fallback');
-console.log('PASS campaign: interleaved independent introductions and partial-save reload; active-mission switching lock; noodle-fight-only lunch credit; three-character convergence; character-owned crew heists; fresh school alarm, robbery and proper-home objectives; compact backstories and job combat policy; retained six chapters; strict v1/v2 migration; replay and recovery gates');
+console.log('PASS campaign: interleaved independent introductions and partial-save reload; active-mission switching lock; won-fight-only lunch credit; three-character convergence; character-owned crew heists; fresh school alarm, robbery and proper-home objectives; compact backstories and job combat policy; retained six chapters; strict v1/v2 migration; replay and recovery gates');

@@ -6,7 +6,8 @@ const url = source => `data:text/javascript;base64,${Buffer.from(source).toStrin
 const networkURL = url(await read('road-network.js'));
 const { applyRoadProfiles, roadProfile } = await import(networkURL);
 import {createSimulation} from '../Games/Capital Drive/simulation.js';
-const { createRideService } = await import(url((await read('ride-service.js')).replace("'./road-network.js'", JSON.stringify(networkURL))));
+const { createRideService } = await import(url((await read('ride-service.js'))
+  .replace(/from ['"](\.[^'"]+)['"]/g, (_, relative) => `from '${new URL(relative, base).href}'`)));
 const { applyMapExpansion } = await import(url(await read('map-expansion.js')));
 const map = { bounds: { minX: -300, minZ: -300, maxX: 1000, maxZ: 1000 },
   spawn: { x: -150, z: -150, yaw: 0 }, buildings: [], roads: [

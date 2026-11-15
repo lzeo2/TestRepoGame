@@ -24,9 +24,9 @@ const ctx = { pose: { x: 0, z: 0, speed: 0 }, onFoot: false, vehicle: { stolen: 
 let campaign = createCampaign(map, save);
 assert.equal(campaign.current().id, additions[0], 'completed six-chapter saves continue directly without replay');
 assert.deepEqual(campaign.serialize(), save, 'loading the continuation earns and rewrites nothing');
-assert.equal(campaign.developerChapters().length, 16);
+assert.equal(campaign.developerChapters().length, 20);
 assert.deepEqual(campaign.journal().shared.slice(0, 6).map(chapter => chapter.id), original);
-assert.deepEqual(campaign.journal().shared.slice(6).map(chapter => chapter.id), additions);
+assert.deepEqual(campaign.journal().shared.slice(6, 9).map(chapter => chapter.id), additions);
 const legacy = createCampaign(map, { version: 1, completed: original });
 assert.equal(legacy.current().id, additions[0], 'completed v1 careers retain their owner-free continuation');
 assert.deepEqual(legacy.state.completed, original);
@@ -129,9 +129,9 @@ for (let index = 0; index < additions.length; index++) {
   campaign = createCampaign(map, campaign.serialize());
   assert.deepEqual(campaign.state.completed, [...original, ...additions.slice(0, index + 1)]);
 }
-assert.equal(campaign.nextRequiredCharacter(), null);
-assert.equal(campaign.current(), null);
-assert.equal(campaign.start(ctx).ok, false, 'the new finale is the only campaign ending');
+assert.equal(campaign.nextRequiredCharacter().id, 'corporate');
+assert.equal(campaign.selectCharacter('corporate', ctx).ok, true);
+assert.equal(campaign.current().id, 'paper-trail-survey', 'the original continuation leads directly to the reconnaissance arc');
 assert.deepEqual(campaign.state.intros, intros);
 for (const id of additions) {
   const preview = createCampaign(map, save);

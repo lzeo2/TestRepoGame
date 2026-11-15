@@ -1,5 +1,6 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { appearanceForPerson, createPersonGeometries, emitPersonParts, PERSON_MODEL } from './person-model.js';
+import { rayTargetDistance } from './ballistics.js';
 
 const POPULATION = 36;
 const MAX_POPULATION = 64;
@@ -433,6 +434,30 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
     return { dx: x - actor.x, dz: z - actor.z, blocked };
   }
   function descriptor(p) { return Object.freeze({ id: p.id, x: p.x, z: p.z, health: p.health, reaction: p.reaction }); }
+  function shotDescriptor(p) {
+    return Object.freeze({ id: p.id, x: p.x, z: p.z, feetY: heightAt(p.x, p.z) + PAVEMENT_LIFT + p.impactHeight,
+      height: p.impactTime > 0 ? .7 : 1.8 * p.height, radius: .36, interiorId: null, health: p.health });
+  }
+  function shotTargets() { return Object.freeze(disposed ? [] : pool.filter(p => p.health > 0).map(shotDescriptor)); }
+  function damagePerson(p, dealt, source, kind, report = true) {
+    p.health = Math.max(0, p.health - dealt); p.hitCooldown = 0.4;
+    if (p.health === 0) p.crimePhase = null;
+    if (source.offenderId === 'player' && kind === 'melee') p.playerHitTimer = 12;
+    react(p, source, kind, true, report);
+    p.stun = 0.65;
+    if (p.health === 0 || dealt >= 35) { p.knockdown = 2.8; p.reaction = 'knockdown'; }
+    else p.reaction = 'stunned';
+    return descriptor(p);
+  }
+  function hitByShot(id, damage, ray) {
+    const result = { hits: 0, people: [] }, p = disposed ? null : peopleById.get(id);
+    if (!p || p.health <= 0 || p.hitCooldown > 0 || !ray || !Number.isFinite(damage) || damage <= 0 ||
+      !Number.isFinite(rayTargetDistance(ray, shotDescriptor(p)))) return result;
+    result.people.push(damagePerson(p, Math.min(100, damage),
+      { x: ray.x, z: ray.z, offenderId: typeof ray.offenderId === 'string' ? ray.offenderId : 'player' }, 'gunshot'));
+    result.hits = 1;
+    return result;
+  }
   function react(p, source, kind, hit = false, report = true) {
     const gun = ['pistol', 'gunshot', 'firearm', 'shot', 'fire'].includes(kind);
     p.fear = Math.max(p.fear, gun ? 1 : 0.65);
@@ -480,14 +505,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
     for (const { p, distance } of candidates.slice(0, explosion ? 12 : gun ? 1 : 3)) {
       if (explosion && hasLineOfSight({ x, z }, p) !== true) continue;
       const dealt = explosion ? power * (1 - distance / reach) : power;
-      p.health = Math.max(0, p.health - dealt); p.hitCooldown = 0.4;
-      if (p.health === 0) p.crimePhase = null;
-      if (offenderId === 'player' && kind === 'melee') p.playerHitTimer = 12;
-      react(p, { x, z, offenderId }, kind, true, !explosion || p.health > 0);
-      p.stun = 0.65;
-      if (p.health === 0 || dealt >= 35) { p.knockdown = 2.8; p.reaction = 'knockdown'; }
-      else p.reaction = 'stunned';
-      people.push(descriptor(p));
+      people.push(damagePerson(p, dealt, { x, z, offenderId }, kind, !explosion || p.health > dealt));
     }
     if (people.length && !explosion) alert({ x, z, radius: gun ? 40 : 16, kind, hasLineOfSight, offenderId });
     return { hits: people.length, people };
@@ -702,7 +720,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
     return target;
   }
   resetPopulation(spawn);
-  return { update, applyVehicleImpacts, resetPopulation, clipMovement, writeContacts, stats, alert, strike, setCrime, getCrimeTarget,
+  return { update, applyVehicleImpacts, resetPopulation, clipMovement, writeContacts, stats, alert, strike, setCrime, getCrimeTarget, shotTargets, hitByShot,
     drainEvents() { return events.splice(0); },
     snapshot() { return Object.freeze(pool.map(p => Object.freeze({ id: p.id, appearanceKey: p.appearance.key, appearance: p.appearance, x: p.x, y: p.y, z: p.z,
       yaw: p.routine === 'coffee' && p.reaction === 'calm' ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0), roadId: p.path.roadId, roadName: p.path.name,

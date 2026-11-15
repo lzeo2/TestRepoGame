@@ -12,7 +12,7 @@ function assertActivitiesReachable(interiors, plan, step = 0.35) {
   const queue = [[0, 0]], visited = new Set(['0,0']), reached = new Set();
   for (const station of plan.activities) {
     assert(Object.isFrozen(station)); assert(!ids.has(station.id)); ids.add(station.id);
-    assert(['bench', 'treadmill', 'curls', 'rower', 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade', 'presentation', 'alarm'].includes(station.kind));
+    assert(['bench', 'treadmill', 'curls', 'rower', 'noodle', 'stock', 'tv', 'cooking', 'rest', 'arcade', 'presentation', 'alarm', 'evidence'].includes(station.kind));
     assert(station.label && [station.x, station.z, station.yaw, station.radius].every(Number.isFinite));
     assert(station.radius > 0 && station.radius <= 2);
     const pose = { x: station.x, z: station.z };

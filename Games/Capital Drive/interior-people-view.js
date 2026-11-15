@@ -65,7 +65,7 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
     } else if (down) {body.rotation.x=Math.PI/2;body.position.y+=.18;}
     else if (seated) body.position.y+=finite(p.seatHeight)-.90;
     else if (coerced && p.crimePhase==='emptying') body.rotation.x=.20;
-    else if (finite(p.stun)>0) {body.rotation.z=.12;body.scale.y=.88;}
+    else if (finite(p.stun)>0) {body.rotation.z=p.fightPhase==='stagger'?Math.sin(phase*16)*.16:.12;body.scale.y=.88;}
     body.updateMatrix();
     put(0,[0,0,0],[0,0,0],[1,1,1],shirt);
     put(1,[0,0,0],[0,0,0],[1,1,1],skin);
@@ -135,6 +135,12 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
         continue;
       }
       const attacking=!coerced&&!down&&p.stun<=0&&p.reaction==='angry'&&finite(p.attackTimer)>0;
+      if(!coerced&&!down&&p.stun<=0&&p.fightPhase==='windup') {
+        const progress=1-Math.min(1,Math.max(0,finite(p.fightTime))/.65),punch=p.attackSerial%2===side;
+        limb([sign*.29,1.34,0],[sign*.31,1.29,punch?-.08-progress*.10:.14],skin);
+        limb([sign*.31,1.29,punch?-.08-progress*.10:.14],[sign*.23,1.50,punch?-.12-progress*.12:.27],skin);
+        continue;
+      }
       if(attacking) {
         const progress=1-Math.min(1,p.attackTimer/.65),extension=progress<.25 ? -.10*progress/.25 : progress<.55 ? (progress-.25)/.30 : (1-progress)/.45;
         const punch=(p.attackSerial%2===side),reach=punch?.27+extension*.43:.22;
