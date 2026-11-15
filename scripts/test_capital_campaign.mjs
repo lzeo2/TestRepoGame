@@ -18,6 +18,7 @@ assert.equal(campaign.nextRequiredCharacter(), null);
 assert.equal(campaign.start(ctx).ok, false, 'new campaigns require a hero');
 assert.deepEqual(campaign.characters.map(c => c.id), ['student', 'corporate', 'basement']);
 assert.ok(Object.isFrozen(campaign.characters[0].start));
+assert.deepEqual(campaign.characters.map(hero=>hero.onFoot),[true,true,false], 'Milo begins in his existing saloon; the other openings retain their foot starts');
 for (const forbidden of [{ ...ctx, sandbox: true }, { ...ctx, recovering: true }, { ...ctx, campaign: false }, { ...ctx, pose: { x: NaN, z: 0 } }]) {
   assert.equal(campaign.selectCharacter('student', forbidden).ok, false);
   assert.equal(campaign.state.character, null, 'unavailable context does not select a character');
@@ -422,6 +423,10 @@ const homeCampaign = createCampaign(homeMap);
 assert.deepEqual(homeCampaign.characters.find(hero => hero.id === 'basement').start, { x: 45, z: 55 }, 'Milo begins at the supplied checked home approach');
 homeCampaign.selectCharacter('basement', ctx);
 assert.match(homeCampaign.current().briefing, /Dawes Street/);
+assert.equal(homeCampaign.characters.find(hero=>hero.id==='basement').onFoot,false);
+assert.match(homeCampaign.current().briefing,/saloon/);
+assert.match(homeCampaign.current().briefing,/Press E beside your car to get in, drive to Coals and stop/);
+assert.deepEqual(homeCampaign.current().stages.map(goal=>goal.kind),['home-action','foot','drive','work']);
 assert.equal(homeCampaign.current().stages[0].kind, 'home-action');
 assert.equal(homeCampaign.current().stages[0].stationId, 'interior-source-house-stash');
 assert.equal(homeCampaign.current().stages[0].roomId, homeDescriptor.roomId);
@@ -457,9 +462,39 @@ tick(homeCampaign, { ...homeExterior, interior: { roomId: homeDescriptor.roomId 
 assert.equal(homeCampaign.state.active.stage, 1, 'the outside objective cannot complete inside the home');
 tick(homeCampaign, homeExterior);
 assert.equal(homeCampaign.state.active.stage, 2);
-tick(homeCampaign, { ...ctx, onFoot: true, interior: { storeId: 'coals' }, workCompletion: { serial: 50, storeId: 'coals' } });
+const coalsArrival={...ctx,pose:{x:100,z:10,speed:0},workCompletion:{serial:50,storeId:'coals'}};
+for(const invalid of [
+  {...coalsArrival,onFoot:true},
+  {...coalsArrival,pose:{...coalsArrival.pose,speed:5}},
+  {...coalsArrival,vehicleHealth:0},
+  {...coalsArrival,pose:{x:45,z:55,speed:0}},
+  {...coalsArrival,onFoot:true,interior:{storeId:'coals'},workCompletion:{serial:50,storeId:'coals'}},
+]){
+  tick(homeCampaign,invalid);
+  assert.equal(homeCampaign.state.active.stage,2,'walking, a moving/wrecked car or an early shift cannot skip driving to Coals and stopping');
+}
+assert.equal(homeCampaign.drainEvents().filter(event=>event.type==='complete').length,0,'no car grant, arrival or early receipt earns a mission reward');
+tick(homeCampaign,coalsArrival);
+assert.equal(homeCampaign.state.active.stage,3);
+assert.deepEqual(homeCampaign.state.intros.basement,[],'parking does not pay or complete the stock shift');
+for(const invalid of [
+  {...ctx,onFoot:true,interior:{storeId:'coals'},workCompletion:{serial:50,storeId:'coals'}},
+  {...ctx,onFoot:true,interior:{storeId:'wrong-shop'},workCompletion:{serial:51,storeId:'coals'}},
+  {...ctx,onFoot:false,interior:{storeId:'coals'},workCompletion:{serial:51,storeId:'coals'}},
+  {...ctx,onFoot:true,interior:{storeId:'coals'},workCompletion:{serial:51,storeId:'wrong-shop'}},
+  {...ctx,onFoot:true,workCompletion:{serial:51,storeId:'coals'}},
+]){
+  tick(homeCampaign,invalid);assert.equal(homeCampaign.state.active.stage,3,'paid work still requires its matching live room and fresh stock receipt');
+}
+tick(homeCampaign, { ...ctx, onFoot: true, interior: { storeId: 'coals' }, workCompletion: { serial: 52, storeId: 'coals' } });
 assert.deepEqual(homeCampaign.state.intros.basement, ['basement-touch-grass']);
 assert.equal(homeCampaign.drainEvents().filter(event => event.type === 'complete').length, 1);
+const miloSaved=homeCampaign.serialize(),miloReload=createCampaign(homeMap,miloSaved);
+assert.deepEqual(miloReload.serialize(),miloSaved,'existing v2 prefixes retain the same mission IDs');
+assert.equal(miloReload.current().id,'basement-first-delivery');assert.equal(miloReload.drainEvents().length,0,'reload never awards a car, cash or mission payment');
+assert.deepEqual(miloReload.current().stages.map(goal=>goal.kind),['foot','drive','foot'],'Signed for retains its actual drive delivery');
+assert.match(miloReload.current().briefing,/Press E beside your car to get in/);
+
 const finale = createCampaign(homeMap, { ...meetingSave, character: 'basement', meeting: true, completed: legacyIds.slice(0, 5) });
 assert.equal(finale.current().id, 'home-by-the-lake');
 assert.equal(finale.current().reward, 1200);

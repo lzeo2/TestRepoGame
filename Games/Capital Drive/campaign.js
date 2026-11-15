@@ -73,7 +73,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   const characters = freeze([
     { id: 'student', name: 'Kit Vale', age: 18, tagline: 'A Telopea student with one last errand and very little patience.', appearance: 'student', start: { ...map.spawn }, onFoot: true },
     { id: 'corporate', name: 'Rowan Pike', age: 29, tagline: 'A Civic analyst whose career depends on a slideshow.', appearance: 'corporate', start: { ...mall }, onFoot: true },
-    { id: 'basement', name: 'Milo Finch', age: 26, tagline: 'A basement regular trying a radical new strategy: going outside.', appearance: 'basement', start: { x: homeApproach.x, z: homeApproach.z }, onFoot: true },
+    { id: 'basement', name: 'Milo Finch', age: 26, tagline: 'A basement regular trying a radical new strategy: going outside.', appearance: 'basement', start: { x: homeApproach.x, z: homeApproach.z }, onFoot: false },
   ]);
   const intros = freeze({
     student: [
@@ -98,14 +98,14 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
         stages: [target(noodle, 'Lambzhou 1919: enter and reach the service counter', 'interior', { storeId: noodle.id || 'store-5656111023', radius: 2.5 }), target(noodle, 'Lambzhou 1919 booth: talk to Dot, then face her noodle throw and attack', 'encounter', { storeId: 'store-5656111023', hold: 0 }), target(noodle, 'Leave Lambzhou 1919 and cool off outside on Bunda Street', 'foot', { radius: 18, hold: 3, clear: true })] },
     ],
     basement: [
-      { id: 'basement-touch-grass', name: 'Touch grass', combat: false, cutscene: scene('basement-touch-grass', 'The overdue notice', ['Milo', 'A depot collector says I owe for parcels I never received. Staying in the basement is getting expensive.'], ['Milo', `First, pack my case at ${homeLocation}. Then get outside and find paid work.`]), contact: 'Milo Finch', reward: 100, time: 540,
-        briefing: `Start at ${homeLocation}. Enter your home and finish the case-packing task at the case table. Leave through the same door, then travel to Coals and complete a stock shift inside. Attacks are disabled during this job.`,
+      { id: 'basement-touch-grass', name: 'Touch grass', combat: false, cutscene: scene('basement-touch-grass', 'The overdue notice', ['Milo', 'A depot collector says I owe for parcels I never received. Staying in the basement is getting expensive.'], ['Milo', `My saloon is ready. First, pack my case at ${homeLocation}, then drive to Coals for paid work.`]), contact: 'Milo Finch', reward: 100, time: 540,
+        briefing: `Start in your saloon near ${homeLocation}. Stop and press E to exit, then enter your home and pack your case at the case table. Leave through the same door. Press E beside your car to get in, drive to Coals and stop outside. Press E to exit, enter the shop and complete a stock shift. Attacks are disabled during this job.`,
         outro: 'Milo: Actual work. Actual wages. Disturbingly effective.',
-        stages: [target(home, `Inside ${homeLocation}: pack your case at the case table`, 'home-action', homeTask), target(homeApproach, `Step outside ${homeLocation} through the same door`, 'foot', { radius: 12, hold: 1 }), target(shop, 'Inside Coals: complete the stock shift', 'work', { storeId: shop.id, hold: 0 })] },
+        stages: [target(home, `Inside ${homeLocation}: pack your case at the case table`, 'home-action', homeTask), target(homeApproach, `Step outside ${homeLocation} through the same door; E beside your car to get in`, 'foot', { radius: 12, hold: 1 }), target(shop, 'Drive your car to Coals and stop outside; E exits', 'drive', { stop: true }), target(shop, 'Inside Coals: complete the stock shift', 'work', { storeId: shop.id, hold: 0 })] },
       { id: 'basement-first-delivery', name: 'Signed for', cutscene: scene('basement-first-delivery', 'A real receipt', ['Mara', 'One parcel, one signature. Keep the receipt this time.'], ['Milo', 'If the depot tries charging twice, I want proof.']), contact: 'Mara, local courier', reward: 150, time: 600,
-        briefing: 'Pick up Mara\'s sealed parcel outside Coals and deliver it to Kingston. Stop before handover, then step out. No browser refresh can do this shift for you.',
+        briefing: 'Collect Mara\'s sealed parcel outside Coals on foot. Press E beside your car to get in, then drive to Kingston and stop before handover. Press E to exit and deliver the parcel on foot.',
         outro: 'Milo: The parcel has the same depot code as two other receipts. Mara wants all three people together.',
-        stages: [target(shop, 'Collect the sealed parcel outside Coals', 'foot', { radius: 12 }), target(kingston, 'Stop at the Kingston meeting approach', 'drive', { stop: true }), target(kingston, 'Hand over the parcel on foot', 'foot', { radius: 16, hold: 2 })] },
+        stages: [target(shop, 'Collect the sealed parcel outside Coals', 'foot', { radius: 12 }), target(kingston, 'Drive to the Kingston meeting approach and stop; E exits', 'drive', { stop: true }), target(kingston, 'Hand over the parcel on foot', 'foot', { radius: 16, hold: 2 })] },
     ],
   });
   const meeting = freeze({ id: 'three-receipts', name: 'Three receipts', cutscene: scene('three-receipts', 'One fraudulent depot', ['Mara', 'Kit lost a club refund. Rowan approved the account. Milo got the fake debt. The same depot charged all three.'], ['Mara', 'Meet at Kingston. We take back the money and the ledger together.']), contact: 'Kit, Rowan, Milo and Mara', reward: 200, time: 600,
