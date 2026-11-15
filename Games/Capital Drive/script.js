@@ -389,6 +389,20 @@ function refreshAircraftRescue(){
   $('recover-button').hidden=!isSandbox()&&!wrecked;
   $('recover-button').textContent=wrecked?'Request rescue':'Return to road';
 }
+function aircraftStandParking(plane){
+  const planes=aircraft.snapshot().planes;
+  const radius=Math.hypot(Math.max(6,simulation.player.length||0),Math.max(2.6,simulation.player.width||0))/2+.75;
+  for(const side of [14,-14,18,-18])for(const forward of [0,6,-6,12]){
+    const pose={x:plane.x+Math.cos(plane.yaw)*side-Math.sin(plane.yaw)*forward,
+      z:plane.z-Math.sin(plane.yaw)*side-Math.cos(plane.yaw)*forward};
+    if(planes.some(other=>Math.hypot(pose.x-other.x,pose.z-other.z)<=Math.hypot(10,9)/2+radius))continue;
+    // Search results retain the arrival car's yaw. Clear its complete turning
+    // envelope, including the rendered wing span that exceeds car-body width.
+    if([0,Math.PI/4,Math.PI/2,Math.PI*3/4].every(yaw=>simulation.canOccupy({...pose,yaw},
+      {length:radius*2,width:4,ignoreId:'player'})))return pose;
+  }
+  return null;
+}
 function aircraftAltitude(){const plane=aircraft?.active;return plane?Math.max(0,plane.y-world.heightAt(plane.x,plane.z)):0;}
 function aircraftObstacles(){return (aircraft?.snapshot().planes||[]).filter(plane=>!plane.airborne).map(plane=>({...plane,length:10,width:4}));}
 function handleAircraftEvents(){
@@ -2033,7 +2047,10 @@ async function boot() {
   const home=map.storyHomes.basement;if(home)map.searchPlaces.push({...home,id:'milo-safehouse',aliases:['Milo','safehouse','home'],description:'Milo’s safehouse'});
   aircraft=createAircraft(map,simulation,{heightAt:world.heightAt});
   aircraftView=compatibility?emptyView():createAircraftView(scene);
-  map.searchPlaces.push(...aircraft.snapshot().planes.map(plane=>({id:'stand:'+plane.id,name:'Airport jet stand',aliases:['jet','plane',plane.name],x:plane.x+Math.cos(plane.yaw)*2.1-Math.sin(plane.yaw)*1.3,z:plane.z-Math.sin(plane.yaw)*2.1-Math.cos(plane.yaw)*1.3,radius:12,description:'Fictional jet stand on the mapped airport apron'})));
+  for(const plane of aircraft.snapshot().planes){
+    const parking=aircraftStandParking(plane);
+    if(parking)map.searchPlaces.push({id:'stand:'+plane.id,name:'Airport jet stand',aliases:['jet','plane',plane.name],...parking,radius:12,description:'Checked parking beside a fictional jet stand on the mapped airport apron'});
+  }
   addressSearch=createAddressSearch(map,addressData);
   campaignScenes=createCampaignScenes(map,simulation,{entrances:interiors.entries});
   campaignScenesView=compatibility?emptyView():createCampaignScenesView(scene,world.heightAt);

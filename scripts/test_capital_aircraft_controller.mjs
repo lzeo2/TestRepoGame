@@ -5,6 +5,10 @@ import { createGameplay } from '../Games/Capital Drive/gameplay.js';
 import { createSimulation } from '../Games/Capital Drive/simulation.js';
 import { createProgression } from '../Games/Capital Drive/progression.js';
 import { createPolice } from '../Games/Capital Drive/police.js';
+import { applyAirport } from '../Games/Capital Drive/airport.js';
+import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
+import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
+import { BY_ID } from '../assets/car-arcade/fleet.js';
 const source = await readFile(new URL('../Games/Capital Drive/script.js', import.meta.url), 'utf8');
 function extract(name) {
   const start = source.indexOf(`function ${name}(`); assert(start >= 0);
@@ -110,3 +114,65 @@ assert.equal(high.events.some(event => event.targetId === 'player'), false, 'gro
 assert.equal(high.unit.seesPlayer, true, 'higher flight can remain visible and wanted without receiving impossible shots');
 assert.equal(high.state.wanted, 3); assert.equal(distant.unit.seesPlayer, false, 'sight has its own physical 3D distance');
 console.log('Capital aircraft controller: actual eight-cue theft, cancellation/authority guards, native-key flight, live altitude/passenger camera, parked-car preservation, paid-job denial and real police 3D range PASS');
+
+// Reproduce the native failure: map search retains arbitrary car yaw. A marker
+// at the jet door parked that car under the wing and prevented every taxi step.
+const data = async name => JSON.parse(await readFile(new URL(`../Games/Capital Drive/data/${name}.json`, import.meta.url)));
+const airportMap = applyAirport(applyMapExpansion(await data('canberra'), await data('canberra-north')), await data('airport'));
+const terrain = createTerrainSampler(airportMap), airportSim = createSimulation(airportMap, { trafficCount: 0, isOnBridge: terrain.isOnBridge });
+const airportJets = createAircraft(airportMap, airportSim, { heightAt: terrain.heightAt });
+const parkingFor = Function('env', `with(env){${extract('aircraftStandParking')};return aircraftStandParking;}`)({ aircraft: airportJets, simulation: airportSim });
+const airportGame = createGameplay(airportMap, airportSim);
+let parkingCases = 0;
+for (const id of ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch']) for (const standIndex of [0, 1]) {
+  airportJets.reset(); airportSim.setPlayerVehicle({ modelId: id });
+  const planes = airportJets.snapshot().planes, plane = planes[standIndex];
+  airportSim.setExternalVehicles(planes.map(p => ({ ...p, width: 4 })));
+  const parking = parkingFor(plane); assert(parking, `${id}: stand ${standIndex} has checked parking`);
+  for (const yaw of [-3.00713, 0, .7, Math.PI / 2]) {
+    airportSim.player.yaw = yaw;
+    assert(airportSim.teleport(parking).ok);
+    assert(airportSim.canOccupy(airportSim.player, { ignoreId: 'player' }));
+    for (const other of planes) assert(Math.hypot(airportSim.player.x - other.x, airportSim.player.z - other.z) >
+      Math.hypot(10, 9) / 2 + Math.hypot(BY_ID[id].length + .08, BY_ID[id].width + .024) / 2, 'the complete car clears the jet fuselage and nine-metre wings at every arrival yaw');
+  }
+  airportSim.player.yaw = -3.00713; airportSim.teleport(parking); airportGame.reset({ sandbox: true });
+  assert(airportGame.interact(), 'normal E can leave the actually parked car');
+  const foot = { ...airportGame.state.actor }, target = { x: plane.x + Math.cos(plane.yaw) * 3.2 - Math.sin(plane.yaw) * 1.3,
+    z: plane.z - Math.sin(plane.yaw) * 3.2 - Math.cos(plane.yaw) * 1.3, yaw: plane.yaw };
+  let approach = null;
+  for (const detour of [0, 6, -6, 10, -10]) {
+    const walker = { ...foot }, waypoint = { x: foot.x - Math.sin(plane.yaw) * detour, z: foot.z - Math.cos(plane.yaw) * detour };
+    const lateral = { x: target.x - Math.sin(plane.yaw) * detour, z: target.z - Math.cos(plane.yaw) * detour };
+    const path = detour ? [waypoint, lateral, target] : [target];
+    let clear = true;
+    for (const point of path) {
+      for(let step=0;step<120&&Math.hypot(walker.x-point.x,walker.z-point.z)>.01;step++){
+        const dx=point.x-walker.x,dz=point.z-walker.z,scale=Math.min(1,.35/Math.hypot(dx,dz));
+        if(airportSim.moveActor(walker,dx*scale,dz*scale,.45).blocked){clear=false;break;}
+      }
+      if(!clear||Math.hypot(walker.x-point.x,walker.z-point.z)>.01){clear=false;break;}
+    }
+    if (clear) { approach = walker; break; }
+  }
+  assert(approach && airportJets.nearest(approach)?.id === plane.id, `${id}: short real swept foot approach reaches the unchanged jet door`);
+  const context = { pose: approach, onFoot: true, valid: true, sandbox: true };
+  assert(airportJets.interact(context).challenge);
+  for (let cue = 0; cue < 8; cue++) {
+    for (let i = 0; i < 40 && airportJets.challenge.phase !== 'cue'; i++) airportJets.step(.02, {}, context);
+    airportJets.step(.02, { challenge: { [airportJets.challenge.expectedKey]: true } }, context);
+    if (cue < 7) airportJets.step(.02, {}, context);
+  }
+  const parked = { ...airportSim.player }, start = { ...airportJets.active };
+  assert(start && start.id === plane.id);
+  for (let i = 0; i < 1000 && airportJets.active.altitude < 2; i++) airportJets.step(1 / 60, { throttle: 1, climb: true }, { ...context, onFoot: false });
+  assert(airportJets.active.altitude >= 2 && !airportJets.active.wrecked, `${id}: the car parked by the map marker cannot block takeoff`);
+  assert(Math.hypot(airportJets.active.x - start.x, airportJets.active.z - start.z) > 20);
+  assert.deepEqual(airportSim.player, parked, 'fixing the stand never moves the parked player car during flight');
+  parkingCases++;
+}
+assert.equal(parkingCases, 12);
+const canOccupy = airportSim.canOccupy; airportSim.canOccupy = () => false;
+assert.equal(parkingFor(airportJets.snapshot().planes[0]), null, 'no unsafe marker is published when every bounded parking candidate is blocked');
+airportSim.canOccupy = canOccupy;
+console.log('Capital jet stand parking: both actual airport stands × six fleet bodies × four arrival yaws, checked short foot entry and twelve real takeoffs PASS');
