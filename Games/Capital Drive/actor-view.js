@@ -9,7 +9,7 @@ const finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallbac
 const clamp = (value, min, max) => Math.max(min, Math.min(max, finite(value)));
 
 // Original procedural adult. The adapter owns its resources, never gameplay state.
-export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } = {}) {
+export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, policeCars = true } = {}) {
   policeLimit = Math.max(0, Math.min(POLICE_LIMIT, Math.floor(policeLimit)));
   const root = new THREE.Group(); root.name = 'Street Life actors'; scene.add(root);
   const geometries = new Set(), materials = new Set();
@@ -26,7 +26,9 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
     jacket: material(playerAppearance.shirt), seam: material(0x68472e), shirt: material(0xd9d4bd),
     pants: material(playerAppearance.trousers), shoe: material(playerAppearance.shoes), sole: material(0xc5bba8),
     skin: material(playerAppearance.skin), hair: material(playerAppearance.hair), eye: material(0x222222),
-    gun: material(0x353a3c), red: material(0xff3039, true), blue: material(0x3385ff, true),
+    gun: material(0x353a3c),
+    red: policeCars && policeLimit > 0 ? material(0xff3039, true) : null,
+    blue: policeCars && policeLimit > 0 ? material(0x3385ff, true) : null,
     yellow: material(0xffda78, true), marker: material(0xf6be38, true),
   };
   function piece(parent, name, mat, position, size, geometry = box) {
@@ -155,7 +157,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
 
   // Clone pooled factory resources so disposing this view cannot break other cars.
   const carGeometries = new Map(), carMaterials = new Map();
-  const police = Array.from({ length: policeLimit }, (_, i) => {
+  const police = Array.from({ length: policeCars ? policeLimit : 0 }, (_, i) => {
     const car = createCar('relay', { color: '#e5e6df' }); car.name = `Generic patrol ${i + 1}`;
     car.traverse(object => {
       if (!object.isMesh) return;
@@ -263,7 +265,9 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
       }
     }
     counters.police = 0; counters.officers = 0;let muzzleCount=0;
-    police.forEach((view, i) => {
+    // Officers also render in lazy rooms that have no patrol-car allocation.
+    for (let i = 0; i < policeLimit; i++) {
+      const view = police[i];
       const item = state.police?.[i], carPose = item?.car || item;
       const active = !!item && item.active !== false && finite(item.health, 100) > 0;
       if (active && item.mode === 'foot' && near(item, center)) {
@@ -284,8 +288,9 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
         }
         counters.officers++;
       }
+      if (!view) continue;
       view.car.visible = active && carPose?.active !== false && near(carPose, center);
-      if (!view.car.visible) return;
+      if (!view.car.visible) continue;
       counters.police++; view.car.position.set(carPose.x, ground(carPose.x, carPose.z), carPose.z); view.car.rotation.y = finite(carPose.yaw);
       const colors = view.lightMesh.geometry.attributes.color;
       const redOn = Math.sin(clock * 15 + i) > 0;
@@ -296,7 +301,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT } 
         colors.setXYZ(vertex, color.r * level, color.g * level, color.b * level);
       }
       colors.needsUpdate = true;
-    });
+    }
     for (const part of officerParts) { part.count = counters.officers; part.visible = counters.officers > 0; part.instanceMatrix.needsUpdate = true; }
     counters.shots = 0;
     for (const shot of state.shots || []) {
