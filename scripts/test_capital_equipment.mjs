@@ -34,7 +34,7 @@ const dealer = { id: 'fixture-contact', name: 'Fictional contact', road: 'Fixtur
 const unchanged = (p, action) => { const before = p.serialize(); assert.equal(action().ok, false); assert.deepEqual(p.serialize(), before); };
 const fresh = (saved = legacy, options = {}) => createProgression(map, saved, { extraServices: [dealer], ...options });
 {
-  const p = fresh(); assert.deepEqual(p.state.gear, { scanner: false, flares: 0 }); assert.deepEqual(p.state.equipment, legacy.equipment);
+  const p = fresh(); assert.deepEqual(p.state.gear, { scanner: false, flares: 0, grenades: 0, smokeGrenades: 0 }); assert.deepEqual(p.state.equipment, legacy.equipment);
   assert.deepEqual(fresh(p.serialize()).serialize(), p.serialize());
   for (const gear of [null, [], {}, { scanner: true }, { flares: 0 }, { scanner: 1, flares: 0 },
     { scanner: false, flares: -1 }, { scanner: false, flares: 13 }, { scanner: false, flares: 1.5 },
