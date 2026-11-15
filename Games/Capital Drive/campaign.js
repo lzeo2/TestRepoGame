@@ -1,4 +1,5 @@
 import { expansionPlaces } from './map-expansion.js';
+import { roadProfile } from './road-network.js';
 
 // Original fiction. Mission rooms and encounters are authored, not surveyed private spaces.
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -16,6 +17,18 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   if (!finitePoint(map.spawn) || !finitePoint(shop)) throw new Error('Campaign requires the mapped spawn and Coals.');
   const centre = place('canberra-centre', { x: -456, z: -4500, name: 'Canberra Centre' });
   const kingston = place('kingston', { x: 923, z: 285, name: 'Kingston' });
+  // GPS ends at named road vertices. Keep the parcel arrival on that same
+  // public network rather than the schematic shops centre beyond the route.
+  let deliveryApproach = kingston, deliveryDistance = 110;
+  for (const road of map.roads || []) {
+    if (!road.name || !['residential', 'living_street', 'tertiary', 'secondary', 'primary', 'unclassified'].includes(road.type) || !roadProfile(road).trafficAllowed) continue;
+    for (let index = 0; index < road.points.length; index++) {
+      if ((road.oneway === 1 && index === road.points.length - 1) || (road.oneway === -1 && index === 0) || road.points.length < 2) continue;
+      const point = { x: road.points[index][0], z: road.points[index][1], name: `Kingston public approach on ${road.name}` };
+      const gap = distance(point, kingston);
+      if (gap < deliveryDistance) { deliveryApproach = point; deliveryDistance = gap; }
+    }
+  }
   const home = map.storyHomes?.basement || { roomId: 'story-milo-home', name: "Milo's safehouse", street: 'Kingston', x: kingston.x, z: kingston.z };
   if (!finitePoint(home) || typeof home.roomId !== 'string' || !home.roomId) throw new Error('Campaign home requires a finite entry and room identity.');
   const homeApproach = finitePoint(home.approach) ? home.approach : home;
@@ -103,9 +116,9 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
         outro: 'Milo: Actual work. Actual wages. Disturbingly effective.',
         stages: [target(home, `Inside ${homeLocation}: pack your case at the case table`, 'home-action', homeTask), target(homeApproach, `Step outside ${homeLocation} through the same door; E beside your car to get in`, 'foot', { radius: 12, hold: 1 }), target(shop, 'Drive your car to Coals and stop outside; E exits', 'drive', { stop: true }), target(shop, 'Inside Coals: complete the stock shift', 'work', { storeId: shop.id, hold: 0 })] },
       { id: 'basement-first-delivery', name: 'Signed for', cutscene: scene('basement-first-delivery', 'A real receipt', ['Mara', 'One parcel, one signature. Keep the receipt this time.'], ['Milo', 'If the depot tries charging twice, I want proof.']), contact: 'Mara, local courier', reward: 150, time: 600,
-        briefing: 'Collect Mara\'s sealed parcel outside Coals on foot. Press E beside your car to get in, then drive to Kingston and stop before handover. Press E to exit and deliver the parcel on foot.',
+        briefing: `Collect Mara's sealed parcel outside Coals on foot. Press E beside your car to get in, then drive to ${deliveryApproach.name || 'Kingston'} and stop before handover. Press E to exit and deliver the parcel on foot.`,
         outro: 'Milo: The parcel has the same depot code as two other receipts. Mara wants all three people together.',
-        stages: [target(shop, 'Collect the sealed parcel outside Coals', 'foot', { radius: 12 }), target(kingston, 'Drive to the Kingston meeting approach and stop; E exits', 'drive', { stop: true }), target(kingston, 'Hand over the parcel on foot', 'foot', { radius: 16, hold: 2 })] },
+        stages: [target(shop, 'Collect the sealed parcel outside Coals', 'foot', { radius: 12 }), target(deliveryApproach, `Drive to ${deliveryApproach.name || 'the Kingston meeting approach'} and stop; E exits`, 'drive', { stop: true }), target(deliveryApproach, 'Hand over the parcel on foot', 'foot', { radius: 16, hold: 2 })] },
     ],
   });
   const meeting = freeze({ id: 'three-receipts', name: 'Three receipts', cutscene: scene('three-receipts', 'One fraudulent depot', ['Mara', 'Kit lost a club refund. Rowan approved the account. Milo got the fake debt. The same depot charged all three.'], ['Mara', 'Meet at Kingston. We take back the money and the ledger together.']), contact: 'Kit, Rowan, Milo and Mara', reward: 200, time: 600,
