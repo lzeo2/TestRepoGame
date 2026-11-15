@@ -85,7 +85,8 @@ artwork or branded vehicle assets are used.
 Choose Campaign, Street Life or Free roam. Campaign initially places Kit Vale
 (18, Telopea student), Rowan Pike (29, Civic analyst) or Milo Finch (26, basement
 regular) at a checked character-specific approach; changing character mid-session
-does not teleport. Street Life/Free roam retain the mapped Crescent start. WASD
+returns to that hero’s own saved location/state. A first visit uses their opening
+approach. Street Life/Free roam retain the mapped Crescent start. WASD
 or arrows drive/walk, Shift boosts/sprints, Space handbrakes/jumps. **E** stops then
 exits a moving car, enters a nearby empty car, or starts taking an occupied car.
 Unfamiliar parked and occupied cars require an eight-key timed unlock sequence.
@@ -202,6 +203,50 @@ browser/geodata tooling stay outside the repository.
 
 ## Audit findings
 
+### Repeat loading, character resumes and CPU, later15 November2026
+
+The [cache/CPU contract](../../capital-drive-cache-and-performance-contract.md) and
+[receipt](../../verification/capital-drive-cache-cpu-2026-11-15.md) record this
+continuation. After real boot, a game-scoped worker stores the93-file local closure
+(15,602,350bytes) with content hashes. Repeat visits use CacheStorage; six map JSONs
+need no repeat origin transfer. New revisions reuse unchanged assets, verify
+complete installation and wait for open game tabs to close. Offline reopening
+works after successful installation; denied/unavailable storage keeps online play.
+Only this game's old response caches are cleaned. Career saves are separate.
+Regenerate `cache-manifest.js` after final runtime edits and check it before commit.
+
+`protagonist-state.js` adds an optional strict per-hero checkpoint to the existing
+career writer. Kit/Rowan/Milo now return to their own pose, health, vehicle and
+ammo. A room capture resumes at its actual outside door. Busy/wanted/recovery
+states lock switching; completed missions, cash and ownership remain shared.
+The native menu/switch/reload case passed24checks without state grants.
+Dot's ordinary dialogue has an explicit Fight choice: actual noodle throw then
+fists. F punches; movement dodges. The ordinary confrontation cannot grant
+Rowan's mission credit. Protected work disables Fight. Real-room collision and
+retaliation tests preserve the table/booth and other contact guards. A separate
+16-check native Free-roam fight confirms the actual throw, NPC punch and player
+F reducing her health; it is not career mission completion.
+
+Actual CPU samples identified repeated traffic polygon checks and continuous
+paused redraws. Conservative exact AABB filtering and distant-body rejection
+retain original near-contact formulas; differential40-car trajectories match.
+Pauses stop rendering once stable, while pending chunks, resizes, caption scenes
+and live tracking remain supported. Paired cloud driving ScriptDuration fell
+3.247→1.265seconds per~8second3D window; the2D control fell3.925→1.169.
+Paused3D rendered zero frames (software GPU CPU32.53→0.04seconds). These are
+short cloud SwiftShader observations, not N100 measurements or a universal FPS
+promise. The new software-default Performance preset caps640×360/20FPS;
+hardware defaults Low960×540/30. Saved explicit choices override detection.
+In the measured software scene, Performance rendered162frames/8.08s versus
+118/8.17s on Low, with12%less graphics-process CPU. Lower resolution is a tradeoff.
+
+Native caching passed18checks including zero warm map/module origin bodies,
+offline normal driving and exact save preservation. A lightweight persistent
+browser restart fixture passed5; fallback/update-isolation fixtures are separate.
+The current runner contains74game JS files,85pure Node suites and two Python cache
+checks (247commands); current final acceptance is in the new receipt. Historical
+230/220 counts below retain their dated scope.
+
 ### Clear missions, crew and streamed geometry, 15 November 2026
 
 The [story and streaming contract](../../capital-drive-story-and-streaming-contract.md)
@@ -244,7 +289,8 @@ J opens Campaign and permits changing among Kit, Rowan and Milo between any
 missions, including partly completed introductions. Active missions lock all
 choices; completion, cancellation or failure releases them. Independent ordered
 intro prefixes survive switching/reload in the existing v2 format. Mid-session
-selection changes appearance without moving the player or granting rewards.
+selection originally shared a position. The later cache/CPU continuation below
+supersedes that behavior with separate saved character locations and state.
 
 Rowan's lunch now requires Dot to throw noodles at him before a live melee attack.
 The controller enables this sequence only for the active lunch encounter objective;
@@ -625,11 +671,11 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The current reusable runner checks 69 authored modules and 80 pure suites
-(230 syntax/source commands), fails on missing files or command errors and bounds
-subprocess lifetimes. The current follow-up source run passed 230/230; its log
-hash and retained failures are in the dated follow-up receipt. The earlier
-city-life220/220 result remains separately dated. Browser
+The current reusable runner checks 74 game JavaScript files and 85 pure Node suites
+plus two Python cache checks (247 syntax/source commands), fails on missing files or command errors and bounds
+subprocess lifetimes. The cache/CPU receipt records the final current run,
+while the earlier230/230 story/streaming and220/220 city-life results remain
+separately dated. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
 unavailable WebGL, denied storage and hidden teleport guards. Actual-map physics
 uses 28,323 nodes /48,290 directed edges /40 traffic cars. Current Street Life

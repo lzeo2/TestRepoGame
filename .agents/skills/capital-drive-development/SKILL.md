@@ -23,7 +23,8 @@ Shared street/vehicle character work also reads `docs/capital-drive-people-contr
 Three-character, gym, indoor encounter and sourced street-detail work also reads
 `docs/capital-drive-canberra-life-contract.md` and
 `docs/capital-drive-canberra-life-sources.md` and
-`docs/capital-drive-story-and-streaming-contract.md`.
+`docs/capital-drive-story-and-streaming-contract.md` and
+`docs/capital-drive-cache-and-performance-contract.md`.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -84,8 +85,10 @@ Campaign is a third mode with three separately ordered introductions, a shared
 meeting and the retained six chapters. Its strict v2 save preserves v1 progress;
 permit switching between any missions while preserving independent partial intro
 prefixes. Lock switching only during an active mission (plus invalid/recovery
-context guards); do not replay rewards or teleport on mid-session selection.
-Only an initial start uses character-start.js and checked separate car/foot poses.
+context guards). Restore that hero’s own checked location/health/car/ammo, without
+replaying rewards. Interior checkpoints use the captured exterior return pose.
+Only a first visit to a hero uses character-start.js and checked separate car/foot
+poses; later visits restore that hero’s validated checkpoint.
 Its completion and rewards
 share the career save write; active missions remain transient. No sandbox travel
 may advance a chapter. House/shop/Centre room plans and meshes are generated only
@@ -201,3 +204,16 @@ Mission guides target the same door/station descriptors as collision and renderi
 New school, home and robbery outcomes require the matching live terminal owner and
 fresh serial; no caller boolean, stale receipt or caption timer grants completion.
 Ground allies remain outdoors and never teleport or board cars implicitly.
+
+
+The game worker stores only the generated local asset closure. After final runtime
+edits run `python3 -B scripts/build_capital_cache.py --write`, then `--check` and
+its regression. Do not skipWaiting into live sessions, widen scope or clear other
+caches/career storage. Hash verification/version changes and unchanged-file reuse
+must remain tested. Browser caching does not cache live GPU objects.
+For CPU reports use the bounded `profile_capital_drive.py` on exact source exports.
+Distinguish ScriptDuration, sampled self/inclusive time, process CPU seconds, RAF
+callbacks and actual renders. Compare collisions against the pinned pre-optimization
+implementation, with unchanged trajectories and contacts. Never gain speed by
+removing collision or silently dropping traffic. Static paused views render once;
+queued geometry, settings changes, caption scenes and live tracking still refresh.

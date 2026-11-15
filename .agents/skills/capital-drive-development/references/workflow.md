@@ -150,10 +150,10 @@ python3 -B scripts/check_capital_drive.py --dry-run
 python3 -B scripts/check_capital_drive.py
 ```
 
-The runner enumerates69 authored modules and80 pure suites in its `MODULES`
+The runner enumerates74 game JavaScript files and85 pure Node suites in its `MODULES`
 and `SUITES` constants, including roads, buses, police, occupants and services.
 It checks every syntax entry, executes every suite (drive receives the actual map
-argument), then runs `git diff --check`:230 commands in the story/streaming pure pass. Keep these
+argument), then runs `git diff --check` plus two Python cache checks:247 commands in the cache/CPU pass. Keep these
 explicit lists current when adding a required module; a missing file fails.
 Missing modules/data/suites fail; nothing silently skips. Each pure command has a
 120 second limit; total run is bounded to 900 seconds. Actual exit codes are printed.
@@ -471,7 +471,7 @@ intro prefixes, a meeting flag, the selected character and the retained shared
 prefix. Keep v1 completed chapters and reward history during migration. Root owns
 serial baselines for real PowerPunt, completed work and booth outcomes; a stale
 event or sandbox action cannot complete a new objective. Mid-session selection
-changes appearance and mission ownership without moving the player. Allow it
+restores independent validated pose/health/car/ammo and changes mission ownership. Allow it
 between any missions, retaining multiple partial intro prefixes through reload;
 only active missions lock selection. Initial
 character-start placement checks the actual expanded map and parked bodies.
@@ -554,3 +554,45 @@ attribute arrays, not total process/GPU memory. The noodle component is explicit
 programmatic supplied-dt evidence; never present it as native career reward proof.
 School-story stops after the alarm and normal exit, before evasion/reward. Keep
 failed native travel receipts and source blockers instead of deleting buildings.
+
+
+## Cached downloads, character resumes and actual CPU profiles
+
+Read docs/capital-drive-cache-and-performance-contract.md. Regenerate the manifest
+only after final runtime source changes, then run its check. The content-derived
+version covers the exact local closure plus worker logic. Own caches are scoped
+and verified; unchanged hash entries can be reused. Default worker waiting
+protects existing game tabs. No forced reload, root scope or broad cache deletion.
+
+```sh
+python3 -B scripts/build_capital_cache.py --write
+python3 -B scripts/build_capital_cache.py --check
+python3 -B scripts/test_capital_cache_manifest.py
+node scripts/test_capital_cache.mjs
+node scripts/test_capital_protagonist_state.mjs
+node scripts/test_capital_character_switching.mjs
+node scripts/test_capital_collision_performance.mjs
+node scripts/test_capital_render_gate.mjs
+python3 -B scripts/test_capital_cache_browser.py --scenario native --output <fresh-external-directory>
+python3 -B scripts/test_capital_cache_browser.py --scenario heroes --output <fresh-external-heroes-directory>
+python3 -B scripts/profile_capital_drive.py --root <exact-source-export> --mode 3d --quality low --seconds 8 --output <fresh-external-profile-directory>
+```
+
+Validate the whole actual cache manifest, not an invented fixed JSON/module count.
+There are six runtime map fetches and an additional credits-linked validation JSON.
+Warm network proof disables ordinary HTTP caching and counts origin response bodies;
+a persistent-browser fixture separately proves cache survives restart. Offline
+career evidence must use the actual native writer, with both optional campaign
+and protagonists envelope fields separated from Progression's serialized state.
+
+Hero checkpoints use the same writer and strict optional outer field, preserving
+legacy saves. Restore exact ammo without first-equip loading and validate physical
+placement before state mutation; rollback failed switches. Room captures use their
+real captured outside pose. Busy missions/work/rides/wanted/recovery lock switching.
+
+Profile baseline and candidate with the same viewport, settings and input duration.
+Block service workers during CPU comparisons so first cache population cannot
+contaminate the measured play window. Record raw cpuprofiles and source hashes;
+(program) is unattributed/native work, not a JavaScript function. RAF frequency
+is not actual render frequency. Software GPU CPU can exceed100%of one core across
+threads. Short cloud windows and time-based routes are not N100 benchmarks.
