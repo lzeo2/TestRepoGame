@@ -307,7 +307,7 @@ export function createGameplay(map, simulation, options = {}) {
   }
   function addShot(from,to,kind,space=interiorId()) {
     const range=distance(from,to);
-    state.shots.push({x:from.x,z:from.z,endX:to.x,endZ:to.z,
+    state.shots.push({x:from.x,y:from.y,z:from.z,endX:to.x,endY:to.y,endZ:to.z,
       yaw:yawFor(to.x-from.x,to.z-from.z),range,life:.13,kind,interiorId:space,hit:true});
     if(state.shots.length>MAX_SHOT_TRACES) state.shots.splice(0,state.shots.length-MAX_SHOT_TRACES);
   }

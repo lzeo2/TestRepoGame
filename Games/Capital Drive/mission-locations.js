@@ -101,7 +101,7 @@ export function createMissionGuide(entries, storyHomes = {}) {
     }
     if (goal.kind === 'encounter' || goal.kind === 'fight') {
       const guest = (Array.isArray(people) ? people : []).find(p => point(p) && p.roomId === plan.id &&
-        p.character === 'booth-guest' && Number.isFinite(p.health) && p.health > 0 &&
+        p.character === 'booth-guest' && Number.isFinite(p.health) && (p.health > 0 || (goal.victory === true && p.health === 0)) &&
         (!identity(goal.storeId) || p.storeId === goal.storeId));
       if (!guest) return fallback();
       return result(goal.kind === 'fight' ? `Challenge Pink Earmuffs at the marked booth in ${location}, then win the fight.` : `Speak to Dot at the marked booth in ${location}.`, location, guest, true, entry.id);

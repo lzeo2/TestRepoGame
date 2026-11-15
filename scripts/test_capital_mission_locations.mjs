@@ -76,6 +76,12 @@ assert.equal(dto.distance, Math.SQRT2);
 assert.match(dto.instruction, /Speak to Dot/);
 assert.equal(guide(target('encounter', { storeId: 'coals' }), { plan, people: people.slice(0, 2) }).instruction, 'Original objective');
 
+const defeatedGuest = people.filter(p => p.character === 'booth-guest').map(p => ({...p,health:0}));
+const retryGuide = guide(target('fight', {storeId:'coals',victory:true}), {plan,people:defeatedGuest});
+assert.equal(retryGuide.indoors,true,'a defeated modern encounter keeps its real indoor rematch marker');
+assert.equal(retryGuide.entryId,plan.id);
+assert.equal(guide(target('encounter', {storeId:'coals'}), {plan,people:defeatedGuest}).instruction,'Original objective','ordinary dead guests do not gain a conversation marker');
+
 const homePlan = { id: 'a', activities: [{ id: 'a-stash', kind: 'stock', label: 'Pack the ledger case', x: -10, z: 6 }] };
 dto = guide(target('home-action', { roomId: 'a', stationId: 'a-stash' }), { plan: homePlan });
 assert.equal(dto.location, "Milo's safehouse on Eyre Street");
