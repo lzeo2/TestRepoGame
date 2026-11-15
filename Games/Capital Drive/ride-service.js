@@ -1,4 +1,5 @@
 import { createRoutePlanner, roadProfile } from './road-network.js';
+import { rayTargetDistance } from './ballistics.js';
 
 const LENGTH = 4.66, WIDTH = 1.884, MAX_SPEED = 10;
 const angle = value => Math.atan2(Math.sin(value), Math.cos(value));
@@ -15,7 +16,7 @@ const freeze = value => {
 
 // One transient NPC car. The controller owns its rendering, collision registration,
 // passenger attachment and the only clock; the injected career owner owns money.
-export function createRideService(map, simulation, { pay = () => false, canPay = () => false } = {}) {
+export function createRideService(map, simulation, { pay = () => false, canPay = () => false, heightAt = () => 0 } = {}) {
   const planner = createRoutePlanner(simulation.graph);
   const edges = simulation.graph.edges.filter(edge => edge.length >= 18 && roadProfile(edge.road).trafficAllowed);
   const car = { id: 'yoober-driver', kind: 'ride', modelId: 'lantern', color: 0x6953a3,
@@ -24,6 +25,22 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
   const driver = { id: 'yoober-driver-npc', role: 'driver', x: 0, z: 0, yaw: 0, active: false,
     health: 100, reaction: 'calm', elapsed: 0, cooldown: 0, hitCooldown: 0 };
   const people = [driver];
+  function shotDescriptor() {
+    return Object.freeze({ id: driver.id, x: driver.x, z: driver.z, feetY: heightAt(driver.x, driver.z) + .05,
+      height: 1.8, radius: .36, interiorId: null, health: driver.health });
+  }
+  function shotTargets() { return Object.freeze(driver.active && driver.health > 0 ? [shotDescriptor()] : []); }
+  function damageDriver(damage) {
+    driver.health = Math.max(0, driver.health - damage); driver.hitCooldown = .4;
+    driver.reaction = driver.health > 0 ? 'returning' : 'knockdown';
+    return copy(driver);
+  }
+  function hitByShot(id, damage, ray) {
+    const result = { hits: 0, people: [] };
+    if (id !== driver.id || !driver.active || driver.health <= 0 || driver.hitCooldown > 0 || !ray ||
+      !Number.isFinite(damage) || damage <= 0 || !Number.isFinite(rayTargetDistance(ray, shotDescriptor()))) return result;
+    result.people.push(damageDriver(Math.min(100, damage))); result.hits = 1; return result;
+  }
   let ragePending = false, driverDoor = null;
   let phase = 'idle', reason = '', passenger = false, fare = 0, booking = null, serial = 0;
   let legStart = null;
@@ -265,9 +282,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     if (damage <= 0 || gap > reach || (explosion ? gap >= reach : forward < -.3 || (gun ? lateral > .55 : forward < gap * .25)) ||
       typeof sight !== 'function' || (explosion ? sight({ x, z }, driver) !== true : !sight({ x, z }, driver))) return result;
     const dealt = Math.min(100, damage) * (explosion ? 1 - gap / reach : 1);
-    driver.health = Math.max(0, driver.health - dealt); driver.hitCooldown = .4;
-    driver.reaction = driver.health > 0 ? 'returning' : 'knockdown';
-    result.hits = 1; result.people.push(copy(driver)); return result;
+    result.hits = 1; result.people.push(damageDriver(dealt)); return result;
   }
   function interact(ctx = {}) {
     if (!car.active) return { ok: false, reason: 'No active ride' };
@@ -399,7 +414,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
       car: { ...car }, driver: copy(driver), people: driver.active ? [copy(driver)] : [],
       stats: { drivers: Number(driver.active), driverLimit: 1 }, pickup: copy(pickup), dropoff: copy(dropoff), route: [...route], waypoint: cursor });
   }
-  return { vehicles, people, destinations, quote, book, interact, cancel, step, reset, snapshot, strike, alert, clipMovement,
+  return { vehicles, people, destinations, quote, book, interact, cancel, step, reset, snapshot, strike, alert, clipMovement, shotTargets, hitByShot,
     drainCombatEvents: () => combatEvents.splice(0),
     get phase() { return phase; }, get passenger() { return passenger; },
     get activeFare() { return activeFare(); }, get seatPose() { return passenger ? car : null; },
