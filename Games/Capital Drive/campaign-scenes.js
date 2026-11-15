@@ -38,8 +38,8 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
     doors.get(key).push(door);
   }
   let people=EMPTY, dialogueLines=EMPTY, signature='', elapsed=0, allies=[], events=[], disposed=false, active=false, catchupRetry=0;
-  const attachments=new Map(), seatRetries=new Map();
-  function clear(){people=EMPTY;dialogueLines=EMPTY;signature='';elapsed=0;allies=[];events=[];active=false;catchupRetry=0;attachments.clear();seatRetries.clear();}
+  const attachments=new Map(), seatRetries=new Map(), leaders=new Map();
+  function clear(){people=EMPTY;dialogueLines=EMPTY;signature='';elapsed=0;allies=[];events=[];active=false;catchupRetry=0;attachments.clear();seatRetries.clear();leaders.clear();}
   function nearDoor(p) {
     const cx=Math.floor(p.x/8),cz=Math.floor(p.z/8);
     for(let x=cx-1;x<=cx+1;x++)for(let z=cz-1;z<=cz+1;z++)
@@ -157,7 +157,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
     return true;
   }
   function windowCombat(ally,ctx,hostiles) {
-    const car=attachments.get(ally.id)?.car;if(!car)return;
+    const car=attachments.get(ally.id)?.car;if(!car||!ally.armed)return;
     const muzzle=windowPoint(car,ally.seatIndex);
     let target=null,distance=ALLY_RANGE;
     for(const hostile of hostiles) {
@@ -170,6 +170,54 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
       events.push(Object.freeze({kind:'ally-shot',type:'ally-shot',actorId:ally.id,targetId:target.id,from,to,damage:ALLY_DAMAGE,range:ALLY_RANGE}));
       ally.shot={from,to,remaining:.12};ally.cooldown=ALLY_COOLDOWN;
     }
+  }
+  function syncCarPose(value,carKey) {
+    if(disposed)return false;
+    const car=manualCar({car:value,carKey});if(!car)return false;
+    let changed=false;
+    for(const ally of allies) {
+      const attachment=attachments.get(ally.id);
+      if(!attachment||attachment.car.key!==car.key||attachment.car.modelId!==car.modelId)continue;
+      attachment.car=car;
+      if(ally.x===car.x&&ally.z===car.z&&ally.yaw===car.yaw)continue;
+      Object.assign(ally,{x:car.x,z:car.z,yaw:car.yaw});changed=true;
+    }
+    if(changed&&people.length)publishAllies();
+    return changed;
+  }
+  const heroId=id=>typeof id==='string'?id.replace(/^campaign-ally:/,''):null;
+  function exchangeTarget(id,ctx) {
+    const hero=heroId(id),mission=ctx?.mission;
+    if(disposed||ctx?.mode!=='campaign'||ctx.recovery||ctx.recovering||ctx.interior||ctx.playerMode!=='foot'||
+      !HEROES.includes(ctx.character)||!HEROES.includes(hero)||hero===ctx.character||!point(ctx.pose)||!Number.isFinite(ctx.pose.yaw)||
+      !Number.isFinite(ctx.health)||ctx.health<=0||ctx.health>100||!mission||!Array.isArray(mission.companions)||!mission.companions.includes(hero))return null;
+    const selected=allies.find(ally=>ally.id===`campaign-ally:${hero}`);
+    if(!selected||selected.active===false||selected.health<=0||selected.seated||gap(selected,ctx.pose)>80)return null;
+    const current=HEROES.filter(value=>value!==ctx.character&&mission.companions.includes(value)).slice(0,2);
+    if(signature!==`allies:${mission.id}:${ctx.character}:${current.join(':')}`)return null;
+    // Each body is checked in its current space. The player is about to leave
+    // its own indexed circle, and the selected adult is about to become it.
+    for(const [pose,ignorePersonId] of [[selected,selected.id],[ctx.pose,'player-body']]) {
+      if(!simulation.canOccupy(pose,{length:1,width:.8,ignorePersonId}))return null;
+      const actor={...pose};if(simulation.moveActor(actor,0,0,RADIUS).blocked)return null;
+    }
+    return selected;
+  }
+  function canExchangeLeader(id,ctx={}) {return !!exchangeTarget(id,ctx);}
+  function exchangeLeader(id,ctx={}) {
+    const selected=exchangeTarget(id,ctx);if(!selected)return null;
+    const next=heroId(id),previous=ctx.character,retained=leaders.get(previous);
+    const promoted=Object.freeze({...selected,shot:null});
+    clearShots(selected);leaders.set(next,selected);leaders.delete(previous);
+    const former=retained||{id:`campaign-ally:${previous}`,appearanceId:`player:${previous}`,radius:RADIUS,
+      gesturePhase:elapsed,cooldown:ALLY_COOLDOWN,hitPhase:0,shot:null};
+    Object.assign(former,{x:ctx.pose.x,z:ctx.pose.z,yaw:ctx.pose.yaw,health:ctx.health,active:true,
+      armed:typeof ctx.armed==='boolean'?ctx.armed:former.armed??true,mode:'following',speed:0,
+      seated:false,vehicleId:null,vehicleKey:null,seatIndex:null,carModelId:null,followTime:0,followStartDistance:0,stuck:false});
+    allies[allies.indexOf(selected)]=former;
+    const heroes=HEROES.filter(value=>value!==next&&ctx.mission.companions.includes(value)).slice(0,2);
+    signature=`allies:${ctx.mission.id}:${next}:${heroes.join(':')}`;
+    publishAllies();return promoted;
   }
   function updateAllies(ctx,dt) {
     const mission=ctx.mission, heroes=HEROES.filter(id=>id!==ctx.character&&mission.companions.includes(id)).slice(0,2);
@@ -213,7 +261,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
       if(target) {
         ally.followTime=0;ally.stuck=false;
         ally.mode='combat';ally.speed=0;ally.yaw=Math.atan2(-(target.x-ally.x),-(target.z-ally.z));
-        if(ally.cooldown===0&&events.length<SHOT_LIMIT) {
+        if(ally.armed&&ally.cooldown===0&&events.length<SHOT_LIMIT) {
           const from=frozenPoint(ally),to=frozenPoint(target);
           events.push(Object.freeze({kind:'ally-shot',type:'ally-shot',actorId:ally.id,targetId:target.id,from,to,damage:ALLY_DAMAGE,range:ALLY_RANGE}));
           ally.shot={from,to,remaining:.12};ally.cooldown=ALLY_COOLDOWN;
@@ -342,5 +390,5 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
     }
     return {dx:x-actor.x,dz:z-actor.z,blocked};
   }
-  return {update,clear,clipMovement,meetingPoint,receiveHit,getPeople:()=>people,drainEvents:()=>events.splice(0),dispose(){if(disposed)return;clear();disposed=true;},get people(){return people;},get dialogueLines(){return dialogueLines;}};
+  return {update,clear,clipMovement,meetingPoint,receiveHit,syncCarPose,canExchangeLeader,exchangeLeader,getPeople:()=>people,drainEvents:()=>events.splice(0),dispose(){if(disposed)return;clear();disposed=true;},get people(){return people;},get dialogueLines(){return dialogueLines;}};
 }

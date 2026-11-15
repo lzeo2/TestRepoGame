@@ -97,7 +97,7 @@ assert(actualHome&&fullInteriors.entries.some(entry=>entry.id===actualHome.roomI
 assert(fullHood.entries.length>=4200&&fullInteriors.entries.filter(entry=>entry.type==='house').length>=2700,'full source door metadata remains present before selecting the actual story home');
 fullHood.dispose();
 const sharedCampaign=createCampaign(fullMap,{version:1,completed:[]}),sharedCrew=createCampaignScenes(fullMap,fullSim);
-assert.equal(sharedCampaign.chapters.length,6);
+assert.equal(sharedCampaign.chapters.length,9);
 for(const chapter of sharedCampaign.chapters){
  sharedCrew.clear();sharedCrew.update({mode:'campaign',character:chapter.character,mission:{...chapter,target:chapter.stages[0]},pose:fullMap.spawn},.1);
  assert.equal(sharedCrew.people.length,2,`${chapter.id} recruits both allies near the actual player`);
@@ -116,7 +116,7 @@ for(let i=0;i<2;i++) {
  for(const door of fullMap.interiorEntries)assert(Math.hypot(ally.x-door.x,ally.z-door.z)>=1.4,'actual source doors retain clear space');
 }
 sourceTravel.dispose();sharedCrew.dispose();
-console.log(`PASS all six heist crews beside the actual player; ${actualHome.name}, ${actualHome.street}, ${actualHome.roomId}, door ${actualHome.x.toFixed(3)},${actualHome.z.toFixed(3)}, approach ${actualHome.approach.x.toFixed(3)},${actualHome.approach.z.toFixed(3)}`);
+console.log(`PASS all ${sharedCampaign.chapters.length} heist crews beside the actual player; ${actualHome.name}, ${actualHome.street}, ${actualHome.roomId}, door ${actualHome.x.toFixed(3)},${actualHome.z.toFixed(3)}, approach ${actualHome.approach.x.toFixed(3)},${actualHome.approach.z.toFixed(3)}`);
 const fixtureMap={bounds:{minX:-100,maxX:100,minZ:-100,maxZ:100},spawn:{x:-50,z:-50,yaw:0},landmarks:[{id:'kingston',x:0,z:5}],roads:[{id:'public',type:'residential',width:6,points:[[-50,0],[50,0]]}],buildings:[{id:'wall',points:[[6,-20],[6.3,-20],[6.3,20],[6,20]],height:4}]};
 const crewSim=createSimulation(fixtureMap,{trafficCount:0}),crew=createCampaignScenes(fixtureMap,crewSim);
 const fc={...crewCtx,mission:{...crewMission,target:{x:0,z:5,radius:16}},pose:{x:-4,z:8,yaw:0}};
@@ -358,6 +358,59 @@ seatTick({mission:{...seatContext.mission,id:'next-heist'}});assert(seatCrew.peo
 seatTick({mission:null});assert.equal(seatCrew.people.length,0);assert.equal(seatCrew.drainEvents().length,0);
 seatCrew.dispose();
 console.log('PASS manual-car crew seats: bounded capacity, distinct seats, identity/health preservation, live pose, no ghost bodies, window-side combat, dt/pause, blocked exit retry, downed exclusion and mission teardown');
+
+// Leadership transfers the real two bodies. It does not recreate the third
+// companion, reset a wounded hero, move the car or advance the campaign.
+const exchangeSim=createSimulation({...seatMap,spawn:{x:-80,z:-80,yaw:0}},{trafficCount:0});
+const exchangeScenes=createCampaignScenes(seatMap,exchangeSim);
+const exchangeCtx={...fc,pose:{x:0,z:10,yaw:0},health:61};
+exchangeScenes.update(exchangeCtx,.1);assert.equal(exchangeScenes.people.length,2);
+const initialSelected=exchangeScenes.people[0];
+assert(exchangeScenes.receiveHit({kind:'shot',targetId:initialSelected.id,from:{x:initialSelected.x+1,z:initialSelected.z},to:initialSelected,damage:25}));
+const selectedBefore=exchangeScenes.people[0],thirdBefore=exchangeScenes.people[1],playerCarBefore={...exchangeSim.player};
+const exchangeContacts=context=>exchangeSim.setExternalPeople([...exchangeScenes.people.filter(person=>!person.seated),{id:'player-body',...context.pose,radius:.45}]);
+exchangeContacts(exchangeCtx);
+assert(exchangeScenes.canExchangeLeader('corporate',{...exchangeCtx,paused:true}),'choosing in the paused campaign dialog permits a checked live transfer');
+for(const invalid of [{interior:true},{recovering:true},{health:0},{playerMode:'vehicle'},{mode:'free'},{pose:{x:90,z:90,yaw:0}}])assert.equal(exchangeScenes.canExchangeLeader('corporate',{...exchangeCtx,...invalid}),false);
+assert.equal(exchangeScenes.canExchangeLeader('student',exchangeCtx),false);
+const promoted=exchangeScenes.exchangeLeader('campaign-ally:corporate',{...exchangeCtx,paused:true,armed:false});
+assert(promoted&&Object.isFrozen(promoted));assert.equal(promoted.health,75);assert.equal(promoted.id,selectedBefore.id);
+assert.deepEqual(exchangeScenes.people.find(person=>person.id===thirdBefore.id),thirdBefore,'the uninvolved ally retains exact health, cooldown and shot state');
+const formerLead=exchangeScenes.people.find(person=>person.id==='campaign-ally:student');
+assert.equal(formerLead.armed,false,'demotion retains the supplied actual armed state');
+assert.equal(formerLead.health,61);assert.equal(formerLead.x,exchangeCtx.pose.x);assert.equal(formerLead.z,exchangeCtx.pose.z);
+assert.deepEqual(exchangeSim.player,playerCarBefore,'leadership never relocates or claims the player car');
+assert.deepEqual(exchangeCtx.pose,{x:0,z:10,yaw:0},'scene transfer never moves the caller body');
+const secondCtx={...exchangeCtx,character:'corporate',pose:{x:promoted.x,z:promoted.z,yaw:promoted.yaw},health:55};
+exchangeContacts(secondCtx);exchangeScenes.update(secondCtx,.1);
+assert.equal(exchangeScenes.people.length,2);assert(!exchangeScenes.people.some(person=>person.id===promoted.id));
+assert.equal(exchangeScenes.people.find(person=>person.id===formerLead.id).health,61,'the next ordinary tick retains the transferred roster');
+const returnThird=exchangeScenes.people.find(person=>person.id===thirdBefore.id);
+exchangeContacts(secondCtx);
+const returnPromotion=exchangeScenes.exchangeLeader('student',secondCtx);assert(returnPromotion);assert.equal(returnPromotion.health,61);
+const restoredCorporate=exchangeScenes.people.find(person=>person.id==='campaign-ally:corporate');
+assert.equal(restoredCorporate.health,55,'demotion uses the actual wounded player health');
+assert.equal(restoredCorporate.cooldown,selectedBefore.cooldown,'returning a leader restores the existing companion cooldown');
+assert.deepEqual(exchangeScenes.people.find(person=>person.id===thirdBefore.id),returnThird);
+const denyCanOccupy=exchangeSim.canOccupy;exchangeSim.canOccupy=()=>false;
+assert.equal(exchangeScenes.canExchangeLeader('corporate',exchangeCtx),false,'failed physical preflight denies the exchange');
+assert.equal(exchangeScenes.exchangeLeader('corporate',exchangeCtx),null);exchangeSim.canOccupy=denyCanOccupy;
+exchangeScenes.update({...exchangeCtx,mission:null},.1);assert.equal(exchangeScenes.people.length,0);assert.equal(exchangeScenes.canExchangeLeader('corporate',exchangeCtx),false);
+exchangeScenes.dispose();
+// Pose resynchronization fixes the post-physics seat anchor without ticking any
+// cooldown, adding fire, releasing a door or exposing a hidden indoor roster.
+const syncScenes=createCampaignScenes(seatMap,seatSim);Object.assign(seatSim.player,{x:0,z:0,yaw:0,speed:0,modelId:'lantern'});
+const syncCtx={...seatContext,car:seatSim.player,pose:seatSim.player,playerMode:'vehicle'};
+syncScenes.update(syncCtx,.1);
+for(let i=0;i<80&&!syncScenes.people.every(person=>person.seated);i++){syncScenes.update(syncCtx,.1);seatSim.setExternalPeople(syncScenes.people.filter(person=>!person.seated));}
+const syncBefore=syncScenes.people;
+Object.assign(seatSim.player,{x:9,z:12,yaw:.7});assert(syncScenes.syncCarPose(seatSim.player,1));
+for(let i=0;i<2;i++){assert.equal(syncScenes.people[i].x,9);assert.equal(syncScenes.people[i].z,12);assert.equal(syncScenes.people[i].yaw,.7);assert.equal(syncScenes.people[i].cooldown,syncBefore[i].cooldown);assert.equal(syncScenes.people[i].health,syncBefore[i].health);}
+assert.equal(syncScenes.canExchangeLeader('corporate',{...syncCtx,playerMode:'foot',pose:{x:14,z:12,yaw:0}}),false,'seated crew cannot be promoted as a ground body');
+assert.equal(syncScenes.drainEvents().length,0);assert.equal(syncScenes.syncCarPose({...seatSim.player,x:99},2),false,'other car identities cannot steal attachments');
+syncScenes.update({...syncCtx,interior:true},.1);assert.equal(syncScenes.people.length,0);syncScenes.syncCarPose({...seatSim.player,x:10},1);assert.equal(syncScenes.people.length,0,'resynchronizing a hidden carrier does not republish indoor crew');
+syncScenes.dispose();
+console.log('PASS live leader exchanges: paused choice, real body clearance, wounded health and existing cooldown retention, stable third ally, subsequent tick/roundtrip, no car/caller writes, denied transitions and post-physics no-clock seat sync');
 
 const url=source=>`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const threeURL=url(await read('../assets/car-arcade/vendor/three.module.js')),THREE=await import(threeURL);
