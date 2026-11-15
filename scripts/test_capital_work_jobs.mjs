@@ -43,8 +43,8 @@ const {bind}=await import('data:text/javascript;base64,'+Buffer.from(`export fun
   const {interiors,activities,progression,paused,focus,careerContext,isSandbox,notify,clearInput,isWorkoutKind,visible}=env;
   ${startFunction}
  return beginMini;}`).toString('base64'));
-for(const kind of ['noodle','stock']){
-  const f=fixture(kind);
+for(const kind of ['noodle','stock'])for(let wanted=0;wanted<=5;wanted++){
+  const f=fixture(kind);f.ctx.wanted=wanted;
   const begin=bind({...f,isWorkoutKind,visible:(a,b)=>f.interiors.hasLineOfSight(a,b),paused:()=>false,focus:()=>f.ctx.pose,careerContext:()=>f.ctx,isSandbox:()=>false,notify(){},clearInput(){}});
   begin();assert.equal(f.progression.state.activity?.type,'work');
   const session=f.activities.snapshot().sessionId;
@@ -54,8 +54,9 @@ for(const kind of ['noodle','stock']){
   assert.equal(f.progression.state.cash,1000+(kind==='noodle'?60:45));
 }
 
-for (const kind of ['noodle', 'stock']) {
-  const f = fixture(kind), p = f.progression, reward = kind === 'noodle' ? 60 : 45;
+for (const kind of ['noodle', 'stock']) for(let wanted=0;wanted<=5;wanted++) {
+  const f = fixture(kind);f.ctx.wanted=wanted;
+  const p = f.progression, reward = kind === 'noodle' ? 60 : 45;
   assert.equal(p.startShift(f.store.id, f.ctx).ok, false, 'a task must be active before starting paid work');
   assert(f.start().ok);
   assert.equal(p.state.activity.type, 'work');
@@ -84,7 +85,7 @@ for (const kind of ['noodle', 'stock']) {
   assert.equal(f.progression.finishShift(f.ctx, true).ok, false);
   assert.equal(f.progression.state.cash, 1000);
 }
-for (const extra of [{ sandbox: true }, { recovering: true }, { onFoot: false }, { wanted: 1 }, { respawnSerial: 1 }, { pose: { x: 9999, z: 9999 } }]) {
+for (const extra of [{ sandbox: true }, { recovering: true }, { onFoot: false }, { wanted: NaN }, { respawnSerial: 1 }, { pose: { x: 9999, z: 9999 } }]) {
   const f = fixture(); assert(f.start().ok);
   f.progression.update(0, { ...f.ctx, ...extra });
   assert.equal(f.progression.state.activity, null, `invalid player context cancels: ${JSON.stringify(extra)}`);
@@ -92,11 +93,11 @@ for (const extra of [{ sandbox: true }, { recovering: true }, { onFoot: false },
   assert.equal(f.progression.finishShift(f.ctx, true).ok, false);
   assert.equal(f.progression.state.cash, 1000);
 }
-for (const extra of [{ sandbox: true }, { recovering: true }, { onFoot: false }, { wanted: 1 }]) {
+for (const extra of [{ sandbox: true }, { recovering: true }, { onFoot: false }, { wanted: NaN }]) {
   const f = fixture(); assert(f.activities.start(f.station.id, f.ctx));
   assert.equal(f.progression.startShift(f.store.id, { ...f.ctx, ...extra }).ok, false, 'invalid player cannot join a shift');
 }
-for (const extra of [{ sandbox: true }, { recovering: true }, { wanted: 1 }, { respawnSerial: 1 }, { pose: { x: 9999, z: 9999 } }]) {
+for (const extra of [{ sandbox: true }, { recovering: true }, { wanted: NaN }, { respawnSerial: 1 }, { pose: { x: 9999, z: 9999 } }]) {
   const f = fixture(); assert(f.start().ok); f.complete();
   assert.equal(f.progression.finishShift({ ...f.ctx, ...extra }, true).ok, false, 'completion handoff rechecks the current player even without an update');
   assert.equal(f.progression.state.cash, 1000);
@@ -105,8 +106,9 @@ for (const extra of [{ sandbox: true }, { recovering: true }, { wanted: 1 }, { r
   const f = fixture(); assert(f.activities.start(f.station.id, { ...f.ctx, sandbox: true }));
   assert.equal(f.progression.startShift(f.store.id, f.ctx).ok, false, 'a sandbox session cannot become paid work after changing mode');
 }
-for (const reason of ['cancel', 'failure', 'leave', 'penalty', 'wrong-session', 'wrong-station', 'wrong-plan', 'failure-handoff']) {
-  const f = fixture(), p = f.progression; assert(f.start().ok);
+for(let wanted=0;wanted<=5;wanted++)for (const reason of ['cancel', 'failure', 'leave', 'penalty', 'wrong-session', 'wrong-station', 'wrong-plan', 'failure-handoff']) {
+  const f = fixture();f.ctx.wanted=wanted;
+  const p = f.progression; assert(f.start().ok);
   if (reason === 'cancel') { f.activities.cancel(); p.cancelActivity(); }
   else if (reason === 'failure') { for (let i = 0; i < 3; i++) { f.tick(); f.tick({ up: true }); } }
   else if (reason === 'leave') f.interiors.leave({ ...f.ctx.pose });
@@ -145,29 +147,28 @@ for (const reason of ['cancel', 'failure', 'leave', 'penalty', 'wrong-session', 
 }
 
 const drive = (pose, extra = {}) => context(pose, { onFoot: false, vehicle: { modelId: 'lantern', stolen: false }, ...extra });
-for (const id of ['franklin-delivery', 'kennedy-delivery']) {
+for (const id of ['franklin-delivery', 'kennedy-delivery']) for(let wanted=0;wanted<=5;wanted++) {
   const p = createProgression(map), job = p.jobs.find(item => item.id === id);
   assert.equal(job.type, 'delivery'); assert.equal(job.legitimate, true);
   for (const stage of job.stages.filter(item => item.roadId)) {
     const road = map.roads.find(item => item.id === stage.roadId);
     assert(road && road.points.some(([x, z]) => x === stage.x && z === stage.z), 'delivery marker is a pinned mapped street vertex');
   }
-  for (const extra of [{ sandbox: true }, { recovering: true }, { wanted: 1 }, { vehicle: { modelId: 'lantern', stolen: true } }])
+  for (const extra of [{ sandbox: true }, { recovering: true }, { wanted: NaN }, { vehicle: { modelId: 'lantern', stolen: true } }])
     assert.equal(p.startJob(id, drive(job.stages[0], extra)).ok, false);
-  assert(p.startJob(id, drive(job.stages[0])).ok);
+  assert(p.startJob(id, drive(job.stages[0],{wanted})).ok);
   p.update(1, drive(job.stages.at(-1))); assert.equal(p.state.activeJob.stage, 0, 'drop cannot bypass pickup');
   p.update(0, drive(job.stages[0])); assert.equal(p.state.activeJob.stage, 0, 'paused delivery cannot advance');
-  p.update(1, drive(job.stages[0], { wanted: 1 })); assert.equal(p.state.activeJob.stage, 0);
   p.update(1, drive(job.stages[0], { vehicle: { modelId: 'lantern', stolen: true } })); assert.equal(p.state.activeJob.stage, 0);
-  for (const stage of job.stages) p.update(1, drive(stage));
+  for (const stage of job.stages) p.update(1, drive(stage,{wanted}));
   assert.equal(p.state.cash, 1000 + job.reward);
   p.update(1, drive(job.stages.at(-1))); assert.equal(p.state.cash, 1000 + job.reward, 'delivery instance pays once');
-  assert(p.startJob(id, drive(job.stages[0])).ok);
+  assert(p.startJob(id, drive(job.stages[0],{wanted})).ok);
   p.update(job.time + 1, drive(job.stages[0])); assert.equal(p.state.activeJob, null);
   assert.equal(p.state.cash, 1000 + job.reward, 'expired delivery cannot pay');
-  assert(p.startJob(id, drive(job.stages[0])).ok);
+  assert(p.startJob(id, drive(job.stages[0],{wanted})).ok);
   p.update(1, drive(job.stages[0], { sandbox: true })); assert.equal(p.state.activeJob, null);
   const save = p.serialize();
   assert.deepEqual(createProgression(map, save).serialize(), save);
 }
-console.log('PASS paid work: sourced frozen shop stations; playable noodle/stock completion; no timed/fake/duplicate pay; session/room/mode/player guards; transient shifts and existing cash save; two ordered legal mapped-street deliveries.');
+console.log('PASS paid work: 0–5-star source-controller noodle/stock and legal deliveries; sourced frozen shop stations; playable noodle/stock completion; no timed/fake/duplicate pay; session/room/mode/player guards; transient shifts and existing cash save; two ordered legal mapped-street deliveries.');

@@ -461,3 +461,16 @@ for (const change of ['clear', 'load', 'cancel']) {
   assert.equal(game.snapshot().outcome, null); assert.deepEqual(game.drainEvents(), []);
 }
 console.log('PASS fictional alarm: fresh neutral/X hold/release/Y, supplied active time, immutable exact station/plan/session event once, no sandbox or cancelled/occluded/unhealthy credit; frozen paused clocks and consumed pause edges');
+
+for(const kind of ['noodle','stock'])for(let wanted=0;wanted<=5;wanted++){
+  const {game,ctx}=fixture(kind,{wanted});
+  if(kind==='stock')waitPhase(game,ctx,'repeat');
+  for(const key of recipe[kind])press(game,ctx,key);
+  assert.equal(game.snapshot().phase,'complete',`${kind} completes at ${wanted} stars`);
+  assertSingleResult(game,'complete');
+}
+for(const kind of ['noodle','stock'])for(const wanted of [NaN,-1,6]){
+  const game=createInteriorActivities();game.load(plan);
+  assert.equal(game.start(kind,context(kind,{wanted})),false,'work requires valid wanted level');
+}
+console.log('PASS wanted interior work: noodle and stock start and finish at every valid wanted level.');

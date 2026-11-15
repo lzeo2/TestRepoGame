@@ -73,7 +73,8 @@ export function createInteriorActivities() {
     }
     if (station.kind === 'presentation' && context?.visible === false) return 'occluded';
     if (context?.onFoot !== true) return 'not-on-foot';
-    if (!Number.isFinite(context?.wanted) || context.wanted > 0) return 'wanted';
+    if (!Number.isFinite(context?.wanted) || context.wanted < 0 || context.wanted > 5 ||
+        (context.wanted > 0 && !['noodle', 'stock'].includes(station.kind))) return 'wanted';
     if (!finitePoint(context?.pose) || distance(context.pose, station) > station.radius) return 'left-station';
     if (running() && Boolean(context.sandbox) !== session.sandbox) return 'mode-changed';
     return null;

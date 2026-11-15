@@ -25,8 +25,7 @@ p.update(1, ctx(p.garage, { vehicle: { modelId: 'orchard', stolen: false } })); 
 const stolen = { vehicle: { modelId: 'orchard', stolen: true } };
 p.update(1, ctx(p.garage, stolen)); assert.equal(p.state.activeJob.stage, 0, 'theft requires its actual pickup marker');
 p.update(1, ctx(p.state.activeJob.target, stolen)); assert.equal(p.state.activeJob.stage, 1);
-p.update(1, ctx(p.garage, { ...stolen, wanted: 1 })); assert.ok(p.state.activeJob);
-p.update(1, ctx(p.garage, stolen)); assert.equal(p.state.cash, 2600);
+p.update(1, ctx(p.garage, { ...stolen, wanted: 1 })); assert.equal(p.state.cash, 2600, 'wanted does not block vehicle delivery');
 assert.equal(p.startJob('clear-the-search', ctx()).ok, true);
 const getaway = p.jobs.find(job => job.type === 'getaway');
 p.update(10, ctx(getaway.stages[0])); assert.equal(p.state.activeJob.stage, 0, 'must encounter wanted');
@@ -90,3 +89,18 @@ assert.equal(p.retrieveVehicle('orchard').ok, true);
 p.update(0, ctx(p.garage, { vehicle: { modelId: 'orchard', color: '#abcdef', stolen: false } }));
 assert.equal(p.retrieveVehicle('lantern').vehicle.health, 32, 'switching away/back cannot repair for free');
 console.log('Capital progression: mission order, arrival, time, theft, escape, garage and save checks passed.');
+
+for(let wanted=0;wanted<=5;wanted++) {
+  const career=createProgression(map);
+  for(const id of ['crescent-parcel','crescent-circuit','wagon-recovery']) {
+    const job=career.jobs.find(item=>item.id===id);
+    const extra={wanted,...(job.type==='theft'?{vehicle:{modelId:'orchard',stolen:true}}:{})};
+    const before=career.state.cash;
+    assert(career.startJob(id,ctx(job.stages[0],extra)).ok,`${id} starts at ${wanted} stars`);
+    for(const target of job.stages)career.update(1,ctx(target,extra));
+    assert.equal(career.state.cash,before+job.reward,`${id} finishes at ${wanted} stars`);
+    career.update(1,ctx(job.stages.at(-1),extra));
+    assert.equal(career.state.cash,before+job.reward,'job pays once while wanted');
+  }
+}
+console.log('PASS wanted jobs: 0–5 stars permit ordered delivery/checkpoint/vehicle jobs with once-only pay; explicit escape objective and other guards remain.');
