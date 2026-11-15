@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {createTerrainSampler} from '../Games/Capital Drive/terrain.js';
 import {applyMapExpansion,expansionPlaces} from '../Games/Capital Drive/map-expansion.js';
 import {createSimulation} from '../Games/Capital Drive/simulation.js';
-import {createCampaignScenes} from '../Games/Capital Drive/campaign-scenes.js';
+import {createCampaignScenes,campaignPassengerCapacity} from '../Games/Capital Drive/campaign-scenes.js';
 import {createCampaign} from '../Games/Capital Drive/campaign.js';
 import * as WORLD_THREE from '../assets/car-arcade/vendor/three.module.js';
 import {createNeighbourhoodDetails} from '../Games/Capital Drive/neighbourhood.js';
@@ -273,11 +273,100 @@ for(const ally of blockedRecruit.people)assert(Math.hypot(ally.x+50,ally.z-12.5)
 blockedRecruit.dispose();
 console.log('PASS bounded crew catch-up: actual merged-map travel, safe local fan, source doors/walls/cars/water/adults, stuck3s, passenger/driving cooldown, blocked retry query bound, pause/zero dt, indoor return and no healing/resurrection');
 
+// Crew seats are transient attachments to the actual manual car, with checked
+// paths at boarding and exit. Other transport never supplies this car authority.
+assert.equal(campaignPassengerCapacity('lantern'),2);
+for(const id of ['morrow','parcel','dockside','atlas'])assert.equal(campaignPassengerCapacity(id),1);
+assert.equal(campaignPassengerCapacity('unknown'),0);
+const seatMap={bounds:{minX:-100,maxX:100,minZ:-100,maxZ:100},spawn:{x:0,z:0,yaw:0},roads:[],buildings:[],landmarks:[]};
+const seatSim=createSimulation(seatMap,{trafficCount:0});
+const seatCrew=createCampaignScenes(seatMap,seatSim);
+const seatContext={...fc,pose:{x:0,z:6,yaw:0},car:seatSim.player,carKey:1,playerMode:'foot'};
+const seatTick=(overrides={},dt=.1)=>{
+ seatSim.setExternalPeople(seatCrew.people.filter(person=>!person.seated));
+ seatCrew.update({...seatContext,...overrides},dt);
+};
+seatTick();assert.equal(seatCrew.people.length,2);
+const seatIdentity=seatCrew.people.map(person=>[person.id,person.appearanceId]);
+const driving={playerMode:'vehicle',pose:seatSim.player};
+for(let i=0;i<80&&!seatCrew.people.every(person=>person.seated);i++)seatTick(driving);
+assert(seatCrew.people.every(person=>person.seated),'both living crew actually board a stopped saloon');
+assert.deepEqual(seatCrew.people.map(person=>person.seatIndex).sort(),[0,1]);
+assert(seatCrew.people.every(person=>person.mode==='passenger'&&person.vehicleId==='player'&&person.vehicleKey===1&&person.carModelId==='lantern'));
+assert.deepEqual(seatCrew.people.map(person=>[person.id,person.appearanceId]),seatIdentity);
+const aboard=seatCrew.people;
+assert(Object.isFrozen(aboard)&&aboard.every(Object.isFrozen));
+const seatedHit={kind:'shot',targetId:aboard[0].id,from:{x:2,z:0},to:aboard[0],damage:25};
+assert.equal(seatCrew.receiveHit({...seatedHit,from:{x:-2,z:0}}),false,'closed opposite side rejects shots through the car');
+assert(seatCrew.receiveHit(seatedHit),'exposed right-side windows permit real return fire');
+assert.deepEqual(seatCrew.clipMovement({x:-3,z:0},6,0),{dx:6,dz:0,blocked:false},'seats do not block street walking');
+Object.assign(seatSim.player,{x:20,z:10,yaw:Math.PI/2,speed:8});
+seatTick({...driving,hostiles:[{id:'police:seat',x:22,z:10,health:100,active:true,mode:'foot'}]});
+for(const person of seatCrew.people){assert.equal(person.x,20);assert.equal(person.z,10);assert.equal(person.yaw,Math.PI/2);assert.equal(person.health,person.id===aboard[0].id?75:100);assert.equal(person.shot,null);}
+assert.equal(seatCrew.drainEvents().length,0,'opposite-side police cannot be shot through the car');
+const windowCop={id:'police:window',x:20,z:4,health:100,active:true,mode:'foot'};
+for(let i=0;i<15;i++)seatTick({...driving,hostiles:[windowCop],hasLOS:()=>false});
+assert.equal(seatCrew.drainEvents().length,0,'walls occlude passenger window shots');
+for(let i=0;i<15;i++)seatTick({...driving,hostiles:[windowCop]});
+const windowShots=seatCrew.drainEvents();assert(windowShots.length>0&&windowShots.length<=4,'armed passengers shoot at exposed-side police');
+for(const shot of windowShots){assert.equal(shot.damage,12);assert(shot.from.z<9,'shot starts outside the right window');assert.equal(shot.targetId,windowCop.id);}
+for(const person of seatCrew.people)assert(person.seated&&person.mode==='passenger','window fire never detaches a rider');
+const frozenSeats=seatCrew.people;seatTick(driving,0);assert.equal(seatCrew.people,frozenSeats);
+seatTick({...driving,paused:true});assert.equal(seatCrew.people,frozenSeats);
+seatTick(driving,-1);assert.equal(seatCrew.people,frozenSeats);
+Object.assign(seatSim.player,{speed:0});
+// A complete occupied pad leaves both riders attached. It does not seek an
+// unrelated roadside spawn, and supplied zero/negative time cannot release them.
+seatSim.setParkedCars([{id:'blocked-exit-pad',x:20,z:10,yaw:0,length:16,width:4,active:true}]);
+let exitQueries=0;const seatCanOccupy=seatSim.canOccupy;
+seatSim.canOccupy=(...args)=>{exitQueries++;return seatCanOccupy(...args);};
+for(let i=0;i<20;i++)seatTick({pose:{x:24,z:10,yaw:0},playerMode:'foot'});
+assert(exitQueries>0&&exitQueries<=60,'blocked exits use bounded paths and half-second retries');
+seatSim.canOccupy=seatCanOccupy;
+assert(seatCrew.people.every(person=>person.seated),'blocked exits keep the actual riders seated');
+seatSim.setParkedCars([]);
+for(let i=0;i<10&&seatCrew.people.some(person=>person.seated);i++)seatTick({pose:{x:24,z:10,yaw:0},playerMode:'foot'});
+assert(seatCrew.people.every(person=>!person.seated&&person.mode==='following'),'a later physically clear door releases existing companions');
+for(const person of seatCrew.people){assert(seatSim.canOccupy(person,{length:1,width:.8,ignorePersonId:person.id}));assert(Math.hypot(person.x-20,person.z-10)<5);}
+const afterExitHealth=seatCrew.people.map(person=>person.health);
+for(let i=0;i<50&&!seatCrew.people.every(person=>person.seated);i++)seatTick(driving);
+assert(seatCrew.people.every(person=>person.seated),'the same living companions can reenter after a checked exit');
+assert.deepEqual(seatCrew.people.map(person=>person.health),afterExitHealth,'reentry preserves actual wounds');
+const retainedCarPose=seatCrew.people.map(person=>[person.x,person.z]);
+seatTick({...driving,car:{...seatSim.player,x:70,z:70},carKey:99});
+assert(seatCrew.people.every(person=>person.vehicleKey!==99),'replacing a model/car cannot silently carry old passengers');
+for(let i=0;i<seatCrew.people.length;i++)assert(Math.hypot(seatCrew.people[i].x-retainedCarPose[i][0],seatCrew.people[i].z-retainedCarPose[i][1])<5,'old-car replacement uses its retained checked exit');
+seatCrew.clear();Object.assign(seatSim.player,{x:0,z:0,yaw:0,speed:0});seatTick();
+for(let i=0;i<20;i++)seatTick({...driving,playerMode:'passenger'});
+assert(seatCrew.people.every(person=>!person.seated),'bus/Yoober passenger mode cannot recruit manual-car seats');
+for(let i=0;i<20;i++)seatTick({...driving,car:{...seatSim.player,id:'yoober-driver'}});
+assert(seatCrew.people.every(person=>!person.seated),'an external driver car cannot be mistaken for the player car');
+// One-seat cars never invent a second seat, dead crew stay dead, and changing
+// missions clears the entire transient attachment even while hidden indoors.
+seatCrew.clear();Object.assign(seatSim.player,{x:0,z:0,yaw:0,speed:0,modelId:'morrow'});
+seatTick();
+for(let i=0;i<80;i++)seatTick({...driving,carKey:2});
+assert.equal(seatCrew.people.filter(person=>person.seated).length,1);
+assert.equal(seatCrew.people.filter(person=>!person.seated).length,1);
+seatCrew.clear();Object.assign(seatSim.player,{modelId:'lantern'});seatTick();
+const deadSeat=seatCrew.people[0];for(let i=0;i<4;i++)assert(seatCrew.receiveHit({kind:'shot',targetId:deadSeat.id,from:{x:deadSeat.x+1,z:deadSeat.z},to:deadSeat,damage:25}));
+for(let i=0;i<80;i++)seatTick(driving);
+assert.equal(seatCrew.people.find(person=>person.id===deadSeat.id).health,0);
+assert.equal(seatCrew.people.filter(person=>person.seated).length,1,'dead crew never revive into free seats');
+seatTick({mission:{...seatContext.mission,id:'next-heist'},interior:true});assert.equal(seatCrew.people.length,0);
+seatTick({mission:{...seatContext.mission,id:'next-heist'}});assert(seatCrew.people.every(person=>person.health===100&&!person.seated),'mission transition releases previous seats');
+seatTick({mission:null});assert.equal(seatCrew.people.length,0);assert.equal(seatCrew.drainEvents().length,0);
+seatCrew.dispose();
+console.log('PASS manual-car crew seats: bounded capacity, distinct seats, identity/health preservation, live pose, no ghost bodies, window-side combat, dt/pause, blocked exit retry, downed exclusion and mission teardown');
+
 const url=source=>`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const threeURL=url(await read('../assets/car-arcade/vendor/three.module.js')),THREE=await import(threeURL);
 const personURL=url((await read('../Games/Capital Drive/person-model.js')).replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL)));
 const {appearanceForPerson}=await import(personURL);
-const {createCampaignScenesView}=await import(url((await read('../Games/Capital Drive/campaign-scenes-view.js')).replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL)).replace("'./person-model.js'",JSON.stringify(personURL))));
+const utilsURL=url((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace("'./three.module.js'",JSON.stringify(threeURL)));
+const fleetURL=url(await read('../assets/car-arcade/fleet.js'));
+const modelsURL=url((await read('../assets/car-arcade/models.js')).replace("'./vendor/three.module.js'",JSON.stringify(threeURL)).replace("'./vendor/BufferGeometryUtils.js'",JSON.stringify(utilsURL)).replace("'./fleet.js'",JSON.stringify(fleetURL)));
+const {createCampaignScenesView}=await import(url((await read('../Games/Capital Drive/campaign-scenes-view.js')).replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL)).replace("'../../assets/car-arcade/models.js'",JSON.stringify(modelsURL)).replace("'../../assets/car-arcade/fleet.js'",JSON.stringify(fleetURL)).replace("'./person-model.js'",JSON.stringify(personURL))));
 const scene=new THREE.Scene(),view=createCampaignScenesView(scene,()=>4),root=scene.children[0];
 view.update(scenes.people,mission.target);assert.equal(view.stats.people,2);assert.equal(view.stats.drawCalls,7);assert.equal(view.stats.geometries,3);assert.equal(view.stats.materials,1);
 const torso=root.getObjectByName('Meeting torso'),tint=new THREE.Color();
