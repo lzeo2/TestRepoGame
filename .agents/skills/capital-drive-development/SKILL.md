@@ -25,6 +25,10 @@ Three-character, gym, indoor encounter and sourced street-detail work also reads
 `docs/capital-drive-canberra-life-sources.md` and
 `docs/capital-drive-story-and-streaming-contract.md` and
 `docs/capital-drive-cache-and-performance-contract.md`.
+Indoor police, driving starts, wanted jobs, stored-map reads and mission-preview
+work also reads `docs/capital-drive-indoor-pursuit-contract.md`.
+Vehicle launches and player ragdolls also read
+`docs/capital-drive-vehicle-impact-contract.md`.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 

@@ -5,6 +5,8 @@ All runtime files remain local. [Story contract](capital-drive-story-and-streami
 and [maintenance manual](maintenance/games/245-capital-drive.md) describe the
 retained state owners; [verification](verification/capital-drive-cache-cpu-2026-11-15.md)
 separates native input, component/source tests and measured cloud profiles.
+The later [indoor pursuit continuation](capital-drive-indoor-pursuit-contract.md)
+adds direct stored-map reads, Milo's driving start and work while wanted.
 
 ## Repeat visits
 
@@ -15,7 +17,7 @@ Cookies and career localStorage are not used for game downloads.
 
 The worker installs the generated `cache-manifest.js`: the exact reachable local
 module/data/shell/style/font/favicon/attribution closure. The current manifest
-contains93files/15,602,350bytes. It includes six runtime-fetched JSON files totaling
+contains97files/15,644,373bytes. It includes six runtime map JSON files totaling
 12,013,726bytes plus one credits-linked validation JSON. It does not blindly
 copy duplicate exports from the entire data directory. The large source map is
 7,791,998bytes; the north sidecar is3,065,485bytes.
@@ -34,6 +36,14 @@ other requests, methods and origins are not intercepted. Scope stays within the
 game directory, including under the GitHub Pages repository prefix. No root
 service-worker/header/proxy change is needed. Shared vehicle/font files requested
 by the controlled game can be cached without controlling other games.
+
+`game-data.js` additionally asks the active controlling worker for its own scoped
+cache and exact six map hash keys. Warm boot reads those Responses directly from
+CacheStorage, avoiding page map-fetch requests as well as origin downloads.
+Descriptor and reads share a750ms limit. Missing/denied entries, an old worker
+or no controller fall back to all six ordinary local fetches. Cold boot still
+loads maps normally. The worker descriptor never grants arbitrary cache reads
+or mixes an active revision with a newer waiting one.
 
 Updates install in the background. They wait for existing game tabs to close;
 there is no forced activation or mid-mission reload. Once active, a revision
@@ -137,6 +147,7 @@ python3 -B scripts/build_capital_cache.py --write
 python3 -B scripts/build_capital_cache.py --check
 python3 -B scripts/test_capital_cache_manifest.py
 node scripts/test_capital_cache.mjs
+node scripts/test_capital_game_data.mjs
 node scripts/test_capital_protagonist_state.mjs
 node scripts/test_capital_character_switching.mjs
 node scripts/test_capital_collision_performance.mjs

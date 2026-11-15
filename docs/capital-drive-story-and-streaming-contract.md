@@ -6,6 +6,8 @@ an actual robbery playthrough, the full Rowan lunch route, or N100 performance.
 The existing [Canberra life contract](capital-drive-canberra-life-contract.md),
 [maintenance manual](maintenance/games/245-capital-drive.md) and dated verification
 receipts retain their own evidence and limits.
+The later [indoor pursuit contract](capital-drive-indoor-pursuit-contract.md)
+supersedes the earlier outdoor-only police behavior and Milo's walking travel.
 
 ## State owners and clocks
 
@@ -88,7 +90,7 @@ double-charged parcels converge through receipts at Kingston.
 | --- | --- |
 | Kit Vale, student, 18 | **False start:** enter the school wing, complete the alarm task, leave and clear the search on foot. **Extra credit:** park at Coals and finish a real stock shift through Progression. |
 | Rowan Pike, corporate, 29 | **Present tense:** complete the Centre PowerPunt station's outage, then leave. **Lunch breakpoint:** visit the Lambzhou counter, talk to Dot, receive her noodle throw followed by actual emitted melee, then leave and clear attention. |
-| Milo Finch, basement, 26 | **Touch grass:** pack the case in the bound safehouse, leave through its door and finish Coals stock work. **Signed for:** collect a parcel outside Coals, stop at Kingston and hand over on foot. |
+| Milo Finch, basement, 26 | **Touch grass:** start in the existing saloon, pack the case in the bound safehouse, leave through its door, drive/stop at Coals and finish real stock work. **Signed for:** collect on foot outside Coals, drive/stop at Kingston and hand over on foot. |
 
 The meeting requires all six introductions. The two other heroes are placed on
 checked public roadside approaches, not inside the landmark centre. Following

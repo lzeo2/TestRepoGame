@@ -150,10 +150,10 @@ python3 -B scripts/check_capital_drive.py --dry-run
 python3 -B scripts/check_capital_drive.py
 ```
 
-The runner enumerates74 game JavaScript files and85 pure Node suites in its `MODULES`
+The runner enumerates78 game JavaScript files and92 pure Node suites in its `MODULES`
 and `SUITES` constants, including roads, buses, police, occupants and services.
 It checks every syntax entry, executes every suite (drive receives the actual map
-argument), then runs `git diff --check` plus two Python cache checks:247 commands in the cache/CPU pass. Keep these
+argument), then runs `git diff --check` plus two Python cache checks:265 commands in the indoor-pursuit/impact pass. Keep these
 explicit lists current when adding a required module; a missing file fails.
 Missing modules/data/suites fail; nothing silently skips. Each pure command has a
 120 second limit; total run is bounded to 900 seconds. Actual exit codes are printed.
@@ -321,8 +321,9 @@ Every lazy room has frozen furniture-linked activity stations. Keep mini-game
 clocks and input in `interior-activities.js`, bounded active NPCs in
 `interior-people.js`, and cash in Progression. Start a paid noodle/stock shift only
 after the real activity session starts. Completion must verify its exact live
-room, station, session, player reach and terminal result. Cancel, respawn, wanted,
-leaving and sandbox mode cannot pay. Bank the event once through the existing
+room, station, session, player reach and terminal result. Cancel, respawn,
+leaving and sandbox mode cannot pay. Ordinary paid stock/noodle work permits
+wanted stars; police continue pursuing. Bank the event once through the existing
 career writer. Rental fees similarly use a synchronous validated one-time payment
 callback, never an independent wallet. Pickup requires the real nearby asset;
 movement uses the normal collision path and stopping ends the ride in place.
@@ -579,8 +580,12 @@ python3 -B scripts/profile_capital_drive.py --root <exact-source-export> --mode 
 ```
 
 Validate the whole actual cache manifest, not an invented fixed JSON/module count.
-There are six runtime map fetches and an additional credits-linked validation JSON.
-Warm network proof disables ordinary HTTP caching and counts origin response bodies;
+There are six runtime map files and an additional credits-linked validation JSON.
+On a controlled warm boot, game-data.js reads all six Responses directly from the
+active worker's exact allowlisted hash keys; its bounded750ms fallback uses local
+fetches. Test descriptor scope/revision, denied/missing/old-worker fallback and
+no mixing of revisions. Warm network proof disables ordinary HTTP caching, checks
+that no page map-fetch requests occur and counts origin response bodies;
 a persistent-browser fixture separately proves cache survives restart. Offline
 career evidence must use the actual native writer, with both optional campaign
 and protagonists envelope fields separated from Progression's serialized state.
@@ -596,3 +601,68 @@ contaminate the measured play window. Record raw cpuprofiles and source hashes;
 (program) is unattributed/native work, not a JavaScript function. RAF frequency
 is not actual render frequency. Software GPU CPU can exceed100%of one core across
 threads. Short cloud windows and time-based routes are not N100 benchmarks.
+
+## Indoor pursuit, wanted work and private mission previews
+
+Read `docs/capital-drive-indoor-pursuit-contract.md` and its dated receipt. Keep
+logical interior IDs on bodies/traces: same-coordinate outdoor and indoor actors
+must not exchange damage. Cars approach legal-road doors; officers dismount and
+walk the actual source gate/approach, entering only through a clear nearby landing.
+Do not spawn pursuers inside. Only the bound Milo safehouse is excluded. Retain
+at most active plus four occupied room contexts, lazy2000node navigation and four
+owner fields per room. Swept furniture/wall clearance is shared with the player.
+The indoor actor pool omits car clones/lights and disposes on leave. Outdoor allies
+can cover outdoor police while the player is inside.
+
+Milo's fresh start uses his existing saloon; saved checkpoints keep their state.
+Drive legs must still require stopping; foot packing/shift/handover stays real.
+Ordinary jobs/work/owned legal driver fares permit zero through five stars, while
+explicit escape targets require clear wanted. Preserve reach/session/ownership/
+recovery/mode and once-only pay guards, plus protected-work attack denial.
+
+Private mission previews use the existing masked Pause entry, all thirteen actual
+chapters and active.character for appearance/HUD/scripted encounters. No configured
+input belongs in source, help, reports or captures. Preview rewards/prefixes stay
+separate from career completion. Restore the captured original body/car/health/ammo
+through checked placement on cancel/finish/failure; retain a blocked return for
+explicit retry without repeated frame-loop searches or overwrite by another mode.
+The public offline matcher is a convenience, not authentication.
+
+```sh
+node scripts/test_capital_police_rooms.mjs
+node scripts/test_capital_interior_navigation.mjs
+node scripts/test_capital_character_switching.mjs
+node scripts/test_capital_game_data.mjs
+node scripts/test_capital_dev_missions.mjs
+node scripts/test_capital_mission_hud.mjs
+timeout 240s python3 -B scripts/test_capital_indoor_police_browser.py --scenario police --capture --output <fresh-external-directory>
+timeout 120s python3 -B scripts/test_capital_indoor_police_browser.py --scenario milo --capture --output <fresh-external-directory>
+timeout 120s python3 -B scripts/test_capital_indoor_police_browser.py --scenario developer --code-file <external-private-code-file> --capture --output <fresh-external-directory>
+```
+
+The native developer case proves the configured UI exception and Cancel, not
+ordinary unlocks or completed missions. Safehouse exclusion, blocked return and
+wanted wages have source fixtures; do not describe them as native career runs.
+Keep failing native evidence and correct its cause before a new attempt.
+
+## Vehicle impacts and player ragdoll
+
+Read `docs/capital-drive-vehicle-impact-contract.md`. Record actual approaching
+moveVehicle contacts before braking, never canOccupy probes. Keep the32event
+bound and player-body/same-space identity. Gameplay owns supplied-time swept
+translation, severity/cooldown/damage, airborne height and delayed lethal recovery.
+The actor adapter owns only eleven fixed joint springs and sampled ground lift;
+reuse meshes and retain zero-dt freeze/reset/disposal. Do not move the gameplay
+root from the view or turn every crowd member into a physics object.
+
+```sh
+node scripts/test_capital_vehicle_contacts.mjs
+node scripts/test_capital_vehicle_impacts.mjs
+node scripts/test_capital_ragdoll.mjs
+timeout 180s python3 -B scripts/test_capital_vehicle_impact_browser.py --output <fresh-external-component-directory>
+```
+
+That fixture deliberately arranges a real-module contact and supplies steps.
+Label its rendering/pose evidence programmatic; it is not native career travel
+or N100 performance acceptance. Lethal fall must finish before hospital, while
+ordinary low-speed bumps, sandbox protection and all shared colliders remain.
