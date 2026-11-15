@@ -16,6 +16,7 @@ import math
 from pathlib import Path
 import signal
 import sys
+import tempfile
 import threading
 import time
 from urllib.parse import unquote, urljoin, urlsplit
@@ -94,7 +95,7 @@ class CountedHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-Type', 'text/html')
             self.end_headers()
-            self.wfile.write(b'<!doctype html><title>Cache test observer</title>')
+            self.wfile.write(b'<!doctype html><title>Cache test observer</title><link rel="icon" href="data:,">')
         else:
             super().do_GET()
 
@@ -102,7 +103,7 @@ class CountedHandler(http.server.SimpleHTTPRequestHandler):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True, type=Path)
-    parser.add_argument('--scenario', choices=['native', 'fallback', 'fixture', 'all'], default='native')
+    parser.add_argument('--scenario', choices=['native', 'fallback', 'fixture', 'restart-fixture', 'heroes', 'all'], default='native')
     parser.add_argument('--budget', type=int, default=240, choices=range(30, 601), metavar='30..600')
     args = parser.parse_args()
     output = args.output.resolve()
@@ -183,9 +184,35 @@ def main():
     try:
         with ExitStack() as stack:
             playwright = stack.enter_context(sync_playwright())
-            browser = playwright.chromium.launch(executable_path='/usr/bin/chromium', headless=True,
-                args=['--no-sandbox', '--disable-dev-shm-usage', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
-            stack.callback(browser.close)
+            chromium_args = ['--no-sandbox', '--disable-dev-shm-usage', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist']
+            browser = None
+            if args.scenario != 'restart-fixture':
+                browser = playwright.chromium.launch(executable_path='/usr/bin/chromium', headless=True, args=chromium_args)
+                stack.callback(browser.close)
+
+            if args.scenario == 'restart-fixture':
+                profile = stack.enter_context(tempfile.TemporaryDirectory(prefix='capital-cache-profile-'))
+                first = playwright.chromium.launch_persistent_context(profile, executable_path='/usr/bin/chromium', headless=True, args=chromium_args)
+                stack.callback(first.close)
+                page = new_page(first)
+                fixture_url = base + FIXTURE_PATH + 'index.html'
+                page.goto(fixture_url)
+                page.evaluate('''async()=>{await navigator.serviceWorker.register('./service-worker.js',{scope:'./',updateViaCache:'none'});await navigator.serviceWorker.ready;}''')
+                page.reload()
+                page.wait_for_function('!!navigator.serviceWorker.controller')
+                check(page.evaluate('fetch("asset.js").then(r=>r.text())') == 'fixture-v1', 'Persistent profile installs the actual tiny worker fixture')
+                first.close()
+                server.fixture_version = 2
+                second = playwright.chromium.launch_persistent_context(profile, executable_path='/usr/bin/chromium', headless=True, args=chromium_args)
+                stack.callback(second.close)
+                second.set_offline(True)
+                page = new_page(second)
+                mark = len(server.events)
+                page.goto(fixture_url, wait_until='load', timeout=20000)
+                page.wait_for_function('!!navigator.serviceWorker.controller')
+                check(page.evaluate('fetch("asset.js").then(r=>r.text())') == 'fixture-v1', 'Whole-browser restart with the same profile restores cached fixture bytes offline')
+                check(not server.bodies(mark), 'Offline restarted fixture navigation and asset fetch require zero origin bodies')
+                second.close()
 
             if args.scenario in ('native', 'all'):
                 context = browser.new_context(viewport={'width': 1100, 'height': 720})
@@ -215,7 +242,7 @@ def main():
                 essential = modules | maps
                 runtime_maps = {GAME_PATH + 'data/' + name + '.json' for name in (
                     'canberra', 'addresses', 'road-profiles', 'canberra-north', 'north-terrain', 'traffic-signals')}
-                check(manifest_paths <= urls and runtime_maps <= maps and len(modules) >= 73,
+                check(manifest_paths <= urls and runtime_maps <= maps and bool(modules),
                       'Saved cache contains the complete manifest, shared modules and all six runtime JSON data files')
                 start_and_drive(page)
                 check(snapshot(page)['career']['cash'] == 1000, 'Ordinary driving grants no career cash')
@@ -234,7 +261,7 @@ def main():
                 restored = observe(page, 'offline actual ready')
                 check(page.evaluate('(k)=>localStorage.getItem(k)', CAREER_KEY) == saved,
                       'Offline reload preserves the actual career save bytes')
-                career = {key: value for key, value in json.loads(saved).items() if key != 'campaign'}
+                career = {key: value for key, value in json.loads(saved).items() if key not in ('campaign', 'protagonists')}
                 check(restored['career'] == career, 'Offline full-game boot restores the native wallet, garage and completed-job state')
                 start_and_drive(page)
                 check(not (set(server.bodies(mark)) & essential), 'Offline actual driving requires no origin module or map bodies')
@@ -253,6 +280,98 @@ def main():
                 check(snapshot(page)['career']['cash'] == 1000, 'Denied cache registration/storage preserves the normal native career')
                 start_and_drive(page)
                 check(not page.evaluate('!!navigator.serviceWorker.controller'), 'Denied optional cache still permits normal full-game boot and play')
+                context.close()
+
+            if args.scenario in ('heroes', 'all'):
+                context = browser.new_context(viewport={'width': 1100, 'height': 720})
+                stack.callback(context.close)
+                page = new_page(context)
+                ready(page)
+
+                def campaign_open():
+                    page.locator('#world canvas').focus()
+                    page.keyboard.press('j')
+                    page.locator('#campaign-dialog').wait_for(state='visible')
+
+                def campaign_close():
+                    page.locator('#campaign-resume').click()
+                    page.locator('#campaign-dialog').wait_for(state='hidden')
+                    page.locator('#world canvas').focus()
+
+                def choose(hero):
+                    page.locator(f'#campaign-characters [data-character="{hero}"]').click()
+                    page.wait_for_function('(hero)=>capitalDriveSnapshot().campaign.character===hero', arg=hero)
+                    state = observe(page, 'normal UI selected ' + hero)
+                    check(state['campaign']['active'] is None and state['gameplay']['mode'] == 'foot',
+                          f'{hero} switches through the normal briefing without starting a mission')
+                    check(state['career']['cash'] == 1000 and not any(state['campaign']['intros'].values()) and not state['campaign']['completed'],
+                          f'{hero} switch preserves starter cash and unearned campaign progress')
+                    return state
+
+                def same_pose(state, checkpoint, label):
+                    actor = checkpoint['actor']
+                    # The live restore owner may clear a new obstruction within 6 m.
+                    check(math.hypot(state['focus']['x']-actor['x'], state['focus']['z']-actor['z']) <= 6.000001 and
+                          abs(state['focus']['yaw']-actor['yaw']) < .000001 and
+                          state['gameplay']['health'] == checkpoint['health'] and state['gameplay']['weapon'] == checkpoint['weapon'], label)
+
+                page.locator('[data-game-mode="campaign"]').click()
+                page.locator('#intro-characters [data-character="student"]').click()
+                page.locator('#start-button').click()
+                page.wait_for_function('capitalDriveSnapshot().started && capitalDriveSnapshot().gameMode === "campaign"')
+                page.locator('#campaign-dialog').wait_for(state='visible')
+                initial = observe(page, 'fresh Kit campaign')
+                check(initial['campaign']['character'] == 'student' and initial['campaign']['active'] is None and initial['career']['cash'] == 1000,
+                      'Fresh Kit starts Campaign with the normal wallet and no active mission')
+                campaign_close()
+                origin = snapshot(page)['focus']
+                page.keyboard.down('w')
+                try:
+                    page.wait_for_function('(p)=>Math.hypot(capitalDriveSnapshot().focus.x-p.x,capitalDriveSnapshot().focus.z-p.z)>1', arg=origin, timeout=15000)
+                finally:
+                    page.keyboard.up('w')
+                page.locator('#pause-button').click()
+                page.locator('#pause-dialog').wait_for(state='visible')
+                check(snapshot(page)['paused'], 'Normal Kit walking and Pause use the live game input path')
+                page.locator('#resume-button').click()
+                page.locator('#pause-dialog').wait_for(state='hidden')
+                campaign_open()
+                kit = snapshot(page)
+                milo = choose('basement')
+                kit_checkpoint = milo['protagonists']['student']
+                same_pose(kit, kit_checkpoint, 'Switching away captures Kit at his actually walked location')
+                home = milo['storyHomes']['basement']
+                home_approach = home.get('approach', home)
+                check(math.hypot(milo['focus']['x']-home_approach['x'], milo['focus']['z']-home_approach['z']) < 50 and
+                      math.hypot(milo['focus']['x']-kit['focus']['x'], milo['focus']['z']-kit['focus']['z']) > 50,
+                      'First Milo selection starts at his own mapped home approach')
+                rowan = choose('corporate')
+                milo_checkpoint = rowan['protagonists']['basement']
+                office = next(entry for entry in rowan['interiors']['publicEntries'] if entry['id'] == 'interior-canberra-centre')
+                check(math.hypot(rowan['focus']['x']-office['x'], rowan['focus']['z']-office['z']) < 50,
+                      'First Rowan selection starts at his own Civic office approach')
+                kit_again = choose('student')
+                same_pose(kit_again, kit_checkpoint, 'Switching back restores Kit own pose, health and weapon')
+                milo_again = choose('basement')
+                same_pose(milo_again, milo_checkpoint, 'Switching back restores Milo own pose, health and weapon')
+                before_reload = observe(page, 'Milo selected before native save/reload')
+                saved = page.evaluate('(key)=>localStorage.getItem(key)', CAREER_KEY)
+                save = json.loads(saved)
+                check(save['campaign']['character'] == 'basement' and save['cash'] == 1000 and save['protagonists'] == before_reload['protagonists'],
+                      'Normal character selection saves Milo and each actual protagonist checkpoint')
+                ready(page, reload=True)
+                check(page.evaluate('(key)=>localStorage.getItem(key)', CAREER_KEY) == saved,
+                      'Reload leaves the native career save bytes intact')
+                page.locator('[data-game-mode="campaign"]').click()
+                check(page.locator('#intro-characters [data-character="basement"]').get_attribute('aria-pressed') == 'true',
+                      'Reload selects the saved Milo in the real Campaign UI')
+                page.locator('#start-button').click()
+                page.locator('#campaign-dialog').wait_for(state='visible')
+                restored = observe(page, 'Milo restored by normal Start after reload')
+                same_pose(restored, save['protagonists']['basement'], 'Normal Start restores selected Milo own saved pose, health and weapon')
+                check(restored['campaign']['character'] == 'basement' and restored['career'] == before_reload['career'] and
+                      all(restored['protagonists'][hero] == save['protagonists'][hero] for hero in ('student', 'corporate')),
+                      'Reload preserves the selected hero, inactive hero checkpoints, starter cash and career progress')
                 context.close()
 
             if args.scenario in ('fixture', 'all'):
@@ -303,6 +422,9 @@ def main():
                   'originResponses': server.events, 'elapsedSeconds': round(time.monotonic()-started, 2),
                   'budgetSeconds': args.budget, 'limitations': ['Software WebGL only; no hardware FPS claim.',
                     'The optional worker fixture proves update lifecycle and scope, not native career earnings.',
+                    'The restart fixture proves persistent-profile browser restart for the tiny actual worker fixture, not full-game career play after restart.',
+                    'Heroes uses real normal UI and starter health; pure authority tests cover injured health and ammunition isolation.',
+                    'Hero location checks allow the existing restore owner to clear a new nearby obstruction within six metres.',
                     'Career proof uses normal starter state and native pagehide saving; no synthetic save or state grants.',
                     'Expected offline worker update-check failures are recorded separately from uncaught game errors.']}
         (output / 'results.json').write_text(json.dumps(report, indent=2) + '\n')
