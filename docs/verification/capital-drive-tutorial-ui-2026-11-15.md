@@ -170,3 +170,11 @@ failed request and external request arrays are empty. Results SHA256:
 The Git-backed game tree grows96→98files and15,469,171→15,493,573bytes
 (24,402bytes added). Cache closure grows97→99files and24,109bytes. These are
 source/download bytes, not total browser RAM. No new game or catalog ID is added.
+
+After the UI merge, two older Free-roam preview tests were adjusted to reopen
+Map through its actual button after successful Set route before their next map
+action. `1c23d305` adds four lines across the classic and living harnesses;
+their route/teleport assertions and tutorial opt-outs remain. Python AST/diff
+checks pass. This is test-flow maintenance, with no runtime/asset change or new
+native-play claim. External log `capital-route-ui-followup.log` SHA256:
+`291080a3b314fb0c2bcfaddbcdb0ad03c3ef31171619f77d96f931651248bb89`.

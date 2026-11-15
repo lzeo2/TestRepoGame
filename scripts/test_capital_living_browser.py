@@ -391,6 +391,8 @@ def main():
                 result.first.click()
                 page.locator('#map-route-button').click()
                 check(snap(page)['routePoints'] > 0, 'Set route creates an ordinary skatepark route')
+                if not page.locator('#map-dialog').is_visible():
+                    page.locator('#map-button').click()
                 teleport_selection(page)
                 foot(page)
                 landmark = next(place for place in snap(page)['places'] if place['id'] == 'civic-skatepark')
