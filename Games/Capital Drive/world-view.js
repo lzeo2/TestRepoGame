@@ -302,9 +302,20 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       const [iz0, iz1] = gridRange(tile.minZ, dz, tile.rows - 1, 1);
       for(let iz=iz0;iz<iz1;iz++)for(let ix=ix0;ix<ix1;ix++){
         const x=tile.minX+ix*dx,z=tile.minZ+iz*dz;
-        if(terrain&&z>=terrain.minZ)continue;
-        const end=Math.min(z+dz,terrain?.minZ??z+dz);
-        if(end>z)terrainTile(x,z,dx,end-z);
+        if(!terrain){terrainTile(x,z,dx,dz);continue;}
+        // Draw the cell outside the complete base rectangle. Left/right bands
+        // own the corners; north/south strips use only the overlapping x span.
+        // This retains the original north cells and also supports east tiles.
+        const endX=x+dx,endZ=z+dz;
+        const left=Math.min(endX,terrain.minX),right=Math.max(x,terrain.maxX);
+        if(left-x>1e-8)terrainTile(x,z,left-x,dz);
+        if(endX-right>1e-8)terrainTile(right,z,endX-right,dz);
+        const middleX=Math.max(x,terrain.minX),middleEnd=Math.min(endX,terrain.maxX);
+        if(middleEnd-middleX<=1e-8)continue;
+        const middleWidth=middleX===x&&middleEnd===endX?dx:middleEnd-middleX;
+        const northEnd=Math.min(endZ,terrain.minZ),southStart=Math.max(z,terrain.maxZ);
+        if(northEnd-z>1e-8)terrainTile(middleX,z,middleWidth,northEnd-z);
+        if(endZ-southStart>1e-8)terrainTile(middleX,southStart,middleWidth,endZ-southStart);
       }
     }
     const [outerX0, outerX1] = gridRange(bounds.minX - 245, 35, Math.ceil((bounds.maxX - bounds.minX + 490) / 35), 0);
