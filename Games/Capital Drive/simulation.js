@@ -94,26 +94,33 @@ function seededRandom(seed) {
 }
 
 function polygonContact(x, z, points, radius) {
-  let inside = false, closest = null, area = 0;
+  let inside = false, hasClosest = false, closestDistance = 0, closestX = 0, closestZ = 0, closestDX = 0, closestDZ = 0, area = 0;
   for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
     const a = points[j], b = points[i];
     if (a[0] === b[0] && a[1] === b[1]) continue;
     area += a[0] * b[1] - b[0] * a[1];
     if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
-    const candidate = projectSegment(x, z, a, b);
-    if (!closest || candidate.distance < closest.distance) closest = { ...candidate, dx: b[0] - a[0], dz: b[1] - a[1] };
+    // Keep scalar nearest-edge state: these probes run for every vehicle body
+    // sample, and allocating a projection plus copied record per edge is costly.
+    const dx = b[0] - a[0], dz = b[1] - a[1];
+    const t = clamp(((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1);
+    const px = a[0] + dx * t, pz = a[1] + dz * t;
+    const distance = Math.hypot(x - px, z - pz);
+    if (!hasClosest || distance < closestDistance) {
+      hasClosest = true; closestDistance = distance; closestX = px; closestZ = pz; closestDX = dx; closestDZ = dz;
+    }
   }
-  if (!closest || (!inside && closest.distance >= radius)) return null;
-  let nx = x - closest.x, nz = z - closest.z;
+  if (!hasClosest || (!inside && closestDistance >= radius)) return null;
+  let nx = x - closestX, nz = z - closestZ;
   const length = Math.hypot(nx, nz);
   if (length > 0.0001) { nx /= length; nz /= length; }
   else {
-    const edgeLength = Math.hypot(closest.dx, closest.dz) || 1;
+    const edgeLength = Math.hypot(closestDX, closestDZ) || 1;
     const winding = area < 0 ? -1 : 1;
-    nx = closest.dz / edgeLength * winding; nz = -closest.dx / edgeLength * winding;
+    nx = closestDZ / edgeLength * winding; nz = -closestDX / edgeLength * winding;
   }
   if (inside && length > 0.0001) { nx = -nx; nz = -nz; }
-  return { nx, nz, depth: inside ? radius + closest.distance : radius - closest.distance };
+  return { nx, nz, depth: inside ? radius + closestDistance : radius - closestDistance };
 }
 
 function insideRing(x,z,points){
