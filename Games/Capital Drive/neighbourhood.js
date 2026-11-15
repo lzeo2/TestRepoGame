@@ -23,7 +23,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
   root.name = 'Neighbourhood details';
   scene.add(root);
   const chunks = new Map(), roadIndex = new Map(), buildingIndex = new Map(), parkIndex = new Map();
-  const materials = [], textures = [], entries = [];
+  const materials = [], textures = [], entries = [], backyardBarriers = [];
   // Planning stores source recipes and spatial keys, never distant vertex buffers.
   const sources = new Map(), gardenPlans = new Map();
   let planning = streaming, replaying = false, recipe = null, targetKey = null;
@@ -33,7 +33,8 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
   const managedCampus = new Set(map.campusBuildingIds || []);
   const gardenIndex = new Map(), drivewayIndex = new Map();
   const BACKYARD_TRIANGLE_LIMIT = 60000;
-  const stats = { lowGraphics, streaming, residentBytes: 0, residentTriangles: 0, peakResidentBytes: 0, residentChunks: 0, loads: 0, evictions: 0, queue: 0, sourceChunks: 0, bufferBytes: 0, backyards: 0, backyardTriangles: 0, gardenBeds: 0, gardenSeats: 0, sheds: 0, apartmentEntries: 0, frontages: 0, driveways: 0, hedges: 0, fences: 0, letterboxes: 0, doors: 0, verandahs: 0, lamps: 0, benches: 0, bins: 0, stopPoles: 0, shopSigns: 0, retailAprons: 0, apronTriangles: 0, pavedArea: 0, chunks: 0, meshes: 0, triangles: 0 };
+  let backyardBudgetTriangles = 0;
+  const stats = { lowGraphics, streaming, residentBytes: 0, residentTriangles: 0, peakResidentBytes: 0, residentChunks: 0, loads: 0, evictions: 0, queue: 0, sourceChunks: 0, bufferBytes: 0, backyards: 0, backyardTriangles: 0, lawns: 0, rearGates: 0, clotheslines: 0, gardenBeds: 0, gardenSeats: 0, sheds: 0, apartmentEntries: 0, frontages: 0, driveways: 0, hedges: 0, fences: 0, letterboxes: 0, doors: 0, verandahs: 0, lamps: 0, benches: 0, bins: 0, stopPoles: 0, shopSigns: 0, retailAprons: 0, apronTriangles: 0, pavedArea: 0, chunks: 0, meshes: 0, triangles: 0 };
   const material = new THREE.MeshLambertMaterial({ vertexColors: true });
   materials.push(material);
   const box = new THREE.BoxGeometry(1, 1, 1).toNonIndexed();
@@ -132,7 +133,8 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     // Only these counters decide whether source detail is admitted. Replay uses
     // its original budget position, independent of the player's travel order.
     const before = { backyards: stats.backyards, backyardTriangles: stats.backyardTriangles, apronTriangles: stats.apronTriangles };
-    const item = { build, before, keys: new Set() };
+    const backyardBudget = backyardBudgetTriangles;
+    const item = { build, before, backyardBudget, keys: new Set() };
     recipe = item; build(); recipe = null;
     for (const key of item.keys) {
       if (!sources.has(key)) sources.set(key, []);
@@ -351,7 +353,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
         solid(box, mx, heightAt(mx, mz) + 0.9, mz, 0.42, 0.3, 0.28, [0x8d6654, 0x647362, 0x999c8d][seed % 3], yaw); stats.letterboxes++;
       }
     }
-    if (!isShop && !apartment && /^(house|residential|detached|yes)$/.test(building.type || '') && stats.backyards < 650 && stats.backyardTriangles < BACKYARD_TRIANGLE_LIMIT - 140) {
+    if (!isShop && !apartment && /^(house|residential|detached|yes)$/.test(building.type || '') && stats.backyards < 650 && backyardBudgetTriangles < BACKYARD_TRIANGLE_LIMIT - 206) {
       const clear = (x, z) => !inRoad(x, z, 2.5) && !inPark(x, z) && !inBuilding(x, z) &&
         !nearby(gardenIndex, x, z).some(a => inside(x, z, a.points)) &&
         !(map.landmarkTreeExclusions || []).some(points => inside(x, z, points)) &&
@@ -365,9 +367,44 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
           const [x, z] = garden.point(u, v);
           solid(box, x, heightAt(x, z) + lift + sy / 2, z, sx, sy, sz, tint, yaw, 'garden');
         };
-        // Three low rear/side spans leave the house side and its return route open.
-        gardenBox(0, garden.depth, garden.width, character.fenceHeight, 0.16, character.id === 'narrabundah' ? 0x827d6d : PALETTE.timber);
-        for (const side of [-1, 1]) gardenBox(side * garden.width / 2, garden.depth / 2, 0.16, character.fenceHeight, garden.depth, PALETTE.timber);
+        // The same four rectangles render and block movement. The rear gate is
+        // a real 1.8m opening; the house side remains open for the front return.
+        const fence = (id, u, v, width, depth) => {
+          gardenBox(u, v, width, character.fenceHeight, depth, character.id === 'narrabundah' ? 0x827d6d : PALETTE.timber);
+          if (!replaying) backyardBarriers.push(Object.freeze({
+            id: `backyard-${building.id}-${id}`, buildingId: building.id, type: 'fence',
+            points: Object.freeze([[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b]) => Object.freeze(garden.point(u+a*width/2,v+b*depth/2)))),
+          }));
+        };
+        const rearSpan = garden.width / 2 - 0.9;
+        for (const side of [-1, 1]) {
+          fence(`rear-${side}`, side * (garden.width / 2 + 0.9) / 2, garden.depth, rearSpan, 0.16);
+          fence(`side-${side}`, side * garden.width / 2, garden.depth / 2, 0.16, garden.depth);
+        }
+        stats.rearGates++;
+        // Drape the lawn in short strips, rather than floating one plane over
+        // sloped terrain. It shares the existing streamed garden draw.
+        const lawnColor = [0x68794c, 0x738154, 0x7c865b][seed % 3];
+        const columns = Math.ceil(garden.width / 2), rows = Math.ceil(garden.depth / 2);
+        // Reserve Standard's full cost on every quality so physical yard
+        // admission cannot change with the amount of decorative furniture.
+        backyardBudgetTriangles += 48 + columns*rows*2 + 36 + (seed%3===0?48:0) + (seed%4===0&&garden.width>7?24:0);
+        for (let column=0;column<columns;column++) for(let row=0;row<rows;row++) {
+          const point = (du,dv) => {
+            const [x,z] = garden.point(-garden.width/2+.1+(garden.width-.2)*(column+du)/columns,.1+(garden.depth-.2)*(row+dv)/rows);
+            return [x,heightAt(x,z)+.035,z];
+          };
+          const q = [point(0,0),point(1,0),point(1,1),point(0,1)], batch = batchAt(q[0][0],q[0][2],'garden');
+          triangle(batch,q[0],q[2],q[1],lawnColor);triangle(batch,q[0],q[3],q[2],lawnColor);
+        }
+        stats.lawns++;
+        if (seed % 3 === 0) {
+          const u=-garden.width*.27, span=Math.min(2,garden.depth*.35), middle=garden.depth*.5;
+          for(const side of [-1,1]) gardenBox(u,middle+side*span/2,.055,1.65,.055,0x8c9188);
+          gardenBox(u,middle,.035,.035,span,0xa9aba0,1.58);
+          gardenBox(u,middle,.65,.42,.025,[0xb9b7a2,0x879aa0,0xb0917c][seed%3],1.11);
+          stats.clotheslines++;
+        }
         // Keep the same garden boundary and route clearance on Low. Beds,
         // seats and decorative sheds do not affect movement or entry.
         if (!lowGraphics) {
@@ -512,12 +549,14 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
   }
   function load(key) {
     const current = { ...stats };
+    const currentBackyardBudget = backyardBudgetTriangles;
     targetKey = key; replaying = true;
     for (const item of sources.get(key) || []) {
-      Object.assign(stats, item.before); item.build();
+      Object.assign(stats, item.before); backyardBudgetTriangles = item.backyardBudget; item.build();
     }
     replaying = false; targetKey = null;
     Object.assign(stats, current);
+    backyardBudgetTriangles = currentBackyardBudget;
     const chunk = chunks.get(key);
     if (chunk) finishChunk(chunk);
     stats.residentBytes = stats.bufferBytes;
@@ -567,5 +606,5 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     stats.bufferBytes = 0; stats.residentBytes = 0; stats.residentChunks = 0; stats.residentTriangles = 0; stats.meshes = 0; stats.queue = 0;
   }
   update(map.spawn || { x: 0, z: 0 });
-  return { update, stats, sourceStats, entries: Object.freeze(entries), dispose };
+  return { update, stats, sourceStats, entries: Object.freeze(entries), backyardBarriers: Object.freeze(backyardBarriers), dispose };
 }
