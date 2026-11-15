@@ -39,6 +39,12 @@ def mission_wagon_point():
     return {'x': x - math.cos(yaw) * offset, 'z': z + math.sin(yaw) * offset}
 
 
+def skip_guided_tutorial(page):
+    tutorial = page.locator('#guided-tutorial')
+    if tutorial.count():
+        tutorial.uncheck()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path)
@@ -101,7 +107,8 @@ def main():
             check(snap(page)['neighbourhood']['frontages'] > 2000, 'gardens, driveways and street furniture are integrated')
             page.screenshot(path=str(output / 'desktop-intro.png'))
             page.locator('[data-game-mode=free]').click()
-            page.get_by_role('button', name='Start driving').click()
+            skip_guided_tutorial(page)
+            page.locator('#start-button').click()
             page.wait_for_function('capitalDriveSnapshot().discovered.includes("telopea")')
             before = snap(page)['player']
             people_before = snap(page)['pedestrians']['sample']
@@ -258,7 +265,8 @@ def main():
             street = street_context.new_page()
             track(street)
             ready(street)
-            street.get_by_role('button', name='Start driving').click()
+            skip_guided_tutorial(street)
+            street.locator('#start-button').click()
             check(snap(street)['gameMode'] == 'street', 'Street Life is the normal starting mode')
             frames(street, 20)
             check(snap(street)['gameplay']['wanted'] == 0, 'stationary Street Life player is not blamed for ambient traffic offences')
@@ -276,7 +284,8 @@ def main():
             street.reload(wait_until='load')
             street.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=120000)
             check(snap(street)['career'] == earned, 'career cash, owned vehicles and completed jobs survive reload')
-            street.get_by_role('button', name='Start driving').click()
+            skip_guided_tutorial(street)
+            street.locator('#start-button').click()
             street.keyboard.press('m')
             street.wait_for_selector('#map-dialog[open]')
             check(not street.locator('#teleport-button').is_visible() and street.get_by_role('button', name='Start nearby').count() == 0,
@@ -339,7 +348,8 @@ def main():
             ready(fallback)
             check(snap(fallback)['rendering']['compatibility'], 'missing WebGL has an explicit playable map fallback')
             fallback.locator('[data-game-mode=free]').click()
-            fallback.get_by_role('button', name='Start driving').click()
+            skip_guided_tutorial(fallback)
+            fallback.locator('#start-button').click()
             fallback.keyboard.down('w')
             fallback.wait_for_function('capitalDriveSnapshot().player.odometer > 1', timeout=15000)
             fallback.keyboard.up('w')
@@ -350,7 +360,8 @@ def main():
             denied.add_init_script("Object.defineProperty(window,'localStorage',{get(){throw new DOMException('Storage disabled','SecurityError')}})")
             track(denied)
             ready(denied)
-            denied.get_by_role('button', name='Start driving').click()
+            skip_guided_tutorial(denied)
+            denied.locator('#start-button').click()
             denied.keyboard.press('p')
             check('could not be loaded' in denied.locator('#save-status').inner_text(), 'storage denial is reported without preventing play')
             denied.close()
@@ -360,7 +371,8 @@ def main():
             track(mobile)
             ready(mobile)
             mobile.screenshot(path=str(output / 'phone-intro.png'))
-            mobile.get_by_role('button', name='Start driving').click()
+            skip_guided_tutorial(mobile)
+            mobile.locator('#start-button').click()
             check(mobile.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'phone layout has no horizontal overflow')
             for button in mobile.locator('[data-drive]').all():
                 rect = button.bounding_box()
@@ -378,7 +390,8 @@ def main():
             mobile.get_by_role('button', name='Pause', exact=True).tap()
             mobile.get_by_role('button', name='Change mode').tap()
             mobile.locator('[data-game-mode=free]').tap()
-            mobile.get_by_role('button', name='Start driving').tap()
+            skip_guided_tutorial(mobile)
+            mobile.locator('#start-button').tap()
             check(snap(mobile)['gameMode'] == 'free' and snap(mobile)['gameplay']['mode'] == 'vehicle', 'phone mode switch resets into Free roam driving')
             mobile.screenshot(path=str(output / 'phone-driving.png'))
             mobile.get_by_role('button', name='Map', exact=True).click()

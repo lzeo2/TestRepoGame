@@ -150,10 +150,10 @@ python3 -B scripts/check_capital_drive.py --dry-run
 python3 -B scripts/check_capital_drive.py
 ```
 
-The runner enumerates78 game JavaScript files and92 pure Node suites in its `MODULES`
+The runner enumerates80 game JavaScript files and95 pure Node suites in its `MODULES`
 and `SUITES` constants, including roads, buses, police, occupants and services.
 It checks every syntax entry, executes every suite (drive receives the actual map
-argument), then runs `git diff --check` plus two Python cache checks:265 commands in the indoor-pursuit/impact pass. Keep these
+argument), then runs `git diff --check` plus two Python cache checks:273 commands in the tutorial/UI pass. Keep these
 explicit lists current when adding a required module; a missing file fails.
 Missing modules/data/suites fail; nothing silently skips. Each pure command has a
 120 second limit; total run is bounded to 900 seconds. Actual exit codes are printed.
@@ -672,3 +672,35 @@ That fixture deliberately arranges a real-module contact and supplies steps.
 Label its rendering/pose evidence programmatic; it is not native career travel
 or N100 performance acceptance. Lethal fall must finish before hospital, while
 ordinary low-speed bumps, sandbox protection and all shared colliders remain.
+
+## Guided controls and cached activity presentation
+
+Read `docs/capital-drive-tutorial-and-ui-contract.md`. The tutorial owns only
+supplied observation state; root owns real UI serials and its separate strict
+preference. Do not credit automatic navigation, stale actions, paused movement,
+entry/teleport jumps or passengers as a player's lesson. Menu actions pause the
+world: call observeMenu only after the named actual successful action, without
+an invented dt. Keep Skip, replay, fresh resume baselines, denied storage and
+no career/body writes covered. Existing non-tutorial native scripts uncheck
+Guided controls through the actual checkbox before Start; no save/state grants.
+
+The activity adapter caches fixed nodes and mutates only changed values. Keep
+event draining and matching live work/fitness sessions in the original controller;
+an inactive panel is not permission to skip authority. Verify active cue timing,
+tile reuse, terminal/leave clearing and zero unchanged DOM writes/queries/creation.
+Use an exact source export for paired CPU/UI evidence, record hashes at both
+ends, and distinguish DOM/style work from software graphics and real hardware.
+
+```sh
+node scripts/test_capital_tutorial.mjs
+node scripts/test_capital_tutorial_controller.mjs
+node scripts/test_capital_activity_ui.mjs
+timeout 660s python3 -B scripts/test_capital_tutorial_browser.py --capture --output <fresh-external-native-directory>
+timeout 660s python3 -B scripts/test_capital_tutorial_browser.py --root <exact-export> --scenario layout --capture --output <fresh-external-layout-directory>
+```
+
+Review real desktop/mobile dark/light captures for header targets, readable
+controls, coach/HUD spacing and Help keyboard/Escape behavior. Paired profiles
+use the same viewport, quality and normal-input duration, with tutorial unchecked
+and service workers blocked to exclude cache installation. Keep failed native
+approaches and concurrent-source caveats instead of describing them as final.

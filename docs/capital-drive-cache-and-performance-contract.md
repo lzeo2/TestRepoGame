@@ -17,7 +17,7 @@ Cookies and career localStorage are not used for game downloads.
 
 The worker installs the generated `cache-manifest.js`: the exact reachable local
 module/data/shell/style/font/favicon/attribution closure. The current manifest
-contains97files/15,648,142bytes. It includes six runtime map JSON files totaling
+contains99files/15,672,251bytes. It includes six runtime map JSON files totaling
 12,013,726bytes plus one credits-linked validation JSON. It does not blindly
 copy duplicate exports from the entire data directory. The large source map is
 7,791,998bytes; the north sidecar is3,065,485bytes.

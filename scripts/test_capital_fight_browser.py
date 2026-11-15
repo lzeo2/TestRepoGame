@@ -120,6 +120,8 @@ def main():
 
     def start(mode):
         page.locator(f'[data-game-mode="{mode}"]').click()
+        if page.locator('#guided-tutorial').count():
+            page.locator('#guided-tutorial').uncheck()
         page.locator('#start-button').click()
         page.wait_for_function('(mode)=>capitalDriveSnapshot().started&&capitalDriveSnapshot().gameMode===mode', arg=mode)
         focus()

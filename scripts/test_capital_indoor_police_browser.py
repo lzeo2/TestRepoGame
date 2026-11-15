@@ -296,6 +296,8 @@ def main():
                 page.locator('[data-game-mode="campaign"]').click()
                 hero = 'basement' if args.scenario == 'milo' else 'student'
                 page.locator(f'#intro-characters [data-character="{hero}"]').click()
+                if page.locator('#guided-tutorial').count():
+                    page.locator('#guided-tutorial').uncheck()
                 page.locator('#start-button').click()
                 wait(lambda s: s['started'] and s['gameMode'] == 'campaign', 'Fresh campaign starts through visible UI')
                 focus()

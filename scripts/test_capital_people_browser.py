@@ -143,6 +143,8 @@ def main():
                 page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=60000)
                 check(not page.evaluate('capitalDriveSnapshot().rendering.compatibility'), 'Native game uses WebGL, not compatibility fallback')
                 page.locator('[data-game-mode="free"]').click()
+                if page.locator('#guided-tutorial').count():
+                    page.locator('#guided-tutorial').uncheck()
                 page.locator('#start-button').click()
                 page.wait_for_function('capitalDriveSnapshot().started&&capitalDriveSnapshot().gameMode==="free"')
                 page.wait_for_function('capitalDriveSnapshot().pedestrians.visible>0&&capitalDriveSnapshot().occupants.drivers>0', timeout=15000)

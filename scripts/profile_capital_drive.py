@@ -153,6 +153,9 @@ def main():
                     return {webgl:true,renderer:ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER),
                     vendor:ext?gl.getParameter(ext.UNMASKED_VENDOR_WEBGL):gl.getParameter(gl.VENDOR)}; }""")
                 page.locator('[data-game-mode=street]').click()
+                report['guided_tutorial_control_present'] = bool(page.locator('#guided-tutorial').count())
+                if page.locator('#guided-tutorial').count():
+                    page.locator('#guided-tutorial').uncheck()
                 page.locator('#start-button').click()
                 page.keyboard.press('p')
                 page.wait_for_selector('#pause-dialog[open]')
