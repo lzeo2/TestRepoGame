@@ -62,6 +62,13 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(before['files'], after['files'])
         self.assertNotEqual(before['version'], after['version'])
 
+    def test_direct_map_loader_and_url_base(self):
+        source = "loadGameData(['./data.json','./shared.js']);new URL('./',import.meta.url);"
+        self.assertEqual(js_references(source), ['./data.json','./shared.js','./'])
+        (self.game/'script.js').write_text(source,encoding='utf-8')
+        files=build_manifest(self.root)['files']
+        self.assertTrue(any(file['url']=='data.json' for file in files))
+
     def test_missing_file_fails(self):
         (self.game / 'shared.js').unlink()
         with self.assertRaisesRegex(ManifestError, 'missing asset'):

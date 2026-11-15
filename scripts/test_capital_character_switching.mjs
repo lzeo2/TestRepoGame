@@ -19,7 +19,7 @@ let capturedOutside=null;
 const interiors={active:null,get exteriorPose(){return capturedOutside;},entries:[{id:'test-room'}]};
 const counters={mesh:0,population:0,save:0};
 const env={gameplay,simulation,campaign,interiors,protagonists:createProtagonistState(null,{bounds:map.bounds}),PROTAGONIST_IDS,WEAPONS,prepareCharacterStart,CIVIC_INTERIOR_ENTRIES:[],
-  started:true,gameMode:'campaign',progression:{state:{cash:5432,equipment:{pistol:true},activeJob:null,activity:null}},
+  developerReturn:null,started:true,gameMode:'campaign',progression:{state:{cash:5432,equipment:{pistol:true},activeJob:null,activity:null}},
   activities:{snapshot:()=>({active:null})},micromobility:{snapshot:()=>({active:null}),reset(){}},buses:{reset(){}},rideService:{reset(){}},equipment:{reset(){}},
   cutscenes:{snapshot:()=>({active:false})},streetChallenge:()=>null,careerContext:()=>({}),
   selectVehicle(){counters.mesh++;},selectedPaint:'#e7e6df',followYoober:true,destination:{},route:[1],lastJobTarget:'old',mapSelection:{},dialogueId:'old',cameraReady:true,
@@ -82,4 +82,7 @@ assert(source.includes('!isSandbox()&&!heroCheckpoint'),'resume does not replay 
 assert(!body.includes('applyPlayerVehicle('),'restore only refreshes the mesh, preserving parked car placement');
 assert(source.includes("button.disabled=choice.id==='fight'&&protectedWork()"),'dialog pause cannot disable Fight');
 assert(source.includes("if(hostile)return 'F punch · Move to dodge'"));
+heroes.find(hero=>hero.id==='basement').onFoot=false;campaign.state.character='student';
+assert(controller.selectCampaignCharacter('basement').ok);assert.equal(gameplay.state.mode,'vehicle','Milo first visit starts behind the wheel');
+assert(source.includes('onFoot:!!hero&&hero.onFoot!==false'),'initial Campaign Start respects authored vehicle mode');
 console.log('Capital character controller: actual controller + Simulation/Gameplay/checkpoint integration passed.');

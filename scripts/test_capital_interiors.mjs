@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
-const { createInteriors, createGymEntry, createSchoolEntry } = await import(moduleURL(await read('../Games/Capital Drive/interiors.js')));
+const { createInteriors, createGymEntry, createSchoolEntry } = await import(new URL('../Games/Capital Drive/interiors.js',import.meta.url));
 function assertActivitiesReachable(interiors, plan, step = 0.35) {
   assert(Object.isFrozen(plan.activities) && plan.activities.length > 0, `${plan.type} has immutable activities`);
   const ids = new Set();

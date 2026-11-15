@@ -48,9 +48,9 @@ def js_references(source):
     tokens = js_tokens(source)
     references = []
     for i, (kind, value) in enumerate(tokens):
-        if kind != 'token' or value not in ('import', 'export', 'fetch', 'new'):
+        if kind != 'token' or value not in ('import', 'export', 'fetch', 'new', 'loadGameData'):
             continue
-        following = tokens[i + 1:] if value in ('import', 'export') else tokens[i + 1:i + 5]
+        following = tokens[i + 1:] if value in ('import', 'export', 'loadGameData') else tokens[i + 1:i + 5]
         if value == 'export' and (not following or following[0][1] not in ('*', '{')):
             continue
         if value in ('import', 'export'):
@@ -71,6 +71,14 @@ def js_references(source):
                             raise ManifestError('module imports must use a literal URL')
                         references.append(following[j + 1][1])
                         break
+        if value == 'loadGameData' and len(following) > 2 and following[0][1] == '(' and following[1][1] == '[':
+            for item_kind, item in following[2:]:
+                if item == ']':
+                    break
+                if item_kind == 'string':
+                    references.append(item)
+                elif item != ',':
+                    raise ManifestError('map assets must use literal URLs')
         if value == 'fetch' and len(following) > 1 and following[0][1] == '(' and following[1][0] == 'string':
             references.append(following[1][1])
         if value == 'new' and len(following) > 2 and following[0][1] == 'URL' and following[1][1] == '(' and following[2][0] == 'string':
@@ -112,6 +120,8 @@ def resolve_reference(root, parent, reference, runtime=True):
     target = (parent.parent / unquote(parsed.path)).resolve()
     if not target.is_relative_to(root):
         raise ManifestError(f'asset escapes repository: {reference}')
+    if parsed.path.endswith('/') and target.is_dir():
+        return None  # A literal URL base is not a downloadable file.
     if not target.is_file():
         raise ManifestError(f'missing asset: {reference} (from {parent.relative_to(root)})')
     return target

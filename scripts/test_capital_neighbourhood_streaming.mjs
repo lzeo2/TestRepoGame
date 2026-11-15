@@ -11,7 +11,7 @@ const roadsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/road-n
 const loadNeighbourhood = async text => import(moduleURL(text.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL).replace('./suburb-character.js', characterURL)));
 const { createNeighbourhoodDetails } = await loadNeighbourhood(source);
 
-const { createInteriors } = await import(moduleURL(await readFile(new URL('../Games/Capital Drive/interiors.js', import.meta.url), 'utf8')));
+const { createInteriors } = await import(new URL('../Games/Capital Drive/interiors.js',import.meta.url));
 const map = { roads: [], buildings: [], areas: [], landmarks: [], spawn: { x: 175, z: 175 } };
 // Six widely separated populated districts make a full-cache implementation fail.
 const areas = Array.from({ length: 6 }, (_, i) => ({ x: i * 2800 + 175, z: (i % 2) * 2800 + 175 }));
