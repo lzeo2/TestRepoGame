@@ -45,7 +45,8 @@ def main():
     checks, errors, requests, external, layouts = [], [], [], [], []
     failure, page, cdp = None, None, None
     points = {}
-    names = ['index.html', 'style.css', 'script.js', 'tutorial.js', 'touch-joystick.js']
+    names = ['index.html', 'style.css', 'script.js', 'tutorial.js', 'touch-joystick.js',
+             'hero-powers.js', 'ordnance.js', 'atmosphere.js', 'airport.js', 'airport-view.js']
 
     def hashes():
         return {name: hashlib.sha256(path.read_bytes()).hexdigest()
@@ -139,17 +140,19 @@ def main():
     def layout(label, mobile):
         facts = page.evaluate('''() => {
           const visible=e=>!!e&&!!e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden';
-          const selectors=['#touch-move','#touch-look','#touch-jump','#touch-sprint','#touch-enter','#touch-weapon','[data-action=aim]','[data-action=fire]'];
+          const selectors=['#touch-move','#touch-look','#touch-jump','#touch-sprint','#touch-enter','#touch-weapon','#touch-power','[data-action=aim]','[data-action=fire]','#touch-grenade','#touch-smoke'];
           const boxes=selectors.map(id=>{const e=document.querySelector(id),r=e?.getBoundingClientRect();return {id,visible:visible(e),label:e?.getAttribute('aria-label'),x:r?.x,y:r?.y,width:r?.width,height:r?.height,right:r?.right,bottom:r?.bottom};});
           const thumbs=['touch-move','touch-look'].map(id=>({id,count:document.getElementById(id)?.querySelectorAll('[data-stick-thumb]').length}));
           const hud=['.minimap-wrap','#tutorial-coach','#career-hud','.topbar','#interaction-hint','#toast'].map(id=>{const e=document.querySelector(id),r=e?.getBoundingClientRect();return {id,visible:visible(e),x:r?.x,y:r?.y,right:r?.right,bottom:r?.bottom};});
-          return {width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,boxes,thumbs,hud};
+          return {mode:document.body.dataset.mode,width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,clientWidth:document.documentElement.clientWidth,boxes,thumbs,hud};
         }''')
         facts['label'] = label
         layouts.append(facts)
         check(facts['scrollWidth'] <= facts['clientWidth'], label + ': no horizontal overflow')
         if mobile:
-            check(all(b['visible'] and b['width'] >= 44 and b['height'] >= 44 and b['label'] for b in facts['boxes']), label + ': labelled touch controls meet 44px')
+            required = [b for b in facts['boxes'] if b['id'] != '#touch-power' or facts['mode'] == 'campaign']
+            check(all(b['visible'] and b['width'] >= 44 and b['height'] >= 44 and b['label'] for b in required), label + ': labelled mode-appropriate touch controls meet 44px')
+            check(next(b['visible'] for b in facts['boxes'] if b['id'] == '#touch-power') == (facts['mode'] == 'campaign'), label + ': power action visibility matches Campaign mode')
             check(all(b['x'] >= -.5 and b['y'] >= -.5 and b['right'] <= facts['width'] + .5 and b['bottom'] <= facts['height'] + .5 for b in facts['boxes']), label + ': touch controls stay inside viewport')
             check(all(t['count'] == 1 for t in facts['thumbs']), label + ': both joysticks have one thumb')
             boxes = [b for b in facts['boxes'] if b['visible']]
