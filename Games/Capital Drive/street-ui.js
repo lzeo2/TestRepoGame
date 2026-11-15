@@ -123,7 +123,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
     text('job-title', activity?.name||active?.name||'');
     const crimePhase=activity?.interactive?({intimidation:'Stay close and keep the threat',emptying:activity.type==='robbery'?'Employee is emptying the till':'Pedestrian is finding cash',handover:'Wait for the handover'}[activity.phase]||''):'';
     text('job-description',activity?(crimePhase||progression.services.find(s=>s.id===activity.serviceId)?.name||''):active?.target.label||'');
-    const job = active && (mission?campaign.chapters:progression.jobs).find(item => item.id === active.id);
+    const job = mission?campaign.current():active&&progression.jobs.find(item=>item.id===active.id);
     text('job-progress',mission?`Stage ${mission.stage+1}/${job.stages.length} · ${Math.ceil(mission.remaining)}s`:activity?`${Math.round(activity.progress*100)}%`:active ? `Stage ${active.stage + 1}/${job?.stages.length || 1} · ${Math.ceil(active.remaining)}s · ${money(active.reward)}` : '');
     const jobHud = byId('job-hud'); if (jobHud) jobHud.hidden = sandbox()||(!active&&!activity);
     let hint;

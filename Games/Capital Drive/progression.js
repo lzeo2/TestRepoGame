@@ -113,7 +113,6 @@ export function createProgression(map, saved = null, options = {}) {
     if (!validContext(ctx)) return 'A valid player position is required.';
     if (ctx.sandbox || ctx.recovering) return 'Yoober is unavailable here.';
     if ((!active && state.activeJob) || state.activity) return 'Finish or cancel the current activity first.';
-    if (ctx.wanted > 0) return 'Lose the police before taking a fare.';
     if (ctx.onFoot || !object(ctx.vehicle)) return 'Drive an owned four-door car first.';
     const owned = currentOwned(ctx.vehicle.modelId);
     if (!RIDE_MODELS.includes(ctx.vehicle.modelId) || !owned || owned.stored || ctx.vehicle.stolen !== false) return 'Use an owned, legal four-door car.';
@@ -133,7 +132,7 @@ export function createProgression(map, saved = null, options = {}) {
     const job = jobs.find(item => item.id === id);
     if (!job) return result(false, 'Unknown job.');
     if (job.type === 'ride') { const reason = rideEligibility(ctx); if (reason) return result(false, reason); }
-    if (job.legitimate && (ctx.wanted > 0 || ctx.vehicle?.stolen)) return result(false, 'Use a legal vehicle and lose the police before this delivery.');
+    if (job.legitimate && ctx.vehicle?.stolen) return result(false, 'Use a legal vehicle for this delivery.');
     if (job.requires.some(required => !state.completedJobs.includes(required))) return result(false, 'Complete the earlier jobs to unlock this job.');
     serial = ctx.respawnSerial;
     state.activeJob = { id, type: job.type, name: job.name, stage: 0, target: copy(job.stages[0]), remaining: job.time, reward: job.reward, elapsed: 0, clearTime: 0, sawWanted: ctx.wanted > 0 };
@@ -154,6 +153,7 @@ export function createProgression(map, saved = null, options = {}) {
   function update(dt, ctx) {
     if (!Number.isFinite(dt) || dt < 0) throw new Error('Career dt must be finite and nonnegative.');
     if (!remember(ctx)) {
+      if(state.activity?.type==='work'){state.activity=null;shiftPlan=null;result(false,'Shift interrupted. No pay earned.',{},'activity-ended');}
       if(state.activity?.type==='workout'&&options.interactiveWorkouts){state.activity=null;workoutPlan=null;result(false,'Exercise interrupted. No training charged.',{},'activity-ended');}
       if(state.activity?.interactive){state.activity=null;result(false,'Hold-up interrupted. No money taken.',{},'activity-ended');}
       if (state.activeJob?.type === 'ride') {
@@ -239,7 +239,7 @@ export function createProgression(map, saved = null, options = {}) {
     } else if (job.type === 'theft') {
       if (active.stage === 0) {
         if (driving && ctx.vehicle.modelId === job.modelId && ctx.vehicle.stolen === true && near(ctx.pose, active.target)) advance(job, active);
-      } else if (driving && ctx.vehicle.modelId === job.modelId && ctx.vehicle.stolen === true && ctx.wanted === 0 && near(ctx.pose, active.target)) complete(job);
+      } else if (driving && ctx.vehicle.modelId === job.modelId && ctx.vehicle.stolen === true && near(ctx.pose, active.target)) complete(job);
     } else if (job.type === 'getaway') {
       active.sawWanted ||= ctx.wanted > 0;
       if (active.stage === 0 && active.sawWanted && driving && near(ctx.pose, active.target)) advance(job, active);
@@ -247,7 +247,7 @@ export function createProgression(map, saved = null, options = {}) {
         active.clearTime = ctx.wanted === 0 && driving && near(ctx.pose, active.target) ? active.clearTime + dt : 0;
         if (active.clearTime >= job.clearSeconds) complete(job);
       }
-    } else if (driving && (!job.legitimate || (ctx.wanted===0 && ctx.vehicle.stolen!==true)) && near(ctx.pose, active.target)) {
+    } else if (driving && (!job.legitimate || ctx.vehicle.stolen!==true) && near(ctx.pose, active.target)) {
       if (active.stage < job.stages.length - 1) advance(job, active);
       else if (active.elapsed >= 2) complete(job);
     }
@@ -466,7 +466,7 @@ export function createProgression(map, saved = null, options = {}) {
     return {plan,session,station,site:{...serviceSite(source),id:source.id}};
   }
   function workContext(active,ctx){
-    if(!validContext(ctx)||ctx.sandbox||ctx.recovering||!ctx.onFoot||ctx.wanted>0||ctx.respawnSerial!==active.respawnSerial)return null;
+    if(!validContext(ctx)||ctx.sandbox||ctx.recovering||!ctx.onFoot||ctx.respawnSerial!==active.respawnSerial)return null;
     const work=workStation(active.serviceId);
     if(!work||work.plan!==shiftPlan||work.plan.id!==active.planId||work.session.sessionId!==active.sessionId||
       work.station.id!==active.station.id||!near(ctx.pose,active.station,active.station.radius)||
@@ -475,7 +475,7 @@ export function createProgression(map, saved = null, options = {}) {
     return work;
   }
   function startShift(serviceId,ctx){
-    if(!remember(ctx)||ctx.sandbox||ctx.recovering||!ctx.onFoot||ctx.wanted>0)return result(false,'Shift unavailable.');
+    if(!remember(ctx)||ctx.sandbox||ctx.recovering||!ctx.onFoot)return result(false,'Shift unavailable.');
     if(state.activeJob||state.activity)return result(false,'Finish or cancel the current activity first.');
     const work=workStation(serviceId);
     if(!work?.session.active||!near(ctx.pose,work.station,work.station.radius)||!clearApproach(work.station,ctx)||!serviceAllowed(work.site,ctx))return result(false,'Start a shop task at its work station first.');

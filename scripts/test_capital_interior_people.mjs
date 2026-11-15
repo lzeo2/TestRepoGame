@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 const read=p=>readFile(new URL(p,import.meta.url),'utf8');
 const url=s=>`data:text/javascript;base64,${Buffer.from(s).toString('base64')}`;
 const {createInteriorPeople}=await import(url(await read('../Games/Capital Drive/interior-people.js')));
-const {createInteriors,createSchoolEntry}=await import(url(await read('../Games/Capital Drive/interiors.js')));
+const {createInteriors,createSchoolEntry}=await import(new URL('../Games/Capital Drive/interiors.js',import.meta.url));
 function make(type,variant,yaw=.7,width=8,withRoom=false) {
   const building={id:'b',type:type==='house'?'house':'retail',height:4,points:[[-12,0],[12,0],[12,30],[-12,30]]};
   const options={heightAt:()=>3};

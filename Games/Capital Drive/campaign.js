@@ -73,7 +73,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   const characters = freeze([
     { id: 'student', name: 'Kit Vale', age: 18, tagline: 'A Telopea student with one last errand and very little patience.', appearance: 'student', start: { ...map.spawn }, onFoot: true },
     { id: 'corporate', name: 'Rowan Pike', age: 29, tagline: 'A Civic analyst whose career depends on a slideshow.', appearance: 'corporate', start: { ...mall }, onFoot: true },
-    { id: 'basement', name: 'Milo Finch', age: 26, tagline: 'A basement regular trying a radical new strategy: going outside.', appearance: 'basement', start: { x: homeApproach.x, z: homeApproach.z }, onFoot: true },
+    { id: 'basement', name: 'Milo Finch', age: 26, tagline: 'A basement regular trying a radical new strategy: going outside.', appearance: 'basement', start: { x: homeApproach.x, z: homeApproach.z }, onFoot: false },
   ]);
   const intros = freeze({
     student: [
@@ -98,14 +98,14 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
         stages: [target(noodle, 'Lambzhou 1919: enter and reach the service counter', 'interior', { storeId: noodle.id || 'store-5656111023', radius: 2.5 }), target(noodle, 'Lambzhou 1919 booth: talk to Dot, then face her noodle throw and attack', 'encounter', { storeId: 'store-5656111023', hold: 0 }), target(noodle, 'Leave Lambzhou 1919 and cool off outside on Bunda Street', 'foot', { radius: 18, hold: 3, clear: true })] },
     ],
     basement: [
-      { id: 'basement-touch-grass', name: 'Touch grass', combat: false, cutscene: scene('basement-touch-grass', 'The overdue notice', ['Milo', 'A depot collector says I owe for parcels I never received. Staying in the basement is getting expensive.'], ['Milo', `First, pack my case at ${homeLocation}. Then get outside and find paid work.`]), contact: 'Milo Finch', reward: 100, time: 540,
-        briefing: `Start at ${homeLocation}. Enter your home and finish the case-packing task at the case table. Leave through the same door, then travel to Coals and complete a stock shift inside. Attacks are disabled during this job.`,
+      { id: 'basement-touch-grass', name: 'Touch grass', combat: false, cutscene: scene('basement-touch-grass', 'The overdue notice', ['Milo', 'A depot collector says I owe for parcels I never received. Staying in the basement is getting expensive.'], ['Milo', `My saloon is ready. First, pack my case at ${homeLocation}, then drive to Coals for paid work.`]), contact: 'Milo Finch', reward: 100, time: 540,
+        briefing: `Start in your saloon near ${homeLocation}. Stop and press E to exit, then enter your home and pack your case at the case table. Leave through the same door. Press E beside your car to get in, drive to Coals and stop outside. Press E to exit, enter the shop and complete a stock shift. Attacks are disabled during this job.`,
         outro: 'Milo: Actual work. Actual wages. Disturbingly effective.',
-        stages: [target(home, `Inside ${homeLocation}: pack your case at the case table`, 'home-action', homeTask), target(homeApproach, `Step outside ${homeLocation} through the same door`, 'foot', { radius: 12, hold: 1 }), target(shop, 'Inside Coals: complete the stock shift', 'work', { storeId: shop.id, hold: 0 })] },
+        stages: [target(home, `Inside ${homeLocation}: pack your case at the case table`, 'home-action', homeTask), target(homeApproach, `Step outside ${homeLocation} through the same door; E beside your car to get in`, 'foot', { radius: 12, hold: 1 }), target(shop, 'Drive your car to Coals and stop outside; E exits', 'drive', { stop: true }), target(shop, 'Inside Coals: complete the stock shift', 'work', { storeId: shop.id, hold: 0 })] },
       { id: 'basement-first-delivery', name: 'Signed for', cutscene: scene('basement-first-delivery', 'A real receipt', ['Mara', 'One parcel, one signature. Keep the receipt this time.'], ['Milo', 'If the depot tries charging twice, I want proof.']), contact: 'Mara, local courier', reward: 150, time: 600,
-        briefing: 'Pick up Mara\'s sealed parcel outside Coals and deliver it to Kingston. Stop before handover, then step out. No browser refresh can do this shift for you.',
+        briefing: 'Collect Mara\'s sealed parcel outside Coals on foot. Press E beside your car to get in, then drive to Kingston and stop before handover. Press E to exit and deliver the parcel on foot.',
         outro: 'Milo: The parcel has the same depot code as two other receipts. Mara wants all three people together.',
-        stages: [target(shop, 'Collect the sealed parcel outside Coals', 'foot', { radius: 12 }), target(kingston, 'Stop at the Kingston meeting approach', 'drive', { stop: true }), target(kingston, 'Hand over the parcel on foot', 'foot', { radius: 16, hold: 2 })] },
+        stages: [target(shop, 'Collect the sealed parcel outside Coals', 'foot', { radius: 12 }), target(kingston, 'Drive to the Kingston meeting approach and stop; E exits', 'drive', { stop: true }), target(kingston, 'Hand over the parcel on foot', 'foot', { radius: 16, hold: 2 })] },
     ],
   });
   const meeting = freeze({ id: 'three-receipts', name: 'Three receipts', cutscene: scene('three-receipts', 'One fraudulent depot', ['Mara', 'Kit lost a club refund. Rowan approved the account. Milo got the fake debt. The same depot charged all three.'], ['Mara', 'Meet at Kingston. We take back the money and the ledger together.']), contact: 'Kit, Rowan, Milo and Mara', reward: 200, time: 600,
@@ -113,6 +113,17 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     outro: 'Mara: Three people, one fraudulent depot. We take back the money together. Meet on the Crescent for the interception.',
     stages: [target(meetingPoint || kingston, 'Meet the three couriers at the Kingston public approach', 'foot', { radius: 16, hold: 5 }), target(map.spawn, 'Drive to the Crescent for the late shift', 'drive', { stop: true })] });
   const ids = characters.map(c => c.id);
+  const developerEntries = [
+    ...ids.flatMap(character => intros[character].map(chapter => ({ chapter, character }))),
+    { chapter: meeting, character: 'student' },
+    ...shared.map(chapter => ({ chapter, character: chapter.character })),
+  ];
+  const developerList = freeze(developerEntries.map(({ chapter, character }) => ({
+    id: chapter.id, name: chapter.name, character,
+    start: clone(characters.find(hero => hero.id === character).start),
+    target: clone(chapter.stages[0]),
+  })));
+  let developerChapter = null;
   const emptyIntros = () => Object.fromEntries(ids.map(id => [id, []]));
   const state = { character: null, intros: emptyIntros(), meeting: false, legacy: false, completed: [], active: null, message: 'Choose a character to begin.', failed: false };
   const object = value => value && typeof value === 'object' && !Array.isArray(value);
@@ -134,6 +145,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   const events = [];
   const allIntroduced = () => ids.every(id => state.intros[id].length === intros[id].length);
   const current = () => {
+    if (developerChapter) return developerChapter;
     if (!state.character) return null;
     if (state.character === 'legacy') return shared[state.completed.length] || null;
     const opening = intros[state.character][state.intros[state.character].length];
@@ -174,14 +186,25 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     if (state.active) return { ok: false, message: 'Mission already active.' };
     const chapter = current();
     if (!chapter) return { ok: false, message: !state.character ? 'Choose a character first.' : requiredMessage() || (!allIntroduced() && state.character !== 'legacy' ? 'Choose another character to complete their introduction.' : 'Campaign complete.') };
-    state.active = { id: chapter.id, name: chapter.name, reward: chapter.reward, combat: chapter.combat !== false, companions: clone(chapter.companions || []), cutscene: chapter.cutscene ? clone(chapter.cutscene) : null, stage: 0, target: clone(chapter.stages[0]), remaining: chapter.time, elapsed: 0, held: 0, serial: ctx.respawnSerial, sawWanted: ctx.wanted > 0, baselines: baselines(ctx) };
+    return begin(chapter, ctx);
+  }
+  function begin(chapter, ctx, developer = false) {
+    state.active = { id: chapter.id, name: chapter.name, reward: developer ? 0 : chapter.reward, combat: chapter.combat !== false, companions: clone(chapter.companions || []), cutscene: chapter.cutscene ? clone(chapter.cutscene) : null, stage: 0, target: clone(chapter.stages[0]), remaining: chapter.time, elapsed: 0, held: 0, serial: ctx.respawnSerial, sawWanted: ctx.wanted > 0, baselines: baselines(ctx), ...(developer ? { developer: true, character: chapter.character } : {}) };
     state.failed = false; state.message = chapter.briefing;
     events.push({ type: 'started', id: chapter.id, incident: Boolean(chapter.incident), wantedLevel: chapter.wantedLevel || 0 });
     return { ok: true, message: chapter.name };
   }
+  function startDeveloper(id, ctx) {
+    if (ctx?.developer !== true || !validContext(ctx) || ctx.respawnSerial < 0 || ctx.sandbox || ctx.recovering || ctx.campaign !== true) return { ok: false, message: 'Mission preview unavailable here.' };
+    if (state.active) return { ok: false, message: 'Finish or cancel the active mission first.' };
+    const entry = developerEntries.find(item => item.chapter.id === id);
+    if (!entry) return { ok: false, message: 'Choose an available mission.' };
+    developerChapter = freeze({ ...entry.chapter, character: entry.character });
+    return begin(developerChapter, ctx, true);
+  }
   function fail(message) {
     if (!state.active) return false;
-    state.active = null; state.failed = true; state.message = message;
+    state.active = null; developerChapter = null; state.failed = true; state.message = message;
     events.push({ type: 'failed', message }); return true;
   }
   function update(dt, ctx) {
@@ -214,6 +237,11 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
       active.stage++; active.target = clone(chapter.stages[active.stage]); active.held = 0; active.baselines = baselines(ctx, active.baselines);
       events.push({ type: 'stage', message: active.target.label });
     } else {
+      if (developerChapter) {
+        state.active = null; developerChapter = null; state.message = chapter.outro; state.failed = false;
+        events.push({ type: 'developer-complete', id: chapter.id, reward: 0, message: chapter.outro });
+        return;
+      }
       if (ids.includes(state.character) && intros[state.character].some(item => item.id === chapter.id)) state.intros[state.character].push(chapter.id);
       else if (chapter.id === meeting.id) state.meeting = true;
       else state.completed.push(chapter.id);
@@ -221,7 +249,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
       events.push({ type: 'complete', id: chapter.id, reward: chapter.reward, message: chapter.outro });
     }
   }
-  return { state, characters, get chapters() { return chapters(); }, current, nextRequiredCharacter, start, update, selectCharacter, canSelectCharacter, isCompleted,
+  return { state, characters, get chapters() { return chapters(); }, current, nextRequiredCharacter, start, startDeveloper, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, isCompleted,
     cancel: () => fail('Mission cancelled. Open Campaign to retry.'),
     serialize: () => clone({ version: 2, character: state.character, intros: state.intros, meeting: state.meeting, legacy: state.legacy, completed: state.completed }),
     journal: () => freeze(clone({ character: state.character, introductions: ids.map(id => ({ character: id, chapters: intros[id].map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })), meeting: state.meeting, shared: shared.map(item => ({ id: item.id, character: item.character, name: item.name, complete: isCompleted(item.id) })) })),

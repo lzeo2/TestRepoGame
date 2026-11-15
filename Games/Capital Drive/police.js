@@ -5,10 +5,110 @@ const gap = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
 const angle = a => Math.atan2(Math.sin(a),Math.cos(a));
 export function createPolice(simulation, options = {}) {
   const planner = createRoutePlanner(simulation.graph);
-  const routes = new Map(), tactics = new Map(), events = [];
+  const routes = new Map(), tactics = new Map(), approaches = new Map(), events = [];
   let serial = 0, arrest = 0, spawnDelay = 0, lastSeen = { ...simulation.player };
-  function report(point) { lastSeen = { x: point.x, z: point.z }; }
-  function reset() { routes.clear(); tactics.clear(); events.length=0; arrest = 0; spawnDelay = 0; report(simulation.player); }
+  const knownRooms = new Set();
+  const currentInterior = () => options.getInterior?.() || null;
+  const resolveInterior = id => id ? (options.resolveInterior?.(id) || (currentInterior()?.id === id ? currentInterior() : null)) : null;
+  function remember(point) { lastSeen = { x: point.x, z: point.z }; }
+  function report(point) {
+    const room = currentInterior();
+    if (room) {
+      knownRooms.add(room.id);
+      if(knownRooms.size>5) knownRooms.delete(knownRooms.values().next().value);
+      remember(room.outside);
+    }
+    else remember(point);
+  }
+  function sees(unit,target,room) {
+    if (unit.health<=0 || gap(unit,target)>=145 || (unit.interiorId || null)!==(room?.id || null)) return false;
+    if (unit.interiorId) return !room.safehouse && room.hasLineOfSight(unit,target);
+    return simulation.hasLineOfSight(unit,target);
+  }
+  function separated(pose,unit,state,target,roomId) {
+    return !state.police.some(other=>other!==unit && other.health>0 && other.mode==='foot' &&
+      (other.interiorId || null)===(roomId || null) && gap(other,pose)<.9) &&
+      ((currentInterior()?.id || null)!==(roomId || null) || gap(pose,target)>=.9);
+  }
+  function transition(unit,room,state,target,entering) {
+    const from=entering?room.outside:room.exit, to=entering?room.inside:room.outside;
+    if (!from || !to || gap(unit,from)>1.4 || (entering && room.safehouse)) return false;
+    const sight=entering?simulation:room, mover=entering?room:simulation;
+    if (!sight.hasLineOfSight(unit,from)) return false;
+    const pose={...to};
+    if (mover.moveActor(pose,0,0,.45)?.blocked || gap(pose,to)>.1 ||
+      !separated(pose,unit,state,target,entering?room.id:null)) return false;
+    Object.assign(unit,{x:pose.x,z:pose.z,yaw:pose.yaw??unit.yaw,speed:0,interiorId:entering?room.id:null});
+    tactics.delete(unit.id); return true;
+  }
+  function walk(unit,goal,dt,room,state,target,speed=5.2) {
+    if(!room) {
+      const d=gap(unit,goal);
+      if(d<=.7){unit.speed=0;return;}
+      const before={x:unit.x,z:unit.z},heading=Math.atan2(goal.z-unit.z,goal.x-unit.x);
+      let headingUsed=heading;
+      const amount=Math.min(d-.7,speed*dt);
+      simulation.moveActor(unit,Math.cos(heading)*amount,Math.sin(heading)*amount,.45);
+      if(gap(before,unit)<amount*.3) {
+        let best=null,bestScore=-Infinity;
+        for(const offset of [.65,-.65,1.2,-1.2,1.57,-1.57]) {
+          const candidate={...before},direction=heading+offset;
+          simulation.moveActor(candidate,Math.cos(direction)*amount,Math.sin(direction)*amount,.45);
+          const travelled=gap(before,candidate),score=travelled-.15*gap(candidate,goal);
+          if(travelled>amount*.5 && score>bestScore){best={candidate,direction};bestScore=score;}
+        }
+        if(best){unit.x=best.candidate.x;unit.z=best.candidate.z;headingUsed=best.direction;}
+      }
+      unit.yaw=Math.atan2(-Math.cos(headingUsed),-Math.sin(headingUsed));unit.speed=gap(before,unit)/dt;
+      return;
+    }
+    const waypoint=room.nextWaypoint(unit,goal,unit.id);
+    if (!waypoint) {unit.speed=0;return;}
+    const d=gap(unit,waypoint), before={x:unit.x,z:unit.z};
+    const stopping=.08;
+    if(d<=stopping){unit.speed=0;return;}
+    const heading=Math.atan2(waypoint.z-unit.z,waypoint.x-unit.x),amount=Math.min(d-stopping,speed*dt);
+    const mover=room;
+    let best=null,bestScore=-Infinity;
+    for(const offset of [0,.65,-.65,1.2,-1.2,1.57,-1.57]) {
+      const candidate={...before},direction=heading+offset;
+      mover.moveActor(candidate,Math.cos(direction)*amount,Math.sin(direction)*amount,.45);
+      if(!separated(candidate,unit,state,target,room.id)) continue;
+      const travelled=gap(before,candidate),score=travelled-.15*gap(candidate,waypoint);
+      if(travelled>amount*.3 && score>bestScore) {best={candidate,direction};bestScore=score;}
+      if(offset===0 && travelled>=amount*.9) break;
+    }
+    if(best) {unit.x=best.candidate.x;unit.z=best.candidate.z;unit.yaw=Math.atan2(-Math.cos(best.direction),-Math.sin(best.direction));}
+    unit.speed=gap(before,unit)/dt;
+  }
+  function approachWaypoint(unit,room) {
+    const points=Array.isArray(room.approach)?room.approach:[];
+    if(!points.length) return room.outside;
+    let path=approaches.get(unit.id);
+    if(!path || path.roomId!==room.id) {
+      path={roomId:room.id,index:0};approaches.set(unit.id,path);
+      // A clear swept shortcut may join a later corridor segment. LOS alone
+      // cannot authorize skipping the source gate or a narrow body obstruction.
+      for(let i=Math.min(points.length,12)-1;i>0;i--) {
+        const point=points[i],probe={x:unit.x,z:unit.z};
+        if(!simulation.hasLineOfSight(unit,point)) continue;
+        const result=simulation.moveActor(probe,point.x-unit.x,point.z-unit.z,.45);
+        if(!result.blocked && gap(probe,point)<.1){path.index=i;break;}
+      }
+    }
+    while(path.index<points.length && gap(unit,points[path.index])<1.05) path.index++;
+    return points[path.index] || room.outside;
+  }
+  function roomRoadArrival(unit,room) {
+    if(!room || room.safehouse || gap(unit.car,room.outside)>90) return false;
+    const route=routes.get(unit.id);
+    if(!route) return false;
+    const edge=route.edges[route.index];
+    const atEnd=edge && route.index===route.edges.length-1 &&
+      edge.length-((unit.car.x-edge.from.x)*edge.dx+(unit.car.z-edge.from.z)*edge.dz)<=8;
+    return atEnd || route.stuck>.75 || (!edge && route.age>.75);
+  }
+  function reset() { approaches.clear(); routes.clear(); tactics.clear(); events.length=0; knownRooms.clear(); arrest = 0; spawnDelay = 0; remember(simulation.player); }
   const lanePoint = (edge,t) => ({ x:edge.from.x+edge.dx*t+edge.dz*edge.laneOffset,
     z:edge.from.z+edge.dz*t-edge.dx*edge.laneOffset,yaw:edge.yaw });
   const publicEdges = simulation.graph.edges.filter(edge => roadProfile(edge.road).trafficAllowed);
@@ -42,7 +142,7 @@ export function createPolice(simulation, options = {}) {
       if(!tail.length && gap(edge.to,target)>24) continue;
       routes.set(id,{edges:[edge,...tail],index:0,age:0,goal:{...target},stuck:0,reversing:0,retries:0});
       state.police.push({id,x:car.x,z:car.z,yaw:car.yaw,speed:0,health:100,mode:'vehicle',car,
-        seesPlayer:false,searchTime:0,modelId:'relay',color:0xe7e7df});
+        interiorId:null,seesPlayer:false,searchTime:0,modelId:'relay',color:0xe7e7df});
       return true;
     }
     return false;
@@ -139,34 +239,37 @@ export function createPolice(simulation, options = {}) {
     if(decision.carETA+margin<decision.footETA) {decision.door=door;decision.edges=edges;}
     return decision;
   }
-  function fire(unit,state,target,dt,returning) {
+  function fire(unit,state,target,dt,returning,room) {
     unit.shotTimer=Math.max(0,(unit.shotTimer||0)-dt);
     unit.fireCooldown=Math.max(0,(unit.fireCooldown??0.6)-dt);
     unit.aiming=false;unit.aimTarget=null;
     if(unit.mode!=='foot' || returning || unit.health<=0) return;
     const playerThreat=state.wanted>=3 || (state.weapon && state.weapon!=='unarmed' && (state.aiming || state.attackTimer>0));
     const candidates=[];
-    if(playerThreat && state.health!==0) candidates.push({...target,id:'player'});
-    for(const ally of options.getAllies?.() || []) if((state.wanted>=3 || ally.mode==='combat' || ally.shot?.remaining>0) && ally.active!==false && ally.health>0 && ally.armed &&
+    if(playerThreat && state.health!==0 && (unit.interiorId || null)===(room?.id || null) && !room?.safehouse) candidates.push({...target,id:'player'});
+    for(const ally of options.getAllies?.() || []) if(!unit.interiorId && !ally.interiorId && (state.wanted>=3 || ally.mode==='combat' || ally.shot?.remaining>0) && ally.active!==false && ally.health>0 && ally.armed &&
       Number.isFinite(ally.x) && Number.isFinite(ally.z)) candidates.push(ally);
-    const victim=candidates.filter(person=>gap(unit,person)<=52 && simulation.hasLineOfSight(unit,person))
+    const victim=candidates.filter(person=>gap(unit,person)<=52 && (unit.interiorId ? room?.hasLineOfSight(unit,person) : simulation.hasLineOfSight(unit,person)))
       .sort((a,b)=>gap(unit,a)-gap(unit,b))[0];
     if(!victim) return;
     unit.aiming=true;unit.aimTarget={x:victim.x,z:victim.z};
     unit.yaw=Math.atan2(-(victim.x-unit.x),-(victim.z-unit.z));
     if(unit.fireCooldown>0) return;
     unit.fireCooldown=1.1;unit.shotTimer=.13;
-    events.push({kind:'shot',officerId:unit.id,targetId:victim.id,from:{x:unit.x,z:unit.z},
+    events.push({kind:'shot',interiorId:unit.interiorId || null,officerId:unit.id,targetId:victim.id,from:{x:unit.x,z:unit.z},
       to:{x:victim.x,z:victim.z},damage:9});
     if(events.length>16) events.splice(0,events.length-16);
   }
   function step(dt,state,target) {
     if(!Number.isFinite(dt) || dt<=0) return;
     dt=Math.min(dt,.05);
-    if (state.sandbox || state.wanted<=0) { state.police.length=0; routes.clear();tactics.clear();events.length=0; state.pursuit='clear'; return; }
+    if (state.sandbox || state.wanted<=0) { state.police.length=0; routes.clear();tactics.clear();approaches.clear();events.length=0;knownRooms.clear(); state.pursuit='clear'; return; }
+    const room=currentInterior();
+    const entry=room && (room.known || knownRooms.has(room.id)) ? room : null;
+    const outsideTarget=entry?.outside || lastSeen;
     spawnDelay=Math.max(0,spawnDelay-dt);
     if(spawnDelay===0) {
-      while(state.police.length<Math.min(4,state.wanted+1)) if(!spawn(state,target)) break;
+      while(state.police.length<Math.min(4,state.wanted+1)) if(!spawn(state,room?outsideTarget:target)) break;
       spawnDelay=1;
     }
     let seen=false,arresting=false;
@@ -174,51 +277,43 @@ export function createPolice(simulation, options = {}) {
       // Accept restored descriptors while keeping one stable car object for rendering/blockers.
       if(!unit.car) unit.car={id:unit.id,x:unit.x,z:unit.z,yaw:unit.yaw,speed:unit.speed||0,active:true,length:4.8,width:1.9};
       unit.mode ||= 'vehicle';
-      unit.seesPlayer=unit.health>0 && gap(unit,target)<145 && simulation.hasLineOfSight(unit,target);
+      unit.interiorId ||= null;
+      unit.seesPlayer=sees(unit,target,room);
       if(unit.health<=0) { unit.speed=0;unit.car.speed=0;continue; }
-      if(unit.seesPlayer) { seen=true;report(target);unit.searchTime=0; } else unit.searchTime+=dt;
-      const destination=unit.seesPlayer?target:lastSeen;
+      if(unit.seesPlayer) { seen=true;remember(room?room.outside:target);unit.searchTime=0; } else unit.searchTime+=dt;
+      const destination=room?outsideTarget:(unit.seesPlayer?target:lastSeen);
       let returning=false;
       if(unit.mode==='vehicle') {
-        const dismount=gap(unit.car,destination)<24 && (state.mode==='foot' || Math.abs(target.speed)<2);
+        let dismount=(gap(unit.car,destination)<24 && (state.mode==='foot' || Math.abs(target.speed)<2)) || roomRoadArrival(unit,entry);
         drive(unit,destination,dt,dismount,state.wanted);
-        if(dismount && unit.car.speed<0.5) {
+        dismount ||= roomRoadArrival(unit,entry);
+        if(dismount && Math.abs(unit.car.speed)<0.5) {
           for(const side of [-1,1]) {
             const pose={x:unit.car.x+Math.cos(unit.car.yaw)*2*side,z:unit.car.z-Math.sin(unit.car.yaw)*2*side};
             const result=simulation.moveActor(pose,0,0,0.45);
-            if(!result.blocked && simulation.hasLineOfSight(unit.car,pose)) { Object.assign(unit,pose);unit.mode='foot';unit.speed=0;break; }
+            if(!result.blocked && simulation.hasLineOfSight(unit.car,pose) && separated(pose,unit,state,target,null)) { Object.assign(unit,pose);unit.mode='foot';unit.speed=0;break; }
           }
         }
+      } else if(unit.interiorId) {
+        const occupied=resolveInterior(unit.interiorId);
+        if(occupied && !occupied.safehouse) {
+          const pursuing=room?.id===occupied.id && occupied.playerInside!==false;
+          walk(unit,pursuing?target:occupied.exit,dt,occupied,state,target);
+          if(!pursuing) transition(unit,occupied,state,target,false);
+        } else unit.speed=0;
       } else {
-        const decision=returnDecision(unit,unit.seesPlayer?destination:{...destination,speed:0},state,dt);
+        const decision=room?{door:null}:returnDecision(unit,unit.seesPlayer?destination:{...destination,speed:0},state,dt);
         const door=decision.door && boardingDoor(unit);
         const reboard=!!door;returning=reboard;
-        const goal=door || destination;
-        const d=gap(unit,goal),speed=reboard?4.2:5.2;
-        if(d>0.7) {
-          const before={x:unit.x,z:unit.z},heading=Math.atan2(goal.z-unit.z,goal.x-unit.x);
-          let headingUsed=heading;
-          const amount=Math.min(d-0.7,speed*dt);
-          simulation.moveActor(unit,Math.cos(heading)*amount,Math.sin(heading)*amount,0.45);
-          if(gap(before,unit)<amount*0.3) {
-            // Try a bounded fan with the same swept pedestrian collider. No wall phasing.
-            let best=null,bestScore=-Infinity;
-            for(const offset of [0.65,-0.65,1.2,-1.2,1.57,-1.57]) {
-              const candidate={...before},direction=heading+offset;
-              simulation.moveActor(candidate,Math.cos(direction)*amount,Math.sin(direction)*amount,0.45);
-              const travelled=gap(before,candidate),score=travelled-0.15*gap(candidate,goal);
-              if(travelled>amount*0.5 && score>bestScore) {best={candidate,direction};bestScore=score;}
-            }
-            if(best) {unit.x=best.candidate.x;unit.z=best.candidate.z;headingUsed=best.direction;}
-          }
-          unit.yaw=Math.atan2(-Math.cos(headingUsed),-Math.sin(headingUsed));unit.speed=gap(before,unit)/dt;
-        } else unit.speed=0;
+        const goal=door || (entry && !entry.safehouse ? approachWaypoint(unit,entry) : destination);
+        walk(unit,goal,dt,null,state,target,reboard?4.2:5.2);
+        if(entry && !entry.safehouse) transition(unit,entry,state,target,true);
         if(reboard && gap(unit,goal)<1.2 && simulation.hasLineOfSight(unit,goal)) {
           unit.mode='vehicle';Object.assign(unit,{x:unit.car.x,z:unit.car.z,yaw:unit.car.yaw,speed:0});routes.set(unit.id,{edges:decision.edges,index:0,age:0,goal:{...destination},stuck:0,reversing:0,retries:0});tactics.delete(unit.id);
         }
       }
-      fire(unit,state,target,dt,returning);
-      unit.seesPlayer=unit.health>0 && gap(unit,target)<145 && simulation.hasLineOfSight(unit,target);
+      fire(unit,state,target,dt,returning,room);
+      unit.seesPlayer=sees(unit,target,room);
       if(unit.mode==='foot' && unit.seesPlayer && gap(unit,target)<3.4 && Math.abs(target.speed)<2) arresting=true;
     }
     if(seen) { state.pursuit='pursuit';state.heat=28+state.wanted*9; }

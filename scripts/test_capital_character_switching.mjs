@@ -19,7 +19,7 @@ let capturedOutside=null;
 const interiors={active:null,get exteriorPose(){return capturedOutside;},entries:[{id:'test-room'}]};
 const counters={mesh:0,population:0,save:0};
 const env={gameplay,simulation,campaign,interiors,protagonists:createProtagonistState(null,{bounds:map.bounds}),PROTAGONIST_IDS,WEAPONS,prepareCharacterStart,CIVIC_INTERIOR_ENTRIES:[],
-  started:true,gameMode:'campaign',progression:{state:{cash:5432,equipment:{pistol:true},activeJob:null,activity:null}},
+  developerReturn:null,started:true,gameMode:'campaign',progression:{state:{cash:5432,equipment:{pistol:true},activeJob:null,activity:null}},
   activities:{snapshot:()=>({active:null})},micromobility:{snapshot:()=>({active:null}),reset(){}},buses:{reset(){}},rideService:{reset(){}},equipment:{reset(){}},
   cutscenes:{snapshot:()=>({active:false})},streetChallenge:()=>null,careerContext:()=>({}),
   selectVehicle(){counters.mesh++;},selectedPaint:'#e7e6df',followYoober:true,destination:{},route:[1],lastJobTarget:'old',mapSelection:{},dialogueId:'old',cameraReady:true,
@@ -48,6 +48,7 @@ for(const [set,clear,reason] of [
   [()=>gameplay.state.wanted=1,()=>gameplay.state.wanted=0,'police'],
   [()=>gameplay.state.recovery={},()=>gameplay.state.recovery=null,'Recover'],
   [()=>gameplay.state.health=0,()=>gameplay.state.health=61,'Recover'],
+  [()=>gameplay.state.actor.impactTime=1,()=>gameplay.state.actor.impactTime=0,'Recover'],
   [()=>campaign.state.active={},()=>campaign.state.active=null,'mission'],
   [()=>env.progression.state.activeJob={},()=>env.progression.state.activeJob=null,'work'],
   [()=>env.progression.state.activity={},()=>env.progression.state.activity=null,'activity'],
@@ -82,4 +83,24 @@ assert(source.includes('!isSandbox()&&!heroCheckpoint'),'resume does not replay 
 assert(!body.includes('applyPlayerVehicle('),'restore only refreshes the mesh, preserving parked car placement');
 assert(source.includes("button.disabled=choice.id==='fight'&&protectedWork()"),'dialog pause cannot disable Fight');
 assert(source.includes("if(hostile)return 'F punch · Move to dodge'"));
+heroes.find(hero=>hero.id==='basement').onFoot=false;campaign.state.character='student';
+assert(controller.selectCampaignCharacter('basement').ok);assert.equal(gameplay.state.mode,'vehicle','Milo first visit starts behind the wheel');
+assert(source.includes('onFoot:!!hero&&hero.onFoot!==false'),'initial Campaign Start respects authored vehicle mode');
+// A blocked preview return retains the original checkpoint without frame-loop retries.
+const originalBody=controller.protagonistCheckpoint(),returnCampaign={version:2,character:'student'},returnControls=new Map();
+Object.assign(env,{developerReturn:{mode:'campaign',body:originalBody,campaign:returnCampaign},selectedGameMode:'campaign',
+  clearInterior(){},syncExternalVehicles(){},refreshProtagonistVehicle(){},refreshModeUI(){},
+  isSandbox:()=>false,$:id=>{if(!returnControls.has(id))returnControls.set(id,{});return returnControls.get(id);}});
+const previewReturn=Function('env',`with(env){${source.slice(source.indexOf('function finishDeveloperPreview('),source.indexOf("$('mission-dev-return').addEventListener"))};return finishDeveloperPreview;}`)(env);
+gameplay.reset();simulation.player.x=220;simulation.player.z=12;gameplay.state.health=89;
+let blockedCalls=0;simulation.canOccupy=()=>{blockedCalls++;return false;};
+assert.equal(previewReturn(),false);assert.equal(env.developerReturn.blocked,true);
+assert.deepEqual(env.developerReturn.body,originalBody,'failure retains full original car/health/ammunition snapshot');
+assert.deepEqual(env.developerReturn.campaign,returnCampaign);assert.equal(returnControls.get('mission-dev-return').hidden,false);
+const attempts=blockedCalls;assert.equal(previewReturn(),false);assert.equal(blockedCalls,attempts,'ordinary frames do not repeat failed placement work');
+assert.match(controller.characterSwitchReason(),/Return from/,'pending return cannot be overwritten by a hero switch');
+simulation.canOccupy=oldCanOccupy;
+assert.equal(previewReturn(true),true,'explicit retry uses actual checked Gameplay restoration');
+assert.equal(env.developerReturn,null);assert.equal(returnControls.get('mission-dev-return').hidden,true);
+assert.deepEqual(controller.protagonistCheckpoint(),originalBody,'successful retry restores original mode, body, car, health and ammo');
 console.log('Capital character controller: actual controller + Simulation/Gameplay/checkpoint integration passed.');

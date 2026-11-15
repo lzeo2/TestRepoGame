@@ -115,6 +115,7 @@ def main():
     started = time.monotonic()
     checks, page_errors, console_errors, failed_requests, external, observations = [], [], [], [], [], []
     failure = None
+    map_requests = []
     server = CountedServer()
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -145,6 +146,7 @@ def main():
         page.set_default_timeout(12000)
         page.on('pageerror', lambda error: page_errors.append(str(error)))
         page.on('console', lambda message: console_errors.append(message.text) if message.type == 'error' else None)
+        page.on('request',lambda request:map_requests.append(request.url) if unquote(urlsplit(request.url).path).startswith(GAME_PATH+'data/') and request.url.endswith('.json') else None)
         page.on('requestfailed', lambda request: failed_requests.append({'url': request.url, 'failure': request.failure}))
         page.on('request', lambda request: external.append(request.url)
                 if urlsplit(request.url).scheme in ('http', 'https') and urlsplit(request.url).netloc != urlsplit(base).netloc else None)
@@ -250,7 +252,9 @@ def main():
                 saved = page.evaluate('(k)=>localStorage.getItem(k)', CAREER_KEY)
                 check(saved is not None and json.loads(saved)['cash'] == 1000, 'Normal pagehide creates the real career save through the native writer')
                 mark = len(server.events)
+                request_mark=len(map_requests)
                 ready(page)
+                check(not map_requests[request_mark:],'Warm startup reads cached map responses directly without page fetch requests')
                 check(page.evaluate('!!navigator.serviceWorker.controller'), 'New game page is controlled by its installed game worker')
                 warm_counts = server.bodies(mark)
                 observations.append({'label': 'warm origin body counts', 'counts': dict(warm_counts)})
@@ -302,14 +306,14 @@ def main():
                     page.locator(f'#campaign-characters [data-character="{hero}"]').click()
                     page.wait_for_function('(hero)=>capitalDriveSnapshot().campaign.character===hero', arg=hero)
                     state = observe(page, 'normal UI selected ' + hero)
-                    check(state['campaign']['active'] is None and state['gameplay']['mode'] == 'foot',
+                    check(state['campaign']['active'] is None and state['gameplay']['mode'] == ('vehicle' if hero == 'basement' else 'foot'),
                           f'{hero} switches through the normal briefing without starting a mission')
                     check(state['career']['cash'] == 1000 and not any(state['campaign']['intros'].values()) and not state['campaign']['completed'],
                           f'{hero} switch preserves starter cash and unearned campaign progress')
                     return state
 
                 def same_pose(state, checkpoint, label):
-                    actor = checkpoint['actor']
+                    actor = checkpoint['vehicle'] if checkpoint['mode']=='vehicle' else checkpoint['actor']
                     # The live restore owner may clear a new obstruction within 6 m.
                     check(math.hypot(state['focus']['x']-actor['x'], state['focus']['z']-actor['z']) <= 6.000001 and
                           abs(state['focus']['yaw']-actor['yaw']) < .000001 and

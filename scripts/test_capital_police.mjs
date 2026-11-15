@@ -258,3 +258,138 @@ ally.mode='idle';ally.shot={remaining:.1};
 for(let i=0;i<80;i++)coverAI.step(1/60,coverState,{x:0,z:0,speed:0});
 assert(coverAI.drainEvents().some(shot=>shot.targetId===ally.id),'a live ally shot also authorizes defensive fire');
 console.log('Capital police: cached foot/car ETA, physical door, refusal cases, pause, proportional sidearm fire, covered player and live ally target PASS');
+
+// Room coordinates are deliberately distant from the real outside door: only the
+// checked door transition may cross spaces; ordinary steps remain swept movement.
+function indoorFixture({known=true,safehouse=false}={}) {
+  const sim=createSimulation(chaseMap,{trafficCount:0});
+  Object.assign(sim.player,{x:-300,z:-150});
+  let paths=0,moves=0,los=true,clear=true;
+  const room={id:'room:a',known,safehouse,playerInside:true,
+    outside:{x:0,z:10,yaw:0},inside:{x:1000,z:1000},exit:{x:1000,z:1000},floorY:0,
+    moveActor(actor,dx,dz){moves++; if(!clear)return {blocked:true}; actor.x+=dx;actor.z+=dz;return {blocked:false};},
+    hasLineOfSight:()=>los,
+    nextWaypoint(from,to){paths++;return to;}};
+  let active=room;
+  const car={id:'room-officer',x:0,z:7,yaw:0,speed:0,length:4.8,width:1.9,active:true};
+  const officer={id:car.id,x:0,z:15,yaw:0,speed:0,health:100,mode:'foot',interiorId:null,car};
+  const status={police:[officer,...disabled()],wanted:3,mode:'foot',weapon:'unarmed',health:100,heat:100};
+  const player={x:1008,z:1000,speed:0};
+  const ai=createPolice(sim,{getInterior:()=>active,resolveInterior:id=>id===room.id?room:null});
+  return {sim,room,officer,status,player,ai,paths:()=>paths,moves:()=>moves,
+    setActive:value=>{active=value;},setLOS:value=>{los=value;},setClear:value=>{clear=value;}};
+}
+const indoor=indoorFixture();
+indoor.ai.step(1/60,indoor.status,indoor.player);
+assert.equal(indoor.officer.interiorId,null,'distant foot officer cannot remotely enter');
+assert.equal(indoor.ai.drainEvents().length,0,'outside police cannot shoot across room boundary');
+for(let i=0;i<100 && !indoor.officer.interiorId;i++)indoor.ai.step(1/60,indoor.status,indoor.player);
+assert.equal(indoor.officer.interiorId,indoor.room.id,'officer walks to the checked outside door before entry');
+assert.equal(indoor.officer.mode,'foot');assert.equal(indoor.officer.car.z,7,'car remains outside');
+const indoorStart={...indoor.officer};
+indoor.ai.step(1/60,indoor.status,indoor.player);
+assert(indoor.paths()>0 && indoor.moves()>0,'retained room navigation and mover own indoor pursuit');
+assert(Math.hypot(indoor.officer.x-indoorStart.x,indoor.officer.z-indoorStart.z)<.1,'indoor pursuit uses bounded walking');
+indoor.ai.drainEvents();indoor.setLOS(false);
+for(let i=0;i<80;i++)indoor.ai.step(1/60,indoor.status,indoor.player);
+assert.equal(indoor.ai.drainEvents().length,0,'interior walls block police gunfire');
+assert.equal(indoor.status.arrestProgress,0,'interior walls block arrest');
+indoor.setLOS(true);indoor.player.x=indoor.officer.x+10;
+for(let i=0;i<70;i++)indoor.ai.step(1/60,indoor.status,indoor.player);
+const roomShots=indoor.ai.drainEvents();
+assert(roomShots.length>0 && roomShots.length<=2);
+assert(roomShots.every(shot=>shot.interiorId===indoor.room.id && shot.damage===9),'room shots retain space and original damage');
+const frozenRoom=structuredClone(indoor.status);const beforePaths=indoor.paths();
+indoor.ai.step(0,indoor.status,indoor.player);
+assert.deepEqual(indoor.status,frozenRoom);assert.equal(indoor.paths(),beforePaths,'pause never invokes navigation');
+// A new current room cannot drag officers across the city: they walk to their
+// original exit through the retained context, then cross its own door only.
+indoor.room.playerInside=false;
+indoor.setActive({...indoor.room,id:'room:b',outside:{x:200,z:10},inside:{x:2000,z:2000}});
+let exited=false;
+for(let i=0;i<240;i++) {
+  const before={...indoor.officer};indoor.ai.step(1/60,indoor.status,{x:2008,z:2000,speed:0});
+  assert.equal(indoor.ai.drainEvents().length,0,'old-room police cannot fire into a different room');
+  if(!indoor.officer.interiorId){assert(Math.hypot(before.x-1000,before.z-1000)<=1.5);exited=true;break;}
+  assert(Math.hypot(indoor.officer.x-before.x,indoor.officer.z-before.z)<.1);
+  assert.equal(indoor.officer.mode,'foot','inside police cannot reboard their outside car');
+}
+assert(exited,'retained-room officer physically reaches the old exit');
+assert(Math.hypot(indoor.officer.x,indoor.officer.z-10)<.1);
+const unseen=indoorFixture({known:false});Object.assign(unseen.officer,unseen.room.outside);
+for(let i=0;i<60;i++)unseen.ai.step(1/60,unseen.status,unseen.player);
+assert.equal(unseen.officer.interiorId,null,'unwitnessed entry never grants room knowledge');
+unseen.ai.report(unseen.player);
+for(let i=0;i<90 && !unseen.officer.interiorId;i++)unseen.ai.step(1/60,unseen.status,unseen.player);
+assert.equal(unseen.officer.interiorId,unseen.room.id,'real reported indoor offense identifies its room');
+const protectedRoom=indoorFixture({safehouse:true});Object.assign(protectedRoom.officer,protectedRoom.room.outside);
+for(let i=0;i<120;i++)protectedRoom.ai.step(1/60,protectedRoom.status,protectedRoom.player);
+assert.equal(protectedRoom.officer.interiorId,null,'safehouse is never entered');
+assert.equal(protectedRoom.ai.drainEvents().length,0);assert.equal(protectedRoom.status.arrestProgress,0);
+assert(protectedRoom.status.wanted>0,'safehouse does not instantly clear wanted state');
+const blockedRoom=indoorFixture();Object.assign(blockedRoom.officer,blockedRoom.room.outside);blockedRoom.setClear(false);
+blockedRoom.ai.step(1/60,blockedRoom.status,blockedRoom.player);
+assert.equal(blockedRoom.officer.interiorId,null,'blocked interior landing refuses entry');
+const occupiedDoor=indoorFixture();Object.assign(occupiedDoor.officer,occupiedDoor.room.outside);
+Object.assign(occupiedDoor.player,occupiedDoor.room.inside);
+occupiedDoor.ai.step(1/60,occupiedDoor.status,occupiedDoor.player);
+assert.equal(occupiedDoor.officer.interiorId,null,'entry never overlaps player at the inside landing');
+occupiedDoor.room.known=false;occupiedDoor.ai.reset();
+occupiedDoor.player.x+=4;
+occupiedDoor.ai.step(1/60,occupiedDoor.status,occupiedDoor.player);
+assert.equal(occupiedDoor.officer.interiorId,null,'reset clears remembered indoor reports');
+console.log('Capital police: checked room entry, same-space fire/arrest, wall LOS, retained-room exit, safehouse, unseen entry, landing clearance, pause/reset PASS');
+
+// Native regression: the nearest legal school road stops 37 metres from its
+// actual door. The car must stop there, then use the mapped gate on foot.
+const {CAMPUS_BARRIERS,CAMPUS_GATES}=await load('../Games/Capital Drive/campus.js');
+const schoolMap=applyRoadProfiles({...actualSource,barriers:[...CAMPUS_BARRIERS]},profiles);
+const schoolSim=createSimulation(schoolMap,{trafficCount:0});
+Object.assign(schoolSim.player,{x:-600,z:-600});
+const gate=CAMPUS_GATES.find(gate=>gate.id==='telopea-gate-11');
+const schoolRoom={id:'interior-telopea-school',known:true,safehouse:false,playerInside:true,
+  outside:{x:-296.17964979456633,z:-378.60790990665384},inside:{x:1000,z:1000},exit:{x:1000,z:1000},
+  approach:[{x:gate.path[1][0],z:gate.path[1][1]},{x:gate.x,z:gate.z},
+    {x:gate.path[0][0],z:gate.path[0][1]},{x:-296.17964979456633,z:-378.60790990665384}],
+  moveActor(actor,dx,dz){actor.x+=dx;actor.z+=dz;return {blocked:false};},
+  hasLineOfSight:()=>true,nextWaypoint:(from,to)=>to};
+const schoolCar={id:'school-road-stop',x:-330.35607248374134,z:-361.84808383543935,
+  yaw:-2.5639754106958317,speed:0,length:4.8,width:1.9,active:true};
+const schoolOfficer={id:schoolCar.id,...schoolCar,health:100,mode:'vehicle',interiorId:null,car:schoolCar};
+const schoolState={police:[schoolOfficer,...disabled()],wanted:1,mode:'foot',weapon:'unarmed',health:100,heat:37};
+const schoolTarget={x:1008,z:1000,speed:0};
+const schoolAI=createPolice(schoolSim,{getInterior:()=>schoolRoom,resolveInterior:()=>schoolRoom});
+schoolAI.report(schoolTarget);
+let schoolDismount=null,schoolEntry=null,schoolGateGap=Infinity,schoolPrevious={...schoolCar};
+for(let frame=0;frame<1800;frame++) {
+  schoolSim.setExternalVehicles([schoolCar]);
+  const before={...schoolOfficer};schoolAI.step(1/60,schoolState,schoolTarget);
+  if(schoolOfficer.mode==='foot' && schoolDismount===null) {
+    schoolDismount=frame/60;
+    assert(Math.hypot(schoolOfficer.x-schoolCar.x,schoolOfficer.z-schoolCar.z)<2.1,'dismount is beside the real stopped patrol');
+  }
+  if(schoolOfficer.mode==='vehicle')assert(Math.hypot(schoolCar.x-schoolPrevious.x,schoolCar.z-schoolPrevious.z)<.5,'approach never teleports the car');
+  if(schoolOfficer.mode==='foot' && !schoolOfficer.interiorId) {
+    schoolGateGap=Math.min(schoolGateGap,Math.hypot(schoolOfficer.x-gate.x,schoolOfficer.z-gate.z));
+    if(before.mode==='foot')assert(Math.hypot(schoolOfficer.x-before.x,schoolOfficer.z-before.z)<.1,'gate approach is continuous swept walking');
+  }
+  schoolPrevious={...schoolCar};
+  if(schoolOfficer.interiorId){schoolEntry=frame/60;break;}
+}
+assert(schoolDismount!==null && schoolDismount<5,'known room dismounts on its stalled legal road within seconds');
+assert(schoolGateGap<2.3,'school pursuit physically crosses gate11 rather than its fence');
+assert(schoolEntry!==null && schoolEntry<30,'37-metre road stop continues through gate to checked room entry');
+assert.equal(schoolAI.drainEvents().length,0,'one-star school search preserves proportional gunfire rules');
+console.log('Capital police: actual school stalled-road dismount, physical gate11 approach and checked entry PASS',JSON.stringify({dismount:schoolDismount,entry:schoolEntry,gateGap:schoolGateGap}));
+for(const protectedHouse of [false,true]) {
+  const room={...schoolRoom,known:protectedHouse,safehouse:protectedHouse};
+  const car={...schoolCar,id:`school-guard:${protectedHouse}`,x:-330.35607248374134,z:-361.84808383543935,speed:0};
+  const officer={id:car.id,...car,health:100,mode:'vehicle',interiorId:null,car};
+  const state={...schoolState,police:[officer,...disabled()],wanted:1,heat:37};
+  const ai=createPolice(schoolSim,{getInterior:()=>room,resolveInterior:()=>room});
+  if(protectedHouse)ai.report(schoolTarget);
+  for(let frame=0;frame<120;frame++){schoolSim.setExternalVehicles([car]);ai.step(1/60,state,schoolTarget);}
+  assert.equal(officer.mode,'vehicle',`${protectedHouse?'safehouse':'unknown room'} cannot use expanded entrance dismount`);
+  assert.equal(officer.interiorId,null);
+}
+console.log('Capital police: expanded road arrival excludes unknown rooms and protected safehouse PASS');

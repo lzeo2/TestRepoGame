@@ -17,7 +17,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 GAME = Path('Games/Capital Drive')
 MODULES = (
-    'script.js', 'cache-client.js', 'cache-manifest.js', 'service-worker.js', 'protagonist-state.js', 'render-gate.js', 'cutscenes.js', 'mission-locations.js', 'simulation.js', 'navigation.js', 'map-projection.js', 'navigation-guidance.js', 'road-guidance-view.js', 'traffic-lights.js', 'traffic-lights-view.js', 'equipment.js', 'equipment-view.js',
+    'script.js', 'game-data.js', 'dev-missions.js', 'interior-navigation.js', 'police-rooms.js', 'cache-client.js', 'cache-manifest.js', 'service-worker.js', 'protagonist-state.js', 'render-gate.js', 'cutscenes.js', 'mission-locations.js', 'simulation.js', 'navigation.js', 'map-projection.js', 'navigation-guidance.js', 'road-guidance-view.js', 'traffic-lights.js', 'traffic-lights-view.js', 'equipment.js', 'equipment-view.js',
     'world-view.js', 'neighbourhood.js', 'person-model.js', 'wildlife-view.js', 'street-assets.js', 'street-assets-view.js', 'highway-barriers.js', 'highway-barriers-view.js', 'local-details-view.js', 'character-start.js', 'campaign-scenes.js', 'campaign-scenes-view.js', 'pedestrians.js', 'gameplay.js', 'ride-service.js', 'ride-service-view.js',
     'progression.js', 'actor-view.js', 'landmarks.js', 'landmarks-view.js',
     'address-search.js', 'street-ui.js', 'road-network.js', 'police.js',
@@ -27,6 +27,10 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
+    'test_capital_vehicle_impacts.mjs', 'test_capital_ragdoll.mjs',
+    'test_capital_mission_hud.mjs',
+    'test_capital_game_data.mjs', 'test_capital_dev_missions.mjs',
+    'test_capital_interior_navigation.mjs', 'test_capital_police_rooms.mjs',
     'test_capital_cache.mjs', 'test_capital_protagonist_state.mjs', 'test_capital_character_switching.mjs', 'test_capital_collision_performance.mjs', 'test_capital_render_gate.mjs',
     'test_capital_mission_locations.mjs', 'test_capital_world_streaming.mjs', 'test_capital_neighbourhood_streaming.mjs', 'test_capital_cutscenes.mjs', 'test_capital_drive.mjs', 'test_capital_pedestrians.mjs', 'test_capital_spawn.mjs', 'test_capital_starter.mjs', 'test_capital_signals.mjs', 'test_capital_signals_view.mjs', 'test_capital_guidance.mjs', 'test_capital_road_guidance_view.mjs', 'test_capital_traffic_body_clearance.mjs', 'test_capital_ambient_routes.mjs', 'test_capital_ride_driving.mjs', 'test_capital_bus_boarding.mjs', 'test_capital_equipment.mjs', 'test_capital_vehicle_contacts.mjs', 'test_capital_hold_ups.mjs', 'test_capital_crime_people.mjs',
     'test_capital_street_assets.mjs', 'test_capital_suburb_life.mjs', 'test_capital_local_details.mjs', 'test_capital_highway_barriers.mjs', 'test_capital_major_roads.mjs', 'test_capital_gym_equipment.mjs', 'test_capital_bus_stops.mjs', 'test_capital_character_starts.mjs', 'test_capital_campaign_scenes.mjs',

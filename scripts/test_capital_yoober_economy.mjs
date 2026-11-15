@@ -28,14 +28,14 @@ const denied = (p, action) => { const before = p.serialize(); assert.equal(actio
 }
 const rides = createProgression(map).jobs.filter(job => job.type === 'ride');
 assert(rides.length >= 2 && rides.length <= 3);
-for (const job of rides) {
+for (const job of rides) for(let wanted=0;wanted<=5;wanted++) {
   assert.equal(job.legitimate, true); assert.equal(job.stages.length, 2);
   for (const stage of job.stages) {
     const road = map.roads.find(item => item.id === stage.roadId);
     assert(road && road.name && road.type !== 'service');
     assert(road.points.some(([x, z]) => x === stage.x && z === stage.z), 'fare stops are exact public source vertices');
   }
-  const p = createProgression(map), pickup = context(job.stages[0]), drop = context(job.stages[1]);
+  const p = createProgression(map), pickup = context(job.stages[0],{wanted}), drop = context(job.stages[1],{wanted});
   assert(p.startJob(job.id, pickup).ok);
   assert.equal(p.state.activeJob.passenger, false); assert.equal(p.state.activeJob.stage, 0);
   stop(p, drop, 50); assert.equal(p.state.activeJob.stage, 0, 'drop cannot skip pickup');
@@ -52,11 +52,11 @@ for (const job of rides) {
   assert(p.startJob(job.id, pickup).ok); stop(p, pickup); stop(p, drop);
   assert.equal(p.state.cash, 1000 + 2 * job.reward); assert.deepEqual(p.state.completedJobs, [job.id]);
 }
-for (const extra of [{ onFoot: true }, { wanted: 1 }, { sandbox: true }, { recovering: true }, { vehicleHealth: 49 },
+for (const extra of [{ onFoot: true }, { wanted: NaN }, { sandbox: true }, { recovering: true }, { vehicleHealth: 49 },
   { vehicleHealth: 101 }, { vehicle: { modelId: 'atlas', stolen: false } },
   { vehicle: { modelId: 'orchard', stolen: false } }, { vehicle: { modelId: 'lantern', stolen: true } },
   { vehicle: { modelId: 'lantern' } }, { pose: { x: NaN, z: 0 } }]) {
-  const { p, job, pickup } = fixture();
+  const { p, job, pickup } = fixture();pickup.wanted=5;
   denied(p, () => p.startJob(job.id, { ...pickup, ...extra }));
   assert(p.rideEligibility({ ...pickup, ...extra }).length > 0, 'denial has a concise reason');
 }
@@ -70,7 +70,7 @@ for (const id of ['lantern', 'orchard', 'gravel', 'relay', 'atlas']) {
   denied(p, () => p.startJob(job.id, pickup));
 }
 for (const extra of [{ pose: { ...map.spawn, speed: 5 } }, { pose: { ...map.spawn, speed: -5 } },
-  { pose: { x: -342.84, z: -382.24 } }, { onFoot: true }, { wanted: 1 },
+  { pose: { x: -342.84, z: -382.24 } }, { onFoot: true }, { wanted: NaN },
   { vehicleHealth: 20 }, { vehicle: { modelId: 'lantern', stolen: true } }]) {
   const { p, job, pickup } = fixture(); assert(p.startJob(job.id, pickup).ok);
   stop(p, pickup, 30); p.update(.05, { ...pickup, ...extra });
@@ -100,7 +100,7 @@ for (const extra of [{ pose: { ...map.spawn, speed: 5 } }, { pose: { ...map.spaw
   stop(p, { ...drop, pose: { ...drop.pose, speed: -.8 } }, 39); assert.equal(p.state.cash, 1000);
   stop(p, { ...drop, pose: { ...drop.pose, speed: .8 } }, 1); assert.equal(p.state.cash, 1000 + job.reward);
 }
-for (const extra of [{ onFoot: true }, { wanted: 5 }, { sandbox: true }, { recovering: true }, { respawnSerial: 1 },
+for (const extra of [{ onFoot: true }, { wanted: NaN }, { sandbox: true }, { recovering: true }, { respawnSerial: 1 },
   { vehicleHealth: 0 }, { vehicle: { modelId: 'lantern', stolen: true } },
   { vehicle: { modelId: 'orchard', stolen: false } }, { pose: { x: NaN, z: 0 } }]) {
   const { p, job, pickup, drop } = fixture(); assert(p.startJob(job.id, pickup).ok); stop(p, pickup);
@@ -159,4 +159,12 @@ for (const action of ['cancel', 'penalty', 'timeout']) {
   assert.equal(p.state.activeJob, null, 'actual-map spawn-to-drop physics can finish the nearby local run');
   assert.equal(p.state.cash, 1000 + job.reward);
 }
-console.log('PASS Yoober economy: source public-road short/long fares; actual-map local driving; contiguous stopped boarding/drop-off; legal owned four-door guards; passenger failures/cancel/respawn; exactly-once capped recurring pay; legacy v1 saves; bounded booking debit; five-star food/weapon trading.');
+console.log('PASS Yoober economy: 0–5-star driver fares; source public-road short/long fares; actual-map local driving; contiguous stopped boarding/drop-off; legal owned four-door guards; passenger failures/cancel/respawn; exactly-once capped recurring pay; legacy v1 saves; bounded booking debit; five-star food/weapon trading.');
+
+{
+  const {p,job,pickup,drop}=fixture();assert(p.startJob(job.id,pickup).ok);
+  for(let i=0;i<40;i++)p.update(.05,{...pickup,wanted:i%6});
+  assert.equal(p.state.activeJob.passenger,true,'changing wanted stars does not reset a valid pickup');
+  for(let i=0;i<40;i++)p.update(.05,{...drop,wanted:i%6});
+  assert.equal(p.state.cash,1000+job.reward,'changing wanted stars does not interrupt a valid live fare');
+}

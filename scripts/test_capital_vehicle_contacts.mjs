@@ -93,4 +93,29 @@ assert(!localOnly.moveActor({ x: 0, z: 0 }, 4, 4).blocked);
 assert(localOnly.canOccupy({ x: 20, z: 20, yaw: 0, modelId: 'atlas' }));
 assert.equal(distantReads, 0, 'foot and driving contacts do not scan distant parked cars');
 assert.equal(localOnly.canOccupy(null), false);
+// Queries cannot injure the player. Only an actual approaching movement sweep
+// captures velocity before traffic/bus/ride/patrol braking sets it to zero.
+for(const id of ['traffic:1','bus:1','yoober','police:1','player']){
+  const sim=create(),body={id:'player-body',x:0,z:0,radius:.35};sim.setExternalPeople([body]);
+  const car={id,x:0,z:6,yaw:0,speed:28,vx:0,vz:-28,length:4.5,width:1.8};
+  assert(!sim.canOccupy({...car,z:0},{fromPose:car,ignoreId:id}));
+  assert.deepEqual(sim.drainVehicleImpacts(),[],'predictive occupancy never emits an impact');
+  assert(sim.moveVehicle(car,0,-5).blocked);car.speed=0;car.vz=0;
+  const events=sim.drainVehicleImpacts();assert.equal(events.length,1);
+  assert.deepEqual(events[0],{targetId:'player-body',offenderId:id,speed:28,vx:0,vz:-28,interiorId:null});
+  assert(Object.isFrozen(events[0]));assert.deepEqual(sim.drainVehicleImpacts(),[],'events drain exactly once');
+}
+const noHit=create();noHit.setExternalPeople([{id:'player-body',x:0,z:0,radius:.35}]);
+noHit.moveVehicle({id:'stationary',x:0,z:6,yaw:0,speed:0},0,-5);
+noHit.moveVehicle({id:'departing',x:0,z:2,yaw:0,speed:28},0,3);
+assert.deepEqual(noHit.drainVehicleImpacts(),[],'stopped/departing cars cannot launch a person');
+noHit.setExternalPeople([{id:'other-adult',x:0,z:0,radius:.35}]);
+noHit.moveVehicle({id:'passing',x:0,z:6,yaw:0,speed:28},0,-5);
+assert.deepEqual(noHit.drainVehicleImpacts(),[],'player impact queue is separate from existing NPC contact owners');
+noHit.setExternalPeople([{id:'player-body',x:0,z:0,radius:.35}]);
+for(let i=0;i<50;i++)noHit.moveVehicle({id:`bounded:${i}`,x:0,z:6,yaw:0,speed:28},0,-5);
+assert.equal(noHit.drainVehicleImpacts().length,32,'undrained contact events stay bounded');
+noHit.moveVehicle({id:'reset-contact',x:0,z:6,yaw:0,speed:28},0,-5);noHit.reset();
+assert.deepEqual(noHit.drainVehicleImpacts(),[],'world reset clears stale contacts');
 console.log('PASS vehicle contacts: six real factory bounds/four headings; foot end/side/corner/fast/diagonal sweeps; player/traffic/parked/abandoned/bus/Yoober active bodies; model-sized driving, rotated grid ends, own-body exclusion and zero distant parked reads');
+console.log('PASS actual vehicle impacts: pre-stop velocities, all moving vehicle owners, no query/stopped/departing/NPC false hits, once-only bounded queue and reset');

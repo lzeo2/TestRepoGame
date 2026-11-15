@@ -27,6 +27,9 @@ artwork or branded vehicle assets are used.
 - `gameplay.js`: foot/sprint/jump, car entry/theft, four firearms/aim/reload,
   health, witnessed offences, eight-cue car locks and delayed recovery. `police.js`
   owns up to four road patrols, dismounted officers, sight/search/escape and arrest.
+- `police-rooms.js` retains the active room plus rooms occupied by pursuers;
+  `interior-navigation.js` binds bounded lazy paths and collision to their actual
+  room plans. Ordinary doors admit police; only Milo's bound safehouse is protected.
 - `progression.js`: recurring ordered jobs, costs/rewards/unlocks, saved four-weapon ownership and owned garage,
   condition-preserving retrieval, food/gun/ammo purchases, playable fitness/paid work, timed robbery,
   cooldowns and strict legacy-compatible career-save validation.
@@ -44,6 +47,8 @@ artwork or branded vehicle assets are used.
   appearances for street people, occupants, transit, the player and police. The
   selected Kit/Rowan/Milo palette follows foot, driving, passenger and workout poses.
   Vehicle claims preserve the person's identity independently of exit event IDs.
+- Player vehicle impacts reuse swept contacts and gravity; `actor-view.js` adds
+  a bounded eleven-joint ragdoll, with loose limbs, grounded fall and get-up.
 - `world-view.js`, `neighbourhood.js`: bilinear terrain, road/footpath ribbons,
   streamed nearby architecture/vegetation/frontage geometry with real disposal,
   9,000 tree recipes, 4,200 door descriptors and clipped retail paving. Full
@@ -75,6 +80,10 @@ artwork or branded vehicle assets are used.
   panic/anger/knockdown/recovery swept player contacts/yielding and causally attributed witness events.
 - `navigation.js`, `map-projection.js`, `address-search.js`: directed road routes,
   shared map transform and bounded offline landmark/street/address matching.
+- `game-data.js`, `cache-client.js`, `service-worker.js`: local map loading,
+  direct verified stored-map Responses and the scoped content-versioned cache.
+  `dev-missions.js` matches the unadvertised mission-selector entry; Campaign and
+  the controller retain preview ownership and restore the original character.
 - `data/canberra.json`: unchanged 12,572 sourced outlines, 5,197 road runs and
   513 x 513 ACT contour terrain. `data/addresses.json`:3,446 explicit OSM address
   records; some positions are approximate way centroids. Five extra landmark
@@ -103,6 +112,9 @@ At equipment, **E** or **Q** starts the selected gym activity. Bench uses held
 X/Y taps; curls use six alternating sustained X/Y lifts; rowing uses six X+Y
 drives followed by releases. Follow the displayed cues, then use Done to dismiss
 the completed result. Early/late presses and incorrect holds count as mistakes.
+Milo's first visit starts in his existing Lantern Saloon. His Coals/Kingston travel
+stages require driving and stopping; home, stock and parcel handovers remain real
+foot actions. Outside on foot, Phone > Route to my car guides to the actual car.
 Drag mouse to orbit; vehicle vertical drag looks up/down and stationary views
 remain in place. H horns when sound is enabled. M map, J jobs, G garage, K shops, P/Esc
 pause. Touch driving and action buttons cover smaller/coarse-pointer devices; Pause also opens the garage and sound controls.
@@ -120,6 +132,9 @@ target-wagon theft and wanted-getaway jobs unlock after that delivery; later job
 pay more. Franklin and Kennedy deliveries are available immediately for$400/$450.
 Noodle preparation pays$60 and shop stocking pays$45 after the actual task completes.
 No time-only, interrupted or Free-roam task pays. Each fresh job requires arrival/stage/time conditions and pays once.
+Ordinary jobs, stock/noodle shifts and legal owned-car Yoober driver fares work
+at zero through five wanted stars; police keep pursuing. Explicit lose-the-search
+stages still need clear wanted status. Other activity/ownership/recovery guards remain.
 Crescent garage is a fictional service marker beside the mapped road: buy,
 retrieve, store, repair and paint owned cars there. Retrieval keeps damage/paint;
 repair costs cash. Police need actual building-unobstructed sight, then search
@@ -203,6 +218,48 @@ browser/geodata tooling stay outside the repository.
 
 ## Audit findings
 
+### Indoor pursuit, driving starts and direct stored maps, latest15 November2026
+
+The [indoor pursuit contract](../../capital-drive-indoor-pursuit-contract.md) and
+[receipt](../../verification/capital-drive-indoor-pursuit-2026-11-15.md) record the
+latest continuation. Police physically approach a known ordinary doorway, leave
+their car, traverse the actual school gate when needed and enter through a clear
+landing. Indoor pursuit, shots and arrest use the same plan-bound furniture/wall
+collision and logical room as the player. Officers walk to the exit before
+resuming outdoor tactics. Milo's exact safehouse room excludes them; ordinary
+houses do not. Unknown unseen entries remain undiscovered until witnessed/reported.
+Only active/pursuer-occupied plans remain, at most five; navigation caps2000nodes
+per room and four cached owner fields. The indoor pool creates officers without
+patrol-car geometry. No remote police spawning or cross-room shots are used.
+
+Fresh Milo starts behind the wheel, and his first errands have explicit driving
+legs. Existing checkpoints remain authoritative. Phone routing returns a player
+to their actual car. Ordinary work and driver fares allow wanted stars; explicit
+escape objectives and other activity restrictions remain. A private session-only
+mission selector previews all thirteen chapters with their real heroes, zero
+campaign rewards and original campaign prefixes. Cancel/finish restores checked
+body/car/health/ammo. A blocked return retains its snapshot for explicit Retry
+return; it cannot be overwritten or trigger per-frame placement loops.
+
+The current worker closure is97files/15,644,373bytes. On controlled warm visits,
+the six map Responses are read directly from its pinned active cache revision,
+so no page map-fetch requests are needed. A750ms bounded failure falls back to
+ordinary loading. Cold loading, parsing/indexing and scene construction remain.
+The reusable source runner now requires78game JS files,92Node suites and two
+Python checks,265commands total. See the fresh receipt for native results and
+retained failures. N100 hardware, whole-campaign completion, safehouse native
+evasion and naturally earned wanted-job rewards remain unverified.
+
+The later [vehicle-impact contract](../../capital-drive-vehicle-impact-contract.md)
+adds pre-stop contact velocity from actual moving sweeps. Fast hits launch the
+on-foot player, with bounded horizontal travel through the existing colliders
+and an eleven-joint damped ragdoll; gentle bumps stay grounded. Launch/fall/get-up
+last2.6active seconds. Career damage caps36; Free roam retains health protection.
+Lethal hits fall before the existing hospital transition. Being hit creates no
+offence against the victim. Player-only joint work reuses existing meshes and
+has no extra RAF or distant-NPC physics. Browser component evidence is labelled
+programmatic, rather than an ordinary native career collision or hardware test.
+
 ### Repeat loading, character resumes and CPU, later15 November2026
 
 The [cache/CPU contract](../../capital-drive-cache-and-performance-contract.md) and
@@ -243,8 +300,8 @@ In the measured software scene, Performance rendered162frames/8.08s versus
 Native caching passed18checks including zero warm map/module origin bodies,
 offline normal driving and exact save preservation. A lightweight persistent
 browser restart fixture passed5; fallback/update-isolation fixtures are separate.
-The current runner contains74game JS files,85pure Node suites and two Python cache
-checks (247commands); current final acceptance is in the new receipt. Historical
+That dated runner contained74game JS files,85pure Node suites and two Python cache
+checks (247commands); final acceptance for that milestone is in its receipt. Historical
 230/220 counts below retain their dated scope.
 
 ### Clear missions, crew and streamed geometry, 15 November 2026
@@ -431,8 +488,9 @@ No Uber service, real driver, external API or Street Life teleport is used.
 Ordinary food/weapon/ammo purchasing now allows wanted stars, including five.
 Other reach, stock, cash, ownership, sight, interior and activity checks remain.
 Contact panic follows actual gunfire/damage rather than wanted stars alone;
-injured/frightened contacts can still decline. Gym/garage/work/ride rules retain
-their own wanted restrictions. This supersedes the purchase wanted lock below.
+injured/frightened contacts can still decline. The later indoor-pursuit continuation
+also removes the ordinary work/driver-fare wanted lock; gym/garage/rental/passenger
+rules retain their own restrictions. This supersedes the purchase wanted lock below.
 
 The game now boots the Low world/neighbourhood geometry. Paired actual merged-map
 world attributes fell534,265,329→286,722,933bytes; neighbourhood36,342,540→19,630,188.
@@ -671,9 +729,9 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The current reusable runner checks 74 game JavaScript files and 85 pure Node suites
-plus two Python cache checks (247 syntax/source commands), fails on missing files or command errors and bounds
-subprocess lifetimes. The cache/CPU receipt records the final current run,
+The current reusable runner checks78game JavaScript files and92pure Node suites
+plus two Python cache checks (265 syntax/source commands), fails on missing files or command errors and bounds
+subprocess lifetimes. The indoor-pursuit receipt records the latest run,
 while the earlier230/230 story/streaming and220/220 city-life results remain
 separately dated. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover

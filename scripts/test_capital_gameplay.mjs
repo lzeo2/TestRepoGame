@@ -317,3 +317,29 @@ assert.equal(restoreGame.getAmmo('pistol').ammo, 1, 'restoration clears the prev
 assert.equal(restoreGame.state.actor.jumpHeight, 0, 'restoration clears jump velocity');
 assert.equal(restoreGame.state.reloading, 0);
 console.log('Capital gameplay: protagonist body/car state, exact independent ammunition, safe bounded placement/rollback, ownership and activity guards PASS');
+
+// The room adapter may share x/z with exterior geometry; police damage and
+// presentation still require the exact gameplay space, independent of LOS.
+const roomSim=createSimulation({...map,buildings:[]},{trafficCount:0});
+let activeRoom={id:'indoor-test',known:true,playerInside:true,safehouse:false,
+  outside:{x:0,z:10},inside:{x:0,z:0},exit:{x:0,z:0},
+  moveActor(actor,dx,dz){actor.x+=dx;actor.z+=dz;return {blocked:false};},
+  hasLineOfSight:()=>true,nextWaypoint:(from,to)=>to};
+const roomGame=createGameplay(map,roomSim,{sandbox:true,getInterior:()=>activeRoom,
+  resolveInterior:id=>id===activeRoom?.id?activeRoom:null});
+roomGame.state.mode='foot';Object.assign(roomGame.state.actor,{x:0,z:0,yaw:-Math.PI/2});
+const outsideOfficer={id:'outside-officer',x:1,z:0,yaw:0,speed:0,health:100,mode:'foot',interiorId:null};
+roomGame.state.police.push(outsideOfficer);
+roomGame.step(1/60,{melee:true,aimYaw:-Math.PI/2});
+assert.equal(outsideOfficer.health,100,'inside melee cannot damage an outside officer at matching coordinates');
+roomGame.state.police.push(outsideOfficer);
+outsideOfficer.interiorId=activeRoom.id;
+assert.equal(roomGame.strikePolice({from:{x:0,z:0},targetId:outsideOfficer.id,damage:12,range:10}),false,'outside allies cannot target officers inside a room');
+outsideOfficer.interiorId=null;
+assert(roomGame.strikePolice({from:{x:0,z:0},targetId:outsideOfficer.id,damage:12,range:10}),'outdoor cover remains available while player is indoors');
+assert.equal(roomGame.state.shots.at(-1).interiorId,null,'outside ally trace keeps its outside space');
+const traceGame=createGameplay(map,roomSim,{sandbox:true,getInterior:()=>activeRoom});
+traceGame.state.mode='foot';Object.assign(traceGame.state.actor,{x:0,z:0,yaw:-Math.PI/2});
+assert(traceGame.setWeapon('pistol'));traceGame.step(1/60,{fire:true,aimYaw:-Math.PI/2});
+assert(traceGame.state.shots.length>0 && traceGame.state.shots.every(shot=>shot.interiorId===activeRoom.id),'actual player traces identify the active room');
+console.log('Capital gameplay: interior attack boundary and player shot space tags PASS');
