@@ -1,4 +1,6 @@
 import {loadGameData} from './game-data.js';
+import {createTutorial} from './tutorial.js';
+import {createActivityUI} from './activity-ui.js';
 import {matchesMissionCode} from './dev-missions.js';
 import {createPoliceRooms} from './police-rooms.js';
 import {clipInteriorActors} from './interior-navigation.js';
@@ -77,6 +79,7 @@ const keys = new Set(), touch = new Set();
 const dialogs = [...document.querySelectorAll('dialog')];
 const SAVE_KEY = 'capital-drive-v1';
 const CAREER_KEY = 'capital-drive-career-v1';
+const TUTORIAL_KEY = 'capital-drive-tutorial-v1';
 const vehicles = [
   { id: 'lantern', name: 'Neighbourhood saloon', note: 'Everyday four-door', label: 'SALOON' },
   { id: 'orchard', name: 'Family wagon', note: 'Room for the long weekend', label: 'WAGON' },
@@ -112,7 +115,7 @@ let dialogueId=null,playerAppearanceId='player',protagonists;
 let activities=createInteriorActivities(),roomPeople=createInteriorPeople(),roomPeopleView,micromobility,microView;
 const miniKeys=new Set();
 const rentalHack=createVehicleChallenge();
-let rentalHackTarget=null,cueStamp='';
+let rentalHackTarget=null;
 let parkedChunks = [], selectedCar = 'lantern', selectedPaint = '#e7e6df';
 let quality = 'low', started = false, disposed = false, lastTime = 0, accumulator = 0, lastRender = 0, hudTime = 0;
 let orbit = 0, orbitHeight = 0, orbitHold = 0, dragging = false, pointer = null, toastTimer;
@@ -136,6 +139,63 @@ const pedestrianFocus={id:'player',x:0,z:0,yaw:0,speed:0};
 const occupantPoses=new Map(),occupantInputs=[];
 const pedestrianContacts=[],externalPeopleContacts=[],auxiliaryContacts=[];
 const playerContact={id:'player-body',x:0,z:0,radius:.35};
+const activityUI=createActivityUI();
+let tutorial=createTutorial(readTutorialPreference()),tutorialRunning=false,tutorialVisible=false,tutorialStamp='';
+const tutorialSerials={orbitSerial:0,phoneSerial:0,mapRouteSerial:0,shopsSerial:0,jobsSerial:0};
+try{$('guided-tutorial').checked=tutorial.snapshot().status==='active'||(tutorial.snapshot().status==='idle'&&tutorial.snapshot().savedValid&&!localStorage.getItem(CAREER_KEY));}catch{$('guided-tutorial').checked=true;}
+function readTutorialPreference(){
+  try{const raw=localStorage.getItem(TUTORIAL_KEY);return raw===null?null:raw.length<=256?JSON.parse(raw):false;}catch{return false;}
+}
+function tutorialContext(){
+  const state=gameplay?.state;
+  return {...tutorialSerials,started,paused:paused(),recovering:!!state?.recovery||!!state?.carjacking||(state?.actor.impactTime||0)>0||!!micromobility?.snapshot().active||!!activities.snapshot().active||!!streetChallenge(),
+    interior:!!interiors?.active,cutscene:cutscenes.snapshot().active,mode:state?.passenger?'passenger':state?.mode,
+    pose:gameplay?.focus(),speed:gameplay?.focus()?.speed||0};
+}
+function syncTutorial(){
+  const snapshot=tutorial.snapshot();tutorialRunning=snapshot.active;
+  if(tutorial.drainEvents().length){
+    try{localStorage.setItem(TUTORIAL_KEY,JSON.stringify(tutorial.serialize()));}
+    catch{$('tutorial-save-status').textContent='Tutorial progress could not be saved. You can still play.';}
+  }
+  const hidden=!tutorialVisible||!started||paused()||!!interiors?.active||!!gameplay?.state.recovery||(gameplay?.state.actor.impactTime||0)>0||!!micromobility?.snapshot().active||!!activities.snapshot().active||!!streetChallenge();
+  const stamp=[hidden,snapshot.status,snapshot.index,snapshot.instruction].join('|');
+  if(stamp===tutorialStamp)return;tutorialStamp=stamp;
+  $('tutorial-coach').hidden=hidden;document.body.classList.toggle('learning',!hidden);
+  $('tutorial-title').textContent=snapshot.title;
+  $('tutorial-instruction').textContent=snapshot.status==='complete'?'Keep exploring, choose a job with J, or replay these controls from Help.':snapshot.instruction;
+  $('tutorial-step').textContent=snapshot.status==='complete'?'Tutorial complete':`Step ${snapshot.index+1} of ${snapshot.total}`;
+  $('tutorial-progress').value=snapshot.index;
+  $('tutorial-skip').hidden=snapshot.status==='complete';$('tutorial-done').hidden=snapshot.status!=='complete';
+}
+function observeTutorialMenu(menu){
+  const key={phone:'phoneSerial','map-route':'mapRouteSerial',shops:'shopsSerial',jobs:'jobsSerial'}[menu];
+  if(!key)return;tutorialSerials[key]++;
+  if(tutorialRunning){tutorial.observeMenu(tutorialContext(),menu);syncTutorial();}
+}
+function setGameControls(enabled){
+  for(const id of ['map-button','jobs-button','phone-button','services-button','garage-button','sound-button','pause-button'])$(id).disabled=!enabled;
+}
+function openHelp(){
+  if(cutscenes.snapshot().active)return;
+  clearInput();for(const dialog of dialogs)if(dialog.open)dialog.close();
+  $('tutorial-replay').textContent=started?'Replay guided tutorial':'Learn when I start';$('help-dialog').showModal();
+}
+function startTutorial(){
+  tutorial.start(tutorialContext());tutorialRunning=true;tutorialVisible=true;tutorialStamp='';syncTutorial();
+}
+$('help-button').addEventListener('click',openHelp);
+$('intro-help-button').addEventListener('click',openHelp);
+$('pause-help-button').addEventListener('click',openHelp);
+$('pause-jobs-button').addEventListener('click',()=>openWork());
+$('tutorial-replay').addEventListener('click',()=>{
+  if(!started){$('guided-tutorial').checked=true;closeDialogs();$('guided-tutorial').focus();return;}
+  if(gameplay.state.recovery||gameplay.state.actor.impactTime>0){$('tutorial-save-status').textContent='Recover before starting guided controls.';return;}
+  if(interiors.active||gameplay.state.passenger||micromobility.snapshot().active||activities.snapshot().active){$('tutorial-save-status').textContent='Finish your activity or ride and step outside to start guided controls.';return;}
+  closeDialogs();startTutorial();clearInput();renderer.domElement.focus();
+});
+$('tutorial-skip').addEventListener('click',()=>{tutorial.skip();tutorialRunning=false;tutorialVisible=false;syncTutorial();clearInput();renderer.domElement.focus();});
+$('tutorial-done').addEventListener('click',()=>{tutorialVisible=false;syncTutorial();renderer.domElement.focus();});
 const desiredCamera = new THREE.Vector3(), lookTarget = new THREE.Vector3();
 function freezeCopy(value) {
   const copy = JSON.parse(JSON.stringify(value));
@@ -174,7 +234,7 @@ function clearInput() { miniKeys.clear();keys.clear(); touch.clear(); actionTouc
 const isSandbox = () => gameMode === 'free';
 const focus = () => gameplay ? gameplay.focus() : simulation.player;
 function protectedWork(){
-  return (gameMode==='campaign'&&campaign?.state.active?.combat===false)||progression?.state.activity?.type==='work'||['delivery','ride'].includes(progression?.state.activeJob?.type);
+  return tutorialRunning||(gameMode==='campaign'&&campaign?.state.active?.combat===false)||progression?.state.activity?.type==='work'||['delivery','ride'].includes(progression?.state.activeJob?.type);
 }
 function canPlayerAttack(){return !paused()&&!cutscenes.snapshot().active&&!activities.snapshot().active&&!protectedWork();}
 function directStation(station){return station&&(isWorkoutKind(station.kind)||['presentation','alarm'].includes(station.kind)||(gameMode==='campaign'&&['work','home-action'].includes(campaign?.state.active?.target.kind)&&station.kind==='stock'));}
@@ -308,20 +368,6 @@ function updateRentalHack(dt){
     rentalHackTarget=null;clearInput();
   }
 }
-function renderSequence(state){
-  const sequence=state.sequence||[],index=state.index||0;
-  const stamp=[state.kind,state.phase,index,state.expectedKey,sequence.join(','),state.active].join('|');
-  if(stamp!==cueStamp){
-    cueStamp=stamp;$('activity-sequence').replaceChildren();
-    sequence.forEach((key,i)=>{const tile=document.createElement('kbd');tile.textContent={x:'X',y:'Y',up:'↑',xy:'X + Y'}[key]||key;tile.dataset.key=key;
-      tile.className=i<index?'done':i===index?'current':'upcoming';if(i===index)tile.setAttribute('aria-current','step');$('activity-sequence').append(tile);});
-    $('activity-cue').textContent=!state.active?'':(state.instruction||(state.requiresGrip&&state.phase==='grip'?'HOLD X + Y':state.memorising?'READ THE SEQUENCE':state.phase==='lift'?'HOLD X + Y':state.phase==='prepare'?'WAIT':state.expectedKey?`PRESS ${{x:'X',y:'Y',up:'↑',xy:'X + Y'}[state.expectedKey]}`:state.kind==='rest'?'REST':'WAIT'));
-    $('activity-cue').dataset.ready=String(state.phase==='cue'||state.acceptsInput===true);
-    $('activity-grip').textContent=state.kind==='rower'?(state.phase==='drive'?'Hold X + Y':state.phase==='release'?'Release X + Y':''):state.requiresGrip?'Keep X + Y held':'';
-  }
-  $('activity-window').hidden=!state.active||!state.cueWindow||state.phase!=='cue';
-  $('activity-window').max=state.cueWindow||1;$('activity-window').value=state.cueRemaining||0;
-}
 function updateMini(){
   for(const event of activities.drainEvents()){
     const workout=progression.state.activity;
@@ -356,27 +402,11 @@ function updateMini(){
     if(event.type==='complete'&&event.heal&&!isSandbox())gameplay.heal(event.heal);
     if(event.type==='complete'||event.type==='failed')notify(event.reason);
   }
-  const previous=activities.snapshot();
-  if(!previous.active&&previous.kind&&previous.station&&interiors.active&&Math.hypot(focus().x-previous.station.x,focus().z-previous.station.z)>previous.station.radius+1)activities.load(interiors.active);
-  const street=streetChallenge(),state=street||activities.snapshot(),nearest=interiors?.active&&activities.nearest(focus());
-  $('activity-panel').classList.toggle('preview',!street&&!state.kind);
-  $('activity-panel').classList.toggle('finished',!street&&!!state.kind&&!state.active);
-  $('activity-done').hidden=!!street||state.active||!state.kind;
-  $('activity-panel').hidden=!street&&(!interiors?.active||(!state.kind&&!nearest));
-  renderSequence(state);
-  $('activity-title').textContent=state.active||state.kind?state.label:nearest?.label||'';
-  $('activity-prompt').textContent=street?(state.sequence?.length?'Release between presses. E cancels.':state.prompt):state.kind?(state.instruction||state.prompt):'E, Q or Play starts this activity.';
-  $('activity-progress').hidden=!!street;
-  $('activity-progress').value=state.progress||0;
-  $('activity-score').textContent=street?`${state.index||0}/${state.sequence?.length||8} · ${state.mistakes||0}/${state.maxMistakes||2} mistakes`:state.kind?`${state.score} points${isWorkoutKind(state.kind)?` · ${state.reps}/${state.kind==='treadmill'?12:6} reps`:''}`:'';
-  $('activity-start').textContent=!isSandbox()&&interiors?.active?.storeId&&['noodle','stock'].includes(nearest?.kind)?`Work · +$${nearest.kind==='noodle'?60:45}`:'Play';
-  if(isWorkoutKind(nearest?.kind)){
-    const gym=progression.services.find(site=>site.id===interiors.active.serviceId);
-    $('activity-start').textContent=isSandbox()||progression.state.fitnessLevel>=3?'Practice':`Train · $${(gym?.price||120)*(progression.state.fitnessLevel+1)}`;
-  }
-  $('activity-start').hidden=state.active;$('activity-start').disabled=!nearest;
-  $('activity-cancel').hidden=!state.active;
-  for(const b of document.querySelectorAll('[data-mini]'))b.disabled=!state.active;
+  let previous=activities.snapshot();
+  if(!previous.active&&previous.kind&&previous.station&&interiors.active&&Math.hypot(focus().x-previous.station.x,focus().z-previous.station.z)>previous.station.radius+1){activities.load(interiors.active);previous=activities.snapshot();}
+  const street=streetChallenge(),state=street||previous,nearest=interiors?.active&&activities.nearest(focus());
+  const gym=isWorkoutKind(nearest?.kind)?progression.services.find(site=>site.id===interiors.active.serviceId):null;
+  activityUI.render({street,state,nearest,interior:interiors?.active,sandbox:isSandbox(),fitnessLevel:progression.state.fitnessLevel,gymPrice:gym?.price||120});
 }
 $('activity-start').addEventListener('click',()=>{renderer.domElement.focus();beginMini();});
 $('activity-cancel').addEventListener('click',stopMini);
@@ -801,6 +831,7 @@ function openDialog(id) {
   for (const d of dialogs) if (d.open) d.close();
   if(id==='pause-dialog')resetDevEntry();
   $(id).showModal();
+  const lesson={'phone-dialog':'phone','services-dialog':'shops','jobs-dialog':'jobs','campaign-dialog':'jobs'}[id];if(lesson)observeTutorialMenu(lesson);
   if (id === 'map-dialog') { refreshModeUI(); fitMapCanvas(); drawMap($('full-map'), true); }
 }
 function closeDialogs() { for (const dialog of dialogs) if (dialog.open) dialog.close(); clearInput(); }
@@ -901,7 +932,9 @@ $('start-button').addEventListener('click', () => {
   }else applyPlayerVehicle({ modelId: 'lantern', color: owned?.color || '#e7e6df', health: isSandbox() ? 100 : owned?.health ?? 100 });
   destination = null; route = []; lastJobTarget = ''; mapSelection = null;
   pedestrians.resetPopulation(focus()); refreshModeUI(); streetUI.refresh();
-  started = true; $('start-panel').hidden = true; document.body.classList.remove('intro-open');
+  started = true; setGameControls(true);$('start-panel').hidden = true; document.body.classList.remove('intro-open');
+  if($('guided-tutorial').checked){if(tutorial.snapshot().status==='active'){tutorial.resume(tutorialContext());tutorialRunning=true;tutorialVisible=true;syncTutorial();}else startTutorial();}
+  else{tutorial.skip();tutorialRunning=false;tutorialVisible=false;syncTutorial();}
   syncPlayerAppearance();
   if(starter?.assisted||hero)saveCareer();
   clearInput(); cameraReady = false; renderer.domElement.focus();
@@ -915,7 +948,7 @@ for (const button of document.querySelectorAll('[data-game-mode]')) button.addEv
 });
 $('change-mode-button').addEventListener('click', () => {
   if(developerReturn){campaign.cancel();if(!finishDeveloperPreview(true))return;}
-  saveCareer(); closeDialogs(); started = false; clearInput(); $('start-panel').hidden = false;
+  saveCareer();closeDialogs();tutorial=createTutorial(tutorial.serialize());tutorialRunning=false;tutorialVisible=false;tutorialStamp='';started=false;setGameControls(false);syncTutorial();clearInput();$('start-panel').hidden=false;
   document.body.classList.add('intro-open');
 });
 function recover() {
@@ -1034,6 +1067,7 @@ window.addEventListener('keydown', event => {
     return;
   }
   if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if(event.code==='F1'){event.preventDefault();if(!event.repeat)openHelp();return;}
   if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(event.target.tagName) && event.code !== 'Escape') return;
   const controls = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight'];
   if (controls.includes(event.code)) event.preventDefault();
@@ -1305,7 +1339,8 @@ $('map-recenter').addEventListener('click', () => { followYoober=false;mapView.x
 function routeSelected() {
   if (!mapSelection) return;
   routeTo({ ...mapSelection, name: mapSelection.label || 'Selected point' });
-  notify(route.length ? 'Road route set.' : 'No connected road route found.'); drawMap(mapCanvas, true);
+  if(route.length){observeTutorialMenu('map-route');closeDialogs();updateNavigation();}
+  notify(route.length ? 'Road route set. Follow the yellow arrow.' : 'No connected road route found.');drawMap(mapCanvas,true);
 }
 $('map-route-button').addEventListener('click', routeSelected);
 $('map-search-form').addEventListener('submit', event => {
@@ -1336,7 +1371,8 @@ function populatePlaces() {
     const buttons = document.createElement('div'); buttons.className = 'button-row';
     const gps = document.createElement('button'); gps.textContent = 'Set route';
     gps.addEventListener('click', () => {
-      destination = place; route = findRoute(simulation.graph, simulation.player, place);
+      routeTo(place);
+      if(route.length){observeTutorialMenu('map-route');closeDialogs();updateNavigation();}
       drawMap($('full-map'), true);
       notify(route.length ? `Route set to ${place.name}.` : 'No connected road route found. Choose another place.');
     });
@@ -1474,6 +1510,7 @@ function updateHud() {
     }
   }
   $('combat-note').hidden=!protectedWork();
+  $('combat-note').textContent=tutorialRunning?'Tutorial: attacks disabled.':'Work objective: attacks disabled.';
   updateNavigation();drawMap($('minimap'), false);
   if($('map-dialog').open&&followYoober)drawMap($('full-map'),true);
 }
@@ -1613,6 +1650,7 @@ function animate(time) {
     routeClock += dt;
     if (destination && routeClock > 6&&!interiors.active) { routeClock = 0; route = findRoute(simulation.graph, focus(), destination); }
   } else accumulator = 0;
+  if(tutorialRunning||tutorialVisible){if(tutorialRunning)tutorial.observe(tutorialContext(),dt);syncTutorial();}
   updateMini();updateCareer();
   if (audio) {
     const active = audio.enabled && !paused() && gameplay.state.mode === 'vehicle';
@@ -1871,6 +1909,7 @@ async function boot() {
       orbit -= (event.clientX - pointer[0]) * .006;
       lookPitch = THREE.MathUtils.clamp(lookPitch - (event.clientY - pointer[1]) * .004, -.5, .72);
     }
+    if(Math.abs(event.clientX-pointer[0])+Math.abs(event.clientY-pointer[1])>1)tutorialSerials.orbitSerial++;
     pointer = [event.clientX, event.clientY]; orbitHold = 3;
   });
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) viewCanvas.addEventListener(type, () => { dragging = false; pointer = null; });
@@ -1879,7 +1918,7 @@ async function boot() {
   // Read-only diagnostics for QA; no production state setters.
   window.capitalDriveSnapshot = () => Object.freeze({ ready: true, started, paused: paused(), gameMode,
     player: Object.freeze({ ...simulation.player }), focus: Object.freeze({ ...focus() }),
-    gameplay: gameplay.snapshot(),rentalHack:freezeCopy(rentalHack.snapshot()),nearbyVehicles:freezeCopy(simulation.nearbyVehicles(focus().x,focus().z,40)),miniGame:freezeCopy(activities.snapshot()),roomPeople:freezeCopy(roomPeople.snapshot()),roomPeopleView:freezeCopy(roomPeopleView.stats),rentals:freezeCopy(micromobility.snapshot()),microView:freezeCopy(microView.stats),gymEntry:freezeCopy(gymEntry),campaign:campaign.snapshot(),protagonists:protagonists.serialize(),interiors:freezeCopy({...interiors.snapshot(),entrySample:interiors.entries.slice(0,8),publicEntries:CIVIC_INTERIOR_ENTRIES,active:interiors.active}),career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
+    tutorial:tutorial.snapshot(),uiStats:Object.freeze({activity:activityUI.stats}),gameplay: gameplay.snapshot(),rentalHack:freezeCopy(rentalHack.snapshot()),nearbyVehicles:freezeCopy(simulation.nearbyVehicles(focus().x,focus().z,40)),miniGame:freezeCopy(activities.snapshot()),roomPeople:freezeCopy(roomPeople.snapshot()),roomPeopleView:freezeCopy(roomPeopleView.stats),rentals:freezeCopy(micromobility.snapshot()),microView:freezeCopy(microView.stats),gymEntry:freezeCopy(gymEntry),campaign:campaign.snapshot(),protagonists:protagonists.serialize(),interiors:freezeCopy({...interiors.snapshot(),entrySample:interiors.entries.slice(0,8),publicEntries:CIVIC_INTERIOR_ENTRIES,active:interiors.active}),career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
     activeJob:freezeCopy(progression.state.activeJob),rideService:rideService.snapshot(),rideView:freezeCopy(rideView.stats),
     guidance:guidance.snapshot(),rideTracking:freezeCopy(rideTracking()),signals:freezeCopy({elapsed:simulation.trafficLights.elapsed,sourceCount:map.trafficSignals.signals.length,groupCount:simulation.trafficLights.groups.length,heads:simulation.trafficLights.heads,view:signalsView.stats}),equipment:freezeCopy({flares:equipment.snapshot(),view:equipmentView.stats}),busPassenger:!!buses.passenger,
     roadGuidance:freezeCopy(roadGuidanceView.stats),
@@ -1906,7 +1945,7 @@ window.addEventListener('pagehide', () => {
   disposed = true; cancelAnimationFrame(raf); clearTimeout(toastTimer); clearInput();
   if (audio) audio.context.close().catch(error => console.warn('Could not release audio:', error.message));
   for (const resource of parkedResources) resource.dispose();
-  streetUI?.dispose(); actorView?.dispose(); landmarkView?.dispose();busView?.dispose();occupantsView?.dispose();servicesView?.dispose();trafficView?.dispose();storefrontsView?.dispose();
+  activityUI.dispose();streetUI?.dispose(); actorView?.dispose(); landmarkView?.dispose();busView?.dispose();occupantsView?.dispose();servicesView?.dispose();trafficView?.dispose();storefrontsView?.dispose();
   dealerView?.dispose();rideView?.dispose();rideService?.reset();signalsView?.dispose();roadGuidanceView?.dispose();equipmentView?.dispose();equipment?.reset();
   policeRooms.clear();cutscenes.cancel();pendingCutscene=null;indoorObjective?.geometry.dispose();indoorObjective?.material.dispose();
   stopMini();roomPeopleView?.dispose();microView?.dispose();civicExtrasView?.dispose();

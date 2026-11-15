@@ -2,6 +2,7 @@ import { isWorkoutKind } from './interior-activities.js';
 
 const KEY_LABEL = Object.freeze({ x: 'X', y: 'Y', up: '↑', xy: 'X + Y' });
 const NODE_NAMES = ['panel', 'done', 'sequence', 'cue', 'grip', 'window', 'title', 'prompt', 'progress', 'score', 'start', 'cancel'];
+const EMPTY_STATE=Object.freeze({}),EMPTY_SEQUENCE=Object.freeze([]);
 
 // Presentation only: the controller drains activity events before supplying snapshots.
 export function createActivityUI({ document = globalThis.document } = {}) {
@@ -21,12 +22,12 @@ export function createActivityUI({ document = globalThis.document } = {}) {
   function toggle(node, name, enabled) {
     if (node.classList.contains(name) !== enabled) { node.classList.toggle(name, enabled); counts.writes++; }
   }
-  function render({ street = null, state = {}, nearest = null, interior = null, sandbox = false, fitnessLevel = 0, gymPrice = 120 } = {}) {
+  function render({ street = null, state = EMPTY_STATE, nearest = null, interior = null, sandbox = false, fitnessLevel = 0, gymPrice = 120 } = {}) {
     if (disposed) return;
     counts.renders++;
     // A retained terminal snapshot must not leave live controls after leaving its room.
-    if (!street && !interior) { state = {}; nearest = null; }
-    const sequence = state.sequence || [], index = state.index || 0, active = !!state.active;
+    if (!street && !interior) { state = EMPTY_STATE; nearest = null; }
+    const sequence = state.sequence || EMPTY_SEQUENCE, index = state.index || 0, active = !!state.active;
     if (sequence.length !== sequenceKeys.length || sequence.some((key, i) => key !== sequenceKeys[i])) {
       sequenceKeys = [...sequence];
       tiles = sequence.map(key => {
