@@ -5,6 +5,10 @@ import {createInteriorNavigation} from './interior-navigation.js';
 const HEROES = Object.freeze(['student','corporate','basement']);
 const HIRED = Object.freeze({'merc-river':'player:corporate','merc-stone':'player:basement'});
 const renewalSerial = (ctx,id) => Number.isSafeInteger(ctx.rehireSerial?.[id])&&ctx.rehireSerial[id]>=0?ctx.rehireSerial[id]:0;
+const suppliedHiredHealth = (ctx,id) => {
+  const value=typeof ctx.hiredHealth==='function'?ctx.hiredHealth(id):ctx.hiredHealth?.[id];
+  return Number.isFinite(value)&&value>=0&&value<=100?value:100;
+};
 const hiredRoster = ctx => [...new Set((Array.isArray(ctx.hiredMembers)?ctx.hiredMembers:[]).map(member=>member?.id).filter(id=>Object.hasOwn(HIRED,id)))].slice(0,2);
 const EMPTY = Object.freeze([]), RADIUS = .32;
 const ALLY_RANGE = 28, ALLY_DAMAGE = 12, ALLY_COOLDOWN = 1.1, SHOT_LIMIT = 4;
@@ -309,7 +313,8 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
         if(allies.some(ally=>ally.id===id))continue;
         let retained=descriptor.hired?hiredHistory.get(id):null;
         const serial=renewalSerial(ctx,id);
-        if(retained&&serial>(retained.renewalSerial||0)){
+        const renewed=retained&&serial>(retained.renewalSerial||0);
+        if(renewed){
           attachments.delete(id);seatRetries.delete(id);clearShots(retained);retained=null;
         }
         if(retained){
@@ -321,20 +326,22 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
         }
         const candidate=nearbyLanding(goal,id,wanted.indexOf(descriptor));
         if(candidate){
-          const ally={...candidate,...descriptor,...(descriptor.hired?{renewalSerial:serial}:{}),radius:RADIUS,active:true,armed:true,health:100,mode:'following',speed:0,gesturePhase:0,cooldown:.3+allies.length*.25,hitPhase:0,shot:null,followTime:0,followStartDistance:0,stuck:false};
+          const health=descriptor.hired&&!renewed?suppliedHiredHealth(ctx,id):100;
+          const ally={...candidate,...descriptor,...(descriptor.hired?{renewalSerial:serial}:{}),radius:RADIUS,active:health>0,armed:health>0,health,mode:health>0?'following':'down',speed:0,gesturePhase:0,cooldown:.3+allies.length*.25,hitPhase:0,shot:null,followTime:0,followStartDistance:0,stuck:false};
           allies.push(ally);if(descriptor.hired)hiredHistory.set(id,ally);
         } else attemptedCatchup=true;
       }
     }
-    const hostiles=(Array.isArray(ctx.hostiles)?ctx.hostiles:[]).slice(0,4),car=manualCar(ctx);
+    const hostiles=(Array.isArray(ctx.hostiles)?ctx.hostiles:[]).filter(hostile=>typeof hostile?.id==='string'&&hostile.id.startsWith('police:')&&hostile.mode==='foot'&&hostile.active!==false&&Number.isFinite(hostile.health)&&hostile.health>0&&point(hostile)),car=manualCar(ctx);
     for(let index=0;index<allies.length;index++) {
       const ally=allies[index];if(ally.health<=0)continue;
+      const threats=hostiles.filter(hostile=>(hostile.interiorId||null)===(ally.interiorId||null)).slice(0,6);
       ally.cooldown=Math.max(0,ally.cooldown-step);ally.hitPhase=Math.max(0,ally.hitPhase-step);ally.gesturePhase=elapsed;
       if(ally.shot){ally.shot.remaining-=step;if(ally.shot.remaining<=0)ally.shot=null;}
       if(transitionRoom(ally,ctx,step,index,canRetry))continue;
-      if(!ally.interiorId&&updateSeat(ally,ctx,car,step)){windowCombat(ally,ctx,hostiles);continue;}
+      if(!ally.interiorId&&updateSeat(ally,ctx,car,step)){windowCombat(ally,ctx,threats);continue;}
       let target=null,distance=ALLY_RANGE;
-      for(const hostile of hostiles) {
+      for(const hostile of threats) {
         if(typeof hostile?.id!=='string'||!hostile.id.startsWith('police:')||hostile.mode!=='foot'||(hostile.interiorId||null)!==(ally.interiorId||null)||hostile.active===false||!Number.isFinite(hostile.health)||hostile.health<=0||!point(hostile))continue;
         const d=gap(ally,hostile);
         if(d<distance&&sight(ally,hostile,ctx)){target=hostile;distance=d;}
