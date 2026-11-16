@@ -96,7 +96,9 @@ export function createInteriorCollider(plan) {
   return { moveActor, hasLineOfSight, canOccupy, canTraverse };
 }
 
-const STEP = .75, MAX_NODES = 2000, MAX_FIELDS = 4;
+// Retain one field for each of the six bounded ground officers. A smaller
+// owner cache thrashes when all officers request their routes every tick.
+const STEP = .75, MAX_NODES = 2000, MAX_FIELDS = 6;
 const DIRECTIONS = [[1, 0], [0, 1], [-1, 0], [0, -1]];
 export function createInteriorNavigation(plan) {
   const collider = createInteriorCollider(plan), fields = new Map();
