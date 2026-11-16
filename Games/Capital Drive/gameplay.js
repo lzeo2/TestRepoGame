@@ -109,12 +109,12 @@ export function createGameplay(map, simulation, options = {}) {
     return enterVehicle(target);
   }
   function enterVehicle(target) {
-    const result = simulation.claimVehicle(target.id);
+    const result = simulation.claimVehicle(target.id, { health: state.vehicleHealth });
     if (!result.ok) { emit('blocked', result.reason || 'Car unavailable.'); return false; }
     state.mode = 'vehicle'; state.actor.speed = 0; state.actor.jumpHeight = 0; jumpVelocity = 0;
     state.vehicle = { modelId: result.vehicle.modelId || 'lantern', color: result.vehicle.color ?? 0xd4d7d3,
       stolen: target.id === 'player' ? state.vehicle.stolen : Boolean(result.stolen) };
-    state.vehicleHealth = target.id === 'player' ? state.vehicleHealth : 100;
+    state.vehicleHealth = target.id === 'player' ? state.vehicleHealth : (result.vehicle.health ?? 100);
     previousCrashes = simulation.player.crashes || 0;
     options.onVehicleChanged?.({ ...state.vehicle }, { newVehicle: target.id !== 'player' });
     if (result.stolen) reportOffence('vehicle theft', 1);
@@ -185,14 +185,19 @@ export function createGameplay(map, simulation, options = {}) {
       for (const police of state.police) if (police.mode === 'foot' && police.health > 0 && sameSpace(police)) targets.push({ ...police,
         feetY: police.feetY ?? police.y ?? ground(police.x,police.z), police,
         damage: amount => { police.health = Math.max(0,police.health-amount); return true; } });
-      const struck = new Set();
+      const struck = new Set(), struckVehicles = new Set();
       const rays = createShotRays({ x:actor.x,y:muzzleY,z:actor.z,yaw:actor.yaw,pitch:state.aimPitch,
         range:state.aiming?weapon.aimRange:weapon.range,pellets:weapon.pellets,spread:weapon.spread,aiming:state.aiming,serial:shotSerial,interiorId:space });
       for (const ray of rays) {
         // Legacy adapters still receive exact ray geometry; controller adapters supply 3D solids.
         const obstruction = options.traceShot ? options.traceShot(ray) : clippedRange(actor,ray.yaw,ray.range*Math.cos(ray.pitch))/Math.cos(ray.pitch);
-        const hit = resolveShotRay(ray,{targets,blockDistance:Number.isFinite(obstruction)?obstruction:0});
+        const blockDistance = typeof obstruction === 'object' ? obstruction?.distance : obstruction;
+        const hit = resolveShotRay(ray,{targets,blockDistance:Number.isFinite(blockDistance)?blockDistance:0});
         let damaged = false;
+        if (!hit.target && obstruction?.vehicleId != null && !struckVehicles.has(obstruction.vehicleId)) {
+          struckVehicles.add(obstruction.vehicleId);
+          damaged = options.onVehicleShot?.({ vehicleId: obstruction.vehicleId, damage: weapon.damage, shotSerial, ray }) === true;
+        }
         if (hit.target && !struck.has(hit.target)) {
           struck.add(hit.target);
           const spec = { ...ray, range:hit.distance+.02, damage:weapon.damage, kind:adapterKind,

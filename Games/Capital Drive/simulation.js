@@ -410,9 +410,10 @@ export function createSimulation(map, options = {}) {
   }
   let abandonedSerial = 0, focusPoint;
   let parkedIndex = new SpatialGrid(32);
+  const parkedById = new Map();
   function setParkedCars(cars = []) {
     parkedIndex = new SpatialGrid(32);
-    parkedCars.length = 0;
+    parkedCars.length = 0; parkedById.clear();
     let count = 0;
     for (const car of cars) {
       if (!Number.isFinite(car.x) || !Number.isFinite(car.z)) continue;
@@ -422,7 +423,7 @@ export function createSimulation(map, options = {}) {
         parked.length = car.length ?? (car.suv ? 4.5 : 4.7);
         parked.width = car.width ?? (car.suv ? 1.98 : 1.85);
       }
-      parkedCars.push(parked);
+      parkedCars.push(parked); parkedById.set(parked.id, parked);
       const size = vehicleSize(parked), sin = Math.abs(Math.sin(parked.yaw)), cos = Math.abs(Math.cos(parked.yaw));
       const extentX = sin * size.length / 2 + cos * size.width / 2;
       const extentZ = cos * size.length / 2 + sin * size.width / 2;
@@ -605,6 +606,7 @@ export function createSimulation(map, options = {}) {
     if (!localEdges.length) return;
     for (const car of traffic) {
       const focus = focusPoint || player;
+      if (car.health === 0) continue;
       if (Math.hypot(car.x - focus.x, car.z - focus.z) <= (car.active ? 850 : 330)) continue;
       for (let attempt = 0; attempt < 40; attempt++) {
         const edge = pickSpawn(localEdges);
@@ -626,7 +628,7 @@ export function createSimulation(map, options = {}) {
   function updateTraffic(dt) {
     refreshTrafficArea();
     for (const car of traffic) {
-      if (!car.active) continue;
+      if (!car.active || car.health === 0) continue;
       car.honkCooldown = Math.max(0, car.honkCooldown - dt);
       car.overtakeCooldown = Math.max(0, car.overtakeCooldown - dt);
       const priorPose = { x: car.x, z: car.z, yaw: car.yaw }, priorEdge = car.edge, priorPosition = car.position;
@@ -831,15 +833,24 @@ export function createSimulation(map, options = {}) {
     return [player, ...traffic, ...parkedIndex.query(x,z,radius), ...abandonedCars].filter(car => car.active !== false &&
       Math.hypot(x - car.x, z - car.z) <= radius).map(car => ({ id: car.id, x: car.x, z: car.z, yaw: car.yaw,
         modelId: car.modelId, color: car.color, personId: car.personId ?? car.id,
-        active: true, occupied: traffic.includes(car), unlocked: car === player || abandonedCars.includes(car), speed: car.speed || 0 }));
+        health: car.health ?? 100, disabled: car.health === 0, active: true, occupied: traffic.includes(car), unlocked: car === player || abandonedCars.includes(car), speed: car.speed || 0 }));
   }
-  function claimVehicle(id) {
+  function damageVehicle(id, amount) {
+    if (id === 'player' || !Number.isFinite(amount) || amount <= 0) return false;
+    const car = parkedById.get(id) || traffic.find(item => item.id === id) || abandonedCars.find(item => item.id === id);
+    if (!car || car.active === false || car.health === 0) return false;
+    car.health = Math.max(0, (car.health ?? 100) - amount);
+    if (car.health === 0) { car.speed = 0; car.vx = 0; car.vz = 0; car.overtake = 0; }
+    return true;
+  }
+  function claimVehicle(id, { health = 100 } = {}) {
     if (id === 'player') return { ok: true, vehicle: { ...nearbyVehicles(player.x, player.z, 0)[0] }, stolen: false, reason: 'current' };
-    const car = [...traffic, ...parkedCars, ...abandonedCars].find(item => item.id === id && item.active);
-    if (!car) return { ok: false, vehicle: null, stolen: false, reason: 'unavailable' };
+    const car = traffic.find(item => item.id === id) || parkedById.get(id) || abandonedCars.find(item => item.id === id);
+    if (!car || !car.active) return { ok: false, vehicle: null, stolen: false, reason: 'unavailable' };
+    if (car.health === 0) return { ok: false, vehicle: null, stolen: false, reason: 'disabled' };
     if (Math.abs(car.speed || 0) > 5) return { ok: false, vehicle: null, stolen: false, reason: 'moving' };
     const prior = { id: `abandoned:${++abandonedSerial}`, x: player.x, z: player.z, yaw: player.yaw,
-      modelId: player.modelId, color: player.color, active: true };
+      modelId: player.modelId, color: player.color, health: clamp(health, 0, 100), active: true };
     if (abandonedCars.length >= 12) {
       const disposable = abandonedCars.findIndex(item => !item.active || Math.hypot(item.x - player.x, item.z - player.z) > 330);
       if (disposable < 0) return { ok: false, vehicle: null, stolen: false, reason: 'vehicle-limit' };
@@ -848,7 +859,7 @@ export function createSimulation(map, options = {}) {
     const stolen = !abandonedCars.includes(car);
     abandonedCars.push(prior);
     car.active = false; car.speed = 0;
-    Object.assign(player, { x: car.x, z: car.z, yaw: car.yaw, modelId: car.modelId, color: car.color,
+    Object.assign(player, { x: car.x, z: car.z, yaw: car.yaw, modelId: car.modelId, color: car.color, health: car.health ?? 100,
       speed: 0, vx: 0, vz: 0, steer: 0 });
     return { ok: true, vehicle: nearbyVehicles(player.x, player.z, 0).find(item => item.id === 'player'), stolen, reason: 'claimed' };
   }
@@ -905,5 +916,5 @@ export function createSimulation(map, options = {}) {
   return { player, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, nearestRoad, setParkedCars,
     setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop, drainVehicleImpacts:()=>vehicleImpacts.splice(0),
     get peopleContacts() { return Object.freeze({ ...peopleStats }); },
-    setPlayerVehicle, nearbyVehicles, claimVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
+    setPlayerVehicle, nearbyVehicles, claimVehicle, damageVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
 }

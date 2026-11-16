@@ -57,11 +57,11 @@ export function createShotObstacles(map,{heightAt=()=>0}={}) {
       const key=`${x},${z}`;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(solid);
     }
   }
-  function trace(ray,room=null,vehicles=[]) {
-    if(![ray.x,ray.y,ray.z,ray.dx,ray.dy,ray.dz,ray.range].every(Number.isFinite)||ray.range<=0)return 0;
-    let nearest=ray.range;
+  function traceHit(ray,room=null,vehicles=[]) {
+    if(![ray.x,ray.y,ray.z,ray.dx,ray.dy,ray.dz,ray.range].every(Number.isFinite)||ray.range<=0)return {distance:0,vehicleId:null};
+    let nearest=ray.range,vehicleId=null;
     if(room) {
-      if((ray.interiorId||null)!==room.id)return 0;
+      if((ray.interiorId||null)!==room.id)return {distance:0,vehicleId:null};
       for(const box of [...room.walls,...room.furniture])nearest=Math.min(nearest,rayBoxDistance(ray,box));
       // Room floors and ceilings are solid even when the ray passes above low furniture.
       if(ray.dy<-EPS)nearest=Math.min(nearest,Math.max(0,(room.floorY-ray.y)/ray.dy));
@@ -99,11 +99,13 @@ export function createShotObstacles(map,{heightAt=()=>0}={}) {
       const dimension=(name,fallback)=>Number.isFinite(vehicle[name])&&vehicle[name]>0?vehicle[name]:model?.[name]||fallback;
       const id=String(vehicle.id||'');
       const height=dimension('height',vehicle.kind==='aircraft'||id.startsWith('jet:')?2.8:vehicle.kind==='bus'||id.startsWith('bus:')?3:1.6);
-      nearest=Math.min(nearest,rayBoxDistance(ray,{x:vehicle.x,z:vehicle.z,yaw:Number.isFinite(vehicle.yaw)?vehicle.yaw:0,
+      const distance=rayBoxDistance(ray,{x:vehicle.x,z:vehicle.z,yaw:Number.isFinite(vehicle.yaw)?vehicle.yaw:0,
         y:Number.isFinite(vehicle.y)?vehicle.y:heightAt(vehicle.x,vehicle.z)+.18,
-        width:dimension('width',1.9),depth:dimension('length',4.8),height}));
+        width:dimension('width',1.9),depth:dimension('length',4.8),height});
+      if(distance<nearest){nearest=distance;vehicleId=vehicle.id??null;}
     }
-    return nearest===ray.range?nearest:Math.max(0,nearest-.005);
+    return {distance:nearest===ray.range?nearest:Math.max(0,nearest-.005),vehicleId};
   }
-  return {trace};
+  const trace=(ray,room=null,vehicles=[])=>traceHit(ray,room,vehicles).distance;
+  return {trace,traceHit};
 }
