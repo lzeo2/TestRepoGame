@@ -197,7 +197,7 @@ def main():
         phone('properties')
         page.locator('#city-buy-' + door['id']).click()
         far_denied = record('Actual far house purchase denied')
-        check(far_denied['career']['cash'] == wallet and not far_denied['career']['ownedProperties'], 'Far native purchase cannot debit cash or grant a house')
+        check(far_denied['career']['cash'] == wallet and not far_persisted['career']['ownedProperties'], 'Far native purchase cannot debit cash or grant a house')
         close()
         phone('crew')
         offer = next(offer for offer in fixture['crewOffers'] if offer['id'] == 'merc-river')
@@ -259,12 +259,17 @@ def main():
         denied = snap()
         check(ammo(denied) == bullets and denied['career']['stashes'][door['id']]['ammo']['pistol'] == 0, 'Denied native overdraw creates no ammunition')
         capture('03-native-safehouse-storage')
-        expected = {'cash': denied['career']['cash'], 'ownedProperties': denied['career']['ownedProperties'], 'hiredCrew': denied['career']['hiredCrew'], 'equipment': denied['career']['equipment'], 'stashes': denied['career']['stashes']}
+        page.locator('#city-stash-ammo').fill('10')
+        page.locator('#city-store-ammo-pistol').click()
+        persisted = snap()
+        carried_after_deposit = ammo(persisted)
+        check(carried_after_deposit + persisted['career']['stashes'][door['id']]['ammo']['pistol'] == bullets, 'Native pre-reload stash retains a real split ammunition balance')
+        expected = {'cash': persisted['career']['cash'], 'ownedProperties': persisted['career']['ownedProperties'], 'hiredCrew': persisted['career']['hiredCrew'], 'equipment': persisted['career']['equipment'], 'stashes': persisted['career']['stashes']}
         page.reload(wait_until='load', timeout=90000)
         start()
         resumed = record('Actual reload reads native career writer')
         check(all(resumed['career'][key] == value for key, value in expected.items()), 'Native writer persists cash, crew, ownership and stash across reload')
-        check(ammo(resumed) == bullets, 'Reload preserves actual protagonist ammunition')
+        check(ammo(resumed) == carried_after_deposit and ammo(resumed) + resumed['career']['stashes'][door['id']]['ammo']['pistol'] == bullets, 'Reload preserves actual carried plus stashed ammunition without a duplicate grant')
         check(resumed['interiors']['active'] is None, 'Interior checkpoint resumes at real exterior return pose')
         override = resumed['headlights']['override']
         pulse('n')

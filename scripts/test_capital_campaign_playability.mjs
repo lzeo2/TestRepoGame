@@ -28,7 +28,7 @@ const handoff = source.slice(handoffStart, handoffEnd);
 const fixture = await createCampaignFixture();
 const { map, interiors, guide } = fixture;
 const catalogue = createCampaign(map, null, fixture.campaignOptions), chapters = catalogue.developerChapters();
-assert.equal(chapters.length, 20);
+assert.equal(chapters.length, 22);
 const rows = [];
 const journal = catalogue.journal();
 function prefixFor(descriptor) {
@@ -281,7 +281,7 @@ for (const descriptor of chapters) {
 }
 const report = { schemaVersion: 1, evidence: 'normal campaign owner chains with source-domain action inputs and explicitly scoped fixture travel/police clearing; no native completion claim',
   missions: rows.length, completeCampaignPaths: rows.filter(row => row.campaignCompleted).length, limits: fixture.limits, rows };
-assert.equal(rows.length, 20);
+assert.equal(rows.length, 22);
 const json = JSON.stringify(report, null, 2) + '\n';
 if (outputIndex >= 0) await writeFile(args[outputIndex + 1], json); else process.stdout.write(json);
 if (report.completeCampaignPaths !== report.missions) process.exitCode = 1;

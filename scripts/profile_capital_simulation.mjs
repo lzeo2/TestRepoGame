@@ -13,8 +13,9 @@ import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
 import { findRoute } from '../Games/Capital Drive/navigation.js';
 
 const args = process.argv.slice(2);
-assert(args.length === 2 && args[0] === '--output' && args[1],
-  'Usage: node [--expose-gc] scripts/profile_capital_simulation.mjs --output <fresh-external-file.json>');
+assert((args.length === 2 || args.length === 4) && args[0] === '--output' && args[1] &&
+  (args.length === 2 || args[2] === '--revision' && /^[a-f0-9]{7,40}$/.test(args[3])),
+  'Usage: node [--expose-gc] scripts/profile_capital_simulation.mjs --output <fresh-external-file.json> [--revision <exported-commit>]');
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = path.resolve(args[1]);
 const relativeOutput = path.relative(root, output);
@@ -22,6 +23,11 @@ assert(relativeOutput.startsWith(`..${path.sep}`) || path.isAbsolute(relativeOut
 try { await stat(output); throw new Error('Output already exists; choose a fresh JSON file'); }
 catch (error) { if (error.code !== 'ENOENT') throw error; }
 assert((await stat(path.dirname(output))).isDirectory(), 'Output parent must already exist');
+let revision = args[3] || null;
+if (!revision) {
+  try { revision = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim(); }
+  catch { /* Exact source exports have no Git metadata; module hashes remain authoritative. */ }
+}
 
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 const hashes = {};
@@ -136,7 +142,7 @@ for (const destination of destinations) {
 }
 const report = {
   schemaVersion: 1, measurementOnly: true,
-  revision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
+  revision,
   runtime: { node: process.version, platform: process.platform, architecture: process.arch },
   scope: 'Source-domain Node fixture. No browser, renderer, native input, FPS, GPU or hardware acceptance claim. Timings are observations without speed thresholds.',
   fixture: { composition: 'canberra + road-profiles + canberra-north + north-terrain; shared terrain bridge callback',

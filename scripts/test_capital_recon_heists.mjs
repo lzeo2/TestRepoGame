@@ -17,8 +17,9 @@ const saved = { version: 2, character: 'corporate', intros, meeting: true, legac
 const campaign = createCampaign(map, saved);
 assert.equal(campaign.current().id, additions[0]); assert.deepEqual(campaign.serialize(), saved);
 assert.deepEqual(campaign.journal().shared.slice(0, 9).map(c => c.id), existing);
-assert.deepEqual(campaign.journal().shared.slice(9).map(c => c.id), additions);
-assert.equal(campaign.developerChapters().length, 20);
+assert.deepEqual(campaign.journal().shared.slice(9, 13).map(c => c.id), additions);
+assert.deepEqual(campaign.journal().shared.slice(13).map(c => c.id), ['closing-time', 'terminal-transfer']);
+assert.equal(campaign.developerChapters().length, 22);
 assert.equal(createCampaign(map, { version: 1, completed: existing }).current().id, additions[0]);
 const interiors = createInteriors(map, { stores: MAPPED_STORES }), guide = createMissionGuide(interiors.entries);
 const ctx = { pose: { x: 0, z: 0, speed: 0 }, onFoot: true, vehicleHealth: 100, wanted: 0, health: 100, respawnSerial: 0, campaign: true,

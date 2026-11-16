@@ -8,9 +8,16 @@ function progressionHandoff(source, environment) {
   const start = source.indexOf('  for (const event of progression.drainEvents()) {', source.indexOf('function updateCareer()'));
   const end = source.indexOf('  finishDeveloperPreview();', start);
   assert(start >= 0 && end > start, 'actual controller Progression event handoff exists');
-  const environmentCopy = { workCompletion: { serial: 0 }, heistOutcome: { serial: 0 },
+  const helperStart = source.indexOf('function recordCameraWorkEvent(');
+  const helperEnd = source.indexOf('\n}', helperStart) + 2;
+  assert(helperStart >= 0 && helperEnd > helperStart, 'actual camera work-report adapter exists');
+  // Real camera detection is covered by the city controller suite. This receipt
+  // fixture records its notification without adding a second world simulation.
+  const cameraReports = [];
+  const environmentCopy = { workCompletion: { serial: 0 }, heistOutcome: { serial: 0 }, cameraReports,
+    recordCameraCrime(kind, point) { cameraReports.push({ kind, point }); },
     clearInput() {}, notify() {}, saveCareer() {}, isSandbox: () => false, ...environment };
-  return () => { runInNewContext(source.slice(start, end), environmentCopy); return environmentCopy; };
+  return () => { runInNewContext(source.slice(helperStart, helperEnd)+'\n'+source.slice(start, end), environmentCopy); return environmentCopy; };
 }
 
 export async function executeCampaignCrime({ kind, target, fixture, ctx, active, tick,
@@ -101,6 +108,7 @@ export async function executeCampaignCrime({ kind, target, fixture, ctx, active,
   const admitted = progression.startActivity(target.storeId, 'robbery', ctx);
   assert(admitted.ok, admitted.message); inputEdges++;
   const startEnvironment = handoff(); ctx.wanted = gameplay.state.wanted;
+  assert.equal(startEnvironment.cameraReports.length, 0, 'an already witnessed robbery must not add duplicate camera wanted pressure');
   assert.equal(startEnvironment.heistOutcome.serial, before, 'starting crime does not award till receipt');
   while (progression.state.activity && elapsed < 6) {
     people.setCrime(progression.state.activity);

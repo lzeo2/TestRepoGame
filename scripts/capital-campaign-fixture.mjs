@@ -1,6 +1,8 @@
 // Source-domain fixture. Placements are explicit test setup, never native travel.
 import { readFile } from 'node:fs/promises';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
+import { applyAirport } from '../Games/Capital Drive/airport.js';
+import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
 import { applyRoadProfiles, roadProfile } from '../Games/Capital Drive/road-network.js';
 import { MAPPED_STORES } from '../Games/Capital Drive/stores.js';
 import { EXTRA_STORES, BARRIERS as SKATE_BARRIERS, SKATE_BUILDING_OPENING } from '../Games/Capital Drive/civic-extras.js';
@@ -20,7 +22,10 @@ import { findRoute } from '../Games/Capital Drive/navigation.js';
 export async function createCampaignFixture() {
   const read = name => readFile(new URL(`../Games/Capital Drive/data/${name}.json`, import.meta.url), 'utf8').then(JSON.parse);
   const [base, north, profiles] = await Promise.all(['canberra', 'canberra-north', 'road-profiles'].map(read));
-  const map = applyMapExpansion(applyRoadProfiles(base, profiles), north);
+  const expanded = applyMapExpansion(applyRoadProfiles(base, profiles), north);
+  expanded.terrainTiles = [(await read('north-terrain')).terrain];
+  expanded.lakeWaterLevel = 5.93;
+  const map = applyAirport(expanded, await read('airport'));
   const stores = [...MAPPED_STORES, ...EXTRA_STORES];
   map.landmarks.push(...stores.map(s => ({ ...s, store: true })));
   for (const point of CIVIC_LANDMARKS) {
@@ -41,7 +46,8 @@ export async function createCampaignFixture() {
   map.interiorEntries = neighbourhood.entries;
   map.barriers.push(...neighbourhood.backyardBarriers);
   map.schoolEntry = createSchoolEntry(map);
-  const simulation = createSimulation(map, { trafficCount: 0 });
+  const terrain = createTerrainSampler(map);
+  const simulation = createSimulation(map, { trafficCount: 0, isOnBridge: terrain.isOnBridge });
   const interiors = createInteriors(map, { stores, publicEntries: [...CIVIC_INTERIOR_ENTRIES, ...(map.schoolEntry ? [map.schoolEntry] : [])] });
   map.storyHomes = selectStoryHomes(map, interiors.entries, {
     canApproach: p => !simulation.moveActor({ ...p }, 0, 0, .45).blocked,
@@ -153,7 +159,7 @@ export async function createCampaignFixture() {
     return { reachable: false, distanceMetres: null, visited };
   }
   return { map, stores, simulation, interiors, guide, routeProof, interiorPath, campaignOptions,
-    limits: ['Generated neighbourhood door/backyard metadata is included; rendered civic/campus/store obstacles, terrain, airport and parked cars remain absent.',
+    limits: ['Generated neighbourhood doors/backyards, terrain bridge/water checks and the sourced airport extension are included; rendered civic/campus/store obstacles and parked cars remain absent.',
       'Source fixture placements do not prove native travel, police evasion, player damage survival, or ease.',
       'Graph distance / assumed speed is an optimistic planning estimate, never measured driving time.'] };
 }
