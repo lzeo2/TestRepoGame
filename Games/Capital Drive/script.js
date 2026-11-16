@@ -1304,24 +1304,24 @@ function combatFeedback(event){
   if(event.kind==='attack'&&event.hits>0)combatCueTime=.18;
   if(event.kind==='reload')combatReloadDuration=gameplay?.state.reloading||0;
   if(event.kind==='dry-fire'){combatStatusText='Out of ammunition';combatStatusTime=1.2;}
-  if(!audio?.enabled||!['attack','reload','reload-complete','dry-fire'].includes(event.kind))return;
+  if(!audio?.enabled||!['attack','reload','reload-complete','dry-fire','explosion'].includes(event.kind))return;
   const context=audio.context,voices=audio.voices||(audio.voices=new Set());
   if(voices.size>=6)return;
-  const now=context.currentTime,weapon=weaponById(event.weapon||gameplay.state.weapon),gun=event.kind==='attack'&&weapon;
-  const duration=gun?(weapon.id==='shotgun'?.18:.11):.045;
+  const now=context.currentTime,weapon=weaponById(event.weapon||gameplay.state.weapon),gun=event.kind==='attack'&&weapon,blast=event.kind==='explosion';
+  const duration=blast?.3:gun?(weapon.id==='shotgun'?.18:.11):.045;
   const gain=context.createGain(),tone=context.createOscillator();
   const voice={gain,tone};voices.add(voice);
-  gain.gain.setValueAtTime(.001,now);gain.gain.linearRampToValueAtTime(gun?.05:.014,now+.004);gain.gain.exponentialRampToValueAtTime(.001,now+duration);
-  tone.type=gun?'triangle':'square';tone.frequency.setValueAtTime(gun?(weapon.id==='shotgun'?78:145):event.kind==='dry-fire'?100:420,now);
-  tone.frequency.exponentialRampToValueAtTime(gun?45:150,now+duration);tone.connect(gain);gain.connect(context.destination);
-  if(gun){
+  gain.gain.setValueAtTime(.001,now);gain.gain.linearRampToValueAtTime(blast?.06:gun?.05:.014,now+.004);gain.gain.exponentialRampToValueAtTime(.001,now+duration);
+  tone.type=blast?'sawtooth':gun?'triangle':'square';tone.frequency.setValueAtTime(blast?65:gun?(weapon.id==='shotgun'?78:145):event.kind==='dry-fire'?100:420,now);
+  tone.frequency.exponentialRampToValueAtTime(blast?22:gun?45:150,now+duration);tone.connect(gain);gain.connect(context.destination);
+  if(gun||blast){
     if(!audio.combatNoise){
       const buffer=context.createBuffer(1,Math.ceil(context.sampleRate*.2),context.sampleRate),samples=buffer.getChannelData(0);let seed=92731;
       for(let i=0;i<samples.length;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;samples[i]=(seed/4294967296*2-1)*.7;}
       audio.combatNoise=buffer;
     }
     voice.noise=context.createBufferSource();voice.filter=context.createBiquadFilter();voice.noise.buffer=audio.combatNoise;
-    voice.filter.type='lowpass';voice.filter.frequency.value=weapon.id==='shotgun'?1300:2600;voice.noise.connect(voice.filter);voice.filter.connect(gain);voice.noise.start(now);voice.noise.stop(now+duration);
+    voice.filter.type='lowpass';voice.filter.frequency.value=blast?650:weapon.id==='shotgun'?1300:2600;voice.noise.connect(voice.filter);voice.filter.connect(gain);voice.noise.start(now);voice.noise.stop(now+duration);
   }
   tone.onended=()=>{tone.disconnect();gain.disconnect();voice.noise?.disconnect();voice.filter?.disconnect();voices.delete(voice);};
   tone.start(now);tone.stop(now+duration+.005);
