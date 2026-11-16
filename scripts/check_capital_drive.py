@@ -33,6 +33,7 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
+    'test_capital_covered_road_routes.mjs',
     'test_capital_shop_staff.mjs', 'test_capital_campaign_playability.mjs',
     'test_capital_local_recovery.mjs', 'test_capital_campaign_retry.mjs', 'test_capital_retry_controller.mjs', 'test_capital_water_contact.mjs',
     'test_capital_collision_cache.mjs', 'test_capital_ballistics.mjs', 'test_capital_recon.mjs', 'test_capital_recon_heists.mjs',
@@ -61,7 +62,7 @@ SUITES = (
     'test_capital_campaign.mjs','test_capital_north.mjs','test_capital_terrain.mjs','test_capital_civic.mjs','test_capital_crossings.mjs','test_capital_noodle_shop.mjs','test_capital_interior_people.mjs','test_capital_interior_activities.mjs','test_capital_micromobility.mjs','test_capital_civic_extras.mjs','test_capital_work_jobs.mjs','test_capital_skate_opening.mjs','test_capital_dev_codes.mjs','test_capital_vehicle_challenges.mjs','test_capital_car_theft.mjs','test_capital_scooter_hack.mjs','test_capital_weapons.mjs','test_capital_weapon_economy.mjs','test_capital_weapon_art.mjs','test_capital_street_dealers.mjs','test_capital_npc_routines.mjs','test_capital_traffic_queues.mjs','test_capital_junction_queues.mjs',
 )
 DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json','shopping-precincts.json','canberra-north.json','north-terrain.json','civic-extras.json','traffic-signals.json','street-assets.json','highway-barriers.json','airport.json')
-SUPPORT_SCRIPTS = ('capital-campaign-fixture.mjs', 'capital-crime-playability.mjs')
+SUPPORT_SCRIPTS = ('capital-campaign-fixture.mjs', 'capital-crime-playability.mjs', 'capital-collision-baseline.mjs')
 
 
 def run_command(command, timeout):

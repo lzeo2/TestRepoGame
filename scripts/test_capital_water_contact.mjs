@@ -6,10 +6,12 @@ import { createSimulation } from '../Games/Capital Drive/simulation.js';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { applyRoadProfiles } from '../Games/Capital Drive/road-network.js';
 import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
+import { withCurrentRouting } from './capital-collision-baseline.mjs';
 
 const sourceURL = new URL('../Games/Capital Drive/simulation.js', import.meta.url);
 const baselineRevision = '73c8335c';
 let source = execFileSync('git', ['show', `${baselineRevision}:Games/Capital Drive/simulation.js`], { cwd: new URL('../', import.meta.url), encoding: 'utf8', maxBuffer: 1024 * 1024 });
+source = withCurrentRouting(source, await readFile(sourceURL, 'utf8'));
 source = source.replace(/from ['"]([^'"]+)['"]/g, (_, path) => `from ${JSON.stringify(new URL(path, sourceURL).href)}`);
 const baseline = await import(`data:text/javascript;base64,${Buffer.from(`${source}\nexport {polygonContact, insideRing};`).toString('base64')}`);
 let comparisons = 0;
