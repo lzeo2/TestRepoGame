@@ -177,7 +177,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     start: clone(characters.find(hero => hero.id === character).start),
     target: clone(chapter.stages[0]),
   })));
-  let developerChapter = null;
+  let developerChapter = null, pendingRetry = null;
   const emptyIntros = () => Object.fromEntries(ids.map(id => [id, []]));
   const state = { character: null, intros: emptyIntros(), meeting: false, legacy: false, completed: [], active: null, message: 'Choose a character to begin.', failed: false };
   const object = value => value && typeof value === 'object' && !Array.isArray(value);
@@ -235,6 +235,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.campaign) return { ok: false, message: 'Campaign unavailable here.' };
     if (!ids.includes(id)) return { ok: false, message: 'Choose an available character.' };
     if (!canSelectCharacter(id)) return { ok: false, message: 'Finish or cancel the active mission before switching characters.' };
+    pendingRetry = null;
     state.character = id; state.failed = false; state.message = `${characters.find(c => c.id === id).name}: ${current()?.briefing || requiredMessage() || (allIntroduced() && state.meeting ? 'Campaign complete.' : 'Choose another character to bring the three stories together.')}`;
     return { ok: true, message: state.message };
   }
@@ -269,6 +270,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     if (state.active) return { ok: false, message: 'Mission already active.' };
     const chapter = current();
     if (!chapter) return { ok: false, message: !state.character ? 'Choose a character first.' : requiredMessage() || (!allIntroduced() && state.character !== 'legacy' ? 'Choose another character to complete their introduction.' : 'Campaign complete.') };
+    pendingRetry = null;
     return begin(chapter, ctx);
   }
   function begin(chapter, ctx, developer = false) {
@@ -282,11 +284,30 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     if (state.active) return { ok: false, message: 'Finish or cancel the active mission first.' };
     const entry = developerEntries.find(item => item.chapter.id === id);
     if (!entry) return { ok: false, message: 'Choose an available mission.' };
+    pendingRetry = null;
     developerChapter = freeze({ ...entry.chapter, character: entry.character });
     return begin(developerChapter, ctx, true);
   }
-  function fail(message) {
+  function retry(ctx) {
+    if (!pendingRetry || state.active || !validContext(ctx) || ctx.sandbox || ctx.campaign !== true ||
+        ctx.recovering || !Number.isFinite(ctx.health) || ctx.health <= 0 || ctx.respawnSerial < 0 ||
+        state.character !== pendingRetry.character || (ctx.character !== undefined && ctx.character !== pendingRetry.character)) {
+      return { ok: false, message: 'Mission retry unavailable here.' };
+    }
+    const attempt = pendingRetry;
+    pendingRetry = null;
+    const result = begin(attempt.chapter, ctx);
+    state.active.companions = clone(attempt.companions);
+    state.active.cutscene = null;
+    state.active.baselines = baselines(ctx, attempt.baselines);
+    return result;
+  }
+  function fail(message, ctx = null) {
     if (!state.active) return false;
+    if (ctx && !state.active.developer) pendingRetry = {
+      chapter: current(), character: state.character, companions: clone(state.active.companions),
+      baselines: baselines(ctx, state.active.baselines),
+    };
     state.active = null; developerChapter = null; state.failed = true; state.message = message;
     events.push({ type: 'failed', message }); return true;
   }
@@ -294,10 +315,10 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     if (!Number.isFinite(dt) || dt < 0) throw new Error('Campaign dt must be finite and nonnegative.');
     const active = state.active;
     if (!active || !validContext(ctx) || ctx.sandbox || !ctx.campaign || dt === 0) return;
-    if (ctx.respawnSerial !== active.serial || ctx.recovering) { fail('Mission failed. Completed chapters kept. Open Campaign to retry.'); return; }
+    if (ctx.respawnSerial !== active.serial || ctx.recovering) { fail(active.developer ? 'Mission preview failed.' : 'Mission failed. Completed chapters kept. Retrying after recovery.', ctx); return; }
     const step = Math.min(dt, .1), chapter = current(), goal = active.target;
     active.remaining = Math.max(0, active.remaining - step); active.elapsed += step; active.sawWanted ||= ctx.wanted > 0;
-    if (!active.remaining) { fail('Time expired. Open Campaign to retry.'); return; }
+    if (!active.remaining) { fail(active.developer ? 'Mission preview time expired.' : 'Time expired. Retrying the mission.', ctx); return; }
     let eligible = goal.anywhere || distance(ctx.pose, goal) <= goal.radius;
     if (goal.kind === 'interior') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.interior?.atCounter === true;
     else if (goal.kind === 'home-action') eligible = ctx.onFoot && ctx.interior?.roomId === goal.roomId && ctx.homeAction?.roomId === goal.roomId && ctx.homeAction?.outcome === 'packed' && serial(ctx.homeAction) > active.baselines.homeAction;
@@ -336,7 +357,8 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     }
   }
   return { state, characters, get chapters() { return chapters(); }, current, nextRequiredCharacter, start, startDeveloper, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, companionSwitchReason, canSwitchCompanion, switchCompanion, isCompleted,
-    cancel: () => fail('Mission cancelled. Open Campaign to retry.'),
+    retry, get retryPending() { return pendingRetry ? freeze(clone({ id: pendingRetry.chapter.id, name: pendingRetry.chapter.name, character: pendingRetry.character, companions: pendingRetry.companions })) : null; },
+    cancel: () => { pendingRetry = null; return fail('Mission cancelled. Open Campaign to retry.'); },
     serialize: () => clone({ version: 2, character: state.character, intros: state.intros, meeting: state.meeting, legacy: state.legacy, completed: state.completed }),
     journal: () => freeze(clone({ character: state.character, introductions: ids.map(id => ({ character: id, chapters: intros[id].map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })), meeting: state.meeting, shared: shared.map(item => ({ id: item.id, character: item.character, name: item.name, complete: isCompleted(item.id) })) })),
     snapshot: () => freeze(clone({ ...state, next: current()?.id || null, switching: ids.filter(canSelectCharacter) })), drainEvents: () => events.splice(0) };
