@@ -1,10 +1,12 @@
 // Directed road pursuit; only dismounted officers use pedestrian collision.
 import { createRoutePlanner, roadProfile } from './road-network.js';
+import { createPoliceSupport } from './police-support.js';
 const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
 const gap = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
 const angle = a => Math.atan2(Math.sin(a),Math.cos(a));
 export function createPolice(simulation, options = {}) {
   const planner = createRoutePlanner(simulation.graph);
+  const support=createPoliceSupport(simulation,options);
   const routes = new Map(), tactics = new Map(), approaches = new Map(), events = [];
   let serial = 0, arrest = 0, spawnDelay = 0, lastSeen = { ...simulation.player };
   const knownRooms = new Set();
@@ -13,6 +15,7 @@ export function createPolice(simulation, options = {}) {
   function remember(point) { lastSeen = { x: point.x, z: point.z }; }
   function report(point) {
     const room = currentInterior();
+    support.report(room?.outside||point);
     if (room) {
       knownRooms.add(room.id);
       if(knownRooms.size>5) knownRooms.delete(knownRooms.values().next().value);
@@ -109,7 +112,8 @@ export function createPolice(simulation, options = {}) {
       edge.length-((unit.car.x-edge.from.x)*edge.dx+(unit.car.z-edge.from.z)*edge.dz)<=8;
     return atEnd || route.stuck>.75 || (!edge && route.age>.75);
   }
-  function reset() { approaches.clear(); routes.clear(); tactics.clear(); events.length=0; knownRooms.clear(); arrest = 0; spawnDelay = 0; remember(simulation.player); }
+  let checkpointDelay=0;
+  function reset() { support.reset(); checkpointDelay=0; approaches.clear(); routes.clear(); tactics.clear(); events.length=0; knownRooms.clear(); arrest = 0; spawnDelay = 0; remember(simulation.player); }
   const lanePoint = (edge,t) => ({ x:edge.from.x+edge.dx*t+edge.dz*edge.laneOffset,
     z:edge.from.z+edge.dz*t-edge.dx*edge.laneOffset,yaw:edge.yaw });
   const publicEdges = simulation.graph.edges.filter(edge => roadProfile(edge.road).trafficAllowed);
@@ -124,25 +128,27 @@ export function createPolice(simulation, options = {}) {
     const tail=planner.findEdges(best.to,destination,{kind:'car'});
     return [best,...tail];
   }
-  function spawn(state,target) {
+  function spawn(state,target,checkpoint=false) {
     const candidates=[];
     for(const edge of publicEdges) {
       if(edge.length<8) continue;
       const t=clamp((target.x-edge.from.x)*edge.dx+(target.z-edge.from.z)*edge.dz,4,edge.length-4);
       for(const position of [t,4,edge.length-4]) {
         const pose=lanePoint(edge,position),d=gap(pose,target);
-        if(d>=70 && d<=200) candidates.push({pose,edge,score:Math.abs(d-110)});
+        const ahead=(pose.x-target.x)*-Math.sin(target.yaw||0)+(pose.z-target.z)*-Math.cos(target.yaw||0);
+        if(checkpoint ? d>=150&&d<=260&&ahead>=150 : d>=70&&d<=200) candidates.push({pose,edge,score:Math.abs(d-(checkpoint?180:110))});
       }
     }
     candidates.sort((a,b)=>a.score-b.score || a.edge.id-b.edge.id);
     const id=`police:${serial++}`;
     for(const {pose,edge} of candidates.slice(0,64)) {
-      const car={id,...pose,speed:0,active:true,length:4.8,width:1.9};
+      const car={id,...pose,yaw:pose.yaw+(checkpoint?Math.PI/2:0),speed:0,active:true,length:4.8,width:1.9};
       if(!simulation.canOccupy(car,{length:car.length,width:car.width}) || state.police.some(p=>gap(p.car||p,car)<12)) continue;
       const tail=planner.findEdges(edge.to,target,{kind:'car'});
       if(!tail.length && gap(edge.to,target)>24) continue;
       routes.set(id,{edges:[edge,...tail],index:0,age:0,goal:{...target},stuck:0,reversing:0,retries:0});
-      state.police.push({id,x:car.x,z:car.z,yaw:car.yaw,speed:0,health:100,mode:'vehicle',car,
+      const swat=state.wanted>=5;
+      state.police.push({id,x:car.x,z:car.z,yaw:car.yaw,speed:0,health:swat?150:100,armour:swat,role:swat?'swat':'patrol',checkpointRemaining:checkpoint?20:0,mode:'vehicle',car,
         interiorId:null,seesPlayer:false,searchTime:0,modelId:'relay',color:0xe7e7df});
       return true;
     }
@@ -245,10 +251,13 @@ export function createPolice(simulation, options = {}) {
     unit.fireCooldown=Math.max(0,(unit.fireCooldown??0.6)-dt);
     unit.aiming=false;unit.aimTarget=null;
     if(unit.mode!=='foot' || returning || unit.health<=0) return;
+    const playerRoomId=room?.id||null;
+    room=unit.interiorId?resolveInterior(unit.interiorId):null;
+    if(unit.interiorId&&(!room||room.safehouse))return;
     const playerThreat=state.wanted>=3 || (state.weapon && state.weapon!=='unarmed' && (state.aiming || state.attackTimer>0));
     const candidates=[];
-    if(playerThreat && state.health!==0 && (unit.interiorId || null)===(room?.id || null) && !room?.safehouse) candidates.push({...target,id:'player'});
-    for(const ally of options.getAllies?.() || []) if(!unit.interiorId && !ally.interiorId && (state.wanted>=3 || ally.mode==='combat' || ally.shot?.remaining>0) && ally.active!==false && ally.health>0 && ally.armed &&
+    if(playerThreat && state.health!==0 && (unit.interiorId || null)===playerRoomId && !room?.safehouse) candidates.push({...target,id:'player'});
+    for(const ally of options.getAllies?.() || []) if((unit.interiorId||null)===(ally.interiorId||null) && !room?.safehouse && (state.wanted>=3 || ally.mode==='combat' || ally.shot?.remaining>0) && ally.active!==false && ally.health>0 && ally.armed &&
       Number.isFinite(ally.x) && Number.isFinite(ally.z)) candidates.push(ally);
     const victim=candidates.filter(person=>(person.id==='player'?playerGap(unit,person):gap(unit,person))<=52 && (unit.interiorId ? room?.hasLineOfSight(unit,person) : simulation.hasLineOfSight(unit,person)))
       .sort((a,b)=>gap(unit,a)-gap(unit,b))[0];
@@ -256,31 +265,38 @@ export function createPolice(simulation, options = {}) {
     unit.aiming=true;unit.aimTarget={x:victim.x,z:victim.z};
     unit.yaw=Math.atan2(-(victim.x-unit.x),-(victim.z-unit.z));
     if(unit.fireCooldown>0) return;
-    unit.fireCooldown=1.1;
+    unit.fireCooldown=unit.armour?.75:1.1;
     const base=point=>Number.isFinite(point.feetY)?point.feetY:Number.isFinite(point.y)?point.y:
       unit.interiorId&&Number.isFinite(room?.floorY)?room.floorY:options.heightAt?.(point.x,point.z)||0;
     const ground=unit.interiorId&&Number.isFinite(room?.floorY)?room.floorY:options.heightAt?.(unit.x,unit.z)||0;
-    const from={x:unit.x,y:ground+1.35,z:unit.z};
+    const from={x:unit.x,y:ground+1.35,z:unit.z,interiorId:unit.interiorId||null};
     const altitude=victim.id==='player'&&!Number.isFinite(victim.y)&&!Number.isFinite(victim.feetY)?Math.max(0,options.playerAltitude?.()||0):0;
-    const to={...victim,y:base(victim)+1.2+altitude};
+    const to={...victim,y:base(victim)+1.2+altitude,interiorId:unit.interiorId||null};
     if(options.shotClear?.(from,to,{unit,state,room,interiorId:unit.interiorId||null,playerAltitude:altitude})===false)return;
     unit.shotTimer=.13;
-    events.push({kind:'shot',interiorId:unit.interiorId || null,officerId:unit.id,targetId:victim.id,from,to,damage:9});
+    events.push({kind:'shot',interiorId:unit.interiorId || null,officerId:unit.id,targetId:victim.id,from,to,damage:unit.armour?12:9});
     if(events.length>16) events.splice(0,events.length-16);
   }
   function step(dt,state,target) {
     if(!Number.isFinite(dt) || dt<=0) return;
     dt=Math.min(dt,.05);
-    if (state.sandbox || state.wanted<=0) { state.police.length=0; routes.clear();tactics.clear();approaches.clear();events.length=0;knownRooms.clear(); state.pursuit='clear'; return; }
+    if (state.sandbox || state.wanted<=0) { reset();state.police.length=0;state.offencePressure=0; state.pursuit='clear'; return; }
     const room=currentInterior();
     const entry=room && (room.known || knownRooms.has(room.id)) ? room : null;
     const outsideTarget=entry?.outside || lastSeen;
     spawnDelay=Math.max(0,spawnDelay-dt);
+    checkpointDelay=Math.max(0,checkpointDelay-dt);
     if(spawnDelay===0) {
-      while(state.police.length<Math.min(4,state.wanted+1)) if(!spawn(state,room?outsideTarget:target)) break;
+      const cap=Math.min(6,state.wanted+1);
+      if(state.wanted>=4&&!room&&checkpointDelay===0){
+        for(let i=state.police.filter(unit=>unit.checkpointRemaining>0).length;i<2&&state.police.length<cap;i++)if(!spawn(state,target,true))break;
+        checkpointDelay=30;
+      }
+      while(state.police.length<cap) if(!spawn(state,room?outsideTarget:target)) break;
       spawnDelay=1;
     }
-    let seen=false,arresting=false;
+    let seen=support.step(dt,state,target,room),arresting=false;
+    if(seen)remember(target);
     for(const unit of state.police) {
       // Accept restored descriptors while keeping one stable car object for rendering/blockers.
       if(!unit.car) unit.car={id:unit.id,x:unit.x,z:unit.z,yaw:unit.yaw,speed:unit.speed||0,active:true,length:4.8,width:1.9};
@@ -288,7 +304,9 @@ export function createPolice(simulation, options = {}) {
       unit.interiorId ||= null;
       unit.seesPlayer=sees(unit,target,room);
       if(unit.health<=0) { unit.speed=0;unit.car.speed=0;continue; }
+      if(state.wanted>=5&&unit.role!=='swat'){unit.role='swat';unit.armour=true;unit.health=Math.min(150,unit.health+50);}
       if(unit.seesPlayer) { seen=true;remember(room?room.outside:target);unit.searchTime=0; } else unit.searchTime+=dt;
+      if(unit.checkpointRemaining>0){unit.checkpointRemaining=Math.max(0,unit.checkpointRemaining-dt);unit.car.speed=unit.speed=0;continue;}
       const destination=room?outsideTarget:(unit.seesPlayer?target:lastSeen);
       let returning=false;
       if(unit.mode==='vehicle') {
@@ -325,9 +343,9 @@ export function createPolice(simulation, options = {}) {
       if(unit.mode==='foot' && unit.seesPlayer && playerGap(unit,target)<3.4 && Math.abs(target.speed)<2) arresting=true;
     }
     if(seen) { state.pursuit='pursuit';state.heat=28+state.wanted*9; }
-    else { state.pursuit='search';state.heat=Math.max(0,state.heat-dt);if(state.heat<=0) { state.wanted=0;state.pursuit='clear';state.police.length=0;routes.clear();options.onEscape?.(); } }
+    else { state.pursuit='search';state.heat=Math.max(0,state.heat-dt);if(state.heat<=0) { state.wanted=0;state.offencePressure=0;state.pursuit='clear';state.police.length=0;reset();options.onEscape?.(); } }
     arrest=arresting?arrest+dt:Math.max(0,arrest-dt*2);state.arrestProgress=clamp(arrest/3.5,0,1);
     if(arrest>=3.5) { arrest=0;options.onArrest?.(); }
   }
-  return {step,reset,report,drainEvents:()=>events.splice(0)};
+  return {step,reset,report,support:()=>support.snapshot(),drainEvents:()=>events.splice(0)};
 }

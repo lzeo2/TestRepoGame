@@ -3,7 +3,7 @@ import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUt
 import { createCar } from '../../assets/car-arcade/models.js';
 import { appearanceForPerson, createPersonGeometries, PERSON_MODEL } from './person-model.js';
 
-const POLICE_LIMIT = 4, SHOT_LIMIT = 8, PLAYER_FLASH_LIMIT = 4, CULL_DISTANCE = 380;
+const POLICE_LIMIT = 6, SHOT_LIMIT = 8, PLAYER_FLASH_LIMIT = 4, CULL_DISTANCE = 380;
 const IMPACT_LIMIT = SHOT_LIMIT + POLICE_LIMIT + PLAYER_FLASH_LIMIT;
 const FLASH_DURATION = .055, MAX_AIM_PITCH = Math.PI * 70 / 180;
 const MELEE_POSES = [[0,.45,1.15,-.12,0],[.2,.30,1.4,-.20,.005],[.5,1.95,-.30,.24,-.075],[1,0,-.12,0,0]];

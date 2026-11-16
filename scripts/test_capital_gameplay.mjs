@@ -123,7 +123,7 @@ for (let i = 0; i < 1800; i++) {
     assert(p.x >= actual.bounds.minX && p.x <= actual.bounds.maxX);
     assert(p.z >= actual.bounds.minZ && p.z <= actual.bounds.maxZ);
   }
-  assert(realGame.state.police.length <= 4);
+  assert(realGame.state.police.length <= 6);
 }
 console.log('Capital gameplay: foot collision/sprint/jump, entry/theft, combat occlusion/ammo, wanted/search, sandbox, respawn and actual-map finite police PASS');
 
@@ -162,15 +162,15 @@ game.reset();
 events.push({ type: 'witness', kind: 'reckless', offenderId: 'player' });
 game.step(1 / 60); assert.equal(game.state.wanted, 1);
 events.push({ type: 'witness', kind: 'gunshot', offenderId: 'player' });
-game.step(1 / 60); assert.equal(game.state.wanted, 2, 'reckless reporting cannot delay witnessed gunfire');
+game.step(1 / 60); assert.equal(game.state.wanted, 1); assert.equal(game.state.offencePressure, 2, 'reckless reporting cannot delay witnessed gunfire pressure');
 tick(1.1);
 events.push({ type: 'witness', kind: 'reckless', offenderId: 'player' });
-game.step(1 / 60); assert.equal(game.state.wanted, 2, 'multiple adults cannot rapidly stack reckless reports');
+game.step(1 / 60); assert.equal(game.state.offencePressure, 2, 'multiple adults cannot rapidly stack reckless reports');
 for (let i = 0; i < 600; i++) game.step(0);
 events.push({ type: 'witness', kind: 'reckless', offenderId: 'player' });
-game.step(1 / 60); assert.equal(game.state.wanted, 2, 'pause preserves reckless cooldown');
+game.step(1 / 60); assert.equal(game.state.offencePressure, 2, 'pause preserves reckless cooldown');
 events.push({ type: 'witness', kind: 'assault', offenderId: 'player' });
-game.step(1 / 60); assert.equal(game.state.wanted, 3, 'actual assault remains promptly reported');
+game.step(1 / 60); assert.equal(game.state.wanted, 1); assert.equal(game.state.offencePressure, 3, 'actual assault remains promptly reported without jumping a full star per minor offence');
 console.log('Capital gameplay: independent reckless/combat report cooldowns and pause PASS');
 
 // Passenger focus follows the physical service car without foot movement or combat.
