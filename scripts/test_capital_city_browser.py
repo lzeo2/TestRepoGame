@@ -327,14 +327,19 @@ def main():
             page.wait_for_timeout(150)  # A real released input edge before the next cue.
         inside = wait(lambda s: s['interiors']['active'] and s['interiors']['active']['id'] == door['id'], 'Completed native lock automatically enters the actual house')
         check(inside['gameplay']['wanted'] >= 2, 'Actual forced entry reports breaking and entering')
-        capture('03-native-entered-house-footprint')
-        if args.preview_only:
-            observations.append({'previewOnly': True, 'scope': 'Actual exterior approach, six native lock cues, forced entry and entered-house rendering only. Loot, cash reward, cooldown, repeat denial and physical exit are not acceptance claims in this preview.'})
-            return
         station = next(s for s in inside['interiors']['active']['activities'] if s['id'].endswith('-valuables'))
         check(station['id'] == planned['station']['id'] and station['kind'] == 'stock', 'Native room exposes the matching actual valuables activity')
         for point in planned['toStation']:
             walk(point, tolerance=.3, seconds=25)
+        if args.preview_only:
+            pose = snap()['focus']
+            sofa = next(f for f in inside['interiors']['active']['furniture'] if f['kind'] == 'sofa')
+            aim(math.atan2(pose['x'] - sofa['x'], pose['z'] - sofa['z']))
+            page.wait_for_timeout(250)
+        capture('03-native-entered-house-footprint')
+        if args.preview_only:
+            observations.append({'previewOnly': True, 'scope': 'Actual exterior approach, six native lock cues, forced entry, physical station approach and mouse view of the furnished room. Loot, cash reward, cooldown, repeat denial and physical exit are not acceptance claims in this preview.'})
+            return
         pulse('q')
         mini = wait(lambda s: s['miniGame']['active'] and s['miniGame']['station']['id'] == station['id'] and s['miniGame']['phase'] == 'memorise', 'Native Q begins the actual house search')
         check(mini['miniGame']['sequence'] == ['x', 'up', 'y', 'x'], 'Actual stock activity exposes its four-item memory sequence')
