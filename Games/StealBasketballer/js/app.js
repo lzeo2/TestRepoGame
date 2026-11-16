@@ -146,7 +146,14 @@ function openPanel(name) {
   if(name==='kits')draft=clone(state.kit);
   $('hud').inert=true;$('sheet').hidden=false;renderPanel();$('close-sheet').focus();
 }
-function closePanel() {panel='';draft=null;$('sheet').hidden=true;$('hud').inert=false;if(previousFocus?.isConnected)previousFocus.focus?.();else canvas.focus();}
+function closePanel() {
+  panel='';draft=null;$('sheet').hidden=true;$('hud').inert=false;if(previousFocus?.isConnected)previousFocus.focus?.();else canvas.focus();
+  // Closing the finished-match report without RETURN HOME left the camera on
+  // the empty match pitch: the avatar and every base player were 300+ units
+  // away, past the actor cull radius, so the whole base looked empty. Going
+  // home is the only sensible exit from a finished match.
+  if(report&&match?.finished){match=null;matchState=null;report=null;travel('home');updateHUD();}
+}
 function renderPanel() {
   if(!panel)return;$('sheet-title').textContent=titles[panel]||'YOUR TEAM';
   const content=$('sheet-content');
