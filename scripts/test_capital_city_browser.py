@@ -35,7 +35,10 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--scenario', choices=['city', 'workplace', 'burglary'], default='city')
     parser.add_argument('--capture', action='store_true')
+    parser.add_argument('--preview-only', action='store_true', help='Burglary entry preview only; skips loot, reward, repeat and exit acceptance')
     args = parser.parse_args()
+    if args.preview_only and args.scenario != 'burglary':
+        parser.error('--preview-only is supported only with --scenario burglary')
     source, output = args.root.resolve(), args.output.resolve()
     if any(output == p or p in output.parents for p in (ROOT, source)):
         parser.error('--output must be external to source and repository')
@@ -141,6 +144,9 @@ def main():
             while time.monotonic() < end:
                 state = snap()
                 assert not state['paused'] and state['gameplay']['health'] > 0, 'Physical walking must remain live and alive'
+                if state['gameplay']['mode'] != 'foot' or state['gameplay']['recovery']:
+                    record('Physical walking interrupted by actual recovery or vehicle mode')
+                    raise AssertionError('Native foot route interrupted by recovery or vehicle mode; no continued driving or teleport fallback')
                 pose, yaw = state['focus'], state['camera']['footYaw']
                 dx, dz = target['x'] - pose['x'], target['z'] - pose['z']
                 distance = math.hypot(dx, dz)
@@ -322,6 +328,9 @@ def main():
         inside = wait(lambda s: s['interiors']['active'] and s['interiors']['active']['id'] == door['id'], 'Completed native lock automatically enters the actual house')
         check(inside['gameplay']['wanted'] >= 2, 'Actual forced entry reports breaking and entering')
         capture('03-native-entered-house-footprint')
+        if args.preview_only:
+            observations.append({'previewOnly': True, 'scope': 'Actual exterior approach, six native lock cues, forced entry and entered-house rendering only. Loot, cash reward, cooldown, repeat denial and physical exit are not acceptance claims in this preview.'})
+            return
         station = next(s for s in inside['interiors']['active']['activities'] if s['id'].endswith('-valuables'))
         check(station['id'] == planned['station']['id'] and station['kind'] == 'stock', 'Native room exposes the matching actual valuables activity')
         for point in planned['toStation']:
@@ -358,7 +367,7 @@ def main():
             page.wait_for_timeout(150)
         check(snap()['career']['cash'] == rewarded['career']['cash'], 'Repeated real house search cannot pay through cooldown')
         for point in planned['toExit']:
-            walk(point, tolerance=.3, seconds=25)
+            walk(point, tolerance=.3, seconds=25, sprint=True)
         pulse('e')
         escaped = wait(lambda s: s['interiors']['active'] is None, 'Normal E leaves through the actual house exit')
         check(escaped['gameplay']['health'] > 0 and escaped['career'].get('burglaryCooldowns', {}).get(door['id'], 0) > 0, 'Player survives real escape with a live house cooldown')
@@ -444,7 +453,8 @@ def main():
             server.server_close()
             thread.join(timeout=2)
         final_hashes = hashes()
-        result = {'status': 'FAIL' if failure else 'PASS', 'failure': failure, 'scenario': args.scenario, 'checks': checks, 'errors': errors, 'requests': requests, 'external': external, 'observations': observations,
+        result = {'status': 'FAIL' if failure else 'PASS', 'failure': failure, 'scenario': args.scenario, 'previewOnly': args.preview_only,
+                  'verificationScope': 'Native entry/rendering preview only; loot, reward, cooldown, repeat and exit untested' if args.preview_only else 'Full selected native scenario', 'checks': checks, 'errors': errors, 'requests': requests, 'external': external, 'observations': observations,
                   'elapsedSeconds': round(time.monotonic() - started, 2), 'budgetSeconds': budget, 'source_sha256': initial_hashes, 'source_sha256_end': final_hashes, 'source_unchanged': initial_hashes == final_hashes,
                   'screenshots': sorted(p.name for p in output.glob('*.png')), 'limitations': ['Prior wealth, equipment, checkpoint and optional Rowan intro prefix are explicit setup, not earned native progress. Property ownership and stash begin empty; the city case requires an actual nearby purchase.', 'Native inputs use actual clock, collision and authoritative writers; no production state setter or private code is used.', 'Workplace source path omits fixture-listed rendered/parked obstacles; actual native traversal must pass to establish this route.', 'Cloud SwiftShader does not establish Intel N100 FPS, GPU memory, or whole-campaign playability.']}
         (output / 'results.json').write_text(json.dumps(result, indent=2) + '\n')
