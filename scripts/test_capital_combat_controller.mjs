@@ -7,7 +7,7 @@ function extract(name){const start=source.indexOf(`function ${name}(`);assert(st
 const state={mode:'foot',passenger:false,health:80,recovery:null,respawnSerial:0};
 const active={id:'survey',stage:0,target:{kind:'recon',targetId:'notice'}};
 const descriptor={targetId:'notice',x:0,z:-8,y:1.6,space:null,hold:1.1};
-const env={reconnaissance:createRecon(),reconGuideKey:'',reconOutcome:{serial:0},evidenceOutcome:{serial:0},evidenceSessionKey:'',scanHeld:false,
+const env={droneActive:false,securityCameras:null,reconnaissance:createRecon(),reconGuideKey:'',reconOutcome:{serial:0},evidenceOutcome:{serial:0},evidenceSessionKey:'',scanHeld:false,
   campaign:{state:{active}},gameMode:'campaign',missionLocations:{guide:()=>({recon:descriptor})},interiors:{active:null},
   world:{heightAt:()=>10},focus:()=>({x:0,z:0,yaw:0,speed:0}),footCameraYaw:0,footLookPitch:0,
   gameplay:{state},activities:{snapshot:()=>({active:false})},streetChallenge:()=>null,paused:()=>false,isSandbox:()=>false,

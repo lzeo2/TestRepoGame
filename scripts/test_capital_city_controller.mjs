@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import { createDrone } from '../Games/Capital Drive/drone.js';
+import { createSecurityCameras } from '../Games/Capital Drive/security-cameras.js';
+import { createShotObstacles } from '../Games/Capital Drive/shot-obstacles.js';
+import { createProgression } from '../Games/Capital Drive/progression.js';
+import { createGameplay } from '../Games/Capital Drive/gameplay.js';
+import { createSimulation } from '../Games/Capital Drive/simulation.js';
+import { weaponById } from '../Games/Capital Drive/weapons.js';
 
 // Execute exact controller helpers with bounded owner doubles. This is adapter
 // evidence, not a browser boot, native travel or graphics performance claim.
@@ -9,7 +16,9 @@ function helper(name) {
   const start = source.indexOf(`function ${name}(`);
   assert(start >= 0, name);
   let depth = 0, quote = null, escape = false;
-  const body = source.indexOf('{', start);
+  let endParams=source.indexOf('(',start),params=0;
+  do { const c=source[endParams++];if(c==='(')params++;else if(c===')')params--; } while(params);
+  const body = source.indexOf('{', endParams);
   for (let i = body; i < source.length; i++) {
     const c = source[i];
     if (quote) { if (escape) escape = false; else if (c === '\\') escape = true; else if (c === quote) quote = null; continue; }
@@ -20,7 +29,7 @@ function helper(name) {
   throw new Error(`Unclosed helper ${name}`);
 }
 function owner(names, context) {
-  const scope = vm.createContext(context);
+  const scope = vm.createContext({ droneActive: false, ...context });
   vm.runInContext(names.map(helper).join('\n'), scope);
   return scope;
 }
@@ -70,8 +79,8 @@ const rooms = owner(['enterInterior', 'leaveInterior'], {
   roomPeople: { load: () => {}, clear: () => {} }, roomPeopleView: { load: () => {}, clear: () => {} },
   campaignScenes: { enterInterior: (...args) => calls.push(['enter', ...args]), leaveInterior: () => calls.push(['leave']) },
   indoorCampaignScenesView: { dispose: () => calls.push(['dispose']) }, indoorActorView: null,
-  syncPlayerAppearance: () => {}, clearInput: () => {}, notify: () => {}, stopMini: () => {},
-  progression: { cancelActivity: () => {} }, cameraReady: true, activeCrewEntry: null,
+  recallDrone: () => {}, syncPlayerAppearance: () => {}, clearInput: () => {}, notify: () => {}, stopMini: () => {},
+  progression: { cancelActivity: () => {}, isSafehouse: () => false }, cameraReady: true, activeCrewEntry: null,
 });
 rooms.enterInterior(entry);
 assert.equal(calls[0][0], 'enter');
@@ -87,6 +96,119 @@ assert.equal(rooms.indoorCampaignScenesView, null);
 assert(source.includes("traceShot:tracePlayerShot,onVehicleShot:({vehicleId,damage})=>vehicleId==='player'?gameplay.damageVehicle(damage):simulation.damageVehicle(vehicleId,damage)"));
 assert(source.includes("if(event.code==='KeyL'&&!paused()){activatePower();return;}"));
 assert(source.includes("if(event.code==='KeyN'&&!paused()){toggleHeadlights();return;}"));
-assert(source.includes('attacksAllowed:canPlayerAttack()'));
+assert(source.includes('attacksAllowed:canCrewAttack()'));
 assert(source.includes('if(!person.seated&&!person.interiorId)add(person,.32)'));
 console.log('PASS city controller helpers: numeric/identity shot separation, indoor exclusion, pose-aware bridge pitch, night/manual headlights, actual room hooks/disposal and preserved power key');
+
+const tinyMap={bounds:{minX:-500,maxX:500,minZ:-500,maxZ:500},roads:[{id:'main',name:'Example Street',points:[[-400,0],[400,0]],nodes:[1,2],width:12,speed:40}],buildings:[],spawn:{x:0,z:0,yaw:0},landmarks:[]};
+const home={id:'house-fixture',type:'house',name:'Fixture house',x:0,z:10,yaw:0};
+const commerce=createProgression(tinyMap,null,{homes:[home]});commerce.state.cash=50000;
+const physical=createSimulation(tinyMap,{trafficCount:0});
+const game=createGameplay(tinyMap,physical,{hasWeapon:id=>commerce.state.equipment[id]===true});
+game.state.mode='foot';game.state.health=60;game.state.actor.x=0;game.state.actor.z=10;
+commerce.state.equipment.pistol=true;game.addAmmo(24,'pistol');
+let writes=0,menuPaused=true;
+const control=owner(['cityAction','recallDrone','stepDrone','canCrewAttack','canPlayerAttack','walkingInput','input','interact'],{
+  developerReturn:null,progression:commerce,gameplay:game,interiors:{active:null},campaignScenes:{people:[]},
+  careerContext:()=>({pose:{x:game.state.actor.x,z:game.state.actor.z},onFoot:true,health:game.state.health,vehicleHealth:100,wanted:0,respawnSerial:0,interior:control.interiors.active?{roomId:home.id}:null}),
+  saveCareer:()=>writes++,clearInput:()=>{},notify:()=>{},cityUI:{render:()=>{}},
+  closeDialogs:()=>{menuPaused=false;},paused:()=>menuPaused,isSandbox:()=>false,
+  cutscenes:{snapshot:()=>({active:false})},protectedWork:()=>false,activities:{snapshot:()=>({active:false})},streetChallenge:()=>null,micromobility:{snapshot:()=>({active:false})},
+  drone:createDrone({heightAt:()=>0}),clearRecon:()=>{},cameraReady:true,
+  moveStick:{snapshot:()=>({x:0,y:0})},keys:new Set(),touch:new Set(),footCameraYaw:0,
+  droneInput:{forward:0,right:0,lift:0,yaw:0,body:null,paused:false,interiorId:null},
+  THREE:{MathUtils:{clamp:(n,a,b)=>Math.max(a,Math.min(b,n))}},
+});
+assert(control.cityAction('buy-property',home.id).ok);assert.equal(writes,1);
+control.interiors.active=home;
+const beforeAmmo=game.inventorySnapshot().pistol;
+assert(control.cityAction('stash',{action:'deposit',kind:'ammo',id:'pistol',amount:10}).ok);
+assert.equal(writes,2);
+assert.equal(commerce.state.stashes[home.id].ammo.pistol,10);
+assert.equal(game.inventorySnapshot().pistol.ammo+game.inventorySnapshot().pistol.reserveAmmo,beforeAmmo.ammo+beforeAmmo.reserveAmmo-10);
+const noWrite=game.inventorySnapshot();
+assert.equal(control.cityAction('stash',{action:'deposit',kind:'ammo',id:'pistol',amount:1000}).ok,false);
+assert.deepEqual(game.inventorySnapshot(),noWrite);assert.equal(writes,2,'denied stash never invokes the writer or mutates inventory');
+assert(control.cityAction('stash',{action:'withdraw',kind:'ammo',id:'pistol',amount:10}).ok);
+assert.equal(writes,3,'native inventory return and successful save dispatch remain paired');
+const savedBody={mode:'foot',actor:{x:0,z:10,yaw:0},vehicle:{x:0,z:0,yaw:0,modelId:'lantern',color:'#e7e6df',health:100,stolen:false},health:60,weapon:'pistol',ammunition:game.inventorySnapshot()};
+assert(control.cityAction('stash',{action:'deposit',kind:'weapon',id:'pistol',amount:1}).ok);
+assert.equal(game.restoreProtagonist(savedBody).reason,'unowned-weapon');
+const sanitize=Function('progression','weaponById',`${helper('resumeCheckpoint')};return resumeCheckpoint;`)(commerce,weaponById);
+const resumable=sanitize(savedBody);
+assert.equal(resumable.weapon,'unarmed');assert.equal(savedBody.weapon,'pistol');
+assert.equal(resumable.ammunition,savedBody.ammunition,'only selected equipment changes; saved ammo remains exact');
+assert(game.restoreProtagonist(resumable).ok,'actual Gameplay admits a valid stashed-weapon checkpoint as unarmed');
+assert.deepEqual(game.inventorySnapshot(),savedBody.ammunition);assert.equal(game.state.health,60);
+const corrupt={...savedBody,weapon:'carbine'};
+assert.equal(sanitize(corrupt),corrupt,'unowned weapons absent from real storage remain rejected');
+assert.equal(game.restoreProtagonist(sanitize(corrupt)).reason,'unowned-weapon');
+const afterWeaponWrite=writes;
+control.developerReturn={mode:'campaign'};
+assert.equal(control.cityAction('stash',{action:'deposit',kind:'cash',amount:10}).ok,false);
+assert.equal(control.cityAction('hire','merc-river').ok,false);
+assert.equal(writes,afterWeaponWrite,'mission previews cannot persist the new commerce actions');
+control.developerReturn=null;
+control.interiors.active=null;
+assert.equal(control.cityAction('launch-drone').ok,false,'unowned drone cannot launch');
+assert.equal(control.droneActive,false);
+commerce.state.gear.drone=true;
+assert(control.cityAction('launch-drone').ok);
+assert.equal(menuPaused,false,'launch closes phone before the module checks paused context');
+assert.equal(writes,afterWeaponWrite,'transient flight never writes the career');
+const bodyBefore={...game.state.actor};
+assert.equal(control.canPlayerAttack(),false);
+assert.equal(control.canCrewAttack(),true,'guards can defend the vulnerable drone operator');
+assert.equal(Object.keys(control.walkingInput()).length,0);
+assert.equal(control.input().throttle,0);assert.equal(control.input().steer,0);
+assert.equal(control.interact(),undefined,'active drone blocks entry/interaction before body owners');
+control.keys.add('KeyW');control.stepDrone(1);
+assert(control.drone.snapshot().z<game.state.actor.z);
+assert.deepEqual(game.state.actor,bodyBefore,'flight moves the drone while the authoritative body stays behind');
+game.state.health=0;control.stepDrone(.1);
+assert.equal(control.droneActive,false,'body death recalls rather than shielding or healing the player');
+assert.equal(game.state.health,0);
+game.state.health=60;control.cityAction('launch-drone');
+const pausedFlight=control.drone.snapshot();control.drone.step(1,{paused:true});
+assert.deepEqual(control.drone.snapshot(),pausedFlight);
+assert(control.recallDrone('test'));assert.equal(control.droneActive,false);
+control.drone.dispose();assert(control.drone.snapshot().disposed);
+
+const solids=createShotObstacles({buildings:[{id:'wall',height:4,points:[[-1,-1],[1,-1],[1,1],[-1,1]]}]},{heightAt:()=>0});
+const collision=owner(['droneCanOccupy'],{world:{groundHeightAt:()=>0},shotObstacles:solids});
+assert.equal(collision.droneCanOccupy({x:0,y:3,z:0},{from:{x:0,y:3,z:-2}}),false,'real 3D building wall stops a flight sweep');
+assert.equal(collision.droneCanOccupy({x:0,y:6,z:0},{from:{x:0,y:6,z:-2}}),true,'flying above an actual roof remains legal');
+assert.equal(collision.droneCanOccupy({x:0,y:3,z:0},{from:{x:0,y:6,z:0}}),false,'descending through the roof is blocked');
+let coverQueries=0;
+const cameraCover=owner(['cameraSight'],{ordnance:{blocksSight:()=>false},traceWorldShot:ray=>{coverQueries++;return solids.trace(ray,null,[]);}});
+assert.equal(cameraCover.cameraSight({x:0,y:3,z:-3},{x:0,y:3,z:3}),false);
+assert.equal(cameraCover.cameraSight({x:0,y:6,z:-3},{x:0,y:6,z:3}),true);
+const beforeCover=coverQueries;
+assert.equal(cameraCover.cameraSight({x:0,y:3,z:0},{x:100,y:3,z:0}),false);
+assert.equal(cameraCover.cameraSight({x:0,y:3,z:0},{x:0,y:3,z:-3,interiorId:'other'}),false);
+assert.equal(coverQueries,beforeCover,'far and cross-room camera observations stop before physical queries');
+
+const hardware=createSecurityCameras([{id:'fixture-camera',x:0,z:0,yaw:0}],{heightAt:()=>0,hasLineOfSight:()=>true});
+const reports=[],sightings=[];
+const surveillance=owner(['recordCameraCrime','stepSecurityCameras','shotTargets'],{
+  securityCameras:hardware,cameraCrimeSerial:0,interiors:{active:null},focus:()=>({x:0,z:-10}),
+  gameplay:{state:{wanted:0},reportOffence:(...args)=>reports.push(args),reportSighting:event=>sightings.push(event)},
+  pedestrians:{shotTargets:()=>[]},streetDealers:{shotTargets:()=>[]},rideService:{shotTargets:()=>[]},
+});
+surveillance.stepSecurityCameras(1);assert.equal(reports.length,0,'ordinary visible walking supplies no crime receipt or stars');
+surveillance.recordCameraCrime('gunfire');surveillance.stepSecurityCameras(.5);
+assert.equal(reports.length,1);assert.equal(reports[0][0],'camera report');assert.equal(reports[0][2].witnessed,true);
+surveillance.stepSecurityCameras(1);assert.equal(reports.length,1,'one actual attack receipt reports once');
+surveillance.gameplay.state.wanted=1;surveillance.stepSecurityCameras(1);
+assert.equal(sightings.length,1,'wanted sightings update search through the owner without granting new stars');
+const cameraTarget=surveillance.shotTargets()[0];assert.equal(cameraTarget.id,'camera:fixture-camera');
+assert.equal(cameraTarget.damage(100,{interiorId:null}).destroyed,true);
+surveillance.recordCameraCrime('gunfire');surveillance.stepSecurityCameras(1);
+assert.equal(reports.length,1,'destroyed hardware cannot report new attacks');
+assert.equal(surveillance.shotTargets().length,0);
+hardware.dispose();assert.equal(hardware.snapshot().length,0);
+assert(source.includes('dialogs.push(...cityUI.dialogs)'));
+assert(source.includes('droneView?.dispose();securityCameras?.dispose();securityCamerasView?.dispose();cityUI?.dispose()'));
+assert(source.includes("event.kind==='attack'&&(event.weapon||event.hits>0)"));
+assert(source.includes("['mugging-started','robbery-started'].includes(event.type)"));
+console.log('PASS city owner adapters: native stash callbacks/writer denial, owned transient drone/body vulnerability/neutral input/pause/3D walls and roofs, evidence-only cameras, identity damage, once-only reports and disposal');
