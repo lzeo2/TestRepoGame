@@ -765,3 +765,38 @@ Keep each output fresh. Record the exported revision and byte equality against
 Git before using it; do not profile the live site as an immutable baseline.
 The profiler blocks service workers to separate renderer CPU from cache behavior;
 run the dedicated cache browser test for stored-map/offline evidence.
+
+## Repeated bridge stalls and all-mission audits
+
+Use the cache/performance contract plus the16November sustained/recovery and
+all-mission receipts. Run exact exports with the same profiler bytes/options,
+sequentially on the heavy CPU slot. `bridge-windows` is a short comparison;
+the default sustained scenario records a wall floor and a separate supplied
+simulation clock. A positive `--minimum-active-seconds` is needed to require that
+much unpaused simulation. Official Free-roam repositions are streaming fixtures.
+Retain queue settle outcomes, actual profile/Performance durations, source hashes,
+raw profiles and logical GL balances. Paused GC and transition construction are
+not steady driving samples. Do not attribute `(program)` to a JavaScript function
+or describe SwiftShader measurements as N100 frame rates.
+
+```sh
+node scripts/test_capital_water_contact.mjs
+node scripts/test_capital_local_recovery.mjs
+node scripts/test_capital_campaign_retry.mjs
+node scripts/test_capital_retry_controller.mjs
+node scripts/test_capital_shop_staff.mjs
+node scripts/test_capital_covered_road_routes.mjs
+node scripts/test_capital_campaign_playability.mjs --output ../capital-drive-evidence/all-mission-report.json
+python3 -B scripts/profile_capital_sustained.py --root ../capital-drive-evidence/baseline-export --output ../capital-drive-evidence/bridge-baseline --scenario bridge-windows --mode streaming-stress --quality low
+python3 -B scripts/profile_capital_sustained.py --root ../capital-drive-evidence/candidate-export --output ../capital-drive-evidence/bridge-candidate --scenario bridge-windows --mode streaming-stress --quality low
+python3 -B scripts/profile_capital_sustained.py --root ../capital-drive-evidence/candidate-export --output ../capital-drive-evidence/sustained-candidate --seconds 390 --mode streaming-stress --quality low
+```
+
+Create the external report parent first. The campaign harness seeds explicit
+normal progress prefixes, not developer previews, and runs actual domain inputs
+through normal completion/reward/save owners. Keep fixture travel/police clearing
+visible, retain blocked road probes and distinguish objective-disc intersections
+from a GPS endpoint. Supplied Dot strikes do not prove player damage survival or
+Gameplay melee admission. Assumed-speed route margins are planning estimates,
+not measured mission times or human ease. Inspect a missing employee's real
+furniture/door/aisle clearance before changing collision or granting a robbery.

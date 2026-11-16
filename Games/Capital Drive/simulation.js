@@ -1,4 +1,5 @@
 import { roadProfile } from './road-network.js';
+import { prepareWaterRing } from './water-contact.js';
 import { createTrafficLights } from './traffic-lights.js';
 import { BY_ID } from '../../assets/car-arcade/fleet.js';
 // Coordinates are metres east/south; yaw matches THREE.Object3D.rotation.y.
@@ -52,7 +53,7 @@ class SpatialGrid {
 }
 
 // Shared OSM node IDs connect ways. Coordinate keys also join clipped/fallback data.
-export function buildRoadGraph(roads) {
+export function buildRoadGraph(roads, { excludeSegment = () => false } = {}) {
   const nodes = new Map(), edges = [], segments = [];
   const coordinates = new Map();
   function nodeFor(road, i) {
@@ -76,6 +77,7 @@ export function buildRoadGraph(roads) {
       if (from === to) continue;
       const segment = { road, a: road.points[i], b: road.points[i + 1], index: i, edges: [] };
       segments.push(segment);
+      if (excludeSegment(segment)) continue;
       if (road.oneway !== -1) addEdge(from, to, road, segment, 1);
       if (road.oneway !== 1) addEdge(to, from, road, segment, -1);
     }
@@ -132,8 +134,42 @@ function insideRing(x,z,points){
   return inside;
 }
 
+// The retained Centre outline models its covered Bunda passage as a solid.
+// Keep that source geometry visible, but route around this proven mismatch,
+// Include source-adjacent approaches whose endpoints lie on the solid facade.
+function coveredCentreRoutingGuard(map) {
+  const building = (map.buildings || []).find(item => item.id === 'osm-46081156');
+  const covered = (map.roads || []).find(road => road.sourceId === 'way/347384260' && road.sourceTags?.covered === 'yes');
+  if (!building?.points?.length || building.type === 'roof' || !covered ||
+      (map.collisionReplacedBuildingIds || []).includes(building.id)) return () => false;
+  const approaches = new Set(['way/347384260', 'way/380074148', 'way/701312042']);
+  const rings = [building.points, ...(building.innerRings || []).map(hole => hole.points || hole)];
+  return segment => {
+    if (!approaches.has(segment.road.sourceId) || Number(segment.road.sourceTags?.layer || 0) > 0 || segment.road.sourceTags?.bridge === 'yes') return false;
+    const [ax, az] = segment.a, dx = segment.b[0] - ax, dz = segment.b[1] - az, cuts = [0, 1];
+    const onBoundary = (x, z) => rings.some(ring => ring.some((a, j) => projectSegment(x, z, a, ring[(j + 1) % ring.length]).distance < 1e-7));
+    // Both retained passage endpoints lie exactly on the solid facade. A car
+    // cannot occupy that shared node, so its connecting approach must close too.
+    if (onBoundary(ax, az) || onBoundary(segment.b[0], segment.b[1])) return true;
+    for (const ring of rings) for (let i = 0; i < ring.length; i++) {
+      const a = ring[i], b = ring[(i + 1) % ring.length], ex = b[0] - a[0], ez = b[1] - a[1];
+      const denominator = dx * ez - dz * ex;
+      if (Math.abs(denominator) < 1e-9) continue;
+      const t = ((a[0] - ax) * ez - (a[1] - az) * ex) / denominator;
+      const u = ((a[0] - ax) * dz - (a[1] - az) * dx) / denominator;
+      if (t > 0 && t < 1 && u >= 0 && u <= 1) cuts.push(t);
+    }
+    cuts.sort((a, b) => a - b);
+    return cuts.slice(1).some((end, i) => {
+      if (end - cuts[i] < 1e-9) return false;
+      const t = (cuts[i] + end) / 2, x = ax + dx * t, z = az + dz * t;
+      return onBoundary(x, z) || (insideRing(x, z, building.points) && !rings.slice(1).some(ring => insideRing(x, z, ring)));
+    });
+  };
+}
+
 export function createSimulation(map, options = {}) {
-  const graph = buildRoadGraph(map.roads || []);
+  const graph = buildRoadGraph(map.roads || [], { excludeSegment: coveredCentreRoutingGuard(map) });
   const trafficLights = createTrafficLights(map, graph, options.trafficSignals || map.trafficSignals);
   const roadIndex = new SpatialGrid(80), buildingIndex = new SpatialGrid(48), waterIndex = new SpatialGrid(128), barrierIndex = new SpatialGrid(32);
   const replacedColliders=new Set(map.collisionReplacedBuildingIds||[]);
@@ -154,9 +190,10 @@ export function createSimulation(map, options = {}) {
     if(!barrier.points?.length)continue;
     barrierIndex.insert(barrier,Math.min(...barrier.points.map(p=>p[0])),Math.min(...barrier.points.map(p=>p[1])),Math.max(...barrier.points.map(p=>p[0])),Math.max(...barrier.points.map(p=>p[1])));
   }
-  const waterEdges=new SpatialGrid(128),waterMask=new WeakMap();
+  const waterEdges=new SpatialGrid(128),waterMask=new WeakMap(),waterRings=new WeakMap();
   for(const area of map.areas||[]){
     if(area.type!=='water')continue;
+    waterRings.set(area,{outer:prepareWaterRing(area.points||[]),holes:(area.innerRings||[]).map(r=>prepareWaterRing(r.points||r))});
     for(const ring of [area.points,...(area.innerRings||[]).map(r=>r.points||r)]){
       if(!ring)continue;
       for(let i=0,j=ring.length-1;i<ring.length;j=i++){
@@ -184,7 +221,7 @@ export function createSimulation(map, options = {}) {
       return polygonContact(x,z,polygon.points,radius);
     }
     if(options.isOnBridge?.(x,z,radius))return null;
-    const holes=(polygon.innerRings||[]).map(r=>r.points||r);
+    const {outer,holes}=waterRings.get(polygon);
     const cx=Math.floor(x/128),cz=Math.floor(z/128),key=`${cx},${cz}`;
     if(!waterMask.has(polygon))waterMask.set(polygon,new Map());
     const cache=waterMask.get(polygon);
@@ -192,13 +229,13 @@ export function createSimulation(map, options = {}) {
     if(mask===undefined){
       const px=(cx+.5)*128,pz=(cz+.5)*128;
       const boundary=[...waterEdges.query(px,pz,96)].some(edge=>edge.area===polygon);
-      mask=boundary?'edge':insideRing(px,pz,polygon.points)&&!holes.some(r=>insideRing(px,pz,r))?'water':'land';
+      mask=boundary?'edge':outer.contains(px,pz)&&!holes.some(r=>r.contains(px,pz))?'water':'land';
       cache.set(key,mask);
     }
     if(mask==='land')return null;
     if(mask==='water')return {nx:1,nz:0,depth:radius};
-    for(const ring of holes)if([[0,0],[radius,0],[-radius,0],[0,radius],[0,-radius]].every(([dx,dz])=>insideRing(x+dx,z+dz,ring)))return null;
-    return polygonContact(x,z,polygon.points,radius);
+    for(const ring of holes)if([[0,0],[radius,0],[-radius,0],[0,radius],[0,-radius]].every(([dx,dz])=>ring.contains(x+dx,z+dz)))return null;
+    return outer.contact(x,z,radius);
   }
   const parkedCars = [], abandonedCars = [];
   let externalVehicles = [], peopleIndex = new SpatialGrid(8);

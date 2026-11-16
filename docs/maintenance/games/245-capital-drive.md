@@ -15,6 +15,12 @@ artwork or branded vehicle assets are used.
 
 ## Implementation map
 
+The [sustained bridge/recovery receipt](../../verification/capital-drive-sustained-bridges-2026-11-16.md)
+records exact water-segment indexing, local medical recovery, transient automatic
+mission retry and pruning of expired occupant poses. The [all-mission audit](../../verification/capital-drive-campaign-playability-2026-11-16.md)
+records normal objective chains for all20missions, a missing-employee repair and
+explicit travel/survival/difficulty limits. It is not20native playthroughs.
+
 The [combat/recon contract](../../capital-drive-combat-and-recon-contract.md)
 records vertical mouse/keyboard/touch aiming, physical shot cover and adult body
 hits, supplied-time muzzle/audio/reticle feedback, stable frame scheduling,
@@ -37,6 +43,8 @@ estimated; traffic cars do not deform and terminal interiors/airline services ar
   reactive traffic cars (cap 56), bounded overtaking/road rage, vehicle claims,
   parked/abandoned descriptors, polygon line of sight and safe teleport. A bounded
   live adult-body index checks moving cars as well as people walking into cars.
+- `water-contact.js`: immutable source water-ring segment trees for exact parity
+  and nearest contacts; no simplified shoreline or per-position result cache.
 - `ride-service.js`/`ride-service-view.js`: one physical NPC-driven Yoober car,
   quoted phone bookings, single boarding debit, clear stopped exits and pooled
   driver-fare waiting/seated passengers. Progression owns repeatable paid fares.
@@ -792,14 +800,20 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The current reusable runner checks96game JavaScript files and126pure Node suites
-plus two Python cache checks (351 syntax/source commands), fails on missing files or command errors and bounds
-subprocess lifetimes. The [combat/recon receipt](../../verification/capital-drive-combat-recon-2026-11-15.md) records the latest source/native run. The [crew/city/flight receipt](../../verification/capital-drive-crew-city-flight-2026-11-15.md) retains the preceding release,
+The current reusable runner checks 97 game JavaScript files and 133 pure Node suites,
+three support-script syntax entries and two Python cache checks (369 syntax/source
+commands), fails on missing files or command errors and bounds subprocess
+lifetimes. The [sustained bridge/recovery receipt](../../verification/capital-drive-sustained-bridges-2026-11-16.md)
+records current source and profiling results; the [all-mission audit](../../verification/capital-drive-campaign-playability-2026-11-16.md)
+separates objective-chain passes from native completion and estimated difficulty.
+The [combat/recon receipt](../../verification/capital-drive-combat-recon-2026-11-15.md) retains the preceding source/native run. The [crew/city/flight receipt](../../verification/capital-drive-crew-city-flight-2026-11-15.md) retains its earlier release,
 while the earlier230/230 story/streaming and220/220 city-life results remain
 separately dated. Browser
 QA uses normal keyboard/mouse/touch events; explicit negative fixtures cover
 unavailable WebGL, denied storage and hidden teleport guards. Actual-map physics
-uses 28,323 nodes /48,290 directed edges /40 traffic cars. Current Street Life
+has 28,323 source nodes /48,290 unfiltered directed edges /40 traffic cars;
+the current route graph omits the confirmed blocked Bunda travel arcs while
+retaining source road metadata and collision. Current Street Life
 browser evidence, pictures, source milestones and dated fleet limits are recorded
 in the [Street Life receipt](../../verification/capital-drive-street-life-2026-11-13.md).
 Historical 12/13 November receipts remain separately dated.

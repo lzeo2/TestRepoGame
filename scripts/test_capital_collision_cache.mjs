@@ -6,19 +6,21 @@ import { performance } from 'node:perf_hooks';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { applyRoadProfiles } from '../Games/Capital Drive/road-network.js';
 import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
+import { withCurrentRouting } from './capital-collision-baseline.mjs';
 
 // No persistent result cache: geometry, bridge callbacks and every live body
 // remain authoritative on the next query. Only temporary edge records disappear.
 const baselineRevision = '3695a9a7000807567f76cf074cd70e67984894f5';
 const sourceURL = new URL('../Games/Capital Drive/simulation.js', import.meta.url);
 const source = await readFile(sourceURL, 'utf8');
-const baselineSource = execFileSync('git', ['show', `${baselineRevision}:Games/Capital Drive/simulation.js`],
-  { cwd: new URL('../', import.meta.url), encoding: 'utf8', maxBuffer: 1024 * 1024 });
+const baselineSource = withCurrentRouting(execFileSync('git', ['show', `${baselineRevision}:Games/Capital Drive/simulation.js`],
+  { cwd: new URL('../', import.meta.url), encoding: 'utf8', maxBuffer: 1024 * 1024 }), source);
 const importSource = text => text.replace(/from ['"]([^'"]+)['"]/g, (_, path) => `from ${JSON.stringify(new URL(path, sourceURL).href)}`);
 const measuredModule = async text => {
   const measured = importSource(text)
     .replace('query(x, z, radius) {', 'query(x, z, radius) { collisionMetrics.queries++;')
-    .replace('function polygonContact(x, z, points, radius) {', 'function polygonContact(x, z, points, radius) { collisionMetrics.polygons++;');
+    .replace('function polygonContact(x, z, points, radius) {', 'function polygonContact(x, z, points, radius) { collisionMetrics.polygons++;')
+    .replace('return outer.contact(x,z,radius);', 'collisionMetrics.polygons++;return outer.contact(x,z,radius);');
   return import(`data:text/javascript;base64,${Buffer.from(`${measured}\nexport const collisionMetrics={queries:0,polygons:0};`).toString('base64')}`);
 };
 const { createSimulation: baselineSimulation, collisionMetrics: baselineMetrics } = await measuredModule(baselineSource);

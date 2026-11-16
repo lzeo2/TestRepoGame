@@ -21,22 +21,22 @@ export function createInteriorPeople() {
   let plan = null, people = [], elapsed = 0, crime = null, reportCooldown = 0, encounterSerial = 0, encounterState = null;
   const events = [], shotBodies=[];
   const employee = p => ['cashier', 'shopkeeper', 'cook'].includes(p.role);
-  function protectedPoint(p) {
+  function protectedPoint(p, staff = false) {
     const q = local(plan.origin,p);
     if (Math.abs(q.x) < (plan.type === 'mall' ? 1.1 : .96)) return true;
     if ((plan.doors || []).some(d => Math.hypot(d.x-p.x,d.z-p.z) < (d.width || 1.5)/2+.45)) return true;
-    if (point(plan.counter) && Math.hypot(plan.counter.x-p.x,plan.counter.z-p.z) < 1.45) return true;
+    if (!staff && point(plan.counter) && Math.hypot(plan.counter.x-p.x,plan.counter.z-p.z) < 1.45) return true;
     if (point(plan.exercise) && Math.hypot(plan.exercise.x-p.x,plan.exercise.z-p.z) < 1.7) return true;
     return (plan.activities || []).some(a => Math.hypot(a.x-p.x,a.z-p.z) < Math.min(1.1,a.radius || 1));
   }
-  function clearPoint(p, seat = null) {
-    if (!point(p) || protectedPoint(p)) return false;
+  function clearPoint(p, seat = null, staff = false) {
+    if (!point(p) || protectedPoint(p, staff)) return false;
     const q = local(plan.origin,p);
     if (Math.abs(q.x)>plan.width/2-BODY_RADIUS-.15 || q.z < .6 || q.z>plan.depth-.5) return false;
     return ![...(plan.walls || []), ...(plan.furniture || [])].some(b => b !== seat && touches(p,b,seat ? .21 : BODY_RADIUS+.08));
   }
-  function add(role, position, {seat = null, target = null, yaw = plan.origin.yaw, gesture = 'idle', character = null} = {}) {
-    if (people.length >= LIMIT || !clearPoint(position,seat) || people.some(p=>Math.hypot(p.x-position.x,p.z-position.z)<.8)) return false;
+  function add(role, position, {seat = null, target = null, yaw = plan.origin.yaw, gesture = 'idle', character = null, staff = false} = {}) {
+    if (people.length >= LIMIT || !clearPoint(position,seat,staff && employee({role})) || people.some(p=>Math.hypot(p.x-position.x,p.z-position.z)<.8)) return false;
     if (target) {
       for (let i=0;i<=8;i++) if (!clearPoint({x:position.x+(target.x-position.x)*i/8,z:position.z+(target.z-position.z)*i/8})) return false;
     }
@@ -48,6 +48,16 @@ export function createInteriorPeople() {
       roomId:plan.id, storeId:plan.storeId || null,
       gesture, phase:index*1.73, speed:0, home:{x:position.x,z:position.z},target,progress:0,direction:1});
     return true;
+  }
+  function counterStaff(counter) {
+    // Source shop variants place counters against a wall. Check the rear end
+    // first, then the exposed serving edge; the player interaction circle is
+    // not a solid, but every real prop, doorway and activity keeps its clearance.
+    const positions = [[0, counter.depth/2+.65], [0, counter.depth/2+.4]];
+    for (const sign of [-1, 1]) for (const z of [0, -.6, .6]) positions.push([sign*(counter.width/2+.4), z]);
+    for (const [x,z] of positions) if (add('shopkeeper',world(counter,x,z),
+      {yaw:counter.yaw+Math.PI,gesture:'serve',staff:true})) return true;
+    return false;
   }
   function pocket(role, x, z, walk = false, gesture = 'idle') {
     const a = world(plan.origin,x,z), b = walk ? world(plan.origin,x,z+.65) : null;
@@ -79,7 +89,7 @@ export function createInteriorPeople() {
     } else if (plan.type === 'mall') {
       for (const side of [-1,1]) for (const z of [4,9,17,21]) pocket('visitor',side*1.85,z,true);
       for (const counter of furniture.filter(f=>f.kind==='counter')) {
-        const p = world(counter,0,counter.depth/2+.65); add('shopkeeper',p,{yaw:counter.yaw+Math.PI,gesture:'serve'});
+        counterStaff(counter);
       }
     } else if (plan.type === 'school') {
       for (const side of [-1,1]) {
@@ -95,7 +105,7 @@ export function createInteriorPeople() {
       }
     } else {
       const counter = furniture.find(f=>f.kind==='counter');
-      if (counter) add('shopkeeper',world(counter,0,counter.depth/2+.65),{yaw:counter.yaw+Math.PI,gesture:'serve'});
+      if (counter) counterStaff(counter);
       for (const side of [-1,1]) {
         for (const z of [2.8,4.8,6.3]) if (pocket('customer',side*1.45,z,true,'browse')) break;
       }

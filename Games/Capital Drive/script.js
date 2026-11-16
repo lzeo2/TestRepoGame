@@ -161,7 +161,7 @@ let carShadowGeometry, carShadowMaterial;
 let mapSelection = null, mapDrag = null;
 const mapView = { zoom: 1, x: null, z: null };
 const pedestrianFocus={id:'player',x:0,z:0,yaw:0,speed:0};
-const occupantPoses=new Map(),occupantInputs=[];
+const occupantPoses=new Map(),occupantInputs=[],occupantIds=new Set();
 const pedestrianContacts=[],externalPeopleContacts=[],auxiliaryContacts=[];
 const playerContact={id:'player-body',x:0,z:0,radius:.35};
 const activityUI=createActivityUI();
@@ -712,6 +712,18 @@ function startCampaignMission(){
   const result=campaign.start(careerContext());
   if(result.ok){if(campaign.state.active.combat===false)gameplay.setWeapon('unarmed');closeDialogs();routeTo(campaignNavigationTarget());}else notify(result.message);
 }
+function retryCampaignMission(){
+  if(!started||gameMode!=='campaign'||paused()||developerReturn||aircraft?.active||
+    gameplay.state.recovery||gameplay.state.health<=0||!campaign.retryPending)return false;
+  const result=campaign.retry(careerContext());
+  if(!result.ok)return false;
+  stopMini();clearRecon();clearInput();campaignScenes?.clear();
+  if(interiors.active){activities.load(interiors.active);roomPeople.load(interiors.active);}
+  if(campaign.state.active.combat===false)gameplay.setWeapon('unarmed');
+  routeTo(campaignNavigationTarget());
+  notify(`Retrying ${campaign.state.active.name}.`);
+  return true;
+}
 function playCampaignIntro(){
   if(aircraft?.active)return;
   if(developerReturn?.blocked){notify('Retry return in Pause > Developer before starting another mission.');return;}
@@ -1193,6 +1205,7 @@ for (const button of document.querySelectorAll('[data-game-mode]')) button.addEv
 $('change-mode-button').addEventListener('click', () => {
   if(aircraft?.active){notify('Land and leave the jet before changing modes.');return;}
   if(developerReturn){campaign.cancel();if(!finishDeveloperPreview(true))return;}
+  campaign.cancel();campaign.drainEvents();clearRecon();
   aircraft?.reset();ordnance?.reset();heroPowers.cancelActive();vehicleDamage.reset();
   saveCareer();closeDialogs();tutorial=createTutorial(tutorial.serialize());tutorialRunning=false;tutorialVisible=false;tutorialStamp='';started=false;setGameControls(false);syncTutorial();clearInput();$('start-panel').hidden=false;
   document.body.classList.add('intro-open');
@@ -1905,6 +1918,7 @@ function updateCareer() {
     if (['job-complete','penalty','robbery-complete','mugging-complete','workout-complete'].includes(event.type)) saveCareer();
   }
   finishDeveloperPreview();
+  retryCampaignMission();
   if (isSandbox()) return;
   const target = gameMode==='campaign'?(campaign.state.active?campaignNavigationTarget():null):progression.state.activeJob?.target;
   const key = target ? `${target.x},${target.z}:${target.label||target.name||''}` : '';
@@ -2023,7 +2037,9 @@ function animate(time) {
   equipmentView?.update(equipment.snapshot(),p);
   wildlifeView?.update(p,activeDt);noodleShopView?.update(p,activeDt);
   occupantInputs.length=0;
+  occupantIds.clear();
   const seated=(car,occupied,modelId=car.modelId,personId=car.personId??car.id)=>{
+    occupantIds.add(car.id);
     let pose=occupantPoses.get(car.id);if(!pose){pose={id:car.id};occupantPoses.set(car.id,pose);}
     pose.x=car.x;pose.z=car.z;pose.yaw=car.yaw;pose.modelId=modelId;pose.personId=personId;pose.active=car.active;pose.occupied=occupied;occupantInputs.push(pose);
   };
@@ -2031,6 +2047,7 @@ function animate(time) {
   for(const car of simulation.traffic)seated(car,true);
   for(const officer of gameplay.state.police)if(officer.health>0&&officer.car)seated(officer.car,officer.mode==='vehicle','relay','police');
   for(const car of rideService?.vehicles||[])if(car.active)seated(car,car.occupied!==false,car.modelId,'yoober-driver-npc');
+  for(const id of occupantPoses.keys())if(!occupantIds.has(id))occupantPoses.delete(id);
   occupantsView?.update(activeDt,{focus:p,cars:occupantInputs});
   if (++frameCount % 8 === 0) {
     world.update(p, time / 1000); neighbourhood?.update(p); landmarkView?.update(p, time / 1000);storefrontsView?.update(p);shoppingView?.update(p);campusView?.update(p);civicView?.update(p);civicExtrasView?.update(p);
@@ -2308,7 +2325,7 @@ async function boot() {
     visibleTraffic: trafficView.stats.visible||0,trafficView:Object.freeze({...trafficView.stats}), destination: destination?.id ?? null, routePoints: route.length,routePath:freezeCopy(route.map(p=>({x:p[0],z:p[1]}))),streetDealers:freezeCopy({services:streetDealers.services,people:streetDealers.snapshot(),view:dealerView.stats}),
     mapSelection: mapSelection ? Object.freeze({ ...mapSelection }) : null,
     mapView: Object.freeze({ zoom: mapView.zoom, ...map.bounds, x: fullMapProjection().cx, z: fullMapProjection().cz, scale: fullMapProjection().scale }),
-    rendering: Object.freeze({ frames:renderedFrames,calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, quality, compatibility }), world: Object.freeze({ ...world.stats }),
+    rendering: Object.freeze({ frames:renderedFrames,calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, occupantPoseCacheSize:occupantPoses.size, quality, compatibility }), world: Object.freeze({ ...world.stats }),
     pedestrians: Object.freeze({ ...pedestrians.stats, sample: Object.freeze(pedestrians.snapshot().slice(0,8)),routineSample:freezeCopy(pedestrians.snapshot().filter(p=>['coffee','work'].includes(p.ambient)).slice(0,12)) }), neighbourhood: Object.freeze({ ...neighbourhood.stats }),
     landmarks: Object.freeze({ ...landmarkView.stats }), actors: Object.freeze({ ...actorView.stats }),
     services:freezeCopy(progression.services),activity:freezeCopy(progression.state.activity),

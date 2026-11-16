@@ -37,6 +37,11 @@ airport, backyards, weather and car damage also read
 Vertical shooting, camera feedback, deliberate recon, evidence tasks and modern
 Pink Earmuffs fights also read `docs/capital-drive-combat-and-recon-contract.md`
 and its linked verification receipt.
+Sustained bridge stalls, medical placement, automatic mission retry and all-mission
+audits also read `docs/verification/capital-drive-sustained-bridges-2026-11-16.md`
+and `docs/verification/capital-drive-campaign-playability-2026-11-16.md` alongside
+the cache/performance contract. Normal domain-chain completion is not native
+travel, survival or human difficulty evidence.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -236,3 +241,21 @@ callbacks and actual renders. Compare collisions against the pinned pre-optimiza
 implementation, with unchanged trajectories and contacts. Never gain speed by
 removing collision or silently dropping traffic. Static paused views render once;
 queued geometry, settings changes, caption scenes and live tracking still refresh.
+
+For a repeat-bridge report use `profile_capital_sustained.py` on exact exports.
+Keep the same source pose, camera, quality and viewport. Record actual profile /
+Performance durations because an8-second timer can overrun under load. The
+streaming fixture uses official map clicks, not natural travel; separate wall
+time from supplied simulation time, transition construction and paused forced GC.
+Weak GL balance counters are logical objects, not bytes or device RAM. Preserve
+water contact/trajectory equivalence and bridge openings when indexing source
+shorelines. Run one CPU-heavy browser, source gate or benchmark at a time.
+
+Campaign retries are transient failed attempts, not saved completion or world
+rollback. Recovery must finish first; clear old activity/recon/crew state and use
+fresh receipt baselines. Cancel/mode/hero changes stop retry. Keep costs, timeout
+health/ammo and completed progress with their real owners. Medical placement uses
+the captured actual exterior/seat location and checked nearby roads, not a fixed
+distant district. For all-mission audits retain normal prefix fixtures, actual
+domain action inputs, route/clearance holds and explicit police/travel assumptions.
+Never turn source-domain passes or assumed-speed margins into20native wins.
