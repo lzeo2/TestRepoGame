@@ -833,7 +833,7 @@ export function createSimulation(map, options = {}) {
     return [player, ...traffic, ...parkedIndex.query(x,z,radius), ...abandonedCars].filter(car => car.active !== false &&
       Math.hypot(x - car.x, z - car.z) <= radius).map(car => ({ id: car.id, x: car.x, z: car.z, yaw: car.yaw,
         modelId: car.modelId, color: car.color, personId: car.personId ?? car.id,
-        health: car.health ?? 100, disabled: car.health === 0, active: true, occupied: traffic.includes(car), unlocked: car === player || abandonedCars.includes(car), speed: car.speed || 0 }));
+        health: car === player ? undefined : car.health ?? 100, disabled: car !== player && car.health === 0, active: true, occupied: traffic.includes(car), unlocked: car === player || abandonedCars.includes(car), speed: car.speed || 0 }));
   }
   function damageVehicle(id, amount) {
     if (id === 'player' || !Number.isFinite(amount) || amount <= 0) return false;
@@ -859,9 +859,9 @@ export function createSimulation(map, options = {}) {
     const stolen = !abandonedCars.includes(car);
     abandonedCars.push(prior);
     car.active = false; car.speed = 0;
-    Object.assign(player, { x: car.x, z: car.z, yaw: car.yaw, modelId: car.modelId, color: car.color, health: car.health ?? 100,
+    Object.assign(player, { x: car.x, z: car.z, yaw: car.yaw, modelId: car.modelId, color: car.color,
       speed: 0, vx: 0, vz: 0, steer: 0 });
-    return { ok: true, vehicle: nearbyVehicles(player.x, player.z, 0).find(item => item.id === 'player'), stolen, reason: 'claimed' };
+    return { ok: true, vehicle: { ...nearbyVehicles(player.x, player.z, 0).find(item => item.id === 'player'), health: car.health ?? 100 }, stolen, reason: 'claimed' };
   }
   function moveActor(actor, dx, dz, radius = 0.45) {
     if (!actor || ![actor.x, actor.z, dx, dz, radius].every(Number.isFinite) || radius <= 0) return { moved: false, blocked: true, distance: 0 };
