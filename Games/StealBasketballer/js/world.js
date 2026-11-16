@@ -160,7 +160,9 @@ export class World {
   buildHotspots() {
     this.bases.forEach((b,i)=>{
       const pos=this.basePosition(i);const deposit=xyz(b.deposit,[pos.x,pos.y,pos.z+b.front*15]);this.hotspots.push({kind:'base',id:`base-${i}`,base:i,rivalIndex:i>0?i-1:undefined,name:i===0?'Your team':'Rival team',x:deposit[0],y:deposit[1],z:deposit[2],radius:14});
-      this.addLabel(i===0?'YOUR TEAM · HOME':`NPC RIVAL ${i}`,new THREE.Vector3(deposit[0],deposit[1]+8,deposit[2]),16);
+      // Raised so the open-world camera ray clears the sprite: at +8 the
+      // base banner occluded the avatar standing on the base spawn.
+      this.addLabel(i===0?'YOUR TEAM · HOME':`NPC RIVAL ${i}`,new THREE.Vector3(deposit[0],deposit[1]+14,deposit[2]),16);
       this.hotspots.push({kind:'pitch',id:`pitch-${i}`,base:i,name:'Home court',x:pos.x,y:pos.y,z:pos.z+b.front*12.6,radius:5});
     });
     if(this.worldData.rivalBase){const b=this.worldData.rivalBase,p=xyz(b.deposit||b.position);this.hotspots.push({kind:'base',id:'practice-base',base:12,rivalIndex:11,name:'Practice five',x:p[0],y:p[1],z:p[2],radius:14});}

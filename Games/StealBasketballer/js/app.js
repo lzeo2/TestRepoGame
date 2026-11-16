@@ -95,7 +95,9 @@ function travel(target) {
   if(state.carry){toast('Carry your stolen basketballer home on foot, or drop them.');return;}
   if(match&&!match.finished){toast('Use the spectator controls during your match.');return;}
   const base=worldData.bases[0];world.teleport(target==='pitch'?base.pitch.spawn:base.spawn);
-  camera={...camera,mode:'avatar',yaw:0};world.setCamera(camera);toast(target==='pitch'?'Your home court':'Your base');
+  // Return to the open-world zoom: the battle camera's .85 leaves the avatar
+  // fully behind the base banner after RETURN HOME.
+  camera={...camera,mode:'avatar',yaw:0,zoom:1};world.setCamera(camera);toast(target==='pitch'?'Your home court':'Your base');
 }
 function playerCard(p,controls='owned',index=0) {
   const def=p.def||game.catalog.get(p.id)||p,stats=p.stats||def.stats||{};
