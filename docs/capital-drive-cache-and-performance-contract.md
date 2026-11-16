@@ -140,6 +140,81 @@ Low. An explicit saved choice overrides detection through a separate small
 retain source geometry/colliders; Performance trades image resolution/frame cap
 for lower graphics work. Targets are limits, not hardware performance guarantees.
 
+## Sustained bridge collision and bounded retained state, 16 November 2026
+
+Lake-edge water tests used to walk the whole 2,491-vertex outer shoreline for
+each physical contact. Bridge profiles attributed most sampled JavaScript work
+there, despite lower rendered geometry than at Telopea. `water-contact.js` now
+prepares immutable water-ring segment trees once. Z-filtered parity and
+branch-and-bound nearest-edge lookup retain the existing projection, winding,
+source-order tie, normal and depth results. Bridge openings are checked first;
+building/barrier contacts remain live and unchanged. Do not replace this with
+per-position result caching or simplify the lake collision shape for speed.
+
+The deterministic water regression requires exact old/new contacts and trajectories
+over actual shoreline/island/bridge cases and a repeated 40-car bridge replay.
+Node wall time is observational. The controller also prunes seated-occupant pose
+entries after descriptors disappear, including expired patrol IDs; shared model
+resources retain their separate lifetime. This small retention correction is not
+the demonstrated primary bridge bottleneck.
+
+Use `scripts/profile_capital_sustained.py` for paired exact exports. The short
+`--scenario bridge-windows` compares first Telopea, Commonwealth, Kings and return
+Telopea windows. The default sustained scenario uses a wall-time floor of at least
+six minutes and separately records actual supplied simulation-clock advancement.
+Official Free-roam map clicks are explicit streaming stress fixtures, not natural
+driving. Queue drain, map/teleport construction profiles and paused forced-GC
+memory probes are separated from active windows. Keep source/load hashes, raw
+profiles, actual sampling duration and render counts. Requested 8-second timers
+can overrun during stalls. Weak GL ownership counters count logical live objects,
+not GPU bytes; CPU/process/heap numbers on SwiftShader do not certify an N100.
+
+```sh
+node scripts/test_capital_water_contact.mjs
+node scripts/test_capital_collision_cache.mjs
+python3 -B scripts/profile_capital_sustained.py --root ../capital-drive-evidence/baseline-export --output ../capital-drive-evidence/bridge-baseline --scenario bridge-windows --mode streaming-stress --quality low
+python3 -B scripts/profile_capital_sustained.py --root ../capital-drive-evidence/candidate-export --output ../capital-drive-evidence/bridge-candidate --scenario bridge-windows --mode streaming-stress --quality low
+python3 -B scripts/profile_capital_sustained.py --root ../capital-drive-evidence/candidate-export --output ../capital-drive-evidence/sustained-candidate --seconds 390 --mode streaming-stress --quality low
+```
+
+Run those browser commands sequentially on the shared CPU lease. Baseline and
+candidate exports must include the exact game, shared cars/fonts and root favicon.
+Use fresh external output directories. A positive `--minimum-active-seconds`
+also requires that much supplied simulation time; wall time alone never proves
+five minutes of unpaused simulation.
+
+## Routing around the modelled Centre obstruction
+
+Campaign-route auditing also found a separate Canberra Centre modelling mismatch:
+its retained solid footprint overlaps the real covered Bunda Street. A bounded
+source-pinned graph guard avoids the intersecting Bunda travel edges and their
+inside-footprint approaches, retaining all source road segments, visible geometry
+and physical collision. GPS and the shared traffic/service route graph use the
+detour. This is avoidance of the game's blocked undercroft, not a claim that the
+real street is closed or that its final architectural model has been corrected.
+Keep exact segment/boundary/courtyard and source-identity negative controls; do
+not remove a whole building or permit vehicles through solid walls to pass tests.
+
+## Medical location and automatic campaign retries
+
+Medical recovery captures the actual exterior player/seat position before room
+or vehicle callbacks clear it. After the existing delayed recovery it checks the
+nearest mapped public road, then collision-checked fallback roads. It no longer
+requests Woden. Costs, arrest placement and completed progress keep their owners.
+This is local recovery placement, not a claim that real hospitals are mapped.
+
+The campaign owner retains a transient failed normal attempt on timeout or
+recovery. The controller automatically restarts it at stage zero only when alive,
+unpaused and recovered in Campaign. It resets the deadline, action baselines,
+activities, recon and crew, without repeating its cutscene, moving the player,
+rolling back the world, restoring timeout health/ammo or granting completed
+progress. A recovery finishes before retry starts. Current controlled shared-crew
+identity survives. Cancel, a successful manual start, hero selection or a mode
+change clears pending retries; previews never queue normal retries. Pending
+attempts are not serialized. Keep stale-receipt, repeated-failure and once-only
+reward checks. See the [all-mission audit](verification/capital-drive-campaign-playability-2026-11-16.md)
+for what normal objective-chain tests establish and what still needs native play.
+
 ## Reproduce
 
 ```sh
