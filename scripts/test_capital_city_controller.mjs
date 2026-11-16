@@ -8,6 +8,9 @@ import { createProgression } from '../Games/Capital Drive/progression.js';
 import { createGameplay } from '../Games/Capital Drive/gameplay.js';
 import { createSimulation } from '../Games/Capital Drive/simulation.js';
 import { weaponById } from '../Games/Capital Drive/weapons.js';
+import { createBuses } from '../Games/Capital Drive/buses.js';
+import { createRideService } from '../Games/Capital Drive/ride-service.js';
+import { BY_ID } from '../assets/car-arcade/fleet.js';
 
 // Execute exact controller helpers with bounded owner doubles. This is adapter
 // evidence, not a browser boot, native travel or graphics performance claim.
@@ -93,7 +96,7 @@ rooms.leaveInterior();
 assert(calls.some(call => call[0] === 'leave'));
 assert(calls.some(call => call[0] === 'dispose-leave'));
 assert.equal(rooms.indoorCampaignScenesView, null);
-assert(source.includes("traceShot:tracePlayerShot,onVehicleShot:({vehicleId,damage})=>vehicleId==='player'?gameplay.damageVehicle(damage):simulation.damageVehicle(vehicleId,damage)"));
+assert(source.includes('onVehicleShot:({vehicleId,damage})=>damageWorldVehicle(vehicleId,damage),onVehicleExplosion:damageExplosionVehicles'));
 assert(source.includes("if(event.code==='KeyL'&&!paused()){activatePower();return;}"));
 assert(source.includes("if(event.code==='KeyN'&&!paused()){toggleHeadlights();return;}"));
 assert(source.includes('attacksAllowed:canCrewAttack()'));
@@ -212,3 +215,63 @@ assert(source.includes('droneView?.dispose();securityCameras?.dispose();security
 assert(source.includes("event.kind==='attack'&&(event.weapon||event.hits>0)"));
 assert(source.includes("['mugging-started','robbery-started'].includes(event.type)"));
 console.log('PASS city owner adapters: native stash callbacks/writer denial, owned transient drone/body vulnerability/neutral input/pause/3D walls and roofs, evidence-only cameras, identity damage, once-only reports and disposal');
+
+const vehicleMap={...tinyMap,spawn:{x:-100,z:-100,yaw:0},roads:[
+  {id:'a',points:[[0,0],[400,0]],nodes:[1,2],oneway:1,width:11},
+  {id:'b',points:[[400,0],[400,400]],nodes:[2,3],oneway:1,width:11},
+  {id:'c',points:[[400,400],[0,400]],nodes:[3,4],oneway:1,width:11},
+  {id:'d',points:[[0,400],[0,0]],nodes:[4,1],oneway:1,width:11},
+]};
+const carSimulation=createSimulation(vehicleMap,{trafficCount:1}),carGameplay=createGameplay(vehicleMap,carSimulation);
+const actualBus=createBuses(vehicleMap,carSimulation),actualRide=createRideService(vehicleMap,carSimulation);
+const npc=carSimulation.traffic[0],taxi=actualRide.vehicles[0],bus=actualBus.vehicles[0];
+Object.assign(npc,{x:4,z:0,yaw:0,active:true,health:100});
+Object.assign(taxi,{x:40,z:40,active:true});
+actualBus.vehicles.forEach((car,i)=>Object.assign(car,{x:60+i*20,z:60,active:true}));
+const patrol={id:'police:test',modelId:'relay',x:30,z:30,yaw:0,active:true,health:100};
+carGameplay.state.police.push({id:'officer:test',health:100,mode:'vehicle',car:patrol});
+let colliders;
+const damage=owner(['damageWorldVehicle','damageExplosionVehicles','shotVehicles','syncExternalVehicles','updateAbandonedMeshes'],{
+  simulation:carSimulation,gameplay:carGameplay,buses:actualBus,rideService:actualRide,aircraft:{snapshot:()=>({planes:[]})},
+  aircraftObstacles:()=>[],BY_ID,handledVehicleBlasts:new WeakSet(),
+  world:{heightAt:()=>0,vehicleHeightAt:()=>0},shotObstacles:createShotObstacles(vehicleMap,{heightAt:()=>0}),
+  abandonedMeshes:new Map(),createCar:(modelId,{color})=>({modelId,color,visible:false}),addCarShadow:()=>{},
+  scene:{add:()=>{},remove:()=>{}},placeCar:()=>{},
+});
+assert(damage.damageWorldVehicle(npc.id,10));assert.equal(npc.health,90);
+assert(damage.damageWorldVehicle(patrol.id,10));assert.equal(patrol.health,90);
+assert(damage.damageWorldVehicle(taxi.id,10));assert.equal(taxi.health,90);
+assert(damage.damageWorldVehicle(bus.id,10));assert.equal(bus.health,90);
+assert(damage.damageWorldVehicle('player',10));assert.equal(carGameplay.state.vehicleHealth,90);
+assert.equal(damage.damageWorldVehicle('missing',10),false);
+const blast={type:'explosion',x:0,y:.8,z:0,radius:8,maxDamage:100};
+npc.health=100;
+assert.equal(damage.damageExplosionVehicles({...blast,interiorId:'room'}),0);assert.equal(npc.health,100);
+const wall=createShotObstacles({...vehicleMap,buildings:[{id:'blast-wall',height:4,points:[[1.7,-3],[2.1,-3],[2.1,3],[1.7,3]]}]},{heightAt:()=>0});
+damage.shotObstacles=wall;
+assert.equal(damage.damageExplosionVehicles({...blast}),0);assert.equal(npc.health,100,'real wall blocks the vehicle blast adapter');
+damage.shotObstacles=createShotObstacles(vehicleMap,{heightAt:()=>0});
+assert.equal(damage.damageExplosionVehicles(blast),1);
+assert(npc.health>0&&npc.health<100,'falloff reaches the nearest finite rotated vehicle hull');
+const onceHealth=npc.health;
+assert.equal(damage.damageExplosionVehicles(blast),0);assert.equal(npc.health,onceHealth,'the same physical event cannot damage a vehicle twice');
+assert.equal(carGameplay.state.vehicleHealth,90,'external blast callback never double-charges the player car');
+Object.assign(taxi,{x:2,z:0,yaw:0,health:100});npc.health=100;
+damage.damageExplosionVehicles({...blast});
+assert.equal(npc.health,100,'another vehicle remains physical blast cover');
+assert(taxi.health<100,'the intentional hull target alone is exempted from its own cover');
+assert(damage.damageWorldVehicle(patrol.id,100));carGameplay.state.police.length=0;
+assert(damage.shotVehicles({x:30,z:30,range:5},null).some(car=>car.id===patrol.id),'retained police wreck stays bullet cover after pursuit clears');
+const originalSet=carSimulation.setExternalVehicles;
+carSimulation.setExternalVehicles=list=>{colliders=list;};damage.syncExternalVehicles();carSimulation.setExternalVehicles=originalSet;
+assert(colliders.some(car=>car.id===patrol.id),'the same visible retained wreck remains a collider');
+damage.updateAbandonedMeshes({x:30,z:30},0);
+assert.equal(damage.abandonedMeshes.get(patrol.id).visible,true);
+assert.equal(damage.abandonedMeshes.get(patrol.id).modelId,'relay');
+assert.equal(damage.abandonedMeshes.get(patrol.id).color,0x64707b);
+carSimulation.abandonedCars.push(...Array.from({length:25},(_,i)=>({id:`fixture-wreck:${i}`,x:0,z:0,yaw:0,modelId:'invalid',color:0x777777,active:true})));
+damage.updateAbandonedMeshes({x:0,z:0},0);
+assert.equal(damage.abandonedMeshes.size,18,'render map capacity follows the twelve abandoned plus six patrol bound');
+assert([...damage.abandonedMeshes.values()].every(mesh=>mesh.modelId==='lantern'),'unknown patrol models have a visible valid fleet fallback');
+assert(source.includes('vehicleWrecks:freezeCopy({police:gameplay.policeWrecks,meshes:abandonedMeshes.size,capacity:18})'));
+console.log('PASS vehicle controller owners: NPC/patrol/ride/bus/player routing, physical wall/foreign-car blast cover, room exclusion, nearest-hull falloff, once-only damage and bounded visible collider wrecks');

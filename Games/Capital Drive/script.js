@@ -32,6 +32,7 @@ import {createRenderGate,createFramePacer,renderProfile,chooseRenderQuality} fro
 import {setupGameCache} from './cache-client.js';
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { createCar, disposeCars } from '../../assets/car-arcade/models.js';
+import {BY_ID} from '../../assets/car-arcade/fleet.js';
 import { createSimulation, projectSegment } from './simulation.js';
 import { createWorldView } from './world-view.js';
 import { findRoute } from './navigation.js';
@@ -125,6 +126,7 @@ let gymEntries=[],wildlifeView,streetAssetsView,highwayBarriersView,localDetails
 let campaignScenes,campaignScenesView,indoorCampaignScenesView,headlightsView,policeSupportView;
 let headlightsOverride=null,activeCrewEntry=null;
 let drone,droneView,droneActive=false,securityCameras,securityCamerasView,cityUI,cameraCrimeSerial=0;
+const handledVehicleBlasts=new WeakSet();
 const droneInput={forward:0,right:0,lift:0,yaw:0,body:null,paused:false,interiorId:null};
 function headlightsEnabled(hour){return headlightsOverride??(hour<7||hour>=18);}
 function toggleHeadlights(){headlightsOverride=!headlightsEnabled(atmosphere.snapshot().hour);viewRevision++;}
@@ -942,12 +944,42 @@ function shotTargets(){
 }
 function shotVehicles(ray,room){
   const vehicles=room?[]:[...simulation.nearbyVehicles(ray.x,ray.z,ray.range+12),...(buses?.vehicles||[]),...(rideService?.vehicles||[]),
-    ...gameplay.state.police.filter(unit=>unit.health>0&&unit.car).map(unit=>unit.car),
+    ...gameplay.state.police.filter(unit=>unit.health>0&&unit.car).map(unit=>unit.car),...(gameplay.policeWrecks||[]),
     ...(aircraft?.snapshot().planes||[]).map(plane=>({...plane,kind:'aircraft',length:10,width:4}))];
   return vehicles;
 }
 function traceWorldShot(ray,room=interiors.active){return shotObstacles.trace(ray,room,shotVehicles(ray,room));}
 function tracePlayerShot(ray){const room=interiors.active;return shotObstacles.traceHit(ray,room,shotVehicles(ray,room));}
+function damageWorldVehicle(id,amount){
+  if(typeof id!=='string'||!Number.isFinite(amount)||amount<=0)return false;
+  if(id==='player')return gameplay.damageVehicle(amount)===true;
+  return simulation.damageVehicle(id,amount)===true||gameplay.damagePoliceVehicle(id,amount)===true||rideService?.damageVehicle(id,amount)===true||buses?.damageVehicle(id,amount)===true;
+}
+function damageExplosionVehicles(event){
+  if(!event||typeof event!=='object'||event.interiorId||handledVehicleBlasts.has(event)||![event.x,event.z,event.radius,event.maxDamage].every(Number.isFinite)||event.radius<=0||event.radius>8||event.maxDamage<=0||event.maxDamage>100)return 0;
+  handledVehicleBlasts.add(event);
+  const sourceY=Number.isFinite(event.y)?event.y:world.heightAt(event.x,event.z)+.2;
+  if(!Number.isFinite(sourceY))return 0;
+  const vehicles=shotVehicles({x:event.x,z:event.z,range:event.radius},null),seen=new Set();let hits=0;
+  for(const car of vehicles){
+    if(!car||typeof car.id!=='string'||car.id==='player'||seen.has(car.id)||car.active===false||car.interiorId||car.health===0||![car.x,car.z].every(Number.isFinite))continue;
+    seen.add(car.id);
+    const model=BY_ID[car.modelId],dimension=(name,fallback)=>Number.isFinite(car[name])&&car[name]>0?car[name]:model?.[name]||fallback;
+    const width=dimension('width',1.9),length=dimension('length',4.8),height=dimension('height',car.kind==='bus'||car.id.startsWith('bus:')?3:1.6);
+    const base=Number.isFinite(car.y)?car.y:world.vehicleHeightAt(car,car.edge?.road)+.18;
+    const yaw=Number.isFinite(car.yaw)?car.yaw:0,c=Math.cos(yaw),s=Math.sin(yaw),dx=event.x-car.x,dz=event.z-car.z;
+    const x=Math.max(-width/2,Math.min(width/2,c*dx-s*dz)),z=Math.max(-length/2,Math.min(length/2,s*dx+c*dz));
+    const target={x:car.x+c*x+s*z,y:Math.max(base,Math.min(base+height,sourceY)),z:car.z-s*x+c*z};
+    const vx=target.x-event.x,vy=target.y-sourceY,vz=target.z-event.z,distance=Math.hypot(vx,vy,vz);
+    if(!Number.isFinite(distance)||distance>=event.radius)continue;
+    if(distance>1e-6){
+      const ray={x:event.x,y:sourceY,z:event.z,dx:vx/distance,dy:vy/distance,dz:vz/distance,range:distance,interiorId:null,ignoreVehicleIds:[car.id]};
+      if(shotObstacles.trace(ray,null,vehicles)<distance-.001)continue;
+    }
+    if(damageWorldVehicle(car.id,event.maxDamage*(1-distance/event.radius)))hits++;
+  }
+  return hits;
+}
 function policeShotClear(from,to,{room,interiorId}={}){
   const distance=Math.hypot(to.x-from.x,to.y-from.y,to.z-from.z);
   if(!(distance>0))return false;
@@ -1985,11 +2017,11 @@ function syncParkedVisibility() {
 }
 function updateAbandonedMeshes(p, dt) {
   const active = new Set();
-  for (const car of simulation.abandonedCars) {
-    if (!car.active) continue;
+  for (const car of [...simulation.abandonedCars,...(gameplay.policeWrecks||[])].slice(0,18)) {
+    if (car.active===false||active.has(car.id)) continue;
     active.add(car.id);
     let mesh = abandonedMeshes.get(car.id);
-    if (!mesh) { mesh = createCar(car.modelId, { color: car.color }); addCarShadow(mesh); scene.add(mesh); abandonedMeshes.set(car.id, mesh); }
+    if (!mesh) { mesh = createCar(Object.hasOwn(BY_ID,car.modelId)?car.modelId:'lantern', { color: car.health===0?0x64707b:car.color }); addCarShadow(mesh); scene.add(mesh); abandonedMeshes.set(car.id, mesh); }
     mesh.visible = Math.hypot(car.x - p.x, car.z - p.z) < 300;
     if (mesh.visible) placeCar(mesh, { ...car, speed: 0 }, dt);
   }
@@ -2035,7 +2067,7 @@ function updateCareer() {
   }
 }
 function syncExternalVehicles(){
-  simulation.setExternalVehicles([...aircraftObstacles(),...(buses?.vehicles||[]),...(rideService?.vehicles||[]),...gameplay.state.police.filter(p=>p.health>0&&p.car).map(p=>p.car)]);
+  simulation.setExternalVehicles([...aircraftObstacles(),...(buses?.vehicles||[]),...(rideService?.vehicles||[]),...gameplay.state.police.filter(p=>p.health>0&&p.car).map(p=>p.car),...(gameplay.policeWrecks||[])]);
 }
 function syncExternalPeople(){
   externalPeopleContacts.length=0;
@@ -2175,7 +2207,7 @@ function animate(time) {
   document.body.classList.toggle('indoors',!!interiors.active);
   const objective = isSandbox() ? destination : campaign.state.active?.target || progression.state.activeJob?.target || progression.garage;
   roadGuidanceView?.update(route,p,{enabled:started&&gameplay.state.mode==='vehicle'&&!gameplay.state.passenger&&!interiors.active&&!!destination,guidance:guidanceRoute===route?guideState:null});
-  const exteriorState={...gameplay.state,police:gameplay.state.police.map(unit=>unit.interiorId?{...unit,mode:'inside'}:unit),shots:gameplay.state.shots.filter(shot=>!shot.interiorId)};
+  const exteriorState={...gameplay.state,police:gameplay.state.police.map(unit=>unit.interiorId||unit.car?.health===0?{...unit,mode:unit.interiorId?'inside':unit.mode,car:unit.car?.health===0?{...unit.car,active:false}:unit.car}:unit),shots:gameplay.state.shots.filter(shot=>!shot.interiorId)};
   if(!interiors.active)actorView?.update(micromobility?.snapshot().active||gameplay.state.passenger?{...exteriorState,mode:'vehicle'}:exteriorState, { dt: activeDt, time: time / 1000, focus: p, objective });
   rideView?.update({car:rideService.vehicles[0],passenger:rideService.passenger,driver:rideService.people[0]},{focus:p,playerCar:{...simulation.player,modelId:gameplay.state.vehicle.modelId},job:progression.state.activeJob,dt:activeDt});
   campaignScenesView?.update(campaignScenes.people,p,{interiorId:null});
@@ -2367,7 +2399,7 @@ async function boot() {
   gameplay = createGameplay(map, actorSimulation, { pedestrians:witnesses, heightAt: (x,z)=>interiors.active?.floorY??world.heightAt(x,z),
     powerModifiers:()=>heroPowers.modifiers(powerContext()),onVehicleImpacts:(events,dt)=>pedestrians.applyVehicleImpacts(events,dt),hasBlastLineOfSight:(a,b)=>visible(a,b,true),
     getInterior:()=>policeRooms.current,resolveInterior:id=>policeRooms.resolve(id),
-    canAttack:canPlayerAttack,canFireWeapon:()=>campaign.state.active?.target.victory!==true,getShotTargets:shotTargets,traceShot:tracePlayerShot,onVehicleShot:({vehicleId,damage})=>vehicleId==='player'?gameplay.damageVehicle(damage):simulation.damageVehicle(vehicleId,damage),policeShotClear,getAllies:()=>campaignScenes?.people||[],
+    canAttack:canPlayerAttack,canFireWeapon:()=>campaign.state.active?.target.victory!==true,getShotTargets:shotTargets,traceShot:tracePlayerShot,onVehicleShot:({vehicleId,damage})=>damageWorldVehicle(vehicleId,damage),onVehicleExplosion:damageExplosionVehicles,policeShotClear,getAllies:()=>campaignScenes?.people||[],
     passengerPose:()=>aircraft?.seatPose||rideService?.seatPose||buses?.seatPose,playerAltitude:aircraftAltitude,isPiloting:()=>!!aircraft?.active,
     hasWeapon:id=>!!progression.state.equipment[id],hasPistol:()=>progression.state.equipment.pistol,fitness:()=>progression.state.fitnessLevel,
     onCarjacked:pose=>occupantsView?.addExit(pose),
@@ -2445,7 +2477,7 @@ async function boot() {
     guidance:guidance.snapshot(),rideTracking:freezeCopy(rideTracking()),signals:freezeCopy({elapsed:simulation.trafficLights.elapsed,sourceCount:map.trafficSignals.signals.length,groupCount:simulation.trafficLights.groups.length,heads:simulation.trafficLights.heads,view:signalsView.stats}),equipment:freezeCopy({flares:equipment.snapshot(),view:equipmentView.stats}),busPassenger:!!buses.passenger,
     roadGuidance:freezeCopy(roadGuidanceView.stats),
     places: Object.freeze(map.landmarks.map(place => Object.freeze({ ...place }))), addressCount: addressData.addresses.length,
-    camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch,footYaw:footCameraYaw,footPitch:footLookPitch }),recon:reconnaissance.snapshot(),evidence:freezeCopy(evidenceOutcome),combatAudioVoices:audio?.voices?.size||0,drone:freezeCopy({state:drone.snapshot(),view:droneView.stats}),securityCameras:freezeCopy(securityCameras.snapshot()),headlights:freezeCopy({enabled:headlightsEnabled(atmosphere.snapshot().hour),override:headlightsOverride,view:headlightsView.stats}),policeSupport:freezeCopy({people:gameplay.policeSupport(),view:policeSupportView.stats}),
+    camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch,footYaw:footCameraYaw,footPitch:footLookPitch }),recon:reconnaissance.snapshot(),evidence:freezeCopy(evidenceOutcome),combatAudioVoices:audio?.voices?.size||0,vehicleWrecks:freezeCopy({police:gameplay.policeWrecks,meshes:abandonedMeshes.size,capacity:18}),drone:freezeCopy({state:drone.snapshot(),view:droneView.stats}),securityCameras:freezeCopy(securityCameras.snapshot()),headlights:freezeCopy({enabled:headlightsEnabled(atmosphere.snapshot().hour),override:headlightsOverride,view:headlightsView.stats}),policeSupport:freezeCopy({people:gameplay.policeSupport(),view:policeSupportView.stats}),
     discovered: Object.freeze([...discovered]), roadCount: map.roads.length, buildings: map.buildings.length, traffic: simulation.traffic.length,
     visibleTraffic: trafficView.stats.visible||0,trafficView:Object.freeze({...trafficView.stats}), destination: destination?.id ?? null, routePoints: route.length,routePath:freezeCopy(route.map(p=>({x:p[0],z:p[1]}))),streetDealers:freezeCopy({services:streetDealers.services,people:streetDealers.snapshot(),view:dealerView.stats}),
     mapSelection: mapSelection ? Object.freeze({ ...mapSelection }) : null,
