@@ -15,14 +15,47 @@ function contact(p, box, radius) {
   return Math.hypot(Math.max(0, Math.abs(q.x) - box.width / 2), Math.max(0, Math.abs(q.z) - box.depth / 2)) < radius;
 }
 
+function insideRing(p,ring) {
+  let inside=false;
+  for(let i=0,j=ring.length-1;i<ring.length;j=i++) {
+    const a=ring[j],b=ring[i];
+    if((a.z>p.z)!==(b.z>p.z)&&p.x<(b.x-a.x)*(p.z-a.z)/(b.z-a.z)+a.x)inside=!inside;
+  }
+  return inside;
+}
+function pointSegmentDistance(p,a,b) {
+  const dx=b.x-a.x,dz=b.z-a.z,t=clamp(((p.x-a.x)*dx+(p.z-a.z)*dz)/(dx*dx+dz*dz||1),0,1);
+  return Math.hypot(p.x-a.x-dx*t,p.z-a.z-dz*t);
+}
+function segmentDistance(a,b,c,d) {
+  const dx=b.x-a.x,dz=b.z-a.z,ex=d.x-c.x,ez=d.z-c.z,cross=dx*ez-dz*ex;
+  if(Math.abs(cross)>1e-10) {
+    const t=((c.x-a.x)*ez-(c.z-a.z)*ex)/cross,u=((c.x-a.x)*dz-(c.z-a.z)*dx)/cross;
+    if(t>=0&&t<=1&&u>=0&&u<=1)return 0;
+  }
+  return Math.min(pointSegmentDistance(a,c,d),pointSegmentDistance(b,c,d),pointSegmentDistance(c,a,b),pointSegmentDistance(d,a,b));
+}
+
 export function createInteriorCollider(plan) {
+  const footprint=plan.footprint?.length>=3?plan.footprint:null;
+  const holes=footprint?(plan.footprintHoles||[]).map(ring=>ring.points||ring):[];
+  const boundaries=footprint?[footprint,...holes]:[];
+  function insideFootprint(p,radius=0) {
+    if(!insideRing(p,footprint)||holes.some(ring=>insideRing(p,ring)))return false;
+    return boundaries.every(ring=>ring.every((a,i)=>pointSegmentDistance(p,a,ring[(i+1)%ring.length])>=Math.max(radius,1e-8)));
+  }
+  function footprintSegmentClear(a,b,radius) {
+    const p=local(plan.origin,a),q=local(plan.origin,b);
+    return boundaries.every(ring=>ring.every((c,i)=>segmentDistance(p,q,c,ring[(i+1)%ring.length])>=Math.max(radius,1e-8)));
+  }
   const solids = [...plan.walls, ...plan.furniture];
   const sightSolids = [...plan.walls, ...plan.furniture.filter(f => f.height >= 1.5)];
   function canOccupy(p, radius = .45) {
     if (!point(p) || !Number.isFinite(radius) || radius <= 0) return false;
     radius = clamp(radius, .1, 2);
     const q = local(plan.origin, p);
-    if (q.x < -plan.width / 2 + radius || q.x > plan.width / 2 - radius || q.z < radius || q.z > plan.depth - radius) return false;
+    if(footprint) {if(!insideFootprint(q,radius))return false;}
+    else if (q.x < -plan.width / 2 + radius || q.x > plan.width / 2 - radius || q.z < radius || q.z > plan.depth - radius) return false;
     return !solids.some(box => contact(p, box, radius));
   }
   function moveActor(actor, dx, dz, radius = .45) {
@@ -49,9 +82,10 @@ export function createInteriorCollider(plan) {
     if (!point(a) || !point(b)) return false;
     const inBounds = p => {
       const q = local(plan.origin, p);
-      return Math.abs(q.x) < plan.width / 2 && q.z > 0 && q.z < plan.depth;
+      return footprint?insideFootprint(q):Math.abs(q.x) < plan.width / 2 && q.z > 0 && q.z < plan.depth;
     };
     if (!inBounds(a) || !inBounds(b)) return false;
+    if(footprint&&!footprintSegmentClear(a,b,0))return false;
     for (const box of sightSolids) {
       const p = local(box, a), q = local(box, b);
       let min = 0, max = 1;
@@ -71,6 +105,7 @@ export function createInteriorCollider(plan) {
   function canTraverse(a, b, radius = .45) {
     if (!canOccupy(a, radius) || !canOccupy(b, radius)) return false;
     radius = clamp(radius, .1, 2);
+    if(footprint&&!footprintSegmentClear(a,b,radius))return false;
     for (const box of solids) {
       const p = local(box, a), q = local(box, b), hx = box.width / 2, hz = box.depth / 2;
       const dx = q.x - p.x, dz = q.z - p.z, length2 = dx * dx + dz * dz;
@@ -106,19 +141,28 @@ export function createInteriorNavigation(plan) {
   function buildGrid() {
     if (nodes) return;
     builds++; nodes = []; cells = new Map();
-    const potential = Math.ceil(plan.width / STEP) * Math.ceil(plan.depth / STEP);
-    spacing = STEP * Math.max(1, Math.ceil(Math.sqrt(potential / 1200)));
-    const half = Math.floor((plan.width / 2 - .45) / spacing);
-    for (let ix = -half; ix <= half; ix++) xs.push(ix * spacing);
-    for (let z = .9; z <= plan.depth - .45; z += spacing) zs.push(z);
+    const bounds=plan.footprint&&plan.bounds?plan.bounds:{minX:-plan.width/2,maxX:plan.width/2,minZ:0,maxZ:plan.depth};
+    // Source walls can leave legitimate narrow routes around retained furniture.
+    // Small footprint rooms use finer cells within the same bounded node budget.
+    const baseStep=plan.footprint?STEP/2:STEP;
+    const potential = Math.ceil((bounds.maxX-bounds.minX) / baseStep) * Math.ceil((bounds.maxZ-bounds.minZ) / baseStep);
+    spacing = baseStep * Math.max(1, Math.ceil(Math.sqrt(potential / (plan.footprint?1600:1200))));
+    if(plan.footprint) {
+      for(let x=Math.ceil((bounds.minX+.45)/spacing)*spacing;x<=bounds.maxX-.45;x+=spacing)xs.push(x);
+      for(let z=Math.ceil((bounds.minZ+.45)/spacing)*spacing;z<=bounds.maxZ-.45;z+=spacing)zs.push(z);
+    } else {
+      const half = Math.floor((plan.width / 2 - .45) / spacing);
+      for (let ix = -half; ix <= half; ix++) xs.push(ix * spacing);
+      for (let z = .9; z <= plan.depth - .45; z += spacing) zs.push(z);
+    }
     // Wide open mall floors use fewer nodes, retaining fine doorway approaches.
-    if (spacing > STEP) for (const door of plan.doors || []) {
+    if (spacing > STEP || plan.footprint) for (const door of plan.doors || []) {
       const p = local(plan.origin, door);
       xs.push(p.x - STEP, p.x, p.x + STEP); zs.push(p.z);
     }
     const unique = (values, min, max) => [...new Set(values.filter(v => v >= min && v <= max).map(v => Math.round(v * 10000) / 10000))].sort((a, b) => a - b);
-    xs = unique(xs, -plan.width / 2 + .45, plan.width / 2 - .45);
-    zs = unique(zs, .45, plan.depth - .45);
+    xs = unique(xs, bounds.minX + .45, bounds.maxX - .45);
+    zs = unique(zs, bounds.minZ + .45, bounds.maxZ - .45);
     if (xs.length * zs.length > 12000) { truncated = true; return; }
     for (let iz = 0; iz < zs.length; iz++) for (let ix = 0; ix < xs.length; ix++) {
       const p = world(plan.origin, xs[ix], zs[iz]);

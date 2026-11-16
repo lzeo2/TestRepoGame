@@ -45,6 +45,7 @@ function rayPrismDistance(ray,solid) {
   return Infinity;
 }
 export function createShotObstacles(map,{heightAt=()=>0,groundHeightAt=heightAt,vehicleHeightAt=null,bridgeSegments=[]}={}) {
+  const roomBoundaries=new WeakMap();
   const cellSize=64,cells=new Map(),replaced=new Set(map.collisionReplacedBuildingIds||[]);
   function insertSolid(solid) {
     const xs=solid.points.map(p=>p[0]),zs=solid.points.map(p=>p[1]);
@@ -94,7 +95,20 @@ export function createShotObstacles(map,{heightAt=()=>0,groundHeightAt=heightAt,
       // The exterior behind an open doorway is a separate space, never a second room target.
       const c=Math.cos(room.origin.yaw),s=Math.sin(room.origin.yaw),x=ray.x-room.origin.x,z=ray.z-room.origin.z;
       const local=[c*x-s*z,s*x+c*z],direction=[c*ray.dx-s*ray.dz,s*ray.dx+c*ray.dz];
-      for(const [axis,lo,hi] of [[0,-room.width/2,room.width/2],[1,0,room.depth]]) {
+      if(room.footprint?.length>=3) {
+        let rings=roomBoundaries.get(room);
+        if(!rings) {
+          rings=[room.footprint,...(room.footprintHoles||[]).map(ring=>ring.points||ring)].map(ring=>ring.map(p=>[p.x,p.z]));
+          roomBoundaries.set(room,rings);
+        }
+        if(!inside(...local,rings[0])||rings.slice(1).some(ring=>inside(...local,ring)))nearest=0;
+        for(const ring of rings)for(let i=0;i<ring.length;i++) {
+          const a=ring[i],b=ring[(i+1)%ring.length],ex=b[0]-a[0],ez=b[1]-a[1],cross=direction[0]*ez-direction[1]*ex;
+          if(Math.abs(cross)<EPS)continue;
+          const x=a[0]-local[0],z=a[1]-local[1],t=(x*ez-z*ex)/cross,u=(x*direction[1]-z*direction[0])/cross;
+          if(t>=0&&u>=0&&u<=1)nearest=Math.min(nearest,t);
+        }
+      } else for(const [axis,lo,hi] of [[0,-room.width/2,room.width/2],[1,0,room.depth]]) {
         if(direction[axis]>EPS)nearest=Math.min(nearest,Math.max(0,(hi-local[axis])/direction[axis]));
         if(direction[axis]<-EPS)nearest=Math.min(nearest,Math.max(0,(lo-local[axis])/direction[axis]));
       }
