@@ -18,7 +18,8 @@ const importSource = text => text.replace(/from ['"]([^'"]+)['"]/g, (_, path) =>
 const measuredModule = async text => {
   const measured = importSource(text)
     .replace('query(x, z, radius) {', 'query(x, z, radius) { collisionMetrics.queries++;')
-    .replace('function polygonContact(x, z, points, radius) {', 'function polygonContact(x, z, points, radius) { collisionMetrics.polygons++;');
+    .replace('function polygonContact(x, z, points, radius) {', 'function polygonContact(x, z, points, radius) { collisionMetrics.polygons++;')
+    .replace('return outer.contact(x,z,radius);', 'collisionMetrics.polygons++;return outer.contact(x,z,radius);');
   return import(`data:text/javascript;base64,${Buffer.from(`${measured}\nexport const collisionMetrics={queries:0,polygons:0};`).toString('base64')}`);
 };
 const { createSimulation: baselineSimulation, collisionMetrics: baselineMetrics } = await measuredModule(baselineSource);
