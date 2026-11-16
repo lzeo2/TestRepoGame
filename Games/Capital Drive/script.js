@@ -194,11 +194,23 @@ function cameraSight(from,to){
   if((from.interiorId||null)!==(to.interiorId||null))return false;
   const dx=to.x-from.x,dy=to.y-from.y,dz=to.z-from.z,distance=Math.hypot(dx,dy,dz);
   if(!Number.isFinite(distance)||distance<=0||distance>42||ordnance?.blocksSight(from,to,{interiorId:from.interiorId||null}))return false;
-  return traceWorldShot({x:from.x,y:from.y,z:from.z,dx:dx/distance,dy:dy/distance,dz:dz/distance,range:distance,interiorId:from.interiorId||null},null)>=distance-.02;
+  // A sighting targets the occupied body, so its own vehicle is the endpoint,
+  // while other cars and solid cover must still obstruct the camera.
+  const player=focus(),occupied=!to.kind&&!interiors.active&&Math.hypot(to.x-player.x,to.z-player.z)<1e-6?
+    aircraft?.active?.id||(buses?.passenger&&buses.seatPose?.id)||(rideService?.passenger&&rideService.seatPose?.id)||(gameplay.state.mode==='vehicle'?'player':null):null;
+  return traceWorldShot({x:from.x,y:from.y,z:from.z,dx:dx/distance,dy:dy/distance,dz:dz/distance,range:distance,interiorId:from.interiorId||null,ignoreVehicleIds:occupied?[occupied]:[]},null)>=distance-.02;
 }
 function recordCameraCrime(kind,point=focus()){
   if(!securityCameras||!point||![point.x,point.z].every(Number.isFinite))return;
   securityCameras.reportCrime({serial:++cameraCrimeSerial,kind,level:1,x:point.x,z:point.z,interiorId:interiors.active?.id||null});
+}
+function recordCameraGameplayEvent(event){
+  if(event.kind==='attack'&&(event.weapon||event.hits>0)&&event.offenceReported===false)recordCameraCrime(event.weapon?'gunfire':'assault');
+}
+function recordCameraWorkEvent(event){
+  if(!['mugging-started','robbery-started'].includes(event.type))return;
+  const reported=!isSandbox()&&gameplay.reportOffence(event.type==='mugging-started'?'mugging':'shop robbery',2,{witnessed:true,point:event.point});
+  if(!reported)recordCameraCrime(event.type,event.point);
 }
 function stepSecurityCameras(dt){
   securityCameras.step(dt,{player:focus(),wanted:gameplay.state.wanted,interiorId:interiors.active?.id||null});
@@ -2050,9 +2062,7 @@ function updateCareer() {
       }
     }
     if (['job-stage','job-complete','job-failed','penalty','robbery-complete','mugging-complete','workout-complete','work-started','work-complete','activity-ended'].includes(event.type)) notify(event.message);
-    if(['mugging-started','robbery-started'].includes(event.type))recordCameraCrime(event.type,event.point);
-    if(event.type==='mugging-started'&&!isSandbox())gameplay.reportOffence('mugging',2,{witnessed:true,point:event.point});
-    if(event.type==='robbery-started'&&!isSandbox())gameplay.reportOffence('shop robbery',2,{witnessed:true,point:event.point});
+    recordCameraWorkEvent(event);
     if (['job-complete','penalty','robbery-complete','mugging-complete','workout-complete'].includes(event.type)) saveCareer();
   }
   finishDeveloperPreview();
@@ -2414,7 +2424,7 @@ async function boot() {
     },
     onEvent: event => {
       combatFeedback(event);
-      if(event.kind==='attack'&&(event.weapon||event.hits>0))recordCameraCrime(event.weapon?'gunfire':'assault');
+      recordCameraGameplayEvent(event);
       if (!['attack','dry-fire','reload','reload-complete'].includes(event.kind)) notify(event.message);
       if (event.kind === 'respawn') cameraReady = false;
     } });

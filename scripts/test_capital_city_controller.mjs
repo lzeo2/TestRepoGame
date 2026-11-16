@@ -183,7 +183,7 @@ assert.equal(collision.droneCanOccupy({x:0,y:3,z:0},{from:{x:0,y:3,z:-2}}),false
 assert.equal(collision.droneCanOccupy({x:0,y:6,z:0},{from:{x:0,y:6,z:-2}}),true,'flying above an actual roof remains legal');
 assert.equal(collision.droneCanOccupy({x:0,y:3,z:0},{from:{x:0,y:6,z:0}}),false,'descending through the roof is blocked');
 let coverQueries=0;
-const cameraCover=owner(['cameraSight'],{ordnance:{blocksSight:()=>false},traceWorldShot:ray=>{coverQueries++;return solids.trace(ray,null,[]);}});
+const cameraCover=owner(['cameraSight'],{focus:()=>({x:100,z:100}),interiors:{active:null},aircraft:null,buses:null,rideService:null,gameplay:{state:{mode:'foot'}},ordnance:{blocksSight:()=>false},traceWorldShot:ray=>{coverQueries++;return solids.trace(ray,null,[]);}});
 assert.equal(cameraCover.cameraSight({x:0,y:3,z:-3},{x:0,y:3,z:3}),false);
 assert.equal(cameraCover.cameraSight({x:0,y:6,z:-3},{x:0,y:6,z:3}),true);
 const beforeCover=coverQueries;
@@ -212,7 +212,7 @@ assert.equal(surveillance.shotTargets().length,0);
 hardware.dispose();assert.equal(hardware.snapshot().length,0);
 assert(source.includes('dialogs.push(...cityUI.dialogs)'));
 assert(source.includes('droneView?.dispose();securityCameras?.dispose();securityCamerasView?.dispose();cityUI?.dispose()'));
-assert(source.includes("event.kind==='attack'&&(event.weapon||event.hits>0)"));
+assert(source.includes("event.kind==='attack'&&(event.weapon||event.hits>0)&&event.offenceReported===false"));
 assert(source.includes("['mugging-started','robbery-started'].includes(event.type)"));
 console.log('PASS city owner adapters: native stash callbacks/writer denial, owned transient drone/body vulnerability/neutral input/pause/3D walls and roofs, evidence-only cameras, identity damage, once-only reports and disposal');
 

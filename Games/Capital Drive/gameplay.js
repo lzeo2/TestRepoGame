@@ -230,10 +230,10 @@ export function createGameplay(map, simulation, options = {}) {
     }
     if (weapon || hits || policeHits) options.pedestrians?.alert?.({ x: actor.x, z: actor.z, radius: weapon ? 90 : 18, kind: adapterKind, hasLineOfSight: visible });
     if (state.shots.length > MAX_SHOT_TRACES) state.shots.splice(0, state.shots.length - MAX_SHOT_TRACES);
-    if (weapon || hits || policeHits) reportOffence(policeHits ? 'attack on police' : weapon ? 'gunfire' : 'assault', policeHits ? 2 : 1,
-      { witnessed: policeHits ? true : undefined });
+    const offenceReported = (weapon || hits || policeHits) ? reportOffence(policeHits ? 'attack on police' : weapon ? 'gunfire' : 'assault', policeHits ? 2 : 1,
+      { witnessed: policeHits ? true : undefined }) : false;
     emit('attack', hits || policeHits ? 'Impact.' : weapon ? 'Shot fired.' : 'Swing.', { weapon:weapon?.id||null,
-      shotSerial,hitSerial:state.combatFeedback.hitSerial,hits:hits+policeHits,recoil:state.combatFeedback.recoil });
+      offenceReported,shotSerial,hitSerial:state.combatFeedback.hitSerial,hits:hits+policeHits,recoil:state.combatFeedback.recoil });
     return true;
   }
   function recoveryOrigin() {
