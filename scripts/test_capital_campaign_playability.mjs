@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
+import {createBurglary} from '../Games/Capital Drive/burglary.js';
 import { createCampaignFixture } from './capital-campaign-fixture.mjs';
 import { createCampaign } from '../Games/Capital Drive/campaign.js';
 import { createInteriorActivities, isWorkoutKind } from '../Games/Capital Drive/interior-activities.js';
@@ -205,7 +206,7 @@ for (const descriptor of chapters) {
         activities.step(.05, input, ctx); progression.update(.05, ctx); tick(.05); elapsed += .05;
       }
       assert.equal(activities.snapshot().phase, 'complete', activities.snapshot().reason || 'activity timed out');
-      const env = { activities, progression, interiors, map, campaign: { state: { active } },
+      const env = { burglary:createBurglary({canApproach:()=>false}),burglaryContext:()=>ctx,activities, progression, interiors, map, campaign: { state: { active } },
         gameplay: { state: { mode: 'foot', health: 100, passenger: false, recovery: null }, reportOffence() { ctx.wanted = 1; }, heal() {} },
         presentationOutcome: receipts.presentation || { serial: 0 }, schoolAlarmOutcome: receipts.schoolAlarm || { serial: 0 }, homeActionOutcome: receipts.homeAction || { serial: 0 }, evidenceOutcome: receipts.evidence || { serial: 0 }, evidenceSessionKey: '',
         isSandbox: () => false, isWorkoutKind, careerContext: () => ctx, saveCareer() {}, notify() {}, playSchoolAlarm() {},

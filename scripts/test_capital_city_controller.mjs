@@ -74,6 +74,7 @@ const calls = [];
 const plan = { id: 'house-1', floorY: 2, name: 'Fixture house' }, entry = { id: plan.id };
 const outside = { x: 5, z: 8, yaw: 0 };
 const rooms = owner(['enterInterior', 'leaveInterior'], {
+  burglary:{leave:()=>{}},
   gameplay: { state: { actor: { ...outside }, wanted: 0, police: [] } },
   interiors: { active: plan, exteriorPose: outside, enter: () => plan, leave: () => true },
   map: { storyHomes: {} }, CAMPUS_GATES: [], compatibility: true,

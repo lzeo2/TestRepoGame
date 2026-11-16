@@ -1,6 +1,8 @@
 // Source-domain fixture. Placements are explicit test setup, never native travel.
 import { readFile } from 'node:fs/promises';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
+import {applyStreetAssetRoofs} from '../Games/Capital Drive/street-assets.js';
+import {SHOPPING_BUILDING_IDS} from '../Games/Capital Drive/shopping-precincts.js';
 import { applyAirport } from '../Games/Capital Drive/airport.js';
 import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
 import { applyRoadProfiles, roadProfile } from '../Games/Capital Drive/road-network.js';
@@ -22,7 +24,7 @@ import { findRoute } from '../Games/Capital Drive/navigation.js';
 export async function createCampaignFixture() {
   const read = name => readFile(new URL(`../Games/Capital Drive/data/${name}.json`, import.meta.url), 'utf8').then(JSON.parse);
   const [base, north, profiles] = await Promise.all(['canberra', 'canberra-north', 'road-profiles'].map(read));
-  const expanded = applyMapExpansion(applyRoadProfiles(base, profiles), north);
+  const expanded = applyStreetAssetRoofs(applyMapExpansion(applyRoadProfiles(base, profiles), north));
   expanded.terrainTiles = [(await read('north-terrain')).terrain];
   expanded.lakeWaterLevel = 5.93;
   const map = applyAirport(expanded, await read('airport'));
@@ -40,7 +42,7 @@ export async function createCampaignFixture() {
   }));
   map.collisionReplacedBuildingIds = ['act-75267-0', 'osm-584970595'];
   map.buildings = map.buildings.map(b => b.id === SKATE_BUILDING_OPENING.buildingId ? { ...b, innerRings: [{ points: SKATE_BUILDING_OPENING.polygon }] } : b);
-  map.campusBuildingIds = CAMPUS_BUILDING_IDS;
+  map.campusBuildingIds = CAMPUS_BUILDING_IDS;map.shoppingManagedBuildingIds=SHOPPING_BUILDING_IDS;
   map.areas.push({ id: 'manuka-pool-water', type: 'water', points: MANUKA_POOL_BASIN });
   const neighbourhood = createNeighbourhoodDetails(new THREE.Scene(), map, () => 0, { lowGraphics: true, streaming: true });
   map.interiorEntries = neighbourhood.entries;
@@ -149,7 +151,7 @@ export async function createCampaignFixture() {
         const plan = interiors.active, dxWorld = p.x + dx - plan.origin.x, dzWorld = p.z + dz - plan.origin.z;
         const localX = dxWorld * Math.cos(plan.origin.yaw) - dzWorld * Math.sin(plan.origin.yaw);
         const localZ = dxWorld * Math.sin(plan.origin.yaw) + dzWorld * Math.cos(plan.origin.yaw);
-        if (Math.abs(localX) > plan.width / 2 || localZ < 0 || localZ > plan.depth) continue;
+        if (!plan.footprint && (Math.abs(localX) > plan.width / 2 || localZ < 0 || localZ > plan.depth)) continue;
         interiors.moveActor(next, dx, dz, .45);
         if (Math.hypot(next.x - p.x - dx, next.z - p.z - dz) > .02) continue;
         const key = `${Math.round((next.x - origin.x) / size)},${Math.round((next.z - origin.z) / size)}`;

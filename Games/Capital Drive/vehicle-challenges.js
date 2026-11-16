@@ -104,5 +104,5 @@ export function createVehicleChallenge() {
       anchor: s ? Object.freeze({ ...s.anchor }) : null });
   }
   function clear() { cancel('cleared'); session = null; previous = heldKeys(null); }
-  return { start, step, cancel, clear, snapshot, drainEvents: () => events.splice(0) };
+  return { get active(){return running();}, start, step, cancel, clear, snapshot, drainEvents: () => events.splice(0) };
 }

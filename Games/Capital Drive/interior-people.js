@@ -1,5 +1,6 @@
 // Fictional adult occupants of the single loaded room. No clock, storage or economy owner.
 import {rayTargetDistance} from './ballistics.js';
+import {createInteriorCollider} from './interior-navigation.js';
 const LIMIT = 16, BODY_RADIUS = .28, THROW_WINDUP = .75, THROW_FLIGHT = .55;
 const FIGHT_WINDUP=.65, FIGHT_RECOVER=.85;
 const finite = n => Number.isFinite(n);
@@ -18,7 +19,7 @@ function touches(p, box, radius) {
   return Math.hypot(Math.max(0,Math.abs(q.x)-box.width/2), Math.max(0,Math.abs(q.z)-box.depth/2)) < radius;
 }
 export function createInteriorPeople() {
-  let plan = null, people = [], elapsed = 0, crime = null, reportCooldown = 0, encounterSerial = 0, encounterState = null;
+  let plan = null, footprintBoundary=null, people = [], elapsed = 0, crime = null, reportCooldown = 0, encounterSerial = 0, encounterState = null;
   const events = [], shotBodies=[];
   const employee = p => ['cashier', 'shopkeeper', 'cook'].includes(p.role);
   function protectedPoint(p, staff = false) {
@@ -32,7 +33,7 @@ export function createInteriorPeople() {
   function clearPoint(p, seat = null, staff = false) {
     if (!point(p) || protectedPoint(p, staff)) return false;
     const q = local(plan.origin,p);
-    if (Math.abs(q.x)>plan.width/2-BODY_RADIUS-.15 || q.z < .6 || q.z>plan.depth-.5) return false;
+    if (footprintBoundary ? !footprintBoundary.canOccupy(p,BODY_RADIUS+.15) : Math.abs(q.x)>plan.width/2-BODY_RADIUS-.15 || q.z < .6 || q.z>plan.depth-.5) return false;
     return ![...(plan.walls || []), ...(plan.furniture || [])].some(b => b !== seat && touches(p,b,seat ? .21 : BODY_RADIUS+.08));
   }
   function add(role, position, {seat = null, target = null, yaw = plan.origin.yaw, gesture = 'idle', character = null, staff = false} = {}) {
@@ -67,6 +68,7 @@ export function createInteriorPeople() {
     clear();
     if (!value || !point(value.origin) || !finite(value.origin.yaw) || !finite(value.floorY) || !finite(value.width) || !finite(value.depth)) return snapshot();
     plan = value;
+    footprintBoundary=plan.footprint?createInteriorCollider({...plan,walls:[],furniture:[]}):null;
     const furniture = plan.furniture || [];
     if (plan.variant === 'noodles') {
       const booth = furniture.find(f=>f.kind==='banquette');
@@ -173,7 +175,7 @@ export function createInteriorPeople() {
   function sameRoomActor(actor) {
     if(!point(actor) || (actor.interiorId!=null && actor.interiorId!==plan.id) || (finite(actor.health)&&actor.health<=0)) return false;
     const q=local(plan.origin,actor);
-    return Math.abs(q.x)<=plan.width/2+.1 && q.z>=-.1 && q.z<=plan.depth+.1;
+    return footprintBoundary?footprintBoundary.canOccupy(actor,.1):Math.abs(q.x)<=plan.width/2+.1 && q.z>=-.1 && q.z<=plan.depth+.1;
   }
   function retryFight(p,reason) {
     encounterState.phase='retry';encounterState.fightActive=false;encounterState.throwEmitted=false;encounterState.victory=false;
@@ -206,7 +208,7 @@ export function createInteriorPeople() {
       const travel=Math.min(distance-1.2,step*1.35),dx=(actor.x-p.x)/distance*travel,dz=(actor.z-p.z)/distance*travel;
       const candidate={x:p.x+dx,z:p.z+dz};
       const q=local(plan.origin,candidate);
-      if(Math.abs(q.x)<plan.width/2-BODY_RADIUS&&q.z>.4&&q.z<plan.depth-.4&&
+      if((footprintBoundary?footprintBoundary.canOccupy(candidate,BODY_RADIUS):Math.abs(q.x)<plan.width/2-BODY_RADIUS&&q.z>.4&&q.z<plan.depth-.4)&&
         !(plan.walls||[]).some(b=>touches(candidate,b,BODY_RADIUS))&&
         !(plan.furniture||[]).some(b=>touches(candidate,b,BODY_RADIUS))&&
         !people.some(other=>other!==p&&Math.hypot(candidate.x-other.x,candidate.z-other.z)<BODY_RADIUS+other.radius)) {
@@ -420,7 +422,7 @@ export function createInteriorPeople() {
   function snapshot() { return people.map(({home,target,progress,direction,playerHitTimer,noodleThrow,...p})=>Object.freeze({...p,
     noodleThrow:noodleThrow ? Object.freeze({...noodleThrow,from:noodleThrow.from?Object.freeze({...noodleThrow.from}):null,to:noodleThrow.to?Object.freeze({...noodleThrow.to}):null}) : null,
     threatened:playerHitTimer>0,lastPlayerHit:playerHitTimer>0,crimePhase:p.health>0?p.crimePhase:null})); }
-  function clear() { plan=null;people=[];shotBodies.length=0;elapsed=0;crime=null;reportCooldown=0;events.length=0;encounterState=null; }
+  function clear() { plan=null;footprintBoundary=null;people=[];shotBodies.length=0;elapsed=0;crime=null;reportCooldown=0;events.length=0;encounterState=null; }
   return {load,update,nearestDialogue,startDialogue,respondDialogue,get encounter(){return encounter();},clipMovement,snapshot,clear,strike,shotTargets,hitByShot,alert,setCrime,getCrimeTarget,
     drainEvents(){return events.splice(0);},get stats(){return Object.freeze({active:plan?.id || null,count:people.length,limit:LIMIT,elapsed});}};
 }

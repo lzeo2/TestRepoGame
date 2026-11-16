@@ -67,5 +67,5 @@ export function createBurglary({ challenge = createVehicleChallenge(), canApproa
   }
   function clear() { cancel('cleared'); challenge.clear(); drainChallenge(); entry=null; permit=null; consumed=null; room=null; pendingLoot=null; }
   function snapshot() { return Object.freeze({...challenge.snapshot(),house:true,entryId:entry?.id || null,roomId:room?.id || entry?.roomId || null,entryReady:Boolean(permit),pendingLootRoomId:pendingLoot?.roomId || null}); }
-  return {start,step,cancel,clear,leave:clear,reset:clear,snapshot,consumeEntry,entered,recordLoot,takeHouseLoot,drainEvents:()=>events.splice(0)};
+  return {get active(){return typeof challenge.active==='boolean'?challenge.active:challenge.snapshot().active;},start,step,cancel,clear,leave:clear,reset:clear,snapshot,consumeEntry,entered,recordLoot,takeHouseLoot,drainEvents:()=>events.splice(0)};
 }

@@ -18,6 +18,7 @@ import {createDroneView} from './drone-view.js';
 import {createSecurityCameras} from './security-cameras.js';
 import {createSecurityCamerasView} from './security-cameras-view.js';
 import {createCityUI} from './city-ui.js';
+import {createBurglary} from './burglary.js';
 import {emptyStash} from './safehouse-storage.js';
 import {applyAirport} from './airport.js';
 import {createAirportView} from './airport-view.js';
@@ -127,6 +128,7 @@ let campaignScenes,campaignScenesView,indoorCampaignScenesView,headlightsView,po
 let headlightsOverride=null,activeCrewEntry=null;
 let drone,droneView,droneActive=false,securityCameras,securityCamerasView,cityUI,cameraCrimeSerial=0;
 const handledVehicleBlasts=new WeakSet();
+const burglary=createBurglary({canApproach:(entry,ctx)=>!interiors.active&&visible(ctx.pose,entry)});
 const droneInput={forward:0,right:0,lift:0,yaw:0,body:null,paused:false,interiorId:null};
 function headlightsEnabled(hour){return headlightsOverride??(hour<7||hour>=18);}
 function toggleHeadlights(){headlightsOverride=!headlightsEnabled(atmosphere.snapshot().hour);viewRevision++;}
@@ -486,7 +488,7 @@ function servicePosition(site){
   return plan?.storeId===site.id?{...plan.counter,radius:plan.counter.radius}:null;
 }
 function miniInput(){return {x:keys.has('KeyX')||miniKeys.has('x'),y:keys.has('KeyY')||miniKeys.has('y'),up:keys.has('ArrowUp')||miniKeys.has('up')};}
-function stopMini(){aircraft?.clearChallenge();activities.cancel();rentalHack.cancel();rentalHackTarget=null;gameplay?.cancelCarjacking();progression?.cancelActivity();clearInput();}
+function stopMini(){burglary.cancel();aircraft?.clearChallenge();activities.cancel();rentalHack.cancel();rentalHackTarget=null;gameplay?.cancelCarjacking();progression?.cancelActivity();clearInput();}
 function beginMini(id){
   if(!interiors?.active||paused()||activities.snapshot().active)return;
   const station=id?interiors.active.activities.find(s=>s.id===id):activities.nearest(focus());
@@ -557,6 +559,7 @@ function interactAircraft(){
   return true;
 }
 function streetChallenge(){
+  if(burglary.active)return {...burglary.snapshot(),label:'Force the house lock'};
   if(aircraft?.challenge.active)return {...aircraft.challenge,aircraft:true,label:'Take airport jet'};
   const hack=rentalHack.snapshot();
   if(hack.active)return {...hack,label:'Bypass scooter lock'};
@@ -594,6 +597,34 @@ function updateRentalHack(dt){
     rentalHackTarget=null;clearInput();
   }
 }
+function burglaryContext(){
+  return {...careerContext(),sandbox:isSandbox()||!!developerReturn,interiorId:interiors.active?.id||null,
+    paused:paused(),mission:!!campaign.state.active,job:!!progression.state.activeJob};
+}
+function requestHouseEntry(entry){
+  if(entry.type!=='house'||isSandbox()||progression.isSafehouse(entry.id))return false;
+  const startedLock=burglary.start({...entry,owned:false,safehouse:false},burglaryContext());
+  clearInput();notify(startedLock?'Follow the house lock cues. E cancels.':'Stand close to the house door and finish your current mission or job.');
+  return true;
+}
+function updateBurglary(dt){
+  if(!burglary.active)return;
+  burglary.step(dt,miniInput(),burglaryContext());
+  for(const event of burglary.drainEvents()){
+    if(event.type==='complete'){
+      const entry=interiors.entries.find(item=>item.id===event.targetId);
+      const outside={...focus()};
+      if(entry&&!progression.isSafehouse(entry.id)&&burglary.consumeEntry(entry.id,burglaryContext())){
+        enterInterior(entry);
+        if(interiors.active?.id===entry.id&&burglary.entered(interiors.active)){
+          gameplay.reportOffence('breaking and entering',2,{witnessed:true,point:outside});
+          notify('House alarm. Search for valuables, then get out.');
+        }else notify('The door landing is blocked.');
+      }
+    }else if(event.type==='failed')notify(event.reason);
+    clearInput();
+  }
+}
 function recordEvidence(event){
   if(event.kind!=='evidence'||event.type!=='complete'||event.outcome!=='secured'||isSandbox())return false;
   const active=campaign.state.active,goal=active?.target,plan=interiors.active,terminal=activities.snapshot();
@@ -606,6 +637,8 @@ function recordEvidence(event){
 }
 function updateMini(){
   for(const event of activities.drainEvents()){
+    let burglaryMessage=null;
+    if(burglary.recordLoot(event,activities.snapshot(),burglaryContext())){const loot=progression.claimHouseLoot({...careerContext(),sandbox:isSandbox()||!!developerReturn,preview:!!developerReturn});burglaryMessage=loot.message;if(loot.ok)saveCareer();else burglary.takeHouseLoot(interiors.active?.id,burglaryContext());}
     recordEvidence(event);
     const workout=progression.state.activity;
     if(isWorkoutKind(event.kind)&&workout?.type==='workout'&&event.sessionId===workout.sessionId&&event.planId===workout.planId&&event.station?.id===workout.station?.id){
@@ -637,7 +670,7 @@ function updateMini(){
       if(result.ok)saveCareer();
     }
     if(event.type==='complete'&&event.heal&&!isSandbox())gameplay.heal(event.heal);
-    if(event.type==='complete'||event.type==='failed')notify(event.reason);
+    if(event.type==='complete'||event.type==='failed')notify(burglaryMessage||event.reason);
   }
   let previous=activities.snapshot();
   if(!previous.active&&previous.kind&&previous.station&&interiors.active&&Math.hypot(focus().x-previous.station.x,focus().z-previous.station.z)>previous.station.radius+1){activities.load(interiors.active);previous=activities.snapshot();}
@@ -771,6 +804,7 @@ function enterInterior(entry){
   const known=gameplay.state.wanted>0&&gameplay.state.police.some(unit=>unit.health>0&&!unit.interiorId&&unit.seesPlayer&&simulation.hasLineOfSight(unit,outside));
   const plan=interiors.enter(entry,gameplay.state.actor);
   if(!plan)return;
+  footCameraYaw=gameplay.state.actor.yaw;footLookPitch=0;
   const safehouse=progression?.isSafehouse(plan.id)||map.storyHomes?.basement?.roomId===plan.id;
   const gate=CAMPUS_GATES.find(gate=>gate.id===entry.gateId);
   const approach=gate?[gate.outside,{x:gate.x,z:gate.z},gate.inside].map(p=>Array.isArray(p)?{x:p[0],z:p[1]}:p):[];
@@ -784,6 +818,7 @@ function enterInterior(entry){
 }
 function leaveInterior(){
   if(!interiors.leave(gameplay.state.actor))return;
+  burglary.leave();
   campaignScenes?.leaveInterior();activeCrewEntry=null;indoorCampaignScenesView?.dispose();indoorCampaignScenesView=null;
   policeRooms.leave();policeRooms.prune(gameplay.state.police);
   stopMini();activities.clear();roomPeople.clear();roomPeopleView?.clear();interiorView.clear();indoorActorView?.dispose();indoorActorView=null;
@@ -824,6 +859,7 @@ function interiorHint(){
   const service=progression?.services.find(site=>!site.buildingId&&!site.dealer&&site.type==='arms'&&Math.hypot(site.x-pose.x,site.z-pose.z)<=site.radius);
   if(service)return `E open ${service.name}`;
   const entry=interiors?.findEntry(pose);
+  if(entry?.type==='house'&&!isSandbox()&&!progression.isSafehouse(entry.id))return 'E force the house lock';
   return entry?`E enter ${map.storyHomes?.basement?.roomId===entry.id?map.storyHomes.basement.name:entry.name}`:null;
 }
 function openWork(){
@@ -1327,7 +1363,7 @@ $('start-button').addEventListener('click', () => {
   cutscenes.cancel();cutscenes.drainEvents();pendingCutscene=null;cutsceneAnchor=null;setCutsceneVisible(false);
   gameMode = selectedGameMode;
   if(gameMode==='campaign'&&!campaign.state.character){renderCharacterChoices();notify('Choose a character first.');return;}
-  aircraft?.reset();clearInterior();micromobility?.reset();rideService?.reset();equipment?.reset();followYoober=false; campaign.cancel();campaign.drainEvents();
+  burglary.reset();aircraft?.reset();clearInterior();micromobility?.reset();rideService?.reset();equipment?.reset();followYoober=false; campaign.cancel();campaign.drainEvents();
   simulation.reset(); restoreParkedCars();
   const hero=gameMode==='campaign'&&campaign.characters.find(c=>c.id===campaign.state.character);
   const heroCheckpoint=hero&&protagonists.get(hero.id);
@@ -1613,7 +1649,7 @@ function interact() {
       notify('E at a station, counter or the exit.');return;
     }
     const entry=interiors.findEntry(pose);
-    if(entry){enterInterior(entry);return;}
+    if(entry){if(!requestHouseEntry(entry))enterInterior(entry);return;}
     const site=progression.services.find(s=>Math.hypot(s.x-pose.x,s.z-pose.z)<=s.radius&&progression.canUseService(s,careerContext()));
     if(site){$('services-filter').value='all';streetUI.renderServices();openDialog('services-dialog');return;}
   }
@@ -1634,7 +1670,7 @@ $('fight-retry').addEventListener('click',()=>{const person=roomPeople.snapshot(
 $('touch-weapon').addEventListener('click',()=>{if(paused())return;const owned=['unarmed',...WEAPONS.filter(w=>isSandbox()||progression.state.equipment[w.id]).map(w=>w.id)];gameplay.setWeapon(owned[(owned.indexOf(gameplay.state.weapon)+1)%owned.length]);});
 for (const button of document.querySelectorAll('[data-action]')) bindTouchHold(button, actionTouch, button.dataset.action);
 function walkingInput() {
-  if(droneActive||paused()||gameplay?.state.recovery||gameplay?.state.passenger||streetChallenge()?.aircraft||activities.snapshot().active||rentalHack.snapshot().active||micromobility?.snapshot().active)return {};
+  if(droneActive||paused()||gameplay?.state.recovery||gameplay?.state.passenger||(streetChallenge()?.aircraft||streetChallenge()?.house)||activities.snapshot().active||rentalHack.snapshot().active||micromobility?.snapshot().active)return {};
   const combat=canPlayerAttack();
   const stick = moveStick.snapshot();
   const forward = THREE.MathUtils.clamp(Number(keys.has('KeyW') || keys.has('ArrowUp')) - Number(keys.has('KeyS') || keys.has('ArrowDown')) - stick.y, -1, 1);
@@ -2135,7 +2171,7 @@ function animate(time) {
     accumulator += dt;
     while (accumulator >= 1 / 60) {
       stepDrone(1/60);
-      stepSecurityCameras(1/60);
+      stepSecurityCameras(1/60);updateBurglary(1/60);
       combatCueTime=Math.max(0,combatCueTime-1/60);
       combatStatusTime=Math.max(0,combatStatusTime-1/60);
       updateRecon(1/60);
@@ -2406,7 +2442,7 @@ async function boot() {
   const indoorSun=new THREE.DirectionalLight(0xfff1d4,1.1);indoorSun.position.set(-2,5,3);interiorScene.add(indoorSun);
   interiorView=compatibility?{load(){},clear(){},dispose(){},stats:{}}:createInteriorView(interiorScene);
   roomPeopleView=compatibility?{load(){},update(){},clear(){},dispose(){},stats:{}}:createInteriorPeopleView(interiorScene,()=>interiors.active?.floorY||0);
-  const careerOptions={homes:interiors.entries.filter(entry=>entry.type==='house'),extraServices:streetDealers.services,workSession:()=>({plan:interiors.active,session:activities.snapshot()}),interactiveWorkouts:true,interactiveRobbery:true,crimeTarget,robberyTarget,hasLineOfSight:visible,servicePosition:servicePosition,canUseService:site=>site.dealer?!interiors.active&&streetDealers.canTrade(site.id):site.type==='gym'?interiors.active?.serviceId===site.id:!site.buildingId||interiors.active?.storeId===site.id};
+  const careerOptions={takeHouseLoot:(roomId,ctx)=>burglary.takeHouseLoot(roomId,ctx),homes:interiors.entries.filter(entry=>entry.type==='house'),extraServices:streetDealers.services,workSession:()=>({plan:interiors.active,session:activities.snapshot()}),interactiveWorkouts:true,interactiveRobbery:true,crimeTarget,robberyTarget,hasLineOfSight:visible,servicePosition:servicePosition,canUseService:site=>site.dealer?!interiors.active&&streetDealers.canTrade(site.id):site.type==='gym'?interiors.active?.serviceId===site.id:!site.buildingId||interiors.active?.storeId===site.id};
   try {
     const raw = localStorage.getItem(CAREER_KEY);
     if (raw && raw.length > 16000) throw new Error('Saved career is too large.');
@@ -2505,7 +2541,7 @@ async function boot() {
   // Read-only diagnostics for QA; no production state setters.
   window.capitalDriveSnapshot = () => Object.freeze({ ready: true, started, paused: paused(), gameMode,
     player: Object.freeze({ ...simulation.player }), focus: Object.freeze({ ...focus() }),
-    aircraft:aircraft.snapshot(),aircraftView:freezeCopy(aircraftView.stats),powers:heroPowers.snapshot(),vehicleDamage:freezeCopy({state:vehicleDamage.snapshot(),view:vehicleDamageView.stats}),ordnance:ordnance.snapshot(),atmosphere:atmosphere.snapshot(),airport:freezeCopy(airportView.stats),touch:freezeCopy({move:moveStick.snapshot(),look:lookStick.snapshot()}),tutorial:tutorial.snapshot(),uiStats:Object.freeze({activity:activityUI.stats}),gameplay: gameplay.snapshot(),rentalHack:freezeCopy(rentalHack.snapshot()),nearbyVehicles:freezeCopy(simulation.nearbyVehicles(focus().x,focus().z,40)),miniGame:freezeCopy(activities.snapshot()),roomPeople:freezeCopy(roomPeople.snapshot()),roomPeopleView:freezeCopy(roomPeopleView.stats),rentals:freezeCopy(micromobility.snapshot()),microView:freezeCopy(microView.stats),gymEntry:freezeCopy(gymEntry),campaign:campaign.snapshot(),protagonists:protagonists.serialize(),interiors:freezeCopy({...interiors.snapshot(),entrySample:interiors.entries.slice(0,8),publicEntries:CIVIC_INTERIOR_ENTRIES,active:interiors.active}),career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
+    aircraft:aircraft.snapshot(),aircraftView:freezeCopy(aircraftView.stats),powers:heroPowers.snapshot(),vehicleDamage:freezeCopy({state:vehicleDamage.snapshot(),view:vehicleDamageView.stats}),ordnance:ordnance.snapshot(),atmosphere:atmosphere.snapshot(),airport:freezeCopy(airportView.stats),touch:freezeCopy({move:moveStick.snapshot(),look:lookStick.snapshot()}),tutorial:tutorial.snapshot(),uiStats:Object.freeze({activity:activityUI.stats}),gameplay: gameplay.snapshot(),rentalHack:freezeCopy(rentalHack.snapshot()),burglary:burglary.snapshot(),nearbyVehicles:freezeCopy(simulation.nearbyVehicles(focus().x,focus().z,40)),miniGame:freezeCopy(activities.snapshot()),roomPeople:freezeCopy(roomPeople.snapshot()),roomPeopleView:freezeCopy(roomPeopleView.stats),rentals:freezeCopy(micromobility.snapshot()),microView:freezeCopy(microView.stats),gymEntry:freezeCopy(gymEntry),campaign:campaign.snapshot(),protagonists:protagonists.serialize(),interiors:freezeCopy({...interiors.snapshot(),entrySample:interiors.entries.slice(0,8),publicEntries:CIVIC_INTERIOR_ENTRIES,active:interiors.active}),career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
     activeJob:freezeCopy(progression.state.activeJob),rideService:rideService.snapshot(),rideView:freezeCopy(rideView.stats),
     guidance:guidance.snapshot(),rideTracking:freezeCopy(rideTracking()),signals:freezeCopy({elapsed:simulation.trafficLights.elapsed,sourceCount:map.trafficSignals.signals.length,groupCount:simulation.trafficLights.groups.length,heads:simulation.trafficLights.heads,view:signalsView.stats}),equipment:freezeCopy({flares:equipment.snapshot(),view:equipmentView.stats}),busPassenger:!!buses.passenger,
     roadGuidance:freezeCopy(roadGuidanceView.stats),
