@@ -359,6 +359,7 @@ export function createGameplay(map, simulation, options = {}) {
     unit.health=Math.max(0,unit.health-clamp(damage,1,12)*(unit.armour ? .65 : 1));
     addShot(from,unit,'pistol',space);return true;
   }
+  const damagePoliceVehicle = (id, amount) => policeController.damageVehicle(state, id, amount);
   function damageVehicle(amount) {
     if(state.recovery || interiorId() || !Number.isFinite(amount) || amount<=0 || state.vehicleHealth<=0)return false;
     state.vehicleHealth=Math.max(0,state.vehicleHealth-Math.min(100,amount));
@@ -549,7 +550,7 @@ export function createGameplay(map, simulation, options = {}) {
       aiming: false, reloading: 0, attackTimer: 0, attackSerial:0, wanted: 0, offencePressure: 0, pursuit: 'clear', heat: 0, sandbox: Boolean(sandbox),
       event: '', message: '', arrestProgress: 0, recovery: null, carjacking: null });
     state.police.length = 0; state.shots.length = 0;
-    policeEvents.length=0;policeController.reset(); clearAmmo(state.sandbox); shotSerial = 0; triggerHeld = false;
+    policeEvents.length=0;policeController.reset({clearWrecks:true}); clearAmmo(state.sandbox); shotSerial = 0; triggerHeld = false;
     state.aimPitch=0;state.actor.aimPitch=0;Object.assign(state.combatFeedback,{shotSerial:0,hitSerial:0,hits:0,recoil:0});
     fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0; crashCooldown = 0; recklessCooldown = 0; jumpVelocity = 0; witnessCooldown = 0;
     previousCrashes = simulation.player.crashes || 0;
@@ -647,9 +648,10 @@ export function createGameplay(map, simulation, options = {}) {
       const result=options.pedestrians?.strike?.({x:event.x,z:event.z,yaw:0,range:event.radius,damage:event.maxDamage,kind:'explosion',hasLineOfSight:sight});
       hits+=result?.hits||0;
     }
+    options.onVehicleExplosion?.(event);
     emit('explosion','Grenade detonated.',{hits});return true;
   }
   return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, reportSighting, inventorySnapshot,
-    takeInventory:item=>transferInventory(item,false),giveInventory:item=>transferInventory(item,true),reset, restoreProtagonist, switchToCompanion, applyExplosion, addAmmo, getAmmo, heal, strikePolice, damageVehicle, policeSupport:()=>policeController.support(), drainPoliceEvents:()=>policeEvents.splice(0),
+    takeInventory:item=>transferInventory(item,false),giveInventory:item=>transferInventory(item,true),reset, restoreProtagonist, switchToCompanion, applyExplosion, addAmmo, getAmmo, heal, strikePolice, damageVehicle, damagePoliceVehicle, get policeWrecks(){return policeController.wrecks;}, policeSupport:()=>policeController.support(), drainPoliceEvents:()=>policeEvents.splice(0),
     snapshot: () => freeze(JSON.parse(JSON.stringify(state))) };
 }

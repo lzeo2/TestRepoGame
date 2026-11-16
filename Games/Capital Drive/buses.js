@@ -100,7 +100,7 @@ export function createBuses(map, simulation) {
   }
   const vehicles = routes.map((route, i) => ({ id: `ambient-bus-${i}`, kind: 'bus',
     x: route.points[0].x, z: route.points[0].z, yaw: route.edges[0].yaw,
-    length: LENGTH, width: WIDTH, active: true, occupied: true, speed: 0,
+    length: LENGTH, width: WIDTH, health: 100, active: true, occupied: true, speed: 0,
     color: i ? 0xbb7448 : 0x547389, layover: i ? 2 : 0, stopRequested: 0, playerAboard: false, currentStop: null, dwellRemaining: 0, stopVisits: 0 }));
   const cursors = vehicles.map(() => 1);
   let aboard = null, exitRequested = false;
@@ -152,6 +152,7 @@ export function createBuses(map, simulation) {
     const near = nearest(ctx.pose);
     if (!near) return { ok: false, reason: 'Walk to the front-left bus door' };
     const bus = vehicles.find(item => item.id === near.busId);
+    if (bus.health === 0) return { ok: false, reason: 'Bus disabled' };
     if (!simulation.hasLineOfSight(ctx.pose, near)) return { ok: false, reason: 'Bus door is out of sight' };
     if (bus.speed > STOPPED) {
       bus.stopRequested = STOP_HOLD;
@@ -166,11 +167,19 @@ export function createBuses(map, simulation) {
   function reset() {
     aboard = null; exitRequested = false;
     vehicles.forEach((bus, i) => {
-      Object.assign(bus, routes[i].points[0], { yaw: routes[i].edges[0].yaw, speed: 0, layover: i ? 2 : 0, active: true, stopRequested: 0, playerAboard: false, currentStop: null, dwellRemaining: 0, stopVisits: 0 });
+      Object.assign(bus, routes[i].points[0], { yaw: routes[i].edges[0].yaw, speed: 0, health: 100, layover: i ? 2 : 0, active: true, stopRequested: 0, playerAboard: false, currentStop: null, dwellRemaining: 0, stopVisits: 0 });
       cursors[i] = 1;
     });
   }
+  function damageVehicle(id, amount) {
+    const bus = vehicles.find(item => item.id === id && item.active);
+    if (!bus || bus.health === 0 || !Number.isFinite(amount) || amount <= 0) return false;
+    bus.health = Math.max(0, bus.health - amount);
+    if (bus.health === 0) bus.speed = 0;
+    return true;
+  }
   function advance(bus, i, dt) {
+    if (bus.health === 0) { bus.speed = 0; return; }
     bus.stopRequested = Math.max(0, bus.stopRequested - dt);
     if (bus.stopRequested > 0 || aboard === bus && exitRequested) {
       bus.speed = Math.max(0, bus.speed - 4 * dt);
@@ -231,6 +240,6 @@ export function createBuses(map, simulation) {
       routeEdgeIds: routes[i].edges.map(edge => edge.id), waypoint: cursors[i],
       servedStops: routes[i].stops, nextStop: routes[i].nextStops[cursors[i]] }));
   }
-  return { vehicles, step, reset, snapshot, nearest, interact,
+  return { vehicles, damageVehicle, step, reset, snapshot, nearest, interact,
     get passenger() { return !!aboard; }, get seatPose() { return aboard; } };
 }

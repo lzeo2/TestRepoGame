@@ -606,7 +606,6 @@ export function createSimulation(map, options = {}) {
     if (!localEdges.length) return;
     for (const car of traffic) {
       const focus = focusPoint || player;
-      if (car.health === 0) continue;
       if (Math.hypot(car.x - focus.x, car.z - focus.z) <= (car.active ? 850 : 330)) continue;
       for (let attempt = 0; attempt < 40; attempt++) {
         const edge = pickSpawn(localEdges);
@@ -615,7 +614,7 @@ export function createSimulation(map, options = {}) {
         const gap = Math.hypot(pose.x - focus.x, pose.z - focus.z);
         // The renderer culls traffic at 300m; replacements enter beyond that view.
         if (gap < 330 || gap > 650 || traffic.some(other => other !== car && other.active && Math.hypot(pose.x - other.x, pose.z - other.z) < 15)) continue;
-        placeTraffic(car, edge, position); car.active = true; car.anger = 0; car.overtake = 0; car.speed = Math.min(10, (edge.road.speed || 50) / 3.6); break;
+        placeTraffic(car, edge, position); car.health = 100; car.active = true; car.anger = 0; car.overtake = 0; car.speed = Math.min(10, (edge.road.speed || 50) / 3.6); break;
       }
     }
   }

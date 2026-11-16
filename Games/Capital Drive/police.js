@@ -9,7 +9,7 @@ export function createPolice(simulation, options = {}) {
   const support=createPoliceSupport(simulation,options);
   const routes = new Map(), tactics = new Map(), approaches = new Map(), events = [];
   let serial = 0, arrest = 0, spawnDelay = 0, lastSeen = { ...simulation.player };
-  const knownRooms = new Set();
+  const knownRooms = new Set(), wrecks = [];
   const currentInterior = () => options.getInterior?.() || null;
   const resolveInterior = id => id ? (options.resolveInterior?.(id) || (currentInterior()?.id === id ? currentInterior() : null)) : null;
   function remember(point) { lastSeen = { x: point.x, z: point.z }; }
@@ -113,10 +113,19 @@ export function createPolice(simulation, options = {}) {
     return atEnd || route.stuck>.75 || (!edge && route.age>.75);
   }
   let checkpointDelay=0;
-  function reset() { support.reset(); checkpointDelay=0; approaches.clear(); routes.clear(); tactics.clear(); events.length=0; knownRooms.clear(); arrest = 0; spawnDelay = 0; remember(simulation.player); }
+  function reset({ clearWrecks = false } = {}) {
+    if (clearWrecks) wrecks.length = 0; support.reset(); checkpointDelay=0; approaches.clear(); routes.clear(); tactics.clear(); events.length=0; knownRooms.clear(); arrest = 0; spawnDelay = 0; remember(simulation.player); }
   const lanePoint = (edge,t) => ({ x:edge.from.x+edge.dx*t+edge.dz*edge.laneOffset,
     z:edge.from.z+edge.dz*t-edge.dx*edge.laneOffset,yaw:edge.yaw });
   const publicEdges = simulation.graph.edges.filter(edge => roadProfile(edge.road).trafficAllowed);
+  function damageVehicle(state, id, amount) {
+    const unit = state.police.find(item => item.car?.id === id);
+    const car = unit?.car;
+    if (!car || car.active === false || car.health === 0 || !Number.isFinite(amount) || amount <= 0) return false;
+    car.health = Math.max(0, (car.health ?? 100) - amount);
+    if (car.health === 0) { car.modelId ||= 'relay'; car.color ??= 0x416c97; car.speed = unit.speed = 0; if (!wrecks.includes(car)) wrecks.push(car); routes.delete(unit.id); tactics.delete(unit.id); }
+    return true;
+  }
   function plan(car,destination) {
     let best=null,score=Infinity;
     for(const edge of publicEdges) {
@@ -195,7 +204,7 @@ export function createPolice(simulation, options = {}) {
     Object.assign(unit,{x:car.x,z:car.z,yaw:car.yaw,speed:car.speed});
   }
   function boardingDoor(unit) {
-    if(unit.car.active===false || gap(unit,unit.car)>65 || !simulation.canOccupy(unit.car,
+    if(unit.car.active===false || unit.car.health===0 || gap(unit,unit.car)>65 || !simulation.canOccupy(unit.car,
       {length:unit.car.length,width:unit.car.width,ignoreId:unit.car.id})) return null;
     const doors=[-1,1].map(side=>({x:unit.car.x+Math.cos(unit.car.yaw)*2*side,
       z:unit.car.z-Math.sin(unit.car.yaw)*2*side}));
@@ -287,7 +296,8 @@ export function createPolice(simulation, options = {}) {
     spawnDelay=Math.max(0,spawnDelay-dt);
     checkpointDelay=Math.max(0,checkpointDelay-dt);
     if(spawnDelay===0) {
-      const cap=Math.min(6,state.wanted+1);
+      for (let i = wrecks.length - 1; i >= 0; i--) if (gap(wrecks[i],target) > 850 && !state.police.some(unit=>unit.car===wrecks[i])) wrecks.splice(i,1);
+      const cap=Math.max(0,Math.min(6,state.wanted+1)-wrecks.filter(car=>!state.police.some(unit=>unit.car===car)).length);
       if(state.wanted>=4&&!room&&checkpointDelay===0){
         for(let i=state.police.filter(unit=>unit.checkpointRemaining>0).length;i<2&&state.police.length<cap;i++)if(!spawn(state,target,true))break;
         checkpointDelay=30;
@@ -306,12 +316,13 @@ export function createPolice(simulation, options = {}) {
       if(unit.health<=0) { unit.speed=0;unit.car.speed=0;continue; }
       if(state.wanted>=5&&unit.role!=='swat'){unit.role='swat';unit.armour=true;unit.health=Math.min(150,unit.health+50);}
       if(unit.seesPlayer) { seen=true;remember(room?room.outside:target);unit.searchTime=0; } else unit.searchTime+=dt;
-      if(unit.checkpointRemaining>0){unit.checkpointRemaining=Math.max(0,unit.checkpointRemaining-dt);unit.car.speed=unit.speed=0;continue;}
+      if(unit.checkpointRemaining>0 && unit.car.health!==0){unit.checkpointRemaining=Math.max(0,unit.checkpointRemaining-dt);unit.car.speed=unit.speed=0;continue;}
       const destination=room?outsideTarget:(unit.seesPlayer?target:lastSeen);
       let returning=false;
       if(unit.mode==='vehicle') {
-        let dismount=(gap(unit.car,destination)<24 && (state.mode==='foot' || Math.abs(target.speed)<2)) || roomRoadArrival(unit,entry);
-        drive(unit,destination,dt,dismount,state.wanted);
+        let dismount=unit.car.health===0 || (gap(unit.car,destination)<24 && (state.mode==='foot' || Math.abs(target.speed)<2)) || roomRoadArrival(unit,entry);
+        if (unit.car.health !== 0) drive(unit,destination,dt,dismount,state.wanted);
+        else unit.car.speed = unit.speed = 0;
         dismount ||= roomRoadArrival(unit,entry);
         if(dismount && Math.abs(unit.car.speed)<0.5) {
           for(const side of [-1,1]) {
@@ -347,5 +358,5 @@ export function createPolice(simulation, options = {}) {
     arrest=arresting?arrest+dt:Math.max(0,arrest-dt*2);state.arrestProgress=clamp(arrest/3.5,0,1);
     if(arrest>=3.5) { arrest=0;options.onArrest?.(); }
   }
-  return {step,reset,report,support:()=>support.snapshot(),drainEvents:()=>events.splice(0)};
+  return {step,reset,report,damageVehicle,get wrecks(){return [...wrecks];},support:()=>support.snapshot(),drainEvents:()=>events.splice(0)};
 }
