@@ -10,7 +10,7 @@ const valid = value => value && Number.isFinite(value.x) && Number.isFinite(valu
 
 // Presentation only: one original marked Lantern and four fixed shared-model adult pools.
 // The controller hides its exterior player actor while the booking is boarded.
-export function createRideServiceView(scene, heightAt) {
+export function createRideServiceView(scene, heightAt, { vehicleHeightAt = null } = {}) {
   const root = new THREE.Group(); root.name = 'Yoober rides'; scene.add(root);
   const geometries = new Set(), materials = new Set(), cabins = new Map();
   const adultMaterial = new THREE.MeshLambertMaterial({ vertexColors: true }); materials.add(adultMaterial);
@@ -90,11 +90,17 @@ export function createRideServiceView(scene, heightAt) {
   const counters = { cars: 0, waiting: 0, drivers: 0, passengers: 0, playerPassenger: false, farePassenger: false, drawCalls: 0 };
   let disposed = false, wheelAngle = 0;
   const ground = (x,z) => finite(heightAt(x,z));
+  const heightPose = {x:0,z:0,yaw:0};
+  function vehicleGround(value,x,z) {
+    if (!vehicleHeightAt) return ground(x,z);
+    heightPose.x=x; heightPose.z=z; heightPose.yaw=finite(value.yaw);
+    return finite(vehicleHeightAt(heightPose,value.edge?.road||value.road));
+  }
   const near = (value, focus) => !!valid(value) && value.active !== false && Math.hypot(value.x-focus.x,value.z-focus.z) < CULL_DISTANCE;
   function place(target, value) {
     const yaw = finite(value.yaw), fx = -Math.sin(yaw), fz = -Math.cos(yaw);
-    const pitch = Math.atan2(ground(value.x+fx*2,value.z+fz*2)-ground(value.x-fx*2,value.z-fz*2),4);
-    target.position.set(value.x,ground(value.x,value.z)+CAR_LIFT,value.z);
+    const pitch = Math.atan2(vehicleGround(value,value.x+fx*2,value.z+fz*2)-vehicleGround(value,value.x-fx*2,value.z-fz*2),4);
+    target.position.set(value.x,vehicleGround(value,value.x,value.z)+CAR_LIFT,value.z);
     target.rotation.set(pitch,yaw,0,'YXZ'); target.updateMatrix();
   }
   function passenger(value, focus, mesh) {

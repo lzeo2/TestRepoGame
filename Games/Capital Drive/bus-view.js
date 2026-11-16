@@ -3,7 +3,7 @@ import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUt
 import { PERSON_MODEL, appearanceForPerson, createPersonGeometries, emitPersonParts } from './person-model.js';
 
 // Original unbranded low-floor city buses. Metres, adult-scale cabin and driver.
-export function createBusView(scene, heightAt) {
+export function createBusView(scene, heightAt, { vehicleHeightAt = null } = {}) {
   const root = new THREE.Group(); root.name = 'Ambient city buses'; scene.add(root);
   const geometry = new Set(), materials = new Set();
   const bodyMaterial = new THREE.MeshLambertMaterial({ vertexColors: true });
@@ -100,6 +100,12 @@ export function createBusView(scene, heightAt) {
   let disposed = false;
   const stats = { buses: 0, passengers: 0, drawCalls: 0, maxDrawCalls: 5, triangles: 0, geometries: geometry.size, materials: materials.size, disposed: false };
   geometry.forEach(value => { stats.triangles += value.index ? value.index.count / 3 : value.attributes.position.count / 3; });
+  const heightPose = {x:0,z:0,yaw:0};
+  function vehicleGround(bus,x,z) {
+    if (!vehicleHeightAt) return heightAt(x,z);
+    heightPose.x=x; heightPose.z=z; heightPose.yaw=bus.yaw;
+    return vehicleHeightAt(heightPose,bus.edge?.road||bus.road);
+  }
   function update(vehicles, focus) {
     if (disposed) return;
     stats.buses = 0; stats.passengers = 0;
@@ -109,13 +115,15 @@ export function createBusView(scene, heightAt) {
       group.visible = !!bus?.active && Number.isFinite(bus.x) && Number.isFinite(bus.z) && Number.isFinite(bus.yaw) &&
         (!focus || Math.hypot(bus.x - focus.x, bus.z - focus.z) < 650);
       if (!group.visible) return;
-      const y = heightAt(bus.x, bus.z);
+      const y = vehicleGround(bus,bus.x,bus.z);
+      const fx=-Math.sin(bus.yaw),fz=-Math.cos(bus.yaw);
+      const pitch=vehicleHeightAt?Math.atan2(vehicleGround(bus,bus.x+fx*4,bus.z+fz*4)-vehicleGround(bus,bus.x-fx*4,bus.z-fz*4),8):0;
       group.visible = Number.isFinite(y);
       if (!group.visible) return;
-      group.position.set(bus.x, y + .03, bus.z); group.rotation.y = bus.yaw; stats.buses++;
+      group.position.set(bus.x, y + .03, bus.z); group.rotation.set(pitch,bus.yaw,0,'YXZ'); stats.buses++;
       if (bus.playerAboard && !stats.passengers) {
         const mesh = passengerBatch();
-        passengerPose.position.copy(group.position); passengerPose.rotation.set(0, bus.yaw, 0); passengerPose.updateMatrix();
+        passengerPose.position.copy(group.position); passengerPose.rotation.copy(group.rotation); passengerPose.updateMatrix();
         mesh.setMatrixAt(0, passengerPose.matrix); mesh.instanceMatrix.needsUpdate = true; mesh.count = 1; mesh.visible = true;
         stats.passengers = 1;
       }
