@@ -353,6 +353,16 @@ export function createSimulation(map, options = {}) {
     stopRequests.set(id, Math.max(stopRequests.get(id) || 0, clamp(seconds, 0, 10)));
     return true;
   }
+  const vehicleBase=car=>Number.isFinite(car.y)?car.y:options.vehicleHeightAt(car,car.edge?.road)+.18;
+  const vehicleBodyHeight=car=>Number.isFinite(car.height)&&car.height>0?car.height:BY_ID[car.modelId]?.height||1.6;
+  function sameVehicleLevel(a,b) {
+    if(!options.vehicleHeightAt)return true;
+    // Callers have already bounded X/Z reach. Separate only disjoint actual
+    // vertical body intervals; overlapping levels retain the existing SAT.
+    const ay=vehicleBase(a),by=vehicleBase(b);
+    if(!Number.isFinite(ay)||!Number.isFinite(by))return true;
+    return !(ay+vehicleBodyHeight(a)+.1<by||by+vehicleBodyHeight(b)+.1<ay);
+  }
   function vehicleOverlap(a, al, aw, b) {
     const dimensions = vehicleSize(b);
     const bl = clamp(dimensions.length, 1, 16), bw = clamp(dimensions.width, 0.5, 4);
@@ -360,6 +370,7 @@ export function createSimulation(map, options = {}) {
     // definitely distant pairs skip the existing separating-axis narrow phase.
     const radius = (al + aw + bl + bw) / 2, dx = a.x - b.x, dz = a.z - b.z;
     if (dx * dx + dz * dz > radius * radius) return false;
+    if (!sameVehicleLevel(a,b)) return false;
     const axes = [a.yaw || 0, b.yaw || 0].flatMap(yaw =>
       [[-Math.sin(yaw), -Math.cos(yaw)], [Math.cos(yaw), -Math.sin(yaw)]]);
     const af = [-Math.sin(a.yaw || 0), -Math.cos(a.yaw || 0)], ar = [-af[1], af[0]];
@@ -401,7 +412,8 @@ export function createSimulation(map, options = {}) {
     const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.2));
     let blocked = scale < 1;
     for (let i = 0; i < steps; i++) {
-      const pose = { x: vehicle.x + dx / steps, z: vehicle.z + dz / steps, yaw: vehicle.yaw };
+      const pose = { x: vehicle.x + dx / steps, z: vehicle.z + dz / steps, yaw: vehicle.yaw,
+        edge:vehicle.edge,modelId:vehicle.modelId,height:vehicle.height,y:vehicle.y };
       if (!vehicleClear(pose, { length, width, ignoreId: vehicle.id, fromPose: vehicle },onContact)) { blocked = true; break; }
       vehicle.x = pose.x; vehicle.z = pose.z;
     }
@@ -645,6 +657,7 @@ export function createSimulation(map, options = {}) {
       if (edge.to.outgoing.length > 2 && remaining < 20) target = Math.min(target, 7.5);
       for (const other of traffic) {
         if (car === other || !other.active) continue;
+        if(Math.abs(car.x-other.x)<30&&Math.abs(car.z-other.z)<30&&!sameVehicleLevel(car,other))continue;
         if (other.edge === edge && other.position > car.position) {
           const gap = other.position - car.position;
           if (gap < 24) { blocked = true; target = Math.min(target, Math.max(0, (gap - 7) * 0.8)); }
@@ -653,10 +666,11 @@ export function createSimulation(map, options = {}) {
       }
       const px = player.x - car.x, pz = player.z - car.z;
       const ahead = px * edge.dx + pz * edge.dz;
-      if (ahead > 0 && ahead < 22 && Math.abs(px * edge.dz - pz * edge.dx) < 2.8) target = Math.min(target, Math.max(0, (ahead - 7) * 0.75));
+      if (ahead > 0 && ahead < 22 && Math.abs(px * edge.dz - pz * edge.dx) < 2.8 && sameVehicleLevel(car,player)) target = Math.min(target, Math.max(0, (ahead - 7) * 0.75));
       for (const obstacle of [...parkedIndex.query(car.x,car.z,28), ...abandonedCars, ...traffic, ...externalVehicles]) {
         if (obstacle === car || obstacle.active === false) continue;
         const dx = obstacle.x - car.x, dz = obstacle.z - car.z, obstacleSize = vehicleSize(obstacle);
+        if(dx*dx+dz*dz<60*60&&!sameVehicleLevel(car,obstacle))continue;
         if (obstacle.edge && traffic[obstacle.slot] === obstacle) {
           const alignment = edge.dx * obstacle.edge.dx + edge.dz * obstacle.edge.dz;
           // Clear opposing lanes are not lead vehicles, even on narrow roads.
@@ -695,7 +709,7 @@ export function createSimulation(map, options = {}) {
         ![player, ...traffic, ...parkedIndex.query(car.x,car.z,30), ...abandonedCars, ...externalVehicles].some(other => {
           if (other === car || other.active === false) return false;
           const dx = other.x - lanePose.x, dz = other.z - lanePose.z;
-          return Math.abs(dx * edge.dx + dz * edge.dz) < 24 && Math.abs(dx * edge.dz - dz * edge.dx - passOffset) < 3.1;
+          return Math.abs(dx * edge.dx + dz * edge.dz) < 24 && Math.abs(dx * edge.dz - dz * edge.dx - passOffset) < 3.1 && sameVehicleLevel(car,other);
         });
       if (car.overtake > 0) {
         car.overtake = Math.max(0, car.overtake - dt);
@@ -732,7 +746,7 @@ export function createSimulation(map, options = {}) {
         // too, so a turning corner cannot overlap and permanently lock its peer.
         for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
           const nextPose = { x: car.x, z: car.z, yaw: car.yaw + turn / turnSteps,
-            modelId: car.modelId, length: car.length, width: car.width };
+            modelId: car.modelId, length: car.length, width: car.width, edge:car.edge,height:car.height };
           if (!canOccupy(nextPose, { ignoreId: car.id, fromPose: car })) break;
           car.yaw = nextPose.yaw;
         }
@@ -782,7 +796,7 @@ export function createSimulation(map, options = {}) {
     const turnSteps = Math.max(1, Math.ceil(Math.abs(turn) / 0.05));
     for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
       const nextPose = { x: player.x, z: player.z, yaw: player.yaw + turn / turnSteps,
-        modelId: player.modelId, length: player.length, width: player.width };
+        modelId: player.modelId, length: player.length, width: player.width, edge:player.edge,height:player.height };
       if (!canOccupy(nextPose, { ignoreId: player.id, fromPose: player })) break;
       player.yaw = nextPose.yaw;
     }
@@ -805,14 +819,14 @@ export function createSimulation(map, options = {}) {
     for (const car of [...parkedIndex.query(player.x, player.z, 3.55), ...abandonedCars]) {
       if (!car.active) continue;
       const dx = player.x - car.x, dz = player.z - car.z, gap = Math.hypot(dx, dz);
-      if (gap < 3.55) resolveImpact(gap > 0.001 ? dx / gap : Math.cos(car.yaw),
+      if (gap < 3.55 && sameVehicleLevel(player,car)) resolveImpact(gap > 0.001 ? dx / gap : Math.cos(car.yaw),
         gap > 0.001 ? dz / gap : -Math.sin(car.yaw), 3.55 - gap + 0.01);
     }
     updateTraffic(dt);
     for (const car of traffic) {
       if (!car.active) continue;
       const dx = player.x - car.x, dz = player.z - car.z, gap = Math.hypot(dx, dz);
-      if (gap < 3.2) resolveImpact(gap > 0.001 ? dx / gap : 1, gap > 0.001 ? dz / gap : 0, (3.2 - gap) * 0.65);
+      if (gap < 3.2 && sameVehicleLevel(player,car)) resolveImpact(gap > 0.001 ? dx / gap : 1, gap > 0.001 ? dz / gap : 0, (3.2 - gap) * 0.65);
     }
     player.speed = player.vx * fx + player.vz * fz;
     player.odometer += Math.hypot(player.vx, player.vz) * dt;
@@ -832,6 +846,7 @@ export function createSimulation(map, options = {}) {
     return [player, ...traffic, ...parkedIndex.query(x,z,radius), ...abandonedCars].filter(car => car.active !== false &&
       Math.hypot(x - car.x, z - car.z) <= radius).map(car => ({ id: car.id, x: car.x, z: car.z, yaw: car.yaw,
         modelId: car.modelId, color: car.color, personId: car.personId ?? car.id,
+        ...(options.vehicleHeightAt?{y:vehicleBase(car)}:{}),
         health: car === player ? undefined : car.health ?? 100, disabled: car !== player && car.health === 0, active: true, occupied: traffic.includes(car), unlocked: car === player || abandonedCars.includes(car), speed: car.speed || 0 }));
   }
   function damageVehicle(id, amount) {

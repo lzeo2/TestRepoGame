@@ -1,3 +1,4 @@
+import { coveredCentrePassage } from './covered-passage.js';
 import { BY_ID } from '../../assets/car-arcade/fleet.js';
 // One immutable broad phase for world solids. Rooms remain lazy, owned by interiors.
 const EPS = 1e-8;
@@ -43,9 +44,24 @@ function rayPrismDistance(ray,solid) {
   }
   return Infinity;
 }
-export function createShotObstacles(map,{heightAt=()=>0}={}) {
+export function createShotObstacles(map,{heightAt=()=>0,groundHeightAt=heightAt,vehicleHeightAt=null,bridgeSegments=[]}={}) {
   const cellSize=64,cells=new Map(),replaced=new Set(map.collisionReplacedBuildingIds||[]);
-  for(const polygon of [...(map.buildings||[]),...(map.barriers||[])]) {
+  function insertSolid(solid) {
+    const xs=solid.points.map(p=>p[0]),zs=solid.points.map(p=>p[1]);
+    for(let x=Math.floor(Math.min(...xs)/cellSize);x<=Math.floor(Math.max(...xs)/cellSize);x++)
+      for(let z=Math.floor(Math.min(...zs)/cellSize);z<=Math.floor(Math.max(...zs)/cellSize);z++) {
+        const key=`${x},${z}`;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(solid);
+      }
+  }
+  const passage=coveredCentrePassage(map);
+  const polygons=[...(map.buildings||[]),...(map.barriers||[])].flatMap(polygon=>{
+    if(polygon!==passage?.building)return [polygon];
+    const heights=polygon.points.map(p=>heightAt(...p)),base=Math.max(...heights)+.12;
+    const bottom=Math.min(...heights)-.3,clearance=base+passage.clearance;
+    return [...passage.groundParts.map(part=>({...part,y:bottom,height:clearance-bottom})),
+      {...polygon,y:clearance,height:base+polygon.height-clearance}];
+  });
+  for(const polygon of polygons) {
     const points=polygon.points;
     if(!points||points.length<3||replaced.has(polygon.id))continue;
     const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]);
@@ -53,9 +69,18 @@ export function createShotObstacles(map,{heightAt=()=>0}={}) {
     const bottom=Number.isFinite(polygon.y)?polygon.y:heightAt((minX+maxX)/2,(minZ+maxZ)/2);
     const top=bottom+(polygon.height||3);
     const solid={points,holes:(polygon.innerRings||[]).map(ring=>ring.points||ring),bottom:polygon.type==='roof'?top-.2:bottom,top};
-    for(let x=Math.floor(minX/cellSize);x<=Math.floor(maxX/cellSize);x++)for(let z=Math.floor(minZ/cellSize);z<=Math.floor(maxZ/cellSize);z++) {
-      const key=`${x},${z}`;if(!cells.has(key))cells.set(key,[]);cells.get(key).push(solid);
-    }
+    insertSolid(solid);
+  }
+  // The same prepared source deck profiles used for road rendering provide
+  // overhead cover. A sloped local Y transform avoids flat stair-step hitboxes.
+  for(const segment of bridgeSegments) {
+    if(!segment?.a||!segment.b||![segment.y0,segment.y1,segment.radius].every(Number.isFinite))continue;
+    const dx=segment.b[0]-segment.a[0],dz=segment.b[1]-segment.a[1],length=Math.hypot(dx,dz);
+    if(length<=EPS)continue;
+    const nx=-dz/length*segment.radius,nz=dx/length*segment.radius,slope=(segment.y1-segment.y0)/(length*length);
+    insertSolid({points:[[segment.a[0]+nx,segment.a[1]+nz],[segment.b[0]+nx,segment.b[1]+nz],
+      [segment.b[0]-nx,segment.b[1]-nz],[segment.a[0]-nx,segment.a[1]-nz]],holes:[],bottom:-.35,top:.083,
+      plane:{x:segment.a[0],z:segment.a[1],y:segment.y0,gx:dx*slope,gz:dz*slope}});
   }
   function traceHit(ray,room=null,vehicles=[]) {
     if(![ray.x,ray.y,ray.z,ray.dx,ray.dy,ray.dz,ray.range].every(Number.isFinite)||ray.range<=0)return {distance:0,vehicleId:null};
@@ -76,8 +101,12 @@ export function createShotObstacles(map,{heightAt=()=>0}={}) {
     } else {
       const endX=ray.x+ray.dx*ray.range,endZ=ray.z+ray.dz*ray.range,found=new Set();
       for(let x=Math.floor(Math.min(ray.x,endX)/cellSize);x<=Math.floor(Math.max(ray.x,endX)/cellSize);x++)for(let z=Math.floor(Math.min(ray.z,endZ)/cellSize);z<=Math.floor(Math.max(ray.z,endZ)/cellSize);z++)for(const solid of cells.get(`${x},${z}`)||[])found.add(solid);
-      for(const solid of found)nearest=Math.min(nearest,rayPrismDistance(ray,solid));
-      const above=t=>ray.y+ray.dy*t-heightAt(ray.x+ray.dx*t,ray.z+ray.dz*t);
+      for(const solid of found) {
+        const p=solid.plane;
+        const local=p?{...ray,y:ray.y-p.y-(ray.x-p.x)*p.gx-(ray.z-p.z)*p.gz,dy:ray.dy-ray.dx*p.gx-ray.dz*p.gz}:ray;
+        nearest=Math.min(nearest,rayPrismDistance(local,solid));
+      }
+      const above=t=>ray.y+ray.dy*t-groundHeightAt(ray.x+ray.dx*t,ray.z+ray.dz*t);
       let previous=0;
       for(let t=.5;t<nearest+.5;t+=.5) {
         const current=Math.min(t,nearest);
@@ -100,7 +129,7 @@ export function createShotObstacles(map,{heightAt=()=>0}={}) {
       const id=String(vehicle.id||'');
       const height=dimension('height',vehicle.kind==='aircraft'||id.startsWith('jet:')?2.8:vehicle.kind==='bus'||id.startsWith('bus:')?3:1.6);
       const distance=rayBoxDistance(ray,{x:vehicle.x,z:vehicle.z,yaw:Number.isFinite(vehicle.yaw)?vehicle.yaw:0,
-        y:Number.isFinite(vehicle.y)?vehicle.y:heightAt(vehicle.x,vehicle.z)+.18,
+        y:Number.isFinite(vehicle.y)?vehicle.y:(vehicleHeightAt?vehicleHeightAt(vehicle,vehicle.edge?.road):heightAt(vehicle.x,vehicle.z))+.18,
         width:dimension('width',1.9),depth:dimension('length',4.8),height});
       if(distance<nearest){nearest=distance;vehicleId=vehicle.id??null;}
     }
