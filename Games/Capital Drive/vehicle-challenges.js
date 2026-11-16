@@ -4,6 +4,7 @@ const LABELS = { x: 'X', y: 'Y', up: 'ArrowUp' };
 const RULES = {
   scooter: { length: 4, cue: 1.4, prepare: 0.38, duration: 20, maxMistakes: 3 },
   car: { length: 8, cue: 1, prepare: 0.38, duration: 24, maxMistakes: 2 },
+  house: { length: 6, cue: 1.3, prepare: 0.38, duration: 24, maxMistakes: 2 },
 };
 const TERMINAL = new Set(['complete', 'failed', 'cancelled']);
 const heldKeys = input => Object.fromEntries(KEYS.map(key => [key, input?.[key] === true]));
@@ -74,7 +75,7 @@ export function createVehicleChallenge() {
       mistake('Wrong key. Release all keys and follow the sequence.');
     } else {
       s.index++; s.reason = null;
-      if (s.index === s.sequence.length) finish('complete', s.kind === 'car' ? 'Car lock bypassed.' : 'Lemon lock bypassed.');
+      if (s.index === s.sequence.length) finish('complete', s.kind === 'car' ? 'Car lock bypassed.' : s.kind === 'house' ? 'House lock bypassed.' : 'Lemon lock bypassed.');
       else prepare();
     }
     return snapshot();
@@ -86,7 +87,7 @@ export function createVehicleChallenge() {
     if (s.phase === 'failed') return `${s.reason} Press E to retry.`;
     if (s.phase === 'cancelled') return 'Lock challenge cancelled.';
     const label = LABELS[s.sequence[s.index]];
-    return `${s.kind === 'car' ? 'CAR LOCK' : 'LEMON HACK'}: ${s.phase === 'cue' ? `Press ${label} now!` : `Release keys. Wait for ${label}.`} ${s.index}/${s.sequence.length}. ${s.mistakes}/${RULES[s.kind].maxMistakes} mistakes. E cancels.`;
+    return `${s.kind === 'car' ? 'CAR LOCK' : s.kind === 'house' ? 'HOUSE LOCK' : 'LEMON HACK'}: ${s.phase === 'cue' ? `Press ${label} now!` : `Release keys. Wait for ${label}.`} ${s.index}/${s.sequence.length}. ${s.mistakes}/${RULES[s.kind].maxMistakes} mistakes. E cancels.`;
   }
   function snapshot() {
     const s = session, rules = s ? RULES[s.kind] : null;
