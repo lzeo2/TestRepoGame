@@ -123,7 +123,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   const shadowMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false });
   materials.push(shadowMaterial);
 
-  const {heightAt,groundHeightAt}=createTerrainSampler(map);
+  const {heightAt,groundHeightAt,roadHeightAt,vehicleHeightAt}=createTerrainSampler(map);
 
   const keyAt = (x, z) => `${Math.floor(x / CHUNK_SIZE)},${Math.floor(z / CHUNK_SIZE)}`;
   function deferSource(x, z, draw, extent) {
@@ -388,24 +388,25 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   }
 
   // Subdivide only where a road triangle would cut through a bilinear hill.
-  function drapedTriangle(batch, a, b, c, tint, lift, depth = 0) {
+  function drapedTriangle(batch, a, b, c, tint, lift, sampleHeight = heightAt, depth = 0) {
     const middle = (p, q) => {
       const x = (p[0] + q[0]) / 2, z = (p[2] + q[2]) / 2;
-      return [x, heightAt(x, z) + lift, z];
+      return [x, sampleHeight(x, z) + lift, z];
     };
     const ab = middle(a, b), bc = middle(b, c), ca = middle(c, a);
     const x = (a[0] + b[0] + c[0]) / 3, z = (a[2] + b[2] + c[2]) / 3;
     const error = Math.max(Math.abs(ab[1] - (a[1] + b[1]) / 2), Math.abs(bc[1] - (b[1] + c[1]) / 2),
-      Math.abs(ca[1] - (c[1] + a[1]) / 2), Math.abs(heightAt(x, z) + lift - (a[1] + b[1] + c[1]) / 3));
+      Math.abs(ca[1] - (c[1] + a[1]) / 2), Math.abs(sampleHeight(x, z) + lift - (a[1] + b[1] + c[1]) / 3));
     if (depth < 4 && error > 0.045) {
-      drapedTriangle(batch, a, ab, ca, tint, lift, depth + 1);
-      drapedTriangle(batch, ab, b, bc, tint, lift, depth + 1);
-      drapedTriangle(batch, ca, bc, c, tint, lift, depth + 1);
-      drapedTriangle(batch, ab, bc, ca, tint, lift, depth + 1);
+      drapedTriangle(batch, a, ab, ca, tint, lift, sampleHeight, depth + 1);
+      drapedTriangle(batch, ab, b, bc, tint, lift, sampleHeight, depth + 1);
+      drapedTriangle(batch, ca, bc, c, tint, lift, sampleHeight, depth + 1);
+      drapedTriangle(batch, ab, bc, ca, tint, lift, sampleHeight, depth + 1);
     } else triangle(batch, a, b, c, tint);
   }
 
-  function ribbon(a, b, left, right, tint, lift) {
+  function ribbon(a, b, left, right, tint, lift, road) {
+    const sampleHeight = road ? (x,z)=>roadHeightAt(road,x,z) : heightAt;
     const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
     if (length < 0.1) return;
     const nx = -(b[1] - a[1]) / length, nz = (b[0] - a[0]) / length;
@@ -414,42 +415,43 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       const t0 = i / pieces, t1 = (i + 1) / pieces;
       const x0 = THREE.MathUtils.lerp(a[0], b[0], t0), z0 = THREE.MathUtils.lerp(a[1], b[1], t0);
       const x1 = THREE.MathUtils.lerp(a[0], b[0], t1), z1 = THREE.MathUtils.lerp(a[1], b[1], t1);
-      const p = (x, z, d) => [x + nx * d, heightAt(x + nx * d, z + nz * d) + lift, z + nz * d];
+      const p = (x, z, d) => [x + nx * d, sampleHeight(x + nx * d, z + nz * d) + lift, z + nz * d];
       const batch = batchAt(x0, z0, tint === COLORS.asphalt ? 'road' : 'pavement');
       if (!batch) continue;
       const pa = p(x0, z0, right), pb = p(x1, z1, right), pc = p(x1, z1, left), pd = p(x0, z0, left);
-      drapedTriangle(batch, pa, pb, pc, tint, lift);
-      drapedTriangle(batch, pa, pc, pd, tint, lift);
+      drapedTriangle(batch, pa, pb, pc, tint, lift, sampleHeight);
+      drapedTriangle(batch, pa, pc, pd, tint, lift, sampleHeight);
     }
   }
   function drawRoad(s) {
+    const roadRibbon=(...args)=>ribbon(...args,s.road);
     const half = s.width / 2;
     // Side strips avoid hidden duplicate pavement under the entire carriageway.
     const residentialPath = s.road.type === 'residential';
     const pathWidth = s.profile.pavementWidth;
     const kerbWidth = s.profile.hasKerb ? 0.18 : 0;
     if (pathWidth > 0) {
-      if (s.profile.sidewalkLeft) ribbon(s.a, s.b, -half - kerbWidth - pathWidth, -half - kerbWidth, residentialPath ? 0xb7b59c : COLORS.path, 0.045);
-      if (s.profile.sidewalkRight) ribbon(s.a, s.b, half + kerbWidth, half + kerbWidth + pathWidth, COLORS.path, 0.045);
+      if (s.profile.sidewalkLeft) roadRibbon(s.a, s.b, -half - kerbWidth - pathWidth, -half - kerbWidth, residentialPath ? 0xb7b59c : COLORS.path, 0.045);
+      if (s.profile.sidewalkRight) roadRibbon(s.a, s.b, half + kerbWidth, half + kerbWidth + pathWidth, COLORS.path, 0.045);
     }
     if (kerbWidth) {
-      ribbon(s.a, s.b, -half - kerbWidth, -half, COLORS.kerb, 0.065);
-      ribbon(s.a, s.b, half, half + kerbWidth, COLORS.kerb, 0.065);
+      roadRibbon(s.a, s.b, -half - kerbWidth, -half, COLORS.kerb, 0.065);
+      roadRibbon(s.a, s.b, half, half + kerbWidth, COLORS.kerb, 0.065);
     }
-    ribbon(s.a, s.b, -half, half, COLORS.asphalt, 0.083);
+    roadRibbon(s.a, s.b, -half, half, COLORS.asphalt, 0.083);
     const marked = s.profile.markings;
     const schoolAnchor = (map.landmarks || []).find(l => l.id === 'telopea');
     const schoolApproach = schoolAnchor && /New South Wales Crescent/i.test(s.road.name || '') && Math.hypot((s.a[0] + s.b[0]) / 2 - schoolAnchor.x, (s.a[1] + s.b[1]) / 2 - schoolAnchor.z) < 350;
     if (marked && schoolApproach) {
-      ribbon(s.a, s.b, -0.2, -0.09, COLORS.paint, 0.105);
-      ribbon(s.a, s.b, 0.09, 0.2, COLORS.paint, 0.105);
+      roadRibbon(s.a, s.b, -0.2, -0.09, COLORS.paint, 0.105);
+      roadRibbon(s.a, s.b, 0.09, 0.2, COLORS.paint, 0.105);
     } else if (marked) {
       const dx = (s.b[0] - s.a[0]) / s.length, dz = (s.b[1] - s.a[1]) / s.length;
       const offsets = roadMarkingOffsets(s.road, s.profile);
       for (const offset of offsets) for (let d = 8; d < s.length - 6; d += 12) {
-        ribbon([s.a[0] + dx * d, s.a[1] + dz * d], [s.a[0] + dx * Math.min(d + 3, s.length - 6), s.a[1] + dz * Math.min(d + 3, s.length - 6)], offset - .065, offset + .065, COLORS.paint, 0.105);
+        roadRibbon([s.a[0] + dx * d, s.a[1] + dz * d], [s.a[0] + dx * Math.min(d + 3, s.length - 6), s.a[1] + dz * Math.min(d + 3, s.length - 6)], offset - .065, offset + .065, COLORS.paint, 0.105);
       }
-      if (s.profile.major) for (const side of [-1, 1]) ribbon(s.a, s.b, side * (half - .25) - .06, side * (half - .25) + .06, COLORS.paint, .105);
+      if (s.profile.major) for (const side of [-1, 1]) roadRibbon(s.a, s.b, side * (half - .25) - .06, side * (half - .25) + .06, COLORS.paint, .105);
     }
     counters.roadSegments++;
   }
@@ -458,15 +460,28 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     deferSource(s.a[0], s.a[1], () => drawRoad(s), [Math.min(s.a[0],s.b[0])-margin, Math.min(s.a[1],s.b[1])-margin, Math.max(s.a[0],s.b[0])+margin, Math.max(s.a[1],s.b[1])+margin]);
   }
 
+  function nodeSurfaces(node) {
+    const surfaces=[];
+    for(const road of node.roads.values()) {
+      const y=roadHeightAt(road,node.x,node.z),width=roadProfile(road).driveWidth;
+      const previous=surfaces.find(item=>Math.abs(item.y-y)<.02);
+      if(!previous)surfaces.push({road,y,width});
+      else if(width>previous.width)Object.assign(previous,{road,y,width});
+    }
+    return surfaces.map(item=>item.road);
+  }
   // A small apron joins consecutive road segments at every bend, including
   // nodes on a single named way, rather than only named intersections.
   for (const node of nodes.values()) {
     deferSource(node.x, node.z, () => {
-      const radius = node.width / 2;
+      for (const road of nodeSurfaces(node)) {
+      const sampleHeight=(x,z)=>roadHeightAt(road,x,z);
+      const radius = roadProfile(road).driveWidth / 2;
       const batch = batchAt(node.x, node.z, 'road');
       for (let i = 0; i < 10; i++) {
-        const p = a => [node.x + Math.cos(a) * radius, heightAt(node.x + Math.cos(a) * radius, node.z + Math.sin(a) * radius) + 0.09, node.z + Math.sin(a) * radius];
-        drapedTriangle(batch, [node.x, heightAt(node.x, node.z) + 0.09, node.z], p((i + 1) / 10 * Math.PI * 2), p(i / 10 * Math.PI * 2), COLORS.asphalt, 0.09);
+        const p = a => [node.x + Math.cos(a) * radius, sampleHeight(node.x + Math.cos(a) * radius, node.z + Math.sin(a) * radius) + 0.09, node.z + Math.sin(a) * radius];
+        drapedTriangle(batch, [node.x, sampleHeight(node.x, node.z) + 0.09, node.z], p((i + 1) / 10 * Math.PI * 2), p(i / 10 * Math.PI * 2), COLORS.asphalt, 0.09, sampleHeight);
+      }
       }
     });
   }
@@ -475,12 +490,15 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   // discs used to turn small access junctions into broad asphalt plazas.
   for (const node of intersections) {
     deferSource(node.x, node.z, () => {
-      const radius = node.width / 2;
+      for (const road of nodeSurfaces(node)) {
+      const sampleHeight=(x,z)=>roadHeightAt(road,x,z);
+      const radius = roadProfile(road).driveWidth / 2;
       const batch = batchAt(node.x, node.z, 'road');
       for (let i = 0; i < 12; i++) {
         const a = i / 12 * Math.PI * 2, b = (i + 1) / 12 * Math.PI * 2;
-        const p = angle => [node.x + Math.cos(angle) * radius, heightAt(node.x + Math.cos(angle) * radius, node.z + Math.sin(angle) * radius) + 0.115, node.z + Math.sin(angle) * radius];
-        drapedTriangle(batch, [node.x, heightAt(node.x, node.z) + 0.115, node.z], p(b), p(a), COLORS.asphalt, 0.115);
+        const p = angle => [node.x + Math.cos(angle) * radius, sampleHeight(node.x + Math.cos(angle) * radius, node.z + Math.sin(angle) * radius) + 0.115, node.z + Math.sin(angle) * radius];
+        drapedTriangle(batch, [node.x, sampleHeight(node.x, node.z) + 0.115, node.z], p(b), p(a), COLORS.asphalt, 0.115, sampleHeight);
+      }
       }
     });
   }
@@ -1044,5 +1062,5 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     lastCellX = Math.floor(spawn.x / CELL_SIZE); lastCellZ = Math.floor(spawn.z / CELL_SIZE);
   }
   update(map.spawn || { x: 0, z: 0 });
-  return { heightAt,groundHeightAt, update, dispose, get stats() { return statsSnapshot(); } };
+  return { heightAt,groundHeightAt,roadHeightAt,vehicleHeightAt, update, dispose, get stats() { return statsSnapshot(); } };
 }
