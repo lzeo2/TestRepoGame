@@ -29,25 +29,25 @@ export function createCampaignScenesView(scene,heightAt) {
     local.position.set(x,y,z);local.rotation.set(rx,0,0);local.scale.set(sx,sy,sz);local.updateMatrix();
     matrix.multiplyMatrices(world.matrix,local.matrix);mesh.setMatrixAt(mesh.count,matrix);mesh.setColorAt(mesh.count,color.setHex(tint));mesh.count++;
   }
-  function shotTrace(shot,startY) {
+  function shotTrace(shot,startY,floorY=null) {
     if(!(shot?.remaining>0)||![shot.from?.x,shot.from?.z,shot.to?.x,shot.to?.z].every(Number.isFinite))return;
     const dx=shot.to.x-shot.from.x,dz=shot.to.z-shot.from.z,length=Math.hypot(dx,dz),mesh=batches.shoes;
     if(!(length>0&&length<=28)||mesh.count>=mesh.instanceMatrix.count)return;
-    const endY=heightAt(shot.to.x,shot.to.z);if(!Number.isFinite(endY))return;
+    const endY=floorY??heightAt(shot.to.x,shot.to.z);if(!Number.isFinite(endY))return;
     local.position.set((shot.from.x+shot.to.x)/2,(startY+endY+1.22)/2,(shot.from.z+shot.to.z)/2);
     local.rotation.set(0,Math.atan2(dx,dz),0);local.scale.set(.025,.025,length);local.updateMatrix();
     mesh.setMatrixAt(mesh.count,local.matrix);mesh.setColorAt(mesh.count,color.setHex(0xffd879));mesh.count++;
   }
-  function update(people=[],focus=null) {
+  function update(people=[],focus=null,{interiorId=null}={}) {
     if(disposed)return;
     stats.people=stats.drawCalls=stats.triangles=0;
     for(const mesh of Object.values(batches))mesh.count=0;
     for(const person of Array.isArray(people)?people:[]) {
       if(stats.people>=2)break;
       const appearance=appearances.get(person?.appearanceId);
-      if(!appearance||person.active===false||![person.x,person.z,person.yaw].every(Number.isFinite))continue;
+      if(!appearance||(person.interiorId||null)!==interiorId||person.active===false||![person.x,person.z,person.yaw].every(Number.isFinite))continue;
       if(focus&&(!Number.isFinite(focus.x)||!Number.isFinite(focus.z)||Math.hypot(person.x-focus.x,person.z-focus.z)>140))continue;
-      const y=heightAt(person.x,person.z);if(!Number.isFinite(y))continue;
+      const y=person.interiorId?person.floorY:heightAt(person.x,person.z);if(!Number.isFinite(y))continue;
       if(person.seated===true) {
         const cabin=cabins.get(person.carModelId);if(!cabin||![0,1].includes(person.seatIndex))continue;
         const {eye,scale,rear}=cabin,s=Math.sin(person.yaw),c=Math.cos(person.yaw);
@@ -85,7 +85,7 @@ export function createCampaignScenesView(scene,heightAt) {
         part('shoes',.30,gunY-.09,gunZ+.07,.07,.17,.08,0x43454a,-.2);
         part('shoes',.30,gunY+.015,gunZ-.18,.045,.045,.14,0x14181c);
       } else part('shoes',.30,1.10+gesture*.1,-.37,.18,.12,.018,0xe7dfc9,-.2);
-      shotTrace(person.shot,y+1.22);
+      shotTrace(person.shot,y+1.22,person.interiorId?y:null);
       stats.people++;
     }
     for(const mesh of Object.values(batches)) {

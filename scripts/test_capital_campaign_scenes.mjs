@@ -97,7 +97,7 @@ assert(actualHome&&fullInteriors.entries.some(entry=>entry.id===actualHome.roomI
 assert(fullHood.entries.length>=4200&&fullInteriors.entries.filter(entry=>entry.type==='house').length>=2700,'full source door metadata remains present before selecting the actual story home');
 fullHood.dispose();
 const sharedCampaign=createCampaign(fullMap,{version:1,completed:[]}),sharedCrew=createCampaignScenes(fullMap,fullSim);
-assert.equal(sharedCampaign.chapters.length,13);
+assert.equal(sharedCampaign.chapters.length,15);
 for(const chapter of sharedCampaign.chapters){
  sharedCrew.clear();sharedCrew.update({mode:'campaign',character:chapter.character,mission:{...chapter,target:chapter.stages[0]},pose:fullMap.spawn},.1);
  assert.equal(sharedCrew.people.length,2,`${chapter.id} recruits both allies near the actual player`);
