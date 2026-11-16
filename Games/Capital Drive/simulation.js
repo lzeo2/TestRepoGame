@@ -1,4 +1,5 @@
 import { roadProfile } from './road-network.js';
+import { prepareWaterRing } from './water-contact.js';
 import { createTrafficLights } from './traffic-lights.js';
 import { BY_ID } from '../../assets/car-arcade/fleet.js';
 // Coordinates are metres east/south; yaw matches THREE.Object3D.rotation.y.
@@ -154,9 +155,10 @@ export function createSimulation(map, options = {}) {
     if(!barrier.points?.length)continue;
     barrierIndex.insert(barrier,Math.min(...barrier.points.map(p=>p[0])),Math.min(...barrier.points.map(p=>p[1])),Math.max(...barrier.points.map(p=>p[0])),Math.max(...barrier.points.map(p=>p[1])));
   }
-  const waterEdges=new SpatialGrid(128),waterMask=new WeakMap();
+  const waterEdges=new SpatialGrid(128),waterMask=new WeakMap(),waterRings=new WeakMap();
   for(const area of map.areas||[]){
     if(area.type!=='water')continue;
+    waterRings.set(area,{outer:prepareWaterRing(area.points||[]),holes:(area.innerRings||[]).map(r=>prepareWaterRing(r.points||r))});
     for(const ring of [area.points,...(area.innerRings||[]).map(r=>r.points||r)]){
       if(!ring)continue;
       for(let i=0,j=ring.length-1;i<ring.length;j=i++){
@@ -184,7 +186,7 @@ export function createSimulation(map, options = {}) {
       return polygonContact(x,z,polygon.points,radius);
     }
     if(options.isOnBridge?.(x,z,radius))return null;
-    const holes=(polygon.innerRings||[]).map(r=>r.points||r);
+    const {outer,holes}=waterRings.get(polygon);
     const cx=Math.floor(x/128),cz=Math.floor(z/128),key=`${cx},${cz}`;
     if(!waterMask.has(polygon))waterMask.set(polygon,new Map());
     const cache=waterMask.get(polygon);
@@ -192,13 +194,13 @@ export function createSimulation(map, options = {}) {
     if(mask===undefined){
       const px=(cx+.5)*128,pz=(cz+.5)*128;
       const boundary=[...waterEdges.query(px,pz,96)].some(edge=>edge.area===polygon);
-      mask=boundary?'edge':insideRing(px,pz,polygon.points)&&!holes.some(r=>insideRing(px,pz,r))?'water':'land';
+      mask=boundary?'edge':outer.contains(px,pz)&&!holes.some(r=>r.contains(px,pz))?'water':'land';
       cache.set(key,mask);
     }
     if(mask==='land')return null;
     if(mask==='water')return {nx:1,nz:0,depth:radius};
-    for(const ring of holes)if([[0,0],[radius,0],[-radius,0],[0,radius],[0,-radius]].every(([dx,dz])=>insideRing(x+dx,z+dz,ring)))return null;
-    return polygonContact(x,z,polygon.points,radius);
+    for(const ring of holes)if([[0,0],[radius,0],[-radius,0],[0,radius],[0,-radius]].every(([dx,dz])=>ring.contains(x+dx,z+dz)))return null;
+    return outer.contact(x,z,radius);
   }
   const parkedCars = [], abandonedCars = [];
   let externalVehicles = [], peopleIndex = new SpatialGrid(8);
