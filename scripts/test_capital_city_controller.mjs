@@ -146,6 +146,27 @@ assert.deepEqual(game.inventorySnapshot(),savedBody.ammunition);assert.equal(gam
 const corrupt={...savedBody,weapon:'carbine'};
 assert.equal(sanitize(corrupt),corrupt,'unowned weapons absent from real storage remain rejected');
 assert.equal(game.restoreProtagonist(sanitize(corrupt)).reason,'unowned-weapon');
+assert(control.cityAction('hire','merc-river').ok);
+control.campaignScenes.people=[{id:'merc-river',hired:true,health:0,renewalSerial:commerce.crewRenewalSerial('merc-river')}];
+assert(control.cityAction('rehire','merc-river').ok);
+const afterRenewal=commerce.state.cash,renewalWrites=writes;
+assert.equal(control.cityAction('rehire','merc-river').ok,false,'a paused dead render body cannot buy the same pending renewal twice');
+assert.equal(commerce.state.cash,afterRenewal);assert.equal(writes,renewalWrites);
+const inventory=owner(['inventoryProfile','captureCareerInventory','restoreCareerInventory'],{
+  developerReturn:null,started:true,isSandbox:()=>false,gameMode:'campaign',campaign:{state:{character:'student',active:{id:'mission'}}},
+  progression:commerce,gameplay:game,campaignScenes:control.campaignScenes,
+});
+game.state.wanted=4;inventory.captureCareerInventory();
+assert.deepEqual(commerce.getInventory('student'),game.inventorySnapshot(),'wanted active missions still save inventory without a body checkpoint');
+assert.equal(commerce.getCrewHealth('merc-river'),100,'old dead body cannot overwrite pending paid renewal');
+const exactInventory=game.inventorySnapshot();game.addAmmo(10,'pistol');inventory.restoreCareerInventory();
+assert.deepEqual(game.inventorySnapshot(),exactInventory);assert.equal(game.state.wanted,4);
+inventory.developerReturn={};game.addAmmo(10,'pistol');inventory.captureCareerInventory();
+assert.deepEqual(commerce.getInventory('student'),exactInventory,'preview inventory cannot overwrite career');
+inventory.developerReturn=null;inventory.gameMode='street';inventory.captureCareerInventory();
+assert.deepEqual(commerce.getInventory('street'),game.inventorySnapshot(),'Street Life has a separate durable ammunition profile');
+control.campaignScenes.people=[];
+game.state.wanted=0;
 const afterWeaponWrite=writes;
 control.developerReturn={mode:'campaign'};
 assert.equal(control.cityAction('stash',{action:'deposit',kind:'cash',amount:10}).ok,false);

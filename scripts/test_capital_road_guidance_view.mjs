@@ -64,6 +64,14 @@ const lane = createRoadGuidanceView(scene, () => 27, { laneOffset: 2 });
 lane.update(route, { x: -2, z: 0, yaw: 0 });
 assert(lane.stats.arrows.every(point => point.x === -2 && point.y === 27.45), 'left lane placement uses bridge/deck height authority'); lane.dispose();
 
+const headingSamples=[];
+const levels=createRoadGuidanceView(scene,(x,z,yaw)=>{headingSamples.push({x,z,yaw});return yaw===0?4:12;});
+levels.update(route,{x:0,z:0,yaw:0});
+assert.equal(headingSamples.length,15,'all five ground samples per marker retain source-road heading');
+assert(headingSamples.every(p=>p.yaw===0));
+assert(levels.stats.arrows.every(p=>p.y===4.45),'lower-road guidance does not float on a crossing bridge');
+levels.dispose();
+
 // Exercise the actual offline OSM graph and route finder, through dense vertices
 // and road turns rather than only the synthetic straight-road fixtures.
 const { buildRoadGraph } = await import(new URL('simulation.js', base));

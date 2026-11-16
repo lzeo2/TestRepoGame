@@ -132,7 +132,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     { id: 'earmuffs-rematch', character: 'corporate', name: '13. Pink Earmuffs rematch', contact: 'Dot', reward: 1300, time: 900,
       cutscene: scene('earmuffs-rematch', 'Settle the booth dispute', ['Rowan', 'Dot in the pink earmuffs wants a rematch. This time I intend to finish the fight standing.'], ['Mara', 'Find her at the Lambzhou booth. Win the actual fight, then leave and clear the search.']),
       briefing: 'Rowan, return to Lambzhou 1919 and speak to Dot in the pink earmuffs. Win the resulting actual fight. Taking her first hit or waiting does not win. Leave the restaurant on foot and lose any search afterward.',
-      outro: 'Rowan: Dot is down, everyone is out and the depot collection is closed. Campaign complete.',
+      outro: 'Rowan: Dot is down. Mara has two collections left to move.',
       stages: [target(noodle, 'Lambzhou booth: challenge Pink Earmuffs and win the fight', 'fight', { storeId: noodle.id, victory: true, hold: 0 }), target(noodle, 'Leave Lambzhou on foot and clear the search after the rematch', 'foot', { clear: true, radius: 18, hold: 3 })] },
     { id: 'closing-time', character: 'student', name: '14. Closing time', contact: 'Mara', reward: 2800, time: 1440,
       cutscene: scene('closing-time', 'Closing time', ['Mara', 'Both tills need fresh handovers. The sealed case is separate.'], ['Kit', 'Coals first. Then Scoot. We leave together.']),

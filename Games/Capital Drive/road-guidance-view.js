@@ -111,10 +111,10 @@ export function createRoadGuidanceView(scene, heightAt, { laneOffset = 0, placeP
       else if (Number.isFinite(laneOffset)) point = { ...point, x: point.x - Math.cos(yaw) * laneOffset, z: point.z + Math.sin(yaw) * laneOffset };
       if (point && placePoint) point = placePoint({ ...point }, yaw);
       if (!valid(point) || (point.x - pose.x) * forwardX + (point.z - pose.z) * forwardZ <= 3 || (isClear && !isClear(point.x, point.z, yaw))) continue;
-      const y = heightAt(point.x, point.z);
+      const y = heightAt(point.x, point.z, yaw);
       const fx = -Math.sin(yaw), fz = -Math.cos(yaw), rx = Math.cos(yaw), rz = -Math.sin(yaw);
-      const front = heightAt(point.x + fx * 2.5, point.z + fz * 2.5), back = heightAt(point.x - fx * 2.5, point.z - fz * 2.5);
-      const right = heightAt(point.x + rx * 1.35, point.z + rz * 1.35), left = heightAt(point.x - rx * 1.35, point.z - rz * 1.35);
+      const front = heightAt(point.x + fx * 2.5, point.z + fz * 2.5, yaw), back = heightAt(point.x - fx * 2.5, point.z - fz * 2.5, yaw);
+      const right = heightAt(point.x + rx * 1.35, point.z + rz * 1.35, yaw), left = heightAt(point.x - rx * 1.35, point.z - rz * 1.35, yaw);
       if (![y, front, back, right, left].every(Number.isFinite)) continue;
       const pitch = Math.atan2(front - back, 5), roll = Math.atan2(right - left, 2.7), index = arrows.length;
       dummy.rotation.set(pitch, yaw, roll, 'YXZ'); dummy.scale.set(1, 1, 1);
