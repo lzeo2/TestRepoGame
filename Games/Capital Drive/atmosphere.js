@@ -1,5 +1,5 @@
 // Original deterministic arcade atmosphere; all time comes from the game loop.
-const DAY_SECONDS = 720, WEATHER_SECONDS = 120, TRANSITION_SECONDS = 30;
+const DAY_SECONDS = 2880, WEATHER_SECONDS = 120, TRANSITION_SECONDS = 30;
 const STATES = Object.freeze([
   Object.freeze({ id: 'clear', cloud: 0, rain: 0, haze: .12, wetness: 0 }),
   Object.freeze({ id: 'overcast', cloud: .8, rain: 0, haze: .45, wetness: .15 }),
