@@ -52,7 +52,7 @@ p.state.cash=1000000000;p.state.stashes[homes[0].id].cash=1;unchanged(()=>p.stas
 const dealer=p.services.find(site=>site.type==='arms');
 p.state.cash=900;assert(p.purchaseService(dealer.id,'drone',ctx({pose:dealer})).ok);assert.equal(p.state.cash,0);assert.equal(p.state.gear.drone,true);unchanged(()=>p.purchaseService(dealer.id,'drone',ctx({pose:dealer})));
 const saved=p.serialize();assert.deepEqual(createProgression(source,saved,{homes}).serialize(),saved);
-const legacy=structuredClone(saved);for(const key of ['ownedProperties','stashes','hiredCrew'])delete legacy[key];delete legacy.gear.drone;assert.equal(createProgression(source,legacy,{homes}).state.gear.drone,undefined);
+const legacy=structuredClone(saved);for(const key of ['ownedProperties','stashes','hiredCrew','crewHealth','inventoryProfiles'])delete legacy[key];delete legacy.gear.drone;assert.equal(createProgression(source,legacy,{homes}).state.gear.drone,undefined);
 for(const edit of [save=>save.hiredCrew=['unknown'],save=>save.hiredCrew=['merc-river','merc-river'],save=>save.ownedProperties=['unknown'],save=>save.gear.drone=1,save=>save.stashes[homes[0].id].ammo.pistol=999,save=>save.stashes.unknown=emptyStash(),save=>save.stashes[homes[0].id].weapons=['pistol']]){const corrupt=structuredClone(saved);edit(corrupt);assert.throws(()=>createProgression(source,corrupt,{homes}));}
 exterior.dispose();
 console.log('Capital safehouse commerce: sourced offers, strict saves, paid renewals, drone purchase and authoritative stash conservation passed.');

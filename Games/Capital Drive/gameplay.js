@@ -370,6 +370,19 @@ export function createGameplay(map, simulation, options = {}) {
     state.heat=28+state.wanted*9;state.pursuit='pursuit';policeController.report({x,z});return true;
   }
   function inventorySnapshot(){return freeze(Object.fromEntries(Object.entries(ammunition).map(([id,pool])=>[id,{...pool}])));}
+  function restoreInventory(pools){
+    if(!pools||typeof pools!=='object'||Array.isArray(pools)||Object.keys(pools).length!==WEAPONS.length||
+      Object.keys(pools).some(id=>!WEAPONS.some(weapon=>weapon.id===id))||WEAPONS.some(weapon=>{
+        const pool=pools[weapon.id];
+        return !pool||typeof pool!=='object'||Array.isArray(pool)||Object.keys(pool).length!==2||
+          Object.keys(pool).some(key=>!['ammo','reserveAmmo'].includes(key))||
+          !Number.isSafeInteger(pool.ammo)||pool.ammo<0||pool.ammo>weapon.magazine||
+          !Number.isSafeInteger(pool.reserveAmmo)||pool.reserveAmmo<0||pool.reserveAmmo>weapon.reserveCap;
+      }))return false;
+    for(const weapon of WEAPONS)Object.assign(ammunition[weapon.id],pools[weapon.id]);
+    equipped.clear();for(const weapon of WEAPONS)if(ownsWeapon(weapon.id))equipped.add(weapon.id);
+    state.reloading=0;return true;
+  }
   function transferInventory(item,give){
     if(!item||state.recovery)return false;
     const weapon=weaponById(item.weaponId);if(!weapon)return false;
@@ -651,7 +664,7 @@ export function createGameplay(map, simulation, options = {}) {
     options.onVehicleExplosion?.(event);
     emit('explosion','Grenade detonated.',{hits});return true;
   }
-  return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, reportSighting, inventorySnapshot,
+  return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, reportSighting, inventorySnapshot, restoreInventory,
     takeInventory:item=>transferInventory(item,false),giveInventory:item=>transferInventory(item,true),reset, restoreProtagonist, switchToCompanion, applyExplosion, addAmmo, getAmmo, heal, strikePolice, damageVehicle, damagePoliceVehicle, get policeWrecks(){return policeController.wrecks;}, policeSupport:()=>policeController.support(), drainPoliceEvents:()=>policeEvents.splice(0),
     snapshot: () => freeze(JSON.parse(JSON.stringify(state))) };
 }
