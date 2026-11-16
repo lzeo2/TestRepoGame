@@ -140,6 +140,88 @@ export function createTerrainSampler(map) {
     }
   }
 
+  // Road surfaces need an owner: a ground road below a bridge must not inherit
+  // the deck merely because its X/Z lies inside the bridge's horizontal mask.
+  const ownedDecks=new Map();
+  for(const segment of bridgeSegments) {
+    if(!ownedDecks.has(segment.roadId))ownedDecks.set(segment.roadId,[]);
+    ownedDecks.get(segment.roadId).push(segment);
+  }
+  const project=(x,z,a,b)=>{
+    const dx=b[0]-a[0],dz=b[1]-a[1],lengthSquared=dx*dx+dz*dz;
+    const t=clamp(((x-a[0])*dx+(z-a[1])*dz)/(lengthSquared||1),0,1);
+    return {t,distance:Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t),dx,dz,lengthSquared};
+  };
+  function ownDeckHeight(road,x,z) {
+    let nearest=Infinity,result=null;
+    for(const segment of ownedDecks.get(road.id)||[]) {
+      const p=project(x,z,segment.a,segment.b);
+      if(p.distance<nearest){nearest=p.distance;result=lerp(segment.y0,segment.y1,p.t);}
+    }
+    return result;
+  }
+  const jointHeights=new Map();
+  for(const segment of bridgeSegments)for(const [point,y]of [[segment.a,segment.y0],[segment.b,segment.y1]]) {
+    const key=keyOf(point);jointHeights.set(key,Math.max(jointHeights.get(key)??-Infinity,y));
+  }
+  const approaches=new Map();
+  for(const road of roads) {
+    if(ownedDecks.has(road.id))continue;
+    for(const point of [road.points[0],road.points.at(-1)]) {
+      const node=nodes.get(keyOf(point));
+      if(node?.neighbours.size!==1)continue;
+      if(!approaches.has(road.id))approaches.set(road.id,[]);
+      approaches.get(road.id).push({point,deck:jointHeights.get(keyOf(point))});
+    }
+  }
+  function roadHeightAt(road,x,z) {
+    const ground=groundHeightAt(x,z);
+    if(!road)return ground;
+    const deck=ownDeckHeight(road,x,z);
+    if(deck!==null)return Math.max(ground,deck);
+    let result=ground;
+    for(const approach of approaches.get(road.id)||[]) {
+      const distance=Math.hypot(x-approach.point[0],z-approach.point[1]);
+      if(distance>=20)continue;
+      const delta=Math.max(0,approach.deck-groundHeightAt(...approach.point));
+      result=Math.max(result,ground+delta*(1-distance/20));
+    }
+    return result;
+  }
+  // Only bridge-neighbourhood road segments are indexed. Ordinary city poses
+  // return ground without scanning roads; explicit traffic road ownership wins.
+  const vehicleCells=new Map(),vehicleInfluenceCells=new Set();
+  for(const key of cells.keys()) {
+    const [cx,cz]=key.split(',').map(Number);
+    for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)vehicleInfluenceCells.add(`${cx+dx},${cz+dz}`);
+  }
+  for(const road of roads) {
+    if(!/^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service)(?:_link)?$/.test(road.type||''))continue;
+    for(let i=1;i<road.points.length;i++) {
+      const a=road.points[i-1],b=road.points[i],padding=(Number(road.width)||8)/2+3;
+      const segment={road,a,b,padding};
+      for(let cx=Math.floor((Math.min(a[0],b[0])-padding)/cellSize);cx<=Math.floor((Math.max(a[0],b[0])+padding)/cellSize);cx++)
+        for(let cz=Math.floor((Math.min(a[1],b[1])-padding)/cellSize);cz<=Math.floor((Math.max(a[1],b[1])+padding)/cellSize);cz++) {
+          const key=`${cx},${cz}`;
+          if(!vehicleInfluenceCells.has(key))continue;
+          if(!vehicleCells.has(key))vehicleCells.set(key,[]);
+          vehicleCells.get(key).push(segment);
+        }
+    }
+  }
+  function vehicleHeightAt(pose,road=null) {
+    if(road)return roadHeightAt(road,pose.x,pose.z);
+    let best=Infinity,owner=null;
+    for(const segment of vehicleCells.get(`${Math.floor(pose.x/cellSize)},${Math.floor(pose.z/cellSize)}`)||[]) {
+      const p=project(pose.x,pose.z,segment.a,segment.b);
+      if(p.distance>segment.padding)continue;
+      const alignment=Number.isFinite(pose.yaw)?Math.abs((-Math.sin(pose.yaw)*p.dx-Math.cos(pose.yaw)*p.dz)/Math.sqrt(p.lengthSquared||1)):1;
+      const score=p.distance+4*(1-alignment);
+      if(score<best){best=score;owner=segment.road;}
+    }
+    return roadHeightAt(owner,pose.x,pose.z);
+  }
+
   function bridgeHeightAt(x, z) {
     let nearest = Infinity, result = null;
     for (const segment of cells.get(`${Math.floor(x / cellSize)},${Math.floor(z / cellSize)}`) || []) {
@@ -165,5 +247,5 @@ export function createTerrainSampler(map) {
     const ground = groundHeightAt(x, z), deck = bridgeHeightAt(x, z);
     return deck === null ? ground : Math.max(ground, deck);
   }
-  return { groundHeightAt, heightAt, bridgeHeightAt, isOnBridge, bridgeSegments: Object.freeze(bridgeSegments.map(segment => Object.freeze({ roadId: segment.roadId, a: Object.freeze([...segment.a]), b: Object.freeze([...segment.b]), y0: segment.y0, y1: segment.y1, radius: segment.radius }))), stats: Object.freeze({ tiles: tiles.length, bridgeSegments: bridgeSegments.length }) };
+  return { groundHeightAt, heightAt, roadHeightAt, vehicleHeightAt, bridgeHeightAt, isOnBridge, bridgeSegments: Object.freeze(bridgeSegments.map(segment => Object.freeze({ roadId: segment.roadId, a: Object.freeze([...segment.a]), b: Object.freeze([...segment.b]), y0: segment.y0, y1: segment.y1, radius: segment.radius }))), stats: Object.freeze({ tiles: tiles.length, bridgeSegments: bridgeSegments.length }) };
 }

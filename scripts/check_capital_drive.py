@@ -17,6 +17,10 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 GAME = Path('Games/Capital Drive')
 MODULES = (
+    'burglary.js',
+    'headlights-view.js', 'police-support.js', 'police-support-view.js', 'safehouse-storage.js', 'city-ui.js',
+    'drone.js', 'drone-view.js', 'security-cameras.js', 'security-cameras-view.js',
+    'covered-passage.js',
     'water-contact.js',
     'ballistics.js', 'shot-obstacles.js', 'recon.js', 'camera-control.js',
     'aircraft.js', 'aircraft-view.js',
@@ -33,6 +37,15 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
+    'test_capital_burglary.mjs', 'test_capital_burglary_economy.mjs', 'test_capital_house_footprints.mjs', 'test_capital_footprint_navigation.mjs',
+    'test_capital_bridge_vehicle_layers.mjs', 'test_capital_vehicle_support_views.mjs', 'test_capital_inventory_persistence.mjs', 'test_capital_hired_health.mjs',
+    'test_capital_camera_wanted.mjs',
+    'test_capital_external_vehicle_damage.mjs', 'test_capital_indoor_navigation_load.mjs',
+    'test_capital_navigation_search.mjs', 'test_capital_hired_crew.mjs', 'test_capital_crew_interiors.mjs',
+    'test_capital_city_controller.mjs', 'test_capital_bridge_roads.mjs', 'test_capital_vehicle_bullets.mjs',
+    'test_capital_crime_chapters.mjs', 'test_capital_headlights.mjs', 'test_capital_police_escalation.mjs',
+    'test_capital_safehouse_commerce.mjs', 'test_capital_drones.mjs', 'test_capital_security_cameras.mjs',
+    'test_capital_civilian_damage.mjs', 'test_capital_grenade_detonation.mjs', 'test_capital_explosion_feedback.mjs', 'test_capital_covered_passage.mjs',
     'test_capital_covered_road_routes.mjs',
     'test_capital_shop_staff.mjs', 'test_capital_campaign_playability.mjs',
     'test_capital_local_recovery.mjs', 'test_capital_campaign_retry.mjs', 'test_capital_retry_controller.mjs', 'test_capital_water_contact.mjs',
@@ -62,7 +75,7 @@ SUITES = (
     'test_capital_campaign.mjs','test_capital_north.mjs','test_capital_terrain.mjs','test_capital_civic.mjs','test_capital_crossings.mjs','test_capital_noodle_shop.mjs','test_capital_interior_people.mjs','test_capital_interior_activities.mjs','test_capital_micromobility.mjs','test_capital_civic_extras.mjs','test_capital_work_jobs.mjs','test_capital_skate_opening.mjs','test_capital_dev_codes.mjs','test_capital_vehicle_challenges.mjs','test_capital_car_theft.mjs','test_capital_scooter_hack.mjs','test_capital_weapons.mjs','test_capital_weapon_economy.mjs','test_capital_weapon_art.mjs','test_capital_street_dealers.mjs','test_capital_npc_routines.mjs','test_capital_traffic_queues.mjs','test_capital_junction_queues.mjs',
 )
 DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json','shopping-precincts.json','canberra-north.json','north-terrain.json','civic-extras.json','traffic-signals.json','street-assets.json','highway-barriers.json','airport.json')
-SUPPORT_SCRIPTS = ('capital-campaign-fixture.mjs', 'capital-crime-playability.mjs', 'capital-collision-baseline.mjs')
+SUPPORT_SCRIPTS = ('capital-campaign-fixture.mjs', 'capital-crime-playability.mjs', 'capital-collision-baseline.mjs', 'profile_capital_simulation.mjs')
 
 
 def run_command(command, timeout):

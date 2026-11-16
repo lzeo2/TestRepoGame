@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
+import {createBurglary} from '../Games/Capital Drive/burglary.js';
 import { createCampaignFixture } from './capital-campaign-fixture.mjs';
 import { createCampaign } from '../Games/Capital Drive/campaign.js';
 import { createInteriorActivities, isWorkoutKind } from '../Games/Capital Drive/interior-activities.js';
@@ -28,7 +29,7 @@ const handoff = source.slice(handoffStart, handoffEnd);
 const fixture = await createCampaignFixture();
 const { map, interiors, guide } = fixture;
 const catalogue = createCampaign(map, null, fixture.campaignOptions), chapters = catalogue.developerChapters();
-assert.equal(chapters.length, 20);
+assert.equal(chapters.length, 22);
 const rows = [];
 const journal = catalogue.journal();
 function prefixFor(descriptor) {
@@ -205,7 +206,7 @@ for (const descriptor of chapters) {
         activities.step(.05, input, ctx); progression.update(.05, ctx); tick(.05); elapsed += .05;
       }
       assert.equal(activities.snapshot().phase, 'complete', activities.snapshot().reason || 'activity timed out');
-      const env = { activities, progression, interiors, map, campaign: { state: { active } },
+      const env = { burglary:createBurglary({canApproach:()=>false}),burglaryContext:()=>ctx,activities, progression, interiors, map, campaign: { state: { active } },
         gameplay: { state: { mode: 'foot', health: 100, passenger: false, recovery: null }, reportOffence() { ctx.wanted = 1; }, heal() {} },
         presentationOutcome: receipts.presentation || { serial: 0 }, schoolAlarmOutcome: receipts.schoolAlarm || { serial: 0 }, homeActionOutcome: receipts.homeAction || { serial: 0 }, evidenceOutcome: receipts.evidence || { serial: 0 }, evidenceSessionKey: '',
         isSandbox: () => false, isWorkoutKind, careerContext: () => ctx, saveCareer() {}, notify() {}, playSchoolAlarm() {},
@@ -281,7 +282,7 @@ for (const descriptor of chapters) {
 }
 const report = { schemaVersion: 1, evidence: 'normal campaign owner chains with source-domain action inputs and explicitly scoped fixture travel/police clearing; no native completion claim',
   missions: rows.length, completeCampaignPaths: rows.filter(row => row.campaignCompleted).length, limits: fixture.limits, rows };
-assert.equal(rows.length, 20);
+assert.equal(rows.length, 22);
 const json = JSON.stringify(report, null, 2) + '\n';
 if (outputIndex >= 0) await writeFile(args[outputIndex + 1], json); else process.stdout.write(json);
 if (report.completeCampaignPaths !== report.missions) process.exitCode = 1;

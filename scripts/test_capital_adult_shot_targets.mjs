@@ -11,15 +11,15 @@ async function fixtureModule(name, needle, replacement) {
   return import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 }
 const {createPedestrians}=await fixtureModule('pedestrians','return { update, applyVehicleImpacts',`return { fixture(point={}) {
-  pool.forEach((p,i)=>Object.assign(p,{x:1000+i,z:1000,health:100,hitCooldown:0,witnessCooldown:0,impactTime:0,impactHeight:0},i===0?{x:10,z:0,...point}:{}));
+  pool.forEach((p,i)=>Object.assign(p,{x:1000+i,z:1000,health:100,dead:false,deathTime:0,hitCooldown:0,witnessCooldown:0,impactTime:0,impactHeight:0},i===0?{x:10,z:0,...point}:{}));
   rebuildPeopleGrid();
 }, update, applyVehicleImpacts`);
 const {createStreetDealers}=await fixtureModule('street-dealers','return {services,nearest,',`return {fixture(point={}) {
   people=[{id:'dealer-test',x:10,z:0,health:100,hitCooldown:0,panic:0,...point}];
 },services,nearest,`);
-const {createRideService}=await fixtureModule('ride-service','return { vehicles, people,',`return { fixture(point={}) {
+const {createRideService}=await fixtureModule('ride-service','return { vehicles, damageVehicle, people,',`return { fixture(point={}) {
   Object.assign(driver,{active:true,x:10,z:0,health:100,hitCooldown:0,...point});
-}, vehicles, people,`);
+}, vehicles, damageVehicle, people,`);
 const map={bounds:{minX:-500,maxX:500,minZ:-500,maxZ:500},spawn:{x:0,z:-100,yaw:0},buildings:[],landmarks:[],
   roads:[{id:'road',name:'Fixture Street',type:'residential',width:8,points:[[-350,0],[350,0]]}]};
 const pedestrians=createPedestrians(new THREE.Scene(),map,()=>4);

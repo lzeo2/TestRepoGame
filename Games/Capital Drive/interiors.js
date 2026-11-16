@@ -161,7 +161,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
   // These descriptors are collected when neighbourhood.js actually renders a door.
   for (const door of map.interiorEntries || []) {
     const building = buildings.get(String(door.buildingId));
-    if (!building || occupiedBuildings.has(String(building.id)) ||
+    if (!building || !building.points?.length || occupiedBuildings.has(String(building.id)) ||
         !/^(house|residential|detached|semidetached_house|terrace|bungalow|yes)$/.test(building.type || '') ||
         (building.height || 0) > 9 || !Number.isFinite(door.nx) || !Number.isFinite(door.nz) ||
         Math.hypot(door.nx, door.nz) < 0.5) continue;
@@ -209,13 +209,32 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
     return best;
   }
   function build(entry) {
-    const { width, depth } = entry, floorY = entry.y + 0.14;
+    let { width, depth } = entry;
+    const floorY = entry.y + 0.14;
     // Story homes are bound after exterior descriptors exist. Read the binding
     // only on entry, so ordinary houses keep their original lazy room plans.
     const home = map.storyHomes?.basement;
     const storyHome = entry.type === 'house' && home?.roomId === entry.id &&
       String(home.buildingId) === String(entry.buildingId) ? home : null;
     const origin = { x: entry.x, z: entry.z, yaw: entry.yaw };
+    const source = entry.type === 'house' ? buildings.get(String(entry.buildingId)) : null;
+    const footprint = source?.points?.map(([x, z]) => localPoint(origin, { x, z }));
+    if (footprint?.length > 3 && distance(footprint[0], footprint.at(-1)) < 1e-7) footprint.pop();
+    const bounds = footprint ? { minX: Math.min(...footprint.map(p => p.x)), maxX: Math.max(...footprint.map(p => p.x)),
+      minZ: Math.min(...footprint.map(p => p.z)), maxZ: Math.max(...footprint.map(p => p.z)) } : null;
+    const outline = footprint?.map(p => [p.x, p.z]);
+    function fits(x, z, w = 0, d = 0, margin = .12) {
+      if (!outline) return true;
+      // Sample complete rectangle edges as well as corners across concave notches.
+      for (let side = 0; side < 4; side++) for (let i = 0; i <= Math.ceil(Math.max(w, d) / .2); i++) {
+        const t = i / Math.max(1, Math.ceil(Math.max(w, d) / .2));
+        const px = x + (side < 2 ? (side ? 1 : -1) * (w / 2 + margin) : (t * 2 - 1) * (w / 2 + margin));
+        const pz = z + (side >= 2 ? (side === 3 ? 1 : -1) * (d / 2 + margin) : (t * 2 - 1) * (d / 2 + margin));
+        if (!insideOutline(px, pz, outline)) return false;
+      }
+      return true;
+    }
+    const templateFits = !footprint || fits(0, 6.2, 10.8, 12.4, -.01);
     const walls = [], furniture = [], doors = [], rooms = [], details = [], activities = [];
     function box(list, kind, x, z, w, d, h, color, y = 0, yaw = 0) {
       const p = worldPoint(origin, x, z);
@@ -230,21 +249,41 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       doors.push(point); return point;
     };
     const gap = entry.variant === 'noodles' ? 2 : 1.5, sideWidth = (width - gap) / 2;
-    if (entry.variant === 'noodles') {
+    if (footprint) {
+      // The imported outline is the physical shell; the interior layout remains original.
+      let nearest = 0, best = Infinity, projection = null;
+      for (let i = 0; i < outline.length; i++) {
+        const p = projectSegment(0, 0, outline[i], outline[(i + 1) % outline.length]);
+        const d = Math.hypot(p.x, p.z);
+        if (d < best) { best = d; nearest = i; projection = p; }
+      }
+      for (let i = 0; i < outline.length; i++) {
+        const a = outline[i], b = outline[(i + 1) % outline.length], dx = b[0] - a[0], dz = b[1] - a[1], length = Math.hypot(dx, dz);
+        if (length < .001) continue;
+        const parts = i === nearest ? [[0, Math.max(0, Math.hypot(projection.x - a[0], projection.z - a[1]) - gap / 2)],
+          [Math.min(length, Math.hypot(projection.x - a[0], projection.z - a[1]) + gap / 2), length]] : [[0, length]];
+        for (const [from, to] of parts) if (to - from > .001) box(walls, 'wall', a[0] + dx * (from + to) / (2 * length),
+          a[1] + dz * (from + to) / (2 * length), to - from, .16, 2.65, 0xd6ccba, 0, Math.atan2(-dz, dx));
+      }
+    } else if (entry.variant === 'noodles') {
       const centre = -(width + gap) / 4;
       box(walls, 'window-sill', centre, 0, sideWidth, 0.16, 0.85, 0xd6ccba);
       box(walls, 'window-lintel', centre, 0, sideWidth, 0.16, 0.4, 0xd6ccba, 2.25);
       for (const side of [-1, 1]) box(walls, 'window-post', centre + side * (sideWidth / 2 - 0.07), 0,
         0.14, 0.16, 1.4, 0xd6ccba, 0.85);
     } else wall(-(width + gap) / 4, 0, sideWidth, 0.16);
-    wall((width + gap) / 4, 0, sideWidth, 0.16);
-    wall(-width / 2, depth / 2, 0.16, depth);
-    wall(width / 2, depth / 2, 0.16, depth);
-    wall(0, depth, width, 0.16);
+    if (!footprint) {
+      wall((width + gap) / 4, 0, sideWidth, 0.16);
+      wall(-width / 2, depth / 2, 0.16, depth);
+      wall(width / 2, depth / 2, 0.16, depth);
+      wall(0, depth, width, 0.16);
+    }
     const exit = door('exit', 0, 0.9, gap);
     const spawn = { ...worldPoint(origin, 0, 1.65), y: floorY, yaw: origin.yaw + Math.PI };
     let counter = null, exercise = null, noodleCook = null, boothGuest = null;
-    if (entry.type === 'house') {
+    if (entry.type === 'house' && !templateFits) {
+      buildFittedHouse();
+    } else if (entry.type === 'house') {
       const hall = 1.9, split = depth / 2, roomWidth = (width - hall) / 2;
       // The central hall reaches every room through a 1.5m wall opening.
       for (const side of [-1, 1]) {
@@ -415,11 +454,74 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       box(furniture, 'ledger-case', -.9, depth - .65, .8, .5, .65, 0x536c61);
       station('evidence', 'evidence', 'Secure the ledger case', -.9, depth - 1.6, 0, 1.25);
     }
+    function buildFittedHouse() {
+      const candidates = [];
+      for (let z = bounds.minZ + 1; z < bounds.maxZ - .7; z += .8)
+        for (let x = bounds.minX + .8; x < bounds.maxX - .7; x += .8) if (fits(x, z, 1, 1, .2)) candidates.push({ x, z });
+      const plan = () => ({ origin, width: bounds.maxX - bounds.minX, depth: bounds.maxZ - bounds.minZ,
+        footprint, bounds, floorY, walls, furniture });
+      const collider = () => createInteriorCollider(plan());
+      // Prefer normal entry depth; rare narrow notches need a checked adjacent landing.
+      if (!collider().canOccupy(spawn)) {
+        const landings = [.75, .9, 1.2, 2, 2.4].map(z => ({ x: 0, z }));
+        const p = [...landings, ...candidates.slice().sort((a, b) => Math.hypot(a.x, a.z - 1.65) - Math.hypot(b.x, b.z - 1.65))]
+          .find(p => collider().canOccupy(worldPoint(origin, p.x, p.z)));
+        if (p) Object.assign(spawn, worldPoint(origin, p.x, p.z));
+      }
+      const landing = localPoint(origin, spawn);
+      // Furnish the entrance's usable space first, including wide or offset source bodies.
+      candidates.sort((a, b) => Math.hypot(a.x - landing.x, a.z - landing.z) - Math.hypot(b.x - landing.x, b.z - landing.z) || a.z - b.z || a.x - b.x);
+      const standing = [];
+      function place(kind, w, d, h, color, activity, roomKind) {
+        // Every fixture has a directly reachable approach, preserving an open walking spine.
+        for (const p of candidates) {
+          if (!fits(p.x, p.z, w, d, .2)) continue;
+          for (const side of [-1, 1]) {
+            const approach = worldPoint(origin, p.x + side * (w / 2 + .75), p.z);
+            const before = collider();
+            if (!before.canOccupy(worldPoint(origin, p.x, p.z), Math.hypot(w, d) / 2 + .25) || !before.canTraverse(spawn, approach)) continue;
+            const item = box(furniture, kind, p.x, p.z, w, d, h, color);
+            const after = collider();
+            if (!after.canTraverse(spawn, approach) || standing.some(q => !after.canTraverse(spawn, q))) { furniture.pop(); continue; }
+            standing.push(approach);
+            if (activity) activities.push({ id: `${entry.id}-${activity[0]}`, kind: activity[1], label: activity[2], ...approach,
+              yaw: origin.yaw + side * Math.PI / 2, radius: 1.35 });
+            if (roomKind) rooms.push({ kind: roomKind, ...worldPoint(origin, p.x, p.z), width: w + .3, depth: d + .3 });
+            return item;
+          }
+        }
+        return null;
+      }
+      // Mission/search furniture is placed first, so decoration can never displace its approach.
+      if (storyHome) place('ledger-case', .65, .5, .68, 0x5c7067, ['stash', 'stock', 'Pack the ledger case']);
+      else place('wardrobe', .7, .8, 1.8, 0x977e60, ['valuables', 'stock', 'Search for valuables']);
+      const sofa = place('sofa', 1.05, 1.8, .85, 0x7d8a76, ['television', 'tv', 'Watch the television'], 'living');
+      if (sofa) {
+        const p = localPoint(origin, sofa), task = activities.find(s => s.kind === 'tv');
+        const side = localPoint(origin, task).x > p.x ? 1 : -1;
+        // A supported screen over the sofa's rear edge uses its existing floor footprint.
+        box(details, 'television', p.x - side * .35, p.z, .75, .09, .5, 0x343a39, 1.2, side * Math.PI / 2);
+      }
+      place('kitchen-bench', .85, 1.8, .92, 0xb8ad92, ['cooking', 'cooking', 'Cook at the kitchen bench'], 'kitchen');
+      place('bed', 1.5, 2, .6, 0xb3c1c2, ['rest', 'rest', 'Rest beside the bed'], 'bedroom');
+      const bath = place('bath', 1, 1.7, .6, 0xd8dfd8, null, 'bathroom');
+      const basin = place('basin', .6, .4, .9, 0xd8dfd8);
+      if (bath && !basin) {
+        const p = localPoint(origin, bath);
+        // Compact washbasin on the bath's head-end ledge, wholly over its solid footprint.
+        box(details, 'basin', p.x, p.z - .55, .6, .4, .18, 0xd8dfd8, .67);
+      }
+      Object.assign(exit, { x: spawn.x, z: spawn.z });
+    }
+    if (footprint) {
+      if (templateFits && !storyHome) station('valuables', 'stock', 'Search for valuables', -width / 2 + 1.5, depth / 2 + 1.2, -Math.PI / 2, 1.35);
+      width = bounds.maxX - bounds.minX; depth = bounds.maxZ - bounds.minZ;
+    }
     return freeze({ id: entry.id, buildingId: entry.buildingId, ...(['mall', 'gym', 'school'].includes(entry.type) ? {} : { storeId: entry.storeId || null }),
       ...(entry.serviceId ? { serviceId: entry.serviceId } : {}), ...(entry.schoolId ? { schoolId: entry.schoolId } : {}),
-      type: entry.type, ...(entry.variant ? { variant: entry.variant } : {}), name: typeof storyHome?.name === 'string' && storyHome.name.trim() ? storyHome.name : entry.name, origin, width, depth, floorY, spawn, exit, counter,
+      type: entry.type, ...(entry.variant ? { variant: entry.variant } : {}), ...(footprint ? { footprint, bounds } : {}), name: typeof storyHome?.name === 'string' && storyHome.name.trim() ? storyHome.name : entry.name, origin, width, depth, floorY, spawn, exit, counter,
       walls, doors, furniture, rooms, activities, ...(noodleCook ? { noodleCook, boothGuest } : {}),
-      ...(entry.type === 'mall' ? { levels: [{ y: floorY, label: 'Ground floor' }], sourceExtent: entry.sourceExtent, reference: 'Monaro Mall 1963 materials; original partial ground-floor wing. Tenancies and corridors are interpreted.' } : {}), ...(exercise ? { exercise } : {}), ...(details.length ? { details } : {}), layoutNote: 'Original plausible layout; not a surveyed interior.' });
+      ...(entry.type === 'mall' ? { levels: [{ y: floorY, label: 'Ground floor' }], sourceExtent: entry.sourceExtent, reference: 'Monaro Mall 1963 materials; original partial ground-floor wing. Tenancies and corridors are interpreted.' } : {}), ...(exercise ? { exercise } : {}), ...(details.length ? { details } : {}), layoutNote: footprint ? 'Source exterior footprint at original scale; original procedural rooms, not a surveyed interior.' : 'Original plausible layout; not a surveyed interior.' });
   }
   function enter(entry, actor) {
     if (active || !actor || !entries.includes(entry) || findEntry(actor) !== entry) return false;

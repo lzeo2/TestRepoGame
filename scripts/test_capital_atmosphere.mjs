@@ -13,13 +13,23 @@ clock.step(15); assert.equal(clock.snapshot().weather, 'overcast'); assert.equal
 clock.step(120); assert.equal(clock.snapshot().weather, 'rain'); assert.equal(clock.snapshot().rain, 1); assert.equal(clock.snapshot().wetness, 1);
 const rainy = clock.snapshot(); clock.step(0); assert.deepEqual(clock.snapshot(), rainy);
 clock.step(120); assert.equal(clock.snapshot().weather, 'clear'); assert.equal(clock.snapshot().rain, 0);
-clock.step(360); assert.deepEqual(clock.snapshot(), first, 'complete 12-minute day and weather cycle return exactly');
+clock.step(360);
+assert.equal(clock.snapshot().hour, 21, 'twelve supplied minutes advance six game hours rather than wrapping the day');
+assert(clock.snapshot().daylight < .01, 'evening reaches the night palette');
+clock.step(360); assert.equal(clock.snapshot().hour, 0, 'eighteen supplied minutes reach midnight from 15:00');
+clock.step(720); assert.equal(clock.snapshot().hour, 6, 'thirty supplied minutes reach dawn');
+clock.step(360); assert.equal(clock.snapshot().hour, 9, 'thirty-six supplied minutes reach morning');
+assert(clock.snapshot().daylight > .99, 'morning returns to full daylight');
+clock.step(720); assert.deepEqual(clock.snapshot(), first, 'complete 48-minute day and eight weather cycles return exactly');
+clock.step(2880 * 3 + 120);
+assert.equal(clock.snapshot().hour, 16, 'large supplied steps retain the remainder after complete days');
+assert.equal(clock.snapshot().weather, 'overcast', 'longer days retain the two-minute weather cadence');
 clock.step(1e300); assert(Number.isFinite(clock.snapshot().hour)); clock.reset(); assert.deepEqual(clock.snapshot(), first);
 const chunked = createAtmosphere(), single = createAtmosphere();
 for (let step = 0; step < 1000; step++) chunked.step(.1); single.step(100);
 for (const key of ['hour', 'daylight', 'cloud', 'rain', 'wetness']) assert(Math.abs(chunked.snapshot()[key] - single.snapshot()[key]) < 1e-10, `${key} depends on supplied duration`);
 // Every minute stays playable; all rendered fields remain finite and weather boundaries have no hard jump.
-for (let second = 0; second < 720; second++) {
+for (let second = 0; second < 2880; second++) {
   const a = clock.snapshot(); clock.step(.001); const b = clock.snapshot(); clock.step(.999);
   for (const [key, value] of Object.entries(a)) if (typeof value === 'number') assert(Number.isFinite(value), key);
   assert(a.hemisphereIntensity >= .6 && a.sunIntensity >= .08); assert(a.fogFar > a.fogNear);
@@ -53,4 +63,4 @@ for (let second = 0; second < 720; second++) {
   view.dispose(); view.dispose(); assert.equal(view.stats.bufferBytes, 0); assert.equal(view.stats.geometryCount, 0);
   assert.equal(scene.children.length, 2, 'disposal preserves the original world lights');
 }
-console.log('Capital atmosphere PASS: supplied-time 12-minute day, smooth deterministic weather, finite playable night, pause/reset, 160/320 pooled local rain, indoor hiding, no new lights and disposal');
+console.log('Capital atmosphere PASS: supplied-time 48-minute day with evening/midnight/dawn/morning phases, unchanged weather cadence, finite playable night, pause/reset, 160/320 pooled local rain, indoor hiding, no new lights and disposal');

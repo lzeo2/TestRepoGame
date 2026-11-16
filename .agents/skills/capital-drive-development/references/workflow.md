@@ -800,3 +800,62 @@ from a GPS endpoint. Supplied Dot strikes do not prove player damage survival or
 Gameplay melee admission. Assumed-speed route margins are planning estimates,
 not measured mission times or human ease. Inspect a missing employee's real
 furniture/door/aisle clearance before changing collision or granting a robbery.
+
+
+## City systems, independent inventory and bridge levels
+
+Read `docs/capital-drive-city-systems-contract.md`. Police cap six; prepared room
+navigation therefore retains six owner fields, not four. The active room plus
+six independently occupied officer rooms can retain seven contexts. Keep the
+bounded crew/camera/drone/light pools and one simulation clock. Air police spot;
+they do not shoot. Roadblocks reuse existing patrol cars at checked clear poses.
+
+For vehicle traces and collision, use `world.vehicleHeightAt(pose, road)` while
+ordinary terrain occlusion uses `world.groundHeightAt`. Pass prepared bridge
+segments into shot obstacles so the deck remains cover. Keep canonical vehicle
+hull base heights in descriptors. The shared covered Bunda decomposition must
+match rendering, movement and ray cover; never ignore an entire Centre footprint.
+Keep default flat API behavior and actual same-level collision controls in tests.
+
+Cash, ownership, stashes and optional inventory profiles share Progression's
+strict writer. Inventory capture must work during wanted/active missions without
+saving unsafe positions. Restore exact pools after checked body placement and
+hero switching; do not grant starter ammunition when a durable profile exists.
+Skip career inventory writes for Free roam and mission previews. Persist hired
+health including zero; a pending renewal token must not be charged or overwritten
+by its still-rendered dead body while a menu pauses simulation.
+
+```sh
+python3 -B scripts/build_capital_cache.py --write
+python3 -B scripts/check_capital_drive.py
+python3 -B scripts/test_capital_city_browser.py --scenario city --capture --output <fresh-external-city-output>
+python3 -B scripts/test_capital_city_browser.py --scenario workplace --capture --output <fresh-external-walk-output>
+python3 -B scripts/profile_capital_areas.py --root <exact-export> --scenario interiors --output <fresh-external-profile-output>
+```
+
+Use the source-built fixture only as disclosed prior wealth/equipment and a body
+checkpoint. Buy the house through native UI, physically enter and leave a real
+carried/stashed ammo split across reload. The workplace run must walk; retain
+blocked attempts and correct real collision or its approach, without teleport
+fallbacks. Run one heavy process at a time and retain source hashes. Performance
+quality, software WebGL frame counts, bytes and ScriptDuration are distinct from
+Intel N100 FPS. No new Sites project, external runtime load or protected/shared
+asset changes are part of this workflow.
+
+For source-footprint houses, preserve plan.footprint/plan.bounds in movement,
+ray cover, furniture placement and lazy floor rendering. Do not clip negative
+local bounds to the old rectangle or increase the2000-node navigation cap.
+The actual rendered door, boot roof preparation and managed shopping exclusions
+must match source fixtures; choosing a different door can invalidate a native
+setup without proving a runtime entry bug. Use normal mouse input and a physical
+station approach when capturing a furnished room, rather than an empty doorway.
+
+```sh
+python3 -B scripts/test_capital_city_browser.py --scenario burglary --capture --output <fresh-external-burglary-output>
+python3 -B scripts/test_capital_city_browser.py --scenario burglary --preview-only --capture --output <fresh-external-entry-preview>
+```
+
+Preview-only stops after actual entry/walking/rendering; it proves no loot or
+escape. A full burglary run must retain actual arrest/recovery as an interrupted
+attempt, rather than continuing to steer the released car toward an indoor target.
+Never give immunity or remove police/collision to obtain a screenshot or a win.

@@ -88,14 +88,14 @@ const fixture = options => {
   assert(system.blocksSight({ x: indoor.x, z: indoor.z }, { x: indoor.x, z: indoor.z }, { interiorId: 'room-a' }), 'zero-length sight in smoke is blocked');
   const beforePause = system.snapshot(); system.step(0); assert.deepEqual(system.snapshot(), beforePause);
   advance(system, 10); assert.equal(system.snapshot().clouds.length, 0); assert.equal(system.blocksSight(start, end, { interiorId: 'room-a' }), false);
-  assert.deepEqual(system.drainEvents(), []); system.reset(); assert.deepEqual(system.snapshot(), { projectiles: [], clouds: [] });
+  assert.deepEqual(system.drainEvents(), []); system.reset(); assert.deepEqual(system.snapshot(), { projectiles: [], clouds: [], bursts: [] });
 }
 {
   const { system, debits } = fixture(); assert(system.throw('smoke', actor({ sandbox: true })).ok); assert.equal(debits.length, 0);
   advance(system, 2.1); const scene = new THREE.Scene(), view = createOrdnanceView(scene, { quality: 'low' });
   const cloud = system.snapshot().clouds[0], focus = { x: cloud.x, z: cloud.z };
   for (let index = 0; index < 120; index++) view.update(system.snapshot(), focus);
-  assert.equal(view.stats.clouds, 1); assert.equal(view.stats.geometryCount, 1); assert.equal(view.stats.materialCount, 3);
+  assert.equal(view.stats.clouds, 1); assert.equal(view.stats.geometryCount, 1); assert.equal(view.stats.materialCount, 5);
   assert.equal(view.stats.drawCalls, 1); assert.equal(view.stats.projectileCapacity, ORDNANCE_LIMITS.projectiles);
   assert.equal(view.stats.cloudCapacity, ORDNANCE_LIMITS.clouds);
   view.update(system.snapshot(), focus, { interiorId: 'unrelated-room' }); assert.equal(view.stats.clouds, 0);

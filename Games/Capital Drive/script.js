@@ -11,6 +11,15 @@ import {createOrdnance} from './ordnance.js';
 import {createOrdnanceView} from './ordnance-view.js';
 import {createAtmosphere} from './atmosphere.js';
 import {createAtmosphereView} from './atmosphere-view.js';
+import {createHeadlightsView} from './headlights-view.js';
+import {createPoliceSupportView} from './police-support-view.js';
+import {createDrone} from './drone.js';
+import {createDroneView} from './drone-view.js';
+import {createSecurityCameras} from './security-cameras.js';
+import {createSecurityCamerasView} from './security-cameras-view.js';
+import {createCityUI} from './city-ui.js';
+import {createBurglary} from './burglary.js';
+import {emptyStash} from './safehouse-storage.js';
 import {applyAirport} from './airport.js';
 import {createAirportView} from './airport-view.js';
 import {createAircraft} from './aircraft.js';
@@ -24,6 +33,7 @@ import {createRenderGate,createFramePacer,renderProfile,chooseRenderQuality} fro
 import {setupGameCache} from './cache-client.js';
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { createCar, disposeCars } from '../../assets/car-arcade/models.js';
+import {BY_ID} from '../../assets/car-arcade/fleet.js';
 import { createSimulation, projectSegment } from './simulation.js';
 import { createWorldView } from './world-view.js';
 import { findRoute } from './navigation.js';
@@ -60,7 +70,7 @@ import {createInteriorActivities,isWorkoutKind} from './interior-activities.js';
 import {createInteriorPeople} from './interior-people.js';
 import {createInteriorPeopleView} from './interior-people-view.js';
 import {createMicromobility} from './micromobility.js';
-import {WEAPONS,weaponById} from './weapons.js';
+import {WEAPONS,WEAPON_IDS,weaponById} from './weapons.js';
 import {createStreetDealers} from './street-dealers.js';
 import {createStreetDealersView} from './street-dealers-view.js';
 import {generateParkedCars} from './parking-layout.js';
@@ -114,7 +124,118 @@ let guidanceRoute=null,guideState=null,followYoober=false;
 let trafficView,storefrontsView,shoppingView,campusView,civicView,noodleShopView,civicExtrasView;
 let interiors,interiorScene,interiorView,indoorActorView,campaign,terrainSampler,gymEntry;
 let gymEntries=[],wildlifeView,streetAssetsView,highwayBarriersView,localDetailsView;
-let campaignScenes,campaignScenesView;
+let campaignScenes,campaignScenesView,indoorCampaignScenesView,headlightsView,policeSupportView;
+let headlightsOverride=null,activeCrewEntry=null;
+let drone,droneView,droneActive=false,securityCameras,securityCamerasView,cityUI,cameraCrimeSerial=0;
+const handledVehicleBlasts=new WeakSet();
+const burglary=createBurglary({canApproach:(entry,ctx)=>!interiors.active&&visible(ctx.pose,entry)});
+const droneInput={forward:0,right:0,lift:0,yaw:0,body:null,paused:false,interiorId:null};
+function headlightsEnabled(hour){return headlightsOverride??(hour<7||hour>=18);}
+function toggleHeadlights(){headlightsOverride=!headlightsEnabled(atmosphere.snapshot().hour);viewRevision++;}
+function cityState(){
+  const roomId=interiors.active?.id,stash=roomId&&progression.isSafehouse(roomId)?progression.state.stashes[roomId]||emptyStash():null;
+  const properties=progression.propertyOffers.map(offer=>({...offer,label:'House near '+(simulation.nearestRoad(offer.x,offer.z)?.road.name||'local street')}));
+  const droneDealer=streetDealers.services.reduce((nearest,site)=>!nearest||Math.hypot(site.x-focus().x,site.z-focus().z)<Math.hypot(nearest.x-focus().x,nearest.z-focus().z)?site:nearest,null);
+  return {crewOffers:progression.crewOffers,hiredCrew:progression.state.hiredCrew,crew:campaignScenes.people,crewRenewals:Object.fromEntries(progression.crewOffers.map(offer=>[offer.id,progression.crewRenewalSerial(offer.id)])),properties,ownedProperties:progression.ownedProperties,stash,
+    weapons:WEAPON_IDS.map(weaponById),equipment:progression.state.equipment,drone:drone.snapshot(),droneOwned:progression.state.gear.drone===true,sandbox:isSandbox(),droneDealer};
+}
+function cityAction(action,value){
+  const ctx={...careerContext(),sandbox:isSandbox()||!!developerReturn};let result={ok:false,message:'Action unavailable.'};
+  if(action==='hire')result=progression.hireCrew(value,ctx);
+  else if(action==='dismiss')result=progression.dismissCrew(value,ctx);
+  else if(action==='rehire'){
+    const person=campaignScenes.people.find(person=>person.id===value&&person.health<=0);
+    result=person&&progression.crewRenewalSerial(value)<=(person.renewalSerial||0)?progression.rehireCrew(value,ctx):{ok:false,message:'Crew renewal is already pending or unavailable.'};
+  }
+  else if(action==='buy-property')result=progression.buyProperty(value,ctx);
+  else if(action==='buy-drone')result=progression.buyDrone(ctx);
+  else if(action==='stash'&&value&&typeof value==='object')result=progression.stash(interiors.active?.id,value.action,value.kind,value.id,value.amount,{...ctx,
+    getInventory:()=>({equipment:{...progression.state.equipment},ammunition:gameplay.inventorySnapshot()}),takeInventory:item=>gameplay.takeInventory(item),giveInventory:item=>gameplay.giveInventory(item)});
+  else if(action==='recall-drone')result={ok:recallDrone('recalled'),message:'Drone recalled.'};
+  else if(action==='launch-drone'){
+    closeDialogs();
+    const owned=progression.state.gear.drone===true;
+    const allowed=!gameplay.state.passenger&&!activities.snapshot().active&&!streetChallenge()&&!micromobility.snapshot().active;
+    const launched=allowed&&drone.deploy(gameplay.state,{owned,sandbox:isSandbox(),paused:paused(),interiorId:interiors.active?.id||null});
+    if(launched)droneActive=true;
+    if(launched){clearRecon();cameraReady=false;}
+    result={ok:launched,message:launched?'Drone launched.':'Launch outside on foot with a drone.'};
+  }
+  if(result.ok&&!['launch-drone','recall-drone'].includes(action))saveCareer();
+  clearInput();if(result.message)notify(result.message);cityUI?.render();return result;
+}
+function recallDrone(reason){
+  const recalled=drone?.recall(reason)||false;droneActive=false;
+  if(recalled){clearInput();cameraReady=false;clearRecon();}
+  return recalled;
+}
+function inventoryProfile(){return gameMode==='campaign'?campaign.state.character:'street';}
+function captureCareerInventory(){
+  if(developerReturn||!started||isSandbox())return;
+  progression.saveInventory(inventoryProfile(),gameplay.inventorySnapshot());
+  for(const person of campaignScenes.people){
+    if(person.hired&&progression.crewRenewalSerial(person.id)<=(person.renewalSerial||0))progression.saveCrewHealth(person.id,person.health);
+  }
+}
+function restoreCareerInventory(id=inventoryProfile()){
+  if(developerReturn||isSandbox())return;
+  const pools=progression.getInventory(id);if(pools)gameplay.restoreInventory(pools);
+}
+function resumeCheckpoint(checkpoint){
+  const weapon=checkpoint?.weapon;
+  if(weaponById(weapon)&&!progression.state.equipment[weapon]&&Object.values(progression.state.stashes||{}).some(stash=>Array.isArray(stash?.weapons)&&stash.weapons.includes(weapon)))return {...checkpoint,weapon:'unarmed'};
+  return checkpoint;
+}
+function stepDrone(dt){
+  if(!droneActive)return;
+  const stick=moveStick.snapshot();
+  droneInput.forward=THREE.MathUtils.clamp(Number(keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown'))-stick.y,-1,1);
+  droneInput.right=THREE.MathUtils.clamp(Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'))+stick.x,-1,1);
+  droneInput.lift=Number(keys.has('Space')||touch.has('handbrake'))-Number(keys.has('ShiftLeft')||keys.has('ShiftRight')||touch.has('boost'));
+  droneInput.yaw=footCameraYaw;droneInput.body=gameplay.state;droneInput.interiorId=interiors.active?.id||null;
+  drone.step(dt,droneInput);
+  if(!drone.snapshot().active){droneActive=false;clearInput();cameraReady=false;clearRecon();}
+}
+function droneCanOccupy(next,{from,radius=.45,height=.3}={}){
+  if(!from||![next.x,next.y,next.z,from.x,from.y,from.z].every(Number.isFinite))return false;
+  const dx=next.x-from.x,dy=next.y-from.y,dz=next.z-from.z,distance=Math.hypot(dx,dy,dz);
+  if(distance>4||next.y-height/2<=world.groundHeightAt(next.x,next.z))return false;
+  if(distance<1e-8)return true;
+  for(const [x,y,z] of [[0,0,0],[-radius,0,0],[radius,0,0],[0,0,-radius],[0,0,radius],[0,-height/2,0],[0,height/2,0]]){
+    const ray={x:from.x+x,y:from.y+y,z:from.z+z,dx:dx/distance,dy:dy/distance,dz:dz/distance,range:distance,interiorId:null};
+    if(shotObstacles.trace(ray,null,[])<distance-1e-4)return false;
+  }
+  return true;
+}
+function cameraSight(from,to){
+  if((from.interiorId||null)!==(to.interiorId||null))return false;
+  const dx=to.x-from.x,dy=to.y-from.y,dz=to.z-from.z,distance=Math.hypot(dx,dy,dz);
+  if(!Number.isFinite(distance)||distance<=0||distance>42||ordnance?.blocksSight(from,to,{interiorId:from.interiorId||null}))return false;
+  // A sighting targets the occupied body, so its own vehicle is the endpoint,
+  // while other cars and solid cover must still obstruct the camera.
+  const player=focus(),occupied=!to.kind&&!interiors.active&&Math.hypot(to.x-player.x,to.z-player.z)<1e-6?
+    aircraft?.active?.id||(buses?.passenger&&buses.seatPose?.id)||(rideService?.passenger&&rideService.seatPose?.id)||(gameplay.state.mode==='vehicle'?'player':null):null;
+  return traceWorldShot({x:from.x,y:from.y,z:from.z,dx:dx/distance,dy:dy/distance,dz:dz/distance,range:distance,interiorId:from.interiorId||null,ignoreVehicleIds:occupied?[occupied]:[]},null)>=distance-.02;
+}
+function recordCameraCrime(kind,point=focus()){
+  if(!securityCameras||!point||![point.x,point.z].every(Number.isFinite))return;
+  securityCameras.reportCrime({serial:++cameraCrimeSerial,kind,level:1,x:point.x,z:point.z,interiorId:interiors.active?.id||null});
+}
+function recordCameraGameplayEvent(event){
+  if(event.kind==='attack'&&(event.weapon||event.hits>0)&&event.offenceReported===false)recordCameraCrime(event.weapon?'gunfire':'assault');
+}
+function recordCameraWorkEvent(event){
+  if(!['mugging-started','robbery-started'].includes(event.type))return;
+  const reported=!isSandbox()&&gameplay.reportOffence(event.type==='mugging-started'?'mugging':'shop robbery',2,{witnessed:true,point:event.point});
+  if(!reported)recordCameraCrime(event.type,event.point);
+}
+function stepSecurityCameras(dt){
+  securityCameras.step(dt,{player:focus(),wanted:gameplay.state.wanted,interiorId:interiors.active?.id||null});
+  for(const event of securityCameras.drainEvents()){
+    if(event.type==='crime-spotted')gameplay.reportOffence('camera report',1,{witnessed:true,point:event});
+    else if(event.type==='sighting')gameplay.reportSighting(event);
+  }
+}
 let ordnance,ordnanceView,indoorOrdnanceView,atmosphereView,airportView,vehicleDamageView,playerCarKey=0,fireWarningKey=null;
 const heroPowers=createHeroPowers(),atmosphere=createAtmosphere(),vehicleDamage=createVehicleDamage();
 let presentationOutcome={serial:0,roomId:null,outcome:null},workCompletion={serial:0,storeId:null};
@@ -128,7 +249,7 @@ const policeRooms=createPoliceRooms({clipMovement:(room,actor,dx,dz,radius)=>{
   if(interiors?.active?.id!==room.id)return {dx,dz,blocked:false};
   let clipped=roomPeople.clipMovement(actor,dx,dz,radius);
   if(gameplay&&actor!==gameplay.state.actor)clipped=clipInteriorActors(actor,clipped.dx,clipped.dz,radius,[{...gameplay.state.actor,id:'player',radius:.45}]);
-  return clipped;
+  return campaignScenes?.clipMovement({...actor,interiorId:room.id},clipped.dx,clipped.dz,radius)||clipped;
 }});
 let dialogueId=null,playerAppearanceId='player',protagonists;
 let activities=createInteriorActivities(),roomPeople=createInteriorPeople(),roomPeopleView,micromobility,microView;
@@ -274,7 +395,8 @@ const focus = () => gameplay ? gameplay.focus() : simulation.player;
 function protectedWork(){
   return tutorialRunning||(gameMode==='campaign'&&campaign?.state.active?.combat===false)||progression?.state.activity?.type==='work'||['delivery','ride'].includes(progression?.state.activeJob?.type);
 }
-function canPlayerAttack(){return !paused()&&!cutscenes.snapshot().active&&!activities.snapshot().active&&!protectedWork();}
+function canCrewAttack(){return !paused()&&!cutscenes.snapshot().active&&!activities.snapshot().active&&!protectedWork();}
+function canPlayerAttack(){return !droneActive&&canCrewAttack();}
 function directStation(station){const goal=campaign?.state.active?.target;return station&&(isWorkoutKind(station.kind)||['presentation','alarm'].includes(station.kind)||(gameMode==='campaign'&&['work','home-action','evidence'].includes(goal?.kind)&&station.kind===(goal.stationKind||'stock')));}
 function powerContext(){
   const state=gameplay?.state;
@@ -346,7 +468,8 @@ function moveBody(actor,dx,dz,radius=.45){
   const policeClip=interiors?.active?clipInteriorActors(actor,clip.dx,clip.dz,radius,gameplay?.state.police.filter(unit=>unit.interiorId===interiors.active.id&&unit.health>0)||[]):clip;
   const contact=!interiors?.active?streetDealers?.clipMovement(actor,clip.dx,clip.dz,radius)||policeClip:policeClip;
   const driverContact=!interiors?.active?rideService?.clipMovement(actor,contact.dx,contact.dz,radius)||contact:contact;
-  const castContact=!interiors?.active?campaignScenes?.clipMovement(actor,driverContact.dx,driverContact.dz,radius)||driverContact:driverContact;
+  const castActor=interiors?.active?{...actor,interiorId:interiors.active.id}:actor;
+  const castContact=campaignScenes?.clipMovement(castActor,driverContact.dx,driverContact.dz,radius)||driverContact;
   const result=interiors?.active?interiors.moveActor(actor,castContact.dx,castContact.dz,radius):simulation.moveActor(actor,castContact.dx,castContact.dz,radius);
   return {...result,blocked:result.blocked||clip.blocked||policeClip.blocked||contact.blocked||driverContact.blocked||castContact.blocked};
 }
@@ -365,7 +488,7 @@ function servicePosition(site){
   return plan?.storeId===site.id?{...plan.counter,radius:plan.counter.radius}:null;
 }
 function miniInput(){return {x:keys.has('KeyX')||miniKeys.has('x'),y:keys.has('KeyY')||miniKeys.has('y'),up:keys.has('ArrowUp')||miniKeys.has('up')};}
-function stopMini(){aircraft?.clearChallenge();activities.cancel();rentalHack.cancel();rentalHackTarget=null;gameplay?.cancelCarjacking();progression?.cancelActivity();clearInput();}
+function stopMini(){burglary.cancel();aircraft?.clearChallenge();activities.cancel();rentalHack.cancel();rentalHackTarget=null;gameplay?.cancelCarjacking();progression?.cancelActivity();clearInput();}
 function beginMini(id){
   if(!interiors?.active||paused()||activities.snapshot().active)return;
   const station=id?interiors.active.activities.find(s=>s.id===id):activities.nearest(focus());
@@ -436,6 +559,7 @@ function interactAircraft(){
   return true;
 }
 function streetChallenge(){
+  if(burglary.active)return {...burglary.snapshot(),label:'Force the house lock'};
   if(aircraft?.challenge.active)return {...aircraft.challenge,aircraft:true,label:'Take airport jet'};
   const hack=rentalHack.snapshot();
   if(hack.active)return {...hack,label:'Bypass scooter lock'};
@@ -473,6 +597,34 @@ function updateRentalHack(dt){
     rentalHackTarget=null;clearInput();
   }
 }
+function burglaryContext(){
+  return {...careerContext(),sandbox:isSandbox()||!!developerReturn,interiorId:interiors.active?.id||null,
+    paused:paused(),mission:!!campaign.state.active,job:!!progression.state.activeJob};
+}
+function requestHouseEntry(entry){
+  if(entry.type!=='house'||isSandbox()||progression.isSafehouse(entry.id))return false;
+  const startedLock=burglary.start({...entry,owned:false,safehouse:false},burglaryContext());
+  clearInput();notify(startedLock?'Follow the house lock cues. E cancels.':'Stand close to the house door and finish your current mission or job.');
+  return true;
+}
+function updateBurglary(dt){
+  if(!burglary.active)return;
+  burglary.step(dt,miniInput(),burglaryContext());
+  for(const event of burglary.drainEvents()){
+    if(event.type==='complete'){
+      const entry=interiors.entries.find(item=>item.id===event.targetId);
+      const outside={...focus()};
+      if(entry&&!progression.isSafehouse(entry.id)&&burglary.consumeEntry(entry.id,burglaryContext())){
+        enterInterior(entry);
+        if(interiors.active?.id===entry.id&&burglary.entered(interiors.active)){
+          gameplay.reportOffence('breaking and entering',2,{witnessed:true,point:outside});
+          notify('House alarm. Search for valuables, then get out.');
+        }else notify('The door landing is blocked.');
+      }
+    }else if(event.type==='failed')notify(event.reason);
+    clearInput();
+  }
+}
 function recordEvidence(event){
   if(event.kind!=='evidence'||event.type!=='complete'||event.outcome!=='secured'||isSandbox())return false;
   const active=campaign.state.active,goal=active?.target,plan=interiors.active,terminal=activities.snapshot();
@@ -485,6 +637,8 @@ function recordEvidence(event){
 }
 function updateMini(){
   for(const event of activities.drainEvents()){
+    let burglaryMessage=null;
+    if(burglary.recordLoot(event,activities.snapshot(),burglaryContext())){const loot=progression.claimHouseLoot({...careerContext(),sandbox:isSandbox()||!!developerReturn,preview:!!developerReturn});burglaryMessage=loot.message;if(loot.ok)saveCareer();else burglary.takeHouseLoot(interiors.active?.id,burglaryContext());}
     recordEvidence(event);
     const workout=progression.state.activity;
     if(isWorkoutKind(event.kind)&&workout?.type==='workout'&&event.sessionId===workout.sessionId&&event.planId===workout.planId&&event.station?.id===workout.station?.id){
@@ -516,7 +670,7 @@ function updateMini(){
       if(result.ok)saveCareer();
     }
     if(event.type==='complete'&&event.heal&&!isSandbox())gameplay.heal(event.heal);
-    if(event.type==='complete'||event.type==='failed')notify(event.reason);
+    if(event.type==='complete'||event.type==='failed')notify(burglaryMessage||event.reason);
   }
   let previous=activities.snapshot();
   if(!previous.active&&previous.kind&&previous.station&&interiors.active&&Math.hypot(focus().x-previous.station.x,focus().z-previous.station.z)>previous.station.radius+1){activities.load(interiors.active);previous=activities.snapshot();}
@@ -533,6 +687,7 @@ for(const button of document.querySelectorAll('[data-mini]')){
 }
 function openPhone(){
   if(!started)return;
+  cityUI?.render();
   renderYoober();
   const state=micromobility.snapshot(),offers=micromobility.offers(focus()).slice(0,8);
   $('rental-offers').closest('details').open=!!state.active||(offers[0]?.distance<=5);
@@ -634,29 +789,37 @@ function visible(a,b,ignoreSmoke=false){
   const first=space(a),second=space(b);
   if(first!==second)return false;
   if(!ignoreSmoke&&ordnance?.blocksSight(a,b,{interiorId:first}))return false;
-  if(first)return first===room?.id&&room.hasLineOfSight(a,b);
+  if(first)return !!policeRooms.resolve(first)?.hasLineOfSight(a,b);
   return simulation.hasLineOfSight(a,b);
 }
 function clearInterior(){
+  recallDrone('reset');
+  campaignScenes?.leaveInterior();activeCrewEntry=null;indoorCampaignScenesView?.dispose();indoorCampaignScenesView=null;
   policeRooms.clear();
   stopMini();activities.clear();roomPeople.clear();roomPeopleView?.clear();interiors?.reset();interiorView?.clear();indoorActorView?.dispose();indoorActorView=null;
 }
 function enterInterior(entry){
+  recallDrone('interior');
   const outside={...gameplay.state.actor};
   const known=gameplay.state.wanted>0&&gameplay.state.police.some(unit=>unit.health>0&&!unit.interiorId&&unit.seesPlayer&&simulation.hasLineOfSight(unit,outside));
   const plan=interiors.enter(entry,gameplay.state.actor);
   if(!plan)return;
-  const safehouse=map.storyHomes?.basement?.roomId===plan.id;
+  footCameraYaw=gameplay.state.actor.yaw;footLookPitch=0;
+  const safehouse=progression?.isSafehouse(plan.id)||map.storyHomes?.basement?.roomId===plan.id;
   const gate=CAMPUS_GATES.find(gate=>gate.id===entry.gateId);
   const approach=gate?[gate.outside,{x:gate.x,z:gate.z},gate.inside].map(p=>Array.isArray(p)?{x:p[0],z:p[1]}:p):[];
   policeRooms.enter(plan,entry,{outside:interiors.exteriorPose||outside,safehouse,known,units:gameplay.state.police,approach});
   interiorView.load(plan);activities.load(plan);roomPeople.load(plan);roomPeopleView?.load(plan);
-  if(!compatibility)indoorActorView=createActorView(interiorScene,()=>plan.floorY,{policeLimit:safehouse?0:4,policeCars:false});
+  activeCrewEntry=entry;campaignScenes?.enterInterior(plan,entry,interiors.exteriorPose||outside);
+  indoorCampaignScenesView?.dispose();indoorCampaignScenesView=null;
+  if(!compatibility)indoorActorView=createActorView(interiorScene,()=>plan.floorY,{policeLimit:safehouse?0:6,policeCars:false});
   syncPlayerAppearance();
   cameraReady=false;clearInput();notify(`${plan.name}. E at the door leaves.`);
 }
 function leaveInterior(){
   if(!interiors.leave(gameplay.state.actor))return;
+  burglary.leave();
+  campaignScenes?.leaveInterior();activeCrewEntry=null;indoorCampaignScenesView?.dispose();indoorCampaignScenesView=null;
   policeRooms.leave();policeRooms.prune(gameplay.state.police);
   stopMini();activities.clear();roomPeople.clear();roomPeopleView?.clear();interiorView.clear();indoorActorView?.dispose();indoorActorView=null;
   progression.cancelActivity();cameraReady=false;clearInput();notify('Outside.');
@@ -696,6 +859,7 @@ function interiorHint(){
   const service=progression?.services.find(site=>!site.buildingId&&!site.dealer&&site.type==='arms'&&Math.hypot(site.x-pose.x,site.z-pose.z)<=site.radius);
   if(service)return `E open ${service.name}`;
   const entry=interiors?.findEntry(pose);
+  if(entry?.type==='house'&&!isSandbox()&&!progression.isSafehouse(entry.id))return 'E force the house lock';
   return entry?`E enter ${map.storyHomes?.basement?.roomId===entry.id?map.storyHomes.basement.name:entry.name}`:null;
 }
 function openWork(){
@@ -836,16 +1000,48 @@ function renderMissionGuide(){
 function clearRecon(){reconnaissance.clear();reconGuideKey='';scanHeld=false;}
 function shotTargets(){
   const result=[];
-  for(const [prefix,owner] of interiors.active?[['room',roomPeople]]:[['ped',pedestrians],['dealer',streetDealers],['ride',rideService]]){
+  for(const [prefix,owner] of interiors.active?[['room',roomPeople]]:[['ped',pedestrians],['dealer',streetDealers],['ride',rideService],['camera',securityCameras]]){
     for(const target of owner?.shotTargets?.()||[])result.push({...target,id:`${prefix}:${target.id}`,damage:(amount,ray)=>owner.hitByShot(target.id,amount,{...ray,targetId:target.id})});
   }
   return result;
 }
-function traceWorldShot(ray,room=interiors.active){
+function shotVehicles(ray,room){
   const vehicles=room?[]:[...simulation.nearbyVehicles(ray.x,ray.z,ray.range+12),...(buses?.vehicles||[]),...(rideService?.vehicles||[]),
-    ...gameplay.state.police.filter(unit=>unit.health>0&&unit.car).map(unit=>unit.car),
+    ...gameplay.state.police.filter(unit=>unit.health>0&&unit.car).map(unit=>unit.car),...(gameplay.policeWrecks||[]),
     ...(aircraft?.snapshot().planes||[]).map(plane=>({...plane,kind:'aircraft',length:10,width:4}))];
-  return shotObstacles.trace(ray,room,vehicles);
+  return vehicles;
+}
+function traceWorldShot(ray,room=interiors.active){return shotObstacles.trace(ray,room,shotVehicles(ray,room));}
+function tracePlayerShot(ray){const room=interiors.active;return shotObstacles.traceHit(ray,room,shotVehicles(ray,room));}
+function damageWorldVehicle(id,amount){
+  if(typeof id!=='string'||!Number.isFinite(amount)||amount<=0)return false;
+  if(id==='player')return gameplay.damageVehicle(amount)===true;
+  return simulation.damageVehicle(id,amount)===true||gameplay.damagePoliceVehicle(id,amount)===true||rideService?.damageVehicle(id,amount)===true||buses?.damageVehicle(id,amount)===true;
+}
+function damageExplosionVehicles(event){
+  if(!event||typeof event!=='object'||event.interiorId||handledVehicleBlasts.has(event)||![event.x,event.z,event.radius,event.maxDamage].every(Number.isFinite)||event.radius<=0||event.radius>8||event.maxDamage<=0||event.maxDamage>100)return 0;
+  handledVehicleBlasts.add(event);
+  const sourceY=Number.isFinite(event.y)?event.y:world.heightAt(event.x,event.z)+.2;
+  if(!Number.isFinite(sourceY))return 0;
+  const vehicles=shotVehicles({x:event.x,z:event.z,range:event.radius},null),seen=new Set();let hits=0;
+  for(const car of vehicles){
+    if(!car||typeof car.id!=='string'||car.id==='player'||seen.has(car.id)||car.active===false||car.interiorId||car.health===0||![car.x,car.z].every(Number.isFinite))continue;
+    seen.add(car.id);
+    const model=BY_ID[car.modelId],dimension=(name,fallback)=>Number.isFinite(car[name])&&car[name]>0?car[name]:model?.[name]||fallback;
+    const width=dimension('width',1.9),length=dimension('length',4.8),height=dimension('height',car.kind==='bus'||car.id.startsWith('bus:')?3:1.6);
+    const base=Number.isFinite(car.y)?car.y:world.vehicleHeightAt(car,car.edge?.road)+.18;
+    const yaw=Number.isFinite(car.yaw)?car.yaw:0,c=Math.cos(yaw),s=Math.sin(yaw),dx=event.x-car.x,dz=event.z-car.z;
+    const x=Math.max(-width/2,Math.min(width/2,c*dx-s*dz)),z=Math.max(-length/2,Math.min(length/2,s*dx+c*dz));
+    const target={x:car.x+c*x+s*z,y:Math.max(base,Math.min(base+height,sourceY)),z:car.z-s*x+c*z};
+    const vx=target.x-event.x,vy=target.y-sourceY,vz=target.z-event.z,distance=Math.hypot(vx,vy,vz);
+    if(!Number.isFinite(distance)||distance>=event.radius)continue;
+    if(distance>1e-6){
+      const ray={x:event.x,y:sourceY,z:event.z,dx:vx/distance,dy:vy/distance,dz:vz/distance,range:distance,interiorId:null,ignoreVehicleIds:[car.id]};
+      if(shotObstacles.trace(ray,null,vehicles)<distance-.001)continue;
+    }
+    if(damageWorldVehicle(car.id,event.maxDamage*(1-distance/event.radius)))hits++;
+  }
+  return hits;
 }
 function policeShotClear(from,to,{room,interiorId}={}){
   const distance=Math.hypot(to.x-from.x,to.y-from.y,to.z-from.z);
@@ -866,6 +1062,7 @@ function reconSight(from,to){
   return traceWorldShot(ray)>=ray.range-.02;
 }
 function updateRecon(dt){
+  if(droneActive){clearRecon();return;}
   const active=gameMode==='campaign'?campaign.state.active:null;
   const key=active?.target.kind==='recon'?`${active.id}:${active.stage}`:'';
   if(key!==reconGuideKey){
@@ -971,7 +1168,8 @@ function selectMissionAlly(id){
   // the Campaign menu pauses the world and the old contact index is retained.
   campaignScenes.exchangeLeader(id,sceneContext);
   campaign.switchCompanion(id,{...context,switchSafe:true});
-  protagonists.capture(oldHero,previous);heroPowers.cancelActive();
+  progression.saveInventory(oldHero,previous.ammunition);restoreCareerInventory(id);
+  protagonists.capture(oldHero,previous);heroPowers.cancelActive();recallDrone('character-switch');
   clearInput();cameraReady=false;footCameraYaw=gameplay.state.actor.yaw;footLookPitch=0;orbit=0;orbitHeight=0;orbitHold=0;lookPitch=0;
   syncExternalPeople();syncPlayerAppearance();streetUI.refresh();
   return {ok:true,message:`Playing as ${currentHero()?.name||id}.`};
@@ -984,14 +1182,14 @@ function selectCampaignCharacter(id){
   if(!started||gameMode!=='campaign')return campaign.selectCharacter(id,{...careerContext(),campaign:true,sandbox:false});
   const hero=campaign.characters.find(hero=>hero.id===id);
   if(!hero)return {ok:false,message:'Choose an available character.'};
-  const previous=protagonistCheckpoint(),player={...simulation.player},oldRoom=interiors.active,
+  const previousHero=campaign.state.character,previous=protagonistCheckpoint(),player={...simulation.player},oldRoom=interiors.active,
     oldActor={...gameplay.state.actor},oldEntry=oldRoom&&interiors.entries.find(entry=>entry.id===oldRoom.id);
   captureActiveProtagonist();
   // Leave through the captured outside pose before the live placement checks.
   if(oldRoom)leaveInterior();
   const checkpoint=protagonists.get(id);
   let restored;
-  if(checkpoint)restored=gameplay.restoreProtagonist(checkpoint);
+  if(checkpoint)restored=gameplay.restoreProtagonist(resumeCheckpoint(checkpoint));
   else {
     simulation.setPlayerVehicle({modelId:'lantern',color:0xe7e6df});
     const pose=prepareCharacterStart(simulation,hero,{initial:true,publicEntries:CIVIC_INTERIOR_ENTRIES});
@@ -1014,8 +1212,10 @@ function selectCampaignCharacter(id){
     if(oldRoom&&oldEntry){enterInterior(oldEntry);Object.assign(gameplay.state.actor,oldActor);}
     return selected;
   }
+  progression.saveInventory(previousHero,previous.ammunition);
+  restoreCareerInventory(id);
   buses?.reset();rideService?.reset();micromobility?.reset();equipment?.reset();followYoober=false;
-  heroPowers.cancelActive();ordnance?.reset();
+  heroPowers.cancelActive();ordnance?.reset();recallDrone('character-switch');
   destination=null;route=[];lastJobTarget='';mapSelection=null;dialogueId=null;
   clearInput();cameraReady=false;footCameraYaw=gameplay.state.actor.yaw;footLookPitch=0;orbit=0;orbitHeight=0;orbitHold=0;lookPitch=0;pedestrians.resetPopulation(focus());
   refreshProtagonistVehicle();syncPlayerAppearance();streetUI.refresh();
@@ -1053,7 +1253,7 @@ function saveCareer() {
   if (careerError || isSandbox() || !started) return;
   const owned = progression.state.ownedVehicles.find(car => car.id === gameplay.state.vehicle.modelId);
   if (owned && !gameplay.state.vehicle.stolen&&!developerReturn) { owned.health = gameplay.state.vehicleHealth; owned.color = selectedPaint; }
-  try { captureActiveProtagonist();localStorage.setItem(CAREER_KEY, JSON.stringify({...progression.serialize(),campaign:developerReturn?.campaign||campaign.serialize(),protagonists:protagonists.serialize()})); }
+  try { captureCareerInventory();captureActiveProtagonist();localStorage.setItem(CAREER_KEY, JSON.stringify({...progression.serialize(),campaign:developerReturn?.campaign||campaign.serialize(),protagonists:protagonists.serialize()})); }
   catch (error) { careerError = `Career could not be saved: ${error.message}`; $('save-status').textContent = careerError; notify('Career storage is unavailable. You can keep playing.'); }
 }
 function routeTo(point) {
@@ -1163,7 +1363,7 @@ $('start-button').addEventListener('click', () => {
   cutscenes.cancel();cutscenes.drainEvents();pendingCutscene=null;cutsceneAnchor=null;setCutsceneVisible(false);
   gameMode = selectedGameMode;
   if(gameMode==='campaign'&&!campaign.state.character){renderCharacterChoices();notify('Choose a character first.');return;}
-  aircraft?.reset();clearInterior();micromobility?.reset();rideService?.reset();equipment?.reset();followYoober=false; campaign.cancel();campaign.drainEvents();
+  burglary.reset();aircraft?.reset();clearInterior();micromobility?.reset();rideService?.reset();equipment?.reset();followYoober=false; campaign.cancel();campaign.drainEvents();
   simulation.reset(); restoreParkedCars();
   const hero=gameMode==='campaign'&&campaign.characters.find(c=>c.id===campaign.state.character);
   const heroCheckpoint=hero&&protagonists.get(hero.id);
@@ -1178,7 +1378,7 @@ $('start-button').addEventListener('click', () => {
   const starter=isSandbox()||hero?null:progression.prepareStarterVehicle(careerContext());
   const owned = starter?.vehicle||progression.state.ownedVehicles.find(car => car.id === 'lantern');
   if(heroCheckpoint){
-    const restored=gameplay.restoreProtagonist(heroCheckpoint);
+    const restored=gameplay.restoreProtagonist(resumeCheckpoint(heroCheckpoint));
     if(!restored.ok){notify(`This character cannot resume: ${restored.reason}.`);return;}
     refreshProtagonistVehicle();
   }else if(hero){
@@ -1186,13 +1386,14 @@ $('start-button').addEventListener('click', () => {
     gameplay.state.vehicle={modelId:'lantern',color:'#e7e6df',stolen:false};
     refreshProtagonistVehicle();
   }else applyPlayerVehicle({ modelId: 'lantern', color: owned?.color || '#e7e6df', health: isSandbox() ? 100 : owned?.health ?? 100 });
+  restoreCareerInventory();
   destination = null; route = []; lastJobTarget = ''; mapSelection = null;
   pedestrians.resetPopulation(focus()); refreshModeUI(); streetUI.refresh();
   started = true; setGameControls(true);$('start-panel').hidden = true; document.body.classList.remove('intro-open');
   if($('guided-tutorial').checked){if(tutorial.snapshot().status==='active'){tutorial.resume(tutorialContext());tutorialRunning=true;tutorialVisible=true;syncTutorial();}else startTutorial();}
   else{tutorial.skip();tutorialRunning=false;tutorialVisible=false;syncTutorial();}
   syncPlayerAppearance();
-  if(starter?.assisted||hero)saveCareer();
+  if(!isSandbox())saveCareer();
   clearInput(); cameraReady = false; renderer.domElement.focus();
   notify(starter?.assisted?starter.message:isSandbox() ? 'Free roam. Search the map for an address or landmark.' : gameMode==='campaign' ? 'Campaign. J opens the mission briefing.' : 'Street Life. E steps out; J opens jobs.');
   if(gameMode==='campaign') openCampaign();
@@ -1304,24 +1505,24 @@ function combatFeedback(event){
   if(event.kind==='attack'&&event.hits>0)combatCueTime=.18;
   if(event.kind==='reload')combatReloadDuration=gameplay?.state.reloading||0;
   if(event.kind==='dry-fire'){combatStatusText='Out of ammunition';combatStatusTime=1.2;}
-  if(!audio?.enabled||!['attack','reload','reload-complete','dry-fire'].includes(event.kind))return;
+  if(!audio?.enabled||!['attack','reload','reload-complete','dry-fire','explosion'].includes(event.kind))return;
   const context=audio.context,voices=audio.voices||(audio.voices=new Set());
   if(voices.size>=6)return;
-  const now=context.currentTime,weapon=weaponById(event.weapon||gameplay.state.weapon),gun=event.kind==='attack'&&weapon;
-  const duration=gun?(weapon.id==='shotgun'?.18:.11):.045;
+  const now=context.currentTime,weapon=weaponById(event.weapon||gameplay.state.weapon),gun=event.kind==='attack'&&weapon,blast=event.kind==='explosion';
+  const duration=blast?.3:gun?(weapon.id==='shotgun'?.18:.11):.045;
   const gain=context.createGain(),tone=context.createOscillator();
   const voice={gain,tone};voices.add(voice);
-  gain.gain.setValueAtTime(.001,now);gain.gain.linearRampToValueAtTime(gun?.05:.014,now+.004);gain.gain.exponentialRampToValueAtTime(.001,now+duration);
-  tone.type=gun?'triangle':'square';tone.frequency.setValueAtTime(gun?(weapon.id==='shotgun'?78:145):event.kind==='dry-fire'?100:420,now);
-  tone.frequency.exponentialRampToValueAtTime(gun?45:150,now+duration);tone.connect(gain);gain.connect(context.destination);
-  if(gun){
+  gain.gain.setValueAtTime(.001,now);gain.gain.linearRampToValueAtTime(blast?.06:gun?.05:.014,now+.004);gain.gain.exponentialRampToValueAtTime(.001,now+duration);
+  tone.type=blast?'sawtooth':gun?'triangle':'square';tone.frequency.setValueAtTime(blast?65:gun?(weapon.id==='shotgun'?78:145):event.kind==='dry-fire'?100:420,now);
+  tone.frequency.exponentialRampToValueAtTime(blast?22:gun?45:150,now+duration);tone.connect(gain);gain.connect(context.destination);
+  if(gun||blast){
     if(!audio.combatNoise){
       const buffer=context.createBuffer(1,Math.ceil(context.sampleRate*.2),context.sampleRate),samples=buffer.getChannelData(0);let seed=92731;
       for(let i=0;i<samples.length;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;samples[i]=(seed/4294967296*2-1)*.7;}
       audio.combatNoise=buffer;
     }
     voice.noise=context.createBufferSource();voice.filter=context.createBiquadFilter();voice.noise.buffer=audio.combatNoise;
-    voice.filter.type='lowpass';voice.filter.frequency.value=weapon.id==='shotgun'?1300:2600;voice.noise.connect(voice.filter);voice.filter.connect(gain);voice.noise.start(now);voice.noise.stop(now+duration);
+    voice.filter.type='lowpass';voice.filter.frequency.value=blast?650:weapon.id==='shotgun'?1300:2600;voice.noise.connect(voice.filter);voice.filter.connect(gain);voice.noise.start(now);voice.noise.stop(now+duration);
   }
   tone.onended=()=>{tone.disconnect();gain.disconnect();voice.noise?.disconnect();voice.filter?.disconnect();voices.delete(voice);};
   tone.start(now);tone.stop(now+duration+.005);
@@ -1364,6 +1565,8 @@ window.addEventListener('keydown', event => {
   if (controls.includes(event.code)) event.preventDefault();
   if (!event.repeat && started) {
     if(event.code==='KeyL'&&!paused()){activatePower();return;}
+    if(event.code==='KeyN'&&!paused()){toggleHeadlights();return;}
+    if(event.code==='KeyO'&&!paused()){recallDrone('recalled');return;}
     if(event.code==='KeyV'&&!paused()){throwEquipment('grenade');return;}
     if(event.code==='KeyC'&&!paused()){throwEquipment('smoke');return;}
     if(event.code==='KeyT'){openPhone();return;}
@@ -1410,7 +1613,7 @@ function bindTouchHold(button, target, action) {
 }
 for (const button of document.querySelectorAll('[data-drive]')) bindTouchHold(button, touch, button.dataset.drive);
 function interact() {
-  if (!gameplay || paused()) return;
+  if (!gameplay || paused() || droneActive) return;
   if(gameplay.state.recovery||gameplay.state.actor.impactTime>0)return;
   if(interactAircraft())return;
   if(progression.state.activity?.interactive){progression.cancelActivity();notify('Hold-up cancelled.');return;}
@@ -1446,7 +1649,7 @@ function interact() {
       notify('E at a station, counter or the exit.');return;
     }
     const entry=interiors.findEntry(pose);
-    if(entry){enterInterior(entry);return;}
+    if(entry){if(!requestHouseEntry(entry))enterInterior(entry);return;}
     const site=progression.services.find(s=>Math.hypot(s.x-pose.x,s.z-pose.z)<=s.radius&&progression.canUseService(s,careerContext()));
     if(site){$('services-filter').value='all';streetUI.renderServices();openDialog('services-dialog');return;}
   }
@@ -1467,7 +1670,7 @@ $('fight-retry').addEventListener('click',()=>{const person=roomPeople.snapshot(
 $('touch-weapon').addEventListener('click',()=>{if(paused())return;const owned=['unarmed',...WEAPONS.filter(w=>isSandbox()||progression.state.equipment[w.id]).map(w=>w.id)];gameplay.setWeapon(owned[(owned.indexOf(gameplay.state.weapon)+1)%owned.length]);});
 for (const button of document.querySelectorAll('[data-action]')) bindTouchHold(button, actionTouch, button.dataset.action);
 function walkingInput() {
-  if(paused()||gameplay?.state.recovery||gameplay?.state.passenger||streetChallenge()?.aircraft||activities.snapshot().active||rentalHack.snapshot().active||micromobility?.snapshot().active)return {};
+  if(droneActive||paused()||gameplay?.state.recovery||gameplay?.state.passenger||(streetChallenge()?.aircraft||streetChallenge()?.house)||activities.snapshot().active||rentalHack.snapshot().active||micromobility?.snapshot().active)return {};
   const combat=canPlayerAttack();
   const stick = moveStick.snapshot();
   const forward = THREE.MathUtils.clamp(Number(keys.has('KeyW') || keys.has('ArrowUp')) - Number(keys.has('KeyS') || keys.has('ArrowDown')) - stick.y, -1, 1);
@@ -1479,6 +1682,7 @@ function walkingInput() {
     fire: combat&&(mouseFire || actionTouch.has('fire')), melee: combat&&keys.has('KeyF') };
 }
 function input() {
+  if(droneActive)return {throttle:0,steer:0,handbrake:true,boost:false};
   const held = (...codes) => codes.some(c => keys.has(c));
   const stick = moveStick.snapshot();
   return { throttle: THREE.MathUtils.clamp(Number(held('KeyW', 'ArrowUp')) - Number(held('KeyS', 'ArrowDown')) - stick.y, -1, 1),
@@ -1755,7 +1959,7 @@ function createParkedCars() {
     const pieces = [new THREE.InstancedMesh(geometry, material, cars.length), new THREE.InstancedMesh(geometry, material, cars.length), new THREE.InstancedMesh(geometry, material, cars.length * 4)];
     cars.forEach((car, index) => {
       const matrices = [];
-      const y = world.heightAt(car.x, car.z), height = car.suv ? .88 : .62;
+      const y = world.vehicleHeightAt(car,car.edge?.road), height = car.suv ? .88 : .62;
       dummy.position.set(car.x, y + .36 + height / 2, car.z); dummy.rotation.set(0, car.yaw, 0); dummy.scale.set(car.suv ? 1.98 : 1.85, height, car.suv ? 4.5 : 4.7); dummy.updateMatrix();
       pieces[0].setMatrixAt(index, dummy.matrix); pieces[0].setColorAt(index, color.set(car.color));
       matrices.push(dummy.matrix.clone());
@@ -1861,8 +2065,8 @@ function updateHud() {
   if($('map-dialog').open&&followYoober)drawMap($('full-map'),true);
 }
 function placeCar(mesh, car, dt) {
-  const y = world.heightAt(car.x, car.z), fx = -Math.sin(car.yaw), fz = -Math.cos(car.yaw);
-  const pitch = Math.atan2(world.heightAt(car.x + fx * 2, car.z + fz * 2) - world.heightAt(car.x - fx * 2, car.z - fz * 2), 4);
+  const y = world.vehicleHeightAt(car,car.edge?.road), fx = -Math.sin(car.yaw), fz = -Math.cos(car.yaw);
+  const pitch = Math.atan2(world.vehicleHeightAt({...car,x:car.x+fx*2,z:car.z+fz*2},car.edge?.road) - world.vehicleHeightAt({...car,x:car.x-fx*2,z:car.z-fz*2},car.edge?.road), 4);
   mesh.position.set(car.x, y + .18, car.z); mesh.rotation.set(pitch, car.yaw, 0, 'YXZ');
   for (const wheel of mesh.userData.wheels) wheel.rotation.x -= car.speed * dt / .34;
 }
@@ -1880,11 +2084,11 @@ function syncParkedVisibility() {
 }
 function updateAbandonedMeshes(p, dt) {
   const active = new Set();
-  for (const car of simulation.abandonedCars) {
-    if (!car.active) continue;
+  for (const car of [...simulation.abandonedCars,...(gameplay.policeWrecks||[])].slice(0,18)) {
+    if (car.active===false||active.has(car.id)) continue;
     active.add(car.id);
     let mesh = abandonedMeshes.get(car.id);
-    if (!mesh) { mesh = createCar(car.modelId, { color: car.color }); addCarShadow(mesh); scene.add(mesh); abandonedMeshes.set(car.id, mesh); }
+    if (!mesh) { mesh = createCar(Object.hasOwn(BY_ID,car.modelId)?car.modelId:'lantern', { color: car.health===0?0x64707b:car.color }); addCarShadow(mesh); scene.add(mesh); abandonedMeshes.set(car.id, mesh); }
     mesh.visible = Math.hypot(car.x - p.x, car.z - p.z) < 300;
     if (mesh.visible) placeCar(mesh, { ...car, speed: 0 }, dt);
   }
@@ -1913,8 +2117,7 @@ function updateCareer() {
       }
     }
     if (['job-stage','job-complete','job-failed','penalty','robbery-complete','mugging-complete','workout-complete','work-started','work-complete','activity-ended'].includes(event.type)) notify(event.message);
-    if(event.type==='mugging-started'&&!isSandbox())gameplay.reportOffence('mugging',2,{witnessed:true,point:event.point});
-    if(event.type==='robbery-started'&&!isSandbox())gameplay.reportOffence('shop robbery',2,{witnessed:true,point:event.point});
+    recordCameraWorkEvent(event);
     if (['job-complete','penalty','robbery-complete','mugging-complete','workout-complete'].includes(event.type)) saveCareer();
   }
   finishDeveloperPreview();
@@ -1929,7 +2132,7 @@ function updateCareer() {
   }
 }
 function syncExternalVehicles(){
-  simulation.setExternalVehicles([...aircraftObstacles(),...(buses?.vehicles||[]),...(rideService?.vehicles||[]),...gameplay.state.police.filter(p=>p.health>0&&p.car).map(p=>p.car)]);
+  simulation.setExternalVehicles([...aircraftObstacles(),...(buses?.vehicles||[]),...(rideService?.vehicles||[]),...gameplay.state.police.filter(p=>p.health>0&&p.car).map(p=>p.car),...(gameplay.policeWrecks||[])]);
 }
 function syncExternalPeople(){
   externalPeopleContacts.length=0;
@@ -1942,7 +2145,7 @@ function syncExternalPeople(){
   for(const person of pedestrians.writeContacts(pedestrianContacts))externalPeopleContacts.push(person);
   for(const person of streetDealers.snapshot())add(person,.34);
   for(const person of rideService?.people||[])if(person.active)add(person,.38);
-  for(const person of campaignScenes?.people||[])if(!person.seated)add(person,.32);
+  for(const person of campaignScenes?.people||[])if(!person.seated&&!person.interiorId)add(person,.32);
   for(const officer of gameplay.state.police)if(officer.health>0&&officer.mode==='foot'&&!officer.interiorId)add(officer,.35);
   const job=progression.state.activeJob;
   if(job?.type==='ride'&&job.stage===0&&!job.passenger){
@@ -1967,6 +2170,8 @@ function animate(time) {
   if (!paused()||tracking) {
     accumulator += dt;
     while (accumulator >= 1 / 60) {
+      stepDrone(1/60);
+      stepSecurityCameras(1/60);updateBurglary(1/60);
       combatCueTime=Math.max(0,combatCueTime-1/60);
       combatStatusTime=Math.max(0,combatStatusTime-1/60);
       updateRecon(1/60);
@@ -1977,7 +2182,8 @@ function animate(time) {
       ordnance.step(1/60);
       for(const event of ordnance.drainEvents())if(event.type==='explosion')gameplay.applyExplosion(event);
       const walking = gameplay.state.mode === 'foot';
-      campaignScenes?.update({mission:campaign.state.active,character:currentHero()?.id||campaign.state.character,mode:gameMode,pose:focus(),health:gameplay.state.health,playerMode:gameplay.state.passenger?'passenger':gameplay.state.mode,hostiles:gameplay.state.police,paused:false,recovering:!!gameplay.state.recovery,interior:!!interiors.active,car:simulation.player,carKey:playerCarKey,hasLOS:visible},1/60);
+      if(interiors.active&&activeCrewEntry&&campaignScenes.roomStats?.id!==interiors.active.id)campaignScenes?.enterInterior(interiors.active,activeCrewEntry,interiors.exteriorPose);
+      campaignScenes?.update({hiredMembers:(progression.state.hiredCrew||[]).filter(id=>['merc-river','merc-stone'].includes(id)).map(id=>({id,armed:true})),rehireSerial:Object.fromEntries(['merc-river','merc-stone'].map(id=>[id,progression.crewRenewalSerial?.(id)??0])),hiredHealth:Object.fromEntries(progression.state.hiredCrew.map(id=>[id,progression.getCrewHealth(id)])),attacksAllowed:canCrewAttack(),mission:campaign.state.active,character:currentHero()?.id||campaign.state.character,mode:gameMode,pose:{...focus(),interiorId:interiors.active?.id||null},health:gameplay.state.health,playerMode:gameplay.state.passenger?'passenger':gameplay.state.mode,hostiles:gameplay.state.police,paused:false,recovering:!!gameplay.state.recovery,interior:!!interiors.active,car:simulation.player,carKey:playerCarKey,hasLOS:visible},1/60);
       for(const event of campaignScenes.drainEvents())if(event.type==='ally-shot')gameplay.strikePolice(event);
       syncExternalVehicles();
       syncExternalPeople();
@@ -1985,7 +2191,11 @@ function animate(time) {
       campaignScenes.syncCarPose(simulation.player,playerCarKey);
       updateAircraft(1/60);
       gameplay.step(1 / 60, {...walkingInput(),challenge:miniInput()});
-      for(const event of gameplay.drainPoliceEvents())campaignScenes.receiveHit(event);
+      let hiredCasualty=false;
+      for(const event of gameplay.drainPoliceEvents()){
+        if(campaignScenes.receiveHit(event)&&campaignScenes.people.some(person=>person.hired&&person.id===event.targetId&&person.health<=0))hiredCasualty=true;
+      }
+      if(hiredCasualty)saveCareer();
       policeRooms.prune(gameplay.state.police);
       syncExternalVehicles();syncExternalPeople();buses?.step(1/60,busContext());
       if(rideService?.vehicles[0].active)rideService.step(1/60,rideContext());
@@ -2023,9 +2233,12 @@ function animate(time) {
   const renderDt = Math.min(.1, (time - (lastRender || time)) / 1000); lastRender = time;
   const p = focus(), activeDt = paused()&&!tracking ? 0 : renderDt;
   atmosphereView?.update(atmosphere.snapshot(),p,{interior:!!interiors.active,quality});
+  droneView?.update(drone.snapshot());securityCamerasView?.update(securityCameras.snapshot(),p,interiors.active?.id||null);
   ordnanceView?.update(ordnance.snapshot(),p,{interiorId:null});
   indoorOrdnanceView?.update(ordnance.snapshot(),p,{interiorId:interiors.active?.id||null});
   vehicleDamageView?.update(vehicleDamage.snapshot(),playerMesh,{interiorId:interiors.active?.id||null});
+  headlightsView?.update(simulation.player,{enabled:!aircraft?.active&&gameplay.state.mode==='vehicle'&&headlightsEnabled(atmosphere.snapshot().hour),interiorId:interiors.active?.id||null});
+  policeSupportView?.update(gameplay.policeSupport(),activeDt,{interior:!!interiors.active});
   if(!interiors.active){
   airportView?.update(p);
   pedestrianFocus.x=p.x;pedestrianFocus.z=p.z;pedestrianFocus.yaw=p.yaw;pedestrianFocus.speed=gameplay.state.mode==='vehicle'?p.speed:0;
@@ -2063,15 +2276,20 @@ function animate(time) {
   document.body.classList.toggle('indoors',!!interiors.active);
   const objective = isSandbox() ? destination : campaign.state.active?.target || progression.state.activeJob?.target || progression.garage;
   roadGuidanceView?.update(route,p,{enabled:started&&gameplay.state.mode==='vehicle'&&!gameplay.state.passenger&&!interiors.active&&!!destination,guidance:guidanceRoute===route?guideState:null});
-  const exteriorState={...gameplay.state,police:gameplay.state.police.map(unit=>unit.interiorId?{...unit,mode:'inside'}:unit),shots:gameplay.state.shots.filter(shot=>!shot.interiorId)};
+  const exteriorState={...gameplay.state,police:gameplay.state.police.map(unit=>unit.interiorId||unit.car?.health===0?{...unit,mode:unit.interiorId?'inside':unit.mode,car:unit.car?.health===0?{...unit.car,active:false}:unit.car}:unit),shots:gameplay.state.shots.filter(shot=>!shot.interiorId)};
   if(!interiors.active)actorView?.update(micromobility?.snapshot().active||gameplay.state.passenger?{...exteriorState,mode:'vehicle'}:exteriorState, { dt: activeDt, time: time / 1000, focus: p, objective });
   rideView?.update({car:rideService.vehicles[0],passenger:rideService.passenger,driver:rideService.people[0]},{focus:p,playerCar:{...simulation.player,modelId:gameplay.state.vehicle.modelId},job:progression.state.activeJob,dt:activeDt});
-  campaignScenesView?.update(campaignScenes.people,p);
+  campaignScenesView?.update(campaignScenes.people,p,{interiorId:null});
+  if(interiors.active){
+    if(!indoorCampaignScenesView&&!compatibility&&campaignScenes.people.some(person=>person.interiorId===interiors.active.id))indoorCampaignScenesView=createCampaignScenesView(interiorScene,()=>interiors.active?.floorY||0);
+    indoorCampaignScenesView?.update(campaignScenes.people,p,{interiorId:interiors.active.id});
+  }
   aircraftView?.update(aircraft.snapshot(),p);
   roomPeopleView?.update(roomPeople.snapshot(),activeDt,{activity:activities.snapshot()});
   microView?.update(micromobility.snapshot(),p,activeDt);
   dealerView?.update(streetDealers.snapshot(),interiors.active?{x:Infinity,z:Infinity}:p,activeDt);
-  if(interiors.active){
+  if(droneActive){const flying=drone.snapshot();desiredCamera.set(flying.x,flying.y,flying.z);lookTarget.set(flying.x-Math.sin(footCameraYaw)*10,flying.y+Math.tan(footLookPitch)*10,flying.z-Math.cos(footCameraYaw)*10);}
+  else if(interiors.active){
     const angle=footCameraYaw,ground=interiors.active.floorY;
     const frame=footCameraFrame(p,{yaw:angle,pitch:footLookPitch,ground,aiming:gameplay.state.aiming||reconCameraVisible(reconnaissance.snapshot()),indoors:true});
     desiredCamera.set(frame.camera.x,frame.camera.y,frame.camera.z);
@@ -2101,8 +2319,8 @@ function animate(time) {
     orbitHold = Math.max(0, orbitHold - renderDt);
     if (!dragging && orbitHold === 0 && Math.abs(p.speed) > 1) { orbit *= Math.exp(-renderDt * 1.6); lookPitch *= Math.exp(-renderDt * 1.6); }
     const angle = p.yaw + orbit, distance = !started ? 21 : 10.8 + Math.min(4, Math.abs(p.speed) * .065);
-    desiredCamera.set(p.x + Math.sin(angle) * distance, world.heightAt(p.x, p.z) + (!started ? 10 : 5.4) + orbitHeight, p.z + Math.cos(angle) * distance);
-    lookTarget.set(p.x - Math.sin(p.yaw) * 5, world.heightAt(p.x, p.z) + 1.4, p.z - Math.cos(p.yaw) * 5);
+    desiredCamera.set(p.x + Math.sin(angle) * distance, world.vehicleHeightAt(p,p.edge?.road) + (!started ? 10 : 5.4) + orbitHeight, p.z + Math.cos(angle) * distance);
+    lookTarget.set(p.x - Math.sin(p.yaw) * 5, world.vehicleHeightAt(p,p.edge?.road) + 1.4, p.z - Math.cos(p.yaw) * 5);
     lookTarget.y += Math.tan(lookPitch) * (distance + 5);
   }
   const cinematic=cutscenes.snapshot();
@@ -2113,7 +2331,7 @@ function animate(time) {
     if(!visible(a,view))view={x:a.x+Math.sin(yaw)*.8,z:a.z+Math.cos(yaw)*.8};
     desiredCamera.set(view.x,ground+2.25,view.z);lookTarget.set(a.x,ground+1.25,a.z);
   }
-  if(!interiors.active)desiredCamera.y = Math.max(desiredCamera.y, world.heightAt(desiredCamera.x, desiredCamera.z) + .65);
+  if(!interiors.active&&!droneActive){const floor=gameplay.state.mode==='vehicle'&&!aircraft?.active?world.vehicleHeightAt({...p,x:desiredCamera.x,z:desiredCamera.z},p.edge?.road):world.heightAt(desiredCamera.x,desiredCamera.z);desiredCamera.y=Math.max(desiredCamera.y,floor+.65);}
   camera.position.lerp(desiredCamera,cameraReady?cameraBlend(renderDt,gameplay.state.aiming):1);
   const targetFov=gameplay.state.aiming?50:58;
   if(Math.abs(camera.fov-targetFov)>.05){camera.fov+=(targetFov-camera.fov)*cameraBlend(renderDt,true);camera.updateProjectionMatrix();}
@@ -2166,7 +2384,9 @@ async function boot() {
   atmosphereView=compatibility?emptyView():createAtmosphereView(scene,{hemisphere,sun,heightAt:terrainSampler.heightAt,quality});
   airportView=compatibility?emptyView():createAirportView(scene,map,terrainSampler.heightAt);
   vehicleDamageView=compatibility?emptyView():createVehicleDamageView(scene,terrainSampler.heightAt);
-  world = compatibility ? { heightAt: () => 0, update() {}, dispose() {}, stats: {} } : createWorldView(scene, map,{lowGraphics:true,streaming:true});
+  world = compatibility ? { heightAt: () => 0,groundHeightAt:()=>0,vehicleHeightAt:()=>0, update() {}, dispose() {}, stats: {} } : createWorldView(scene, map,{lowGraphics:true,streaming:true});
+  headlightsView=compatibility?emptyView():createHeadlightsView(scene,{heightAt:(x,z)=>world.vehicleHeightAt({...simulation.player,x,z},simulation.player.edge?.road)});
+  policeSupportView=compatibility?emptyView():createPoliceSupportView(scene);
   civicView=compatibility?emptyView():createCivicView(scene,map,terrainSampler.heightAt);
   noodleShopView=compatibility?emptyView():createNoodleShopView(scene,terrainSampler.heightAt);
   campusView=compatibility?emptyView():createCampusView(scene,map,terrainSampler.heightAt);
@@ -2175,12 +2395,12 @@ async function boot() {
   map.barriers.push(...(civicView.barriers||[]),...(noodleShopView.obstacles||[]));
   neighbourhood = compatibility ? { update() {}, dispose() {}, stats: {},entries:[] } : createNeighbourhoodDetails(scene, map, world.heightAt,{lowGraphics:true,streaming:true});
   map.barriers.push(...(neighbourhood.backyardBarriers||[]));
-  simulation=createSimulation(map,{isOnBridge:terrainSampler.isOnBridge,vehicleMods:()=>!isSandbox()&&gameplay?progression.vehicleMods(gameplay.state.vehicle):{},powerModifiers:()=>heroPowers.modifiers(powerContext())});
+  simulation=createSimulation(map,{isOnBridge:terrainSampler.isOnBridge,vehicleHeightAt:world.vehicleHeightAt,vehicleMods:()=>!isSandbox()&&gameplay?progression.vehicleMods(gameplay.state.vehicle):{},powerModifiers:()=>heroPowers.modifiers(powerContext())});
   wildlifeView=compatibility?emptyView():createWildlifeView(scene,map,terrainSampler.heightAt);
   streetAssetsView=compatibility?emptyView():createStreetAssetsView(scene,terrainSampler.heightAt);
   highwayBarriersView=compatibility?emptyView():createHighwayBarriersView(scene,terrainSampler.heightAt);
   signalsView=compatibility?emptyView():createTrafficLightsView(scene,world.heightAt);
-  roadGuidanceView=compatibility?emptyView():createRoadGuidanceView(scene,(x,z)=>world.heightAt(x,z),{
+  roadGuidanceView=compatibility?emptyView():createRoadGuidanceView(scene,(x,z,yaw)=>world.vehicleHeightAt({x,z,yaw}),{
     placePoint:(point,yaw)=>{
       const road=simulation.nearestRoad(point.x,point.z),width=road?roadProfile(road.road).driveWidth:8,offset=Math.min(2.3,width*.23);
       return {x:point.x-Math.cos(yaw)*offset,z:point.z+Math.sin(yaw)*offset};
@@ -2222,7 +2442,7 @@ async function boot() {
   const indoorSun=new THREE.DirectionalLight(0xfff1d4,1.1);indoorSun.position.set(-2,5,3);interiorScene.add(indoorSun);
   interiorView=compatibility?{load(){},clear(){},dispose(){},stats:{}}:createInteriorView(interiorScene);
   roomPeopleView=compatibility?{load(){},update(){},clear(){},dispose(){},stats:{}}:createInteriorPeopleView(interiorScene,()=>interiors.active?.floorY||0);
-  const careerOptions={extraServices:streetDealers.services,workSession:()=>({plan:interiors.active,session:activities.snapshot()}),interactiveWorkouts:true,interactiveRobbery:true,crimeTarget,robberyTarget,hasLineOfSight:visible,servicePosition:servicePosition,canUseService:site=>site.dealer?!interiors.active&&streetDealers.canTrade(site.id):site.type==='gym'?interiors.active?.serviceId===site.id:!site.buildingId||interiors.active?.storeId===site.id};
+  const careerOptions={takeHouseLoot:(roomId,ctx)=>burglary.takeHouseLoot(roomId,ctx),homes:interiors.entries.filter(entry=>entry.type==='house'),extraServices:streetDealers.services,workSession:()=>({plan:interiors.active,session:activities.snapshot()}),interactiveWorkouts:true,interactiveRobbery:true,crimeTarget,robberyTarget,hasLineOfSight:visible,servicePosition:servicePosition,canUseService:site=>site.dealer?!interiors.active&&streetDealers.canTrade(site.id):site.type==='gym'?interiors.active?.serviceId===site.id:!site.buildingId||interiors.active?.storeId===site.id};
   try {
     const raw = localStorage.getItem(CAREER_KEY);
     if (raw && raw.length > 16000) throw new Error('Saved career is too large.');
@@ -2236,7 +2456,10 @@ async function boot() {
     careerError = `Career could not be loaded: ${error.message} This session will not overwrite it.`;
     campaign=createCampaign(map,null,campaignScenes.meetingPoint?{meetingPoint:campaignScenes.meetingPoint}:{});progression = createProgression(map,null,careerOptions); $('save-status').textContent = careerError;
   }
-  shotObstacles=createShotObstacles(map,{heightAt:world.heightAt});
+  shotObstacles=createShotObstacles(map,{heightAt:world.heightAt,groundHeightAt:world.groundHeightAt,vehicleHeightAt:world.vehicleHeightAt,bridgeSegments:terrainSampler.bridgeSegments});
+  drone=createDrone({heightAt:world.groundHeightAt,canOccupy:droneCanOccupy});droneView=compatibility?emptyView():createDroneView(scene);
+  const cameraLocations=ALL_STORES.filter(store=>store.frontage&&[store.frontage.x,store.frontage.z,store.frontage.yaw].every(Number.isFinite)).slice(0,6).map(store=>{const f=store.frontage;return {id:store.id,x:f.x-Math.sin(f.yaw)*.5,z:f.z-Math.cos(f.yaw)*.5,yaw:f.yaw,interiorId:null};});
+  securityCameras=createSecurityCameras(cameraLocations,{heightAt:world.heightAt,hasLineOfSight:cameraSight});securityCamerasView=compatibility?emptyView():createSecurityCamerasView(scene);
   const actorSimulation={...simulation,moveActor:(actor,...args)=>actor===gameplay?.state.actor?moveBody(actor,...args):simulation.moveActor(actor,...args),hasLineOfSight:visible};
   const witnesses={snapshot:()=>interiors.active?roomPeople.snapshot():[...pedestrians.snapshot(),...streetDealers.snapshot(),...(rideService?.people||[]).filter(person=>person.active)],
     drainEvents:()=>[...pedestrians.drainEvents(),...roomPeople.drainEvents(),...(rideService?.drainCombatEvents()||[])],
@@ -2245,7 +2468,7 @@ async function boot() {
   gameplay = createGameplay(map, actorSimulation, { pedestrians:witnesses, heightAt: (x,z)=>interiors.active?.floorY??world.heightAt(x,z),
     powerModifiers:()=>heroPowers.modifiers(powerContext()),onVehicleImpacts:(events,dt)=>pedestrians.applyVehicleImpacts(events,dt),hasBlastLineOfSight:(a,b)=>visible(a,b,true),
     getInterior:()=>policeRooms.current,resolveInterior:id=>policeRooms.resolve(id),
-    canAttack:canPlayerAttack,canFireWeapon:()=>campaign.state.active?.target.victory!==true,getShotTargets:shotTargets,traceShot:traceWorldShot,policeShotClear,getAllies:()=>campaignScenes?.people||[],
+    canAttack:canPlayerAttack,canFireWeapon:()=>campaign.state.active?.target.victory!==true,getShotTargets:shotTargets,traceShot:tracePlayerShot,onVehicleShot:({vehicleId,damage})=>damageWorldVehicle(vehicleId,damage),onVehicleExplosion:damageExplosionVehicles,policeShotClear,getAllies:()=>campaignScenes?.people||[],
     passengerPose:()=>aircraft?.seatPose||rideService?.seatPose||buses?.seatPose,playerAltitude:aircraftAltitude,isPiloting:()=>!!aircraft?.active,
     hasWeapon:id=>!!progression.state.equipment[id],hasPistol:()=>progression.state.equipment.pistol,fitness:()=>progression.state.fitnessLevel,
     onCarjacked:pose=>occupantsView?.addExit(pose),
@@ -2260,6 +2483,7 @@ async function boot() {
     },
     onEvent: event => {
       combatFeedback(event);
+      recordCameraGameplayEvent(event);
       if (!['attack','dry-fire','reload','reload-complete'].includes(event.kind)) notify(event.message);
       if (event.kind === 'respawn') cameraReady = false;
     } });
@@ -2269,18 +2493,20 @@ async function boot() {
   ordnanceView=compatibility?emptyView():createOrdnanceView(scene,{quality});
   indoorOrdnanceView=compatibility?emptyView():createOrdnanceView(interiorScene,{quality});
   actorView = compatibility ? { update() {}, dispose() {}, stats: {} } : createActorView(scene, world.heightAt);
-  occupantsView=compatibility?{update(){},addExit(){},dispose(){},stats:{}}:createVehicleOccupantsView(scene,world.heightAt);
+  occupantsView=compatibility?{update(){},addExit(){},dispose(){},stats:{}}:createVehicleOccupantsView(scene,world.heightAt,{vehicleHeightAt:world.vehicleHeightAt});
   servicesView=compatibility?{update(){},dispose(){},stats:{}}:createServicesView(scene,world.heightAt);
   storefrontsView=compatibility?{update(){},dispose(){},stats:{}}:createStorefrontsView(scene,world.heightAt,{excludeIds:[NOODLE_SHOP_ID]});
-  trafficView=compatibility?{update(){},dispose(){},stats:{}}:createTrafficView(scene,world.heightAt,simulation.traffic);
+  trafficView=compatibility?{update(){},dispose(){},stats:{}}:createTrafficView(scene,world.heightAt,simulation.traffic,{vehicleHeightAt:world.vehicleHeightAt});
   shoppingView=compatibility?emptyView():createShoppingView(scene,map,world.heightAt);
-  busView=compatibility?{update(){},dispose(){},stats:{}}:createBusView(scene,world.heightAt);
+  busView=compatibility?{update(){},dispose(){},stats:{}}:createBusView(scene,world.heightAt,{vehicleHeightAt:world.vehicleHeightAt});
+  cityUI=createCityUI({document,getState:cityState,onAction:cityAction,onRoute:point=>{if(point)routeTo(point);closeDialogs();},onOpen:()=>{closeDialogs();clearInput();},onClose:()=>{clearInput();renderer?.domElement.focus();}});
+  dialogs.push(...cityUI.dialogs);
   streetUI = createStreetUI({ gameplay, progression, simulation, vehicles, notify, openDialog, closeDialogs,
     onVehicleSelected: applyPlayerVehicle, onRoute: routeTo, saveCareer, isSandbox,campaign,isCampaign:()=>gameMode==='campaign',getContext:careerContext,onJobs:openWork,interactionHint:interiorHint,onWorkout:()=>{closeDialogs();const station=activities.nearest(focus());if(!station||!isWorkoutKind(station.kind)){notify('Walk beside the bench, treadmill, weights or rower. Press E to train.');return;}beginMini(station.id);} });
   applyPlayerVehicle({ modelId: selectedCar, color: selectedPaint, health: 100 });
   buses=createBuses(map,simulation);
   rideService=createRideService(map,simulation,{heightAt:world.heightAt,canPay:fare=>isSandbox()||progression.state.cash>=fare,pay:fare=>{if(isSandbox())return true;const result=progression.payRide(fare,careerContext());if(result.ok)saveCareer();return result.ok;}});
-  rideView=compatibility?emptyView():createRideServiceView(scene,world.heightAt);
+  rideView=compatibility?emptyView():createRideServiceView(scene,world.heightAt,{vehicleHeightAt:world.vehicleHeightAt});
   equipment=createEquipment({consumeFlare:context=>progression.consumeFlare(context),hasLineOfSight:visible,canOccupy:(pose,options)=>simulation.canOccupy(pose,options),heightAt:world.heightAt});
   equipmentView=compatibility?emptyView():createEquipmentView(scene,world.heightAt);
   syncExternalVehicles();
@@ -2315,12 +2541,12 @@ async function boot() {
   // Read-only diagnostics for QA; no production state setters.
   window.capitalDriveSnapshot = () => Object.freeze({ ready: true, started, paused: paused(), gameMode,
     player: Object.freeze({ ...simulation.player }), focus: Object.freeze({ ...focus() }),
-    aircraft:aircraft.snapshot(),aircraftView:freezeCopy(aircraftView.stats),powers:heroPowers.snapshot(),vehicleDamage:freezeCopy({state:vehicleDamage.snapshot(),view:vehicleDamageView.stats}),ordnance:ordnance.snapshot(),atmosphere:atmosphere.snapshot(),airport:freezeCopy(airportView.stats),touch:freezeCopy({move:moveStick.snapshot(),look:lookStick.snapshot()}),tutorial:tutorial.snapshot(),uiStats:Object.freeze({activity:activityUI.stats}),gameplay: gameplay.snapshot(),rentalHack:freezeCopy(rentalHack.snapshot()),nearbyVehicles:freezeCopy(simulation.nearbyVehicles(focus().x,focus().z,40)),miniGame:freezeCopy(activities.snapshot()),roomPeople:freezeCopy(roomPeople.snapshot()),roomPeopleView:freezeCopy(roomPeopleView.stats),rentals:freezeCopy(micromobility.snapshot()),microView:freezeCopy(microView.stats),gymEntry:freezeCopy(gymEntry),campaign:campaign.snapshot(),protagonists:protagonists.serialize(),interiors:freezeCopy({...interiors.snapshot(),entrySample:interiors.entries.slice(0,8),publicEntries:CIVIC_INTERIOR_ENTRIES,active:interiors.active}),career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
+    aircraft:aircraft.snapshot(),aircraftView:freezeCopy(aircraftView.stats),powers:heroPowers.snapshot(),vehicleDamage:freezeCopy({state:vehicleDamage.snapshot(),view:vehicleDamageView.stats}),ordnance:ordnance.snapshot(),atmosphere:atmosphere.snapshot(),airport:freezeCopy(airportView.stats),touch:freezeCopy({move:moveStick.snapshot(),look:lookStick.snapshot()}),tutorial:tutorial.snapshot(),uiStats:Object.freeze({activity:activityUI.stats}),gameplay: gameplay.snapshot(),rentalHack:freezeCopy(rentalHack.snapshot()),burglary:burglary.snapshot(),nearbyVehicles:freezeCopy(simulation.nearbyVehicles(focus().x,focus().z,40)),miniGame:freezeCopy(activities.snapshot()),roomPeople:freezeCopy(roomPeople.snapshot()),roomPeopleView:freezeCopy(roomPeopleView.stats),rentals:freezeCopy(micromobility.snapshot()),microView:freezeCopy(microView.stats),gymEntry:freezeCopy(gymEntry),campaign:campaign.snapshot(),protagonists:protagonists.serialize(),interiors:freezeCopy({...interiors.snapshot(),entrySample:interiors.entries.slice(0,8),publicEntries:CIVIC_INTERIOR_ENTRIES,active:interiors.active}),career: freezeCopy(progression.serialize()), totalPlaces: map.landmarks.length,
     activeJob:freezeCopy(progression.state.activeJob),rideService:rideService.snapshot(),rideView:freezeCopy(rideView.stats),
     guidance:guidance.snapshot(),rideTracking:freezeCopy(rideTracking()),signals:freezeCopy({elapsed:simulation.trafficLights.elapsed,sourceCount:map.trafficSignals.signals.length,groupCount:simulation.trafficLights.groups.length,heads:simulation.trafficLights.heads,view:signalsView.stats}),equipment:freezeCopy({flares:equipment.snapshot(),view:equipmentView.stats}),busPassenger:!!buses.passenger,
     roadGuidance:freezeCopy(roadGuidanceView.stats),
     places: Object.freeze(map.landmarks.map(place => Object.freeze({ ...place }))), addressCount: addressData.addresses.length,
-    camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch,footYaw:footCameraYaw,footPitch:footLookPitch }),recon:reconnaissance.snapshot(),evidence:freezeCopy(evidenceOutcome),combatAudioVoices:audio?.voices?.size||0,
+    camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch,footYaw:footCameraYaw,footPitch:footLookPitch }),recon:reconnaissance.snapshot(),evidence:freezeCopy(evidenceOutcome),combatAudioVoices:audio?.voices?.size||0,vehicleWrecks:freezeCopy({police:gameplay.policeWrecks,meshes:abandonedMeshes.size,capacity:18}),drone:freezeCopy({state:drone.snapshot(),view:droneView.stats}),securityCameras:freezeCopy(securityCameras.snapshot()),headlights:freezeCopy({enabled:headlightsEnabled(atmosphere.snapshot().hour),override:headlightsOverride,view:headlightsView.stats}),policeSupport:freezeCopy({people:gameplay.policeSupport(),view:policeSupportView.stats}),
     discovered: Object.freeze([...discovered]), roadCount: map.roads.length, buildings: map.buildings.length, traffic: simulation.traffic.length,
     visibleTraffic: trafficView.stats.visible||0,trafficView:Object.freeze({...trafficView.stats}), destination: destination?.id ?? null, routePoints: route.length,routePath:freezeCopy(route.map(p=>({x:p[0],z:p[1]}))),streetDealers:freezeCopy({services:streetDealers.services,people:streetDealers.snapshot(),view:dealerView.stats}),
     mapSelection: mapSelection ? Object.freeze({ ...mapSelection }) : null,
@@ -2339,7 +2565,7 @@ async function boot() {
 }
 window.addEventListener('pagehide', () => {
   if (progression && gameplay) saveCareer();
-  disposed = true; cancelAnimationFrame(raf); clearTimeout(toastTimer); clearInput();
+  disposed = true;drone?.dispose();droneActive=false;droneView?.dispose();securityCameras?.dispose();securityCamerasView?.dispose();cityUI?.dispose(); cancelAnimationFrame(raf); clearTimeout(toastTimer); clearInput();
   moveStick.dispose(); lookStick.dispose();
   aircraft?.reset();aircraftView?.dispose();ordnance?.reset();ordnanceView?.dispose();indoorOrdnanceView?.dispose();atmosphereView?.dispose();airportView?.dispose();vehicleDamageView?.dispose();
   if (audio) audio.context.close().catch(error => console.warn('Could not release audio:', error.message));
@@ -2350,7 +2576,7 @@ window.addEventListener('pagehide', () => {
   stopMini();roomPeopleView?.dispose();microView?.dispose();civicExtrasView?.dispose();
   shoppingView?.dispose();campusView?.dispose();civicView?.dispose();noodleShopView?.dispose();interiorView?.dispose();indoorActorView?.dispose();
   wildlifeView?.dispose();streetAssetsView?.dispose();highwayBarriersView?.dispose();localDetailsView?.dispose();
-  campaignScenes?.clear();campaignScenesView?.dispose();
+  campaignScenes?.clear();campaignScenesView?.dispose();indoorCampaignScenesView?.dispose();headlightsView?.dispose();policeSupportView?.dispose();
   pedestrians?.dispose(); neighbourhood?.dispose(); world?.dispose(); disposeCars(); renderer?.dispose();
 });
 boot().then(() => setupGameCache()).catch(error => {

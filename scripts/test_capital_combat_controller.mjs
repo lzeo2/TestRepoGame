@@ -7,7 +7,7 @@ function extract(name){const start=source.indexOf(`function ${name}(`);assert(st
 const state={mode:'foot',passenger:false,health:80,recovery:null,respawnSerial:0};
 const active={id:'survey',stage:0,target:{kind:'recon',targetId:'notice'}};
 const descriptor={targetId:'notice',x:0,z:-8,y:1.6,space:null,hold:1.1};
-const env={reconnaissance:createRecon(),reconGuideKey:'',reconOutcome:{serial:0},evidenceOutcome:{serial:0},evidenceSessionKey:'',scanHeld:false,
+const env={droneActive:false,securityCameras:null,reconnaissance:createRecon(),reconGuideKey:'',reconOutcome:{serial:0},evidenceOutcome:{serial:0},evidenceSessionKey:'',scanHeld:false,
   campaign:{state:{active}},gameMode:'campaign',missionLocations:{guide:()=>({recon:descriptor})},interiors:{active:null},
   world:{heightAt:()=>10},focus:()=>({x:0,z:0,yaw:0,speed:0}),footCameraYaw:0,footLookPitch:0,
   gameplay:{state},activities:{snapshot:()=>({active:false})},streetChallenge:()=>null,paused:()=>false,isSandbox:()=>false,
@@ -42,7 +42,7 @@ const coverEnv={interiors:{active:null},simulation:{nearbyVehicles(x,z,radius){q
  aircraft:{active:null,snapshot:()=>({planes:[{id:'jet:1',y:15}]})},campaignScenes:{people:[{id:'ally',seated:true,vehicleId:'player'}]},
  gameplay:{state:{mode:'foot',police:[{health:100,car:{id:'patrol'}},{health:0,car:{id:'dead'}}]}},
  shotObstacles:{trace(ray,room,cars){traced={ray,room,cars};return ray.range;}}};
-const coverAPI=Function('env',`with(env){${['traceWorldShot','policeShotClear'].map(extract).join('\n')};return {traceWorldShot,policeShotClear};}`)(coverEnv);
+const coverAPI=Function('env',`with(env){${['shotVehicles','traceWorldShot','tracePlayerShot','policeShotClear'].map(extract).join('\n')};return {traceWorldShot,tracePlayerShot,policeShotClear};}`)(coverEnv);
 assert(coverAPI.policeShotClear({x:0,y:1.35,z:0},{id:'player',x:0,y:1.2,z:-20}));
 assert.equal(query.radius,traced.ray.range+12);assert.deepEqual(traced.ray.ignoreVehicleIds,[],'an on-foot target cannot bypass their parked car');
 assert.deepEqual(traced.cars.map(car=>car.id),['player','bus:1','yoober','patrol','jet:1']);
@@ -55,7 +55,9 @@ coverAPI.policeShotClear({x:0,y:1.35,z:0},{id:'ally',x:0,y:1.2,z:-20});assert.de
 const room={id:'active-room'};coverAPI.policeShotClear({x:0,y:5,z:0},{id:'player',x:0,y:5,z:-10},{room,interiorId:room.id});
 assert.equal(traced.room,room);assert.equal(traced.ray.interiorId,room.id);assert.deepEqual(traced.cars,[],'exterior vehicle bodies never leak into an interior');
 coverEnv.shotObstacles.trace=()=>0;assert(!coverAPI.policeShotClear({x:0,y:1,z:0},{id:'player',x:0,y:1,z:-10}));
-assert(source.includes('policeShotClear,')&&source.includes('traceShot:traceWorldShot'),'actual controller binds both firing owners to live cover');
+assert(source.includes('policeShotClear,')&&source.includes('traceShot:tracePlayerShot'),'actual controller binds both firing owners to live cover');
+coverEnv.shotObstacles.traceHit=(ray,room,cars)=>({distance:3,vehicleId:cars[0]?.id});
+assert.equal(coverAPI.tracePlayerShot({x:0,z:0,range:10}).vehicleId,'player','player shot keeps selected vehicle identity while police/recon use numeric cover');
 console.log('PASS controller cover: local indexed cars plus bounded external vehicles, absolute aircraft height, occupied-target-only exclusions and room isolation');
 
 const indoorPlan={id:'bound-room',storeId:'noodles',type:'shop',variant:'noodles',floorY:3,

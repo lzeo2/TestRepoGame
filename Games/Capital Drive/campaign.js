@@ -56,6 +56,18 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   const crossingRoad = sourceBridge && map.roads.find(road => road.sourceId === sourceBridge.sourceId && roadProfile(road).trafficAllowed);
   const crossingVertex = crossingRoad?.points.reduce((north, point) => !north || point[1] < north[1] ? point : north, null);
   const bridgeCrossing = crossingVertex ? { x: crossingVertex[0], z: crossingVertex[1] } : bridge;
+  const airport = place('canberra-airport', centre);
+  let airportApproach = null, airportDistance = Infinity;
+  for (const road of map.roads || []) {
+    if (!road.name || !['residential', 'living_street', 'tertiary', 'secondary', 'primary', 'unclassified'].includes(road.type) || !roadProfile(road).trafficAllowed) continue;
+    for (let index = 0; index < road.points.length; index++) {
+      if ((road.oneway === 1 && index === road.points.length - 1) || (road.oneway === -1 && index === 0) || road.points.length < 2) continue;
+      const point = { x: road.points[index][0], z: road.points[index][1] };
+      const gap = distance(point, airport);
+      if (gap < airportDistance) { airportApproach = point; airportDistance = gap; }
+    }
+  }
+  airportApproach ||= centre;
   const shared = freeze([
     { id: 'late-parcel', character: 'basement', name: '1. Depot interception', contact: 'Mara, local fixer', reward: 350, time: 360, incident: true, wantedLevel: 3,
       cutscene: scene('late-parcel', 'The debt changes hands', ['Milo', 'The depot sold my debt twice. We need a getaway car before we intercept its collection.'], ['Mara', 'Kit and Rowan can cover you on foot outside. Get the vehicle to Coals and shake the search.']),
@@ -120,8 +132,18 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     { id: 'earmuffs-rematch', character: 'corporate', name: '13. Pink Earmuffs rematch', contact: 'Dot', reward: 1300, time: 900,
       cutscene: scene('earmuffs-rematch', 'Settle the booth dispute', ['Rowan', 'Dot in the pink earmuffs wants a rematch. This time I intend to finish the fight standing.'], ['Mara', 'Find her at the Lambzhou booth. Win the actual fight, then leave and clear the search.']),
       briefing: 'Rowan, return to Lambzhou 1919 and speak to Dot in the pink earmuffs. Win the resulting actual fight. Taking her first hit or waiting does not win. Leave the restaurant on foot and lose any search afterward.',
-      outro: 'Rowan: Dot is down, everyone is out and the depot collection is closed. Campaign complete.',
+      outro: 'Rowan: Dot is down. Mara has two collections left to move.',
       stages: [target(noodle, 'Lambzhou booth: challenge Pink Earmuffs and win the fight', 'fight', { storeId: noodle.id, victory: true, hold: 0 }), target(noodle, 'Leave Lambzhou on foot and clear the search after the rematch', 'foot', { clear: true, radius: 18, hold: 3 })] },
+    { id: 'closing-time', character: 'student', name: '14. Closing time', contact: 'Mara', reward: 2800, time: 1440,
+      cutscene: scene('closing-time', 'Closing time', ['Mara', 'Both tills need fresh handovers. The sealed case is separate.'], ['Kit', 'Coals first. Then Scoot. We leave together.']),
+      briefing: 'Kit, intercept two depot collections. Complete the Coals till handover and secure a fresh evidence case inside. Drive to Scoot Wholefoods, complete its separate till handover, then reach Red Hill with the search clear.',
+      outro: 'Kit: Both collections and the sealed case are out. Rowan has the transfer route.',
+      stages: [target(shop, 'Coals: complete a fresh till handover', 'robbery', { storeId: shop.id, hold: 0 }), target(shop, 'Inside Coals: secure a fresh evidence case', 'evidence', { storeId: shop.id, stationKind: 'evidence', hold: 0 }), target(wholefoods, 'Drive to Scoot Wholefoods and stop', 'drive', { stop: true }), target(wholefoods, 'Scoot Wholefoods: complete a separate fresh till handover', 'robbery', { storeId: wholefoods.id, hold: 0 }), target(redHill, 'Reach Red Hill with the search clear', 'escape', { clear: true, radius: 45, hold: 5 })] },
+    { id: 'terminal-transfer', character: 'corporate', name: '15. Terminal transfer', contact: 'Jules', reward: 3400, time: 1440, incident: true, wantedLevel: 3,
+      cutscene: scene('terminal-transfer', 'Terminal transfer', ['Jules', 'The airport transfer needs a stolen car and a clear approach.'], ['Rowan', 'One car, one crossing, one last handover.']),
+      briefing: 'Rowan, take an occupied getaway car, stop at the Commonwealth Avenue north approach in it, then drive to the Canberra Airport public approach. Lose the search, stop and step out for the final handover. Kit and Milo cover the crew.',
+      outro: 'Rowan: The collection is delivered and the crew is clear.',
+      stages: [target(map.spawn, 'Take an occupied getaway car', 'stolen', { anywhere: true }), target(bridgeCrossing, 'Reach the Commonwealth Avenue north approach in the stolen car', 'drive', { stolen: true, radius: 45, hold: 0 }), target(airportApproach, 'Stop at the Canberra Airport public approach with the search clear', 'drive', { stolen: true, stop: true, clear: true, radius: 40 }), target(airportApproach, 'Step out at the public approach for the final handover', 'foot', { clear: true, radius: 16, hold: 3 })] },
   ].map(chapter => ({ ...chapter, companions: crew(chapter.character) })));
   const mall = { x: -248.655, z: -4172.87 };
   const characters = freeze([

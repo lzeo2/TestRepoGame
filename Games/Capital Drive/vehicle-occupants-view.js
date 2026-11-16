@@ -10,7 +10,7 @@ const PART_COUNTS = Object.freeze({torso:1,head:1,hair:1,arms:2,legs:2,shoes:2,h
 
 // The pedestrian model supplies every part. Only the pose and the uniform
 // cockpit fit change when the same person leaves a car.
-export function createVehicleOccupantsView(scene, heightAt) {
+export function createVehicleOccupantsView(scene, heightAt, { vehicleHeightAt = null } = {}) {
   const root = new THREE.Group(); root.name = 'Vehicle occupants'; scene.add(root);
   const material = new THREE.MeshLambertMaterial();
   const geometries = createPersonGeometries(), meshes = [], batches = {}, cabins = new Map(), appearances = new Map();
@@ -28,6 +28,12 @@ export function createVehicleOccupantsView(scene, heightAt) {
   let disposed = false, nextExit = 0;
   const counters = {drivers:0,exits:0,drawCalls:0};
   const ground = (x,z) => finite(heightAt(x,z));
+  const heightPose = {x:0,z:0,yaw:0};
+  function vehicleGround(car,x,z) {
+    if (!vehicleHeightAt) return ground(x,z);
+    heightPose.x=x; heightPose.z=z; heightPose.yaw=finite(car.yaw);
+    return finite(vehicleHeightAt(heightPose,car.edge?.road||car.road));
+  }
   const near = (x,z,focus) => Number.isFinite(x) && Number.isFinite(z) && Math.hypot(x-focus.x,z-focus.z)<CULL_DISTANCE;
   function emit(name,x,y,z,sx,sy,sz,shade,rx=0) {
     const mesh = batches[name], index = mesh.count++;
@@ -67,8 +73,8 @@ export function createVehicleOccupantsView(scene, heightAt) {
         cabins.set(id,{eye,scale});
       }
       const {eye,scale} = cabins.get(id), yaw = finite(car.yaw), c = Math.cos(yaw), s = Math.sin(yaw);
-      const front = ground(car.x-s*2,car.z-c*2), rear = ground(car.x+s*2,car.z+c*2);
-      carPose.position.set(car.x,ground(car.x,car.z)+.18,car.z);
+      const front = vehicleGround(car,car.x-s*2,car.z-c*2), rear = vehicleGround(car,car.x+s*2,car.z+c*2);
+      carPose.position.set(car.x,vehicleGround(car,car.x,car.z)+.18,car.z);
       carPose.rotation.set(Math.atan2(front-rear,4),yaw,0,'YXZ'); carPose.updateMatrix();
       seat.position.set(eye[0],eye[1],eye[2]); seat.scale.setScalar(scale); seat.updateMatrix();
       pose.matrix.multiplyMatrices(carPose.matrix,seat.matrix);

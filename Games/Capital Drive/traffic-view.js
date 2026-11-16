@@ -7,11 +7,16 @@ const CAPACITY = 56;
 
 // Copies the authored fleet once. Factory geometry/materials remain owned by the
 // fleet; this adapter owns only its clones, merged geometry and instance buffers.
-export function createTrafficView(scene, heightAt, traffic) {
+export function createTrafficView(scene, heightAt, traffic, { vehicleHeightAt = null } = {}) {
   const root = new THREE.Group(); root.name = 'Instanced road traffic'; scene.add(root);
   const geometries = new Set(), materials = new Set(), materialCopies = new Map(), batches = new Map();
-  const pose = new THREE.Object3D(), color = new THREE.Color();
-  let disposed = false;
+  const pose = new THREE.Object3D(), color = new THREE.Color(), heightPose = {x:0,z:0,yaw:0};
+  let disposed = false, heightRoad = null;
+  function sampleVehicleHeight(x,z) {
+    if(!vehicleHeightAt)return heightAt(x,z);
+    heightPose.x=x;heightPose.z=z;
+    return vehicleHeightAt(heightPose,heightRoad);
+  }
   const stats = { visible: 0, drawCalls: 0, maxDrawCalls: 19, capacity: CAPACITY, models: MODELS.length,
     geometries: 0, materials: 0, templateTriangles: 0, triangles: 0, sourceDrawCalls: 0, disposed: false };
   function ownMaterial(source) {
@@ -65,8 +70,10 @@ export function createTrafficView(scene, heightAt, traffic) {
       const batch = batches.get(car.modelId);
       if (!batch || car.active === false || !Number.isFinite(car.x) || !Number.isFinite(car.z) || !Number.isFinite(car.yaw)) continue;
       if ((car.x - focus.x) ** 2 + (car.z - focus.z) ** 2 >= radiusSquared) continue;
-      const y = heightAt(car.x, car.z), fx = -Math.sin(car.yaw), fz = -Math.cos(car.yaw);
-      const front = heightAt(car.x + fx * 2, car.z + fz * 2), rear = heightAt(car.x - fx * 2, car.z - fz * 2);
+      const fx = -Math.sin(car.yaw), fz = -Math.cos(car.yaw);
+      heightPose.x=car.x;heightPose.z=car.z;heightPose.yaw=car.yaw;
+      heightRoad=car.edge?.road||null;
+      const y=sampleVehicleHeight(car.x,car.z),front=sampleVehicleHeight(car.x+fx*2,car.z+fz*2),rear=sampleVehicleHeight(car.x-fx*2,car.z-fz*2);
       if (!Number.isFinite(y) || !Number.isFinite(front) || !Number.isFinite(rear)) continue;
       pose.position.set(car.x, y + .18, car.z); pose.rotation.set(Math.atan2(front - rear, 4), car.yaw, 0, 'YXZ'); pose.updateMatrix();
       for (const mesh of batch.meshes) mesh.setMatrixAt(batch.count, pose.matrix);

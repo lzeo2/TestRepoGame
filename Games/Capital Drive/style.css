@@ -328,3 +328,9 @@ body.reconning #navigation-hud{visibility:hidden}
 #recon-hud,#fight-hud{position:absolute;right:30px;top:285px;width:260px;padding:14px;z-index:4;font-size:13px}#recon-hud p,#fight-hud p{line-height:1.4;margin:8px 0;color:var(--muted)}#recon-hud progress,#fight-hud progress{display:block;width:100%;height:8px;accent-color:var(--accent);margin:10px 0}#recon-scan{width:100%}#recon-subject{position:absolute;width:30px;height:30px;border:2px solid #ffc76b;transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 0 0 1px #172127}
 @media(max-width:620px){#recon-hud,#fight-hud{top:230px;left:14px;right:14px;width:auto;padding:12px}body.reconning #job-hud,body.fighting #job-hud{visibility:hidden}body.reconning .minimap-wrap,body.reconning #navigation-hud,body.reconning .interaction-hint{visibility:hidden}}
 @media(pointer:coarse) and (max-height:550px){#recon-hud,#fight-hud{left:50%;right:auto;top:78px;width:min(330px,calc(100% - 340px));transform:translateX(-50%);max-height:120px;overflow:auto;font-size:11px;padding:9px}body.reconning #job-hud,body.fighting #job-hud{visibility:hidden}}
+/* Phone-owned commerce panels only rebuild after an explicit action. */
+.city-panel{display:grid;gap:1rem;max-height:65vh;overflow:auto;padding:.25rem}
+.city-row,.city-storage{display:grid;gap:.5rem;padding:.75rem 0;border-bottom:1px solid var(--line,#777)}
+.city-row button,.city-storage button{min-height:44px}
+.city-storage label{display:grid;gap:.35rem}
+.city-storage input{min-height:44px;max-width:14rem}

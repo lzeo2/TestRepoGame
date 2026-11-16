@@ -22,7 +22,7 @@ export function createGameplay(map, simulation, options = {}) {
     impactTime: 0, impactDuration: 0, impactStrength: 0, impactYaw: 0, impactSerial: 0 },
     health: 100, vehicleHealth: 100, weapon: 'unarmed', ammo: 0, reserveAmmo: 0,
     aiming: false, aimPitch: 0, combatFeedback: { shotSerial: 0, hitSerial: 0, hits: 0, recoil: 0 }, reloading: 0, attackTimer: 0, wanted: 0, pursuit: 'clear', heat: 0,
-    police: [], shots: [], respawnSerial: 0, vehicle: { modelId: 'lantern', color: 0xd4d7d3, stolen: false },
+    police: [], shots: [], offencePressure: 0, respawnSerial: 0, vehicle: { modelId: 'lantern', color: 0xd4d7d3, stolen: false },
     carjacking: null, recovery: null, event: '', message: '', sandbox: Boolean(options.sandbox) };
   const ammunition = Object.fromEntries(WEAPONS.map(weapon => [weapon.id, { ammo: 0, reserveAmmo: 0 }]));
   const equipped = new Set();
@@ -69,7 +69,11 @@ export function createGameplay(map, simulation, options = {}) {
     if (state.recovery) return false;
     const point = details.point || focus();
     if ((details.offenderId !== undefined && details.offenderId !== 'player') || state.sandbox || details.witnessed === false || (!details.witnessed && !witnesses(point))) return false;
-    state.wanted = clamp(state.wanted + clamp(Math.ceil(finite(severity)), 1, 3), 0, 5);
+    const level = clamp(Math.ceil(finite(severity)), 1, 5);
+    if (!state.wanted) state.offencePressure = 0;
+    state.offencePressure = Math.min(25, state.offencePressure + level);
+    if (level >= 2) state.offencePressure = Math.max(state.offencePressure, [0,1,4,9,16,25][level]);
+    state.wanted = [1,4,9,16,25].filter(threshold => state.offencePressure >= threshold).length;
     state.heat = 28 + state.wanted * 9; state.pursuit = 'search';
     if (kind !== 'reckless') witnessCooldown = 1;
     policeController.report(point);
@@ -109,12 +113,12 @@ export function createGameplay(map, simulation, options = {}) {
     return enterVehicle(target);
   }
   function enterVehicle(target) {
-    const result = simulation.claimVehicle(target.id);
+    const result = simulation.claimVehicle(target.id, { health: state.vehicleHealth });
     if (!result.ok) { emit('blocked', result.reason || 'Car unavailable.'); return false; }
     state.mode = 'vehicle'; state.actor.speed = 0; state.actor.jumpHeight = 0; jumpVelocity = 0;
     state.vehicle = { modelId: result.vehicle.modelId || 'lantern', color: result.vehicle.color ?? 0xd4d7d3,
       stolen: target.id === 'player' ? state.vehicle.stolen : Boolean(result.stolen) };
-    state.vehicleHealth = target.id === 'player' ? state.vehicleHealth : 100;
+    state.vehicleHealth = target.id === 'player' ? state.vehicleHealth : (result.vehicle.health ?? 100);
     previousCrashes = simulation.player.crashes || 0;
     options.onVehicleChanged?.({ ...state.vehicle }, { newVehicle: target.id !== 'player' });
     if (result.stolen) reportOffence('vehicle theft', 1);
@@ -184,15 +188,20 @@ export function createGameplay(map, simulation, options = {}) {
         interiorId: person.interiorId === undefined ? space : person.interiorId }));
       for (const police of state.police) if (police.mode === 'foot' && police.health > 0 && sameSpace(police)) targets.push({ ...police,
         feetY: police.feetY ?? police.y ?? ground(police.x,police.z), police,
-        damage: amount => { police.health = Math.max(0,police.health-amount); return true; } });
-      const struck = new Set();
+        damage: amount => { police.health = Math.max(0,police.health-amount*(police.armour?.65:1)); return true; } });
+      const struck = new Set(), struckVehicles = new Set();
       const rays = createShotRays({ x:actor.x,y:muzzleY,z:actor.z,yaw:actor.yaw,pitch:state.aimPitch,
         range:state.aiming?weapon.aimRange:weapon.range,pellets:weapon.pellets,spread:weapon.spread,aiming:state.aiming,serial:shotSerial,interiorId:space });
       for (const ray of rays) {
         // Legacy adapters still receive exact ray geometry; controller adapters supply 3D solids.
         const obstruction = options.traceShot ? options.traceShot(ray) : clippedRange(actor,ray.yaw,ray.range*Math.cos(ray.pitch))/Math.cos(ray.pitch);
-        const hit = resolveShotRay(ray,{targets,blockDistance:Number.isFinite(obstruction)?obstruction:0});
+        const blockDistance = typeof obstruction === 'object' ? obstruction?.distance : obstruction;
+        const hit = resolveShotRay(ray,{targets,blockDistance:Number.isFinite(blockDistance)?blockDistance:0});
         let damaged = false;
+        if (!hit.target && obstruction?.vehicleId != null && !struckVehicles.has(obstruction.vehicleId)) {
+          struckVehicles.add(obstruction.vehicleId);
+          damaged = options.onVehicleShot?.({ vehicleId: obstruction.vehicleId, damage: weapon.damage, shotSerial, ray }) === true;
+        }
         if (hit.target && !struck.has(hit.target)) {
           struck.add(hit.target);
           const spec = { ...ray, range:hit.distance+.02, damage:weapon.damage, kind:adapterKind,
@@ -216,15 +225,15 @@ export function createGameplay(map, simulation, options = {}) {
       hits=result?.hits||0;
       for(const police of state.police) if(sameSpace(police)&&police.mode==='foot'&&police.health>0) {
         const px=police.x-actor.x,pz=police.z-actor.z,dx=-Math.sin(actor.yaw),dz=-Math.cos(actor.yaw);
-        if(px*dx+pz*dz>=0&&distance(actor,police)<=2.3&&Math.abs(px*dz-pz*dx)<1.8&&visible(actor,police)){police.health=Math.max(0,police.health-20);policeHits++;}
+        if(px*dx+pz*dz>=0&&distance(actor,police)<=2.3&&Math.abs(px*dz-pz*dx)<1.8&&visible(actor,police)){police.health=Math.max(0,police.health-20*(police.armour?.65:1));policeHits++;}
       }
     }
     if (weapon || hits || policeHits) options.pedestrians?.alert?.({ x: actor.x, z: actor.z, radius: weapon ? 90 : 18, kind: adapterKind, hasLineOfSight: visible });
     if (state.shots.length > MAX_SHOT_TRACES) state.shots.splice(0, state.shots.length - MAX_SHOT_TRACES);
-    if (weapon || hits || policeHits) reportOffence(policeHits ? 'attack on police' : weapon ? 'gunfire' : 'assault', policeHits ? 2 : 1,
-      { witnessed: policeHits ? true : undefined });
+    const offenceReported = (weapon || hits || policeHits) ? reportOffence(policeHits ? 'attack on police' : weapon ? 'gunfire' : 'assault', policeHits ? 2 : 1,
+      { witnessed: policeHits ? true : undefined }) : false;
     emit('attack', hits || policeHits ? 'Impact.' : weapon ? 'Shot fired.' : 'Swing.', { weapon:weapon?.id||null,
-      shotSerial,hitSerial:state.combatFeedback.hitSerial,hits:hits+policeHits,recoil:state.combatFeedback.recoil });
+      offenceReported,shotSerial,hitSerial:state.combatFeedback.hitSerial,hits:hits+policeHits,recoil:state.combatFeedback.recoil });
     return true;
   }
   function recoveryOrigin() {
@@ -261,7 +270,7 @@ export function createGameplay(map, simulation, options = {}) {
       const target = road || map.spawn || simulation.player;
       simulation.teleport({ x: target.x, z: target.z, yaw: target.yaw || 0 });
     } else placeMedicalRecovery(state.recovery?.origin || recoveryOrigin());
-    state.mode = 'vehicle'; state.health = 100; state.vehicleHealth = 100; state.wanted = 0;
+    state.mode = 'vehicle'; state.health = 100; state.vehicleHealth = 100; state.wanted = 0; state.offencePressure = 0;
     state.heat = 0; state.pursuit = 'clear'; state.police.length = 0; state.shots.length = 0;
     state.actor.jumpHeight = 0; state.actor.speed = 0; state.aiming = false; state.reloading = 0;
     state.attackTimer = 0; state.arrestProgress = 0; state.weapon = 'unarmed'; clearAmmo(state.sandbox);
@@ -273,6 +282,7 @@ export function createGameplay(map, simulation, options = {}) {
   }
   function beginRecovery(reason) {
     if (state.recovery) return;
+    state.offencePressure=0;policeController.reset();
     const origin = recoveryOrigin();
     cancelCarjacking('recovery'); state.reloading = 0; state.aiming = false; state.actor.speed = 0; state.attackTimer = 0;
     clearVehicleImpact(); state.actor.jumpHeight = 0; jumpVelocity = 0;
@@ -340,12 +350,59 @@ export function createGameplay(map, simulation, options = {}) {
       yaw:yawFor(to.x-from.x,to.z-from.z),range,life:.13,kind,interiorId:space,hit:true});
     if(state.shots.length>MAX_SHOT_TRACES) state.shots.splice(0,state.shots.length-MAX_SHOT_TRACES);
   }
-  function strikePolice({from,targetId,damage,range}={}) {
+  function strikePolice({from,targetId,damage,range,interiorId:space=null}={}) {
     if(state.recovery || !from || ![from.x,from.z,damage,range].every(Number.isFinite) || damage<=0 || range<=0) return false;
     const unit=state.police.find(person=>person.id===targetId && person.health>0 && person.active!==false && person.mode==='foot');
-    if(!unit || unit.interiorId || distance(from,unit)>Math.min(28,range) || !visible(from,unit)) return false;
-    unit.health=Math.max(0,unit.health-clamp(damage,1,12));
-    addShot(from,unit,'pistol',null);return true;
+    if(!unit || (unit.interiorId||null)!==space || (from.interiorId||null)!==space || distance(from,unit)>Math.min(28,range)) return false;
+    const room=space?(options.resolveInterior?.(space)||(options.getInterior?.()?.id===space?options.getInterior():null)):null;
+    if(space ? !room || room.safehouse || !room.hasLineOfSight(from,unit) : !visible(from,unit))return false;
+    unit.health=Math.max(0,unit.health-clamp(damage,1,12)*(unit.armour ? .65 : 1));
+    addShot(from,unit,'pistol',space);return true;
+  }
+  const damagePoliceVehicle = (id, amount) => policeController.damageVehicle(state, id, amount);
+  function damageVehicle(amount) {
+    if(state.recovery || interiorId() || !Number.isFinite(amount) || amount<=0 || state.vehicleHealth<=0)return false;
+    state.vehicleHealth=Math.max(0,state.vehicleHealth-Math.min(100,amount));
+    emit('vehicle-damage',state.vehicleHealth<=0?'Vehicle disabled.':'Vehicle hit.',{health:state.vehicleHealth});return true;
+  }
+  function reportSighting({x,z,interiorId:space=null}={}) {
+    if(state.sandbox||state.recovery||state.wanted<=0||space!==interiorId()||![x,z].every(Number.isFinite))return false;
+    state.heat=28+state.wanted*9;state.pursuit='pursuit';policeController.report({x,z});return true;
+  }
+  function inventorySnapshot(){return freeze(Object.fromEntries(Object.entries(ammunition).map(([id,pool])=>[id,{...pool}])));}
+  function restoreInventory(pools){
+    if(!pools||typeof pools!=='object'||Array.isArray(pools)||Object.keys(pools).length!==WEAPONS.length||
+      Object.keys(pools).some(id=>!WEAPONS.some(weapon=>weapon.id===id))||WEAPONS.some(weapon=>{
+        const pool=pools[weapon.id];
+        return !pool||typeof pool!=='object'||Array.isArray(pool)||Object.keys(pool).length!==2||
+          Object.keys(pool).some(key=>!['ammo','reserveAmmo'].includes(key))||
+          !Number.isSafeInteger(pool.ammo)||pool.ammo<0||pool.ammo>weapon.magazine||
+          !Number.isSafeInteger(pool.reserveAmmo)||pool.reserveAmmo<0||pool.reserveAmmo>weapon.reserveCap;
+      }))return false;
+    for(const weapon of WEAPONS)Object.assign(ammunition[weapon.id],pools[weapon.id]);
+    equipped.clear();for(const weapon of WEAPONS)if(ownsWeapon(weapon.id))equipped.add(weapon.id);
+    state.reloading=0;return true;
+  }
+  function transferInventory(item,give){
+    if(!item||state.recovery)return false;
+    const weapon=weaponById(item.weaponId);if(!weapon)return false;
+    if(item.kind==='weapon'){
+      if(give)equipped.add(weapon.id);
+      else if(state.weapon===weapon.id){state.weapon='unarmed';state.aiming=false;state.reloading=0;}
+      return true;
+    }
+    if(item.kind!=='ammo'||!Number.isSafeInteger(item.amount)||item.amount<=0)return false;
+    const pool=ammunition[weapon.id],amount=item.amount;
+    if(give){
+      const room=weapon.reserveCap-pool.reserveAmmo+weapon.magazine-pool.ammo;
+      if(amount>room)return false;
+      const reserve=Math.min(amount,weapon.reserveCap-pool.reserveAmmo);
+      pool.reserveAmmo+=reserve;pool.ammo+=amount-reserve;
+    }else{
+      if(amount>pool.reserveAmmo+pool.ammo)return false;
+      const reserve=Math.min(amount,pool.reserveAmmo);pool.reserveAmmo-=reserve;pool.ammo-=amount-reserve;
+    }
+    state.reloading=0;return true;
   }
   function heal(amount) {
     if (state.recovery || state.health <= 0 || !Number.isFinite(amount) || amount <= 0 || state.health >= 100) return false;
@@ -484,6 +541,7 @@ export function createGameplay(map, simulation, options = {}) {
     if (needsMedicalRecovery()) { beginRecovery('knockout'); return; }
     if (vehicleFallPending()) return;
     policeController.step(dt, state, focus());
+    if(!state.wanted)state.offencePressure=0;
     for(const event of policeController.drainEvents()) {
       addShot(event.from,event.to,'pistol',event.interiorId || null);
       if(event.targetId==='player') state.health=Math.max(0,state.health-event.damage);
@@ -502,10 +560,10 @@ export function createGameplay(map, simulation, options = {}) {
       if(!simulation.moveActor(candidate,0,0,.45).blocked){Object.assign(state.actor,candidate);state.mode='foot';}
     }
     Object.assign(state, { health: 100, vehicleHealth: 100, weapon: 'unarmed', ammo: 0, reserveAmmo: 0,
-      aiming: false, reloading: 0, attackTimer: 0, attackSerial:0, wanted: 0, pursuit: 'clear', heat: 0, sandbox: Boolean(sandbox),
+      aiming: false, reloading: 0, attackTimer: 0, attackSerial:0, wanted: 0, offencePressure: 0, pursuit: 'clear', heat: 0, sandbox: Boolean(sandbox),
       event: '', message: '', arrestProgress: 0, recovery: null, carjacking: null });
     state.police.length = 0; state.shots.length = 0;
-    policeEvents.length=0;policeController.reset(); clearAmmo(state.sandbox); shotSerial = 0; triggerHeld = false;
+    policeEvents.length=0;policeController.reset({clearWrecks:true}); clearAmmo(state.sandbox); shotSerial = 0; triggerHeld = false;
     state.aimPitch=0;state.actor.aimPitch=0;Object.assign(state.combatFeedback,{shotSerial:0,hitSerial:0,hits:0,recoil:0});
     fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0; crashCooldown = 0; recklessCooldown = 0; jumpVelocity = 0; witnessCooldown = 0;
     previousCrashes = simulation.player.crashes || 0;
@@ -603,8 +661,10 @@ export function createGameplay(map, simulation, options = {}) {
       const result=options.pedestrians?.strike?.({x:event.x,z:event.z,yaw:0,range:event.radius,damage:event.maxDamage,kind:'explosion',hasLineOfSight:sight});
       hits+=result?.hits||0;
     }
+    options.onVehicleExplosion?.(event);
     emit('explosion','Grenade detonated.',{hits});return true;
   }
-  return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, reset, restoreProtagonist, switchToCompanion, applyExplosion, addAmmo, getAmmo, heal, strikePolice, drainPoliceEvents:()=>policeEvents.splice(0),
+  return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, reportSighting, inventorySnapshot, restoreInventory,
+    takeInventory:item=>transferInventory(item,false),giveInventory:item=>transferInventory(item,true),reset, restoreProtagonist, switchToCompanion, applyExplosion, addAmmo, getAmmo, heal, strikePolice, damageVehicle, damagePoliceVehicle, get policeWrecks(){return policeController.wrecks;}, policeSupport:()=>policeController.support(), drainPoliceEvents:()=>policeEvents.splice(0),
     snapshot: () => freeze(JSON.parse(JSON.stringify(state))) };
 }

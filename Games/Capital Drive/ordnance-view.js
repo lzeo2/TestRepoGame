@@ -10,22 +10,24 @@ export function createOrdnanceView(scene, { quality = 'high' } = {}) {
   const geometry = new THREE.SphereGeometry(1, 6, 4);
   const materials = [new THREE.MeshLambertMaterial({ color: 0x464b35 }),
     new THREE.MeshLambertMaterial({ color: 0x787d83 }),
-    new THREE.MeshBasicMaterial({ color: 0xa5a8ab, transparent: true, opacity: .26, depthWrite: false })];
-  const capacities = [ORDNANCE_LIMITS.projectiles, ORDNANCE_LIMITS.projectiles, ORDNANCE_LIMITS.clouds * 5];
+    new THREE.MeshBasicMaterial({ color: 0xa5a8ab, transparent: true, opacity: .26, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ color: 0xffb52e, transparent: true, opacity: .8, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ color: 0xffedb4, depthWrite: false })];
+  const capacities = [ORDNANCE_LIMITS.projectiles, ORDNANCE_LIMITS.projectiles, ORDNANCE_LIMITS.clouds * 5, ORDNANCE_LIMITS.bursts, ORDNANCE_LIMITS.bursts * 6];
   const meshes = materials.map((material, index) => {
     const mesh = new THREE.InstancedMesh(geometry, material, capacities[index]);
     mesh.count = 0; mesh.visible = false; mesh.frustumCulled = false;
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); root.add(mesh); return mesh;
   });
   const part = new THREE.Object3D();
-  let disposed = false, visibleProjectiles = 0, visibleClouds = 0, draws = 0, triangles = 0;
+  let disposed = false, visibleProjectiles = 0, visibleClouds = 0, visibleBursts = 0, draws = 0, triangles = 0;
   function put(index, x, y, z, sx, sy, sz) {
     const mesh = meshes[index]; if (mesh.count >= capacities[index]) return;
     part.position.set(x, y, z); part.scale.set(sx, sy, sz); part.updateMatrix(); mesh.setMatrixAt(mesh.count++, part.matrix);
   }
   function update(snapshot, focus, { interiorId = null } = {}) {
     if (disposed) return;
-    meshes.forEach(mesh => { mesh.count = 0; }); visibleProjectiles = visibleClouds = draws = triangles = 0;
+    meshes.forEach(mesh => { mesh.count = 0; }); visibleProjectiles = visibleClouds = visibleBursts = draws = triangles = 0;
     const near = item => valid(item) && sameRoom(item, interiorId) && focus && Number.isFinite(focus.x) && Number.isFinite(focus.z) && Math.hypot(item.x - focus.x, item.z - focus.z) < (quality === 'low' ? 90 : 160);
     for (const item of (snapshot?.projectiles || []).slice(0, ORDNANCE_LIMITS.projectiles)) {
       if (!near(item)) continue;
@@ -42,12 +44,23 @@ export function createOrdnanceView(scene, { quality = 'high' } = {}) {
       }
       visibleClouds++;
     }
+    for (const burst of (snapshot?.bursts || []).slice(0, ORDNANCE_LIMITS.bursts)) {
+      if (!near(burst) || !Number.isFinite(burst.age) || !Number.isFinite(burst.remaining) || burst.remaining <= 0) continue;
+      const progress = Math.min(1, burst.age / ORDNANCE_LIMITS.burstLifetime), fade = 1 - progress;
+      const size = (.45 + progress * 3.2) * fade;
+      put(3, burst.x, burst.y + .35 + progress * .8, burst.z, size, size * .8, size);
+      for (let i = 0; i < 6; i++) {
+        const angle = i * Math.PI / 3, spread = .3 + progress * 5;
+        put(4, burst.x + Math.cos(angle) * spread, burst.y + .25 + Math.sin(progress * Math.PI) * (i % 2 ? 1.8 : 1), burst.z + Math.sin(angle) * spread, .13 * fade, .13 * fade, .13 * fade);
+      }
+      visibleBursts++;
+    }
     for (const mesh of meshes) {
       mesh.visible = mesh.count > 0; mesh.instanceMatrix.needsUpdate = true;
       if (mesh.visible) { draws++; triangles += mesh.count * geometry.index.count / 3; }
     }
   }
-  return { update, get stats() { return Object.freeze({ projectiles: visibleProjectiles, clouds: visibleClouds, drawCalls: draws, triangles,
-    projectileCapacity: ORDNANCE_LIMITS.projectiles, cloudCapacity: ORDNANCE_LIMITS.clouds, geometryCount: disposed ? 0 : 1, materialCount: disposed ? 0 : 3, disposed }); },
-  dispose() { if (disposed) return; disposed = true; scene.remove(root); meshes.forEach(mesh => mesh.dispose()); geometry.dispose(); materials.forEach(material => material.dispose()); visibleProjectiles = visibleClouds = draws = triangles = 0; } };
+  return { update, get stats() { return Object.freeze({ projectiles: visibleProjectiles, clouds: visibleClouds, bursts: visibleBursts, drawCalls: draws, triangles,
+    projectileCapacity: ORDNANCE_LIMITS.projectiles, cloudCapacity: ORDNANCE_LIMITS.clouds, burstCapacity: ORDNANCE_LIMITS.bursts, geometryCount: disposed ? 0 : 1, materialCount: disposed ? 0 : materials.length, disposed }); },
+  dispose() { if (disposed) return; disposed = true; scene.remove(root); meshes.forEach(mesh => mesh.dispose()); geometry.dispose(); materials.forEach(material => material.dispose()); visibleProjectiles = visibleClouds = visibleBursts = draws = triangles = 0; } };
 }

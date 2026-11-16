@@ -20,7 +20,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
   const planner = createRoutePlanner(simulation.graph);
   const edges = simulation.graph.edges.filter(edge => edge.length >= 18 && roadProfile(edge.road).trafficAllowed);
   const car = { id: 'yoober-driver', kind: 'ride', modelId: 'lantern', color: 0x6953a3,
-    length: LENGTH, width: WIDTH, x: 0, z: 0, yaw: 0, speed: 0, active: false, occupied: true };
+    length: LENGTH, width: WIDTH, x: 0, z: 0, yaw: 0, speed: 0, health: 100, active: false, occupied: true };
   const vehicles = [car], events = [], combatEvents = [];
   const driver = { id: 'yoober-driver-npc', role: 'driver', x: 0, z: 0, yaw: 0, active: false,
     health: 100, reaction: 'calm', elapsed: 0, cooldown: 0, hitCooldown: 0 };
@@ -167,6 +167,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     route = path.map(edge => edge.id); points = routePoints(path, from, to); cursor = 0; elapsed = 0; stalled = 0;
   }
   function book(id, ctx = {}) {
+    if (car.health === 0 && car.active && (!ctx.pose || distance(car, ctx.pose) <= 330)) return { ok: false, reason: 'Disabled ride still nearby' };
     if (passenger || !['idle', 'complete', 'cancelled', 'failed'].includes(phase)) return { ok: false, reason: 'A ride is already booked' };
     if (driver.active) return { ok: false, reason: 'The driver is still outside' };
     const planResult = plan(id, ctx);
@@ -196,7 +197,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     pickup = from; dropoff = planResult.dropoff; fare = planResult.fare; paid = false; passenger = false;
     mode = !!ctx.sandbox; reason = ''; wait = 0; phase = 'approaching';
     ragePending = false; driver.active = false; car.occupied = true;
-    Object.assign(car, { x: origin.x, z: origin.z, yaw: origin.yaw, speed: 0, active: true });
+    Object.assign(car, { x: origin.x, z: origin.z, yaw: origin.yaw, speed: 0, health: 100, active: true });
     setRoute(approach, origin, pickup); emit('booked');
     return { ok: true, bookingId: booking.id, fare, pickup: copy(pickup), dropoff: copy(dropoff) };
   }
@@ -296,6 +297,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
       wait = 0;
       return { ok: true, exited: true, exitPose: copy(exitPose) };
     }
+    if (car.health === 0) return { ok: false, reason: 'Ride disabled' };
     const denied = guard(ctx);
     if (denied || !!ctx.sandbox !== mode) return { ok: false, reason: denied || 'Ride mode changed' };
     if (phase !== 'waiting' || car.speed > .05) return { ok: false, reason: 'Wait for the driver to stop' };
@@ -367,8 +369,15 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     if (movement.blocked || travel < car.speed * dt - 1e-6) car.speed = 0;
     stalled = movement.distance > .002 || Number.isFinite(signalGap) ? 0 : stalled + dt;
   }
+  function damageVehicle(id, amount) {
+    if (id !== car.id || !car.active || car.health === 0 || !Number.isFinite(amount) || amount <= 0) return false;
+    car.health = Math.max(0, car.health - amount);
+    if (car.health === 0) { car.speed = 0; ragePending = false; phase = passenger ? 'exit-ready' : 'failed'; reason = 'Ride disabled'; emit('disabled'); }
+    return true;
+  }
   function step(dt, ctx = {}) {
     if (!Number.isFinite(dt) || dt <= 0 || (!car.active && !driver.active)) return;
+    if (car.health === 0) { car.speed = 0; return; }
     const invalid = guard(ctx, passenger) || (!!ctx.sandbox !== mode ? 'Ride mode changed' : '');
     if (invalid && !['complete', 'cancelled', 'failed'].includes(phase)) {
       reason = invalid; ragePending = false;
@@ -403,7 +412,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
     }
   }
   function reset() {
-    car.active = false; car.speed = 0; phase = 'idle'; reason = ''; passenger = false; paid = false;
+    car.active = false; car.health = 100; car.speed = 0; phase = 'idle'; reason = ''; passenger = false; paid = false;
     fare = 0; booking = null; pickup = null; dropoff = null; route = []; points = []; cursor = 0;
     elapsed = 0; stalled = 0; wait = 0; events.length = 0; combatEvents.length = 0;
     ragePending = false; driver.active = false; car.occupied = true;
@@ -414,7 +423,7 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
       car: { ...car }, driver: copy(driver), people: driver.active ? [copy(driver)] : [],
       stats: { drivers: Number(driver.active), driverLimit: 1 }, pickup: copy(pickup), dropoff: copy(dropoff), route: [...route], waypoint: cursor });
   }
-  return { vehicles, people, destinations, quote, book, interact, cancel, step, reset, snapshot, strike, alert, clipMovement, shotTargets, hitByShot,
+  return { vehicles, damageVehicle, people, destinations, quote, book, interact, cancel, step, reset, snapshot, strike, alert, clipMovement, shotTargets, hitByShot,
     drainCombatEvents: () => combatEvents.splice(0),
     get phase() { return phase; }, get passenger() { return passenger; },
     get activeFare() { return activeFare(); }, get seatPose() { return passenger ? car : null; },

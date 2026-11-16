@@ -25,7 +25,7 @@ const gameplay = createGameplay(map, simulation, { passengerPose: () => aircraft
 gameplay.reset({ onFoot: true, startPose: { x: 700, z: 700, yaw: 0 } });
 const notifications = [], crimes = [], originalReport = gameplay.reportOffence;
 gameplay.reportOffence = (...args) => { crimes.push(args); return originalReport(...args); };
-const env = { aircraft, simulation, gameplay, started: true, focus: () => gameplay.focus(), world: { heightAt: () => 10 },
+const env = { burglary:{snapshot:()=>({active:false})},droneActive: false, aircraft, simulation, gameplay, started: true, focus: () => gameplay.focus(), world: { heightAt: () => 10 },
   keys: new Set(), touch: new Set(), miniKeys: new Set(), moveStick: { snapshot: () => ({ x: 0, y: 0 }) },
   THREE: { MathUtils: { clamp: (n, lo, hi) => Math.max(lo, Math.min(hi, n)) } },
   isSandbox: () => false, interiors: { active: null }, campaign: { state: { active: null } }, progression: { state: { activeJob: null, activity: null } },

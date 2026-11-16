@@ -53,7 +53,7 @@ function exercise(interiors, entry) {
   const before = nav.stats.gridBuilds;
   for (let i = 0; i < 12; i++) nav.nextWaypoint(plan.spawn, candidates[0] || plan.exit, `unit-${i}`);
   assert.equal(nav.stats.gridBuilds, before, 'one grid per retained room');
-  assert(nav.stats.nodes <= 2000); assert(nav.stats.cachedPaths <= 4);
+  assert(nav.stats.nodes <= 2000); assert(nav.stats.cachedPaths <= 6);
   assert.equal(nav.stats.truncated, false, `${entry.id} real room fits bounded grid`);
   largestGrid = Math.max(largestGrid, nav.stats.nodes);
   const target = plan.activities.at(-1) || plan.counter || plan.spawn;

@@ -213,7 +213,7 @@ export function createInteriorActivities() {
       return;
     }
     s.index++; s.score = Math.max(0, s.index * 50 - s.mistakes * 10); s.progress = s.index / recipe.length; s.reason = null;
-    if (s.index === recipe.length) finish('complete', s.kind === 'stock' ? 'Stock order matched.' : 'Order served.');
+    if (s.index === recipe.length) finish('complete', s.kind === 'stock' ? (s.station.id.endsWith('-valuables') ? 'Valuables found.' : 'Stock order matched.') : 'Order served.');
   }
   function presentation(dt, held, edges) {
     const s = session;

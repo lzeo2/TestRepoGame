@@ -32,7 +32,21 @@ export function createInteriorView(scene) {
         width, height, depth, item.yaw, color);
     }
     const o = plan.origin, c = Math.cos(o.yaw), s = Math.sin(o.yaw);
-    box(o.x + s * plan.depth / 2, plan.floorY - 0.08, o.z + c * plan.depth / 2,
+    if (plan.footprint) {
+      const contour = plan.footprint.map(p => new THREE.Vector2(p.x, p.z));
+      const triangles = THREE.ShapeUtils.triangulateShape(contour, []), positions = [];
+      for (const triangle of triangles) for (const index of [triangle[0], triangle[2], triangle[1]]) {
+        const p = plan.footprint[index];
+        positions.push(o.x + c * p.x + s * p.z, plan.floorY, o.z - s * p.x + c * p.z);
+      }
+      const floor = new THREE.BufferGeometry();
+      floor.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      floor.setIndex(Array.from({ length: positions.length / 3 }, (_, i) => i));
+      floor.computeVertexNormals();
+      // Match the box batches' attribute schema for the one-draw merge.
+      floor.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(positions.length / 3 * 2), 2));
+      addGeometry(floor, 0xa88e70);
+    } else box(o.x + s * plan.depth / 2, plan.floorY - 0.08, o.z + c * plan.depth / 2,
       plan.width, 0.16, plan.depth, o.yaw, plan.type === 'house' ? 0xa88e70 : 0xb3b1a0);
     for (const room of plan.rooms || []) {
       const color = { living: 0xaa9c84, kitchen: 0xb8b6a4, bedroom: 0x9b9e90, bathroom: 0xb2c1bb,
@@ -173,6 +187,17 @@ export function createInteriorView(scene) {
         detail(item, 0, h + 0.015, 0, w * 0.7, 0.03, d * 0.75, 0x849d9b);
       } else if (item.kind === 'television') {
         detail(item, 0, h * 0.78, d / 2 + 0.015, w * 0.8, h * 0.6, 0.025, 0x6f8580);
+      }
+    }
+    for (const item of plan.details || []) {
+      if (item.kind === 'television') {
+        detail(item, 0, item.height / 2, 0, item.width, item.height, item.depth, item.color);
+        detail(item, 0, item.height / 2, item.depth / 2 + .008, item.width * .86, item.height * .78, .012, 0x6f8580);
+        detail(item, 0, -.17, -.025, .1, .34, .08, 0x656c67);
+      } else if (item.kind === 'basin') {
+        detail(item, 0, item.height / 2, 0, item.width, item.height, item.depth, item.color);
+        detail(item, 0, item.height + .008, 0, item.width * .7, .016, item.depth * .65, 0x849d9b);
+        detail(item, 0, item.height + .07, -item.depth / 2 + .05, .06, .14, .06, 0x929d96);
       }
     }
     if (plan.type === 'mall') {

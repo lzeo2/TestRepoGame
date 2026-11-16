@@ -29,7 +29,7 @@ const { createActorView } = await import(actorURL);
 const scene = new THREE.Scene(), heightAt = (x, z) => x * .002 + z * .001;
 const view = createActorView(scene, heightAt), root = scene.children[0];
 const find = name => root.getObjectByName(name);
-assert.equal(carCreationCount(), 4, 'default factory still creates the four outdoor patrol cars');
+assert.equal(carCreationCount(), 6, 'default factory creates six bounded outdoor patrol cars');
 // Compare rendered merged vertices with the same rounded torso used by civilians.
 const playerAppearance = appearanceForPerson('player'), officerAppearance = appearanceForPerson('police');
 const torsoMesh = find('Torso').children.find(object => object.isMesh);
@@ -88,9 +88,13 @@ const stateBefore = structuredClone(state);
 view.update(state, options);
 assert.deepEqual(state, stateBefore, 'adapter never mutates gameplay');
 assert(view.stats.playerVisible && view.stats.objectiveVisible);
-assert.equal(view.stats.police, 4, 'police pool bounded despite excess descriptors');
+assert.equal(view.stats.police, 6, 'police pool bounded despite excess descriptors');
 assert.equal(view.stats.shots, 8, 'effects pool bounded despite excess descriptors');
-assert(view.stats.drawCalls <= 50, `draw budget: ${view.stats.drawCalls}`);
+// The two newly authorized patrol slots use the same retained car model. Keep
+// the original four-car budget and account only for those two extra instances.
+let additionalPatrolDraws=0;
+for(const id of [5,6])find(`Generic patrol ${id}`).traverseVisible(object=>{if(object.isMesh)additionalPatrolDraws++;});
+assert(view.stats.drawCalls - additionalPatrolDraws <= 50, `four-car equivalent draw budget: ${view.stats.drawCalls}`);
 assert(view.stats.triangles < 60000, `triangle budget: ${view.stats.triangles}`);
 assert.equal(find('Adult player').position.y, heightAt(2, 3) + .035);
 root.updateMatrixWorld(true);

@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {createProgression} from '../Games/Capital Drive/progression.js';
 const moduleURL=async url=>{
   let source=await readFile(url,'utf8');
   for(const match of [...source.matchAll(/from ['"](\.[^'"]+)['"]/g)])source=source.replace(match[1],await moduleURL(new URL(match[1],url)));
   return `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 };
 const load=async path=>import(await moduleURL(new URL(path,import.meta.url)));
-const [{createGameplay},{createSimulation},{createProtagonistState,PROTAGONIST_IDS},{prepareCharacterStart},{WEAPONS}]=await Promise.all([
+const [{createGameplay},{createSimulation},{createProtagonistState,PROTAGONIST_IDS},{prepareCharacterStart},{WEAPONS,weaponById}]=await Promise.all([
   load('../Games/Capital Drive/gameplay.js'),load('../Games/Capital Drive/simulation.js'),load('../Games/Capital Drive/protagonist-state.js'),
   load('../Games/Capital Drive/character-start.js'),load('../Games/Capital Drive/weapons.js')]);
 const source=await readFile(new URL('../Games/Capital Drive/script.js',import.meta.url),'utf8');
@@ -18,9 +19,10 @@ const campaign={state:{character:'student',active:null},characters:heroes,select
 let capturedOutside=null;
 const interiors={active:null,get exteriorPose(){return capturedOutside;},entries:[{id:'test-room'}]};
 const counters={mesh:0,population:0,save:0};
-const env={aircraft:null,gameplay,simulation,campaign,interiors,protagonists:createProtagonistState(null,{bounds:map.bounds}),PROTAGONIST_IDS,WEAPONS,prepareCharacterStart,CIVIC_INTERIOR_ENTRIES:[],
+const progression=createProgression(map);progression.state.cash=5432;progression.state.equipment.pistol=true;
+const env={aircraft:null,gameplay,simulation,campaign,interiors,protagonists:createProtagonistState(null,{bounds:map.bounds}),PROTAGONIST_IDS,WEAPONS,weaponById,recallDrone(){},prepareCharacterStart,CIVIC_INTERIOR_ENTRIES:[],
   heroPowers:{cancelActive(){}},ordnance:{reset(){}},campaignScenes:{people:[],canExchangeLeader:()=>false},
-  developerReturn:null,started:true,gameMode:'campaign',progression:{state:{cash:5432,equipment:{pistol:true},activeJob:null,activity:null}},
+  developerReturn:null,started:true,gameMode:'campaign',progression,isSandbox:()=>false,
   activities:{snapshot:()=>({active:null})},micromobility:{snapshot:()=>({active:null}),reset(){}},buses:{reset(){}},rideService:{reset(){}},equipment:{reset(){}},
   cutscenes:{snapshot:()=>({active:false})},streetChallenge:()=>null,careerContext:()=>({}),
   selectVehicle(){counters.mesh++;},selectedPaint:'#e7e6df',followYoober:true,destination:{},route:[1],lastJobTarget:'old',mapSelection:{},dialogueId:'old',cameraReady:true,
@@ -28,8 +30,8 @@ const env={aircraft:null,gameplay,simulation,campaign,interiors,protagonists:cre
   leaveInterior(){Object.assign(gameplay.state.actor,capturedOutside);interiors.active=null;capturedOutside=null;},
   enterInterior(entry){interiors.active={id:entry.id};capturedOutside={...gameplay.state.actor};}};
 // Execute the checked-in controller functions, rather than a copied implementation.
-const body=source.slice(source.indexOf('function protagonistCheckpoint(){'),source.indexOf('function renderCharacterChoices(){'));
-const controller=Function('env',`with(env){${body};return {selectCampaignCharacter,captureActiveProtagonist,protagonistCheckpoint,characterSwitchReason};}`)(env);
+const body=source.slice(source.indexOf('function inventoryProfile('),source.indexOf('function stepDrone('))+source.slice(source.indexOf('function protagonistCheckpoint(){'),source.indexOf('function renderCharacterChoices(){'));
+const controller=Function('env',`with(env){${body};return {selectCampaignCharacter,captureActiveProtagonist,captureCareerInventory,protagonistCheckpoint,characterSwitchReason};}`)(env);
 gameplay.reset({startPose:{x:-80,z:12,yaw:.3},onFoot:true});
 gameplay.state.vehicle.color='#d4d7d3';gameplay.state.health=73;gameplay.addAmmo(53,'pistol');gameplay.setWeapon('pistol');
 const student=controller.protagonistCheckpoint(),cash=env.progression.state.cash;

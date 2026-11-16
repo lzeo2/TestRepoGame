@@ -1,3 +1,4 @@
+import { coveredCentrePassage } from './covered-passage.js';
 import { roadProfile } from './road-network.js';
 import { prepareWaterRing } from './water-contact.js';
 import { createTrafficLights } from './traffic-lights.js';
@@ -134,10 +135,11 @@ function insideRing(x,z,points){
   return inside;
 }
 
-// The retained Centre outline models its covered Bunda passage as a solid.
-// Keep that source geometry visible, but route around this proven mismatch,
-// Include source-adjacent approaches whose endpoints lie on the solid facade.
+// Route around the legacy solid only when the source-pinned architectural
+// passage cannot be prepared. Valid layer-1 geometry shares the actual opening
+// with rendering and collision, restoring its source-adjacent travel edges.
 function coveredCentreRoutingGuard(map) {
+  if (coveredCentrePassage(map)) return () => false;
   const building = (map.buildings || []).find(item => item.id === 'osm-46081156');
   const covered = (map.roads || []).find(road => road.sourceId === 'way/347384260' && road.sourceTags?.covered === 'yes');
   if (!building?.points?.length || building.type === 'roof' || !covered ||
@@ -176,7 +178,8 @@ export function createSimulation(map, options = {}) {
   for (const segment of graph.segments) roadIndex.insert(segment,
     Math.min(segment.a[0], segment.b[0]), Math.min(segment.a[1], segment.b[1]),
     Math.max(segment.a[0], segment.b[0]), Math.max(segment.a[1], segment.b[1]));
-  for (const building of map.buildings || []) {
+  const passage = coveredCentrePassage(map);
+  for (const building of (map.buildings || []).flatMap(b => b === passage?.building ? passage.groundParts : [b])) {
     if (!building.points?.length||building.type==='roof'||replacedColliders.has(building.id)) continue;
     buildingIndex.insert(building, Math.min(...building.points.map(p => p[0])), Math.min(...building.points.map(p => p[1])),
       Math.max(...building.points.map(p => p[0])), Math.max(...building.points.map(p => p[1])));
@@ -350,6 +353,16 @@ export function createSimulation(map, options = {}) {
     stopRequests.set(id, Math.max(stopRequests.get(id) || 0, clamp(seconds, 0, 10)));
     return true;
   }
+  const vehicleBase=car=>Number.isFinite(car.y)?car.y:options.vehicleHeightAt(car,car.edge?.road)+.18;
+  const vehicleBodyHeight=car=>Number.isFinite(car.height)&&car.height>0?car.height:BY_ID[car.modelId]?.height||1.6;
+  function sameVehicleLevel(a,b) {
+    if(!options.vehicleHeightAt)return true;
+    // Callers have already bounded X/Z reach. Separate only disjoint actual
+    // vertical body intervals; overlapping levels retain the existing SAT.
+    const ay=vehicleBase(a),by=vehicleBase(b);
+    if(!Number.isFinite(ay)||!Number.isFinite(by))return true;
+    return !(ay+vehicleBodyHeight(a)+.1<by||by+vehicleBodyHeight(b)+.1<ay);
+  }
   function vehicleOverlap(a, al, aw, b) {
     const dimensions = vehicleSize(b);
     const bl = clamp(dimensions.length, 1, 16), bw = clamp(dimensions.width, 0.5, 4);
@@ -357,6 +370,7 @@ export function createSimulation(map, options = {}) {
     // definitely distant pairs skip the existing separating-axis narrow phase.
     const radius = (al + aw + bl + bw) / 2, dx = a.x - b.x, dz = a.z - b.z;
     if (dx * dx + dz * dz > radius * radius) return false;
+    if (!sameVehicleLevel(a,b)) return false;
     const axes = [a.yaw || 0, b.yaw || 0].flatMap(yaw =>
       [[-Math.sin(yaw), -Math.cos(yaw)], [Math.cos(yaw), -Math.sin(yaw)]]);
     const af = [-Math.sin(a.yaw || 0), -Math.cos(a.yaw || 0)], ar = [-af[1], af[0]];
@@ -398,7 +412,8 @@ export function createSimulation(map, options = {}) {
     const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.2));
     let blocked = scale < 1;
     for (let i = 0; i < steps; i++) {
-      const pose = { x: vehicle.x + dx / steps, z: vehicle.z + dz / steps, yaw: vehicle.yaw };
+      const pose = { x: vehicle.x + dx / steps, z: vehicle.z + dz / steps, yaw: vehicle.yaw,
+        edge:vehicle.edge,modelId:vehicle.modelId,height:vehicle.height,y:vehicle.y };
       if (!vehicleClear(pose, { length, width, ignoreId: vehicle.id, fromPose: vehicle },onContact)) { blocked = true; break; }
       vehicle.x = pose.x; vehicle.z = pose.z;
     }
@@ -407,9 +422,10 @@ export function createSimulation(map, options = {}) {
   }
   let abandonedSerial = 0, focusPoint;
   let parkedIndex = new SpatialGrid(32);
+  const parkedById = new Map();
   function setParkedCars(cars = []) {
     parkedIndex = new SpatialGrid(32);
-    parkedCars.length = 0;
+    parkedCars.length = 0; parkedById.clear();
     let count = 0;
     for (const car of cars) {
       if (!Number.isFinite(car.x) || !Number.isFinite(car.z)) continue;
@@ -419,7 +435,7 @@ export function createSimulation(map, options = {}) {
         parked.length = car.length ?? (car.suv ? 4.5 : 4.7);
         parked.width = car.width ?? (car.suv ? 1.98 : 1.85);
       }
-      parkedCars.push(parked);
+      parkedCars.push(parked); parkedById.set(parked.id, parked);
       const size = vehicleSize(parked), sin = Math.abs(Math.sin(parked.yaw)), cos = Math.abs(Math.cos(parked.yaw));
       const extentX = sin * size.length / 2 + cos * size.width / 2;
       const extentZ = cos * size.length / 2 + sin * size.width / 2;
@@ -610,7 +626,7 @@ export function createSimulation(map, options = {}) {
         const gap = Math.hypot(pose.x - focus.x, pose.z - focus.z);
         // The renderer culls traffic at 300m; replacements enter beyond that view.
         if (gap < 330 || gap > 650 || traffic.some(other => other !== car && other.active && Math.hypot(pose.x - other.x, pose.z - other.z) < 15)) continue;
-        placeTraffic(car, edge, position); car.active = true; car.anger = 0; car.overtake = 0; car.speed = Math.min(10, (edge.road.speed || 50) / 3.6); break;
+        placeTraffic(car, edge, position); car.health = 100; car.active = true; car.anger = 0; car.overtake = 0; car.speed = Math.min(10, (edge.road.speed || 50) / 3.6); break;
       }
     }
   }
@@ -623,7 +639,7 @@ export function createSimulation(map, options = {}) {
   function updateTraffic(dt) {
     refreshTrafficArea();
     for (const car of traffic) {
-      if (!car.active) continue;
+      if (!car.active || car.health === 0) continue;
       car.honkCooldown = Math.max(0, car.honkCooldown - dt);
       car.overtakeCooldown = Math.max(0, car.overtakeCooldown - dt);
       const priorPose = { x: car.x, z: car.z, yaw: car.yaw }, priorEdge = car.edge, priorPosition = car.position;
@@ -641,6 +657,7 @@ export function createSimulation(map, options = {}) {
       if (edge.to.outgoing.length > 2 && remaining < 20) target = Math.min(target, 7.5);
       for (const other of traffic) {
         if (car === other || !other.active) continue;
+        if(Math.abs(car.x-other.x)<30&&Math.abs(car.z-other.z)<30&&!sameVehicleLevel(car,other))continue;
         if (other.edge === edge && other.position > car.position) {
           const gap = other.position - car.position;
           if (gap < 24) { blocked = true; target = Math.min(target, Math.max(0, (gap - 7) * 0.8)); }
@@ -649,10 +666,11 @@ export function createSimulation(map, options = {}) {
       }
       const px = player.x - car.x, pz = player.z - car.z;
       const ahead = px * edge.dx + pz * edge.dz;
-      if (ahead > 0 && ahead < 22 && Math.abs(px * edge.dz - pz * edge.dx) < 2.8) target = Math.min(target, Math.max(0, (ahead - 7) * 0.75));
+      if (ahead > 0 && ahead < 22 && Math.abs(px * edge.dz - pz * edge.dx) < 2.8 && sameVehicleLevel(car,player)) target = Math.min(target, Math.max(0, (ahead - 7) * 0.75));
       for (const obstacle of [...parkedIndex.query(car.x,car.z,28), ...abandonedCars, ...traffic, ...externalVehicles]) {
         if (obstacle === car || obstacle.active === false) continue;
         const dx = obstacle.x - car.x, dz = obstacle.z - car.z, obstacleSize = vehicleSize(obstacle);
+        if(dx*dx+dz*dz<60*60&&!sameVehicleLevel(car,obstacle))continue;
         if (obstacle.edge && traffic[obstacle.slot] === obstacle) {
           const alignment = edge.dx * obstacle.edge.dx + edge.dz * obstacle.edge.dz;
           // Clear opposing lanes are not lead vehicles, even on narrow roads.
@@ -691,7 +709,7 @@ export function createSimulation(map, options = {}) {
         ![player, ...traffic, ...parkedIndex.query(car.x,car.z,30), ...abandonedCars, ...externalVehicles].some(other => {
           if (other === car || other.active === false) return false;
           const dx = other.x - lanePose.x, dz = other.z - lanePose.z;
-          return Math.abs(dx * edge.dx + dz * edge.dz) < 24 && Math.abs(dx * edge.dz - dz * edge.dx - passOffset) < 3.1;
+          return Math.abs(dx * edge.dx + dz * edge.dz) < 24 && Math.abs(dx * edge.dz - dz * edge.dx - passOffset) < 3.1 && sameVehicleLevel(car,other);
         });
       if (car.overtake > 0) {
         car.overtake = Math.max(0, car.overtake - dt);
@@ -728,7 +746,7 @@ export function createSimulation(map, options = {}) {
         // too, so a turning corner cannot overlap and permanently lock its peer.
         for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
           const nextPose = { x: car.x, z: car.z, yaw: car.yaw + turn / turnSteps,
-            modelId: car.modelId, length: car.length, width: car.width };
+            modelId: car.modelId, length: car.length, width: car.width, edge:car.edge,height:car.height };
           if (!canOccupy(nextPose, { ignoreId: car.id, fromPose: car })) break;
           car.yaw = nextPose.yaw;
         }
@@ -778,7 +796,7 @@ export function createSimulation(map, options = {}) {
     const turnSteps = Math.max(1, Math.ceil(Math.abs(turn) / 0.05));
     for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
       const nextPose = { x: player.x, z: player.z, yaw: player.yaw + turn / turnSteps,
-        modelId: player.modelId, length: player.length, width: player.width };
+        modelId: player.modelId, length: player.length, width: player.width, edge:player.edge,height:player.height };
       if (!canOccupy(nextPose, { ignoreId: player.id, fromPose: player })) break;
       player.yaw = nextPose.yaw;
     }
@@ -801,14 +819,14 @@ export function createSimulation(map, options = {}) {
     for (const car of [...parkedIndex.query(player.x, player.z, 3.55), ...abandonedCars]) {
       if (!car.active) continue;
       const dx = player.x - car.x, dz = player.z - car.z, gap = Math.hypot(dx, dz);
-      if (gap < 3.55) resolveImpact(gap > 0.001 ? dx / gap : Math.cos(car.yaw),
+      if (gap < 3.55 && sameVehicleLevel(player,car)) resolveImpact(gap > 0.001 ? dx / gap : Math.cos(car.yaw),
         gap > 0.001 ? dz / gap : -Math.sin(car.yaw), 3.55 - gap + 0.01);
     }
     updateTraffic(dt);
     for (const car of traffic) {
       if (!car.active) continue;
       const dx = player.x - car.x, dz = player.z - car.z, gap = Math.hypot(dx, dz);
-      if (gap < 3.2) resolveImpact(gap > 0.001 ? dx / gap : 1, gap > 0.001 ? dz / gap : 0, (3.2 - gap) * 0.65);
+      if (gap < 3.2 && sameVehicleLevel(player,car)) resolveImpact(gap > 0.001 ? dx / gap : 1, gap > 0.001 ? dz / gap : 0, (3.2 - gap) * 0.65);
     }
     player.speed = player.vx * fx + player.vz * fz;
     player.odometer += Math.hypot(player.vx, player.vz) * dt;
@@ -828,15 +846,25 @@ export function createSimulation(map, options = {}) {
     return [player, ...traffic, ...parkedIndex.query(x,z,radius), ...abandonedCars].filter(car => car.active !== false &&
       Math.hypot(x - car.x, z - car.z) <= radius).map(car => ({ id: car.id, x: car.x, z: car.z, yaw: car.yaw,
         modelId: car.modelId, color: car.color, personId: car.personId ?? car.id,
-        active: true, occupied: traffic.includes(car), unlocked: car === player || abandonedCars.includes(car), speed: car.speed || 0 }));
+        ...(options.vehicleHeightAt?{y:vehicleBase(car)}:{}),
+        health: car === player ? undefined : car.health ?? 100, disabled: car !== player && car.health === 0, active: true, occupied: traffic.includes(car), unlocked: car === player || abandonedCars.includes(car), speed: car.speed || 0 }));
   }
-  function claimVehicle(id) {
+  function damageVehicle(id, amount) {
+    if (id === 'player' || !Number.isFinite(amount) || amount <= 0) return false;
+    const car = parkedById.get(id) || traffic.find(item => item.id === id) || abandonedCars.find(item => item.id === id);
+    if (!car || car.active === false || car.health === 0) return false;
+    car.health = Math.max(0, (car.health ?? 100) - amount);
+    if (car.health === 0) { car.speed = 0; car.vx = 0; car.vz = 0; car.overtake = 0; }
+    return true;
+  }
+  function claimVehicle(id, { health = 100 } = {}) {
     if (id === 'player') return { ok: true, vehicle: { ...nearbyVehicles(player.x, player.z, 0)[0] }, stolen: false, reason: 'current' };
-    const car = [...traffic, ...parkedCars, ...abandonedCars].find(item => item.id === id && item.active);
-    if (!car) return { ok: false, vehicle: null, stolen: false, reason: 'unavailable' };
+    const car = traffic.find(item => item.id === id) || parkedById.get(id) || abandonedCars.find(item => item.id === id);
+    if (!car || !car.active) return { ok: false, vehicle: null, stolen: false, reason: 'unavailable' };
+    if (car.health === 0) return { ok: false, vehicle: null, stolen: false, reason: 'disabled' };
     if (Math.abs(car.speed || 0) > 5) return { ok: false, vehicle: null, stolen: false, reason: 'moving' };
     const prior = { id: `abandoned:${++abandonedSerial}`, x: player.x, z: player.z, yaw: player.yaw,
-      modelId: player.modelId, color: player.color, active: true };
+      modelId: player.modelId, color: player.color, health: clamp(health, 0, 100), active: true };
     if (abandonedCars.length >= 12) {
       const disposable = abandonedCars.findIndex(item => !item.active || Math.hypot(item.x - player.x, item.z - player.z) > 330);
       if (disposable < 0) return { ok: false, vehicle: null, stolen: false, reason: 'vehicle-limit' };
@@ -847,7 +875,7 @@ export function createSimulation(map, options = {}) {
     car.active = false; car.speed = 0;
     Object.assign(player, { x: car.x, z: car.z, yaw: car.yaw, modelId: car.modelId, color: car.color,
       speed: 0, vx: 0, vz: 0, steer: 0 });
-    return { ok: true, vehicle: nearbyVehicles(player.x, player.z, 0).find(item => item.id === 'player'), stolen, reason: 'claimed' };
+    return { ok: true, vehicle: { ...nearbyVehicles(player.x, player.z, 0).find(item => item.id === 'player'), health: car.health ?? 100 }, stolen, reason: 'claimed' };
   }
   function moveActor(actor, dx, dz, radius = 0.45) {
     if (!actor || ![actor.x, actor.z, dx, dz, radius].every(Number.isFinite) || radius <= 0) return { moved: false, blocked: true, distance: 0 };
@@ -902,5 +930,5 @@ export function createSimulation(map, options = {}) {
   return { player, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, nearestRoad, setParkedCars,
     setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop, drainVehicleImpacts:()=>vehicleImpacts.splice(0),
     get peopleContacts() { return Object.freeze({ ...peopleStats }); },
-    setPlayerVehicle, nearbyVehicles, claimVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
+    setPlayerVehicle, nearbyVehicles, claimVehicle, damageVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
 }

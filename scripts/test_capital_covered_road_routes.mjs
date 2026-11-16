@@ -38,13 +38,13 @@ map.collisionReplacedBuildingIds=[...replacement[1].matchAll(/'([^']+)'/g)].map(
 assert.deepEqual(map.collisionReplacedBuildingIds,['act-75267-0','osm-584970595'],'fixture follows exact current controller replacement identities');
 const simulation = createSimulation(map,{trafficCount:0}), original = buildRoadGraph(map.roads);
 const covered = simulation.graph.segments.filter(s=>s.road.sourceId==='way/347384260');
-assert.equal(covered.length,2); assert(covered.every(s=>s.edges.length===0));
+assert.equal(covered.length,2); assert(covered.every(s=>s.edges.length===2));
 assert.equal(simulation.graph.segments.length,original.segments.length);
 for (const [index,edge] of simulation.graph.edges.entries()) assert.equal(edge.id,index,'edge IDs remain dense and index-safe');
 for (const [x,z] of [[-277.29,-4204.18],[-289.22,-4229.64],[-297.12,-4246.49]]) {
   const node=[...simulation.graph.nodes.values()].find(n=>n.x===x&&n.z===z);
-  assert(node); assert.equal(node.outgoing.length,0,'inside-solid Bunda node cannot attract GPS or traffic');
-  assert.equal(simulation.canOccupy({x,z,yaw:0,id:'probe'}),false,'physical building collision remains present');
+  assert(node); assert(node.outgoing.length>0,'cleared Bunda node remains connected');
+  assert.equal(simulation.canOccupy({x,z,yaw:0,id:'probe'}),true,'whole car clears the actual visible passage');
 }
 assert.equal(simulation.nearestRoad(-289.22,-4229.64).road.sourceId,'way/347384260','nearest source metadata remains intact');
 const ends=[{x:-236.46,z:-4117.09},{x:-340.66,z:-4339.77}], results=[];
@@ -68,4 +68,4 @@ for(const [direction,from,to] of [['north-to-south',ends[0],ends[1]],['south-to-
   for(const kind of ['centreline','lane']) assert.equal(failures[kind].length,0,`${direction}: ${kind} static whole-car sweep blocked: ${JSON.stringify(failures[kind].slice(0,3))}`);
   results.push(`${direction} ${Math.round(length)}m/${samples} samples each at centreline and actual directed lane offset`);
 }
-console.log(`Capital covered road routes: PASS (${original.edges.length-simulation.graph.edges.length} blocked travel edges excluded; source geometry/collision retained; ${results.join('; ')}; sample spacing<=0.5m; live traffic, corner rotation, terrain and boot decorative/world barriers unverified)`);
+console.log(`Capital covered road routes: PASS (${original.edges.length-simulation.graph.edges.length} blocked travel edges excluded; source geometry retained with matching covered-passage clearance; ${results.join('; ')}; sample spacing<=0.5m; live traffic, corner rotation, terrain and boot decorative/world barriers unverified)`);
