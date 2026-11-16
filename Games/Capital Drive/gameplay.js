@@ -227,12 +227,40 @@ export function createGameplay(map, simulation, options = {}) {
       shotSerial,hitSerial:state.combatFeedback.hitSerial,hits:hits+policeHits,recoil:state.combatFeedback.recoil });
     return true;
   }
+  function recoveryOrigin() {
+    const source = options.getInterior?.()?.outside || focus();
+    const fallback = map.spawn || simulation.player;
+    return { x: Number.isFinite(source?.x) ? source.x : fallback.x,
+      z: Number.isFinite(source?.z) ? source.z : fallback.z };
+  }
+  function placeMedicalRecovery(origin) {
+    const place = point => {
+      const result = simulation.teleport(point);
+      return result !== false && result?.ok !== false;
+    };
+    // Use mapped public roads near the captured exterior/seat/body position.
+    // Teleport owns bounds and live building, water, fence and vehicle clearance.
+    const road = simulation.nearestRoad(origin.x, origin.z);
+    if (road && place({ x: road.x, z: road.z, yaw: road.yaw || 0 })) return;
+    const candidates = [];
+    for (const segment of simulation.graph?.segments || []) {
+      const [ax, az] = segment.a, [bx, bz] = segment.b;
+      const dx = bx - ax, dz = bz - az;
+      const t = clamp(((origin.x - ax) * dx + (origin.z - az) * dz) / (dx * dx + dz * dz || 1), 0, 1);
+      const x = ax + t * dx, z = az + t * dz;
+      candidates.push({ x, z, yaw: yawFor(dx, dz), distance: Math.hypot(x - origin.x, z - origin.z) });
+    }
+    candidates.sort((a, b) => a.distance - b.distance);
+    for (const candidate of candidates) if (place({ x: candidate.x, z: candidate.z, yaw: candidate.yaw })) return;
+    // Even incomplete maps retain collision checking; never reset through blockers.
+    for (const candidate of [origin, map.spawn]) if (candidate && place(candidate)) return;
+  }
   function respawn(reason) {
-    // Approximate public road approaches: Manuka police station / Canberra Hospital.
-    const desired = reason === 'arrest' ? { x: -600, z: 160 } : { x: -4200, z: 2700 };
-    const road = simulation.nearestRoad(desired.x, desired.z);
-    const target = road || map.spawn || simulation.player;
-    simulation.teleport({ x: target.x, z: target.z, yaw: target.yaw || 0 });
+    if (reason === 'arrest') {
+      const road = simulation.nearestRoad(-600, 160);
+      const target = road || map.spawn || simulation.player;
+      simulation.teleport({ x: target.x, z: target.z, yaw: target.yaw || 0 });
+    } else placeMedicalRecovery(state.recovery?.origin || recoveryOrigin());
     state.mode = 'vehicle'; state.health = 100; state.vehicleHealth = 100; state.wanted = 0;
     state.heat = 0; state.pursuit = 'clear'; state.police.length = 0; state.shots.length = 0;
     state.actor.jumpHeight = 0; state.actor.speed = 0; state.aiming = false; state.reloading = 0;
@@ -240,14 +268,15 @@ export function createGameplay(map, simulation, options = {}) {
     fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0; crashCooldown = 0; recklessCooldown = 0;
     jumpVelocity = 0; witnessCooldown = 0; state.respawnSerial++;
     previousCrashes = simulation.player.crashes || 0;
-    emit('respawn', reason === 'arrest' ? 'Released near the station.' : 'Recovered near the hospital.', { reason });
+    emit('respawn', reason === 'arrest' ? 'Released near the station.' : 'Recovered on a nearby public road.', { reason });
     if (!state.sandbox) options.onRespawn?.(reason);
   }
   function beginRecovery(reason) {
     if (state.recovery) return;
+    const origin = recoveryOrigin();
     cancelCarjacking('recovery'); state.reloading = 0; state.aiming = false; state.actor.speed = 0; state.attackTimer = 0;
     clearVehicleImpact(); state.actor.jumpHeight = 0; jumpVelocity = 0;
-    state.recovery = { reason, phase: 'out', elapsed: 0, duration: 3.4, progress: 0 };
+    state.recovery = { reason, origin, phase: 'out', elapsed: 0, duration: 3.4, progress: 0 };
     simulation.player.speed = 0; simulation.player.vx = 0; simulation.player.vz = 0;
     emit('recovery', reason === 'arrest' ? 'Being taken to the station.' : 'Medical help is arriving.', { reason });
   }
