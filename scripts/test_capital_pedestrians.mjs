@@ -196,7 +196,7 @@ combat.resetPopulation(origin);
 combat.strike({ x: target.x, z: target.z + 1, yaw: 0, range: 1.2, damage: 100, kind: 'pistol' });
 assert.equal(combat.snapshot()[0].health, 0);
 for (let i = 0; i < 180; i++) combat.update({ x: 0, z: -100 }, 0.1);
-assert.equal(combat.snapshot()[0].health, 100, 'defeated fictional adults recover without permanent pool loss');
+assert.equal(combat.snapshot()[0].health, 0, 'lethal firearm casualties remain down while nearby');
 combat.dispose();
 assert.equal(combat.alert({ x: 0, z: 0 }), 0);
 assert.equal(combat.strike(attack).hits, 0);

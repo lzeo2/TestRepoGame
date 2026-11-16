@@ -14,7 +14,7 @@ async function fixtureModule(name, needle, replacement) {
   return import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 }
 const { createPedestrians } = await fixtureModule('pedestrians', 'return { update, applyVehicleImpacts', `return { fixture(points) {
-  pool.forEach((p,i)=>Object.assign(p,{x:1000+i,z:1000,health:100,hitCooldown:0,witnessCooldown:0},points[i]||{}));
+  pool.forEach((p,i)=>Object.assign(p,{x:1000+i,z:1000,health:100,dead:false,deathTime:0,hitCooldown:0,witnessCooldown:0},points[i]||{}));
   rebuildPeopleGrid();
 }, update, applyVehicleImpacts`);
 const { createInteriorPeople } = await fixtureModule('interior-people', 'return {load,update,', `return {fixture(points) {
