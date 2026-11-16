@@ -3,6 +3,9 @@ import {BY_ID} from '../../assets/car-arcade/fleet.js';
 import {createInteriorNavigation} from './interior-navigation.js';
 // Transient original cast. Campaign remains the sole owner of stages and rewards.
 const HEROES = Object.freeze(['student','corporate','basement']);
+const HIRED = Object.freeze({'merc-river':'player:corporate','merc-stone':'player:basement'});
+const renewalSerial = (ctx,id) => Number.isSafeInteger(ctx.rehireSerial?.[id])&&ctx.rehireSerial[id]>=0?ctx.rehireSerial[id]:0;
+const hiredRoster = ctx => [...new Set((Array.isArray(ctx.hiredMembers)?ctx.hiredMembers:[]).map(member=>member?.id).filter(id=>Object.hasOwn(HIRED,id)))].slice(0,2);
 const EMPTY = Object.freeze([]), RADIUS = .32;
 const ALLY_RANGE = 28, ALLY_DAMAGE = 12, ALLY_COOLDOWN = 1.1, SHOT_LIMIT = 4;
 const CATCHUP_DISTANCE = 35, STUCK_DISTANCE = 10, STUCK_SECONDS = 3, CATCHUP_RETRY = 1.25;
@@ -41,6 +44,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
   let people=EMPTY, dialogueLines=EMPTY, signature='', elapsed=0, allies=[], events=[], disposed=false, active=false, catchupRetry=0;
   const attachments=new Map(), seatRetries=new Map(), leaders=new Map();
   let crewRoom=null;
+  const hiredHistory=new Map();
   function clear(){people=EMPTY;dialogueLines=EMPTY;signature='';elapsed=0;allies=[];events=[];active=false;catchupRetry=0;crewRoom=null;attachments.clear();seatRetries.clear();leaders.clear();}
   function enterInterior(plan,entry,outside) {
     if(!plan?.id||entry?.id!==plan.id||!point(entry)||!point(outside)||!point(plan.spawn)||!point(plan.exit))return false;
@@ -274,25 +278,52 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
     publishAllies();return promoted;
   }
   function updateAllies(ctx,dt) {
-    const mission=ctx.mission, heroes=HEROES.filter(id=>id!==ctx.character&&mission.companions.includes(id)).slice(0,2);
-    if(!heroes.length){clear();return;}
-    const key=`allies:${mission.id}:${ctx.character}:${heroes.join(':')}`;
-    if(signature!==key){clear();signature=key;}
+    const mission=ctx.mission||{id:'hired-only',companions:[]};
+    const heroes=ctx.mode==='campaign'&&Array.isArray(mission.companions)?HEROES.filter(id=>id!==ctx.character&&mission.companions.includes(id)).slice(0,2):[];
+    const hired=hiredRoster(ctx),wanted=[...heroes.map(hero=>({id:`campaign-ally:${hero}`,appearanceId:`player:${hero}`})),...hired.map(id=>({id,appearanceId:HIRED[id],hired:true}))];
+    if(!wanted.length){clear();return;}
+    const key=`allies:${heroes.length?mission.id:'hired-only'}:${ctx.character}:${heroes.join(':')}`;
+    if(signature!==key){
+      const retained=allies.filter(ally=>ally.hired&&hired.includes(ally.id)),room=crewRoom;
+      const attached=new Map(retained.filter(ally=>attachments.has(ally.id)).map(ally=>[ally.id,attachments.get(ally.id)]));
+      clear();signature=key;allies=retained;crewRoom=room;
+      for(const [id,value] of attached)attachments.set(id,value);
+    }
+    for(const ally of allies)if(ally.hired&&!hired.includes(ally.id)){
+      attachments.delete(ally.id);seatRetries.delete(ally.id);clearShots(ally);
+      Object.assign(ally,{seated:false,vehicleId:null,vehicleKey:null,seatIndex:null,carModelId:null,interiorId:null,floorY:null});
+    }
+    // A higher authoritative purchase serial is an explicit new admission for a
+    // downed hire. Merely retaining or readding the same roster cannot heal it.
+    allies=allies.filter(ally=>!ally.hired||hired.includes(ally.id)&&!(ally.health<=0&&renewalSerial(ctx,ally.id)>(ally.renewalSerial||0)));
     active=!ctx.paused&&Number.isFinite(dt)&&dt>0;
     if(ctx.interior&&!crewRoom){events=[];publishAllies(true);active=false;return;}
     if(!active)return;
     active=true;
     const step=Math.min(.1,dt);elapsed+=step;catchupRetry=Math.max(0,catchupRetry-step);
     const canRetry=catchupRetry===0;let attemptedCatchup=false;
-    if(canRetry&&allies.length<heroes.length) {
+    if(canRetry&&allies.length<wanted.length) {
       const goal=crewRoom?.entering?crewRoom.outside:point(ctx.pose)?ctx.pose:mission.target;
-      if(point(goal))for(const hero of heroes) {
-        const id=`campaign-ally:${hero}`;
-        // A retained downed identity counts as recruited and cannot respawn.
+      if(point(goal))for(const descriptor of wanted) {
+        const {id}=descriptor;
         if(allies.some(ally=>ally.id===id))continue;
-        const candidate=nearbyLanding(goal,id,heroes.indexOf(hero));
-        if(candidate)allies.push({...candidate,id,appearanceId:`player:${hero}`,radius:RADIUS,active:true,armed:true,health:100,mode:'following',speed:0,gesturePhase:0,cooldown:.3+allies.length*.25,hitPhase:0,shot:null,followTime:0,followStartDistance:0,stuck:false});
-        else attemptedCatchup=true;
+        let retained=descriptor.hired?hiredHistory.get(id):null;
+        const serial=renewalSerial(ctx,id);
+        if(retained&&serial>(retained.renewalSerial||0)){
+          attachments.delete(id);seatRetries.delete(id);clearShots(retained);retained=null;
+        }
+        if(retained){
+          if(retained.health<=0){allies.push(retained);continue;}
+          const landing=nearbyLanding(goal,id,wanted.indexOf(descriptor));
+          if(landing){Object.assign(retained,landing,{interiorId:null,floorY:null,seated:false,vehicleId:null,vehicleKey:null,seatIndex:null,carModelId:null});allies.push(retained);}
+          else attemptedCatchup=true;
+          continue;
+        }
+        const candidate=nearbyLanding(goal,id,wanted.indexOf(descriptor));
+        if(candidate){
+          const ally={...candidate,...descriptor,...(descriptor.hired?{renewalSerial:serial}:{}),radius:RADIUS,active:true,armed:true,health:100,mode:'following',speed:0,gesturePhase:0,cooldown:.3+allies.length*.25,hitPhase:0,shot:null,followTime:0,followStartDistance:0,stuck:false};
+          allies.push(ally);if(descriptor.hired)hiredHistory.set(id,ally);
+        } else attemptedCatchup=true;
       }
     }
     const hostiles=(Array.isArray(ctx.hostiles)?ctx.hostiles:[]).slice(0,4),car=manualCar(ctx);
@@ -406,8 +437,9 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
   function update(ctx={},dt=0) {
     const mission=ctx.mission, goal=mission?.target;
     if(disposed)return;
-    if(ctx.mode!=='campaign'||ctx.recovery||ctx.recovering||ctx.health<=0||!mission||!HEROES.includes(ctx.character)){clear();return;}
-    if(Array.isArray(mission.companions)&&mission.companions.length){updateAllies(ctx,dt);return;}
+    if(!['campaign','street','free'].includes(ctx.mode)||ctx.recovery||ctx.recovering||ctx.health<=0||!HEROES.includes(ctx.character)){clear();return;}
+    if(hiredRoster(ctx).length||(ctx.mode==='campaign'&&Array.isArray(mission?.companions)&&mission.companions.length)){updateAllies(ctx,dt);return;}
+    if(!mission){clear();return;}
     if(allies.length)clear();
     if(ctx.mode!=='campaign'||ctx.recovery||ctx.recovering||ctx.interior||mission?.id!=='three-receipts'||mission.stage!==0||!HEROES.includes(ctx.character)||!point(goal)||!point(kingston)||Math.hypot(goal.x-kingston.x,goal.z-kingston.z)>80){clear();return;}
     if(ctx.paused)return;
@@ -448,5 +480,5 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
     }
     return {dx:x-actor.x,dz:z-actor.z,blocked};
   }
-  return {update,clear,enterInterior,leaveInterior,get roomStats(){return crewRoom?{id:crewRoom.plan.id,entering:crewRoom.entering,...crewRoom.nav.stats}:null;},clipMovement,meetingPoint,receiveHit,syncCarPose,canExchangeLeader,exchangeLeader,getPeople:()=>people,drainEvents:()=>events.splice(0),dispose(){if(disposed)return;clear();disposed=true;},get people(){return people;},get dialogueLines(){return dialogueLines;}};
+  return {update,clear,enterInterior,leaveInterior,get roomStats(){return crewRoom?{id:crewRoom.plan.id,entering:crewRoom.entering,...crewRoom.nav.stats}:null;},clipMovement,meetingPoint,receiveHit,syncCarPose,canExchangeLeader,exchangeLeader,getPeople:()=>people,drainEvents:()=>events.splice(0),dispose(){if(disposed)return;clear();hiredHistory.clear();disposed=true;},get people(){return people;},get dialogueLines(){return dialogueLines;}};
 }

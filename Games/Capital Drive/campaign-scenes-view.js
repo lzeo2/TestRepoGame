@@ -15,7 +15,7 @@ export function createCampaignScenesView(scene,heightAt) {
     return [id,{eye,scale:Math.min(1,(BY_ID[id].height-eye[1]-.025)/PERSON_MODEL.seatedHeadTop),rear:Math.min(.78,BY_ID[id].length*.18)}];
   }));
   const carPose=new THREE.Object3D(),seat=new THREE.Object3D(),seated={kind:'driver'};
-  for(const [name,capacity] of [['torso',2],['head',2],['hair',2],['arms',4],['legs',4],['shoes',24],['hands',4]]) {
+  for(const [name,capacity] of [['torso',4],['head',4],['hair',4],['arms',8],['legs',8],['shoes',48],['hands',8]]) {
     const mesh=new THREE.InstancedMesh(shapes[PERSON_MODEL.shapes[name]],material,capacity);
     mesh.name=`Meeting ${name}`;mesh.count=0;mesh.visible=false;mesh.frustumCulled=false;
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -42,8 +42,10 @@ export function createCampaignScenesView(scene,heightAt) {
     if(disposed)return;
     stats.people=stats.drawCalls=stats.triangles=0;
     for(const mesh of Object.values(batches))mesh.count=0;
+    const seen=new Set();
     for(const person of Array.isArray(people)?people:[]) {
-      if(stats.people>=2)break;
+      if(stats.people>=4)break;
+      if(typeof person?.id==='string'&&seen.has(person.id))continue;
       const appearance=appearances.get(person?.appearanceId);
       if(!appearance||(person.interiorId||null)!==interiorId||person.active===false||![person.x,person.z,person.yaw].every(Number.isFinite))continue;
       if(focus&&(!Number.isFinite(focus.x)||!Number.isFinite(focus.z)||Math.hypot(person.x-focus.x,person.z-focus.z)>140))continue;
@@ -68,9 +70,11 @@ export function createCampaignScenesView(scene,heightAt) {
             shotTrace(shot,muzzleY);
           }
         }
+        if(typeof person.id==='string')seen.add(person.id);
         stats.people++;continue;
       }
       if(!Number.isFinite(person.gesturePhase))continue;
+      if(typeof person.id==='string')seen.add(person.id);
       world.position.set(person.x,y+.035,person.z);world.rotation.set(person.hitPhase>0?-.10:0,person.yaw,0);world.scale.setScalar(appearance.height);world.updateMatrix();
       const combat=person.mode==='combat',armed=person.armed===true;
       let arm=0,hand=0;const gesture=Math.sin(person.gesturePhase*2.7+stats.people)*.12;
