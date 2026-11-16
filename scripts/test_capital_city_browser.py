@@ -81,12 +81,12 @@ def main():
             assert len(list(output.glob('*.png'))) < 4, 'Four-capture budget'
             page.screenshot(path=str(output / (label + '.png')), timeout=15000)
 
-    def wait(predicate, label, seconds=20, poll=250):
+    def wait(predicate, label, seconds=20, poll=250, retain=True):
         end = time.monotonic() + seconds
         while time.monotonic() < end:
             state = snap()
             if predicate(state):
-                return record(label)
+                return record(label) if retain else state
             page.wait_for_timeout(poll)
         record(label + '-timeout')
         raise AssertionError(label + ' timed out')
@@ -203,7 +203,7 @@ def main():
         phone('properties')
         page.locator('#city-buy-' + door['id']).click()
         far_denied = record('Actual far house purchase denied')
-        check(far_denied['career']['cash'] == wallet and not far_persisted['career']['ownedProperties'], 'Far native purchase cannot debit cash or grant a house')
+        check(far_denied['career']['cash'] == wallet and not far_denied['career'].get('ownedProperties', []), 'Far native purchase cannot debit cash or grant a house')
         close()
         phone('crew')
         offer = next(offer for offer in fixture['crewOffers'] if offer['id'] == 'merc-river')
@@ -290,9 +290,9 @@ def main():
             page.wait_for_timeout(500)
         finally:
             keys([])
-        burst = wait(lambda s: len(s['ordnance']['bursts']) > 0, 'Actual fuse produces a bounded visible burst', seconds=40, poll=150)
+        burst = wait(lambda s: len(s['ordnance']['bursts']) > 0, 'Actual fuse produces a bounded visible burst', seconds=40, poll=100, retain=False)
+        page.keyboard.press('p')
         check(burst['career']['gear']['grenades'] == grenades - 1 and burst['gameplay']['health'] > 0, 'Native throw is charged once and player survives actual retreat')
-        pulse('p')  # Preserve the short real burst for review behind the normal Pause panel.
         frozen_burst = snap()
         check(frozen_burst['paused'] and len(frozen_burst['ordnance']['bursts']) > 0, 'Normal Pause preserves the actual short grenade burst for review')
         capture('04-native-grenade-burst-paused')

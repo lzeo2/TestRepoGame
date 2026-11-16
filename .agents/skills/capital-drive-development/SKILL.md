@@ -42,6 +42,9 @@ audits also read `docs/verification/capital-drive-sustained-bridges-2026-11-16.m
 and `docs/verification/capital-drive-campaign-playability-2026-11-16.md` alongside
 the cache/performance contract. Normal domain-chain completion is not native
 travel, survival or human difficulty evidence.
+City commerce, high-wanted checkpoints, player/police drones, camera reporting,
+vehicle bullet damage, house break-ins, source-footprint rooms and bridge-level support also read
+`docs/capital-drive-city-systems-contract.md` and its current verification receipt.
 Then follow [the concrete workflow](references/workflow.md). Check current source
 against those records; historical test counts are dated evidence.
 
@@ -102,7 +105,7 @@ recovery is character-health based; a wrecked car must allow exit. Ordinary
 road travel and foot movement must not generate reckless vehicle reports.
 
 Campaign is a third mode with three separately ordered introductions, a shared
-meeting and thirteen shared chapters. Its strict v2 save preserves v1 progress;
+meeting and fifteen shared chapters. Its strict v2 save preserves v1 progress;
 permit switching between any missions while preserving independent partial intro
 prefixes. Lock switching only during an active mission (plus invalid/recovery
 context guards). Restore that hero’s own checked location/health/car/ammo, without
@@ -223,7 +226,7 @@ eviction and disposal. Report buffer bytes separately from RAM and device FPS.
 Mission guides target the same door/station descriptors as collision and rendering.
 New school, home and robbery outcomes require the matching live terminal owner and
 fresh serial; no caller boolean, stale receipt or caption timer grants completion.
-Ground allies remain outdoors and do not board cars implicitly. The owner
+Living allies use checked ordinary-room entry and limited stopped-car boarding. The owner
 explicitly requested companion catch-up: bounded checked relocation to the
 actual player is allowed for distant/stuck living crew. Preserve health, identity,
 cooldowns, pause and blocked-placement retries; never teleport the player,
@@ -258,4 +261,4 @@ health/ammo and completed progress with their real owners. Medical placement use
 the captured actual exterior/seat location and checked nearby roads, not a fixed
 distant district. For all-mission audits retain normal prefix fixtures, actual
 domain action inputs, route/clearance holds and explicit police/travel assumptions.
-Never turn source-domain passes or assumed-speed margins into20native wins.
+Never turn source-domain passes or assumed-speed margins into22native wins.

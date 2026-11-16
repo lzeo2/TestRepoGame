@@ -7,13 +7,24 @@
 Operator-authorized original Canberra open-world preview, catalog 245, static entry
 `Games/Capital Drive/index.html`. Three modes share one runtime. **Campaign** has
 three fictional adult protagonists, two opening missions each, a shared Kingston
-meeting and thirteen assigned shared chapters, including reconnaissance and prepared heists. **Street Life** has jobs, cash, a
+meeting and fifteen assigned shared chapters, including reconnaissance and prepared heists. **Street Life** has jobs, cash, a
 garage, foot combat and police; **Free roam** has all cars, local address search
 and map teleporting. The mapped area covers the inner south and a source-derived
 lake/Civic corridor. A sourced road extension reaches the airport; whole-city coverage remains later work. No GTA code,
 artwork or branded vehicle assets are used.
 
 ## Implementation map
+
+The [city systems contract](../../capital-drive-city-systems-contract.md) records
+higher wanted thresholds, six ground officers, SWAT, temporary roadblocks, police
+spotting aircraft, fictional cameras, vehicle bullet/blast damage, owned safehouses,
+conserved weapon/ammo/cash stashes and two hireable guards. The player drone and
+headlights use pooled presentation; the full day/night cycle now takes48 minutes.
+Crews enter ordinary rooms. Source-owned bridge levels now agree across road/car
+art, vehicle collision and shot cover. The Bunda ground passage stays open. Unowned house doors have a six-cue forced-entry challenge; an actual indoor search earns bounded, saved-cooldown loot. House floors and outer walls follow their source exterior polygons, while room layouts remain procedural.
+See the [current receipt](../../verification/capital-drive-city-systems-2026-11-16.md)
+for the22-mission domain audit, source/native checks and bounded CPU measurements.
+
 
 The [sustained bridge/recovery receipt](../../verification/capital-drive-sustained-bridges-2026-11-16.md)
 records exact water-segment indexing, local medical recovery, transient automatic
@@ -50,10 +61,10 @@ estimated; traffic cars do not deform and terminal interiors/airline services ar
   driver-fare waiting/seated passengers. Progression owns repeatable paid fares.
 - `gameplay.js`: foot/sprint/jump, car entry/theft, four firearms/aim/reload,
   health, witnessed offences, eight-cue car locks and delayed recovery. `police.js`
-  owns up to four road patrols, dismounted officers, sight/search/escape and arrest.
+  owns up to six road patrols, dismounted officers, sight/search/escape, arrest and bounded checkpoint/air support.
 - `police-rooms.js` retains the active room plus rooms occupied by pursuers;
   `interior-navigation.js` binds bounded lazy paths and collision to their actual
-  room plans. Ordinary doors admit police; only Milo's bound safehouse is protected.
+  room plans. Ordinary doors admit police; Milo's bound room and purchased safehouses are protected.
 - `progression.js`: recurring ordered jobs, costs/rewards/unlocks, saved four-weapon ownership and owned garage,
   condition-preserving retrieval, food/gun/ammo purchases, playable fitness/paid work, timed robbery,
   cooldowns and strict legacy-compatible career-save validation.
@@ -197,8 +208,8 @@ supplies activity remains exterior.
 Retired fictional food-marker cooldown keys remain valid in older saves. Free
 roam cannot purchase, bank fitness upgrades or earn robbery cash. See [store sources](../../capital-drive-store-sources.md).
 
-Minor scrapes below8m/s cause no wear; body injury starts only with severe
-impacts at18m/s. A wrecked car stops and allows E exit without hospital recovery.
+Minor scrapes below8 m/s cause no wear; body injury starts only with severe
+impacts at18 m/s. A wrecked car stops and allows E exit without hospital recovery.
 Medical transfer occurs when character health reaches zero. Reckless reports
 require close danger, sustained exposure or actual contact, with an eight-second
 report cooldown; normal50km/h road travel near a footpath is covered by a clear
@@ -299,7 +310,7 @@ landing. Indoor pursuit, shots and arrest use the same plan-bound furniture/wall
 collision and logical room as the player. Officers walk to the exit before
 resuming outdoor tactics. Milo's exact safehouse room excludes them; ordinary
 houses do not. Unknown unseen entries remain undiscovered until witnessed/reported.
-Only active/pursuer-occupied plans remain, at most five; navigation caps2000nodes
+Only active/pursuer-occupied plans remain, at most five; navigation caps2000 nodes
 per room and four cached owner fields. The indoor pool creates officers without
 patrol-car geometry. No remote police spawning or cross-room shots are used.
 
@@ -800,11 +811,11 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The current reusable runner checks 97 game JavaScript files and 133 pure Node suites,
-three support-script syntax entries and two Python cache checks (369 syntax/source
+The current reusable runner checks108 game JavaScript files and160 pure Node suites,
+four support-script syntax entries, two Python cache checks and whitespace (435 syntax/source
 commands), fails on missing files or command errors and bounds subprocess
 lifetimes. The [sustained bridge/recovery receipt](../../verification/capital-drive-sustained-bridges-2026-11-16.md)
-records current source and profiling results; the [all-mission audit](../../verification/capital-drive-campaign-playability-2026-11-16.md)
+records its earlier source and profiling results; the [all-mission audit](../../verification/capital-drive-campaign-playability-2026-11-16.md)
 separates objective-chain passes from native completion and estimated difficulty.
 The [combat/recon receipt](../../verification/capital-drive-combat-recon-2026-11-15.md) retains the preceding source/native run. The [crew/city/flight receipt](../../verification/capital-drive-crew-city-flight-2026-11-15.md) retains its earlier release,
 while the earlier230/230 story/streaming and220/220 city-life results remain
@@ -817,6 +828,13 @@ retaining source road metadata and collision. Current Street Life
 browser evidence, pictures, source milestones and dated fleet limits are recorded
 in the [Street Life receipt](../../verification/capital-drive-street-life-2026-11-13.md).
 Historical 12/13 November receipts remain separately dated.
+
+Current controls add N for headlights and O for drone recall. Launch a purchased
+drone through Phone outside on foot; WASD/Space/Shift move it while the body stays
+vulnerable. Phone also lists crew and safehouses. House purchase requires its real
+door, and storage requires being inside the owned room. Ammunition profiles and
+hired health persist separately from resumable hero poses, including wanted and
+active-mission saves. A pending renewal cannot charge twice.
 
 ## Future outlook
 
