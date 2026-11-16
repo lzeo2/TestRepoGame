@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { runInNewContext } from 'node:vm';
+import {createBurglary} from '../Games/Capital Drive/burglary.js';
 import { createProgression } from '../Games/Capital Drive/progression.js';
 import { createInteriors, createGymEntry } from '../Games/Capital Drive/interiors.js';
 import { createInteriorActivities, WORKOUT_KINDS, isWorkoutKind } from '../Games/Capital Drive/interior-activities.js';
@@ -17,7 +18,7 @@ const workoutHandoff = controller.slice(controller.indexOf('{', handoffStart) + 
 function controllerHandoff(f) {
   let saves = 0;
   const consume = runInNewContext(`event => {${workoutHandoff}}`, {
-    recordEvidence: () => false, progression: f.progression, isWorkoutKind, careerContext: () => f.ctx, saveCareer: () => saves++,
+    burglary:createBurglary({canApproach:()=>false}),burglaryContext:()=>f.ctx,activities:f.activities,recordEvidence: () => false, progression: f.progression, isWorkoutKind, careerContext: () => f.ctx, saveCareer: () => saves++,
   });
   return { consume, get saves() { return saves; } };
 }
