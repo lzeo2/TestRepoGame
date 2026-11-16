@@ -1,3 +1,4 @@
+import { coveredCentrePassage } from './covered-passage.js';
 import { roadProfile } from './road-network.js';
 import { prepareWaterRing } from './water-contact.js';
 import { createTrafficLights } from './traffic-lights.js';
@@ -134,10 +135,11 @@ function insideRing(x,z,points){
   return inside;
 }
 
-// The retained Centre outline models its covered Bunda passage as a solid.
-// Keep that source geometry visible, but route around this proven mismatch,
-// Include source-adjacent approaches whose endpoints lie on the solid facade.
+// Route around the legacy solid only when the source-pinned architectural
+// passage cannot be prepared. Valid layer-1 geometry shares the actual opening
+// with rendering and collision, restoring its source-adjacent travel edges.
 function coveredCentreRoutingGuard(map) {
+  if (coveredCentrePassage(map)) return () => false;
   const building = (map.buildings || []).find(item => item.id === 'osm-46081156');
   const covered = (map.roads || []).find(road => road.sourceId === 'way/347384260' && road.sourceTags?.covered === 'yes');
   if (!building?.points?.length || building.type === 'roof' || !covered ||
@@ -176,7 +178,8 @@ export function createSimulation(map, options = {}) {
   for (const segment of graph.segments) roadIndex.insert(segment,
     Math.min(segment.a[0], segment.b[0]), Math.min(segment.a[1], segment.b[1]),
     Math.max(segment.a[0], segment.b[0]), Math.max(segment.a[1], segment.b[1]));
-  for (const building of map.buildings || []) {
+  const passage = coveredCentrePassage(map);
+  for (const building of (map.buildings || []).flatMap(b => b === passage?.building ? passage.groundParts : [b])) {
     if (!building.points?.length||building.type==='roof'||replacedColliders.has(building.id)) continue;
     buildingIndex.insert(building, Math.min(...building.points.map(p => p[0])), Math.min(...building.points.map(p => p[1])),
       Math.max(...building.points.map(p => p[0])), Math.max(...building.points.map(p => p[1])));

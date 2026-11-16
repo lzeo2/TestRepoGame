@@ -1,3 +1,4 @@
+import { coveredCentrePassage } from './covered-passage.js';
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { createTerrainSampler } from './terrain.js';
 import { roadProfile, roadMarkingOffsets } from './road-network.js';
@@ -507,6 +508,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   const polygonArea = points => Math.abs(points.reduce((sum, p, i) => { const q = points[(i + 1) % points.length]; return sum + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2;
   const schoolMain = school && (map.buildings || []).filter(b => /school|education/.test(b.type || '') && b.points?.length && Math.hypot(b.points[0][0] - school.x, b.points[0][1] - school.z) < 220).sort((a, b) => polygonArea(b.points) - polygonArea(a.points))[0];
   let schoolDetailed = false;
+  const coveredPassage = coveredCentrePassage(map);
   function buildingView(building, index) {
     let points = building.points;
     if (!points || points.length < 3) return;
@@ -517,14 +519,31 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     const shopping = Boolean(retailDistrict(map, x, z));
     const utility = /shed|garage|carport|roof/.test(building.type || '');
     const residential = !isSchool && !shopping && !/apartments|commercial|retail|industrial|school|public|office/.test(building.type || '');
-    const lowShop = shopping && /commercial|retail/.test(building.type || '') && (Number(building.height) || 4) <= 10;
+    const passage = building === coveredPassage?.building ? coveredPassage : null;
+    const lowShop = !passage && shopping && /commercial|retail/.test(building.type || '') && (Number(building.height) || 4) <= 10;
     // Low keeps footprint walls, roof form and school identity. Ordinary bays
     // use one coloured pane rather than layered frames, mullions and glazing.
     const simpleFacade = lowGraphics && !isSchool;
     const height = Math.max(2.5, Math.min(50, building === schoolMain ? 7.8 : lowShop ? 3.9 : isSchool ? Math.min(7.8, Number(building.height) || 4.2) : Number(building.height) || (residential ? 3.8 : 7)));
     const floorHeights = points.map(p => heightAt(...p));
     const base = (isSchool ? floorHeights.reduce((a, b) => a + b, 0) / points.length : Math.max(...floorHeights)) + 0.12;
-    const footing = Math.min(...floorHeights) - 0.3;
+    const footing = passage ? base + passage.clearance : Math.min(...floorHeights) - 0.3;
+    if (passage) {
+      // Ground walls use exactly the same clipped polygons as physical contacts.
+      for (const part of passage.groundParts) for(let i=0;i<part.points.length;i++) {
+        const a=part.points[i],b=part.points[(i+1)%part.points.length];
+        const vertices=[[a[0],Math.min(...floorHeights)-.3,a[1]],[b[0],Math.min(...floorHeights)-.3,b[1]],
+          [b[0],footing,b[1]],[a[0],footing,a[1]]];
+        quad(batchAt(x,z),...vertices,building.color||0xc4bca9);
+        quad(batchAt(x,z),...vertices.slice().reverse(),building.color||0xc4bca9);
+      }
+      // A visible underside makes the actual 4.8m opening legible from the street.
+      const faces=THREE.ShapeUtils.triangulateShape(points.map(p=>new THREE.Vector2(...p)),[]);
+      for(const face of faces) {
+        const vertices=face.map(i=>[points[i][0],footing,points[i][1]]);
+        triangle(batchAt(x,z),...vertices,0x777d79);triangle(batchAt(x,z),...vertices.slice().reverse(),0x777d79);
+      }
+    }
     if(building.type==='roof'){
       const faces=THREE.ShapeUtils.triangulateShape(points.map(p=>new THREE.Vector2(...p)),[]);
       for(const face of faces){
@@ -592,7 +611,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
           [b[0] + nx * offset, y1, b[1] + nz * offset], [a[0] + nx * offset, y1, a[1] + nz * offset]], tint);
       }
       if (!simpleFacade) {
-        stripe(base, base + 0.26, 0.025, isSchool ? 0xb2a58a : 0x8a8172);
+        if (!passage) stripe(base, base + 0.26, 0.025, isSchool ? 0xb2a58a : 0x8a8172);
         stripe(base + height - 0.18, base + height + (lowShop ? 0.5 : 0.05), 0.1, isSchool ? 0xded4bc : lowShop ? 0xe0d5bf : 0xc1b9a6);
         const eave = [[a[0], base + height - 0.05, a[1]], [b[0], base + height - 0.05, b[1]],
           [b[0] + nx * 0.28, base + height - 0.05, b[1] + nz * 0.28], [a[0] + nx * 0.28, base + height - 0.05, a[1] + nz * 0.28]];
@@ -608,6 +627,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       for (let row = 0; row < floors; row++) for (let col = 0; col < columns; col++) {
         const u = (col + 0.5) / columns * length, y = base + (isSchool ? 1.7 : 1.9) + row * (isSchool ? 3.55 : 3.0);
         const hw = Math.min(isSchool ? 1.0 : shopping && row === 0 ? 1.25 : 0.82, length / columns * 0.34);
+        if (passage && y - 1.3 < footing) continue;
         const hh = isSchool ? 0.95 : shopping && row === 0 ? 1.2 : 0.72;
         if (simpleFacade) {
           bay(u, y, hw, hh, 0.055, [0x566d70, 0x627b7b, 0x4c656c][(row + col + index) % 3]);
