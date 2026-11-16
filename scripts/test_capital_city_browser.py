@@ -33,7 +33,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=ROOT)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--scenario', choices=['city', 'workplace'], default='city')
+    parser.add_argument('--scenario', choices=['city', 'workplace', 'burglary'], default='city')
     parser.add_argument('--capture', action='store_true')
     args = parser.parse_args()
     source, output = args.root.resolve(), args.output.resolve()
@@ -43,7 +43,7 @@ def main():
         parser.error('--output must be fresh or empty')
     output.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
-    budget = 480 if args.scenario == 'city' else 420
+    budget = 420 if args.scenario == 'workplace' else 480
     checks, errors, requests, external, observations = [], [], [], [], []
     page = context = server = thread = None
     failure = None
@@ -192,7 +192,7 @@ def main():
         door = fixture['home']
         home_offer = fixture['properties'][0]
         wallet = baseline['career']['cash']
-        check(not baseline['career']['ownedProperties'] and not baseline['career']['stashes'], 'Fixture grants no property ownership or stash')
+        check(not baseline['career'].get('ownedProperties', []) and not baseline['career'].get('stashes', {}), 'Fixture grants no property ownership or stash')
         check(math.hypot(baseline['focus']['x'] - door['x'], baseline['focus']['z'] - door['z']) > 3, 'Actual initial body remains outside purchase reach')
         phone('properties')
         page.locator('#city-buy-' + door['id']).click()
@@ -292,6 +292,79 @@ def main():
         capture('04-native-grenade-burst-paused')
         observations.append({'bodyVulnerabilityScope': 'No immunity setter was used. This run checks stationary body/health; enemy-damage vulnerability is established by owner tests, not by an arranged native attack.', 'grenadeScope': 'Normal V, native inventory debit and actual supplied-time fuse/burst; screenshot may show the normal Pause panel.'})
 
+    def burglary_case():
+        door = fixture['home']
+        planned = fixture['burglaryPlan']
+        check(planned and planned['roomId'] == door['id'], 'Source plan supplies actual house station and physically swept navigation waypoints')
+        before = record('Explicit unearned wealth before native burglary')
+        check(not before['career'].get('ownedProperties', []) and before['campaign']['active'] is None, 'Burglary begins at an unowned house without an active mission')
+        approach = {'x': door['x'] - math.sin(door['yaw']) * 2, 'z': door['z'] - math.cos(door['yaw']) * 2}
+        walk(approach, tolerance=.3)
+        capture('01-native-unowned-house-footprint')
+        pulse('e')
+        wait(lambda s: s['burglary']['active'] and s['burglary']['phase'] == 'cue', 'Actual E starts the six-cue house lock', seconds=30, poll=150)
+        pulse('p')
+        frozen = snap()
+        check(frozen['paused'] and frozen['burglary']['phase'] == 'cue', 'Normal Pause preserves the actual house lock cue')
+        capture('02-native-house-lock-cue-paused')
+        close()
+        names = {'x': 'x', 'y': 'y', 'up': 'ArrowUp'}
+        for index in range(6):
+            cue = wait(lambda s: s['burglary']['active'] and s['burglary']['phase'] == 'cue' and s['burglary']['index'] == index, 'Fresh native lock cue ' + str(index + 1), seconds=20, poll=150)
+            key = names[cue['burglary']['expectedKey']]
+            focus()
+            page.keyboard.down(key)
+            try:
+                wait(lambda s: bool(s['interiors']['active']) or s['burglary']['index'] > index, 'Native lock input accepted ' + str(index + 1), seconds=10, poll=150)
+            finally:
+                page.keyboard.up(key)
+            page.wait_for_timeout(150)  # A real released input edge before the next cue.
+        inside = wait(lambda s: s['interiors']['active'] and s['interiors']['active']['id'] == door['id'], 'Completed native lock automatically enters the actual house')
+        check(inside['gameplay']['wanted'] >= 2, 'Actual forced entry reports breaking and entering')
+        capture('03-native-entered-house-footprint')
+        station = next(s for s in inside['interiors']['active']['activities'] if s['id'].endswith('-valuables'))
+        check(station['id'] == planned['station']['id'] and station['kind'] == 'stock', 'Native room exposes the matching actual valuables activity')
+        for point in planned['toStation']:
+            walk(point, tolerance=.3, seconds=25)
+        pulse('q')
+        mini = wait(lambda s: s['miniGame']['active'] and s['miniGame']['station']['id'] == station['id'] and s['miniGame']['phase'] == 'memorise', 'Native Q begins the actual house search')
+        check(mini['miniGame']['sequence'] == ['x', 'up', 'y', 'x'], 'Actual stock activity exposes its four-item memory sequence')
+        wait(lambda s: s['miniGame']['phase'] == 'repeat', 'Actual supplied-time memorisation finishes', seconds=35, poll=250)
+        cash = snap()['career']['cash']
+        for index, key_name in enumerate(['x', 'up', 'y', 'x']):
+            focus()
+            page.keyboard.down(names[key_name])
+            try:
+                wait(lambda s: s['miniGame']['index'] > index or s['miniGame']['phase'] == 'complete', 'Native search item accepted ' + str(index + 1), seconds=10, poll=150)
+            finally:
+                page.keyboard.up(names[key_name])
+            page.wait_for_timeout(150)
+        rewarded = wait(lambda s: s['career']['cash'] > cash and s['career'].get('burglaryCooldowns', {}).get(door['id'], 0) > 0, 'Actual matching loot receipt pays and records cooldown')
+        reward = rewarded['career']['cash'] - cash
+        check(200 <= reward <= 600, 'Actual house reward stays within authoritative 200–600 range')
+        saved = page.evaluate('JSON.parse(localStorage.getItem("capital-drive-career-v1"))')
+        check(saved['cash'] == rewarded['career']['cash'] and saved.get('burglaryCooldowns', {}).get(door['id'], 0) > 0, 'Native writer persists house reward and cooldown immediately')
+        record('Native house loot receipt')
+        # A fresh real terminal session cannot bypass the authoritative cooldown.
+        pulse('q')
+        wait(lambda s: s['miniGame']['phase'] == 'repeat', 'Second actual search completes memorisation', seconds=35, poll=250)
+        for index, key_name in enumerate(['x', 'up', 'y', 'x']):
+            focus()
+            page.keyboard.down(names[key_name])
+            try:
+                wait(lambda s: s['miniGame']['index'] > index or s['miniGame']['phase'] == 'complete', 'Repeated native search item ' + str(index + 1), seconds=10, poll=150)
+            finally:
+                page.keyboard.up(names[key_name])
+            page.wait_for_timeout(150)
+        check(snap()['career']['cash'] == rewarded['career']['cash'], 'Repeated real house search cannot pay through cooldown')
+        for point in planned['toExit']:
+            walk(point, tolerance=.3, seconds=25)
+        pulse('e')
+        escaped = wait(lambda s: s['interiors']['active'] is None, 'Normal E leaves through the actual house exit')
+        check(escaped['gameplay']['health'] > 0 and escaped['career'].get('burglaryCooldowns', {}).get(door['id'], 0) > 0, 'Player survives real escape with a live house cooldown')
+        capture('04-native-burglary-exterior-return')
+        observations.append({'burglaryScope': 'Only prior wealth/equipment/checkpoint were seeded. Lock inputs, forced entry offence, actual memory activity, cash reward, denied repeat, writer and physical exit use normal native input. This does not establish all houses or police evasion.'})
+
     def workplace():
         check(snap()['campaign']['intros']['corporate'] == ['corporate-present-tense'], 'Explicit accepted Rowan first-intro prefix only')
         for point in fixture['waypoints']:
@@ -356,7 +429,7 @@ def main():
             stack.push(retain_failure)
             page.goto(base + '/Games/Capital%20Drive/', wait_until='load', timeout=90000)
             start()
-            city() if args.scenario == 'city' else workplace()
+            {'city': city, 'workplace': workplace, 'burglary': burglary_case}[args.scenario]()
             check(not errors, 'No page or console errors')
             check(not requests, 'No failed requests or HTTP errors')
             check(not external, 'No external runtime requests')
