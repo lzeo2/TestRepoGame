@@ -468,6 +468,9 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
           .find(p => collider().canOccupy(worldPoint(origin, p.x, p.z)));
         if (p) Object.assign(spawn, worldPoint(origin, p.x, p.z));
       }
+      const landing = localPoint(origin, spawn);
+      // Furnish the entrance's usable space first, including wide or offset source bodies.
+      candidates.sort((a, b) => Math.hypot(a.x - landing.x, a.z - landing.z) - Math.hypot(b.x - landing.x, b.z - landing.z) || a.z - b.z || a.x - b.x);
       const standing = [];
       function place(kind, w, d, h, color, activity, roomKind) {
         // Every fixture has a directly reachable approach, preserving an open walking spine.

@@ -27,6 +27,8 @@ function check(map, entry, safe = false) {
       z: fixture.z - Math.sin(fixture.yaw) * dx + Math.cos(fixture.yaw) * dz };
     assert(shell.canOccupy(corner, .1), `${fixture.kind} corners remain in the source shell`);
   }
+  const useful = plan.furniture.filter(f => ['sofa', 'kitchen-bench', 'bed'].includes(f.kind));
+  assert(useful.some(f => Math.hypot(f.x - plan.spawn.x, f.z - plan.spawn.z) <= 8), `${plan.id} usable room furniture is near its entrance`);
   assert(collider.canOccupy(plan.spawn), `${plan.id} has a clear physical landing`);
   assert(collider.canOccupy(plan.exit), `${plan.id} exit has a clear standing pose`);
   assert(!collider.canOccupy(outside), 'outside cannot occupy interior');
@@ -71,7 +73,15 @@ actual.interiorEntries = exterior.entries;
 const entries = createInteriors(actual).entries;
 assert(entries.length > 100);
 for (const entry of entries.slice(0, 12)) check(actual, entry);
+// Captured rendered runtime door after street-roof/shopping classification, which differs
+// from the base-only neighbourhood descriptor order used by the twelve-house sweep.
+const wideBuilding = actual.buildings.find(b => b.id === 'act-127791-1');
+assert(wideBuilding);
+const wideYaw = -.1320966284643953;
+const wideFixture = { buildings: [wideBuilding], interiorEntries: [{ buildingId: wideBuilding.id,
+  x: 1166.7510740468897, z: -205.62860606718434, nx: Math.sin(wideYaw), nz: Math.cos(wideYaw) }] };
+check(wideFixture, createInteriors(wideFixture).entries[0]);
 actual.storyHomes = { basement: { roomId: entries[0].id, buildingId: entries[0].buildingId, name: "Milo's safehouse" } };
 check(actual, entries[0], true);
 exterior.dispose(); assert.equal(exteriorScene.children.length, 0);
-console.log('PASS house source footprints: exact exterior vertices/area, concave outside collision, reachable furniture tasks, safe ledger, one-draw polygon floor and deterministic disposal; 12 actual rendered house doors');
+console.log('PASS house source footprints: exact exterior vertices/area, concave outside collision, reachable furniture tasks, safe ledger, one-draw polygon floor and deterministic disposal; 12 actual rendered house doors plus native wide-house entrance');
