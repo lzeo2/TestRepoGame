@@ -49,3 +49,30 @@ assert(burglary.start(house,outside));burglary.step(.1,{}, {...outside,onFoot:fa
 const challenge=createVehicleChallenge();
 for(const [kind,count,cue] of [['car',8,1],['scooter',4,1.4]]) {challenge.clear();assert(challenge.start(kind,{targetId:'v',anchor:{x:0,z:0},sandbox:false}));assert.equal(challenge.snapshot().sequence.length,count);assert.equal(challenge.snapshot().cueWindow,cue);}
 console.log('Capital burglary physical admission, lock timing, one-entry permit and stock receipt validation passed');
+
+// The production activities owner retains increasing IDs across room loads.
+// Explore 100 houses, leave most receipts unclaimed, and replay an old terminal.
+const exploration=createBurglary({canApproach:()=>true});
+function enterFixture(id) {
+  assert(exploration.start({...house,id},outside));solve(exploration);
+  assert(exploration.consumeEntry(id,outside));
+  const station={id:`${id}-valuables`,kind:'stock',x:2,z:3,radius:1.8};
+  assert(exploration.entered({id,type:'house',activities:[station]}));
+  return {station,ctx:{...inside,planId:id}};
+}
+let firstCompletion;
+for(let i=0;i<100;i++) {
+  const id=`house-exploration-${i}`,{station,ctx}=enterFixture(id);
+  const event={type:'complete',kind:'stock',planId:id,sessionId:i+1,id:station.id,station,sandbox:false};
+  const terminal={...event,phase:'complete'};
+  assert(exploration.recordLoot(event,terminal,ctx));
+  assert.equal(exploration.snapshot().pendingLootRoomId,id);
+  if(!i)firstCompletion={event,terminal};
+  if(i===99)assert.equal(exploration.takeHouseLoot(id,ctx).serial,100,'receipt numbering survives room cleanup');
+  exploration.leave();assert.equal(exploration.snapshot().pendingLootRoomId,null,'leaving discards unclaimed transient loot');
+  assert.equal(exploration.takeHouseLoot(id,ctx),null);
+}
+const again=enterFixture('house-exploration-0');
+assert.equal(exploration.recordLoot(firstCompletion.event,firstCompletion.terminal,again.ctx),false,'old terminal stays rejected after 100 other rooms');
+assert(exploration.drainEvents().length<=32,'undrained diagnostics remain bounded');
+console.log('Capital burglary 100-house transient cleanup and cross-room old-session replay checks passed');
