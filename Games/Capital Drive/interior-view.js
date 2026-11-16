@@ -32,7 +32,21 @@ export function createInteriorView(scene) {
         width, height, depth, item.yaw, color);
     }
     const o = plan.origin, c = Math.cos(o.yaw), s = Math.sin(o.yaw);
-    box(o.x + s * plan.depth / 2, plan.floorY - 0.08, o.z + c * plan.depth / 2,
+    if (plan.footprint) {
+      const contour = plan.footprint.map(p => new THREE.Vector2(p.x, p.z));
+      const triangles = THREE.ShapeUtils.triangulateShape(contour, []), positions = [];
+      for (const triangle of triangles) for (const index of [triangle[0], triangle[2], triangle[1]]) {
+        const p = plan.footprint[index];
+        positions.push(o.x + c * p.x + s * p.z, plan.floorY, o.z - s * p.x + c * p.z);
+      }
+      const floor = new THREE.BufferGeometry();
+      floor.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      floor.setIndex(Array.from({ length: positions.length / 3 }, (_, i) => i));
+      floor.computeVertexNormals();
+      // Match the box batches' attribute schema for the one-draw merge.
+      floor.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(positions.length / 3 * 2), 2));
+      addGeometry(floor, 0xa88e70);
+    } else box(o.x + s * plan.depth / 2, plan.floorY - 0.08, o.z + c * plan.depth / 2,
       plan.width, 0.16, plan.depth, o.yaw, plan.type === 'house' ? 0xa88e70 : 0xb3b1a0);
     for (const room of plan.rooms || []) {
       const color = { living: 0xaa9c84, kitchen: 0xb8b6a4, bedroom: 0x9b9e90, bathroom: 0xb2c1bb,
