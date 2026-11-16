@@ -53,7 +53,7 @@ class SpatialGrid {
 }
 
 // Shared OSM node IDs connect ways. Coordinate keys also join clipped/fallback data.
-export function buildRoadGraph(roads) {
+export function buildRoadGraph(roads, { excludeSegment = () => false } = {}) {
   const nodes = new Map(), edges = [], segments = [];
   const coordinates = new Map();
   function nodeFor(road, i) {
@@ -77,6 +77,7 @@ export function buildRoadGraph(roads) {
       if (from === to) continue;
       const segment = { road, a: road.points[i], b: road.points[i + 1], index: i, edges: [] };
       segments.push(segment);
+      if (excludeSegment(segment)) continue;
       if (road.oneway !== -1) addEdge(from, to, road, segment, 1);
       if (road.oneway !== 1) addEdge(to, from, road, segment, -1);
     }
@@ -133,8 +134,42 @@ function insideRing(x,z,points){
   return inside;
 }
 
+// The retained Centre outline models its covered Bunda passage as a solid.
+// Keep that source geometry visible, but route around this proven mismatch,
+// Include source-adjacent approaches whose endpoints lie on the solid facade.
+function coveredCentreRoutingGuard(map) {
+  const building = (map.buildings || []).find(item => item.id === 'osm-46081156');
+  const covered = (map.roads || []).find(road => road.sourceId === 'way/347384260' && road.sourceTags?.covered === 'yes');
+  if (!building?.points?.length || building.type === 'roof' || !covered ||
+      (map.collisionReplacedBuildingIds || []).includes(building.id)) return () => false;
+  const approaches = new Set(['way/347384260', 'way/380074148', 'way/701312042']);
+  const rings = [building.points, ...(building.innerRings || []).map(hole => hole.points || hole)];
+  return segment => {
+    if (!approaches.has(segment.road.sourceId) || Number(segment.road.sourceTags?.layer || 0) > 0 || segment.road.sourceTags?.bridge === 'yes') return false;
+    const [ax, az] = segment.a, dx = segment.b[0] - ax, dz = segment.b[1] - az, cuts = [0, 1];
+    const onBoundary = (x, z) => rings.some(ring => ring.some((a, j) => projectSegment(x, z, a, ring[(j + 1) % ring.length]).distance < 1e-7));
+    // Both retained passage endpoints lie exactly on the solid facade. A car
+    // cannot occupy that shared node, so its connecting approach must close too.
+    if (onBoundary(ax, az) || onBoundary(segment.b[0], segment.b[1])) return true;
+    for (const ring of rings) for (let i = 0; i < ring.length; i++) {
+      const a = ring[i], b = ring[(i + 1) % ring.length], ex = b[0] - a[0], ez = b[1] - a[1];
+      const denominator = dx * ez - dz * ex;
+      if (Math.abs(denominator) < 1e-9) continue;
+      const t = ((a[0] - ax) * ez - (a[1] - az) * ex) / denominator;
+      const u = ((a[0] - ax) * dz - (a[1] - az) * dx) / denominator;
+      if (t > 0 && t < 1 && u >= 0 && u <= 1) cuts.push(t);
+    }
+    cuts.sort((a, b) => a - b);
+    return cuts.slice(1).some((end, i) => {
+      if (end - cuts[i] < 1e-9) return false;
+      const t = (cuts[i] + end) / 2, x = ax + dx * t, z = az + dz * t;
+      return onBoundary(x, z) || (insideRing(x, z, building.points) && !rings.slice(1).some(ring => insideRing(x, z, ring)));
+    });
+  };
+}
+
 export function createSimulation(map, options = {}) {
-  const graph = buildRoadGraph(map.roads || []);
+  const graph = buildRoadGraph(map.roads || [], { excludeSegment: coveredCentreRoutingGuard(map) });
   const trafficLights = createTrafficLights(map, graph, options.trafficSignals || map.trafficSignals);
   const roadIndex = new SpatialGrid(80), buildingIndex = new SpatialGrid(48), waterIndex = new SpatialGrid(128), barrierIndex = new SpatialGrid(32);
   const replacedColliders=new Set(map.collisionReplacedBuildingIds||[]);
