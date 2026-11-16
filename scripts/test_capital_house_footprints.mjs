@@ -22,7 +22,7 @@ function check(map, entry, safe = false) {
   }
   const collider = createInteriorCollider(plan), navigation = createInteriorNavigation(plan);
   const shell = createInteriorCollider({ ...plan, walls: [], furniture: [] });
-  for (const fixture of plan.furniture) for (const dx of [-fixture.width / 2, fixture.width / 2]) for (const dz of [-fixture.depth / 2, fixture.depth / 2]) {
+  for (const fixture of [...plan.furniture, ...(plan.details || [])]) for (const dx of [-fixture.width / 2, fixture.width / 2]) for (const dz of [-fixture.depth / 2, fixture.depth / 2]) {
     const corner = { x: fixture.x + Math.cos(fixture.yaw) * dx + Math.sin(fixture.yaw) * dz,
       z: fixture.z - Math.sin(fixture.yaw) * dx + Math.cos(fixture.yaw) * dz };
     assert(shell.canOccupy(corner, .1), `${fixture.kind} corners remain in the source shell`);
@@ -35,6 +35,8 @@ function check(map, entry, safe = false) {
   assert.equal(stock.label, safe ? 'Pack the ledger case' : 'Search for valuables');
   if (safe) assert(!plan.activities.some(s => s.id.endsWith('-valuables')));
   for (const station of plan.activities) {
+    const matching = { tv: 'television', cooking: 'kitchen-bench', rest: 'bed' }[station.kind];
+    if (matching) assert([...plan.furniture, ...(plan.details || [])].some(f => f.kind === matching && Math.hypot(f.x - station.x, f.z - station.z) < 2), `${station.kind} has its visible nearby prop`);
     assert(collider.canOccupy(station), `${station.id} has player clearance`);
     assert(navigation.nextWaypoint(plan.spawn, station), `${station.id} is physically reachable`);
     assert(plan.furniture.some(f => Math.hypot(f.x - station.x, f.z - station.z) < 2), 'task is beside furniture');

@@ -492,12 +492,22 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       // Mission/search furniture is placed first, so decoration can never displace its approach.
       if (storyHome) place('ledger-case', .65, .5, .68, 0x5c7067, ['stash', 'stock', 'Pack the ledger case']);
       else place('wardrobe', .7, .8, 1.8, 0x977e60, ['valuables', 'stock', 'Search for valuables']);
-      place('sofa', 1.05, 1.8, .85, 0x7d8a76, ['television', 'tv', 'Watch the television'], 'living');
+      const sofa = place('sofa', 1.05, 1.8, .85, 0x7d8a76, ['television', 'tv', 'Watch the television'], 'living');
+      if (sofa) {
+        const p = localPoint(origin, sofa), task = activities.find(s => s.kind === 'tv');
+        const side = localPoint(origin, task).x > p.x ? 1 : -1;
+        // A supported screen over the sofa's rear edge uses its existing floor footprint.
+        box(details, 'television', p.x - side * .35, p.z, .75, .09, .5, 0x343a39, 1.2, side * Math.PI / 2);
+      }
       place('kitchen-bench', .85, 1.8, .92, 0xb8ad92, ['cooking', 'cooking', 'Cook at the kitchen bench'], 'kitchen');
       place('bed', 1.5, 2, .6, 0xb3c1c2, ['rest', 'rest', 'Rest beside the bed'], 'bedroom');
-      place('bath', 1, 1.7, .6, 0xd8dfd8, null, 'bathroom');
-      place('basin', .6, .4, .9, 0xd8dfd8);
-      place('television', .7, .25, 1.15, 0x343a39);
+      const bath = place('bath', 1, 1.7, .6, 0xd8dfd8, null, 'bathroom');
+      const basin = place('basin', .6, .4, .9, 0xd8dfd8);
+      if (bath && !basin) {
+        const p = localPoint(origin, bath);
+        // Compact washbasin on the bath's head-end ledge, wholly over its solid footprint.
+        box(details, 'basin', p.x, p.z - .55, .6, .4, .18, 0xd8dfd8, .67);
+      }
       Object.assign(exit, { x: spawn.x, z: spawn.z });
     }
     if (footprint) {
