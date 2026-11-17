@@ -2234,7 +2234,7 @@ function animate(time) {
   const renderDt = Math.min(.1, (time - (lastRender || time)) / 1000); lastRender = time;
   const p = focus(), activeDt = paused()&&!tracking ? 0 : renderDt;
   atmosphereView?.update(atmosphere.snapshot(),p,{interior:!!interiors.active,quality});
-  droneView?.update(drone.snapshot());securityCamerasView?.update(securityCameras.snapshot(),p,interiors.active?.id||null);
+  droneView?.update(drone.snapshot(),{firstPerson:droneActive});securityCamerasView?.update(securityCameras.snapshot(),p,interiors.active?.id||null);
   ordnanceView?.update(ordnance.snapshot(),p,{interiorId:null});
   indoorOrdnanceView?.update(ordnance.snapshot(),p,{interiorId:interiors.active?.id||null});
   vehicleDamageView?.update(vehicleDamage.snapshot(),playerMesh,{interiorId:interiors.active?.id||null});

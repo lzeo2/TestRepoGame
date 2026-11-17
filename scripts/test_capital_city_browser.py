@@ -215,7 +215,7 @@ def main():
         capture('01-native-hired-guard')
         phone('drone')
         page.locator('#city-drone-launch').click()
-        launched = wait(lambda s: s['drone']['state']['active'] and s['drone']['view']['visible'] == 1, 'Native phone launches one rendered drone')
+        launched = wait(lambda s: s['drone']['state']['active'] and s['drone']['view']['meshes'] == 1 and s['drone']['view']['visible'] == 0 and s['drone']['view']['drawCalls'] == 0, 'Native phone launches drone with own hull hidden from its camera')
         body = launched['focus']
         focus()
         keys(['w', 'Space'])
