@@ -262,3 +262,23 @@ the captured actual exterior/seat location and checked nearby roads, not a fixed
 distant district. For all-mission audits retain normal prefix fixtures, actual
 domain action inputs, route/clearance holds and explicit police/travel assumptions.
 Never turn source-domain passes or assumed-speed margins into22native wins.
+
+
+For the current flamegraph, engine replay, escape-arrival and fitted-yard workflow,
+read `docs/verification/capital-drive-flame-escape-2026-11-17.md` and the
+[profiling procedure](references/workflow.md#flamegraphs-and-paired-engine-replays).
+Use `analyse_capital_profile.py` on retained raw CPU profiles and
+`profile_capital_collision.mjs` against exact source exports. Keep paired harness
+bytes/options equal and compare complete state checksums before claiming speedups.
+Allocation sampling is a separate continuation after CPU/timing capture, not a
+live-heap total or leak verdict. Engine-only supplied time is not native driving
+or rendered performance; preserve the browser sustained-driving gate and CPU/GPU
+limitations. Static body broad-phase reductions must retain every original body
+sample, inclusive per-sample bounds, live polygon reads and pure bridge exemption.
+
+Escape arrival is transient attempt/stage state: reach the actual target under
+its mode/health/stop guards, then clear the real search and satisfy its hold. Reset
+arrival on stage advance/retry; never turn a stale receipt or cleared wanted level
+alone into completion. Fitted rear gardens remain procedural inference around
+source footprints, not observed cadastral boundaries. Preserve source geometry,
+physical fences, real door approaches, deterministic regeneration and bounded cost.

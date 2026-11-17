@@ -859,3 +859,82 @@ Preview-only stops after actual entry/walking/rendering; it proves no loot or
 escape. A full burglary run must retain actual arrest/recovery as an interrupted
 attempt, rather than continuing to steer the released car toward an indoor target.
 Never give immunity or remove police/collision to obtain a screenshot or a win.
+
+
+## Flamegraphs and paired engine replays
+
+Read the [17 November receipt](../../../../docs/verification/capital-drive-flame-escape-2026-11-17.md)
+for the retained run, exact revisions and limitations. Read current tools before
+reusing commands. Keep raw `.cpuprofile` files, source dependency hashes, harness
+SHA256, options, initial/final state and checksum cadence with every pair. Use
+fresh external output directories; retain failed attempts. Run each heavy command
+sequentially on the shared CPU lease, including source gates and browsers.
+
+The analyzer weights samples by their recorded `timeDeltas`, emits standalone
+local HTML plus JSON, and supplies zoom/search and bottom-up totals. Inspect
+self time and call stacks together. Inclusive frame sums can count recursive
+frames repeatedly; they are not additive exclusive costs. Unattributed `(program)`
+and idle time must stay unattributed. A wide frame identifies measured work,
+not proof that a proposed change is correct or faster.
+
+```sh
+python3 -B scripts/analyse_capital_profile.py ../capital-drive-evidence/browser-baseline/telopea-initial.cpuprofile --output ../capital-drive-evidence/browser-baseline/telopea-flame.html
+node --expose-gc scripts/profile_capital_collision.mjs --root ../capital-drive-evidence/baseline-export --output ../capital-drive-evidence/engine-baseline --frames 18000 --seed 20261117 --allocation-frames 600
+node --expose-gc scripts/profile_capital_collision.mjs --root ../capital-drive-evidence/candidate-export --output ../capital-drive-evidence/engine-candidate --frames 18000 --seed 20261117 --allocation-frames 600
+node scripts/test_capital_static_body_queries.mjs
+node scripts/test_capital_static_body_queries.mjs --actual
+```
+
+The paired engine commands deliberately use the same current harness and distinct
+exact source roots. Export its required fixture scripts and their dependency
+closure, local map sidecars and fleet modules as well as Simulation. Validate
+export bytes against the intended revisions before running; dependency hashes,
+rather than a guessed checkout HEAD, establish identity. Match seed, origin
+selection, frame count and all controls. Compare per-origin initial state,
+positions, complete scalar vehicle state/edge IDs, final state and stateChecksum.
+The checksum includes periodic samples, so retain its cadence; it is not a
+per-step exhaustive equivalence proof. Keep the pinned differential regression
+for exact occupancy and swept trajectories, water holes, bridge levels, live
+people/vehicles/polygon mutations and out-of-world negative controls.
+
+The engine workload starts independent Telopea, Commonwealth Bridge and Civic
+origins. At 18000 fixed steps it supplies 300 simulation seconds per origin;
+report actual process/wall duration separately. It has no renderer, GPU, native
+input or pedestrian AI, uses fixed standing collision bodies, and does not
+establish five minutes of human driving. Retain the fixture exclusions and any
+canonical recovery. Use the existing sustained browser procedure to measure
+rendered driving, supplied active time, frame counts and bridge returns.
+
+CPU timing/checksum capture ends before the optional allocation phase. The
+`--allocation-frames` continuation writes `.heapprofile` and sampled allocation
+stacks; use zero to omit it. Keep its actual sampling interval and whether the
+runtime accepted collected-object flags. These are statistical allocation
+estimates, distinct from live heap, retained RAM, GPU bytes or exact total
+allocation. Forced GC runs between measured phases, not inside sampling. A
+post-GC heap observation alone cannot establish an unbounded leak.
+
+Browser CPU profiles cover sampled renderer-thread work. Process CPU/RSS may
+include graphics and software rasterization; neither is GPU timing. ScriptDuration
+per actual render, frame intervals, render counts and wall duration answer
+different questions. SwiftShader/cloud results do not certify Intel N100 FPS or
+8 GB device behavior. Preserve collision/population and source geometry rather
+than trading correctness for a lower profile bar.
+
+## Escape arrival and inferred rear gardens
+
+Escape arrival belongs to one current attempt and stage. Test reaching its real
+target while wanted, departure while clearing the search, and completion only
+after the authored clear/hold conditions. Keep target foot/drive/health/stop
+admission, wanted-history requirements, outdoor checks and reset on stage advance
+or retry. Returning to an already reached target is unnecessary, but clearing
+wanted without ever reaching it cannot complete the objective. Retain stale
+attempt, timeout/recovery and once-only reward controls; owner tests are separate
+from native travel, survival and earned campaign completion.
+
+Rear gardens are procedural inference fitted around mapped source obstacles.
+Do not label inferred fences as observed property lines or change a building
+footprint to fit a yard. Test full fence polygons against source structures and
+other fences, retain every actual door approach, and compare deterministic entry,
+fence and geometry output after disposal/rebuild. Keep the bounded geometry and
+initialization costs visible. A source-fit test does not prove every native
+route, source accuracy or whole-city visual acceptance.
