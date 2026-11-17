@@ -148,7 +148,9 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
       const a = road.points[i - 1], b = road.points[i];
       if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 0.2) continue;
       const profile = roadProfile(road);
-      const item = { a, b, road, width: profile.driveWidth, profile };
+      const width = profile.driveWidth, length = Math.hypot(b[0]-a[0],b[1]-a[1]);
+      const ox = -(b[1]-a[1])/length*(width/2+2.5), oz = (b[0]-a[0])/length*(width/2+2.5);
+      const item = { a, b, road, width, profile, points: [[a[0]-ox,a[1]-oz],[b[0]-ox,b[1]-oz],[b[0]+ox,b[1]+oz],[a[0]+ox,a[1]+oz]] };
       segments.push(item); indexItem(roadIndex, item, [a, b], 15);
     }
   }
@@ -298,7 +300,8 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     // A narrow pavement connects a real kerb to a real building face.
     groundStrip([f.start.x, f.start.z], [f.face.x, f.face.z], isShop ? 1.8 : 2.8, seed % 3 ? PALETTE.concrete : 0xa39481);
     stats.driveways++;
-    indexItem(drivewayIndex, { a: [f.start.x, f.start.z], b: [f.face.x, f.face.z] }, [[f.start.x, f.start.z], [f.face.x, f.face.z]], 3);
+    const drivePoints = [[f.start.x-tangentX*1.6,f.start.z-tangentZ*1.6],[f.face.x-tangentX*1.6,f.face.z-tangentZ*1.6],[f.face.x+tangentX*1.6,f.face.z+tangentZ*1.6],[f.start.x+tangentX*1.6,f.start.z+tangentZ*1.6]];
+    indexItem(drivewayIndex, { a: [f.start.x,f.start.z], b: [f.face.x,f.face.z], points: drivePoints }, drivePoints, 1);
     // Doors sit just outside the imported facade, with a light frame behind.
     const dx = f.face.x - f.nx * 0.08, dz = f.face.z - f.nz * 0.08;
     solid(box, dx, floor + 1.06, dz, 1.13, 2.16, 0.12, PALETTE.frame, yaw);
@@ -356,10 +359,28 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     if (!isShop && !apartment && /^(house|residential|detached|yes)$/.test(building.type || '') && stats.backyards < 650 && backyardBudgetTriangles < BACKYARD_TRIANGLE_LIMIT - 206) {
       const clear = (x, z) => !inRoad(x, z, 2.5) && !inPark(x, z) && !inBuilding(x, z) &&
         !nearby(gardenIndex, x, z).some(a => inside(x, z, a.points)) &&
+        !nearby(drivewayIndex, x, z).some(a => inside(x, z, a.points)) &&
         !(map.landmarkTreeExclusions || []).some(points => inside(x, z, points)) &&
         (!map.bounds || (x > map.bounds.minX && x < map.bounds.maxX && z > map.bounds.minZ && z < map.bounds.maxZ));
-      let garden = replaying ? gardenPlans.get(building) : rearGarden(building, f, character, clear);
-      if (!replaying && garden && (overlapsOutline(garden.corners, garden.corners, buildingIndex) || overlapsOutline(garden.corners, garden.corners, parkIndex))) garden = null;
+      let garden = replaying ? gardenPlans.get(building) : null;
+      if (!replaying) {
+        // No parcel data is available: trim an inferred rear rectangle against
+        // source obstacles instead of discarding every partially constrained lot.
+        const initial = rearGarden(building, f, character, () => true);
+        if (initial) fit: for (const scale of [1, .8, .6]) {
+          const width = initial.width * scale;
+          if (width < 4) continue;
+          for (let depth = initial.depth; depth >= 3; depth -= 1) {
+            const point = initial.point, corners = [point(-width/2,0),point(width/2,0),point(width/2,depth),point(-width/2,depth)];
+            const envelope = [point(-width/2-.1,-.1),point(width/2+.1,-.1),point(width/2+.1,depth+.1),point(-width/2-.1,depth+.1)];
+            const samples = [...envelope];
+            for (let u=0;u<=Math.ceil(width);u++) for (let v=0;v<=Math.ceil(depth);v++) samples.push(point(-width/2+width*u/Math.ceil(width),depth*v/Math.ceil(depth)));
+            if (samples.some(p => !clear(...p))) continue;
+            if ([buildingIndex,parkIndex,roadIndex,gardenIndex,drivewayIndex].some(index => overlapsOutline(envelope,samples,index))) continue;
+            garden = { width, depth, corners, point }; break fit;
+          }
+        }
+      }
       if (planning) gardenPlans.set(building, garden);
       if (garden) {
         const before = stats.triangles;
@@ -370,7 +391,11 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
         // The same four rectangles render and block movement. The rear gate is
         // a real 1.8m opening; the house side remains open for the front return.
         const fence = (id, u, v, width, depth) => {
-          gardenBox(u, v, width, character.fenceHeight, depth, character.id === 'narrabundah' ? 0x827d6d : PALETTE.timber);
+          // Pale masonry suits the recorded Red Hill setback; restrained
+          // weathered timber/grey fencing remains an interpretation elsewhere.
+          const masonry = character.id === 'redhill' || (character.id === 'kingston' && seed % 3 === 0);
+          const tint = masonry ? [0xc7c1ab,0xb9af99][seed%2] : [0x827d6d,PALETTE.timber,0x777d73][seed%3];
+          gardenBox(u, v, width, masonry ? character.fenceHeight : Math.max(1.2,character.fenceHeight), depth, tint);
           if (!replaying) backyardBarriers.push(Object.freeze({
             id: `backyard-${building.id}-${id}`, buildingId: building.id, type: 'fence',
             points: Object.freeze([[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b]) => Object.freeze(garden.point(u+a*width/2,v+b*depth/2)))),
