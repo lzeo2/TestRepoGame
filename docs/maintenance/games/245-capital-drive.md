@@ -15,6 +15,15 @@ artwork or branded vehicle assets are used.
 
 ## Implementation map
 
+The [17 November flamegraph/escape receipt](../../verification/capital-drive-flame-escape-2026-11-17.md)
+records fresh exact-source CPU/allocation comparisons, bounded faster police
+interceptors, eleven arrival-retaining escape stages and source-aware inferred
+rear gardens. The piloted drone hides its own hull from the first-person camera.
+GPS and world destination markers clear once an escape destination
+has genuinely been reached. New geography is deferred while target-device
+performance remains unverified. The existing lake/Civic/airport extent remains.
+
+
 The [city systems contract](../../capital-drive-city-systems-contract.md) records
 higher wanted thresholds, six ground officers, SWAT, temporary roadblocks, police
 spotting aircraft, fictional cameras, vehicle bullet/blast damage, owned safehouses,
@@ -811,9 +820,9 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The current reusable runner checks108 game JavaScript files and160 pure Node suites,
-four support-script syntax entries, two Python cache checks and whitespace (435 syntax/source
-commands), fails on missing files or command errors and bounds subprocess
+The current reusable runner checks108 game JavaScript files and166 pure Node suites,
+five support-script syntax entries, the flamegraph parser regression, two Python
+cache checks and whitespace (449 syntax/source commands), fails on missing files or command errors and bounds subprocess
 lifetimes. The [sustained bridge/recovery receipt](../../verification/capital-drive-sustained-bridges-2026-11-16.md)
 records its earlier source and profiling results; the [all-mission audit](../../verification/capital-drive-campaign-playability-2026-11-16.md)
 separates objective-chain passes from native completion and estimated difficulty.

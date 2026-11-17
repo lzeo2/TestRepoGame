@@ -225,6 +225,7 @@ def main():
             keys([])
         check(math.hypot(moved['focus']['x'] - body['x'], moved['focus']['z'] - body['z']) < 1e-6 and moved['gameplay']['health'] == launched['gameplay']['health'], 'Authoritative exposed body remains in place with unchanged health')
         check(moved['drone']['state']['battery'] < launched['drone']['state']['battery'], 'Actual supplied-time battery advances')
+        check(moved['drone']['view']['visible'] == 0 and moved['drone']['view']['drawCalls'] == 0, 'Piloted drone hull stays outside the camera view after actual movement')
         capture('02-native-drone-flight')
         pulse('o')
         wait(lambda s: not s['drone']['state']['active'] and s['drone']['view']['visible'] == 0, 'Native O recalls drone')
