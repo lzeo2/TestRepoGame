@@ -16,6 +16,14 @@ function vehicleSize(vehicle = {}, overrides = {}) {
   return { length: overrides.length ?? length, width: overrides.width ?? width };
 }
 
+// Keep the original four SAT dot products scalar; collision probes must not
+// allocate temporary axis/vector arrays for every nearby vehicle pair.
+function vehicleAxisOverlap(dx, dz, x, z, afx, afz, arx, arz, bfx, bfz, brx, brz, al, aw, bl, bw) {
+  return Math.abs(dx * x + dz * z) <
+    Math.abs(afx * x + afz * z) * al / 2 + Math.abs(arx * x + arz * z) * aw / 2 +
+    Math.abs(bfx * x + bfz * z) * bl / 2 + Math.abs(brx * x + brz * z) * bw / 2;
+}
+
 export function projectSegment(x, z, a, b) {
   const dx = b[0] - a[0], dz = b[1] - a[1];
   const t = clamp(((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1);
@@ -371,24 +379,35 @@ export function createSimulation(map, options = {}) {
     const radius = (al + aw + bl + bw) / 2, dx = a.x - b.x, dz = a.z - b.z;
     if (dx * dx + dz * dz > radius * radius) return false;
     if (!sameVehicleLevel(a,b)) return false;
-    const axes = [a.yaw || 0, b.yaw || 0].flatMap(yaw =>
-      [[-Math.sin(yaw), -Math.cos(yaw)], [Math.cos(yaw), -Math.sin(yaw)]]);
-    const af = [-Math.sin(a.yaw || 0), -Math.cos(a.yaw || 0)], ar = [-af[1], af[0]];
-    const bf = [-Math.sin(b.yaw || 0), -Math.cos(b.yaw || 0)], br = [-bf[1], bf[0]];
-    return axes.every(([x, z]) => Math.abs((a.x - b.x) * x + (a.z - b.z) * z) <
-      Math.abs(af[0] * x + af[1] * z) * al / 2 + Math.abs(ar[0] * x + ar[1] * z) * aw / 2 +
-      Math.abs(bf[0] * x + bf[1] * z) * bl / 2 + Math.abs(br[0] * x + br[1] * z) * bw / 2);
+    const afx = -Math.sin(a.yaw || 0), afz = -Math.cos(a.yaw || 0), arx = -afz, arz = afx;
+    const bfx = -Math.sin(b.yaw || 0), bfz = -Math.cos(b.yaw || 0), brx = -bfz, brz = bfx;
+    return vehicleAxisOverlap(dx, dz, afx, afz, afx, afz, arx, arz, bfx, bfz, brx, brz, al, aw, bl, bw) &&
+      vehicleAxisOverlap(dx, dz, arx, arz, afx, afz, arx, arz, bfx, bfz, brx, brz, al, aw, bl, bw) &&
+      vehicleAxisOverlap(dx, dz, bfx, bfz, afx, afz, arx, arz, bfx, bfz, brx, brz, al, aw, bl, bw) &&
+      vehicleAxisOverlap(dx, dz, brx, brz, afx, afz, arx, arz, bfx, bfz, brx, brz, al, aw, bl, bw);
   }
   function staticVehicleClear(pose, options = {}) {
     let { length, width } = vehicleSize(pose, options);
     if (!pose || ![pose.x, pose.z, pose.yaw, length, width].every(Number.isFinite) || length <= 0 || width <= 0) return false;
     length = clamp(length, 1, 16); width = clamp(width, 0.5, 4);
     const radius = width / 2, span = Math.max(0, length / 2 - radius), samples = Math.max(2, Math.ceil(span * 4));
+    const sin = Math.sin(pose.yaw), cos = Math.cos(pose.yaw);
+    const firstX = pose.x - sin * -span, firstZ = pose.z - cos * -span;
+    if (firstX < bounds.minX + radius || firstX > bounds.maxX - radius || firstZ < bounds.minZ + radius || firstZ > bounds.maxZ - radius) return false;
+    // One conservative square covers every original body-circle query. Filter
+    // its candidates against each circle's original inclusive query envelope;
+    // polygon geometry and bridge callbacks are still read at every sample.
+    const reach = radius + span * Math.max(Math.abs(sin), Math.abs(cos));
+    // Outward padding covers rounding when a sample lies on a query boundary.
+    const envelope = reach + Number.EPSILON * (Math.abs(pose.x) + Math.abs(pose.z) + reach + 1) * 4;
+    const candidates = [buildingIndex, barrierIndex, waterIndex].map(index => [index, index.query(pose.x, pose.z, envelope)]);
     for (let i = 0; i <= samples; i++) {
       const offset = -span + 2 * span * i / samples;
-      const x = pose.x - Math.sin(pose.yaw) * offset, z = pose.z - Math.cos(pose.yaw) * offset;
+      const x = pose.x - sin * offset, z = pose.z - cos * offset;
       if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return false;
-      for (const index of [buildingIndex, barrierIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
+      for (const [index, polygons] of candidates) for (const polygon of polygons) {
+        const box = index.extents.get(polygon);
+        if (box.maxX < x - radius || box.minX > x + radius || box.maxZ < z - radius || box.minZ > z + radius) continue;
         if (physicalContact(index,polygon,x,z,radius)) return false;
       }
     }

@@ -128,3 +128,32 @@ The seven-file startup allowlist, boot request, stored-map tests and offline
 evidence must agree. Reconcile the maintenance inventory only after committing
 the source. Preserve failed attempts and distinguish pure, native and device
 performance evidence.
+
+
+## Pursuit, escape and rear-garden continuation, 17 November 2026
+
+At three stars and above, fast visible road targets can trigger interceptor
+handling. Straight major-road caps rise to34/38/42m/s; residential caps remain
+26/28/30m/s. Upcoming graph bends lower the commanded speed. Hidden targets use
+the remembered search position rather than their live velocity. Ordinary low
+wanted pursuit, physical sweeps, officer limits and search cooling remain.
+
+Eleven escape stages retain an attempt-local arrival receipt after the genuine
+exterior approach. Police may then be lost elsewhere. The HUD says to lose the
+police and clears GPS/world destination markers. Fresh stages/retries reset the
+receipt; protected foot/stopped-car arrivals, meaningful vehicle deliveries,
+once-only rewards and legacy save prefixes remain guarded.
+
+Rear gardens now shrink around mapped buildings, roads, parks, driveways and
+previously admitted gardens. Red Hill uses a restrained pale masonry treatment
+informed by the existing pinned Pelsart reference; other boundaries use original
+weathered timber variation. Rendered fences and collision retain common corners
+and rear gates. These are inferred garden boundaries, not surveyed cadastral
+lots or reconstructions of private yards. All4,200 source entrance descriptors
+remain unchanged. No new geographic extent or imagery snapshot is added.
+See the [fresh receipt](verification/capital-drive-flame-escape-2026-11-17.md).
+
+
+The piloted drone hides its pooled hull in first-person camera mode, while flight,
+collision, exposed player body, resources and third-person model presentation
+remain intact. This avoids drawing the drone body across its own camera view.

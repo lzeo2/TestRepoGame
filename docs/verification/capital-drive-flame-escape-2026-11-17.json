@@ -1,0 +1,338 @@
+{
+  "baselineCommit": "5e1b05444b14cc1cca4a02acce6bd03331429097",
+  "candidateSourceMilestone": "7695cb3d",
+  "workload": "engine-only scripted physics, 18000 frames per origin, not native travel/GPU/N100",
+  "harnessSHA256": "aa93e095d637059b4b43d45f93da233a547e951b9f845320ea95c9acec02647f",
+  "parameters": {
+    "framesPerOrigin": 18000,
+    "allocationFramesPerOrigin": 600,
+    "seed": 20261117,
+    "dt": 0.016666666666666666,
+    "throttle": 0.35,
+    "steer": "sin(frame/180)*.12",
+    "brake": "frame%1800>=1740"
+  },
+  "baselineSourceHashes": {
+    "scripts/capital-campaign-fixture.mjs": "a045eb3a5d3856d381f7d9daa68c3e62a8eec8dc0fa27d9577fd09962b09fbc5",
+    "Games/Capital Drive/map-expansion.js": "fea4519aff488d056d1d6a6b3f8812e96e5393fa65a1030758b7b034cbc96637",
+    "Games/Capital Drive/street-assets.js": "4c6b9879ba12df37ab2e7706909fd20dc241eb6a751ad627fff8c8db6b1a7185",
+    "Games/Capital Drive/shopping-precincts.js": "2f77f5d6805624f81adad5479006a32edeb444d924f98d8244dc04244acd7acb",
+    "Games/Capital Drive/airport.js": "5243d109dbd22d80f10e239b9a59080a3c8cf246971357fc88e304eb23df19d0",
+    "Games/Capital Drive/terrain.js": "7dbb234f8cb0723bac822a23ea860bdb6fc25b56d00243eb2493e02a1a2354ec",
+    "Games/Capital Drive/road-network.js": "25b0e31cc7620fe165a8d2d58f59fc0561fb4f0a44c77a5b161101fe1dfda63a",
+    "Games/Capital Drive/stores.js": "dd6b18e55abe17f4e7cab00b004e296fb7853e54d1a1f16271b611271d399fbe",
+    "Games/Capital Drive/civic-extras.js": "6039671be66361e0e23a6ba41a1beaa720944b20d35c9049180a97ce6788c581",
+    "Games/Capital Drive/civic-view.js": "e2d2077947743031fa1740ac24ebf11d9f11822b1f6562747a3a38214ae54ccf",
+    "assets/car-arcade/vendor/three.module.js": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
+    "Games/Capital Drive/simulation.js": "4489d394eede09fda99bd5aff28ff6cdcac7beb51e5bf7f6e68b39097d922e87",
+    "Games/Capital Drive/covered-passage.js": "562c8d479c1aad62e60738b5699762ce2b4bd7028da7d289776b18ac33ae14f0",
+    "Games/Capital Drive/water-contact.js": "e667e50f9020b2d216b42fa6763d9c32d53f13b3b1bc84f68d0a78e26e6a79ed",
+    "Games/Capital Drive/traffic-lights.js": "687dcd2ad0c8bd68fe413a3385ddc1cd82bf6b61fb8dcd866347de57319bad81",
+    "assets/car-arcade/fleet.js": "4ee5fe5474fb0230b03bf3c96aaf64a85628d0120476110b83f2b617fd73198c",
+    "Games/Capital Drive/interiors.js": "268101c3c1e09db775a417b9d0bb0c9a155f921285ed445e2c7d37484e8249cc",
+    "Games/Capital Drive/interior-navigation.js": "e8e723d1888566061f9bedfc7000d8b67f4421bf90eacb58af75847e920865e8",
+    "Games/Capital Drive/neighbourhood.js": "7348abd70ac379c32bcb3772b302a3bf9f8c3ace21279fffc751cb611024752e",
+    "Games/Capital Drive/districts.js": "8125620d6dabbb9823373e127d691a633f5c16b18f548a87bc1410a5ac16e823",
+    "Games/Capital Drive/suburb-character.js": "0e71eafe81240d3f20cafa72e8846b2dc39f51f03917314a8ef26cfedc01f598",
+    "Games/Capital Drive/landmarks.js": "54f72b92ed201e6e517d0468c0865ed279f0d1abf3433600ef37677d2460b881",
+    "Games/Capital Drive/campus.js": "8f935ba956294cbd19fc757f1bb379fb9c9bbeb57b6c80ad39a7e55e60b428ea",
+    "Games/Capital Drive/highway-barriers.js": "7884cde51c6b98b7ab2ac837ac75aec85efc0eb25a760e259e07200d3e9070e5",
+    "Games/Capital Drive/mission-locations.js": "c071d42fec738151b5ca489c014f2f60cc2cc2c44dca11db15bedde883dceff7",
+    "Games/Capital Drive/campaign-scenes.js": "bcf56d4cf0e1d5a8b85fe893f7b463b14b286260acbdcbc3feac9bca503cfcd5",
+    "Games/Capital Drive/navigation.js": "c2839efabd976c152c8bf9716a3a97f79957a085bb4b37fc26e80b59560d44b8",
+    "Games/Capital Drive/parking-layout.js": "8eaab4d38a12e9e493042b1c8b3a28de2ee830823d25235db80603b3b5c68dd8",
+    "Games/Capital Drive/data/canberra.json": "f62bdacc290865799023f461b0be923d0fc48a8a7ca75fcfb241637c5790f425",
+    "Games/Capital Drive/data/canberra-north.json": "a42b7e6666432db0888321b63e9e7928f82aa57908dbfe23bc7e99fd0328c28a",
+    "Games/Capital Drive/data/road-profiles.json": "001e63dea5fe438abb52f33813ee3a01f5b4be36c7fe1792944c4f409c090ab6",
+    "Games/Capital Drive/data/north-terrain.json": "70436eff1c459de9f32fa04370204118b1305fd519aee156c3c37e85f05337fc",
+    "Games/Capital Drive/data/airport.json": "f2dea942c5a959ce77ad8646a124e87453c0ef59d72ba30c269bad7f95bf931a"
+  },
+  "candidateSourceHashes": {
+    "scripts/capital-campaign-fixture.mjs": "a045eb3a5d3856d381f7d9daa68c3e62a8eec8dc0fa27d9577fd09962b09fbc5",
+    "Games/Capital Drive/map-expansion.js": "fea4519aff488d056d1d6a6b3f8812e96e5393fa65a1030758b7b034cbc96637",
+    "Games/Capital Drive/street-assets.js": "4c6b9879ba12df37ab2e7706909fd20dc241eb6a751ad627fff8c8db6b1a7185",
+    "Games/Capital Drive/shopping-precincts.js": "2f77f5d6805624f81adad5479006a32edeb444d924f98d8244dc04244acd7acb",
+    "Games/Capital Drive/airport.js": "5243d109dbd22d80f10e239b9a59080a3c8cf246971357fc88e304eb23df19d0",
+    "Games/Capital Drive/terrain.js": "7dbb234f8cb0723bac822a23ea860bdb6fc25b56d00243eb2493e02a1a2354ec",
+    "Games/Capital Drive/road-network.js": "25b0e31cc7620fe165a8d2d58f59fc0561fb4f0a44c77a5b161101fe1dfda63a",
+    "Games/Capital Drive/stores.js": "dd6b18e55abe17f4e7cab00b004e296fb7853e54d1a1f16271b611271d399fbe",
+    "Games/Capital Drive/civic-extras.js": "6039671be66361e0e23a6ba41a1beaa720944b20d35c9049180a97ce6788c581",
+    "Games/Capital Drive/civic-view.js": "e2d2077947743031fa1740ac24ebf11d9f11822b1f6562747a3a38214ae54ccf",
+    "assets/car-arcade/vendor/three.module.js": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
+    "Games/Capital Drive/simulation.js": "a6d280174feebb97a72485927a5f96fb3acced4031ee6ca98144951eda014b41",
+    "Games/Capital Drive/covered-passage.js": "562c8d479c1aad62e60738b5699762ce2b4bd7028da7d289776b18ac33ae14f0",
+    "Games/Capital Drive/water-contact.js": "e667e50f9020b2d216b42fa6763d9c32d53f13b3b1bc84f68d0a78e26e6a79ed",
+    "Games/Capital Drive/traffic-lights.js": "687dcd2ad0c8bd68fe413a3385ddc1cd82bf6b61fb8dcd866347de57319bad81",
+    "assets/car-arcade/fleet.js": "4ee5fe5474fb0230b03bf3c96aaf64a85628d0120476110b83f2b617fd73198c",
+    "Games/Capital Drive/interiors.js": "268101c3c1e09db775a417b9d0bb0c9a155f921285ed445e2c7d37484e8249cc",
+    "Games/Capital Drive/interior-navigation.js": "e8e723d1888566061f9bedfc7000d8b67f4421bf90eacb58af75847e920865e8",
+    "Games/Capital Drive/neighbourhood.js": "7348abd70ac379c32bcb3772b302a3bf9f8c3ace21279fffc751cb611024752e",
+    "Games/Capital Drive/districts.js": "8125620d6dabbb9823373e127d691a633f5c16b18f548a87bc1410a5ac16e823",
+    "Games/Capital Drive/suburb-character.js": "0e71eafe81240d3f20cafa72e8846b2dc39f51f03917314a8ef26cfedc01f598",
+    "Games/Capital Drive/landmarks.js": "54f72b92ed201e6e517d0468c0865ed279f0d1abf3433600ef37677d2460b881",
+    "Games/Capital Drive/campus.js": "8f935ba956294cbd19fc757f1bb379fb9c9bbeb57b6c80ad39a7e55e60b428ea",
+    "Games/Capital Drive/highway-barriers.js": "7884cde51c6b98b7ab2ac837ac75aec85efc0eb25a760e259e07200d3e9070e5",
+    "Games/Capital Drive/mission-locations.js": "c071d42fec738151b5ca489c014f2f60cc2cc2c44dca11db15bedde883dceff7",
+    "Games/Capital Drive/campaign-scenes.js": "bcf56d4cf0e1d5a8b85fe893f7b463b14b286260acbdcbc3feac9bca503cfcd5",
+    "Games/Capital Drive/navigation.js": "c2839efabd976c152c8bf9716a3a97f79957a085bb4b37fc26e80b59560d44b8",
+    "Games/Capital Drive/parking-layout.js": "8eaab4d38a12e9e493042b1c8b3a28de2ee830823d25235db80603b3b5c68dd8",
+    "Games/Capital Drive/data/canberra.json": "f62bdacc290865799023f461b0be923d0fc48a8a7ca75fcfb241637c5790f425",
+    "Games/Capital Drive/data/canberra-north.json": "a42b7e6666432db0888321b63e9e7928f82aa57908dbfe23bc7e99fd0328c28a",
+    "Games/Capital Drive/data/road-profiles.json": "001e63dea5fe438abb52f33813ee3a01f5b4be36c7fe1792944c4f409c090ab6",
+    "Games/Capital Drive/data/north-terrain.json": "70436eff1c459de9f32fa04370204118b1305fd519aee156c3c37e85f05337fc",
+    "Games/Capital Drive/data/airport.json": "f2dea942c5a959ce77ad8646a124e87453c0ef59d72ba30c269bad7f95bf931a"
+  },
+  "comparison": [
+    {
+      "label": "Telopea",
+      "exactStateParity": true,
+      "baselineStepMs": {
+        "p50": 1.6156430000046385,
+        "p95": 2.939823000000615,
+        "p99": 5.39451199999894,
+        "sum": 33130.059367999944
+      },
+      "candidateStepMs": {
+        "p50": 1.3116229999995994,
+        "p95": 2.5192710000010266,
+        "p99": 4.774593000000095,
+        "sum": 27328.974907000138
+      },
+      "stepSumReductionPercent": 17.510033400673663,
+      "p95ReductionPercent": 14.305351036422964,
+      "baselineAllocationEstimate": 1443280968,
+      "candidateAllocationEstimate": 1113403560,
+      "allocationEstimateReductionPercent": 22.85607690490934
+    },
+    {
+      "label": "Commonwealth Bridge",
+      "exactStateParity": true,
+      "baselineStepMs": {
+        "p50": 1.8702879999982542,
+        "p95": 3.548740000005637,
+        "p99": 7.025205000012647,
+        "sum": 38405.810546001194
+      },
+      "candidateStepMs": {
+        "p50": 1.6272849999950267,
+        "p95": 2.859610999999859,
+        "p99": 6.139032999999472,
+        "sum": 33316.815746000706
+      },
+      "stepSumReductionPercent": 13.25058559538813,
+      "p95ReductionPercent": 19.418976876431728,
+      "baselineAllocationEstimate": 1331380712,
+      "candidateAllocationEstimate": 1023925648,
+      "allocationEstimateReductionPercent": 23.09294863812027
+    },
+    {
+      "label": "Civic",
+      "exactStateParity": true,
+      "baselineStepMs": {
+        "p50": 1.6612779999995837,
+        "p95": 2.973342999990564,
+        "p99": 6.301080999997794,
+        "sum": 34188.209702998865
+      },
+      "candidateStepMs": {
+        "p50": 1.42540100000042,
+        "p95": 2.375605999986874,
+        "p99": 5.217329999999492,
+        "sum": 28739.567889998347
+      },
+      "stepSumReductionPercent": 15.937195484449674,
+      "p95ReductionPercent": 20.10319697409908,
+      "baselineAllocationEstimate": 1297688280,
+      "candidateAllocationEstimate": 1000194696,
+      "allocationEstimateReductionPercent": 22.924887939960435
+    }
+  ],
+  "rawArtifacts": {
+    "baseline": {
+      "civic.cpuprofile": "fb0474146043b89e693994b392d66c338ce1f1bb783bf49a55983d1e24d6a1ab",
+      "civic.heapprofile": "9a640b0907ca0acadb236da84375583d23b175021874cac033497c733d0c5965",
+      "civic.html": "ef0d9dab28a656e5f92b6f951041acfd61abc06d449295796ab1b8519ea2a712",
+      "civic.json": "7f1400d5bc0872b20ccf8a2ee45a85113c1585e8dd550be7c201da5a2af6f48c",
+      "commonwealth-bridge.cpuprofile": "57073108953c22a4547e6cf926063755d6b8e4d6fdeb62c4180fabf09f01a896",
+      "commonwealth-bridge.heapprofile": "eedaedc00a8f387a02785638f40397ec5c8c809dc688a42a947bd2f5e53761af",
+      "commonwealth-bridge.html": "ad9fd88c56a78c64f3cb8a915dffade2071a5040a7b2e8c929ab7269e6d675f3",
+      "commonwealth-bridge.json": "f53e5a03e2365eee4209d48379babe14c6b7ad2249f7ed088d472fdb7ddf32fc",
+      "summary.json": "d0a0e35bcf3366ba29434affa6d8777f1324fdafdc7042192fdb1370e53d1dd9",
+      "telopea.cpuprofile": "eff8b70bb0b05096b85e4034dc317f64c99850d049e7806f56025982f6c9ee01",
+      "telopea.heapprofile": "518f4d39aeaaf370133ec138b9221f1cb15318308e57bd8915369e6ac467dbd9",
+      "telopea.html": "01167744df7096d0fabdf92194e4ef36f3c36d83d7c25b5c9400ab19753e174d",
+      "telopea.json": "d08164fa29bf2d86d14e84110bf37c57f6f720e061bbc42ec90c1eb986c62272"
+    },
+    "intermediate": {
+      "civic.cpuprofile": "5cf8d7fcaba6ef67da634cc69a436961a269e950d1e7cc168461cca5c84330f9",
+      "civic.heapprofile": "555ec2bd02d13f9bbfd894a7df3d4df058cb8e1c9aef242eda9cc4f3108ab438",
+      "civic.html": "516e12ef3dc868a238f20de3658c6c24e68a1817705ed90c6cdedff7f9924b41",
+      "civic.json": "54ddb87c8fbf31c552e6fa23f0851c8bf54d96cd15458104635891545c18f822",
+      "commonwealth-bridge.cpuprofile": "d36a5856554e36f95c7aa5d0ee73638f25d8171878f52ca3ff83960eea4876f3",
+      "commonwealth-bridge.heapprofile": "42eab30a84203d83f3adf74c29670ec3ca02ede99c2b2acba41082f2292b462c",
+      "commonwealth-bridge.html": "561d8ec965b9f16636fc12ed24a993f1a63de12312598787bafc336c020a8ce6",
+      "commonwealth-bridge.json": "56e22768fe3d57f9f329d1e06028372be53477c5e12f10189683d8cc8e98f4c7",
+      "comparison.json": "b538ab83bf3b9430e4f431e790d49aa18869b71805192f3f942e6aa18866b459",
+      "summary.json": "47ef83fb58a9b657ba3c3822f5872ca8d12cc3232248b13991cab44e14fd0b07",
+      "telopea.cpuprofile": "a948afca350ef52cacc72a29802af1587f7ffedd6e98ac30df3e14c5b8914fe1",
+      "telopea.heapprofile": "e48c960a7255e5844247ae6eae9448f87ef4521e4b78b91cbb6a4f1bfa946623",
+      "telopea.html": "a6d44e72d1865ec3b5a815c4d14a57b1e33021eca88561ba8e1184bd9e8046ca",
+      "telopea.json": "5f0c14d84b680d659646a59254b0390724b34231b8c8bbb7298612bba88c0bb7"
+    },
+    "final": {
+      "civic.cpuprofile": "97d9492ac54908162d6317883ec8c9d75cc5b2cf8e5514cf864b2f68e7d5859d",
+      "civic.heapprofile": "8237dc9a31f71a4447bc8250830fec311776202ed9a3cfc880c32ba02df348eb",
+      "civic.html": "5f8ec0594b2040a38f0a525102d1f389f9552c7a1ef5743126eaa1a4a4e82bac",
+      "civic.json": "e97da90b41c7e49865a4ca16f63ee6387dd09ee5637f6e22bbc84ef3f43b05c1",
+      "commonwealth-bridge.cpuprofile": "36b479c52560bf1e10c2d44dc6c72da93b3f6e6dd13341049bdb9e8e6de50aeb",
+      "commonwealth-bridge.heapprofile": "809958cefc846bba3a2415b6463496d2b0e2a339dc167df89ef748c6e24c3353",
+      "commonwealth-bridge.html": "d5ef7e74dfbe18b9cbfa813a4d26645a9619c07f6588b062f506cc103154a007",
+      "commonwealth-bridge.json": "6d6437b9a66e9a7c6ef8a5412f8edb69ae5f1d14afa739dfa37c1b566084de0e",
+      "comparison.json": "b99fbb4b9757e3a5e75476888d0a58054e5523d921161c1d79dffa6c056eb856",
+      "summary.json": "f41dfe732ee1e63dcd61d1794fd0ec14db9226a71af1d246e85098c47dc9b080",
+      "telopea.cpuprofile": "e9145143548649e4b91e48de9608414f1c6b01c9646b311bb8191e38fd131bd4",
+      "telopea.heapprofile": "2fb6ca07981313320b7caeed36ecce1715f1cc4572eb5223e9cb92f7610552c1",
+      "telopea.html": "e305966fe70fc4754f1b644bbb6ba650ac965a881ed3f1327877d6b36d100882",
+      "telopea.json": "8cdbc0f1797c6e037413d1200a1fb655fc5819dc2c2ecf7018985cb417a1dda9"
+    }
+  },
+  "fullBrowserSustained": {
+    "complete": true,
+    "quality": "performance",
+    "mode": "streaming-stress",
+    "sustained_wall_seconds": 387.10792808899714,
+    "simulation_clock_delta": 358.4500000000004,
+    "sources_unchanged": true,
+    "loaded_resources_unchanged": true,
+    "telopea_comparison": {
+      "position_delta": 0.0,
+      "yaw_delta": 0.0,
+      "exact_heading_expected": true,
+      "limitation": "Bridge driving changes heading; compare camera DTO before attributing draw-count changes"
+    },
+    "errors": [],
+    "request_failures": [],
+    "http_errors": [],
+    "external_requests": [],
+    "graphics": {
+      "webgl": true,
+      "width": 576,
+      "height": 360,
+      "cssWidth": 1280,
+      "cssHeight": 800,
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "vendor": "Google Inc. (Google)",
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "maxTextureSize": 8192,
+      "maxRenderbufferSize": 8192,
+      "maxViewportDims": [
+        8192,
+        8192
+      ]
+    },
+    "reportSHA256": "37e7c3cf913a3379897134258c24eaa34fc698309ae8acde0f219ad9f670c945",
+    "retained": [
+      {
+        "name": "telopea-initial",
+        "heapAfterGC": {
+          "usedSize": 249869044,
+          "totalSize": 252739584,
+          "embedderHeapUsedSize": 2708144,
+          "backingStorageSize": 44709856
+        },
+        "webglLogicalObjects": {
+          "buffer": {
+            "created": 520,
+            "deleted": 0,
+            "live": 520
+          },
+          "texture": {
+            "created": 9,
+            "deleted": 0,
+            "live": 9
+          },
+          "program": {
+            "created": 21,
+            "deleted": 0,
+            "live": 21
+          },
+          "vertexArray": {
+            "created": 97,
+            "deleted": 0,
+            "live": 97
+          }
+        },
+        "worldResidentBytes": 17984064,
+        "neighbourhoodResidentBytes": 1228272,
+        "occupantCache": 41
+      },
+      {
+        "name": "telopea-return",
+        "heapAfterGC": {
+          "usedSize": 251142280,
+          "totalSize": 255070208,
+          "embedderHeapUsedSize": 2405072,
+          "backingStorageSize": 45287410
+        },
+        "webglLogicalObjects": {
+          "buffer": {
+            "created": 2300,
+            "deleted": 1657,
+            "live": 643
+          },
+          "texture": {
+            "created": 9,
+            "deleted": 0,
+            "live": 9
+          },
+          "program": {
+            "created": 23,
+            "deleted": 0,
+            "live": 23
+          },
+          "vertexArray": {
+            "created": 576,
+            "deleted": 466,
+            "live": 110
+          }
+        },
+        "worldResidentBytes": 18517950,
+        "neighbourhoodResidentBytes": 1271688,
+        "occupantCache": 41
+      }
+    ],
+    "scope": "Collision/pursuit/yard candidate before isolated first-person drone-hull presentation fix; drone inactive throughout; export preserved unchanged."
+  },
+  "sourceGate": {
+    "passed": 449,
+    "planned": 449,
+    "logSHA256": "661235f47976e788fb548fb2db36e07839fe24445da397d65024b6c9fd7f3501"
+  },
+  "nativeCity": {
+    "checksPassed": 38,
+    "reportSHA256": "0bd3426cd268dd9f96c1862a14864e64b9e91c6a8cbd9587b6fa73bbe4df8b0d",
+    "priorWealthEquipmentFixture": true,
+    "earnedProgressClaim": false,
+    "runtimeMilestone": "18f06bc8b5d81f41291559b2e778faac342aa369",
+    "elapsedSeconds": 101.22
+  },
+  "campaignAudit": {
+    "missions": 22,
+    "domainStagesPassed": 65,
+    "completeOwnerChains": 22,
+    "reportSHA256": "a5b99b0f80b3c802d5304f10bea7f799a173d10006789b1d46dc999d41bbab18",
+    "nativeWins": false,
+    "preexistingDrivingEndpointHolds": [
+      "borrowed-wheels",
+      "across-the-water",
+      "home-by-the-lake"
+    ]
+  },
+  "finalRuntimeMilestone": "18f06bc8b5d81f41291559b2e778faac342aa369",
+  "nativeCityBeforeCameraFix": {
+    "checksPassed": 37,
+    "reportSHA256": "5a8bad52b78217682da8ea38b2a22f8c73fe36aa3ba5e0de26674745b60566ed",
+    "priorWealthEquipmentFixture": true,
+    "earnedProgressClaim": false
+  }
+}

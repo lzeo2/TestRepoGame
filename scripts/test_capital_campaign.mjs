@@ -582,7 +582,7 @@ assert.match(miloReload.current().briefing,/Press E beside your car to get in/);
 const finale = createCampaign(homeMap, { ...meetingSave, character: 'basement', meeting: true, completed: legacyIds.slice(0, 5) });
 assert.equal(finale.current().id, 'home-by-the-lake');
 assert.equal(finale.current().reward, 1200);
-assert.deepEqual(finale.current().stages.map(goal => goal.kind), ['drive', 'home-action', 'foot']);
+assert.deepEqual(finale.current().stages.map(goal => goal.kind), ['drive', 'home-action', 'escape']);
 assert.ok(finale.current().stages.every(goal => goal.label.includes('Dawes Street')), 'all finale objectives identify the actual supplied home street');
 assert.ok(finale.current().cutscene.lines.some(line => line.text.includes('Dawes Street')));
 finale.start({ ...ctx, homeAction: { ...homeAction, serial: 42 } });

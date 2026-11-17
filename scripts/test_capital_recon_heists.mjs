@@ -32,6 +32,7 @@ const kinds = [], receipts = { recon: { serial: 10 }, heist: { serial: 20 }, evi
 for (let index = 0; index < additions.length; index++) {
   assert(campaign.selectCharacter(['corporate', 'basement', 'student', 'corporate'][index], ctx).ok);
   const chapter = campaign.current(); assert.equal(chapter.id, additions[index]); kinds.push(chapter.stages.map(g => g.kind));
+  if (chapter.id === 'earmuffs-rematch') assert.equal(chapter.stages[1].foot, true, 'post-fight escape retains its on-foot completion rule');
   assert(campaign.start({ ...ctx, ...receipts }).ok); campaign.drainEvents();
   while (campaign.state.active) {
     const active = campaign.state.active, goal = active.target, stage = active.stage;
@@ -60,7 +61,7 @@ for (let index = 0; index < additions.length; index++) {
   const paid = campaign.drainEvents().filter(e => e.type === 'complete'); assert.equal(paid.length, 1); assert.equal(paid[0].id, chapter.id);
   campaign.update(.1, ctx); assert.deepEqual(campaign.drainEvents(), []);
 }
-assert.deepEqual(kinds, [['recon', 'recon'], ['recon', 'recon'], ['robbery', 'evidence', 'escape'], ['fight', 'foot']]);
+assert.deepEqual(kinds, [['recon', 'recon'], ['recon', 'recon'], ['robbery', 'evidence', 'escape'], ['fight', 'escape']]);
 assert.equal(campaign.current(), null); assert.deepEqual(campaign.serialize().completed, [...existing, ...additions]);
 const preview = createCampaign(map, saved); assert(preview.startDeveloper('sealed-account', { ...ctx, developer: true }).ok); preview.cancel(); assert.deepEqual(preview.serialize(), saved);
 console.log('Capital recon/heists: unchanged save prefixes, four ordered chapters, mapped scan guides, independent prep/action/getaway, fresh bound receipts, won fight and once-only rewards PASS');

@@ -17,7 +17,7 @@ Cookies and career localStorage are not used for game downloads.
 
 The worker installs the generated `cache-manifest.js`: the exact reachable local
 module/data/shell/style/font/favicon/attribution closure. The current manifest
-contains128files/17,270,462bytes. It includes seven runtime map JSON files totaling
+contains128files/17,276,970bytes. It includes seven runtime map JSON files totaling
 13,297,483bytes plus one credits-linked validation JSON. It does not blindly
 copy duplicate exports from the entire data directory. The large source map is
 7,791,998bytes; the north sidecar is3,065,485bytes.
@@ -237,3 +237,23 @@ Regenerate the manifest after the final runtime edits, then check it before
 committing. Its content-derived version must change with dependencies or worker
 logic. The profiler's2D control is explicitly labelled and never described as3D
 acceptance. Cloud SwiftShader/process CPU is not Intel N100 hardware evidence.
+
+
+## Body-query flamegraph continuation, 17 November 2026
+
+The [fresh receipt](verification/capital-drive-flame-escape-2026-11-17.md) compares
+an exact5e1b0544 export with a simulation-only overlay. Static car feasibility
+now queries one conservative body envelope, then retains every original circle
+sample and its inclusive AABB filter. Geometry and bridge callbacks stay live.
+The nearby-car SAT path also keeps its original four separating axes as scalar
+values, avoiding temporary vectors and callbacks. Differential state checks are
+authoritative; lower query counts alone are not
+speed evidence. The full release also changes yard geometry, so it is measured
+separately rather than called an identical physics workload.
+
+`scripts/profile_capital_collision.mjs` records deterministic source-hashed
+physics, per-step distributions, state checksums and separate sampled allocations.
+`scripts/analyse_capital_profile.py` turns Chrome/Node CPU samples into a local,
+searchable flamegraph and bottom-up table. Allocation sampling follows timing
+and checksum capture; its cumulative estimates are neither retained RAM nor GPU
+bytes. See the receipt and development skill for exact commands and limitations.

@@ -59,7 +59,8 @@ tick(foot, { ...context, wanted: 0, onFoot: false, pose: { ...foot.state.active.
 assert.equal(foot.state.active.target.kind, 'home-action');
 assert.equal(foot.canSwitchCompanion(foot.state.active.companions[0], switchContext(foot)), false);
 tick(foot, { ...context, wanted: 0, interior: { roomId: foot.state.active.target.roomId }, homeAction: { serial: 1, roomId: foot.state.active.target.roomId, outcome: 'packed' } });
-assert.equal(foot.state.active.target.kind, 'foot');
+assert.equal(foot.state.active.target.kind, 'escape');
+assert.equal(foot.state.active.target.foot, true, 'home departure remains an on-foot escape');
 assert.equal(foot.switchCompanion(foot.state.active.companions[0], switchContext(foot)).ok, true);
 
 const guarded = mission(3), guardedId = guarded.state.active.companions[0], valid = switchContext(guarded, guardedId);

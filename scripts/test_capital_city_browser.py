@@ -215,7 +215,7 @@ def main():
         capture('01-native-hired-guard')
         phone('drone')
         page.locator('#city-drone-launch').click()
-        launched = wait(lambda s: s['drone']['state']['active'] and s['drone']['view']['visible'] == 1, 'Native phone launches one rendered drone')
+        launched = wait(lambda s: s['drone']['state']['active'] and s['drone']['view']['meshes'] == 1 and s['drone']['view']['visible'] == 0 and s['drone']['view']['drawCalls'] == 0, 'Native phone launches drone with own hull hidden from its camera')
         body = launched['focus']
         focus()
         keys(['w', 'Space'])
@@ -225,6 +225,7 @@ def main():
             keys([])
         check(math.hypot(moved['focus']['x'] - body['x'], moved['focus']['z'] - body['z']) < 1e-6 and moved['gameplay']['health'] == launched['gameplay']['health'], 'Authoritative exposed body remains in place with unchanged health')
         check(moved['drone']['state']['battery'] < launched['drone']['state']['battery'], 'Actual supplied-time battery advances')
+        check(moved['drone']['view']['visible'] == 0 and moved['drone']['view']['drawCalls'] == 0, 'Piloted drone hull stays outside the camera view after actual movement')
         capture('02-native-drone-flight')
         pulse('o')
         wait(lambda s: not s['drone']['state']['active'] and s['drone']['view']['visible'] == 0, 'Native O recalls drone')

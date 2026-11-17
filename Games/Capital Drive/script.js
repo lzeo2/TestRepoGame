@@ -983,11 +983,12 @@ function refreshModeLabel(){
   $('mode-label').textContent=isSandbox()?'FREE ROAM':gameMode==='campaign'?(hero?.name||'CAMPAIGN'):'STREET LIFE';
 }
 function campaignNavigationTarget(){
-  const active=campaign.state.active,guide=missionLocations?.guide(active,{pose:focus(),plan:interiors.active,people:roomPeople.snapshot()});
+  const active=campaign.state.active,guide=missionLocations?.guide(active,{pose:focus(),plan:interiors.active,people:roomPeople.snapshot(),wanted:gameplay.state.wanted});
+  if(guide?.escaping)return null;
   return guide?{...guide.point,label:guide.instruction,name:guide.location}:active?.target;
 }
 function renderMissionGuide(){
-  missionGuideState=gameMode==='campaign'?missionLocations?.guide(campaign.state.active,{pose:focus(),plan:interiors.active,people:roomPeople.snapshot()})||null:null;
+  missionGuideState=gameMode==='campaign'?missionLocations?.guide(campaign.state.active,{pose:focus(),plan:interiors.active,people:roomPeople.snapshot(),wanted:gameplay.state.wanted})||null:null;
   if(missionGuideState){
     const metres=Number.isFinite(missionGuideState.distance)?` · ${Math.round(missionGuideState.distance)} m`:'';
     $('job-description').textContent=missionGuideState.instruction+metres;
@@ -2233,7 +2234,7 @@ function animate(time) {
   const renderDt = Math.min(.1, (time - (lastRender || time)) / 1000); lastRender = time;
   const p = focus(), activeDt = paused()&&!tracking ? 0 : renderDt;
   atmosphereView?.update(atmosphere.snapshot(),p,{interior:!!interiors.active,quality});
-  droneView?.update(drone.snapshot());securityCamerasView?.update(securityCameras.snapshot(),p,interiors.active?.id||null);
+  droneView?.update(drone.snapshot(),{firstPerson:droneActive});securityCamerasView?.update(securityCameras.snapshot(),p,interiors.active?.id||null);
   ordnanceView?.update(ordnance.snapshot(),p,{interiorId:null});
   indoorOrdnanceView?.update(ordnance.snapshot(),p,{interiorId:interiors.active?.id||null});
   vehicleDamageView?.update(vehicleDamage.snapshot(),playerMesh,{interiorId:interiors.active?.id||null});
@@ -2274,7 +2275,7 @@ function animate(time) {
   document.body.classList.toggle('passenger',gameplay.state.passenger);
   document.body.classList.toggle('piloting',!!aircraft?.active);
   document.body.classList.toggle('indoors',!!interiors.active);
-  const objective = isSandbox() ? destination : campaign.state.active?.target || progression.state.activeJob?.target || progression.garage;
+  const objective = isSandbox() ? destination : campaign.state.active ? campaignNavigationTarget() : progression.state.activeJob?.target || progression.garage;
   roadGuidanceView?.update(route,p,{enabled:started&&gameplay.state.mode==='vehicle'&&!gameplay.state.passenger&&!interiors.active&&!!destination,guidance:guidanceRoute===route?guideState:null});
   const exteriorState={...gameplay.state,police:gameplay.state.police.map(unit=>unit.interiorId||unit.car?.health===0?{...unit,mode:unit.interiorId?'inside':unit.mode,car:unit.car?.health===0?{...unit.car,active:false}:unit.car}:unit),shots:gameplay.state.shots.filter(shot=>!shot.interiorId)};
   if(!interiors.active)actorView?.update(micromobility?.snapshot().active||gameplay.state.passenger?{...exteriorState,mode:'vehicle'}:exteriorState, { dt: activeDt, time: time / 1000, focus: p, objective });

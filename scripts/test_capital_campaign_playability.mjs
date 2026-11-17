@@ -260,15 +260,15 @@ for (const descriptor of chapters) {
     retryEvidence = { repeatedFailures: 2, realReceiptSerial: receipts.schoolAlarm.serial, freshBaselinePreserved: true, staleReceiptRejected: true };
   }
   const fullGraphDistance = stages.reduce((sum, s) => sum + (s.route?.distanceMetres || 0), 0);
-  // Drive stages stop at the first objective-disc intersection; other stages still
+  // Driving arrivals stop at the first objective-disc intersection; other stages still
   // need the public approach/door and retain the complete graph route estimate.
-  const distance = stages.reduce((sum, s) => sum + (s.kind === 'drive' && s.route?.firstDistanceAlongRouteEnteringRadius !== null ?
+  const distance = stages.reduce((sum, s) => sum + ((s.kind === 'drive' || chapter.stages[s.index].drive === true) && s.route?.firstDistanceAlongRouteEnteringRadius !== null ?
     s.route.firstDistanceAlongRouteEnteringRadius : s.route?.distanceMetres || 0), 0);
   seconds = stages.reduce((sum, s) => sum + s.simulatedSeconds, 0); inputs = stages.reduce((sum, s) => sum + s.inputEdges, 0);
   rows.push({ id: chapter.id, character: descriptor.character, status: completed ? 'DOMAIN_PASS' : 'HOLD', campaignCompleted: completed, nativeCompleted: false, retryEvidence, completionReward: completionEvents[0]?.reward ?? null,
     domainChain: completed ? 'PASS' : 'HOLD', roadConnectivity: stages.every(s => s.route?.connected) ? 'PASS' : 'HOLD',
-    driveEndpointReach: stages.filter(s => s.kind === 'drive').every(s => s.route?.reachesRadius) ? 'PASS' : 'HOLD',
-    driveRouteRadiusReach: stages.filter(s => s.kind === 'drive').every(s => s.route?.reachesRouteRadius) ? 'PASS' : 'HOLD',
+    driveEndpointReach: stages.filter(s => (s.kind === 'drive' || chapter.stages[s.index].drive === true)).every(s => s.route?.reachesRadius) ? 'PASS' : 'HOLD',
+    driveRouteRadiusReach: stages.filter(s => (s.kind === 'drive' || chapter.stages[s.index].drive === true)).every(s => s.route?.reachesRouteRadius) ? 'PASS' : 'HOLD',
     fullGraphDistanceMetres: fullGraphDistance,
     allGuideEndpointReach: stages.every(s => s.route?.reachesRadius) ? 'PASS' : 'HOLD',
     carVertexClearance: stages.every(s => s.route?.clearCarVertices === s.route?.carVertices) ? 'PASS' : 'HOLD',

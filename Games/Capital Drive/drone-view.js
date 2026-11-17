@@ -30,10 +30,11 @@ export function createDroneView(scene) {
   const mesh=new THREE.Mesh(geometry,material); mesh.name='Recon quadrotor'; mesh.visible=false; scene.add(mesh);
   let disposed=false;
   return {
-    update(snapshot) {
+    update(snapshot,{firstPerson=false}={}) {
       if(disposed)return;
-      mesh.visible=Boolean(snapshot?.active && [snapshot.x,snapshot.y,snapshot.z,snapshot.yaw].every(Number.isFinite));
-      if(mesh.visible) { mesh.position.set(snapshot.x,snapshot.y,snapshot.z); mesh.rotation.set(0,snapshot.yaw,0); }
+      const active=Boolean(snapshot?.active && [snapshot.x,snapshot.y,snapshot.z,snapshot.yaw].every(Number.isFinite));
+      mesh.visible=active && !firstPerson;
+      if(active) { mesh.position.set(snapshot.x,snapshot.y,snapshot.z); mesh.rotation.set(0,snapshot.yaw,0); }
     },
     get stats() { return Object.freeze({meshes:disposed?0:1,visible:mesh.visible?1:0,drawCalls:mesh.visible?1:0,
       triangles:disposed?0:geometry.attributes.position.count/3,disposed}); },

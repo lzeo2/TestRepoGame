@@ -118,6 +118,7 @@ export function createPolice(simulation, options = {}) {
   const lanePoint = (edge,t) => ({ x:edge.from.x+edge.dx*t+edge.dz*edge.laneOffset,
     z:edge.from.z+edge.dz*t-edge.dx*edge.laneOffset,yaw:edge.yaw });
   const publicEdges = simulation.graph.edges.filter(edge => roadProfile(edge.road).trafficAllowed);
+  const majorEdges = new Set(publicEdges.filter(edge => roadProfile(edge.road).major));
   function damageVehicle(state, id, amount) {
     const unit = state.police.find(item => item.car?.id === id);
     const car = unit?.car;
@@ -163,7 +164,7 @@ export function createPolice(simulation, options = {}) {
     }
     return false;
   }
-  function drive(unit,destination,dt,stop,wanted) {
+  function drive(unit,destination,dt,stop,wanted,intercept=false) {
     const car = unit.car;
     let route = routes.get(unit.id);
     if (!route || (route.age > 2 && (gap(route.goal,destination)>18 || route.stuck>2 || (!route.edges.length && route.age>5)))) {
@@ -172,17 +173,38 @@ export function createPolice(simulation, options = {}) {
       route = { edges,index:0,age:0,goal:{...destination},stuck:0,reversing: retries>0?0.65:0,retries }; routes.set(unit.id,route);
     }
     route.age += dt;
+    unit.drivingRole=intercept?'interceptor':'patrol';
     let edge = route.edges[route.index];
     let waypoint;
     if (edge) {
       const along = (car.x-edge.from.x)*edge.dx+(car.z-edge.from.z)*edge.dz;
       if (along > edge.length-3 && route.index<route.edges.length-1) edge=route.edges[++route.index];
-      const t = clamp((car.x-edge.from.x)*edge.dx+(car.z-edge.from.z)*edge.dz+7,0,edge.length);
+      const t = clamp((car.x-edge.from.x)*edge.dx+(car.z-edge.from.z)*edge.dz+(intercept?clamp(car.speed*.35,7,16):7),0,edge.length);
       waypoint={x:edge.from.x+edge.dx*t+edge.dz*edge.laneOffset,z:edge.from.z+edge.dz*t-edge.dx*edge.laneOffset};
     }
     // An absent directed route is a stop, never permission to cut across buildings.
     const turn = waypoint ? angle(Math.atan2(-(waypoint.x-car.x),-(waypoint.z-car.z))-car.yaw) : 0;
     let desired = !stop && waypoint ? (12+wanted*2)*Math.max(0.15,1-Math.abs(turn)/1.5) : 0;
+    if(intercept && !stop && waypoint) {
+      // Only a visible moving driver supplies speed. Search memory has no velocity.
+      const major=majorEdges.has(edge);
+      const ceiling=major?22+wanted*4:Math.min(30,20+wanted*2);
+      const cruise=clamp(Math.abs(destination.speed||0)+8,26,ceiling);
+      desired=cruise*Math.max(.15,1-Math.abs(turn)/1.2);
+      // Brake before connected bends, rather than discovering them at the junction.
+      // Eight cached edges bound this work independently of route/city size.
+      let distance=0;
+      for(let i=route.index;i<Math.min(route.edges.length-1,route.index+8);i++) {
+        const current=route.edges[i],next=route.edges[i+1];
+        distance+=i===route.index?Math.max(0,current.length-((car.x-current.from.x)*current.dx+(car.z-current.from.z)*current.dz)):current.length;
+        if(distance>180) break;
+        const bend=Math.abs(angle(next.yaw-current.yaw));
+        if(bend>.15) {
+          const corner=clamp(3.5/Math.max(.15,bend),3.5,18);
+          desired=Math.min(desired,Math.sqrt(corner*corner+2*10*Math.max(0,distance-7)));
+        }
+      }
+    }
     if (gap(car,destination)<18) desired=Math.min(desired,Math.max(0,(gap(car,destination)-7)*0.8));
     if (edge && route.index===route.edges.length-1) {
       const remaining=edge.length-((car.x-edge.from.x)*edge.dx+(car.z-edge.from.z)*edge.dz);
@@ -191,7 +213,7 @@ export function createPolice(simulation, options = {}) {
     if(route.reversing>0) {
       route.reversing=Math.max(0,route.reversing-dt);desired=-1.8;
     }
-    car.speed += clamp(desired-car.speed,-7*dt,3.5*dt);
+    car.speed += clamp(desired-car.speed,-(intercept?12:7)*dt,(intercept?8.5:3.5)*dt);
     if (car.speed>0.05) {
       const next={...car,yaw:car.yaw+clamp(turn,-1.1*dt,1.1*dt)*Math.min(1,car.speed/2)};
       if(simulation.canOccupy(next,{length:car.length,width:car.width,ignoreId:car.id,fromPose:car})) car.yaw=next.yaw;
@@ -321,7 +343,7 @@ export function createPolice(simulation, options = {}) {
       let returning=false;
       if(unit.mode==='vehicle') {
         let dismount=unit.car.health===0 || (gap(unit.car,destination)<24 && (state.mode==='foot' || Math.abs(target.speed)<2)) || roomRoadArrival(unit,entry);
-        if (unit.car.health !== 0) drive(unit,destination,dt,dismount,state.wanted);
+        if (unit.car.health !== 0) drive(unit,destination,dt,dismount,state.wanted,state.wanted>=3 && state.mode==='vehicle' && !room && (!unit.seesPlayer || Math.abs(target.speed)>=12));
         else unit.car.speed = unit.speed = 0;
         dismount ||= roomRoadArrival(unit,entry);
         if(dismount && Math.abs(unit.car.speed)<0.5) {
