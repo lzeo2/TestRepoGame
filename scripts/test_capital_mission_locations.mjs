@@ -107,3 +107,15 @@ assert.equal(createMissionGuide([]).guide(target('work', { storeId: 'coals' })).
 shop.x = 777;
 assert.equal(guide(target('work', { storeId: 'coals' })).point.x, 40, 'entry index detaches construction data');
 console.log('Capital mission locations: real doors, clear story home, room/station/NPC identity and immutable guidance PASS');
+
+const escaped={target:{kind:'escape',x:999,z:888,label:'Reach the approach'},escapeReached:true};
+const away={x:-1200,z:300};
+let escapeGuide=guide(escaped,{pose:away,wanted:3});
+assert.equal(escapeGuide.point,null);assert.equal(escapeGuide.distance,null);assert.equal(escapeGuide.escaping,true);
+assert.match(escapeGuide.instruction,/Lose the police/);
+assert.match(guide(escaped,{pose:away,wanted:0}).instruction,/Stay clear/);
+const notArrived={...escaped,escapeReached:false};
+assert.deepEqual(guide(notArrived,{pose:away,wanted:3}).point,{x:999,z:888},'arrival still needs its original destination');
+const escapeRoom={...plan,exit:{x:43,z:51}};
+assert.deepEqual(guide(notArrived,{pose,plan:escapeRoom,wanted:3}).point,escapeRoom.exit,'escape first guides through actual room exit');
+console.log('PASS escape guides remove return marker after arrival and retain real exterior approach/indoor exit');

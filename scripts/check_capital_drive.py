@@ -37,6 +37,7 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
+    'test_capital_escape_objectives.mjs', 'test_capital_escape_navigation.mjs', 'test_capital_static_body_queries.mjs', 'test_capital_fast_pursuit.mjs', 'test_capital_yard_fit.mjs',
     'test_capital_burglary.mjs', 'test_capital_burglary_economy.mjs', 'test_capital_house_footprints.mjs', 'test_capital_footprint_navigation.mjs',
     'test_capital_bridge_vehicle_layers.mjs', 'test_capital_vehicle_support_views.mjs', 'test_capital_inventory_persistence.mjs', 'test_capital_hired_health.mjs',
     'test_capital_camera_wanted.mjs',
@@ -75,7 +76,7 @@ SUITES = (
     'test_capital_campaign.mjs','test_capital_north.mjs','test_capital_terrain.mjs','test_capital_civic.mjs','test_capital_crossings.mjs','test_capital_noodle_shop.mjs','test_capital_interior_people.mjs','test_capital_interior_activities.mjs','test_capital_micromobility.mjs','test_capital_civic_extras.mjs','test_capital_work_jobs.mjs','test_capital_skate_opening.mjs','test_capital_dev_codes.mjs','test_capital_vehicle_challenges.mjs','test_capital_car_theft.mjs','test_capital_scooter_hack.mjs','test_capital_weapons.mjs','test_capital_weapon_economy.mjs','test_capital_weapon_art.mjs','test_capital_street_dealers.mjs','test_capital_npc_routines.mjs','test_capital_traffic_queues.mjs','test_capital_junction_queues.mjs',
 )
 DATA = ('canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json','shopping-precincts.json','canberra-north.json','north-terrain.json','civic-extras.json','traffic-signals.json','street-assets.json','highway-barriers.json','airport.json')
-SUPPORT_SCRIPTS = ('capital-campaign-fixture.mjs', 'capital-crime-playability.mjs', 'capital-collision-baseline.mjs', 'profile_capital_simulation.mjs')
+SUPPORT_SCRIPTS = ('capital-campaign-fixture.mjs', 'capital-crime-playability.mjs', 'capital-collision-baseline.mjs', 'profile_capital_simulation.mjs', 'profile_capital_collision.mjs')
 
 
 def run_command(command, timeout):
@@ -137,7 +138,7 @@ def main():
     required += [GAME / 'data' / filename for filename in DATA]
     required += [Path('scripts') / filename for filename in SUITES]
     required += [Path('scripts') / filename for filename in SUPPORT_SCRIPTS]
-    required += [Path('scripts/build_capital_cache.py'),Path('scripts/test_capital_cache_manifest.py')]
+    required += [Path('scripts/build_capital_cache.py'),Path('scripts/test_capital_cache_manifest.py'),Path('scripts/analyse_capital_profile.py'),Path('scripts/test_analyse_capital_profile.py')]
     if args.browser:
         required.append(Path(browser_suite))
     commands = [(['node', '--check', str(GAME / filename)], 120) for filename in MODULES]
@@ -146,7 +147,7 @@ def main():
     commands += [(['node', str(Path('scripts') / filename)] +
                  ([str(GAME / 'data/canberra.json')] if filename == 'test_capital_drive.mjs' else []), 120)
                  for filename in SUITES]
-    commands += [([sys.executable,'-B','scripts/test_capital_cache_manifest.py'],120),([sys.executable,'-B','scripts/build_capital_cache.py','--check'],120)]
+    commands += [([sys.executable,'-B','scripts/test_analyse_capital_profile.py'],120),([sys.executable,'-B','scripts/test_capital_cache_manifest.py'],120),([sys.executable,'-B','scripts/build_capital_cache.py','--check'],120)]
     commands.append((['git', 'diff', '--check'], 120))
     if args.browser:
         suite = browser_suite
