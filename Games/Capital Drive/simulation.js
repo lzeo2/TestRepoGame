@@ -16,6 +16,14 @@ function vehicleSize(vehicle = {}, overrides = {}) {
   return { length: overrides.length ?? length, width: overrides.width ?? width };
 }
 
+// Keep the original four SAT dot products scalar; collision probes must not
+// allocate temporary axis/vector arrays for every nearby vehicle pair.
+function vehicleAxisOverlap(dx, dz, x, z, afx, afz, arx, arz, bfx, bfz, brx, brz, al, aw, bl, bw) {
+  return Math.abs(dx * x + dz * z) <
+    Math.abs(afx * x + afz * z) * al / 2 + Math.abs(arx * x + arz * z) * aw / 2 +
+    Math.abs(bfx * x + bfz * z) * bl / 2 + Math.abs(brx * x + brz * z) * bw / 2;
+}
+
 export function projectSegment(x, z, a, b) {
   const dx = b[0] - a[0], dz = b[1] - a[1];
   const t = clamp(((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1);
@@ -371,13 +379,12 @@ export function createSimulation(map, options = {}) {
     const radius = (al + aw + bl + bw) / 2, dx = a.x - b.x, dz = a.z - b.z;
     if (dx * dx + dz * dz > radius * radius) return false;
     if (!sameVehicleLevel(a,b)) return false;
-    const axes = [a.yaw || 0, b.yaw || 0].flatMap(yaw =>
-      [[-Math.sin(yaw), -Math.cos(yaw)], [Math.cos(yaw), -Math.sin(yaw)]]);
-    const af = [-Math.sin(a.yaw || 0), -Math.cos(a.yaw || 0)], ar = [-af[1], af[0]];
-    const bf = [-Math.sin(b.yaw || 0), -Math.cos(b.yaw || 0)], br = [-bf[1], bf[0]];
-    return axes.every(([x, z]) => Math.abs((a.x - b.x) * x + (a.z - b.z) * z) <
-      Math.abs(af[0] * x + af[1] * z) * al / 2 + Math.abs(ar[0] * x + ar[1] * z) * aw / 2 +
-      Math.abs(bf[0] * x + bf[1] * z) * bl / 2 + Math.abs(br[0] * x + br[1] * z) * bw / 2);
+    const afx = -Math.sin(a.yaw || 0), afz = -Math.cos(a.yaw || 0), arx = -afz, arz = afx;
+    const bfx = -Math.sin(b.yaw || 0), bfz = -Math.cos(b.yaw || 0), brx = -bfz, brz = bfx;
+    return vehicleAxisOverlap(dx, dz, afx, afz, afx, afz, arx, arz, bfx, bfz, brx, brz, al, aw, bl, bw) &&
+      vehicleAxisOverlap(dx, dz, arx, arz, afx, afz, arx, arz, bfx, bfz, brx, brz, al, aw, bl, bw) &&
+      vehicleAxisOverlap(dx, dz, bfx, bfz, afx, afz, arx, arz, bfx, bfz, brx, brz, al, aw, bl, bw) &&
+      vehicleAxisOverlap(dx, dz, brx, brz, afx, afz, arx, arz, bfx, bfz, brx, brz, al, aw, bl, bw);
   }
   function staticVehicleClear(pose, options = {}) {
     let { length, width } = vehicleSize(pose, options);
