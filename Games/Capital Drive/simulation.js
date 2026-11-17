@@ -384,11 +384,23 @@ export function createSimulation(map, options = {}) {
     if (!pose || ![pose.x, pose.z, pose.yaw, length, width].every(Number.isFinite) || length <= 0 || width <= 0) return false;
     length = clamp(length, 1, 16); width = clamp(width, 0.5, 4);
     const radius = width / 2, span = Math.max(0, length / 2 - radius), samples = Math.max(2, Math.ceil(span * 4));
+    const sin = Math.sin(pose.yaw), cos = Math.cos(pose.yaw);
+    const firstX = pose.x - sin * -span, firstZ = pose.z - cos * -span;
+    if (firstX < bounds.minX + radius || firstX > bounds.maxX - radius || firstZ < bounds.minZ + radius || firstZ > bounds.maxZ - radius) return false;
+    // One conservative square covers every original body-circle query. Filter
+    // its candidates against each circle's original inclusive query envelope;
+    // polygon geometry and bridge callbacks are still read at every sample.
+    const reach = radius + span * Math.max(Math.abs(sin), Math.abs(cos));
+    // Outward padding covers rounding when a sample lies on a query boundary.
+    const envelope = reach + Number.EPSILON * (Math.abs(pose.x) + Math.abs(pose.z) + reach + 1) * 4;
+    const candidates = [buildingIndex, barrierIndex, waterIndex].map(index => [index, index.query(pose.x, pose.z, envelope)]);
     for (let i = 0; i <= samples; i++) {
       const offset = -span + 2 * span * i / samples;
-      const x = pose.x - Math.sin(pose.yaw) * offset, z = pose.z - Math.cos(pose.yaw) * offset;
+      const x = pose.x - sin * offset, z = pose.z - cos * offset;
       if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return false;
-      for (const index of [buildingIndex, barrierIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
+      for (const [index, polygons] of candidates) for (const polygon of polygons) {
+        const box = index.extents.get(polygon);
+        if (box.maxX < x - radius || box.minX > x + radius || box.maxZ < z - radius || box.minZ > z + radius) continue;
         if (physicalContact(index,polygon,x,z,radius)) return false;
       }
     }
