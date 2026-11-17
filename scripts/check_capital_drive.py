@@ -37,7 +37,7 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
-    'test_capital_escape_objectives.mjs', 'test_capital_escape_navigation.mjs', 'test_capital_static_body_queries.mjs', 'test_capital_fast_pursuit.mjs', 'test_capital_yard_fit.mjs',
+    'test_capital_escape_objectives.mjs', 'test_capital_escape_navigation.mjs', 'test_capital_static_body_queries.mjs', 'test_capital_vehicle_overlap_scalars.mjs', 'test_capital_fast_pursuit.mjs', 'test_capital_yard_fit.mjs',
     'test_capital_burglary.mjs', 'test_capital_burglary_economy.mjs', 'test_capital_house_footprints.mjs', 'test_capital_footprint_navigation.mjs',
     'test_capital_bridge_vehicle_layers.mjs', 'test_capital_vehicle_support_views.mjs', 'test_capital_inventory_persistence.mjs', 'test_capital_hired_health.mjs',
     'test_capital_camera_wanted.mjs',
