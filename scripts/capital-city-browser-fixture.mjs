@@ -24,7 +24,7 @@ Object.assign(progression.state.gear,{drone:true,grenades:1});progression.state.
 const campaign={version:2,character:hero,intros:{student:[],corporate:scenario==='workplace'?['corporate-present-tense']:[],basement:[]},meeting:false,legacy:false,completed:[]};
 const protagonists={version:1,student:null,corporate:null,basement:null};
 protagonists[hero]={mode:'foot',actor,vehicle:{x:map.spawn.x,z:map.spawn.z,yaw:map.spawn.yaw||0,modelId:'lantern',color:'#e7e6df',health:100,stolen:false},
-  health:100,weapon:scenario==='city'?'pistol':'unarmed',ammunition};
+  health:scenario==='burglary'?60:100,weapon:scenario==='city'?'pistol':'unarmed',ammunition};
 const career={...progression.serialize(),campaign,protagonists};
 // Reject a malformed fixture through the actual normal save readers.
 const {campaign:campaignSave,protagonists:heroSave,...careerSave}=career;
@@ -45,8 +45,9 @@ let burglaryPlan=null;
 if(scenario==='burglary'){
   const probe=outside(homeEntry,2),plan=interiors.enter(homeEntry,probe);
   if(!plan)throw new Error('Source house planning entry failed.');
-  const station=plan.activities.find(s=>s.id===`${plan.id}-valuables`&&s.kind==='stock');
-  if(!station)throw new Error('Source house has no actual valuables station.');
+  const stations=plan.activities.filter(s=>s.id.startsWith(`${plan.id}-valuables`)&&s.kind==='stock').slice(0,2);
+  const rest=plan.activities.find(s=>s.id===`${plan.id}-rest`&&s.kind==='rest');
+  if(stations.length!==2||!rest)throw new Error('Source house needs two actual valuables stations and a bed rest station.');
   const nav=createInteriorNavigation(plan);
   const route=(from,to)=>{
     const pose={...from},points=[];
@@ -60,7 +61,9 @@ if(scenario==='burglary'){
     if(Math.hypot(pose.x-to.x,pose.z-to.z)>.25)throw new Error('Source house waypoint budget exhausted.');
     return points;
   };
-  burglaryPlan={roomId:plan.id,station,spawn:plan.spawn,exit:plan.exit,toStation:route(plan.spawn,station),toExit:route(station,plan.exit),navigation:nav.stats};
+  let previous=plan.spawn;
+  const searches=stations.map(station=>{const path=route(previous,station);previous=station;return {station,path};});
+  burglaryPlan={roomId:plan.id,searches,rest,spawn:plan.spawn,exit:plan.exit,toExit:route(previous,plan.exit),toRest:route(plan.spawn,rest),restToExit:route(rest,plan.exit),navigation:nav.stats};
   interiors.leave(probe);
 }
 const sourceClearance=[];let previous={...actor};
@@ -68,5 +71,5 @@ for(const target of waypoints){const probe={...previous},result=simulation.moveA
   sourceClearance.push({from:previous,target,blocked:result.blocked,endpoint:{x:probe.x,z:probe.z}});previous={...target};}
 console.log(JSON.stringify({scenario,hero,career,home:homeEntry,properties:progression.propertyOffers,crewOffers:progression.crewOffers,
   initialActor:actor,door,burglaryPlan,noodles: {id:noodles.id,name:noodles.name,frontage:noodles.frontage,publicApproach:noodles.publicApproach},waypoints,sourceClearance,
-  provenance:'FAKE prior wealth, equipment and exterior checkpoint are accepted source-built setup, not earned progress. No property ownership or stash is seeded. Workplace additionally seeds only Rowan first intro completion.',
+  provenance:'FAKE prior wealth, equipment and exterior checkpoint are accepted source-built setup, not earned progress. No property ownership or stash is seeded. Burglary alone starts injured at 60 health to verify paid rest. Workplace additionally seeds only Rowan first intro completion.',
   limits:fixture.limits}));
