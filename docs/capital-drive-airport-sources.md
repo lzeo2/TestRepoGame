@@ -65,3 +65,28 @@ refuses changed live bytes. A reviewed new source snapshot requires explicit
 source pin updates. The game reads only the bundled JSON. Native airport driving,
 visual acceptance and N100 performance are separate checks; pure geometry and
 route tests do not establish them.
+
+19 November 2026 terrain continuation: `data/airport-terrain.json` samples the
+same pinned ACT 2020 LiDAR-derived 2m contour archive as the northern tile:
+https://actmapi-open-data.s3.amazonaws.com/DataDownload/GIS/Contours/2020/Contour_2m.gdb.zip
+SHA256 `b8090f3ab023c2821747a760470eb8e53173c6d1b7a35dbb2a306885da7981b9`.
+Australian Capital Territory, CC BY 4.0, AHD; 550m is subtracted for the local
+vertical origin. The 89 by 122 grid spans 149.169–149.217E, 35.336–35.282S at
+approximately 50m spacing. These are interpolated contours, not native DEM cells
+or surveyed pavement levels. The builder records 106718 contour samples and
+9190 held-out numerical checks (p95 absolute residual 0.590m); this is internal
+consistency, not independent terrain accuracy. No missing cells were filled.
+
+The eastern tile blends from the exact existing western seam over 350m.
+Mapped runway axes receive an authored linear endpoint grade with a 45m shoulder
+blend; this is gameplay engineering, not a surveyed airfield reconstruction.
+Existing base/northern samples and bridge authority remain unchanged. No live
+terrain service is called. The official ACTmapi access-imagery-and-elevation
+page and Geoscience Australia ELVIS metadata were researched. GA's 5m LiDAR WCS
+returned an empty tile for this extent, so no WCS heights were used.
+
+`stunt-ramps.js` places bounded original fictional equipment only in mapped park
+corridors checked against roads, buildings, water and private access tags. These
+are gameplay additions, not real Canberra facilities or assertions of public
+vehicle access. Shared vertices and support planes drive rendering and vehicle
+support; flight and landing are integrated separately in the simulation.

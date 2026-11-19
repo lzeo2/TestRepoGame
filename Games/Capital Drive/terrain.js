@@ -30,7 +30,7 @@ export function createTerrainSampler(map) {
   const base = validGrid(map.terrain) ? map.terrain : null;
   const tiles = (map.terrainTiles || []).filter(validGrid);
   function groundHeightAt(x, z) {
-    const tile = tiles.find(grid => inside(grid, x, z));
+    const tile = tiles.find(grid => inside(grid, x, z) && !(grid.preserveWestEdge && x === grid.minX));
     if (tile) {
       const value = sample(tile, x, z);
       if (base && inside(base, x, z) && Number.isFinite(tile.blendSouthZ) && Number.isFinite(tile.blendNorthZ)) {
