@@ -302,6 +302,10 @@ export function createSimulation(map, options = {}) {
         person.x < bounds.minX - radius || person.x > bounds.maxX + radius ||
         person.z < bounds.minZ - radius || person.z > bounds.maxZ + radius) continue;
       const body = { id: person.id, x: person.x, z: person.z, radius };
+      if (options.stuntSupportAt) {
+        if (Number.isFinite(person.y)) body.y = person.y;
+        if (Number.isFinite(person.height) && person.height > 0) body.height = person.height;
+      }
       peopleIndex.insert(body, body.x - radius, body.z - radius, body.x + radius, body.z + radius);
       count++;
     }
@@ -342,8 +346,19 @@ export function createSimulation(map, options = {}) {
     const people = peopleIndex.query(queryX,queryZ,travel/2+corner+2);
     peopleStats.queries++; peopleStats.lastCandidates = people.size;
     peopleStats.maxCandidates = Math.max(peopleStats.maxCandidates,people.size);
+    const stuntSweep = options.stuntSupportAt && options.vehicleHeightAt && (pose.stuntActive || fromPose?.stuntActive);
+    const startY = stuntSweep ? vehicleBase(fromPose || pose) : NaN;
+    const endY = stuntSweep ? vehicleBase(pose) : NaN;
     for (const person of people) {
       if (person.id === ignorePersonId) continue;
+      if (stuntSweep && Number.isFinite(startY) && Number.isFinite(endY)) {
+        const personY = Number.isFinite(person.y) ? person.y : options.vehicleHeightAt(person);
+        const personTop = personY + (person.height || 1.8);
+        // Retain the full continuous vertical envelope. Any possible overlap
+        // keeps the existing adult swept-body narrow phase authoritative.
+        const carTop = Math.max(startY,endY) + Math.max(vehicleBodyHeight(pose),vehicleBodyHeight(fromPose || pose));
+        if (Number.isFinite(personY) && (Math.min(startY,endY) > personTop || carTop < personY)) continue;
+      }
       const end = personLocal(person,pose), endDepth = person.radius-boxDistance(end,width/2,length/2);
       if (!fromPose) { if (endDepth > 1e-9) return blockedByPeople(); continue; }
       const prior = personLocal(person,fromPose);
@@ -454,7 +469,8 @@ export function createSimulation(map, options = {}) {
     let blocked = scale < 1;
     for (let i = 0; i < steps; i++) {
       const pose = { x: vehicle.x + dx / steps, z: vehicle.z + dz / steps, yaw: vehicle.yaw,
-        edge:vehicle.edge,modelId:vehicle.modelId,height:vehicle.height,y:vehicle.stuntActive?vehicle.stuntY:vehicle.y };
+        edge:vehicle.edge,modelId:vehicle.modelId,height:vehicle.height,y:vehicle.stuntActive?vehicle.stuntY:vehicle.y,
+        ...(vehicle.stuntActive?{stuntActive:true}:{}) };
       if (!vehicleClear(pose, { length, width, ignoreId: vehicle.id, fromPose: vehicle },onContact)) { blocked = true; break; }
       vehicle.x = pose.x; vehicle.z = pose.z;
     }
@@ -799,7 +815,8 @@ export function createSimulation(map, options = {}) {
     }
   }
   function resolveImpact(nx, nz, depth) {
-    const correction = { x: player.x + nx * depth, z: player.z + nz * depth, yaw: player.yaw };
+    const correction = { x: player.x + nx * depth, z: player.z + nz * depth, yaw: player.yaw,
+      ...(player.stuntActive?{y:player.stuntY,stuntActive:true}:{}) };
     const body = vehicleSize(player);
     if (peopleVehicleClear(correction,body.length,body.width,player)) {
       player.x = correction.x; player.z = correction.z;
@@ -842,7 +859,7 @@ export function createSimulation(map, options = {}) {
     for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
       const nextPose = { x: player.x, z: player.z, yaw: player.yaw + turn / turnSteps,
         modelId: player.modelId, length: player.length, width: player.width, edge:player.edge,height:player.height,
-        ...(player.stuntActive?{y:player.stuntY}:{}) };
+        ...(player.stuntActive?{y:player.stuntY,stuntActive:true}:{}) };
       if (!canOccupy(nextPose, { ignoreId: player.id, fromPose: player })) break;
       player.yaw = nextPose.yaw;
     }

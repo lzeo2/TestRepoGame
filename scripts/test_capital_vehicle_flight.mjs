@@ -85,3 +85,19 @@ assert.equal(falling.stuntPitch,-.6,'display pitch stays bounded at zero horizon
 assert(falling.stuntVy<-.6,'display clamp preserves real vertical velocity');
 assert(Number.isFinite(stuntVehicleHeightAt(falling)),'stopped fall retains finite display plane');
 console.log('Capital stunt presentation: anchored centre/front/back pitch probes and bounded display pitch passed');
+
+const adultSim=createSimulation(map,{trafficCount:0,vehicleHeightAt:()=>0,stuntSupportAt:ramp});
+const jumper=adultSim.player;
+Object.assign(jumper,{x:60,z:60,yaw:0,vx:0,vz:-10,stuntActive:true,stuntY:8});
+adultSim.setExternalPeople([{id:'ped:1',x:60,z:59,radius:.35}]);
+assert.equal(adultSim.moveVehicle(jumper,0,-.1).blocked,false,'airborne body clears ground adult');
+assert.equal(adultSim.drainVehicleImpacts().length,0,'disjoint adult produces no impact');
+adultSim.setExternalPeople([{id:'ped:1',x:60,z:59,radius:.35,y:8,height:1.8}]);
+assert.equal(adultSim.moveVehicle(jumper,0,-.1).blocked,true,'adult at flight level blocks');
+adultSim.setExternalPeople([{id:'ped:1',x:60,z:59,radius:.35,y:0,height:8}]);
+assert.equal(adultSim.moveVehicle(jumper,0,-.1).blocked,true,'vertical grazing retains adult contact');
+adultSim.setExternalPeople([{id:'ped:1',x:60,z:59,radius:.35,y:0,height:1.8}]);
+assert.equal(adultSim.canOccupy({...jumper,y:0,stuntY:0},{ignoreId:'player',fromPose:jumper}),false,'swept vertical envelope retains crossing contact');
+jumper.stuntActive=false;
+assert.equal(adultSim.moveVehicle(jumper,0,-.1).blocked,true,'ordinary body retains original contact despite stored height');
+console.log('Capital stunt adult collision: disjoint ground, same-level, grazing and continuous vertical crossing passed');
