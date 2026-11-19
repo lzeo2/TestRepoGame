@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import {createDeliveryService,deliverySources} from '../Games/Capital Drive/delivery-service.js';
+const road={id:'public',highway:'residential',width:9};
+const a={x:0,z:0},b={x:0,z:-200};
+const edge={id:0,from:a,to:b,dx:0,dz:-1,yaw:0,laneOffset:2,length:200,road,segment:0};
+let blocked=false,red=false;
+const simulation={graph:{edges:[edge],nodes:[a,b]},canOccupy:()=>!blocked,hasLineOfSight:()=>true,
+  trafficLights:{stopDistance:()=>red?0:Infinity},moveVehicle(car,dx,dz){
+    if(blocked)return {blocked:true,distance:0};car.x+=dx;car.z+=dz;return {blocked:false,distance:Math.hypot(dx,dz)};
+  }};
+const sources=deliverySources([{id:'food-source',name:'Parody cafe',type:'food',x:-2,z:-15,roadId:'public'}],[]);
+const service=createDeliveryService({},simulation,{sources});
+const ctx={pose:{x:-2,z:-110},onFoot:true,wanted:5};
+const request={kind:'food',sourceId:'food-source',itemId:'food'};
+assert.equal(service.quote(request,ctx).ok,true);
+assert.equal(service.phase,'idle');assert.equal(service.vehicles[0].active,false);
+assert.equal(service.order({...request,sourceId:'invented'},ctx).ok,false);
+assert.equal(service.order(request,ctx).ok,true);
+assert.equal(service.order(request,ctx).ok,false);
+assert.equal(service.interact(ctx).ok,false);
+red=true;const origin={...service.vehicles[0]};for(let i=0;i<60;i++)service.step(1/60,ctx);
+assert.equal(service.vehicles[0].z,origin.z,'signal prevents physical travel');red=false;
+for(let i=0;i<1800&&service.phase==='approaching';i++) {
+  const before={...service.vehicles[0]};service.step(1/60,ctx);
+  assert(Math.hypot(before.x-service.vehicles[0].x,before.z-service.vehicles[0].z)<=10/60+.00001);
+}
+assert.equal(service.phase,'waiting');
+assert.equal(service.interact({...ctx,onFoot:false}).ok,false);
+const stopped=service.snapshot().car;
+assert.equal(service.interact({...ctx,pose:{x:stopped.x+2,z:stopped.z}}).ok,true);
+assert.equal(service.interact(ctx).ok,false);
+const events=service.drainEvents();assert.equal(events.filter(e=>e.type==='completed').length,1);
+assert.equal(events.at(-1).orderId,events[0].orderId);
+for(let i=0;i<200;i++)service.step(1/60,ctx);
+assert.equal(service.order(request,ctx).ok,true);
+service.step(1/60,{...ctx,recovering:true});service.cancel();
+assert.equal(service.drainEvents().filter(e=>['cancelled','failed'].includes(e.type)).length,1);
+assert.equal(service.vehicles.length,1);
+for(let i=0;i<200;i++)service.step(1/60,ctx);
+assert.equal(service.order(request,ctx).ok,true);blocked=true;
+for(let i=0;i<1900;i++)service.step(1/60,ctx);
+assert.equal(service.phase,'failed','physical blocking fails without timer delivery');
+assert.equal(service.drainEvents().filter(e=>e.type==='completed').length,0);
+console.log('delivery service: directed approach, signal stop, foot handover, exactly-once terminal, recovery PASS');
