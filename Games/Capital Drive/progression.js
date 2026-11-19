@@ -145,7 +145,7 @@ export function createProgression(map, saved = null, options = {}) {
   const serviceSite = source => source && ({ ...source, ...(options.servicePosition?.(source) || {}) });
   const serviceAllowed = (site, ctx) => !options.canUseService || options.canUseService(site, ctx);
   const events = [];
-  let context = null, serial = null, shiftPlan = null, workoutPlan = null, lastHouseLootSerial = 0, lastRestSerial = 0;
+  let context = null, serial = null, shiftPlan = null, workoutPlan = null, lastHouseLootSerial = 0, lastRestSerial = 0, deliveryEscrow = null, lastDeliveryOrderId = null;
   function result(ok, message, extra = {}, type = ok ? 'change' : 'error') {
     state.message = message;
     events.push({ type, message, ...extra });
@@ -517,6 +517,50 @@ export function createProgression(map, saved = null, options = {}) {
     if(effect.weaponId&&!(item==='ammo'||item.startsWith('ammo:')))state.equipment[effect.weaponId]=true;
     return result(true,'Purchased.',{cost,...effect},'service-purchase');
   }
+  function quoteDelivery(request,ctx){
+    if(!commerceAllowed(ctx)||ctx.interior||ctx.paused||ctx.preview)return {ok:false,message:'Order outside on foot when ready.'};
+    if(!object(request))return {ok:false,message:'Invalid delivery request.'};
+    const site=services.find(item=>item.id===request.sourceId);
+    let cost,effect;
+    if(request.kind==='food'&&site?.type==='food'&&request.itemId==='food'){
+      if(ctx.health>=100)return {ok:false,message:'Health is already full.'};
+      cost=site.price;effect={heal:site.heal};
+    }else if(request.kind==='arms'&&site?.type==='arms'&&site.dealer&&site.fictional){
+      const weapon=weaponById(request.itemId),multiplier=site.priceMultiplier??1;
+      if(!weapon||!site.weaponIds?.includes(request.itemId)||!Number.isFinite(multiplier)||multiplier<=0)return {ok:false,message:'Item unavailable from this dealer.'};
+      if(state.equipment[weapon.id]||Object.values(state.stashes).some(store=>store.weapons.includes(weapon.id)))return {ok:false,message:'You already own this weapon.'};
+      cost=Math.ceil(weapon.price*multiplier);effect={weaponId:weapon.id,ammo:weapon.starterAmmo,...(weapon.id==='pistol'?{pistol:true}:{})};
+    }else return {ok:false,message:'Delivery source unavailable.'};
+    if(!Number.isSafeInteger(cost)||cost<=0||!object(effect)||Object.values(effect).some(value=>typeof value==='number'&&!Number.isFinite(value)))return {ok:false,message:'Delivery item unavailable.'};
+    cost+=50;
+    if(state.cash<cost)return {ok:false,message:'Not enough cash.'};
+    return {ok:true,cost,dispatchCost:50,...effect};
+  }
+  function reserveDelivery(orderId,request,ctx){
+    if(deliveryEscrow)return result(false,'A paid delivery is already pending.');
+    if(orderId===lastDeliveryOrderId)return result(false,'This delivery was already paid.');
+    const quote=quoteDelivery(request,ctx);if(!quote.ok)return result(false,quote.message);
+    let live;try{live=options.deliveryOrder?.();}catch{return result(false,'Courier unavailable.');}
+    if(!object(live)||typeof orderId!=='string'||!orderId||live.orderId!==orderId||live.kind!==request.kind||live.sourceId!==request.sourceId||live.itemId!==request.itemId)return result(false,'Book the matching physical courier first.');
+    state.cash-=quote.cost;lastDeliveryOrderId=orderId;
+    deliveryEscrow={orderId,kind:request.kind,sourceId:request.sourceId,itemId:request.itemId,cost:quote.cost,effect:copy(quote)};
+    return result(true,'Delivery paid. Meet the courier.',{orderId,cost:quote.cost},'delivery-reserved');
+  }
+  function completeDelivery(orderId,ctx){
+    if(!deliveryEscrow||deliveryEscrow.orderId!==orderId)return result(false,'No matching paid delivery.');
+    let receipt;try{receipt=options.takeDeliveryReceipt?.(orderId);}catch{return result(false,'Delivery receipt unavailable.');}
+    const pending=deliveryEscrow;
+    if(!object(receipt)||!Object.isFrozen(receipt)||receipt.orderId!==orderId||receipt.kind!==pending.kind||receipt.itemId!==pending.itemId||receipt.sourceId!==pending.sourceId||!['completed','failed','cancelled'].includes(receipt.type))return result(false,'Wait for the real courier handover.');
+    deliveryEscrow=null;
+    const duplicate=pending.effect.weaponId&&(state.equipment[pending.effect.weaponId]||Object.values(state.stashes).some(store=>store.weapons.includes(pending.effect.weaponId)));
+    if(receipt.type!=='completed'||!commerceAllowed(ctx)||ctx.interior||ctx.paused||ctx.preview||duplicate){
+      state.cash=Math.min(MAX_CASH,state.cash+pending.cost);
+      return result(true,'Delivery cancelled. Payment refunded.',{orderId,refund:pending.cost},'delivery-refunded');
+    }
+    const {cost,dispatchCost,ok,...effect}=pending.effect;
+    if(effect.weaponId)state.equipment[effect.weaponId]=true;
+    return result(true,'Delivery received.',{orderId,cost,...effect},'delivery-complete');
+  }
   function startActivity(id,type,ctx){
     if(type==='workout'&&options.interactiveWorkouts)return startWorkout(id,ctx);
     if(type==='robbery'&&options.interactiveRobbery){
@@ -760,10 +804,10 @@ export function createProgression(map, saved = null, options = {}) {
     if(state.fitnessLevel>=3||!spend(active.cost))return result(false,'Training is unavailable.',{},'activity-ended');
     state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{serviceId:active.serviceId,cost:active.cost,kind:active.station.kind},'workout-complete');
   }
-  return { state, jobs, garage,saveInventory,getInventory,saveCrewHealth,getCrewHealth,propertyOffers,crewOffers,buyProperty,restSafehouse,isSafehouse,hireCrew,rehireCrew,dismissCrew,buyDrone,claimHouseLoot,stash,get ownedProperties(){return [...state.ownedProperties];},crewRenewalSerial(id){return crewRenewals[id]??0;},get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, upgradeVehicle, upgradeEligibility, vehicleMods, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,startMugging,robberyEligibility,workoutEligibility,finishWorkout,payRental,payRide,consumeFlare,consumeThrowable,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
+  return { state, jobs, garage,saveInventory,getInventory,saveCrewHealth,getCrewHealth,propertyOffers,crewOffers,buyProperty,restSafehouse,isSafehouse,hireCrew,rehireCrew,dismissCrew,buyDrone,claimHouseLoot,stash,get ownedProperties(){return [...state.ownedProperties];},crewRenewalSerial(id){return crewRenewals[id]??0;},get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, upgradeVehicle, upgradeEligibility, vehicleMods, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,quoteDelivery,reserveDelivery,completeDelivery,startActivity,startMugging,robberyEligibility,workoutEligibility,finishWorkout,payRental,payRide,consumeFlare,consumeThrowable,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
     cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;workoutPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
-    serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,gear:state.gear,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns,muggingCooldowns:state.muggingCooldowns,...(state.ownedProperties.length?{ownedProperties:state.ownedProperties}:{}),...(Object.keys(state.stashes).length?{stashes:state.stashes}:{}),...(state.hiredCrew.length?{hiredCrew:state.hiredCrew}:{}),...(Object.keys(state.inventoryProfiles).length?{inventoryProfiles:state.inventoryProfiles}:{}),...(Object.keys(state.crewHealth).length?{crewHealth:state.crewHealth}:{}),...(Object.keys(state.burglaryCooldowns).length?{burglaryCooldowns:state.burglaryCooldowns}:{}) }); },
+    serialize() { return copy({ version: 1, cash: Math.min(MAX_CASH,state.cash+(deliveryEscrow?.cost||0)), ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,gear:state.gear,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns,muggingCooldowns:state.muggingCooldowns,...(state.ownedProperties.length?{ownedProperties:state.ownedProperties}:{}),...(Object.keys(state.stashes).length?{stashes:state.stashes}:{}),...(state.hiredCrew.length?{hiredCrew:state.hiredCrew}:{}),...(Object.keys(state.inventoryProfiles).length?{inventoryProfiles:state.inventoryProfiles}:{}),...(Object.keys(state.crewHealth).length?{crewHealth:state.crewHealth}:{}),...(Object.keys(state.burglaryCooldowns).length?{burglaryCooldowns:state.burglaryCooldowns}:{}) }); },
     drainEvents() { return events.splice(0); },
   };
 }
