@@ -1,3 +1,4 @@
+import { createVehicleFlight } from './vehicle-flight.js';
 import { coveredCentrePassage } from './covered-passage.js';
 import { roadProfile } from './road-network.js';
 import { prepareWaterRing } from './water-contact.js';
@@ -379,7 +380,7 @@ export function createSimulation(map, options = {}) {
     stopRequests.set(id, Math.max(stopRequests.get(id) || 0, clamp(seconds, 0, 10)));
     return true;
   }
-  const vehicleBase=car=>Number.isFinite(car.y)?car.y:options.vehicleHeightAt(car,car.edge?.road)+.18;
+  const vehicleBase=car=>car.stuntActive&&Number.isFinite(car.stuntY)?car.stuntY:Number.isFinite(car.y)?car.y:options.vehicleHeightAt(car,car.edge?.road)+.18;
   const vehicleBodyHeight=car=>Number.isFinite(car.height)&&car.height>0?car.height:BY_ID[car.modelId]?.height||1.6;
   function sameVehicleLevel(a,b) {
     if(!options.vehicleHeightAt)return true;
@@ -453,7 +454,7 @@ export function createSimulation(map, options = {}) {
     let blocked = scale < 1;
     for (let i = 0; i < steps; i++) {
       const pose = { x: vehicle.x + dx / steps, z: vehicle.z + dz / steps, yaw: vehicle.yaw,
-        edge:vehicle.edge,modelId:vehicle.modelId,height:vehicle.height,y:vehicle.y };
+        edge:vehicle.edge,modelId:vehicle.modelId,height:vehicle.height,y:vehicle.stuntActive?vehicle.stuntY:vehicle.y };
       if (!vehicleClear(pose, { length, width, ignoreId: vehicle.id, fromPose: vehicle },onContact)) { blocked = true; break; }
       vehicle.x = pose.x; vehicle.z = pose.z;
     }
@@ -499,6 +500,8 @@ export function createSimulation(map, options = {}) {
     return best;
   }
   const player = { id: 'player', modelId: 'lantern', color: 0xd4d7d3, active: true, x: 0, z: 0, yaw: 0, speed: 0, vx: 0, vz: 0, steer: 0, odometer: 0, crashes: 0, lastImpactSpeed:0, offroad: false };
+  const flight = options.stuntSupportAt && options.vehicleHeightAt
+    ? createVehicleFlight({supportAt:options.stuntSupportAt,heightAt:options.vehicleHeightAt}) : null;
   const random = seededRandom(options.seed ?? 20261112);
   const traffic = [], models = ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch'];
   const colors = [0xd4d7d3, 0x777e84, 0x274d79, 0xa4463b, 0xd1c8b4, 0x555952, 0xc5b86e];
@@ -508,6 +511,7 @@ export function createSimulation(map, options = {}) {
     Object.assign(car, pointOnLane(edge, position));
   }
   function reset(spawn = map.spawn) {
+    flight?.clear(player);
     const fallback = graph.edges[0] ? pointOnLane(graph.edges[0], Math.min(8, graph.edges[0].length / 2)) : { x: 0, z: 0, yaw: 0 };
     const target = spawn || fallback;
     Object.assign(player, { x: target.x, z: target.z, yaw: target.yaw || 0, speed: 0, vx: 0, vz: 0, steer: 0,
@@ -584,6 +588,7 @@ export function createSimulation(map, options = {}) {
     const yaw = point.yaw === undefined ? (Number.isFinite(player.yaw) ? player.yaw : 0)
       : Math.atan2(Math.sin(point.yaw), Math.cos(point.yaw));
     const road = nearestRoad(target.x, target.z);
+    flight?.clear(player);
     Object.assign(player, { x: target.x, z: target.z, yaw, speed: 0, vx: 0, vz: 0, steer: 0,
       offroad: !road || road.distance > roadProfile(road.road).driveWidth * 0.5 + 1 });
     crashCooldown = 0;
@@ -836,7 +841,8 @@ export function createSimulation(map, options = {}) {
     const turnSteps = Math.max(1, Math.ceil(Math.abs(turn) / 0.05));
     for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
       const nextPose = { x: player.x, z: player.z, yaw: player.yaw + turn / turnSteps,
-        modelId: player.modelId, length: player.length, width: player.width, edge:player.edge,height:player.height };
+        modelId: player.modelId, length: player.length, width: player.width, edge:player.edge,height:player.height,
+        ...(player.stuntActive?{y:player.stuntY}:{}) };
       if (!canOccupy(nextPose, { ignoreId: player.id, fromPose: player })) break;
       player.yaw = nextPose.yaw;
     }
@@ -862,6 +868,7 @@ export function createSimulation(map, options = {}) {
       if (gap < 3.55 && sameVehicleLevel(player,car)) resolveImpact(gap > 0.001 ? dx / gap : Math.cos(car.yaw),
         gap > 0.001 ? dz / gap : -Math.sin(car.yaw), 3.55 - gap + 0.01);
     }
+    flight?.step(player,dt);
     updateTraffic(dt);
     for (const car of traffic) {
       if (!car.active) continue;
@@ -877,6 +884,7 @@ export function createSimulation(map, options = {}) {
     }
   }
   function setPlayerVehicle(vehicle = {}) {
+    flight?.clear(player);
     if (typeof vehicle.modelId === 'string') player.modelId = vehicle.modelId;
     if (Number.isFinite(vehicle.color)) player.color = vehicle.color;
     return { modelId: player.modelId, color: player.color };
@@ -913,6 +921,7 @@ export function createSimulation(map, options = {}) {
     const stolen = !abandonedCars.includes(car);
     abandonedCars.push(prior);
     car.active = false; car.speed = 0;
+    flight?.clear(player);
     Object.assign(player, { x: car.x, z: car.z, yaw: car.yaw, modelId: car.modelId, color: car.color,
       speed: 0, vx: 0, vz: 0, steer: 0 });
     return { ok: true, vehicle: { ...nearbyVehicles(player.x, player.z, 0).find(item => item.id === 'player'), health: car.health ?? 100 }, stolen, reason: 'claimed' };
