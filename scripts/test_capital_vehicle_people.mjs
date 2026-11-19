@@ -1,4 +1,9 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import { createVehicleOccupantsView } from '../Games/Capital Drive/vehicle-occupants-view.js';
+import { stuntVehicleHeightAt } from '../Games/Capital Drive/vehicle-flight.js';
 import { createSimulation, pointOnLane } from '../Games/Capital Drive/simulation.js';
 
 const map = { bounds: { minX: -500, maxX: 500, minZ: -500, maxZ: 500 }, roads: [], buildings: [],
@@ -135,3 +140,37 @@ traffic.setExternalPeople([]);
 for(let i=0;i<120;i++) traffic.step(1/30);
 assert(moving.x>stopped+2,'clearing the contact releases traffic without stale positions');
 console.log('PASS vehicle people: .32/.35/.38 radii, full OBB ends/sides/corners, both directions, high-dt caps, bus/ride bodies, dense angular sweep, monotonic escape, fresh/cleared/invalid/bounded spatial contacts, live traffic and zero-dt');
+
+const occupantScene=new THREE.Scene(),heightProbes=[];
+let pooledProbe;
+const occupantView=createVehicleOccupantsView(occupantScene,()=>0,{vehicleHeightAt:pose=>{
+  if(pooledProbe)assert.equal(pose,pooledProbe,'height queries retain one pooled probe');
+  pooledProbe=pose;heightProbes.push({...pose});
+  return stuntVehicleHeightAt(pose)??0;
+}});
+const stuntCar={id:'stunt-driver',modelId:'lantern',personId:'driver',x:10,z:20,yaw:.6,active:true,occupied:true,
+  stuntActive:true,stuntY:8.18,stuntPitch:.3,stuntX:10,stuntZ:20};
+occupantView.update(1/60,{cars:[stuntCar],focus:stuntCar});
+assert.equal(heightProbes.length,3,'real occupant matrices query front/back/centre');
+for(const probe of heightProbes)for(const key of ['stuntActive','stuntY','stuntPitch','stuntX','stuntZ'])assert.equal(probe[key],stuntCar[key]);
+assert(Math.abs(Math.atan2(stuntVehicleHeightAt(heightProbes[0])-stuntVehicleHeightAt(heightProbes[1]),4)-.3)<1e-12,'driver height probes recover actual stunt pitch');
+assert(Math.abs(stuntVehicleHeightAt(heightProbes[2])-8)<1e-12,'driver centre uses actual flight height');
+heightProbes.length=0;
+occupantView.update(1/60,{cars:[{id:'ordinary',modelId:'lantern',x:10,z:20,yaw:0,active:true,occupied:true}],focus:{x:10,z:20}});
+for(const probe of heightProbes)assert(!Object.keys(probe).some(key=>key.startsWith('stunt')),'ordinary next occupant drops every stale stunt field');
+occupantView.dispose();
+console.log('PASS occupant stunt height: pooled callback preserves anchors/pitch and clears stale stunt fields');
+
+const controllerSource=readFileSync(new URL('../Games/Capital Drive/script.js',import.meta.url),'utf8');
+const seatedSource=controllerSource.slice(controllerSource.indexOf('  const seated=(car,occupied,'),controllerSource.indexOf('  seated(simulation.player,'));
+assert(seatedSource.includes('occupantPoses.get'),'test extracts actual controller pooled seated adapter');
+const controllerAdapter=vm.runInNewContext(`const occupantIds=new Set(),occupantPoses=new Map(),occupantInputs=[];
+  ${seatedSource}
+({seated,occupantInputs})`);
+controllerAdapter.seated(stuntCar,true);
+const forwarded=controllerAdapter.occupantInputs[0];
+for(const key of ['stuntActive','stuntY','stuntPitch','stuntX','stuntZ'])assert.equal(forwarded[key],stuntCar[key],'controller forwards actual stunt pose');
+controllerAdapter.seated({...stuntCar,stuntActive:false},true);
+assert.equal(controllerAdapter.occupantInputs[1],forwarded,'controller retains pooled occupant identity');
+assert(!Object.keys(forwarded).some(key=>key.startsWith('stunt')),'controller removes stale flight fields before next normal frame');
+console.log('PASS controller occupant adapter: actual seated helper forwards and clears pooled stunt pose');

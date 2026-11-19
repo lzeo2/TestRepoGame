@@ -32,6 +32,13 @@ export function createVehicleOccupantsView(scene, heightAt, { vehicleHeightAt = 
   function vehicleGround(car,x,z) {
     if (!vehicleHeightAt) return ground(x,z);
     heightPose.x=x; heightPose.z=z; heightPose.yaw=finite(car.yaw);
+    if (car.stuntActive) {
+      heightPose.stuntActive=true; heightPose.stuntY=car.stuntY; heightPose.stuntPitch=car.stuntPitch;
+      heightPose.stuntX=car.stuntX; heightPose.stuntZ=car.stuntZ;
+    } else if (heightPose.stuntActive) {
+      delete heightPose.stuntActive; delete heightPose.stuntY; delete heightPose.stuntPitch;
+      delete heightPose.stuntX; delete heightPose.stuntZ;
+    }
     return finite(vehicleHeightAt(heightPose,car.edge?.road||car.road));
   }
   const near = (x,z,focus) => Number.isFinite(x) && Number.isFinite(z) && Math.hypot(x-focus.x,z-focus.z)<CULL_DISTANCE;
