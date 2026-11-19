@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+"""Bounded native Free-roam ramp and airport previews; run with an exclusive CPU lease.
+
+Official map travel is explicit fixture setup. All vehicle movement uses real keys;
+only the public read-only snapshot is inspected. No state setters or career grants.
+"""
+import argparse
+from contextlib import ExitStack
+import http.server
+import json
+import math
+from pathlib import Path
+import signal
+import threading
+import time
+from urllib.parse import urlsplit
+
+from playwright.sync_api import sync_playwright
+from profile_capital_sustained import QuietHandler, release, reposition, settle, sources
+
+ROOT = Path(__file__).resolve().parents[1]
+DTO = """() => {const s=capitalDriveSnapshot();return {ready:s.ready,started:s.started,
+ gameMode:s.gameMode,paused:s.paused,player:s.player,gameplay:s.gameplay,stunts:s.stunts,
+ airport:s.airport,rendering:s.rendering,world:s.world,neighbourhood:s.neighbourhood,
+ camera:s.camera,focus:s.focus,mapView:s.mapView};}"""
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--root', type=Path, default=ROOT)
+    parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--chromium', default='/usr/bin/chromium')
+    parser.add_argument('--capture', action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument('--scenario', choices=['both', 'ramp', 'airport'], default='both')
+    args = parser.parse_args()
+    root, output = args.root.resolve(), args.output.resolve()
+    if output == root or root in output.parents or output == ROOT or ROOT in output.parents:
+        parser.error('--output must be outside the repository and source')
+    output.mkdir(parents=True, exist_ok=False)
+    report = {'scenario': args.scenario, 'checks': [], 'samples': [], 'repositions': [], 'settles': [],
+              'errors': [], 'http_errors': [], 'request_failures': [], 'external_requests': [],
+              'source_sha256': sources(root), 'screenshots': [],
+              'limitations': ['Official Free-roam map arrivals are fixture setup, not natural travel.',
+                             'One ramp and one airport view do not establish all locations, FPS or target-device performance.',
+                             'Terminal footprint and post counts are owner diagnostics. Screenshots require visual review of terrain and silhouette.']}
+    started, page, failure = time.monotonic(), None, None
+
+    def check(value, label):
+        report['checks'].append({'check': label, 'pass': bool(value)})
+        if not value:
+            raise AssertionError(label)
+
+    def read():
+        release(page)
+        state = page.evaluate(DTO)
+        report['samples'].append({'wall_seconds': time.monotonic() - started, **state})
+        return state
+
+    def capture(name):
+        release(page)
+        if args.capture:
+            page.screenshot(path=str(output / (name + '.png')))
+            report['screenshots'].append(name + '.png')
+
+    def drive_keys(keys, milliseconds=100):
+        page.locator('#world canvas').focus()
+        for key in keys:
+            page.keyboard.down(key)
+        try:
+            page.wait_for_timeout(milliseconds)
+        finally:
+            release(page)
+
+    def ramp_case():
+        ramps = read().get('stunts') or []
+        ramp = next((r for r in ramps if r.get('fictional') and all(math.isfinite(r.get(k, math.nan)) for k in ('x', 'z', 'length', 'height', 'base', 'width'))), None)
+        check(ramp is not None, 'Public snapshot exposes an actual finite fictional ramp')
+        report['ramp'] = ramp
+        approach = {'x': ramp['x'], 'z': ramp['z'] - 40}
+        reposition(page, approach, report['repositions'])
+        check(settle(page, 'ramp arrival', report['settles'], seconds=25)['settled'], 'Ramp arrival drains streamed geometry queues')
+        check(read()['gameplay']['mode'] == 'vehicle', 'Official Free map arrival retains the real car')
+        # Real steering establishes heading. A second official arrival restores
+        # run-up space while retaining that genuinely driven yaw, with zero speed.
+        aligned = False
+        for _ in range(100):
+            car = read()['player']
+            delta = math.atan2(math.sin(math.pi - car['yaw']), math.cos(math.pi - car['yaw']))
+            if abs(delta) < .075:
+                aligned = True
+                break
+            drive_keys(['w', 'a' if delta > 0 else 'd'], 120)
+        check(aligned, 'Real W and steering align the car toward the ramp positive-z axis')
+        arrived = reposition(page, approach, report['repositions'])
+        check(arrived['reposition']['delta_metres'] <= 3, 'Official map reaches the checked ramp run-up without a distant fallback')
+        settle(page, 'aligned ramp arrival', report['settles'], seconds=15)
+        capture('01-ramp-run-up')
+        ascent = launch = landing = None
+        end = time.monotonic() + 55
+        while time.monotonic() < end:
+            state = read()
+            car = state['player']
+            check(state['gameplay']['mode'] == 'vehicle' and state['gameplay']['health'] > 0 and not state['gameplay']['recovery'], 'Ramp attempt stays in the live healthy vehicle owner')
+            check(all(math.isfinite(car.get(k, math.nan)) for k in ('x', 'z', 'yaw', 'speed')), 'Native ramp trajectory remains finite')
+            active = car.get('stuntActive', False)
+            if active and ramp['z'] <= car['z'] <= ramp['z'] + ramp['length'] and car.get('stuntY', 0) > ramp['base'] + .7 and ascent is None:
+                ascent = state
+            if active and car['z'] > ramp['z'] + ramp['length'] + .1 and car.get('stuntVy', 0) > 0 and launch is None:
+                launch = state
+                capture('02-ramp-unsupported-launch')
+            if launch and not active and car['z'] > ramp['z'] + ramp['length'] + 2:
+                landing = state
+                break
+            check(abs(car['x'] - ramp['x']) < 16, 'Actual steering stays within the finite stunt corridor')
+            check(car['z'] < ramp['z'] + 90, 'Attempt cannot silently continue beyond the bounded landing corridor')
+            target_z = ramp['z'] + ramp['length'] + 60
+            desired = math.atan2(-(ramp['x'] - car['x']), -(target_z - car['z']))
+            delta = math.atan2(math.sin(desired - car['yaw']), math.cos(desired - car['yaw']))
+            keys = ['w', 'Shift']
+            if abs(delta) > .045:
+                keys.append('a' if delta > 0 else 'd')
+            drive_keys(keys, 80)
+        report['ramp_evidence'] = {'ascent': ascent, 'launch': launch, 'landing': landing}
+        check(ascent is not None, 'Native driving climbs the real ramp support')
+        check(launch is not None, 'Past the ramp tip the actual car has unsupported upward stunt velocity')
+        check(landing is not None, 'After launch the actual flight owner clears stunt state on physical landing')
+        capture('03-ramp-landed')
+
+    def airport_case():
+        point = {'x': 4622.74, 'z': -1045.64}
+        reposition(page, point, report['repositions'])
+        check(settle(page, 'airport arrival', report['settles'], seconds=30)['settled'], 'Airport arrival drains all streaming queues')
+        state = read()
+        airport = state['airport']
+        check(airport['terminalFootprints'] == 1 and airport['sourceSurfaces'] > 0, 'Airport retains one source terminal footprint and mapped airfield surfaces')
+        check(0 < airport['decorativePosts'] <= airport['maxDecorativePosts'] == 96, 'Airport road reflector posts are present and bounded')
+        check(0 < airport['residentChunks'] <= airport['maxResidentChunks'] and airport['drawCalls'] > 0, 'Settled airport exterior owns visible bounded streamed geometry')
+        report['airport_preview'] = state
+        capture('04-airport-source-shape-and-road-posts')
+
+    def expired(*_):
+        raise TimeoutError('Native terrain preview exceeded its 300-second wall budget')
+
+    prior = signal.signal(signal.SIGALRM, expired)
+    signal.alarm(300)
+    server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), lambda *a, **kw: QuietHandler(*a, directory=str(root), **kw))
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        with ExitStack() as stack:
+            pw = stack.enter_context(sync_playwright())
+            browser = pw.chromium.launch(executable_path=args.chromium, headless=True, args=['--no-sandbox', '--disable-dev-shm-usage', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
+            stack.callback(browser.close)
+            context = browser.new_context(viewport={'width': 1280, 'height': 800}, service_workers='block')
+            stack.callback(context.close)
+            base = f'http://127.0.0.1:{server.server_port}'
+            def route(request):
+                if urlsplit(request.request.url).scheme in ('http', 'https') and urlsplit(request.request.url).netloc != urlsplit(base).netloc:
+                    report['external_requests'].append(request.request.url)
+                    request.abort()
+                else:
+                    request.continue_()
+            context.route('**/*', route)
+            page = context.new_page()
+            page.set_default_timeout(30000)
+            page.on('pageerror', lambda error: report['errors'].append(str(error)))
+            page.on('console', lambda message: report['errors'].append(message.text) if message.type == 'error' else None)
+            page.on('requestfailed', lambda request: report['request_failures'].append({'url': request.url, 'failure': request.failure}))
+            page.on('response', lambda response: report['http_errors'].append({'url': response.url, 'status': response.status}) if response.status >= 400 else None)
+            page.on('websocket', lambda socket: report['external_requests'].append('WebSocket:' + socket.url))
+            try:
+                page.goto(base + '/Games/Capital%20Drive/', wait_until='load', timeout=120000)
+                page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=90000)
+                page.locator('[data-game-mode=free]').click()
+                page.locator('#guided-tutorial').uncheck()
+                page.locator('#start-button').click()
+                page.locator('#pause-button').click()
+                page.locator('#quality').select_option('performance')
+                page.locator('#resume-button').click()
+                initial = read()
+                check(initial['gameMode'] == 'free' and initial['started'] and not initial['rendering']['compatibility'], 'Normal Free-roam UI starts actual WebGL gameplay')
+                if args.scenario in ('both', 'ramp'):
+                    ramp_case()
+                if args.scenario in ('both', 'airport'):
+                    airport_case()
+                check(not any(report[key] for key in ('errors', 'http_errors', 'request_failures', 'external_requests')), 'No runtime errors, failed local loads or external requests')
+            except Exception:
+                try:
+                    capture('failure')
+                except Exception as capture_error:
+                    report['failure_capture_error'] = repr(capture_error)
+                raise
+            finally:
+                release(page)
+    except Exception as error:
+        failure = repr(error)
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, prior)
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+        report['failure'] = failure
+        report['pass'] = failure is None
+        report['wall_seconds'] = time.monotonic() - started
+        report['source_unchanged'] = sources(root) == report['source_sha256']
+        if not report['source_unchanged']:
+            report['pass'] = False
+        (output / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
+    print(json.dumps({'pass': report['pass'], 'checks': len(report['checks']), 'failure': failure, 'screenshots': report['screenshots']}))
+    return 0 if report['pass'] else 1
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
