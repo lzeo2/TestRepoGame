@@ -30,6 +30,9 @@ assert.equal(actor.scale.y, appearanceForPerson('player').height, 'weapon rig us
 const names = { pistol: 'Pistol', shotgun: 'Shotgun', smg: 'SMG', carbine: 'Carbine' };
 const state = { mode: 'foot', actor: { x: 0, z: 0, yaw: 0, speed: 0 }, weapon: 'unarmed', aiming: false, attackTimer: 0, reloading: 0, shots: [] };
 const options = { dt: 1 / 60, focus: state.actor };
+// Pose fixtures hold authoritative state while the real view samples half a
+// second of normal render dt. A single frame now observes a transition.
+const settlePose = () => { for (let frame = 0; frame < 30; frame++) view.update(state, options); };
 const weapons = Object.fromEntries(Object.entries(names).map(([id, name]) => [id, root.getObjectByName(name)]));
 const shoulders = [], elbows = [];
 actor.traverse(object => { if (object.name === 'Shoulder') shoulders.push(object); if (object.name === 'Elbow') elbows.push(object); });
@@ -50,7 +53,7 @@ assert.equal(new Set(Object.values(bounds).map(size => size.toArray().join(','))
 for (const id of Object.keys(weapons)) {
   state.weapon = id; state.aiming = true;
   state.shots = [{ kind: id, x: 0, z: 0, endX: 2, endZ: -15, life: .1 }];
-  const before = structuredClone(state); view.update(state, options);
+  const before = structuredClone(state); view.update(state, options); settlePose();
   assert.deepEqual(state, before, 'view does not mutate gameplay');
   assert.equal(view.stats.activeWeapon, id); assert.equal(view.stats.weaponMeshes, 4);
   assert.equal(view.stats.shots, 1, `${id} trace visible`);
@@ -63,7 +66,10 @@ for (const id of Object.keys(weapons)) {
   const handPosition = elbows[1].getWorldPosition(new THREE.Vector3());
   assert(weaponBounds.max.y > handPosition.y - .4 && weaponBounds.min.y < handPosition.y + .2, `${id} stays at the articulated hand`);
   const aiming = elbows[1].rotation.x;
+  const aimedShoulder = shoulders[1].rotation.x;
   state.reloading = 1; view.update(state, options);
+  assert(shoulders[1].rotation.x < aimedShoulder && shoulders[1].rotation.x > .65, `${id} reload eases toward its target`);
+  settlePose();
   assert(shoulders[1].rotation.x < 1 && elbows[1].rotation.x > aiming, `${id} reload toward chest`);
   assert(shoulders[0].rotation.z > .5, `${id} support hand comes inward during reload`);
   state.reloading = 0;
@@ -77,16 +83,16 @@ state.actor.speed=0;
 for(const personId of ['player:student','player:corporate','player:basement','player']) {
   assert(view.setPlayerAppearance(personId));
   for(const id of Object.keys(weapons)) {
-    state.weapon=id; state.aiming=false; view.update(state,options); root.updateMatrixWorld(true);
+    state.weapon=id; state.aiming=false; view.update(state,options); settlePose(); root.updateMatrixWorld(true);
     assert(new THREE.Box3().setFromObject(weapons[id]).min.y>=2,`${personId} carries ${id} above the ground`);
-    state.aiming=true; view.update(state,options); root.updateMatrixWorld(true);
+    state.aiming=true; view.update(state,options); settlePose(); root.updateMatrixWorld(true);
     const direction=new THREE.Vector3(0,0,-1).transformDirection(weapons[id].matrixWorld);
     assert(direction.z<-.9 && Math.abs(direction.y)<.15,`${personId} preserves ${id} forward aim`);
   }
 }
 assert.deepEqual(resources(),initialResources,'hero changes preserve weapon geometry/material budgets');
 state.weapon = 'unarmed'; state.aiming = false; state.attackTimer = .15; state.actor.speed = 0;
-view.update(state, options);
+view.update(state, options); settlePose();
 assert.equal(view.stats.activeWeapon, null);
 assert(Object.values(weapons).every(weapon => !weapon.visible));
 assert(shoulders[1].rotation.x > 1.8, 'fist strike preserved');
