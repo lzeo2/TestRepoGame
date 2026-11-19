@@ -180,3 +180,10 @@ Rebuild enriched sources with `--fetch-details`; this developer import additiona
 requires NumPy, Shapely, SciPy, Pyogrio/OpenFileGDB and Pyproj, installed outside
 the repository. The pinned official Microsoft tile and ACT contour archive stay
 in the external cache. The runtime only reads the resulting local JSON.
+
+
+The19November2026 continuation adds `airport-terrain.json`: an89×122 grid at
+about50m spacing interpolated from the pinned ACT2020 two-metre contour source,
+© Australian Capital Territory and Aerometrex Limited, CC BY4.0. The source URL,
+SHA256, AHD datum and interpolation checks remain in the sidecar. Authored seam
+blending and runway grades do not establish surveyed pavement heights.

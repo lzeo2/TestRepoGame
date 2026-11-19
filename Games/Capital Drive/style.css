@@ -334,3 +334,5 @@ body.reconning #navigation-hud{visibility:hidden}
 .city-row button,.city-storage button{min-height:44px}
 .city-storage label{display:grid;gap:.35rem}
 .city-storage input{min-height:44px;max-width:14rem}
+
+.burglary-status{position:absolute;left:24px;top:170px;max-width:360px;padding:12px 16px;background:#17252c;color:#fff;border:1px solid #e8ad47;z-index:4;font-size:14px;line-height:1.5;pointer-events:none}.burglary-status[hidden]{display:none}@media(max-width:700px){.burglary-status{top:115px;left:12px;max-width:calc(100% - 36px);font-size:12px}}

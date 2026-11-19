@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createInteriorActivities} from '../Games/Capital Drive/interior-activities.js';
 import {createInteriors} from '../Games/Capital Drive/interiors.js';
 const building={id:'home',type:'house',height:4,points:[[-6,20],[6,20],[6,34],[-6,34]]};
 const map={buildings:[building],interiorEntries:[{id:'home',buildingId:'home',x:0,z:20,nx:0,nz:1}]};
@@ -14,4 +15,5 @@ for(const station of searches){
 }
 const rest=plan.activities.find(s=>s.id.endsWith('-rest'));
 assert(rest && plan.furniture.some(f=>f.kind==='bed' && Math.hypot(f.x-rest.x,f.z-rest.z)<2.5));
+const activities=createInteriorActivities();activities.load(plan);const first=searches[0];const codes=[];for(const station of searches){activities.load(plan);assert(activities.start(station.id,{pose:station,onFoot:true,health:100,wanted:0,sandbox:false}));codes.push(activities.snapshot().sequence.join(','));}assert.equal(new Set(codes).size,3,'distinct cabinets have distinct visible memory cues');activities.load(plan);assert.notEqual(activities.nearest(first,s=>s.id!==first.id)?.id,first.id,'searched station predicate prevents a repeat cue');
 console.log('Capital house fixture searches: three distinct physical stations and a bed rest station passed');

@@ -18,6 +18,7 @@ const RECIPES = {
   cooking: ['x', 'x', 'y', 'up', 'y', 'up'],
   stock: ['x', 'up', 'y', 'x'],
 };
+const HOUSE_RECIPES=Object.freeze({kitchen:Object.freeze(['y','up','x','y']),lounge:Object.freeze(['up','x','y','x'])});
 const finitePoint = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const clamp = n => Math.max(0, Math.min(1, n));
 const heldKeys = input => Object.fromEntries(KEYS.map(key => [key, input?.[key] === true]));
@@ -56,10 +57,11 @@ export function createInteriorActivities() {
     session = null; previous = heldKeys(null);
     return stations.length;
   }
-  function nearest(pose) {
+  function nearest(pose,allow) {
     if (!finitePoint(pose)) return null;
     let best = null, bestDistance = Infinity;
     for (const station of stations) {
+      if(allow && !allow(station))continue;
       const d = distance(pose, station);
       if (d <= station.radius && d < bestDistance) { best = station; bestDistance = d; }
     }
@@ -86,7 +88,7 @@ export function createInteriorActivities() {
     const station = stations.find(item => item.id === id);
     if (running() || !station || invalidContext(station, context)) return false;
     const kind = station.kind;
-    session = { station, sessionId: ++serial, kind, label: station.label,
+    session = { station, recipe:kind==='stock'?(station.id.endsWith('-valuables-kitchen')?HOUSE_RECIPES.kitchen:station.id.endsWith('-valuables-lounge')?HOUSE_RECIPES.lounge:RECIPES.stock):RECIPES[kind],sessionId: ++serial, kind, label: station.label,
       phase: kind === 'alarm' || kind === 'evidence' ? 'ready' : kind === 'presentation' ? 'edit' : kind === 'bench' ? 'grip' : kind === 'stock' ? 'memorise' : kind === 'rest' ? 'ready' :
         isWorkoutKind(kind) || kind === 'tv' || kind === 'arcade' ? 'prepare' : 'recipe',
       phaseTime: 0, elapsed: 0, progress: 0, reps: 0, lift: 0, score: 0,
@@ -199,7 +201,7 @@ export function createInteriorActivities() {
     }
   }
   function sequence(dt, edges) {
-    const s = session, recipe = RECIPES[s.kind];
+    const s = session, recipe = s.recipe || RECIPES[s.kind];
     if (s.phase === 'memorise') {
       s.phaseTime += dt;
       if (s.phaseTime >= 3.5) { s.phase = 'repeat'; s.phaseTime = 0; }
@@ -213,7 +215,7 @@ export function createInteriorActivities() {
       return;
     }
     s.index++; s.score = Math.max(0, s.index * 50 - s.mistakes * 10); s.progress = s.index / recipe.length; s.reason = null;
-    if (s.index === recipe.length) finish('complete', s.kind === 'stock' ? (s.station.id.endsWith('-valuables') ? 'Valuables found.' : 'Stock order matched.') : 'Order served.');
+    if (s.index === recipe.length) finish('complete', s.kind === 'stock' ? (s.station.id.includes('-valuables') ? 'Valuables found.' : 'Stock order matched.') : 'Order served.');
   }
   function presentation(dt, held, edges) {
     const s = session;
@@ -366,8 +368,8 @@ export function createInteriorActivities() {
     if (WORKOUTS[s.kind]) return `${s.reason ? `${s.reason} ` : ''}${instruction()} ${s.reps}/${WORKOUTS[s.kind].target} ${s.kind === 'treadmill' ? 'steps' : s.kind === 'rower' ? 'strokes' : 'curls'}. ${s.mistakes}/3 mistakes. E stops.`;
     if (s.kind === 'rest') return s.phase === 'ready' ? 'Release all keys to settle beside the bed.' : s.phase === 'cue' ? 'REST: press and hold X for three seconds.' : `Keep X held to rest. ${Math.max(0,3-s.phaseTime).toFixed(1)} seconds. Moving away cancels.`;
     if (s.kind === 'stock') return s.phase === 'memorise' ?
-      `Remember: ${RECIPES.stock.map(key => KEY_LABEL[key]).join(', ')}. Release each key between presses.` :
-      `Repeat: ${RECIPES.stock.map(key => KEY_LABEL[key]).join(', ')}. ${s.index}/4 items. ${s.mistakes}/3 mistakes. Release between presses.`;
+      `Remember: ${s.recipe.map(key => KEY_LABEL[key]).join(', ')}. Release each key between presses.` :
+      `Repeat: ${s.recipe.map(key => KEY_LABEL[key]).join(', ')}. ${s.index}/4 items. ${s.mistakes}/3 mistakes. Release between presses.`;
     if (RECIPES[s.kind]) return `${s.kind === 'noodle' ? 'Serve noodles' : 'Cook a meal'}: ${RECIPES[s.kind].map((key, i) => `${i < s.index ? 'done' : KEY_LABEL[key]}`).join(', ')}. X chop, Y add, ArrowUp serve. Release between presses.`;
     return `${s.phase === 'cue' ? 'GO! Press ArrowUp now.' : 'Wait for GO, then press ArrowUp.'} ${s.hits}/${s.kind === 'arcade' ? 8 : 5} signals. ${s.mistakes}/3 mistakes.`;
   }
@@ -390,7 +392,7 @@ export function createInteriorActivities() {
   }
   function snapshot() {
     const s = session;
-    const sequence = s ? RECIPES[s.kind] ?? (s.kind === 'evidence' ? ['up', 'up', 'up'] : s.kind === 'alarm' ? ['x', 'y'] : s.kind === 'presentation' ? PRESENTATION_KEYS : s.kind === 'bench' ? Array(6).fill('up') : WORKOUTS[s.kind] ? Array.from({length: WORKOUTS[s.kind].target}, (_, i) => s.kind === 'rower' ? 'xy' : i % 2 ? 'y' : 'x') :
+    const sequence = s ? s.recipe ?? RECIPES[s.kind] ?? (s.kind === 'evidence' ? ['up', 'up', 'up'] : s.kind === 'alarm' ? ['x', 'y'] : s.kind === 'presentation' ? PRESENTATION_KEYS : s.kind === 'bench' ? Array(6).fill('up') : WORKOUTS[s.kind] ? Array.from({length: WORKOUTS[s.kind].target}, (_, i) => s.kind === 'rower' ? 'xy' : i % 2 ? 'y' : 'x') :
       s.kind === 'rest' ? ['x'] : s.kind === 'tv' || s.kind === 'arcade' ? Array(s.kind === 'arcade' ? 8 : 5).fill('up') : []) : [];
     const index = s ? RECIPES[s.kind] || s.kind === 'presentation' || s.kind === 'alarm' || s.kind === 'evidence' ? s.index : isWorkoutKind(s.kind) ? s.reps : s.hits : 0;
     const cue = s?.phase === 'cue';

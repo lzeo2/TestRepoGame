@@ -62,7 +62,6 @@ def build(source, output, cell_metres):
     grid = LinearNDInterpolator(points, heights)(x, y)
     assert np.isfinite(grid).all(), 'Source convex hull misses grid cells; do not fill with invented elevations.'
     assert 500 < float(grid.min()) < float(grid.max()) < 1000
-    base_north_z = round((LAT0 - -35.298) * MZ, 2)
     terrain = dict(cols=cols, rows=rows,
                    minX=round((WEST - LON0) * MX, 2), maxX=round((EAST - LON0) * MX, 2),
                    minZ=round((LAT0 - NORTH) * MZ, 2), maxZ=round((LAT0 - SOUTH) * MZ, 2),
@@ -70,7 +69,7 @@ def build(source, output, cell_metres):
                    extent=[WEST, SOUTH, EAST, NORTH],
                    source='ACT 2020 LiDAR-derived 2m contours; linear Delaunay interpolation',
                    sourceUrl=SOURCE_URL, sourceSha256=SOURCE_SHA256,
-                   attribution='Australian Capital Territory', license='CC-BY-4.0',
+                   attribution='Australian Capital Territory and Aerometrex Limited', license='CC-BY-4.0',
                    projection='Local equirectangular metres; x east, z south', origin=[LON0, LAT0],
                    interpolationCRS='EPSG:7855', verticalDatum='AHD', datumOffsetMetres=550,
                    nativeContourIntervalMetres=2, pointSpacingMetres=10,

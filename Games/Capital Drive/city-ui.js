@@ -12,7 +12,7 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
   const phone = document.getElementById('phone-dialog');
   const section = make('section', undefined, phone);
   section.className = 'phone-service';
-  make('h3', 'Crew & safehouses', section);
+  make('h3', 'Services', section);
   let disposed = false;
   const act = (action, value) => {
     const result = onAction(action, value);
@@ -40,6 +40,7 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
   button(section, 'Safehouses & storage', () => open('properties'), 'city-properties-open');
   button(section, 'Hire crew', () => open('crew'), 'city-crew-open');
   button(section, 'Drone', () => open('drone'), 'city-drone-open');
+  button(section, 'Food & weapon deliveries', () => open('deliveries'), 'city-deliveries-open');
   const amount = (parent, label, id, value) => {
     const wrapper = make('label', label, parent);
     const input = make('input', undefined, wrapper, id);
@@ -50,6 +51,29 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
     if (disposed) return;
     const state = getState();
     body.replaceChildren();
+    if(tab==='deliveries'){
+      title.textContent='Food & weapon deliveries';
+      const courier=state.delivery;
+      if(courier&&['approaching','waiting'].includes(courier.phase)){
+        make('h3',courier.order.sourceName,body);
+        make('p',courier.phase==='waiting'?'Courier stopped. Walk beside the van and press E.':'Courier en route. Your handover stop stays where you ordered.',body);
+        button(body,'Route to handover',()=>onRoute({...courier.dropoff,name:'Courier handover'}),'city-delivery-route');
+        button(body,'Cancel and refund',()=>act('cancel-delivery'),'city-delivery-cancel');
+        return;
+      }
+      make('p','Orders arrive by road. Collect outside on foot. Prices include $50 delivery.',body);
+      if(state.sandbox){make('p','Order deliveries in Street Life or Campaign.',body);return;}
+      for(const source of state.deliveryOffers||[]){
+        const row=make('section',undefined,body);row.className='city-row';
+        make('h3',source.name,row);
+        for(const item of source.items){
+          const label=item.ok?`${item.name} · $${item.cost.toLocaleString()}`:`${item.name} · ${item.message}`;
+          const order=button(row,label,()=>act('order-delivery',{kind:source.kind,sourceId:source.id,itemId:item.itemId}),`city-delivery-${source.id}-${item.itemId}`);
+          order.disabled=!item.ok;
+        }
+      }
+      return;
+    }
     if (tab === 'crew') {
       title.textContent = 'Hire crew';
       for (const offer of state.crewOffers || []) {
@@ -83,7 +107,7 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
       return;
     }
     title.textContent = 'Safehouses & storage';
-    for (const offer of state.properties || []) {
+    if(!state.stash)for (const offer of state.properties || []) {
       const row = make('section', undefined, body); row.className = 'city-row';
       make('h3', offer.label || offer.name, row);
       const owned = state.ownedProperties?.includes(offer.id);

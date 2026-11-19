@@ -27,7 +27,7 @@ export async function createCampaignFixture() {
   const expanded = applyStreetAssetRoofs(applyMapExpansion(applyRoadProfiles(base, profiles), north));
   expanded.terrainTiles = [(await read('north-terrain')).terrain];
   expanded.lakeWaterLevel = 5.93;
-  const map = applyAirport(expanded, await read('airport'));
+  const map = applyAirport(expanded, await read('airport'),await read('airport-terrain'));
   const stores = [...MAPPED_STORES, ...EXTRA_STORES];
   map.landmarks.push(...stores.map(s => ({ ...s, store: true })));
   for (const point of CIVIC_LANDMARKS) {
