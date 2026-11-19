@@ -40,8 +40,10 @@ assert.equal(burglary.recordLoot(event,terminal,{...inside,pose:{x:20,z:0}}),fal
 assert.equal(burglary.recordLoot(event,terminal,{...inside,sandbox:true}),false);
 assert(burglary.recordLoot(event,terminal,inside));
 assert.equal(burglary.recordLoot(event,terminal,inside),false,'event replay rejected');
-assert.equal(burglary.takeHouseLoot(house.id,outside),null);
-const receipt=burglary.takeHouseLoot(house.id,inside);assert.deepEqual(receipt,{roomId:house.id,serial:1,outcome:'looted'});assert(Object.isFrozen(receipt));
+assert.equal(burglary.takeHouseLoot(house.id,inside),null,'carried loot cannot pay indoors');
+assert.equal(burglary.takeHouseLoot(house.id,outside),null,'exit must be verified');
+assert(burglary.exited(house.id,outside));
+const receipt=burglary.takeHouseLoot(house.id,outside);assert.deepEqual(receipt,{roomId:house.id,serial:1,outcome:'looted',count:1,exited:true});assert(Object.isFrozen(receipt));
 assert.equal(burglary.takeHouseLoot(house.id,inside),null);
 assert.equal(burglary.recordLoot(event,terminal,inside),false,'consumption does not permit replay');
 burglary.leave();assert.equal(burglary.recordLoot({...event,sessionId:9},{...terminal,sessionId:9},inside),false);
@@ -68,7 +70,7 @@ for(let i=0;i<100;i++) {
   assert(exploration.recordLoot(event,terminal,ctx));
   assert.equal(exploration.snapshot().pendingLootRoomId,id);
   if(!i)firstCompletion={event,terminal};
-  if(i===99)assert.equal(exploration.takeHouseLoot(id,ctx).serial,100,'receipt numbering survives room cleanup');
+  if(i===99){assert(exploration.exited(id,outside));assert.equal(exploration.takeHouseLoot(id,outside).serial,100,'receipt numbering survives room cleanup');}
   exploration.leave();assert.equal(exploration.snapshot().pendingLootRoomId,null,'leaving discards unclaimed transient loot');
   assert.equal(exploration.takeHouseLoot(id,ctx),null);
 }
