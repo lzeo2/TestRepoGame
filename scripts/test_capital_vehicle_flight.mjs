@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { createVehicleFlight } from '../Games/Capital Drive/vehicle-flight.js';
+import { createVehicleFlight, stuntVehicleHeightAt } from '../Games/Capital Drive/vehicle-flight.js';
 import { createSimulation } from '../Games/Capital Drive/simulation.js';
 const ramp=pose=>pose.z>=0&&pose.z<=18&&Math.abs(pose.x)<4.5?{id:'ramp',height:pose.z*3.2/18,slopeX:0,slopeZ:3.2/18}:null;
 const flight=createVehicleFlight({supportAt:ramp,heightAt:()=>0});
@@ -63,3 +63,25 @@ for(const withHeight of [false,true]) {
   }
 }
 console.log('Capital vehicle flight: 360 no-ramp steps exactly match pinned pre-flight player state');
+
+assert.equal(stuntVehicleHeightAt({x:0,z:0,yaw:0}),null,'ordinary car has no stunt height');
+const display={x:7,z:9,yaw:.7,vx:12,vz:4};
+const displayFlight=createVehicleFlight({supportAt:()=>({id:'probe',height:3,slopeX:.2,slopeZ:.1}),heightAt:()=>0});
+displayFlight.step(display,.05);
+assert.equal(display.stuntX,7);assert.equal(display.stuntZ,9);
+assert.equal(stuntVehicleHeightAt(display),3,'centre uses ramp base convention');
+const fx=-Math.sin(display.yaw),fz=-Math.cos(display.yaw);
+const front=stuntVehicleHeightAt({...display,x:display.x+fx*2,z:display.z+fz*2});
+const back=stuntVehicleHeightAt({...display,x:display.x-fx*2,z:display.z-fz*2});
+assert(Math.abs(Math.atan2(front-back,4)-display.stuntPitch)<1e-12,'front/back copied probes recover pitch');
+displayFlight.clear(display);
+assert.equal(stuntVehicleHeightAt(display),null,'reset removes pitch plane');
+assert(!('stuntX' in display)&&!('stuntZ' in display),'reset removes anchors');
+const falling={x:0,z:18,yaw:Math.PI,vx:0,vz:0};
+const fallingFlight=createVehicleFlight({supportAt:ramp,heightAt:()=>0});
+fallingFlight.step(falling,.05);falling.z=19;fallingFlight.step(falling,.05);
+for(let i=0;i<5;i++)fallingFlight.step(falling,.05);
+assert.equal(falling.stuntPitch,-.6,'display pitch stays bounded at zero horizontal speed');
+assert(falling.stuntVy<-.6,'display clamp preserves real vertical velocity');
+assert(Number.isFinite(stuntVehicleHeightAt(falling)),'stopped fall retains finite display plane');
+console.log('Capital stunt presentation: anchored centre/front/back pitch probes and bounded display pitch passed');
