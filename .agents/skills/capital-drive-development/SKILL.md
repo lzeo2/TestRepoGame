@@ -282,3 +282,21 @@ arrival on stage advance/retry; never turn a stale receipt or cleared wanted lev
 alone into completion. Fitted rear gardens remain procedural inference around
 source footprints, not observed cadastral boundaries. Preserve source geometry,
 physical fences, real door approaches, deterministic regeneration and bounded cost.
+
+For airport contour rebuilds, physical courier orders, multi-cache house searches,
+paid bed rest and bounded player/stunt animation, follow the
+[current continuation procedure](references/workflow.md#terrain-couriers-house-sessions-and-motion).
+Use `build_capital_airport_terrain.py` with the pinned external ACT archive; retain
+its digest, CRS/datum and numerical-validation limits. Courier owner/transaction
+fixtures and source-map travel checks are distinct from native earned purchases.
+Pending native harnesses are `test_capital_delivery_browser.py` and
+`test_capital_terrain_browser.py`; inspect their actual existence/options before
+use and record only observed results, never a planned PASS.
+
+Keep transient delivery escrow with Progression's cash/save owner and require the
+matching physical terminal receipt for effects or one refund. Multi-cache loot
+stays carried until a checked physical exit; noise/alarm and globally fresh activity
+sessions belong to Burglary. Paid safehouse rest requires the matching live bed
+terminal receipt, rather than a menu click or caller boolean. Views blend only
+local joints with supplied dt; Simulation owns stunt support, vertical travel and
+swept contacts. Preserve root authority, pause, bounded resources and disposal.
