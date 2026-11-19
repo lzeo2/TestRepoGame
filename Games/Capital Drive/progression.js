@@ -60,7 +60,21 @@ export function createProgression(map, saved = null, options = {}) {
     if(!object(home)||typeof home.id!=='string'||!home.id.startsWith('house-')||home.type!=='house'||homeIds.has(home.id)||typeof home.name!=='string'||!home.name.trim()||!Number.isFinite(home.x)||!Number.isFinite(home.z)||!Number.isFinite(home.yaw))throw new Error('Invalid home registry.');
     homeIds.add(home.id);
   }
-  const propertyOffers=Object.freeze(homes.filter(home=>home.id!==map.storyHomes?.basement?.roomId).slice(0,2).map((home,i)=>Object.freeze({id:home.id,roomId:home.id,buildingId:home.buildingId,name:home.name,x:home.x,z:home.z,yaw:home.yaw,price:i===0?15000:25000})));
+  const availableHomes=homes.filter(home=>home.id!==map.storyHomes?.basement?.roomId);
+  // Preserve v1 property identities; added offers use source suburbs and actual doors.
+  const offeredHomes=availableHomes.slice(0,2);
+  const buildingsById=new Map((map.buildings||[]).map(building=>[building.id,building]));
+  const districtOf=home=>String(buildingsById.get(home.buildingId)?.suburb||'').toLowerCase().replace(/\s/g,'');
+  const separation=home=>Math.min(...offeredHomes.map(other=>Math.hypot(home.x-other.x,home.z-other.z)));
+  function appendOffer(district){
+    const remaining=availableHomes.filter(home=>!offeredHomes.includes(home)&&(!district||districtOf(home)===district));
+    remaining.sort((a,b)=>separation(b)-separation(a)||a.id.localeCompare(b.id));
+    if(remaining.length)offeredHomes.push(remaining[0]);
+  }
+  for(const district of ['redhill','narrabundah','city','barton','kingston','griffith'])appendOffer(district);
+  while(offeredHomes.length<Math.min(8,availableHomes.length))appendOffer();
+  const prices=[15000,25000,38000,22000,42000,32000,28000,24000];
+  const propertyOffers=Object.freeze(offeredHomes.map((home,i)=>Object.freeze({id:home.id,roomId:home.id,buildingId:home.buildingId,name:home.name,x:home.x,z:home.z,yaw:home.yaw,price:prices[i]})));
   const crewOffers=Object.freeze([{id:'merc-river',name:'River',price:1200},{id:'merc-stone',name:'Stone',price:1800}].map(Object.freeze));
   const pickup = point(map.spawn.x, map.spawn.z, 'Crescent parcel pickup');
   const drop = point(-322.32, -348.02, 'Crescent parcel drop');
@@ -87,6 +101,14 @@ export function createProgression(map, saved = null, options = {}) {
     { id: 'yoober-franklin', name: 'Yoober Franklin Street fare', type: 'ride', legitimate: true, reward: 110, time: 180, requires: [], stages: [
       { ...point(-412.29, 160.2, 'Franklin passenger pickup'), roadId: '488671941-0' },
       { ...point(-297.93, 240.71, 'Franklin passenger drop-off'), roadId: '488671941-0' }] },
+    { id:'food-round',name:'Lunch delivery round',type:'delivery',legitimate:true,stopSeconds:1.5,reward:620,time:210,requires:[],stages:[
+      point(-412.29,160.2,'Collect lunch orders on Franklin Street'),point(-297.93,240.71,'First lunch handover'),point(263.85,-215.82,'Kennedy lunch handover')] },
+    { id:'inner-south-courier',name:'Inner south document courier',type:'delivery',legitimate:true,stopSeconds:1.5,reward:780,time:240,requires:['crescent-parcel'],stages:[
+      point(263.85,-215.82,'Collect the sealed documents'),point(-412.29,160.2,'Franklin document exchange'),point(-322.32,-348.02,'Crescent document handover')] },
+    { id:'urgent-medical',name:'Urgent medical supplies',type:'delivery',legitimate:true,stopSeconds:1.5,reward:900,time:100,requires:[],stages:[
+      point(-297.93,240.71,'Collect the medical supply crate'),point(707.93,106.77,'Urgent medical supply handover')] },
+    { id:'equipment-delivery',name:'Workshop equipment delivery',type:'delivery',legitimate:true,stopSeconds:2,reward:700,time:210,requires:['crescent-parcel'],stages:[
+      point(-349.73,-422.16,'Load workshop equipment'),point(411.48,-107.54,'Workshop equipment handover'),point(-349.73,-422.16,'Return the empty equipment cases')] },
     { id: 'priority-parcel', name: 'Priority parcel', type: 'delivery', reward: 1000, time: 110, requires: ['crescent-circuit', 'wagon-recovery'], stages: [south, north] },
   ];
   const state = { cash: 1000, ownedVehicles: [{ id: 'lantern', color: '#e7e6df', health: 100, stored: false, mods:stockMods() }], completedJobs: [], activeJob: null,
@@ -123,7 +145,7 @@ export function createProgression(map, saved = null, options = {}) {
   const serviceSite = source => source && ({ ...source, ...(options.servicePosition?.(source) || {}) });
   const serviceAllowed = (site, ctx) => !options.canUseService || options.canUseService(site, ctx);
   const events = [];
-  let context = null, serial = null, shiftPlan = null, workoutPlan = null, lastHouseLootSerial = 0;
+  let context = null, serial = null, shiftPlan = null, workoutPlan = null, lastHouseLootSerial = 0, lastRestSerial = 0;
   function result(ok, message, extra = {}, type = ok ? 'change' : 'error') {
     state.message = message;
     events.push({ type, message, ...extra });
@@ -275,6 +297,16 @@ export function createProgression(map, saved = null, options = {}) {
           active.passenger = true; active.modelId = ctx.vehicle.modelId;
           advance(job, active);
         } else complete(job);
+      }
+    } else if (job.stopSeconds) {
+      const stopped=driving&&ctx.vehicleHealth>=25&&ctx.vehicleHealth<=100&&!ctx.vehicle.stolen&&
+        Number.isFinite(ctx.pose.speed)&&Math.abs(ctx.pose.speed)<=RIDE_STOP_SPEED&&near(ctx.pose,active.target,10)&&!ctx.paused&&!ctx.preview&&!ctx.passenger;
+      if(active.stopModelId!==ctx.vehicle?.modelId)active.stopTime=0;
+      active.stopModelId=stopped?ctx.vehicle.modelId:null;
+      active.stopTime=stopped?Math.min(job.stopSeconds,(active.stopTime||0)+Math.min(dt,.1)):0;
+      if(active.stopTime+1e-9>=job.stopSeconds){
+        active.stopTime=0;
+        if(active.stage<job.stages.length-1)advance(job,active);else complete(job);
       }
     } else if (job.type === 'theft') {
       if (active.stage === 0) {
@@ -528,6 +560,16 @@ export function createProgression(map, saved = null, options = {}) {
     state.ownedProperties.push(id);state.stashes[id]=emptyStash();
     return result(true,'Safehouse purchased.',{roomId:id,cost:home.price},'property-purchase');
   }
+  function restSafehouse(roomId,ctx){
+    const cost=80;
+    if(!commerceAllowed(ctx)||ctx.paused||ctx.preview||!isSafehouse(roomId)||ctx.interior?.roomId!==roomId||ctx.health>=100)return result(false,'Use the bed inside your safehouse when injured.');
+    if(state.cash<cost)return result(false,'Not enough cash to rest.');
+    let receipt;
+    try{receipt=options.takeSafehouseRest?.(roomId,ctx);}catch{return result(false,'Safehouse rest unavailable.');}
+    if(!object(receipt)||!Object.isFrozen(receipt)||receipt.roomId!==roomId||receipt.outcome!=='rested'||!Number.isSafeInteger(receipt.serial)||receipt.serial<=lastRestSerial)return result(false,'Finish resting at this safehouse bed first.');
+    lastRestSerial=receipt.serial;state.cash-=cost;
+    return result(true,'Rest complete.',{roomId,cost,heal:100,serial:receipt.serial},'safehouse-rest');
+  }
   function hireCrew(id,ctx){
     const crew=crewOffers.find(item=>item.id===id);
     if(!crew||!commerceAllowed(ctx))return result(false,'Crew hire unavailable.');
@@ -548,19 +590,20 @@ export function createProgression(map, saved = null, options = {}) {
     state.hiredCrew.splice(state.hiredCrew.indexOf(id),1);delete state.crewHealth[id];return result(true,'Crew dismissed.',{crewId:id},'crew-dismissed');
   }
   function claimHouseLoot(ctx){
-    const roomId=ctx?.interior?.roomId;
-    if(!commerceAllowed(ctx)||ctx.preview||ctx.paused||ctx.recovery||!homeIds.has(roomId)||isSafehouse(roomId))return result(false,'Loot an unowned house on foot.');
+    const roomId=ctx?.burglaryRoomId,home=homes.find(item=>item.id===roomId);
+    if(!commerceAllowed(ctx)||ctx.interior||ctx.preview||ctx.paused||ctx.recovery||!home||isSafehouse(roomId)||!near(ctx.pose,home,4)||!clearApproach(home,ctx))return result(false,'Leave the unowned house through its door with the loot.');
     if(state.burglaryCooldowns[roomId]>0)return result(false,'This house has no more loot yet.');
     const active=Object.values(state.burglaryCooldowns).filter(time=>time>0).length;
     if(active>=64)return result(false,'Wait for an earlier house search to clear.');
     let hash=2166136261;
     for(let i=0;i<roomId.length;i++)hash=Math.imul(hash^roomId.charCodeAt(i),16777619)>>>0;
-    const reward=200+hash%401;
-    if(state.cash>MAX_CASH-reward)return result(false,'Wallet full. Leave the loot for later.');
+    const baseReward=200+hash%401;
+    if(state.cash>MAX_CASH-1200)return result(false,'Wallet full. Leave the loot for later.');
     let receipt;
     try{receipt=options.takeHouseLoot?.(roomId,ctx);}catch{return result(false,'House loot is unavailable.');}
-    if(!object(receipt)||!Object.isFrozen(receipt)||receipt.roomId!==roomId||receipt.outcome!=='looted'||
+    if(!object(receipt)||!Object.isFrozen(receipt)||receipt.roomId!==roomId||receipt.outcome!=='looted'||receipt.exited!==true||!Number.isInteger(receipt.count)||receipt.count<1||receipt.count>8||
       !Number.isSafeInteger(receipt.serial)||receipt.serial<=lastHouseLootSerial)return result(false,'Complete the real house search first.');
+    const reward=Math.min(1200,baseReward*receipt.count);
     lastHouseLootSerial=receipt.serial;
     for(const id of Object.keys(state.burglaryCooldowns))if(state.burglaryCooldowns[id]<=0)delete state.burglaryCooldowns[id];
     state.burglaryCooldowns[roomId]=300;state.cash+=reward;
@@ -717,7 +760,7 @@ export function createProgression(map, saved = null, options = {}) {
     if(state.fitnessLevel>=3||!spend(active.cost))return result(false,'Training is unavailable.',{},'activity-ended');
     state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{serviceId:active.serviceId,cost:active.cost,kind:active.station.kind},'workout-complete');
   }
-  return { state, jobs, garage,saveInventory,getInventory,saveCrewHealth,getCrewHealth,propertyOffers,crewOffers,buyProperty,isSafehouse,hireCrew,rehireCrew,dismissCrew,buyDrone,claimHouseLoot,stash,get ownedProperties(){return [...state.ownedProperties];},crewRenewalSerial(id){return crewRenewals[id]??0;},get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, upgradeVehicle, upgradeEligibility, vehicleMods, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,startMugging,robberyEligibility,workoutEligibility,finishWorkout,payRental,payRide,consumeFlare,consumeThrowable,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
+  return { state, jobs, garage,saveInventory,getInventory,saveCrewHealth,getCrewHealth,propertyOffers,crewOffers,buyProperty,restSafehouse,isSafehouse,hireCrew,rehireCrew,dismissCrew,buyDrone,claimHouseLoot,stash,get ownedProperties(){return [...state.ownedProperties];},crewRenewalSerial(id){return crewRenewals[id]??0;},get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, upgradeVehicle, upgradeEligibility, vehicleMods, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,startActivity,startMugging,robberyEligibility,workoutEligibility,finishWorkout,payRental,payRide,consumeFlare,consumeThrowable,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
     cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;workoutPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
     serialize() { return copy({ version: 1, cash: state.cash, ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,gear:state.gear,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns,muggingCooldowns:state.muggingCooldowns,...(state.ownedProperties.length?{ownedProperties:state.ownedProperties}:{}),...(Object.keys(state.stashes).length?{stashes:state.stashes}:{}),...(state.hiredCrew.length?{hiredCrew:state.hiredCrew}:{}),...(Object.keys(state.inventoryProfiles).length?{inventoryProfiles:state.inventoryProfiles}:{}),...(Object.keys(state.crewHealth).length?{crewHealth:state.crewHealth}:{}),...(Object.keys(state.burglaryCooldowns).length?{burglaryCooldowns:state.burglaryCooldowns}:{}) }); },
