@@ -517,6 +517,25 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       if (templateFits && !storyHome) station('valuables', 'stock', 'Search for valuables', -width / 2 + 1.5, depth / 2 + 1.2, -Math.PI / 2, 1.35);
       width = bounds.maxX - bounds.minX; depth = bounds.maxZ - bounds.minZ;
     }
+    if (entry.type === 'house' && !storyHome) {
+      const collider=createInteriorCollider({origin,width,depth,footprint,bounds,floorY,walls,furniture});
+      // Search poses use real furniture edges and the same collision/path owner.
+      const attachSearch=(suffix,label,fixtureKind,approachKind)=>{
+        const fixture=furniture.find(f=>f.kind===fixtureKind) || (fixtureKind==='television'?furniture.find(f=>f.kind==='sofa'):null);
+        if(!fixture)return;
+        const anchor=activities.find(s=>s.kind===approachKind);
+        const p=localPoint(origin,fixture);
+        const candidates=[[-fixture.width/2-.7,0],[fixture.width/2+.7,0],[0,-fixture.depth/2-.7],[0,fixture.depth/2+.7]];
+        for(const [dx,dz] of candidates){
+          const pose=worldPoint(origin,p.x+dx,p.z+dz);
+          if(activities.some(s=>s.kind==='stock' && Math.hypot(s.x-pose.x,s.z-pose.z)<1.2) || !collider.canOccupy(pose) || !collider.canTraverse(anchor||spawn,pose))continue;
+          activities.push({id:`${entry.id}-valuables${suffix}`,kind:'stock',label,...pose,yaw:origin.yaw+Math.atan2(-dx,-dz),radius:1.05});return;
+        }
+      };
+      if(!activities.some(s=>s.id===`${entry.id}-valuables`))attachSearch('','Search the wardrobe','wardrobe');
+      attachSearch('-kitchen','Search the kitchen cupboards','kitchen-bench','cooking');
+      attachSearch('-lounge','Search beside the television','television','tv');
+    }
     return freeze({ id: entry.id, buildingId: entry.buildingId, ...(['mall', 'gym', 'school'].includes(entry.type) ? {} : { storeId: entry.storeId || null }),
       ...(entry.serviceId ? { serviceId: entry.serviceId } : {}), ...(entry.schoolId ? { schoolId: entry.schoolId } : {}),
       type: entry.type, ...(entry.variant ? { variant: entry.variant } : {}), ...(footprint ? { footprint, bounds } : {}), name: typeof storyHome?.name === 'string' && storyHome.name.trim() ? storyHome.name : entry.name, origin, width, depth, floorY, spawn, exit, counter,
