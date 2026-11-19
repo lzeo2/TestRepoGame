@@ -38,15 +38,15 @@ console.log('PASS combat controller: terrain-resolved deliberate scans, neutral/
 
 let traced,query;
 const coverEnv={interiors:{active:null},simulation:{nearbyVehicles(x,z,radius){query={x,z,radius};return [{id:'player',x:0,z:0}];}},
- buses:{vehicles:[{id:'bus:1'}],passenger:false},rideService:{vehicles:[{id:'yoober'}],passenger:false},
+ buses:{vehicles:[{id:'bus:1'}],passenger:false},delivery:{vehicles:[{id:'courier'}]},rideService:{vehicles:[{id:'yoober'}],passenger:false},
  aircraft:{active:null,snapshot:()=>({planes:[{id:'jet:1',y:15}]})},campaignScenes:{people:[{id:'ally',seated:true,vehicleId:'player'}]},
  gameplay:{state:{mode:'foot',police:[{health:100,car:{id:'patrol'}},{health:0,car:{id:'dead'}}]}},
  shotObstacles:{trace(ray,room,cars){traced={ray,room,cars};return ray.range;}}};
 const coverAPI=Function('env',`with(env){${['shotVehicles','traceWorldShot','tracePlayerShot','policeShotClear'].map(extract).join('\n')};return {traceWorldShot,tracePlayerShot,policeShotClear};}`)(coverEnv);
 assert(coverAPI.policeShotClear({x:0,y:1.35,z:0},{id:'player',x:0,y:1.2,z:-20}));
 assert.equal(query.radius,traced.ray.range+12);assert.deepEqual(traced.ray.ignoreVehicleIds,[],'an on-foot target cannot bypass their parked car');
-assert.deepEqual(traced.cars.map(car=>car.id),['player','bus:1','yoober','patrol','jet:1']);
-assert.equal(traced.cars[4].y,15,'live aircraft altitude reaches cover trace');
+assert.deepEqual(traced.cars.map(car=>car.id),['player','bus:1','yoober','courier','patrol','jet:1']);
+assert.equal(traced.cars[5].y,15,'live aircraft altitude reaches cover trace');
 coverEnv.gameplay.state.mode='vehicle';coverAPI.policeShotClear({x:0,y:1.35,z:0},{id:'player',x:0,y:1.2,z:-20});
 assert.deepEqual(traced.ray.ignoreVehicleIds,['player'],'only the actual occupied target body is exempt');
 coverEnv.aircraft.active={id:'jet:1'};coverAPI.policeShotClear({x:0,y:1.35,z:0},{id:'player',x:0,y:17,z:-20});
