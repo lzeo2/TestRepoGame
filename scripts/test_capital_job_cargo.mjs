@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import {createProgression} from '../Games/Capital Drive/progression.js';
+const map={spawn:{x:0,z:0}},ctx=(pose,extra={})=>({pose:{...pose,speed:0},onFoot:false,health:100,wanted:5,vehicleHealth:100,vehicleKey:0,vehicle:{modelId:'lantern',stolen:false},respawnSerial:0,...extra});
+function fixture(id){const p=createProgression(map);p.state.completedJobs=['crescent-parcel'];const job=p.jobs.find(item=>item.id===id);assert(job.description);assert(p.startJob(id,ctx(job.stages[0])).ok);return {p,job};}
+function stop(p,target,extra={}){for(let i=0;i<20;i++)p.update(.1,ctx(target,extra));}
+const food=fixture('food-round');
+food.p.update(30,ctx({x:10000,z:10000}));assert.equal(food.p.state.activeJob.cargo,undefined,'waiting before pickup cannot age food');
+stop(food.p,food.job.stages[0]);assert.equal(food.p.state.activeJob.cargo.kind,'food');
+const quality=food.p.state.activeJob.cargo.quality;food.p.update(10,ctx(food.job.stages[0],{paused:true}));assert.equal(food.p.state.activeJob.cargo.quality,quality);
+food.p.update(80,ctx({x:10000,z:10000}));const faded=food.p.state.activeJob.cargo.quality;assert(faded<quality);
+food.p.update(.1,ctx(food.job.stages[1],{vehicleHealth:100}));assert(food.p.state.activeJob.cargo.quality<=faded,'repairs do not improve freshness');
+stop(food.p,food.job.stages[1]);stop(food.p,food.job.stages[2]);
+const earned=food.p.state.cash-1000;assert(earned>=Math.floor(food.job.reward*.6)&&earned<food.job.reward);food.p.update(1,ctx(food.job.stages[2]));assert.equal(food.p.state.cash,1000+earned);
+const fragile=fixture('equipment-delivery');
+stop(fragile.p,fragile.job.stages[0],{vehicleKey:undefined});assert.equal(fragile.p.state.activeJob.stage,0,'loading requires actual physical identity');
+stop(fragile.p,fragile.job.stages[0]);assert.equal(fragile.p.state.activeJob.cargo.damage,0);
+fragile.p.update(.1,ctx(fragile.job.stages[0],{vehicleHealth:85}));assert.equal(fragile.p.state.activeJob.cargo.damage,15);
+fragile.p.update(.1,ctx(fragile.job.stages[0],{vehicleHealth:100}));assert.equal(fragile.p.state.activeJob.cargo.damage,15);
+fragile.p.update(.1,ctx(fragile.job.stages[0],{vehicleHealth:90}));assert.equal(fragile.p.state.activeJob,null,'25 cumulative damage fails despite repair');assert.equal(fragile.p.state.cash,1000);
+const swapped=fixture('equipment-delivery');stop(swapped.p,swapped.job.stages[0]);swapped.p.update(.1,ctx(swapped.job.stages[0],{vehicleKey:1}));assert.equal(swapped.p.state.activeJob,null,'same model is not same loaded car');
+const medical=fixture('urgent-medical');stop(medical.p,medical.job.stages[0],{vehicleHealth:59});assert.equal(medical.p.state.activeJob.stage,0);
+stop(medical.p,medical.job.stages[0],{vehicleHealth:75});medical.p.update(.1,ctx(medical.job.stages[1],{vehicleHealth:60}));assert(medical.p.state.activeJob,'exactly15 medical damage remains valid');stop(medical.p,medical.job.stages[1],{vehicleHealth:59});assert.equal(medical.p.state.activeJob,null,'more than15 damage ruins supplies');assert.equal(medical.p.state.cash,1000);
+const healthy=fixture('urgent-medical');stop(healthy.p,healthy.job.stages[0]);stop(healthy.p,healthy.job.stages[1]);assert.equal(healthy.p.state.cash,1900);
+const expired=fixture('urgent-medical');stop(expired.p,expired.job.stages[0]);expired.p.update(100,ctx(expired.job.stages[1]));assert.equal(expired.p.state.activeJob,null);assert.equal(expired.p.state.cash,1000);
+const courier=fixture('inner-south-courier');for(const target of courier.job.stages)stop(courier.p,target);assert.equal(courier.p.state.cash,1780,'documents retain stable fixed reward');
+assert.equal(Object.hasOwn(healthy.p.serialize(),'activeJob'),false);assert.deepEqual(createProgression(map,healthy.p.serialize()).serialize(),healthy.p.serialize());
+console.log('Capital cargo jobs PASS: carried-only food freshness/pay, cumulative fragile damage despite repairs, physical vehicle binding, medical condition/damage/deadline, stable courier and unchanged v1 persistence.');

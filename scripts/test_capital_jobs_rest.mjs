@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {createProgression} from '../Games/Capital Drive/progression.js';
 const map={spawn:{x:0,z:0},buildings:[]};
-const ctx=(pose,extra={})=>({pose:{...pose,speed:0},onFoot:false,health:70,vehicleHealth:100,vehicle:{modelId:'lantern',stolen:false},wanted:5,respawnSerial:0,...extra});
+const ctx=(pose,extra={})=>({pose:{...pose,speed:0},onFoot:false,health:70,vehicleHealth:100,vehicleKey:'fixture-car-1',vehicle:{modelId:'lantern',stolen:false},wanted:5,respawnSerial:0,...extra});
 const p=createProgression(map);
 for(const id of ['food-round','urgent-medical']){
  const job=p.jobs.find(item=>item.id===id),cash=p.state.cash;
@@ -14,8 +14,10 @@ for(const id of ['food-round','urgent-medical']){
   for(let step=0;step<15;step++)p.update(.1,ctx(target));
   if(index<job.stages.length-1)assert.equal(p.state.activeJob.stage,index+1);
  }
- assert.equal(p.state.activeJob,null);assert.equal(p.state.cash,cash+job.reward);
- p.update(20,ctx(job.stages.at(-1)));assert.equal(p.state.cash,cash+job.reward);
+ assert.equal(p.state.activeJob,null);
+ const earned=p.state.cash-cash;assert(earned>=Math.floor(job.reward*.6)&&earned<=job.reward);
+ if(job.id!=='food-round')assert.equal(earned,job.reward);
+ p.update(20,ctx(job.stages.at(-1)));assert.equal(p.state.cash,cash+earned);
 }
 const home={id:'house-test',type:'house',name:'House',x:0,z:0,yaw:0};let serial=1;
 const rest=createProgression(map,null,{homes:[home],takeSafehouseRest:roomId=>Object.freeze({roomId,outcome:'rested',serial})});

@@ -28,6 +28,7 @@ const MUGGING_ID = /^ped:(?:0|[1-9]\d?|1[0-5]\d)$/;
 const copy = value => JSON.parse(JSON.stringify(value));
 const near = (a, b, radius = 17) => a && Math.hypot(a.x - b.x, a.z - b.z) <= radius;
 const point = (x, z, label) => ({ x, z, label });
+const validVehicleKey = key => Number.isSafeInteger(key)&&key>=0||typeof key==='string'&&key.length>0&&key.length<=120;
 const object = value => value && typeof value === 'object' && !Array.isArray(value);
 const exactKeys = (value, keys) => Object.keys(value).every(key => keys.includes(key));
 const INVENTORY_PROFILES = Object.freeze(['street','student','corporate','basement']);
@@ -101,13 +102,13 @@ export function createProgression(map, saved = null, options = {}) {
     { id: 'yoober-franklin', name: 'Yoober Franklin Street fare', type: 'ride', legitimate: true, reward: 110, time: 180, requires: [], stages: [
       { ...point(-412.29, 160.2, 'Franklin passenger pickup'), roadId: '488671941-0' },
       { ...point(-297.93, 240.71, 'Franklin passenger drop-off'), roadId: '488671941-0' }] },
-    { id:'food-round',name:'Lunch delivery round',type:'delivery',legitimate:true,stopSeconds:1.5,reward:620,time:210,requires:[],stages:[
+    { id:'food-round',name:'Lunch delivery round',cargoKind:'food',description:'Two lunch handovers. Freshness falls after pickup; pay ranges from 60% to 100%.',type:'delivery',legitimate:true,stopSeconds:1.5,reward:620,time:210,requires:[],stages:[
       point(-412.29,160.2,'Collect lunch orders on Franklin Street'),point(-297.93,240.71,'First lunch handover'),point(263.85,-215.82,'Kennedy lunch handover')] },
-    { id:'inner-south-courier',name:'Inner south document courier',type:'delivery',legitimate:true,stopSeconds:1.5,reward:780,time:240,requires:['crescent-parcel'],stages:[
+    { id:'inner-south-courier',name:'Inner south document courier',description:'Exchange sealed documents at three ordered stops for a fixed fee.',type:'delivery',legitimate:true,stopSeconds:1.5,reward:780,time:240,requires:['crescent-parcel'],stages:[
       point(263.85,-215.82,'Collect the sealed documents'),point(-412.29,160.2,'Franklin document exchange'),point(-322.32,-348.02,'Crescent document handover')] },
-    { id:'urgent-medical',name:'Urgent medical supplies',type:'delivery',legitimate:true,stopSeconds:1.5,reward:900,time:100,requires:[],stages:[
+    { id:'urgent-medical',name:'Urgent medical supplies',cargoKind:'medical',description:'100 seconds. Use a car at 60% condition or better; more than 15 damage after loading ruins the supplies.',type:'delivery',legitimate:true,stopSeconds:1.5,reward:900,time:100,requires:[],stages:[
       point(-297.93,240.71,'Collect the medical supply crate'),point(707.93,106.77,'Urgent medical supply handover')] },
-    { id:'equipment-delivery',name:'Workshop equipment delivery',type:'delivery',legitimate:true,stopSeconds:2,reward:700,time:210,requires:['crescent-parcel'],stages:[
+    { id:'equipment-delivery',name:'Workshop equipment delivery',cargoKind:'equipment',description:'Keep the loaded vehicle. 25 cumulative damage breaks the equipment; repairs do not erase damage.',type:'delivery',legitimate:true,stopSeconds:2,reward:700,time:210,requires:['crescent-parcel'],stages:[
       point(-349.73,-422.16,'Load workshop equipment'),point(411.48,-107.54,'Workshop equipment handover'),point(-349.73,-422.16,'Return the empty equipment cases')] },
     { id: 'priority-parcel', name: 'Priority parcel', type: 'delivery', reward: 1000, time: 110, requires: ['crescent-circuit', 'wagon-recovery'], stages: [south, north] },
   ];
@@ -203,10 +204,12 @@ export function createProgression(map, saved = null, options = {}) {
     result(true, `Next: ${active.target.label}.`, { jobId: job.id, stage: active.stage }, 'job-stage');
   }
   function complete(job) {
+    const offered=state.activeJob?.reward;
+    const reward=job.cargoKind&&Number.isSafeInteger(offered)&&offered>=Math.floor(job.reward*.6)&&offered<=job.reward?offered:job.reward;
     if (!state.completedJobs.includes(job.id)) state.completedJobs.push(job.id);
-    state.cash = Math.min(MAX_CASH, state.cash + job.reward);
+    state.cash = Math.min(MAX_CASH, state.cash + reward);
     state.activeJob = null;
-    result(true, `${job.name} complete. Earned $${job.reward}.`, { jobId: job.id, reward: job.reward }, 'job-complete');
+    result(true, `${job.name} complete. Earned $${reward}.`, { jobId: job.id, reward }, 'job-complete');
   }
   function update(dt, ctx) {
     if (!Number.isFinite(dt) || dt < 0) throw new Error('Career dt must be finite and nonnegative.');
@@ -279,6 +282,18 @@ export function createProgression(map, saved = null, options = {}) {
     if (!active) return;
     if(ctx.sandbox||ctx.recovering){fail('Job interrupted.');return;}
     const job = jobs.find(item => item.id === active.id);
+    if(job.stopSeconds&&(ctx.paused||ctx.preview)){active.stopTime=0;return;}
+    const cargo=active.cargo;
+    if(cargo){
+      if(cargo.kind==='food'){
+        cargo.quality=Math.max(60,cargo.quality-dt*.2);
+        active.reward=Math.max(Math.floor(job.reward*.6),Math.floor(job.reward*cargo.quality/100));
+      }else{
+        if(!validVehicleKey(ctx.vehicleKey)||ctx.vehicleKey!==cargo.vehicleKey||!Number.isFinite(ctx.vehicleHealth)||ctx.vehicleHealth<0||ctx.vehicleHealth>100){fail('Cargo lost. Keep the loaded vehicle.');return;}
+        cargo.damage=Math.min(100,cargo.damage+Math.max(0,cargo.health-ctx.vehicleHealth));cargo.health=ctx.vehicleHealth;
+        if(cargo.kind==='equipment'?cargo.damage>=cargo.limit:cargo.damage>cargo.limit){fail('Cargo damaged. No pay earned.');return;}
+      }
+    }
     active.elapsed += dt;
     active.remaining = Math.max(0, active.remaining - dt);
     if (active.remaining === 0) { fail('Job time expired.'); return; }
@@ -299,13 +314,16 @@ export function createProgression(map, saved = null, options = {}) {
         } else complete(job);
       }
     } else if (job.stopSeconds) {
-      const stopped=driving&&ctx.vehicleHealth>=25&&ctx.vehicleHealth<=100&&!ctx.vehicle.stolen&&
-        Number.isFinite(ctx.pose.speed)&&Math.abs(ctx.pose.speed)<=RIDE_STOP_SPEED&&near(ctx.pose,active.target,10)&&!ctx.paused&&!ctx.preview&&!ctx.passenger;
-      if(active.stopModelId!==ctx.vehicle?.modelId)active.stopTime=0;
-      active.stopModelId=stopped?ctx.vehicle.modelId:null;
+      const vehicleKey=validVehicleKey(ctx.vehicleKey)?ctx.vehicleKey:null;
+      const stopped=driving&&ctx.vehicleHealth>=(job.cargoKind==='medical'?60:25)&&ctx.vehicleHealth<=100&&!ctx.vehicle.stolen&&
+        Number.isFinite(ctx.pose.speed)&&Math.abs(ctx.pose.speed)<=RIDE_STOP_SPEED&&near(ctx.pose,active.target,10)&&!ctx.paused&&!ctx.preview&&!ctx.passenger&&(!job.cargoKind||job.cargoKind==='food'||vehicleKey!==null);
+      const stopIdentity=job.cargoKind&&job.cargoKind!=='food'?vehicleKey:ctx.vehicle?.modelId;
+      if(active.stopModelId!==stopIdentity)active.stopTime=0;
+      active.stopModelId=stopped?stopIdentity:null;
       active.stopTime=stopped?Math.min(job.stopSeconds,(active.stopTime||0)+Math.min(dt,.1)):0;
       if(active.stopTime+1e-9>=job.stopSeconds){
         active.stopTime=0;
+        if(active.stage===0&&job.cargoKind)active.cargo=job.cargoKind==='food'?{kind:'food',quality:100,limit:60,vehicleKey:null}:{kind:job.cargoKind,damage:0,limit:job.cargoKind==='equipment'?25:15,vehicleKey,health:ctx.vehicleHealth};
         if(active.stage<job.stages.length-1)advance(job,active);else complete(job);
       }
     } else if (job.type === 'theft') {
