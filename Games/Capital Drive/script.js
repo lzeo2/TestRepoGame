@@ -2323,6 +2323,8 @@ function animate(time) {
     occupantIds.add(car.id);
     let pose=occupantPoses.get(car.id);if(!pose){pose={id:car.id};occupantPoses.set(car.id,pose);}
     pose.x=car.x;pose.z=car.z;pose.yaw=car.yaw;pose.modelId=modelId;pose.personId=personId;pose.active=car.active;pose.occupied=occupied;occupantInputs.push(pose);
+    if(car.stuntActive){pose.stuntActive=true;pose.stuntY=car.stuntY;pose.stuntVy=car.stuntVy;pose.stuntPitch=car.stuntPitch;pose.stuntX=car.stuntX;pose.stuntZ=car.stuntZ;}
+    else if(pose.stuntActive){delete pose.stuntActive;delete pose.stuntY;delete pose.stuntVy;delete pose.stuntPitch;delete pose.stuntX;delete pose.stuntZ;}
   };
   seated(simulation.player,gameplay.state.mode==='vehicle',simulation.player.modelId,playerAppearanceId);
   for(const car of simulation.traffic)seated(car,true);
