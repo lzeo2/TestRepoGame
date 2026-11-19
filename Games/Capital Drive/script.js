@@ -533,7 +533,7 @@ function servicePosition(site){
 }
 function miniInput(){return {x:keys.has('KeyX')||miniKeys.has('x'),y:keys.has('KeyY')||miniKeys.has('y'),up:keys.has('ArrowUp')||miniKeys.has('up')};}
 function stopMini(){burglary.cancel();aircraft?.clearChallenge();activities.cancel();rentalHack.cancel();rentalHackTarget=null;gameplay?.cancelCarjacking();progression?.cancelActivity();clearInput();}
-function availableHouseStation(station){return !burglary.hasSearched(station.id)&&!(burglary.searching&&station.kind==='rest');}
+function availableHouseStation(station){return !burglary.hasSearched(station.id)&&(!burglary.searching||station.kind==='stock');}
 function beginMini(id){
   if(!interiors?.active||paused()||activities.snapshot().active)return;
   const station=id?interiors.active.activities.find(s=>s.id===id):activities.nearest(focus(),availableHouseStation);

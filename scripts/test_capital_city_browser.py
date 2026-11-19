@@ -343,7 +343,8 @@ def main():
             pulse('q')
             mini = wait(lambda s: s['miniGame']['active'] and s['miniGame']['station']['id'] == station['id'] and s['miniGame']['phase'] == 'memorise', 'Native Q begins distinct house search ' + str(search_index + 1))
             sequence = mini['miniGame']['sequence']
-            check(sequence == ['x', 'up', 'y', 'x'], 'Actual owner supplies the four-item memory sequence')
+            expected = ['y', 'up', 'x', 'y'] if station['id'].endswith('-kitchen') else ['up', 'x', 'y', 'x'] if station['id'].endswith('-lounge') else ['x', 'up', 'y', 'x']
+            check(sequence == expected, 'Actual owner supplies the distinct furniture memory sequence')
             wait(lambda s: s['miniGame']['phase'] == 'repeat', 'Actual search memorisation finishes', seconds=35, poll=250)
             for index, key_name in enumerate(sequence):
                 focus()
