@@ -134,6 +134,24 @@ function polygonContact(x, z, points, radius) {
   return { nx, nz, depth: inside ? radius + closestDistance : radius - closestDistance };
 }
 
+// Static feasibility needs only presence, not a resolving normal or depth. Read
+// live edges with the same strict distance test as polygonContact.
+function polygonIntersectsCircle(x, z, points, radius) {
+  let inside = false, hasEdge = false;
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    const a = points[j], b = points[i];
+    if (a[0] === b[0] && a[1] === b[1]) continue;
+    if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+    const dx = b[0] - a[0], dz = b[1] - a[1];
+    const t = clamp(((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1);
+    const px = a[0] + dx * t, pz = a[1] + dz * t;
+    const distance = Math.hypot(x - px, z - pz);
+    if (distance < radius || (!hasEdge && !(distance >= radius))) return true;
+    hasEdge = true;
+  }
+  return hasEdge && inside;
+}
+
 function insideRing(x,z,points){
   let inside=false;
   for(let i=0,j=points.length-1;i<points.length;j=i++){
@@ -408,7 +426,10 @@ export function createSimulation(map, options = {}) {
       for (const [index, polygons] of candidates) for (const polygon of polygons) {
         const box = index.extents.get(polygon);
         if (box.maxX < x - radius || box.minX > x + radius || box.maxZ < z - radius || box.minZ > z + radius) continue;
-        if (physicalContact(index,polygon,x,z,radius)) return false;
+        const occupied = index !== waterIndex && !polygon.innerRings?.length
+          ? polygonIntersectsCircle(x,z,polygon.points,radius)
+          : physicalContact(index,polygon,x,z,radius);
+        if (occupied) return false;
       }
     }
     return true;
