@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {carCockpitFrame} from '../Games/Capital Drive/car-camera.js';
+import {WEAPONS} from '../Games/Capital Drive/weapons.js';
 import {createCar,disposeCars} from '../assets/car-arcade/models.js';
 import {CARS} from '../assets/car-arcade/fleet.js';
 import * as THREE from '../assets/car-arcade/vendor/three.module.js';
@@ -44,20 +45,24 @@ const source=readFileSync(new URL('../Games/Capital Drive/script.js',import.meta
 const start=source.indexOf("window.addEventListener('keydown', event => {");
 const end=source.indexOf("window.addEventListener('keyup'",start);
 assert(start>=0&&end>start);
-let keydown,paused=false,prevented=0;
-const actions=[],jetpack={active:false};
+let keydown,paused=false,driving=true,prevented=0;
+const actions=[],jetpack={active:false},keys=new Set();
 runInNewContext(source.slice(start,end),{
   window:{addEventListener:(name,handler)=>{assert.equal(name,'keydown');keydown=handler;}},
-  started:true,paused:()=>paused,cutscenes:{snapshot:()=>({active:false})},jetpack,keys:new Set(),
+  WEAPONS,started:true,paused:()=>paused,cockpitAvailable:()=>driving,cutscenes:{snapshot:()=>({active:false})},jetpack,keys,
   toggleCockpit:()=>actions.push('cockpit'),throwEquipment:kind=>actions.push(kind),
 });
 function press(code,repeat=false){
   keydown({code,repeat,target:{tagName:'CANVAS'},preventDefault:()=>{prevented++;}});
 }
-press('KeyC');press('KeyV');press('F2');press('F2',true);
+press('KeyC');press('KeyV');press('KeyF');press('KeyF',true);press('F2');
 assert.deepEqual(actions,['smoke','grenade','cockpit']);
-assert.equal(prevented,2,'F2 prevents the default action without repeat toggles');
-paused=true;press('F2');press('KeyC');
-paused=false;jetpack.active=true;press('KeyC');
-assert.deepEqual(actions,['smoke','grenade','cockpit'],'paused keys and smoke while flying remain guarded');
+assert.equal(prevented,2,'F prevents the default action in a car without repeat toggles');
+assert.equal(keys.has('KeyF'),false,'cockpit input is not recorded as a melee hold');
+paused=true;press('KeyF');press('KeyC');
+assert.equal(keys.has('KeyF'),false,'paused F is ignored');
+paused=false;driving=false;press('KeyF');
+assert.equal(keys.has('KeyF'),true,'on-foot F reaches the existing melee hold');
+jetpack.active=true;press('KeyC');
+assert.deepEqual(actions,['smoke','grenade','cockpit'],'F is contextual and smoke while flying remains guarded');
 console.log('PASS car cockpit camera: authored fleet seats, road/stunt pitch, bridge elevation, passenger seat, bounded look, finite frames and near clipping');

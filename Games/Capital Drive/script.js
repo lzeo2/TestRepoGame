@@ -1659,7 +1659,7 @@ window.addEventListener('keydown', event => {
   if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(event.target.tagName) && event.code !== 'Escape') return;
   const controls = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyZ', 'KeyI', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight'];
   if (controls.includes(event.code)) event.preventDefault();
-  if(event.code==='F2'&&started&&!paused()){
+  if(event.code==='KeyF'&&started&&!paused()&&cockpitAvailable()){
     event.preventDefault();if(!event.repeat)toggleCockpit();return;
   }
   if (!event.repeat && started) {
@@ -2157,7 +2157,7 @@ function updateHud() {
   }
   $('jetpack-status').hidden=!jetpack.active;
   if(jetpack.active)$('jetpack-status').textContent=`Jetpack ${Math.round(jetpack.charge)}% · ${Math.round(gameplay.state.actor.jumpHeight)} m${jetpack.landing?' · Landing':''}`;
-  $('driving-hint').textContent = aircraft?.active?'W/S throttle · A/D turn · SPACE climb · SHIFT descend · E exit':buses?.passenger?'E request stop / leave bus':rideService?.passenger?'T phone · E exits when stopped':jetpack.active?'SPACE rise · SHIFT descend · U land':gameplay.state.mode==='foot'?'SHIFT sprint · SPACE jump · U jetpack':'SPACE drift · SHIFT nitro · F2 camera';
+  $('driving-hint').textContent = aircraft?.active?'W/S throttle · A/D turn · SPACE climb · SHIFT descend · E exit':buses?.passenger?'E request stop / leave bus':rideService?.passenger?'T phone · E exits when stopped':jetpack.active?'SPACE rise · SHIFT descend · U land':gameplay.state.mode==='foot'?'SHIFT sprint · SPACE jump · U jetpack':'SPACE drift · SHIFT nitro · F camera';
   $('destination-line').hidden=!destination;
   $('destination-line').textContent = destination ? `${destination.name} · ${(Math.hypot(destination.x - p.x, destination.z - p.z) / 1000).toFixed(1)} km away` : '';
   if (started && !paused()) for (const place of map.landmarks) {

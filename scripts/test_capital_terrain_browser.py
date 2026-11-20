@@ -174,8 +174,8 @@ def main():
 
         page.locator('#world canvas').focus()
         try:
-            page.keyboard.press('F2')
-            cockpit = until(lambda s: s['camera'].get('viewMode') == 'cockpit', 'Native F2 cockpit')
+            page.keyboard.press('f')
+            cockpit = until(lambda s: s['camera'].get('viewMode') == 'cockpit', 'Native F cockpit')
             check(cockpit['gameplay']['mode'] == 'vehicle', 'Native cockpit belongs to manually driven car')
             capture('05-native-cockpit')
             fuel = cockpit['driving']['nitroFuel']
