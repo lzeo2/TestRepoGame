@@ -24,7 +24,7 @@ For the crew/city continuation use the actual controller adapters and the
 ammo separate from a live ally's health. Copy the old pose before transferring a
 body; preserve the two-person companion roster on the next ordinary tick. Only
 replace the car identity on a real claim/retrieval, not re-entry. Include all
-seven local map files in boot and stored-map tests. Suspended exterior chunk
+eight local map files in boot and stored-map tests. Suspended exterior chunk
 queues must not keep paused interiors rendering. The crew/city contract lists
 the two bounded native flows and their explicitly labeled fixture limitations.
 
@@ -1002,15 +1002,19 @@ fixtures, requested routes, initial/final poses, terminal outcomes and CPU/wall
 measurements. Domain travel/receipt checks establish neither human-earned cash
 nor native phone interaction, survival, readable framing or target-device FPS.
 
-Native harness names reserved for this continuation are
-`scripts/test_capital_delivery_browser.py` and
-`scripts/test_capital_terrain_browser.py`. Before running either, confirm it has
-landed, read its `--help` and current controls, and use its supported options with
-a fresh external evidence directory. Do not infer flags or report unrun results.
-Courier proof should retain actual phone/order input, checked travel, stopped
-handover and the exact career debit/effect or refund. Terrain proof should retain
-source-aware approach/grounding and native movement; label any starting checkpoint
-or component fixture. Both must close temporary servers/browsers and retain holds.
+Use a fresh external evidence directory for each native run.
+
+```sh
+python3 -B scripts/test_capital_delivery_browser.py --root <game-export> --output <fresh-directory> --scenario all --capture
+python3 -B scripts/test_capital_terrain_browser.py --root <game-export> --output <fresh-directory> --scenario both --capture
+python3 -B scripts/test_capital_terrain_browser.py --root <game-export> --output <fresh-directory> --scenario controls --capture
+```
+
+Courier proof retains phone input, travel, stopped handover and wallet changes.
+The terrain run uses the official Free-roam map for setup, then holds real
+throttle across successive observations of ramp ascent, launch and landing.
+Label fixture checkpoints and inspect captured frames before using them in a
+release. Keep browser and server cleanup in the harness.
 
 ### Carried searches and paid beds
 
@@ -1067,7 +1071,15 @@ node scripts/test_capital_combat_presentation.mjs
 node scripts/test_capital_ragdoll.mjs
 node scripts/test_capital_stunt_ramps.mjs
 node scripts/test_capital_vehicle_flight.mjs
+node scripts/test_capital_driving_dynamics.mjs
+node scripts/test_capital_car_camera.mjs
+node scripts/test_capital_jetpack.mjs
 ```
+
+Keep nitro fuel and drift state in Simulation. Ordinary controls preserve the
+prior trajectory. Camera positioning uses the active car's authored eye and the
+mesh pitch. External jetpack flight takes temporary ownership of foot movement
+and gravity, with the normal Gameplay clock still tracking health and police.
 
 Resource counts and software-rendered motion remain distinct from measured Intel
 N100 frame rate. Update the manual/inventory only through their owning integration

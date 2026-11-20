@@ -284,14 +284,14 @@ source footprints, not observed cadastral boundaries. Preserve source geometry,
 physical fences, real door approaches, deterministic regeneration and bounded cost.
 
 For airport contour rebuilds, physical courier orders, multi-cache house searches,
-paid bed rest and bounded player/stunt animation, follow the
+paid bed rest, stunt flight, the cockpit and jetpack, follow the
 [current continuation procedure](references/workflow.md#terrain-couriers-house-sessions-and-motion).
 Use `build_capital_airport_terrain.py` with the pinned external ACT archive; retain
 its digest, CRS/datum and numerical-validation limits. Courier owner/transaction
 fixtures and source-map travel checks are distinct from native earned purchases.
-Pending native harnesses are `test_capital_delivery_browser.py` and
-`test_capital_terrain_browser.py`; inspect their actual existence/options before
-use and record only observed results, never a planned PASS.
+The native courier and terrain harnesses run phone handovers, stunt driving,
+airport streaming and the new controls. Use the workflow's commands and keep
+separate records for measured results and fixture setup.
 
 Keep transient delivery escrow with Progression's cash/save owner and require the
 matching physical terminal receipt for effects or one refund. Multi-cache loot

@@ -1,0 +1,299 @@
+{
+  "date": "2026-11-20",
+  "timezone": "Australia/Sydney",
+  "baselineCommit": "a037806d0773424e1a65bf245b24152d0d98ef8f",
+  "status": "Capital Drive source and native verification passed",
+  "isolatedEngine": {
+    "candidateCommit": "26c6ccb0",
+    "framesPerOrigin": 18000,
+    "suppliedDt": 0.016666666666666666,
+    "traffic": 40,
+    "parked": 1405,
+    "fixedAdults": 36,
+    "seed": 20261117,
+    "recordCadenceFrames": 60,
+    "exactRecordedStateParity": true,
+    "metrics": [
+      {
+        "label": "Telopea",
+        "baselineStepMs": {
+          "p50": 1.5222179999982473,
+          "p95": 3.3116079999999783,
+          "p99": 6.4791409999997995,
+          "sum": 33288.335459000155
+        },
+        "candidateStepMs": {
+          "p50": 1.3363360000003013,
+          "p95": 2.846832999999606,
+          "p99": 5.4415829999998095,
+          "sum": 28555.730084999876
+        },
+        "reductionPercent": 14.217008176420332,
+        "allocationReductionPercent": 1.674430051360687,
+        "baselineAllocationEstimate": 1117770192,
+        "candidateAllocationEstimate": 1099053912,
+        "stateChecksum": "23fdb55402ef79fb9000d3dd4c1fed894f48c52b73d0b17bb566ced0242f0ad7"
+      },
+      {
+        "label": "Commonwealth Bridge",
+        "baselineStepMs": {
+          "p50": 1.721192000004521,
+          "p95": 3.4459829999977956,
+          "p99": 7.224624000009499,
+          "sum": 36243.4619799998
+        },
+        "candidateStepMs": {
+          "p50": 1.5985030000010738,
+          "p95": 3.1730339999994612,
+          "p99": 6.341171000000031,
+          "sum": 33245.83533000015
+        },
+        "reductionPercent": 8.270806612386627,
+        "allocationReductionPercent": 0.40314807503505357,
+        "baselineAllocationEstimate": 1026030944,
+        "candidateAllocationEstimate": 1021894520,
+        "stateChecksum": "87b50ee5f3022523fa8db4b30daedcc04b1492403ad7da96703f5c65feee3eae"
+      },
+      {
+        "label": "Civic",
+        "baselineStepMs": {
+          "p50": 1.5405220000102418,
+          "p95": 3.0876719999941997,
+          "p99": 8.006271000005654,
+          "sum": 33863.100979000315
+        },
+        "candidateStepMs": {
+          "p50": 1.2847419999889098,
+          "p95": 2.7758259999973234,
+          "p99": 5.543172000005143,
+          "sum": 27530.690811000313
+        },
+        "reductionPercent": 18.700030372076526,
+        "allocationReductionPercent": 2.095698014974856,
+        "baselineAllocationEstimate": 1011051776,
+        "candidateAllocationEstimate": 989863184,
+        "stateChecksum": "be6c3bd46dd855b9d4a8c37b7e14fc8125ddb03eb4529ecd4f8b6c1bc0da87d0"
+      }
+    ],
+    "rawArtifacts": {
+      "capital-streets-node-baseline-20261119-a1/civic.cpuprofile": {
+        "bytes": 291063,
+        "sha256": "6a2e6c44e68247766fd8f51ef69f3cef9a0228bea887124d3742408f7ee840c3"
+      },
+      "capital-streets-node-baseline-20261119-a1/civic.heapprofile": {
+        "bytes": 1321047,
+        "sha256": "eaf893edea67abca9b0cd7254eb452450344a53db0034bb46943ecac0d8a98dc"
+      },
+      "capital-streets-node-baseline-20261119-a1/civic.html": {
+        "bytes": 61329,
+        "sha256": "db2ae438d1e74f9373b2bd575f2799fbbb2df25050046f9dc0b54271a840282e"
+      },
+      "capital-streets-node-baseline-20261119-a1/civic.json": {
+        "bytes": 71304,
+        "sha256": "e266ecb6eef5f33d4c9c72f06a123011c167524a11a26cc4b93f57d52b426bf9"
+      },
+      "capital-streets-node-baseline-20261119-a1/commonwealth-bridge.cpuprofile": {
+        "bytes": 356178,
+        "sha256": "7fcfac22b8efb51d8ecc6c20b9a30b54dae412448721163a359906ecb2a86537"
+      },
+      "capital-streets-node-baseline-20261119-a1/commonwealth-bridge.heapprofile": {
+        "bytes": 1357756,
+        "sha256": "31ac342c7923dc8e911039902ff064a3b7c46bddb366033dcd3930068ba30cf2"
+      },
+      "capital-streets-node-baseline-20261119-a1/commonwealth-bridge.html": {
+        "bytes": 89243,
+        "sha256": "9cbfcb3e4782c611e5147670091f1ebe90c1a15a9bc097c77b5d68ed974363e0"
+      },
+      "capital-streets-node-baseline-20261119-a1/commonwealth-bridge.json": {
+        "bytes": 106322,
+        "sha256": "a57a42ca72d525f57d0c0d7dd75e7396aa33a01fad80da2f134e8b47ad36d8b0"
+      },
+      "capital-streets-node-baseline-20261119-a1/summary.json": {
+        "bytes": 4759256,
+        "sha256": "155c2caaa9eba1c5c667b955c7ee72a3f75f46e2f7a61ef29deef731b385c73f"
+      },
+      "capital-streets-node-baseline-20261119-a1/telopea.cpuprofile": {
+        "bytes": 317092,
+        "sha256": "b63ec0b5b70cd12a2abce4d9906fc1e36e0eba147aef7704a2065fc73e4027da"
+      },
+      "capital-streets-node-baseline-20261119-a1/telopea.heapprofile": {
+        "bytes": 1469743,
+        "sha256": "5286159205bd9330f25b287d52c02bec4eb105d77d216d86e84074f1b6138bcc"
+      },
+      "capital-streets-node-baseline-20261119-a1/telopea.html": {
+        "bytes": 81922,
+        "sha256": "2074037df5218f65dec8b22bd90758dfa46699047d1e691fcc1756bdc56ec5c0"
+      },
+      "capital-streets-node-baseline-20261119-a1/telopea.json": {
+        "bytes": 97261,
+        "sha256": "749dd04788c61a0b1329c73e9080c2976794fe13c052750264a89a240dfbf8bb"
+      },
+      "capital-streets-node-candidate-20261119-a1/civic.cpuprofile": {
+        "bytes": 264556,
+        "sha256": "131a3bdff886e26ffaa8ad449275c7294828b01db9491503a4fd615c677916ed"
+      },
+      "capital-streets-node-candidate-20261119-a1/civic.heapprofile": {
+        "bytes": 1301245,
+        "sha256": "1c0a282db5a66300fb7f599a1565d50367d37787209962219c736bb544ec4a97"
+      },
+      "capital-streets-node-candidate-20261119-a1/civic.html": {
+        "bytes": 67481,
+        "sha256": "89b6001ff633247c092e4df50c82ac3861590a79dec409807731ecd056b3ef92"
+      },
+      "capital-streets-node-candidate-20261119-a1/civic.json": {
+        "bytes": 79224,
+        "sha256": "b94071dc5b1c0a63203965d74be7f58ff71fc93958e0c43ffbd88170a2eb8d91"
+      },
+      "capital-streets-node-candidate-20261119-a1/commonwealth-bridge.cpuprofile": {
+        "bytes": 348224,
+        "sha256": "73e490821cdd8a6c1bef1eacff4408c5f0017a6f7dc3102bbcb02649a14b517a"
+      },
+      "capital-streets-node-candidate-20261119-a1/commonwealth-bridge.heapprofile": {
+        "bytes": 1344770,
+        "sha256": "6202a410de6bdef92ec4996a26624da04b3046a1a0b75efe6b45f45d8cf1a1a5"
+      },
+      "capital-streets-node-candidate-20261119-a1/commonwealth-bridge.html": {
+        "bytes": 92743,
+        "sha256": "867932029556b51558cdca42ed54443d032bf4fbb7644de953d42438a5f74a40"
+      },
+      "capital-streets-node-candidate-20261119-a1/commonwealth-bridge.json": {
+        "bytes": 110798,
+        "sha256": "972be00e35e6b3c75f86732c5d0fa17c55b8b8f5202c9a8a16346799805b17d1"
+      },
+      "capital-streets-node-candidate-20261119-a1/comparison.json": {
+        "bytes": 2158,
+        "sha256": "43b58ccc5c5addcf0b762c6cf66d3d4b8b28f4224218c4fedf12ec5bb585737b"
+      },
+      "capital-streets-node-candidate-20261119-a1/summary.json": {
+        "bytes": 4730189,
+        "sha256": "1ce322ef242233d01550373a3e0dc2256a7bc04cd1b8c5e36f680810a98452af"
+      },
+      "capital-streets-node-candidate-20261119-a1/telopea.cpuprofile": {
+        "bytes": 277887,
+        "sha256": "c83e9015a1d3188a7a044c0bf2eaa9e6a1bec690e2d87941ebb10bbd217b7c63"
+      },
+      "capital-streets-node-candidate-20261119-a1/telopea.heapprofile": {
+        "bytes": 1438029,
+        "sha256": "ae2abb442dd2a666baf6f82533076a748a0c37309fc85cf4bece71ff9666a8e3"
+      },
+      "capital-streets-node-candidate-20261119-a1/telopea.html": {
+        "bytes": 74736,
+        "sha256": "041344bb11981902a98620da3c77415ef260d018a623c990dd078b18b73e6921"
+      },
+      "capital-streets-node-candidate-20261119-a1/telopea.json": {
+        "bytes": 88359,
+        "sha256": "7b637cdb91c57c159256de1a8cf5d649562298fa6ce44d52318b8144b0dd8920"
+      }
+    },
+    "limits": [
+      "one pair without timing threshold or confidence interval",
+      "no renderer, native travel or NPC AI",
+      "sampled allocations are not retained memory",
+      "not Intel N100 hardware evidence"
+    ]
+  },
+  "source": {
+    "checkedCommands": 492,
+    "passedCommands": 492,
+    "log": "capital-streets-source-gate-20261120-a6.log",
+    "sha256": "cf55f289ddb0cfc9240917d5061714cd285e29de1184b3bb2dadb4c3d8027aa0",
+    "gameModules": 119,
+    "nodeSuites": 182,
+    "supportScripts": 5
+  },
+  "native": {
+    "burglary": {
+      "passed": true,
+      "checks": 30,
+      "sourceCommit": "ea2f2b06",
+      "wallSeconds": 112.48,
+      "report": "capital-streets-burglary-native-20261120-a3/results.json",
+      "reportSha256": "76667af0f464e04cedc178e45a88a3e46660a45b5e7bed4d1b55eb758c1e6b61",
+      "screenshots": [
+        "01-native-unowned-house-footprint.png",
+        "02-native-house-lock-cue-paused.png",
+        "03-native-entered-house-footprint.png",
+        "04-native-burglary-exterior-return.png",
+        "05-native-owned-safehouse-rest.png"
+      ]
+    },
+    "controls": {
+      "passed": true,
+      "checks": 7,
+      "sourceCommit": "aa1b3710",
+      "wallSeconds": 66.9,
+      "report": "capital-streets-controls-native-20261120-a1/report.json",
+      "reportSha256": "bce85dfd948025acbfa813ba02ea09eba9da6f736de1b5713c7ebfd80981a789",
+      "screenshots": [
+        "05-native-cockpit.png",
+        "06-native-jetpack-flight.png"
+      ]
+    },
+    "terrain": {
+      "passed": true,
+      "checks": 166,
+      "sourceCommit": "aa1b3710",
+      "wallSeconds": 85.71,
+      "report": "capital-streets-terrain-native-20261120-a2/report.json",
+      "reportSha256": "3b3ff7b9e67ed078b4c6df06bbeb2eef4dbc0211c7f6b7ad924de7e3289cfc47",
+      "screenshots": [
+        "01-ramp-run-up.png",
+        "03-ramp-landed.png",
+        "04-airport-source-shape-and-road-posts.png"
+      ]
+    },
+    "couriers": {
+      "passed": true,
+      "checks": 65,
+      "sourceCommit": "2422b9aac82bc94447837c71db19e686fc136364",
+      "wallSeconds": 367.7037708429998,
+      "report": "capital-streets-delivery-native-20261120-a2/results.json",
+      "reportSha256": "ee67aedfbf37bc180fe2829d58d55c7be7aa3957d297a7b97d87f9b4adaa8034",
+      "screenshots": [
+        "arms-arrived.png",
+        "arms-completed.png",
+        "arms-phone.png",
+        "food-arrived.png",
+        "food-completed.png",
+        "food-phone.png"
+      ],
+      "sources": [
+        {
+          "kind": "food",
+          "sourceId": "store-4069717184",
+          "itemId": "food",
+          "phonePrice": 85
+        },
+        {
+          "kind": "arms",
+          "sourceId": "dealer-barton",
+          "itemId": "pistol",
+          "phonePrice": 523
+        }
+      ]
+    }
+  },
+  "terrain": {
+    "sourceArchiveSha256": "b8090f3ab023c2821747a760470eb8e53173c6d1b7a35dbb2a306885da7981b9",
+    "cells": [
+      89,
+      122
+    ],
+    "bytes": 62096,
+    "licence": "CC BY4.0",
+    "attribution": "\u00a9 Australian Capital Territory and Aerometrex Limited",
+    "verticalDatum": "AHD, local origin550m",
+    "validation": "contour interpolation consistency, not independent survey accuracy",
+    "ramps": 4,
+    "launchMetresPerSecond": 14.462934445110001,
+    "sourceSurfaces": 120,
+    "decorativePosts": 96
+  },
+  "releaseSourceCommit": "2422b9aac82bc94447837c71db19e686fc136364",
+  "cache": {
+    "files": 140,
+    "bytes": 17418693,
+    "version": "12f6af1f4c6e382d4b045cf5ca24c2f22694007dfba011db5d0ecc051c0ce1a1",
+    "mapResponses": 8
+  }
+}
