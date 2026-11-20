@@ -6,7 +6,7 @@ import {createTutorial} from '../Games/Capital Drive/tutorial.js';
 const source=await readFile(new URL('../Games/Capital Drive/script.js',import.meta.url),'utf8');
 const nodes=new Map(),node=id=>{if(!nodes.has(id))nodes.set(id,{hidden:true,textContent:'',value:0,open:false,showModal(){this.open=true;},close(){this.open=false;}});return nodes.get(id);};
 const writes=[],store=new Map([['career','unchanged-career']]);
-const env={aircraft:null,refreshAircraftRescue(){},tutorial:createTutorial(),tutorialRunning:false,tutorialVisible:false,tutorialStamp:'',started:true,
+const env={aircraft:null,jetpack:null,refreshAircraftRescue(){},tutorial:createTutorial(),tutorialRunning:false,tutorialVisible:false,tutorialStamp:'',started:true,
   tutorialSerials:{orbitSerial:0,phoneSerial:0,mapRouteSerial:0,shopsSerial:0,jobsSerial:0},TUTORIAL_KEY:'tutorial',
   localStorage:{getItem:key=>store.get(key)??null,setItem(key,value){writes.push(key);store.set(key,value);}},
   $:node,document:{body:{classList:{toggle(){}}}},simulation:{},
