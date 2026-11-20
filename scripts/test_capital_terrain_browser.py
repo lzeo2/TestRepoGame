@@ -50,14 +50,13 @@ def main():
         if not value:
             raise AssertionError(label)
 
-    def read():
-        release(page)
-        state = page.evaluate(DTO)
+    def read(trajectory=False):
+        # Return only motion ownership during the continuous native-input run.
+        state = page.evaluate("() => {const s=capitalDriveSnapshot();return {player:s.player,gameplay:s.gameplay};}" if trajectory else DTO)
         report['samples'].append({'wall_seconds': time.monotonic() - started, **state})
         return state
 
     def capture(name):
-        release(page)
         if args.capture:
             page.screenshot(path=str(output / (name + '.png')))
             report['screenshots'].append(name + '.png')
@@ -95,34 +94,58 @@ def main():
         check(arrived['reposition']['delta_metres'] <= 3, 'Official map reaches the checked ramp run-up without a distant fallback')
         settle(page, 'aligned ramp arrival', report['settles'], seconds=15)
         capture('01-ramp-run-up')
-        ascent = launch = landing = None
+        ascent = launch = descent = landing = None
+        held = set()
+
+        def hold(wanted):
+            wanted = set(wanted)
+            for key in held - wanted:
+                page.keyboard.up(key)
+            for key in wanted - held:
+                page.keyboard.down(key)
+            held.clear()
+            held.update(wanted)
+
         end = time.monotonic() + 55
-        while time.monotonic() < end:
-            state = read()
-            car = state['player']
-            check(state['gameplay']['mode'] == 'vehicle' and state['gameplay']['health'] > 0 and not state['gameplay']['recovery'], 'Ramp attempt stays in the live healthy vehicle owner')
-            check(all(math.isfinite(car.get(k, math.nan)) for k in ('x', 'z', 'yaw', 'speed')), 'Native ramp trajectory remains finite')
-            active = car.get('stuntActive', False)
-            if active and ramp['z'] <= car['z'] <= ramp['z'] + ramp['length'] and car.get('stuntY', 0) > ramp['base'] + .7 and ascent is None:
-                ascent = state
-            if active and car['z'] > ramp['z'] + ramp['length'] + .1 and car.get('stuntVy', 0) > 0 and launch is None:
-                launch = state
-                capture('02-ramp-unsupported-launch')
-            if launch and not active and car['z'] > ramp['z'] + ramp['length'] + 2:
-                landing = state
-                break
-            check(abs(car['x'] - ramp['x']) < 16, 'Actual steering stays within the finite stunt corridor')
-            check(car['z'] < ramp['z'] + 90, 'Attempt cannot silently continue beyond the bounded landing corridor')
-            target_z = ramp['z'] + ramp['length'] + 60
-            desired = math.atan2(-(ramp['x'] - car['x']), -(target_z - car['z']))
-            delta = math.atan2(math.sin(desired - car['yaw']), math.cos(desired - car['yaw']))
-            keys = ['w', 'Shift']
-            if abs(delta) > .045:
-                keys.append('a' if delta > 0 else 'd')
-            drive_keys(keys, 80)
-        report['ramp_evidence'] = {'ascent': ascent, 'launch': launch, 'landing': landing}
+        page.locator('#world canvas').focus()
+        try:
+            while time.monotonic() < end:
+                state = read(trajectory=True)
+                car = state['player']
+                check(state['gameplay']['mode'] == 'vehicle' and state['gameplay']['health'] > 0 and not state['gameplay']['recovery'], 'Ramp attempt stays in the live healthy vehicle owner')
+                check(all(math.isfinite(car.get(k, math.nan)) for k in ('x', 'z', 'yaw', 'speed')), 'Native ramp trajectory remains finite')
+                active = car.get('stuntActive', False)
+                if active and ramp['z'] <= car['z'] <= ramp['z'] + ramp['length'] and car.get('stuntY', 0) > ramp['base'] + .7 and ascent is None:
+                    ascent = state
+                if active and car['z'] > ramp['z'] + ramp['length'] + .1 and car.get('stuntVy', 0) > 0 and launch is None:
+                    launch = state
+                if launch and active and car.get('stuntVy', 0) < -.1 and descent is None:
+                    descent = state
+                if descent and not active and car['z'] > ramp['z'] + ramp['length'] + 2:
+                    # A second live sample must retain ground ownership after flight clears.
+                    hold([])
+                    page.wait_for_timeout(150)
+                    confirmed = read(trajectory=True)
+                    if not confirmed['player'].get('stuntActive', False):
+                        landing = confirmed
+                        break
+                check(abs(car['x'] - ramp['x']) < 16, 'Actual steering stays within the finite stunt corridor')
+                check(car['z'] < ramp['z'] + 90, 'Attempt cannot silently continue beyond the bounded landing corridor')
+                target_z = ramp['z'] + ramp['length'] + 60
+                desired = math.atan2(-(ramp['x'] - car['x']), -(target_z - car['z']))
+                delta = math.atan2(math.sin(desired - car['yaw']), math.cos(desired - car['yaw']))
+                keys = ['w', 'Shift']
+                if abs(delta) > .045:
+                    keys.append('a' if delta > 0 else 'd')
+                hold(keys)
+                page.wait_for_timeout(100)
+        finally:
+            hold([])
+        report['ramp_evidence'] = {'ascent': ascent, 'launch': launch, 'descent': descent, 'landing': landing}
         check(ascent is not None, 'Native driving climbs the real ramp support')
         check(launch is not None, 'Past the ramp tip the actual car has unsupported upward stunt velocity')
+        check(launch is not None and launch['player']['speed'] > 9 and math.isfinite(launch['player'].get('stuntY', math.nan)) and launch['player']['stuntY'] > ramp['base'] + ramp['height'], 'Unsupported launch has real speed and finite altitude above the ramp tip')
+        check(descent is not None, 'Actual unsupported flight reaches downward vertical velocity before landing')
         check(landing is not None, 'After launch the actual flight owner clears stunt state on physical landing')
         capture('03-ramp-landed')
 

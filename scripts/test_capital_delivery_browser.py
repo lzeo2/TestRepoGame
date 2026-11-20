@@ -215,6 +215,8 @@ def main():
         price = re.search(r'\$([\d,]+)', order_button.inner_text())
         assert price, 'Real phone must show the full paid delivery price'
         cost = int(price.group(1).replace(',', ''))
+        check(cost > 50, 'Real item quote includes a positive item price above dispatch fee')
+        observations.append({'kind': kind, 'sourceId': fixture['sourceId'], 'itemId': fixture['itemId'], 'phonePrice': cost, 'initialCheckpoint': fixture['checkpoint']})
         capture(kind + '-phone')
         order_button.click()
         first = wait(lambda s: s['deliveries']['phase'] == 'approaching' and not s['paused'], 'Native order dispatches physical courier')
@@ -232,7 +234,11 @@ def main():
         phone()
         page.locator(button_id).click()
         dispatched = wait(lambda s: s['deliveries']['phase'] == 'approaching' and not s['paused'], 'Second native order dispatches')
-        order_id = dispatched['deliveries']['order']['orderId']
+        receipt = dispatched['deliveries']['order']
+        check(receipt['kind'] == kind and receipt['sourceId'] == fixture['sourceId'] and receipt['itemId'] == fixture['itemId'] and receipt['sourceName'] == fixture['name'], 'Actual booked receipt matches the selected source and item')
+        check(bool(dispatched['deliveries']['route']) and dispatched['deliveries']['pickup'] is not None and dispatched['deliveries']['dropoff'] is not None, 'Actual source dispatch owns a nonempty directed route and both physical stops')
+        observations.append({'kind': kind, 'receipt': receipt, 'phonePrice': cost, 'pickup': dispatched['deliveries']['pickup'], 'dropoff': dispatched['deliveries']['dropoff'], 'route': dispatched['deliveries']['route']})
+        order_id = receipt['orderId']
         check(order_id != first['deliveries']['order']['orderId'], 'New order has a distinct receipt identity')
         initial_car = dispatched['deliveries']['car']
         dropoff = dispatched['deliveries']['dropoff']
