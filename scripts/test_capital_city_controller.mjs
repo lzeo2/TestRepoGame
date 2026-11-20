@@ -114,6 +114,7 @@ game.state.mode='foot';game.state.health=60;game.state.actor.x=0;game.state.acto
 commerce.state.equipment.pistol=true;game.addAmmo(24,'pistol');
 let writes=0,menuPaused=true;
 const control=owner(['cityAction','recallDrone','stepDrone','canCrewAttack','canPlayerAttack','walkingInput','input','interact'],{
+  jetpack:null,
   developerReturn:null,progression:commerce,gameplay:game,interiors:{active:null},campaignScenes:{people:[]},
   careerContext:()=>({pose:{x:game.state.actor.x,z:game.state.actor.z},onFoot:true,health:game.state.health,vehicleHealth:100,wanted:0,respawnSerial:0,interior:control.interiors.active?{roomId:home.id}:null}),
   saveCareer:()=>writes++,clearInput:()=>{},notify:()=>{},cityUI:{render:()=>{}},

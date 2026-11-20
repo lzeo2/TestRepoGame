@@ -31,7 +31,7 @@ const env = { burglary:{snapshot:()=>({active:false})},droneActive: false, aircr
   isSandbox: () => false, interiors: { active: null }, campaign: { state: { active: null } }, progression: { state: { activeJob: null, activity: null } },
   activities: { snapshot: () => ({ active: false }) }, rentalHack: { snapshot: () => ({ active: false }) },
   micromobility: { snapshot: () => ({ active: false }) }, rideService: null, buses: null, cutscenes: { snapshot: () => ({ active: false }) },
-  developerReturn: null, aircraftRescueHealth:null, cameraReady: true, footCameraYaw: 0, heroPowers: { cancelActive() {} },
+  developerReturn: null, jetpack:null, aircraftRescueHealth:null, cameraReady: true, footCameraYaw: 0, heroPowers: { cancelActive() {} },
   clearInput() { env.keys.clear(); env.miniKeys.clear(); env.touch.clear(); }, notify: text => notifications.push(text) };
 const controls = new Map(); env.$ = id => { if (!controls.has(id)) controls.set(id, {}); return controls.get(id); };
 env.closeDialogs = () => {};

@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DTO = """() => {const s=capitalDriveSnapshot();return {ready:s.ready,started:s.started,
  gameMode:s.gameMode,paused:s.paused,player:s.player,gameplay:s.gameplay,stunts:s.stunts,
  airport:s.airport,rendering:s.rendering,world:s.world,neighbourhood:s.neighbourhood,
- camera:s.camera,focus:s.focus,mapView:s.mapView};}"""
+ camera:s.camera,focus:s.focus,mapView:s.mapView,driving:s.driving,jetpack:s.jetpack};}"""
 
 
 def main():
@@ -31,7 +31,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--chromium', default='/usr/bin/chromium')
     parser.add_argument('--capture', action=argparse.BooleanOptionalAction, default=True)
-    parser.add_argument('--scenario', choices=['both', 'ramp', 'airport'], default='both')
+    parser.add_argument('--scenario', choices=['both', 'ramp', 'airport', 'controls'], default='both')
     args = parser.parse_args()
     root, output = args.root.resolve(), args.output.resolve()
     if output == root or root in output.parents or output == ROOT or ROOT in output.parents:
@@ -149,6 +149,75 @@ def main():
         check(landing is not None, 'After launch the actual flight owner clears stunt state on physical landing')
         capture('03-ramp-landed')
 
+    def controls_case():
+        # This bounded smoke starts at the normal Free-roam spawn. It proves
+        # control ownership, not a full-speed handling course or route clearance.
+        held = set()
+
+        def hold(wanted):
+            wanted = set(wanted)
+            for key in held - wanted:
+                page.keyboard.up(key)
+            for key in wanted - held:
+                page.keyboard.down(key)
+            held.clear()
+            held.update(wanted)
+
+        def until(predicate, label, seconds=20):
+            end = time.monotonic() + seconds
+            while time.monotonic() < end:
+                state = read()
+                if predicate(state):
+                    return state
+                page.wait_for_timeout(100)
+            raise AssertionError(label + ' timed out')
+
+        page.locator('#world canvas').focus()
+        try:
+            page.keyboard.press('c')
+            cockpit = until(lambda s: s['camera'].get('viewMode') == 'cockpit', 'Native C cockpit')
+            check(cockpit['gameplay']['mode'] == 'vehicle', 'Native cockpit belongs to manually driven car')
+            capture('05-native-cockpit')
+            fuel = cockpit['driving']['nitroFuel']
+            hold(['w', 'Shift'])
+            boosted = until(lambda s: s['driving']['nitroActive'] and s['driving']['nitroFuel'] < fuel, 'Native W Shift spends nitro')
+            check(0 <= boosted['driving']['nitroFuel'] < fuel <= 1, 'Native boost consumes bounded normalized fuel')
+            # A drift is diagnostic only unless spawn clearance permits entry speed.
+            if boosted['player']['speed'] > 8:
+                hold(['w', 'Space', 'a'])
+                end, drift = time.monotonic() + 2, None
+                while time.monotonic() < end:
+                    state = read()
+                    if state['driving']['driftActive']:
+                        drift = state
+                        break
+                    page.wait_for_timeout(100)
+                report['native_drift'] = drift
+            else:
+                report['native_drift'] = {'not_exercised': 'Bounded spawn smoke did not establish a clear above-8m/s handling route.'}
+            hold(['Space'])
+            until(lambda s: abs(s['player']['speed']) < .4, 'Native handbrake stops the car')
+            hold([])
+            page.keyboard.press('e')
+            foot = until(lambda s: s['gameplay']['mode'] == 'foot', 'Native E exits stopped car')
+            check(foot['camera'].get('viewMode') != 'cockpit', 'Leaving car clears actual cockpit camera ownership')
+            page.keyboard.press('u')
+            until(lambda s: s.get('jetpack', {}).get('active'), 'Native U activates foot jetpack')
+            hold(['Space'])
+            def altitude(state):
+                return state.get('jetpack', {}).get('altitude', state['gameplay'].get('actor', {}).get('jumpHeight', 0))
+            airborne = until(lambda s: altitude(s) > 1, 'Native Space raises the real foot body')
+            hold([])
+            check(airborne['jetpack']['active'] and math.isfinite(altitude(airborne)), 'Jetpack has finite positive altitude with live flight ownership')
+            report['native_controls'] = {'cockpit': cockpit, 'boost': boosted, 'flight': airborne}
+            capture('06-native-jetpack-flight')
+            hold(['Shift'])
+            landed = until(lambda s: not s['jetpack']['active'] and altitude(s) <= .01, 'Native Shift lands and releases flight owner', seconds=30)
+            report['native_controls']['landing'] = landed
+            check(landed['gameplay']['mode'] == 'foot' and landed['gameplay']['health'] > 0, 'Jetpack physically lands in the live foot owner')
+        finally:
+            hold([])
+
     def airport_case():
         point = {'x': 4622.74, 'z': -1045.64}
         reposition(page, point, report['repositions'])
@@ -204,6 +273,8 @@ def main():
                 check(initial['gameMode'] == 'free' and initial['started'] and not initial['rendering']['compatibility'], 'Normal Free-roam UI starts actual WebGL gameplay')
                 if args.scenario in ('both', 'ramp'):
                     ramp_case()
+                if args.scenario == 'controls':
+                    controls_case()
                 if args.scenario in ('both', 'airport'):
                     airport_case()
                 check(not any(report[key] for key in ('errors', 'http_errors', 'request_failures', 'external_requests')), 'No runtime errors, failed local loads or external requests')

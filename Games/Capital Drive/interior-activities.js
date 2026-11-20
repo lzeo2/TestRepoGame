@@ -413,7 +413,7 @@ export function createInteriorActivities() {
       station: s ? { ...s.station } : null, stations: stations.map(station => ({ ...station })) };
   }
   function clear() { cancel('room-cleared'); stations = []; planId = null; session = null; previous = heldKeys(null); }
-  return { load, nearest, start, step, cancel, clear, snapshot,
+  return { load, nearest, start, step, cancel, clear, snapshot, get active(){return running();},
     drainEvents: () => events.splice(0).map(event => ['presentation', 'alarm', 'evidence', 'rest'].includes(event.kind)
       ? Object.freeze({ ...event, station: Object.freeze({ ...event.station }) })
       : { ...event, station: { ...event.station } }) };

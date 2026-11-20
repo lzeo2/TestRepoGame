@@ -174,5 +174,5 @@ export function createMicromobility(map) {
   }
   function snapshot() {return {stands:stands.map(s=>({...s})),assets:assets.map(a=>({...a})),active:active?{...active}:null};}
   reset();
-  return {offers,validateStart,start,claimStolen,step,end,snapshot,drainEvents(){return events.splice(0);},reset};
+  return {offers,validateStart,start,claimStolen,step,end,snapshot,get active(){return !!active;},drainEvents(){return events.splice(0);},reset};
 }

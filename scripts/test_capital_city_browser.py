@@ -78,7 +78,8 @@ def main():
     def capture(label):
         record(label)
         if args.capture:
-            assert len(list(output.glob('*.png'))) < 4, 'Four-capture budget'
+            limit = 5 if args.scenario == 'burglary' else 4
+            assert len(list(output.glob('*.png'))) < limit, 'Bounded scenario capture budget'
             page.screenshot(path=str(output / (label + '.png')), timeout=15000)
 
     def wait(predicate, label, seconds=20, poll=250, retain=True):

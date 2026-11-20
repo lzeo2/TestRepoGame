@@ -40,7 +40,7 @@ const controllerSource=await readFile(new URL('../Games/Capital Drive/script.js'
 const startFunction=controllerSource.match(/function beginMini\(id\)\{[\s\S]*?\n\}/)?.[0];
 assert(startFunction,'production activity controller is present');
 const {bind}=await import('data:text/javascript;base64,'+Buffer.from(`export function bind(env){
-  const {interiors,activities,progression,paused,focus,careerContext,isSandbox,notify,clearInput,isWorkoutKind,visible,burglary,availableHouseStation}=env;
+  const {interiors,activities,progression,paused,focus,careerContext,isSandbox,notify,clearInput,isWorkoutKind,visible,burglary,availableHouseStation,jetpack}=env;
   ${startFunction}
  return beginMini;}`).toString('base64'));
 for(const kind of ['noodle','stock'])for(let wanted=0;wanted<=5;wanted++){
