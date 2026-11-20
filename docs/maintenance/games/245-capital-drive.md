@@ -73,7 +73,7 @@ deform and terminal interiors/airline services are absent. Two original stealabl
   parked/abandoned descriptors, polygon line of sight and safe teleport. A bounded
   live adult-body index checks moving cars as well as people walking into cars.
 - `driving-dynamics.js`, `car-camera.js`: supplied-time drift/boost state and
-  cockpit framing from the current fleet seat. F2 toggles the car view while
+  cockpit framing from the current fleet seat. F toggles the car view while
   driving. Space and steering initiate a drift, and Shift uses fuel that
   refills off boost. C throws smoke and V throws a grenade on foot.
 - `foot-motion.js` samples one tick of render history for the player model and

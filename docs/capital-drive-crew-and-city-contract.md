@@ -75,7 +75,8 @@ These are arcade gameplay additions, not surveyed Canberra facilities. See the
 [19 November receipt](verification/capital-drive-streets-deliveries-2026-11-19.md)
 for source, native and hardware limits.
 
-F2 switches between the fleet cockpit and chase camera while manually driving.
+F switches between the fleet cockpit and chase camera while manually driving.
+On foot, F is the melee key.
 The same authored hull pitch and seat anchor determine the driver eye. The
 normal view returns on exit or recovery. On foot, C throws smoke and V throws a
 grenade. The camera helper owns no mesh or clock.
