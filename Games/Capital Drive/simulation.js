@@ -1,4 +1,5 @@
 import { createVehicleFlight } from './vehicle-flight.js';
+import { createDrivingState, prepareDriving, measureDriving } from './driving-dynamics.js';
 import { coveredCentrePassage } from './covered-passage.js';
 import { roadProfile } from './road-network.js';
 import { prepareWaterRing } from './water-contact.js';
@@ -516,6 +517,7 @@ export function createSimulation(map, options = {}) {
     return best;
   }
   const player = { id: 'player', modelId: 'lantern', color: 0xd4d7d3, active: true, x: 0, z: 0, yaw: 0, speed: 0, vx: 0, vz: 0, steer: 0, odometer: 0, crashes: 0, lastImpactSpeed:0, offroad: false };
+  const driving = createDrivingState();
   const flight = options.stuntSupportAt && options.vehicleHeightAt
     ? createVehicleFlight({supportAt:options.stuntSupportAt,heightAt:options.vehicleHeightAt}) : null;
   const random = seededRandom(options.seed ?? 20261112);
@@ -528,6 +530,7 @@ export function createSimulation(map, options = {}) {
   }
   function reset(spawn = map.spawn) {
     flight?.clear(player);
+    Object.assign(driving, createDrivingState());
     const fallback = graph.edges[0] ? pointOnLane(graph.edges[0], Math.min(8, graph.edges[0].length / 2)) : { x: 0, z: 0, yaw: 0 };
     const target = spawn || fallback;
     Object.assign(player, { x: target.x, z: target.z, yaw: target.yaw || 0, speed: 0, vx: 0, vz: 0, steer: 0,
@@ -605,6 +608,7 @@ export function createSimulation(map, options = {}) {
       : Math.atan2(Math.sin(point.yaw), Math.cos(point.yaw));
     const road = nearestRoad(target.x, target.z);
     flight?.clear(player);
+    Object.assign(driving, createDrivingState(), { nitroFuel: driving.nitroFuel });
     Object.assign(player, { x: target.x, z: target.z, yaw, speed: 0, vx: 0, vz: 0, steer: 0,
       offroad: !road || road.distance > roadProfile(road.road).driveWidth * 0.5 + 1 });
     crashCooldown = 0;
@@ -846,15 +850,17 @@ export function createSimulation(map, options = {}) {
     const engine=(1+tier('engine')*.12)*clamp(Number(power.engine)||1,1,1.25);
     const brakeForce=1+tier('brakes')*.15;
     const grip=(1+tier('handling')*.08)*clamp(Number(power.handling)||1,1,1.25);
-    const acceleration = throttle * (forward * throttle < -0.5 ? 20*brakeForce : (input.boost ? 17 : 11.5)*engine);
+    const assist = prepareDriving(driving, dt, { throttle, steer: player.steer, forward,
+      handbrake: input.handbrake, boost: input.boost, brake: braking, airborne: Boolean(player.stuntActive) });
+    const acceleration = throttle * (forward * throttle < -0.5 ? 20*brakeForce : (driving.nitroActive ? 17 : 11.5)*engine);
     forward += acceleration * dt;
     if (braking) forward = Math.sign(forward) * Math.max(0, Math.abs(forward) - 24 * brakeForce * dt);
-    const drag = (player.offroad ? 0.9 : 0.14) + (input.handbrake ? 0.65 : 0);
+    const drag = (player.offroad ? 0.9 : 0.14) + assist.handbrakeDrag;
     forward *= Math.exp(-drag * dt);
     if (!throttle) forward = Math.sign(forward) * Math.max(0, Math.abs(forward) - 0.6 * dt);
-    forward = clamp(forward, -12, player.offroad ? 27 : input.boost ? 54 : 46);
+    forward = clamp(forward, -12, player.offroad ? 27 : driving.nitroActive ? 54 : 46);
     const turnRate = -player.steer * forward * 0.075 / (1 + Math.abs(forward) * 0.035);
-    const turn = turnRate * dt * (input.handbrake ? 1.42 : 1) * grip;
+    const turn = turnRate * dt * assist.turnScale * grip;
     const turnSteps = Math.max(1, Math.ceil(Math.abs(turn) / 0.05));
     for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
       const nextPose = { x: player.x, z: player.z, yaw: player.yaw + turn / turnSteps,
@@ -868,7 +874,7 @@ export function createSimulation(map, options = {}) {
     const oldVx = fx * forward - fz * lateral, oldVz = fz * forward + fx * lateral;
     fx = -Math.sin(player.yaw); fz = -Math.cos(player.yaw);
     forward = oldVx * fx + oldVz * fz;
-    lateral = (oldVx * -fz + oldVz * fx) * Math.exp(-(input.handbrake ? 1.1 : player.offroad ? 3.3 : 7.5) * dt);
+    lateral = (oldVx * -fz + oldVz * fx) * Math.exp(-(assist.lateralGrip ?? (player.offroad ? 3.3 : 7.5)) * dt);
     player.vx = fx * forward - fz * lateral; player.vz = fz * forward + fx * lateral;
     const movement = moveVehicle(player, player.vx * dt, player.vz * dt);
     if (movement.blocked) {
@@ -893,6 +899,8 @@ export function createSimulation(map, options = {}) {
       if (gap < 3.2 && sameVehicleLevel(player,car)) resolveImpact(gap > 0.001 ? dx / gap : 1, gap > 0.001 ? dz / gap : 0, (3.2 - gap) * 0.65);
     }
     player.speed = player.vx * fx + player.vz * fz;
+    measureDriving(driving, dt, { forward: player.speed, lateral: player.vx * -fz + player.vz * fx,
+      boost: input.boost, airborne: Boolean(player.stuntActive) });
     player.odometer += Math.hypot(player.vx, player.vz) * dt;
     if (![player.x, player.z, player.yaw, player.speed, player.vx, player.vz].every(Number.isFinite) ||
       player.x < bounds.minX - 15 || player.x > bounds.maxX + 15 || player.z < bounds.minZ - 15 || player.z > bounds.maxZ + 15) {
@@ -902,6 +910,7 @@ export function createSimulation(map, options = {}) {
   }
   function setPlayerVehicle(vehicle = {}) {
     flight?.clear(player);
+    Object.assign(driving, createDrivingState(), { nitroFuel: driving.nitroFuel });
     if (typeof vehicle.modelId === 'string') player.modelId = vehicle.modelId;
     if (Number.isFinite(vehicle.color)) player.color = vehicle.color;
     return { modelId: player.modelId, color: player.color };
@@ -939,6 +948,7 @@ export function createSimulation(map, options = {}) {
     abandonedCars.push(prior);
     car.active = false; car.speed = 0;
     flight?.clear(player);
+    Object.assign(driving, createDrivingState(), { nitroFuel: driving.nitroFuel });
     Object.assign(player, { x: car.x, z: car.z, yaw: car.yaw, modelId: car.modelId, color: car.color,
       speed: 0, vx: 0, vz: 0, steer: 0 });
     return { ok: true, vehicle: { ...nearbyVehicles(player.x, player.z, 0).find(item => item.id === 'player'), health: car.health ?? 100 }, stolen, reason: 'claimed' };
@@ -993,7 +1003,7 @@ export function createSimulation(map, options = {}) {
     }
     return true;
   }
-  return { player, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, nearestRoad, setParkedCars,
+  return { player, driving, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, nearestRoad, setParkedCars,
     setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop, drainVehicleImpacts:()=>vehicleImpacts.splice(0),
     get peopleContacts() { return Object.freeze({ ...peopleStats }); },
     setPlayerVehicle, nearbyVehicles, claimVehicle, damageVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
