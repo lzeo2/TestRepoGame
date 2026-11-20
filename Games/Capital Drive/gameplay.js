@@ -482,21 +482,23 @@ export function createGameplay(map, simulation, options = {}) {
       const speed = (input.sprint ? 6.8 + clamp(finite(options.fitness?.()), 0, 3) * 0.6 : 3.6) * powerFactor('footSpeed');
       const before = { x: state.actor.x, z: state.actor.z };
       const struck = state.actor.impactTime > 0;
+      const externalFlight = Boolean(input.externalFlight) && !struck;
       if (struck) {
         const result = simulation.moveActor(state.actor, impactX * dt, impactZ * dt, .45);
         // Shared actor sweeps include walls, vehicles and the controller's adults.
         if (result.blocked) { impactX = 0; impactZ = 0; }
         const drag = Math.exp(-(state.actor.jumpHeight > 0 || jumpVelocity > 0 ? .9 : 8) * dt);
         impactX *= drag; impactZ *= drag;
-      } else if (length > 0) simulation.moveActor(state.actor, x / Math.max(1, length) * speed * dt, z / Math.max(1, length) * speed * dt, 0.45);
+      } else if (!externalFlight && length > 0) simulation.moveActor(state.actor, x / Math.max(1, length) * speed * dt, z / Math.max(1, length) * speed * dt, 0.45);
       state.actor.speed = distance(before, state.actor) / dt;
       state.aimPitch = clamp(finite(input.aimPitch),-MAX_AIM_PITCH,MAX_AIM_PITCH);
       state.actor.aimPitch = state.aimPitch;
       state.aiming = Boolean(!struck && input.aim && weaponById(state.weapon));
       if (!struck && Number.isFinite(input.aimYaw) && (state.aiming || input.fire || input.melee)) state.actor.yaw = input.aimYaw;
       else if (length > 0 && !struck) state.actor.yaw = yawFor(x, z);
-      if (!struck && input.jump && state.actor.jumpHeight === 0 && jumpVelocity === 0) jumpVelocity = 5 * powerFactor('jump');
-      if (jumpVelocity !== 0 || state.actor.jumpHeight > 0) {
+      if (externalFlight) jumpVelocity = 0;
+      if (!struck && !externalFlight && input.jump && state.actor.jumpHeight === 0 && jumpVelocity === 0) jumpVelocity = 5 * powerFactor('jump');
+      if (!externalFlight && (jumpVelocity !== 0 || state.actor.jumpHeight > 0)) {
         jumpVelocity -= 13 * dt; state.actor.jumpHeight = Math.max(0, state.actor.jumpHeight + jumpVelocity * dt);
         if (state.actor.jumpHeight === 0) jumpVelocity = 0;
       }
