@@ -191,7 +191,7 @@ function handleDeliveryEvents(){
         if(result.heal)gameplay.heal(result.heal);
         if(result.ammo)gameplay.addAmmo(result.ammo,result.weaponId);
         if(result.weaponId)gameplay.setWeapon(result.weaponId);
-        saveCareer();notify(result.message);
+        saveCareer();streetUI?.refresh();notify(result.message);
       }
     }else if(event.type==='arrived')notify('Courier stopped. Walk beside the van and press E.');
   }
@@ -604,7 +604,7 @@ function toggleJetpack(){
 }
 function cockpitAvailable(){
   return started&&!compatibility&&!interiors?.active&&!aircraft?.active&&!droneActive&&
-    gameplay?.state.mode==='vehicle'&&!gameplay.state.passenger&&!gameplay.state.recovery&&!!playerMesh?.userData.cockpit?.eye;
+    gameplay?.state.mode==='vehicle'&&!gameplay.state.passenger&&!gameplay.state.recovery&&!cutscenes.snapshot().active&&!!playerMesh?.userData.cockpit?.eye;
 }
 function toggleCockpit(){
   if(!cockpitAvailable())return;
@@ -913,6 +913,7 @@ function leaveInterior(){
   progression.cancelActivity();cameraReady=false;clearInput();notify(houseResult?.message||'Outside.');
 }
 function interiorHint(){
+  if(jetpack?.active)return 'WASD move · SPACE rise · SHIFT descend · U land';
   if(aircraft?.active)return aircraft.snapshot().prompt;
   if(aircraft?.challenge.active)return 'Match the jet lock sequence · E cancel';
   if(aircraft?.nearest(focus()))return 'E bypass the jet lock';
