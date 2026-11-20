@@ -145,3 +145,13 @@ checks, the profile parser, offline cache validation and whitespace. Earlier
 runs caught outdated controller fixtures and a regenerated cache manifest.
 The final comparison hooks retain the original physical assertions. The local
 cache closure contains 140 files and 17,418,693 bytes.
+
+The repository's targeted catalog smoke passed Capital Drive with zero retained
+console errors or failed requests. The separate all-catalog gate stopped after
+Ovo failed four requests. Nineteen pages had reported results, including 18
+passes, and the twentieth had started. A targeted run on the published baseline
+reproduced Ovo load failures, including certificate errors on its external
+Google Docs and GameAnalytics requests. The Ovo tree, shared assets, catalog
+and smoke script match the published baseline. The incomplete catalog run
+remains a publication hold under `AGENTS.md`. The isolated sparse checkout was
+restored after terminating the interrupted runner.

@@ -295,5 +295,31 @@
     "bytes": 17418693,
     "version": "12f6af1f4c6e382d4b045cf5ca24c2f22694007dfba011db5d0ecc051c0ce1a1",
     "mapResponses": 8
+  },
+  "releaseGate": {
+    "status": "blocked",
+    "testedHead": "8a91157a",
+    "totalGames": 134,
+    "started": 20,
+    "reported": 19,
+    "passed": 18,
+    "failed": [
+      "Ovo"
+    ],
+    "completed": false,
+    "candidateFailure": "Four request failures reported for Ovo before interruption.",
+    "baselineResult": "Ovo 0/1. External Google Docs and GameAnalytics requests failed certificate trust.",
+    "baselineOvoTree": "7537015dec8f9de72493860ce3ade0678322bb7d",
+    "targetedCapitalDrive": {
+      "passed": 1,
+      "planned": 1,
+      "consoleErrors": 0,
+      "failedRequests": 0
+    },
+    "logs": {
+      "capital-streets-fleet-gate-20261120-a1.log": "e66e12a6c2958a0c80f269e7787e70c08a544993890eb0371aacc3afe98d8401",
+      "capital-streets-ovo-baseline-20261120.log": "4f8f0c5898ab17f42c5c7246cf621457521578284df0bc2a5980c90892269124",
+      "capital-streets-target-smoke-20261120.log": "833061c3ee5cbad39abbfb77cbf7b2a1c7fe45d7c0002d1a53aea0a1555bb66d"
+    }
   }
 }
