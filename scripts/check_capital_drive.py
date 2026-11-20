@@ -24,7 +24,7 @@ MODULES = (
     'drone.js', 'drone-view.js', 'security-cameras.js', 'security-cameras-view.js',
     'covered-passage.js',
     'water-contact.js',
-    'ballistics.js', 'shot-obstacles.js', 'recon.js', 'camera-control.js',
+    'ballistics.js', 'shot-obstacles.js', 'recon.js', 'camera-control.js', 'foot-motion.js',
     'aircraft.js', 'aircraft-view.js',
     'hero-powers.js', 'ordnance.js', 'ordnance-view.js', 'atmosphere.js', 'atmosphere-view.js', 'airport.js', 'airport-view.js', 'vehicle-damage.js', 'vehicle-damage-view.js',
     'touch-joystick.js',
@@ -39,7 +39,7 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
-    'test_capital_driving_dynamics.mjs', 'test_capital_car_camera.mjs', 'test_capital_jetpack.mjs',
+    'test_capital_driving_dynamics.mjs', 'test_capital_car_camera.mjs', 'test_capital_foot_motion.mjs', 'test_capital_jetpack.mjs',
     'test_capital_delivery_actual.mjs', 'test_capital_job_cargo.mjs', 'test_capital_burglary_session.mjs', 'test_capital_jobs_rest.mjs', 'test_capital_delivery_service.mjs', 'test_capital_delivery_transactions.mjs', 'test_capital_house_stations.mjs', 'test_capital_house_controller.mjs', 'test_capital_static_occupancy.mjs', 'test_capital_airport_terrain.mjs', 'test_capital_stunt_ramps.mjs', 'test_capital_airport_details.mjs', 'test_capital_vehicle_flight.mjs',
     'test_capital_escape_objectives.mjs', 'test_capital_escape_navigation.mjs', 'test_capital_static_body_queries.mjs', 'test_capital_vehicle_overlap_scalars.mjs', 'test_capital_fast_pursuit.mjs', 'test_capital_yard_fit.mjs',
     'test_capital_burglary.mjs', 'test_capital_burglary_economy.mjs', 'test_capital_house_footprints.mjs', 'test_capital_footprint_navigation.mjs',

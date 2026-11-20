@@ -73,8 +73,16 @@ deform and terminal interiors/airline services are absent. Two original stealabl
   parked/abandoned descriptors, polygon line of sight and safe teleport. A bounded
   live adult-body index checks moving cars as well as people walking into cars.
 - `driving-dynamics.js`, `car-camera.js`: supplied-time drift/boost state and
-  cockpit framing from the current fleet seat. C toggles the car view. Space
-  and steering initiate a drift, and Shift uses fuel that refills off boost.
+  cockpit framing from the current fleet seat. F2 toggles the car view while
+  driving. Space and steering initiate a drift, and Shift uses fuel that
+  refills off boost. C throws smoke and V throws a grenade on foot.
+- `foot-motion.js` samples one tick of render history for the player model and
+  foot camera. Cameras cut to the live pose on room changes and recovery.
+  Aiming, attacks and impacts use the live pose.
+- `pedestrians.js` eases displayed stride and heading while retaining live
+  contacts. `campaign-scenes-view.js` and `interior-people-view.js` ease local
+  limb transitions for standing and walking. These views use supplied render
+  time and clear joint history when a person leaves view.
 - `jetpack.js` and `jetpack-view.js`: bounded exterior foot flight with shared
   body clearance, controlled descent and three pooled backpack meshes. U starts
   or lands. Space and Shift adjust height and WASD moves.
@@ -864,10 +872,12 @@ python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The current reusable runner checks108 game JavaScript files and166 pure Node suites,
-five support-script syntax entries, the flamegraph parser regression, two Python
-cache checks and whitespace (449 syntax/source commands), fails on missing files or command errors and bounds subprocess
-lifetimes. The [sustained bridge/recovery receipt](../../verification/capital-drive-sustained-bridges-2026-11-16.md)
+The reusable runner checks 120 game JavaScript files, 183 pure Node
+suites, 5 support scripts, the flamegraph parser, cache closure and
+whitespace. The 20 November motion update passed 13 targeted Node suites,
+including shared foot/camera interpolation, actual pedestrian instance poses,
+indoor and companion transitions, C/V/F2 dispatch and cache installation. That
+update used source and Node checks. The [sustained bridge/recovery receipt](../../verification/capital-drive-sustained-bridges-2026-11-16.md)
 records its earlier source and profiling results; the [all-mission audit](../../verification/capital-drive-campaign-playability-2026-11-16.md)
 separates objective-chain passes from native completion and estimated difficulty.
 The [combat/recon receipt](../../verification/capital-drive-combat-recon-2026-11-15.md) retains the preceding source/native run. The [crew/city/flight receipt](../../verification/capital-drive-crew-city-flight-2026-11-15.md) retains its earlier release,
