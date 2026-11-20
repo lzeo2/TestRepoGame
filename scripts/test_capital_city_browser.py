@@ -78,7 +78,8 @@ def main():
     def capture(label):
         record(label)
         if args.capture:
-            assert len(list(output.glob('*.png'))) < 4, 'Four-capture budget'
+            limit = 5 if args.scenario == 'burglary' else 4
+            assert len(list(output.glob('*.png'))) < limit, 'Bounded scenario capture budget'
             page.screenshot(path=str(output / (label + '.png')), timeout=15000)
 
     def wait(predicate, label, seconds=20, poll=250, retain=True):
@@ -327,58 +328,79 @@ def main():
                 page.keyboard.up(key)
             page.wait_for_timeout(150)  # A real released input edge before the next cue.
         inside = wait(lambda s: s['interiors']['active'] and s['interiors']['active']['id'] == door['id'], 'Completed native lock automatically enters the actual house')
-        check(inside['gameplay']['wanted'] >= 2, 'Actual forced entry reports breaking and entering')
-        station = next(s for s in inside['interiors']['active']['activities'] if s['id'].endswith('-valuables'))
-        check(station['id'] == planned['station']['id'] and station['kind'] == 'stock', 'Native room exposes the matching actual valuables activity')
-        for point in planned['toStation']:
-            walk(point, tolerance=.3, seconds=25)
-        if args.preview_only:
-            pose = snap()['focus']
-            sofa = next(f for f in inside['interiors']['active']['furniture'] if f['kind'] == 'sofa')
-            aim(math.atan2(pose['x'] - sofa['x'], pose['z'] - sofa['z']))
-            page.wait_for_timeout(250)
-        capture('03-native-entered-house-footprint')
-        if args.preview_only:
-            observations.append({'previewOnly': True, 'scope': 'Actual exterior approach, six native lock cues, forced entry, physical station approach and mouse view of the furnished room. Loot, cash reward, cooldown, repeat denial and physical exit are not acceptance claims in this preview.'})
-            return
-        pulse('q')
-        mini = wait(lambda s: s['miniGame']['active'] and s['miniGame']['station']['id'] == station['id'] and s['miniGame']['phase'] == 'memorise', 'Native Q begins the actual house search')
-        check(mini['miniGame']['sequence'] == ['x', 'up', 'y', 'x'], 'Actual stock activity exposes its four-item memory sequence')
-        wait(lambda s: s['miniGame']['phase'] == 'repeat', 'Actual supplied-time memorisation finishes', seconds=35, poll=250)
-        cash = snap()['career']['cash']
-        for index, key_name in enumerate(['x', 'up', 'y', 'x']):
-            focus()
-            page.keyboard.down(names[key_name])
-            try:
-                wait(lambda s: s['miniGame']['index'] > index or s['miniGame']['phase'] == 'complete', 'Native search item accepted ' + str(index + 1), seconds=10, poll=150)
-            finally:
-                page.keyboard.up(names[key_name])
-            page.wait_for_timeout(150)
-        rewarded = wait(lambda s: s['career']['cash'] > cash and s['career'].get('burglaryCooldowns', {}).get(door['id'], 0) > 0, 'Actual matching loot receipt pays and records cooldown')
-        reward = rewarded['career']['cash'] - cash
-        check(200 <= reward <= 600, 'Actual house reward stays within authoritative 200–600 range')
-        saved = page.evaluate('JSON.parse(localStorage.getItem("capital-drive-career-v1"))')
-        check(saved['cash'] == rewarded['career']['cash'] and saved.get('burglaryCooldowns', {}).get(door['id'], 0) > 0, 'Native writer persists house reward and cooldown immediately')
-        record('Native house loot receipt')
-        # A fresh real terminal session cannot bypass the authoritative cooldown.
-        pulse('q')
-        wait(lambda s: s['miniGame']['phase'] == 'repeat', 'Second actual search completes memorisation', seconds=35, poll=250)
-        for index, key_name in enumerate(['x', 'up', 'y', 'x']):
-            focus()
-            page.keyboard.down(names[key_name])
-            try:
-                wait(lambda s: s['miniGame']['index'] > index or s['miniGame']['phase'] == 'complete', 'Repeated native search item ' + str(index + 1), seconds=10, poll=150)
-            finally:
-                page.keyboard.up(names[key_name])
-            page.wait_for_timeout(150)
-        check(snap()['career']['cash'] == rewarded['career']['cash'], 'Repeated real house search cannot pay through cooldown')
+        check(inside['gameplay']['wanted'] == 0 and not inside['burglary']['alarmed'], 'Quiet successful lock does not automatically report an alarm')
+        check(inside['gameplay']['health'] == 60, 'Only burglary setup begins injured for the later real bed-rest check')
+        cash = inside['career']['cash']
+        for search_index, search in enumerate(planned['searches']):
+            station = next(s for s in inside['interiors']['active']['activities'] if s['id'] == search['station']['id'])
+            check(station['kind'] == 'stock', 'Source route binds an actual distinct valuables activity')
+            for point in search['path']:
+                walk(point, tolerance=.3, seconds=25)
+            if search_index == 0:
+                capture('03-native-entered-house-footprint')
+                if args.preview_only:
+                    observations.append({'previewOnly': True, 'scope': 'Actual approach, six native lock cues, quiet entry and physical furniture station approach. Loot, bank, cooldown and paid rest are not acceptance claims.'})
+                    return
+            pulse('q')
+            mini = wait(lambda s: s['miniGame']['active'] and s['miniGame']['station']['id'] == station['id'] and s['miniGame']['phase'] == 'memorise', 'Native Q begins distinct house search ' + str(search_index + 1))
+            sequence = mini['miniGame']['sequence']
+            expected = ['y', 'up', 'x', 'y'] if station['id'].endswith('-kitchen') else ['up', 'x', 'y', 'x'] if station['id'].endswith('-lounge') else ['x', 'up', 'y', 'x']
+            check(sequence == expected, 'Actual owner supplies the distinct furniture memory sequence')
+            wait(lambda s: s['miniGame']['phase'] == 'repeat', 'Actual search memorisation finishes', seconds=35, poll=250)
+            for index, key_name in enumerate(sequence):
+                focus()
+                page.keyboard.down(names[key_name])
+                try:
+                    wait(lambda s: s['miniGame']['index'] > index or s['miniGame']['phase'] == 'complete', 'Native search input accepted ' + str(index + 1), seconds=10, poll=150)
+                finally:
+                    page.keyboard.up(names[key_name])
+                page.wait_for_timeout(150)
+            carried = wait(lambda s: s['burglary']['carriedLoot'] == search_index + 1, 'Actual completed search adds one carried cache')
+            check(carried['career']['cash'] == cash and not carried['career'].get('burglaryCooldowns', {}).get(door['id'], 0), 'Indoor searches neither bank cash nor start the exit cooldown')
+            session = carried['miniGame']['sessionId']
+            pulse('q')
+            repeated = snap()
+            check(not repeated['miniGame']['active'] and repeated['miniGame']['sessionId'] == session and repeated['burglary']['carriedLoot'] == search_index + 1, 'Q at an already searched cache cannot create another activity or duplicate carry')
+        check(snap()['gameplay']['wanted'] == 0 and not snap()['burglary']['alarmed'], 'Walking and two clean searches keep the burglary quiet')
         for point in planned['toExit']:
-            walk(point, tolerance=.3, seconds=25, sprint=True)
+            walk(point, tolerance=.3, seconds=25)
+        check(snap()['career']['cash'] == cash, 'Carried loot remains unbanked at the indoor exit')
         pulse('e')
-        escaped = wait(lambda s: s['interiors']['active'] is None, 'Normal E leaves through the actual house exit')
-        check(escaped['gameplay']['health'] > 0 and escaped['career'].get('burglaryCooldowns', {}).get(door['id'], 0) > 0, 'Player survives real escape with a live house cooldown')
+        escaped = wait(lambda s: s['interiors']['active'] is None and s['career']['cash'] > cash, 'Normal E exits physically and banks the carried receipt')
+        reward = escaped['career']['cash'] - cash
+        check(400 <= reward <= 1200 and escaped['career'].get('burglaryCooldowns', {}).get(door['id'], 0) > 0, 'Two real caches pay the authoritative bounded reward and cooldown')
+        saved = page.evaluate('JSON.parse(localStorage.getItem("capital-drive-career-v1"))')
+        check(saved['cash'] == escaped['career']['cash'] and saved.get('burglaryCooldowns', {}).get(door['id'], 0) > 0, 'Exit writer persists reward and cooldown')
         capture('04-native-burglary-exterior-return')
-        observations.append({'burglaryScope': 'Only prior wealth/equipment/checkpoint were seeded. Lock inputs, forced entry offence, actual memory activity, cash reward, denied repeat, writer and physical exit use normal native input. This does not establish all houses or police evasion.'})
+        # Purchase the same actual house through the phone, with no ownership seed.
+        phone('properties')
+        page.locator('#city-buy-' + door['id']).click()
+        owned = wait(lambda s: door['id'] in s['career'].get('ownedProperties', []), 'Actual nearby phone purchase grants the burgled house')
+        offer = next(p for p in fixture['properties'] if p['id'] == door['id'])
+        check(owned['career']['cash'] == escaped['career']['cash'] - offer['price'], 'Native safehouse purchase pays its real price')
+        close()
+        pulse('e')
+        entered = wait(lambda s: s['interiors']['active'] and s['interiors']['active']['id'] == door['id'], 'Owned house enters through E without another forced lock')
+        check(not entered['burglary']['active'], 'Owned house exemption bypasses the burglary challenge')
+        for point in planned['toRest']:
+            walk(point, tolerance=.3, seconds=25)
+        pulse('q')
+        wait(lambda s: s['miniGame']['active'] and s['miniGame']['kind'] == 'rest' and s['miniGame']['station']['id'] == planned['rest']['id'] and s['miniGame']['phase'] == 'cue', 'Actual bed Q exposes the fresh rest hold cue')
+        rest_cash = snap()['career']['cash']
+        keys([])
+        focus()
+        page.keyboard.down('x')
+        try:
+            rested = wait(lambda s: s['miniGame']['phase'] == 'complete' and s['gameplay']['health'] == 100, 'Real three-second bed hold heals through the authoritative rest owner', seconds=35, poll=200)
+        finally:
+            page.keyboard.up('x')
+        check(rested['career']['cash'] == rest_cash - 80, 'Successful safehouse rest debits exactly $80 once')
+        page.wait_for_timeout(250)
+        check(snap()['career']['cash'] == rest_cash - 80, 'Completed rest cannot debit again')
+        saved = page.evaluate('JSON.parse(localStorage.getItem("capital-drive-career-v1"))')
+        check(saved['cash'] == rest_cash - 80 and saved['protagonists'][fixture['hero']]['health'] == 100, 'Actual writer saves the paid rest and full hero health')
+        capture('05-native-owned-safehouse-rest')
+        observations.append({'burglaryScope': 'Prior wealth/equipment and an injured exterior checkpoint were explicit setup. Two distinct actual searches carry loot without indoor cash; the physical exit banks once. The same house is bought through the normal phone and its real bed rest pays $80 and heals through the normal writer. No ownership, immunity, cash reward or health grant was injected during play. This is one source house, not all-house or police-evasion proof.'})
 
     def workplace():
         check(snap()['campaign']['intros']['corporate'] == ['corporate-present-tense'], 'Explicit accepted Rowan first-intro prefix only')

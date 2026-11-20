@@ -24,7 +24,7 @@ For the crew/city continuation use the actual controller adapters and the
 ammo separate from a live ally's health. Copy the old pose before transferring a
 body; preserve the two-person companion roster on the next ordinary tick. Only
 replace the car identity on a real claim/retrieval, not re-entry. Include all
-seven local map files in boot and stored-map tests. Suspended exterior chunk
+eight local map files in boot and stored-map tests. Suspended exterior chunk
 queues must not keep paused interiors rendering. The crew/city contract lists
 the two bounded native flows and their explicitly labeled fixture limitations.
 
@@ -938,3 +938,150 @@ other fences, retain every actual door approach, and compare deterministic entry
 fence and geometry output after disposal/rebuild. Keep the bounded geometry and
 initialization costs visible. A source-fit test does not prove every native
 route, source accuracy or whole-city visual acceptance.
+
+## Terrain, couriers, house sessions and motion
+
+Inspect current `delivery-service.js`, `delivery-view.js`, `progression.js`,
+`burglary.js`, `house-controller.js`, `interior-activities.js`, `stunt-ramps.js`,
+`vehicle-flight.js` and their controller/Simulation adapters before modifying
+these boundaries. Keep each owner test distinct from native input evidence.
+The commands below identify reusable checks; their listing is not a PASS receipt.
+Run heavy source-map, geodata or browser commands sequentially on the shared CPU
+lease, with exact source hashes and retained failed attempts.
+
+### Rebuild airport contour terrain
+
+`build_capital_airport_terrain.py` samples the pinned ACT 2020 LiDAR-derived 2 m
+contour archive. It verifies the archive SHA256 before reading source geometry,
+interpolates in EPSG:7855, and exports local x-east/z-south metres and AHD heights
+relative to the documented 550 m offset. Keep the original archive and optional
+NumPy, Shapely, Pyogrio, Pyproj and SciPy dependencies outside the repository.
+The builder performs no download. Use an external candidate output first:
+
+```sh
+python3 -B scripts/build_capital_airport_terrain.py --source <external-pinned-contour-archive> --output <external-candidate-airport-terrain.json> --cell-metres 50
+node scripts/test_capital_airport_terrain.mjs
+node scripts/test_capital_terrain.mjs
+```
+
+Preserve source attribution/license, source digest, extent, cell spacing, datum
+and validation metadata when deliberately adopting the candidate. The bounded
+cell request is 40–100 m. Missing convex-hull coverage must fail; do not invent
+nearest-fill elevations. Held-out contour residuals measure numerical consistency,
+not independent surveyed accuracy. Resampling does not create a native DEM,
+bathymetry or surveyed road/deck heights. Keep bridge/deck support separate from
+terrain and preserve existing map-tile overlap/closure and offline cache rules.
+
+### Physical orders and transient payment
+
+The courier service owns one physical directed-road vehicle and supplied-dt
+travel, collision, waiting, handover and terminal events. Sources must come from
+the live food catalogue or fictional arms dealers; do not accept arbitrary phone
+coordinates or caller-provided prices/effects. `delivery-view.js` is pooled
+presentation. Controller adapters register the actual courier hull for movement
+and firing cover and consume the matching terminal once.
+
+Progression quotes catalogue prices plus dispatch cost, validates the live
+matching order, and reserves cash once. Its transient escrow grants no item on
+booking. Only a frozen terminal matching order, kind, source and item can release
+an effect or one refund; invalid context, failure, cancellation or duplicate
+weapon ownership cannot grant the item. Save serialization returns abandoned
+transient escrow so reload cannot permanently spend cash on a vanished courier.
+Keep replay protection and all normal health/on-foot/room/preview guards.
+
+```sh
+node scripts/test_capital_delivery_service.mjs
+node scripts/test_capital_delivery_transactions.mjs
+node scripts/test_capital_delivery_actual.mjs
+node scripts/test_capital_dynamic_shot_cover.mjs
+```
+
+The actual-map suite uses local map expansions, airport terrain, parked geometry
+and real catalogue/dealer sources. Preserve those dependencies and its explicit
+fixtures, requested routes, initial/final poses, terminal outcomes and CPU/wall
+measurements. Domain travel/receipt checks establish neither human-earned cash
+nor native phone interaction, survival, readable framing or target-device FPS.
+
+Use a fresh external evidence directory for each native run.
+
+```sh
+python3 -B scripts/test_capital_delivery_browser.py --root <game-export> --output <fresh-directory> --scenario all --capture
+python3 -B scripts/test_capital_terrain_browser.py --root <game-export> --output <fresh-directory> --scenario both --capture
+python3 -B scripts/test_capital_terrain_browser.py --root <game-export> --output <fresh-directory> --scenario controls --capture
+```
+
+Courier proof retains phone input, travel, stopped handover and wallet changes.
+The terrain run uses the official Free-roam map for setup, then holds real
+throttle across successive observations of ramp ascent, launch and landing.
+Label fixture checkpoints and inspect captured frames before using them in a
+release. Keep browser and server cleanup in the harness.
+
+### Carried searches and paid beds
+
+Burglary binds the consumed entry session to at most eight real valuables
+stations in the active house. Each search requires a fresh matching terminal
+activity session, station and player proximity; repeated/stale stations cannot
+increase carried loot. Entry mistakes, sprinting, fresh attacks and completed
+searches affect bounded noise; supplied-dt alarm accumulation emits its own
+once-only alarm. Waiting alone cannot complete a search. Preserve pause and
+invalid-context cancellation, and keep physical police responses with their owner.
+
+Search completion creates carried loot, not cash. Only a checked exterior exit
+near that house's real door marks its receipt exited; generic unload, recovery,
+teleport or a caller boolean cannot bank it. Progression consumes one frozen
+matching fresh exited receipt, validates its bounded count and applies the
+existing capped reward/cooldown through the career writer.
+
+Safehouse rest begins at the owned home's actual bed. The activities owner runs
+the release/cue/held-input session with supplied time and cancels on invalid
+proximity/context. The house controller exposes only its matching terminal rest
+receipt; Progression requires ownership, injury, the live room, funds and a fresh
+serial before charging and returning the heal effect. A menu click, unrelated
+room, stale terminal or arbitrary elapsed timer cannot heal or debit. Keep free
+preview feedback separate from a paid career result.
+
+```sh
+node scripts/test_capital_burglary_session.mjs
+node scripts/test_capital_burglary_economy.mjs
+node scripts/test_capital_jobs_rest.mjs
+node scripts/test_capital_safehouse_commerce.mjs
+```
+
+### Local joint blending and physical stunt support
+
+`actor-view.js` blends fixed local joint state and continuous speed-based stride
+from supplied dt. Retain immediate gameplay root translation/yaw/jump height and
+live look/recoil response. Ragdoll applies after ordinary pose generation and
+must not feed fallen transforms back into the locomotion history. Test pause
+mid-transition, a live melee timer sequence, sprint start/stop, recovery/culling,
+finite inputs and idempotent disposal. Keep `person-model.js` dimensions, identity
+and seated fits shared; do not change instanced callers' stride semantics as an
+incidental player-animation change. No new clock, RAF, frame-time geometry or
+unbounded pose cache is permitted.
+
+Stunt ramps use mapped clearance/private-area exclusions and one shared rendered
+surface/support sampler. Simulation and `vehicle-flight.js` own supplied-dt
+vertical travel and swept contacts, not the view. Preserve full vehicle bodies,
+bridge/terrain support, landing, pause and bounded ramp allocation; visual pitch
+or an elevated mesh alone is not physical flight evidence.
+
+```sh
+node scripts/test_capital_actors.mjs
+node scripts/test_capital_combat_presentation.mjs
+node scripts/test_capital_ragdoll.mjs
+node scripts/test_capital_stunt_ramps.mjs
+node scripts/test_capital_vehicle_flight.mjs
+node scripts/test_capital_driving_dynamics.mjs
+node scripts/test_capital_car_camera.mjs
+node scripts/test_capital_jetpack.mjs
+```
+
+Keep nitro fuel and drift state in Simulation. Ordinary controls preserve the
+prior trajectory. Camera positioning uses the active car's authored eye and the
+mesh pitch. External jetpack flight takes temporary ownership of foot movement
+and gravity, with the normal Gameplay clock still tracking health and police.
+
+Resource counts and software-rendered motion remain distinct from measured Intel
+N100 frame rate. Update the manual/inventory only through their owning integration
+step after source commits, and regenerate/check the offline asset closure after
+final runtime edits. No publication or push is authorized by these procedures.

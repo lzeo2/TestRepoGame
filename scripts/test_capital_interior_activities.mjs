@@ -60,7 +60,7 @@ api.clear(); api.clear();
 assert.equal(assertSingleResult(api, 'cancel').reason, 'room-cleared');
 assert.equal(api.snapshot().stations.length, 0);
 
-// Timed rest advances only on supplied active time and never on input.
+// Rest needs a fresh hold after the bed cue; passive time cannot heal.
 {
   const { game, ctx } = fixture('rest');
   const before = game.snapshot();
@@ -68,15 +68,29 @@ assert.equal(api.snapshot().stations.length, 0);
   assert.deepEqual(game.snapshot(), before, 'paused clocks and scores remain frozen');
   tick(game, ctx, {}, NaN); tick(game, ctx, {}, Infinity); tick(game, ctx, {}, -1);
   assert.deepEqual(game.snapshot(), before, 'invalid time cannot progress rest');
-  for (let i = 0; i < 161; i++) tick(game, ctx);
+  for (let i = 0; i < 20; i++) tick(game, ctx);
+  assert.equal(game.snapshot().progress,0,'waiting alone cannot complete rest');
+  for (let i = 0; i < 64; i++) tick(game, ctx, {x:true});
   const event = assertSingleResult(game, 'complete');
   assert.equal(event.heal, 20); assert.equal(event.score, 100);
   assert.equal(event.sandbox, false);
+  assert.equal(event.outcome,'rested');assert.equal(event.stationId,'rest');
+  assert(Object.isFrozen(event) && Object.isFrozen(event.station));
   for (let i = 0; i < 100; i++) tick(game, ctx);
   assert.deepEqual(game.drainEvents(), [], 'terminal activity cannot complete again');
   assert.equal(game.start('rest', ctx), true, 'terminal stations are replayable');
   tick(game, { ...ctx, pose: { x: ctx.pose.x + 3, z: ctx.pose.z } }, {}, 20);
   assert.equal(assertSingleResult(game, 'cancel').reason, 'left-station');
+}
+{
+  const {game,ctx}=fixture('rest');
+  for(let i=0;i<70;i++)tick(game,ctx,{x:true});
+  assert.equal(game.snapshot().progress,0,'held key at start cannot skip neutral cue');
+  tick(game,ctx);tick(game,ctx,{x:true});
+  for(let i=0;i<10;i++)tick(game,ctx,{x:true});
+  assert(game.snapshot().progress>0);tick(game,ctx);
+  assert.equal(game.snapshot().progress,0,'early release loses the partial hold');
+  assert.equal(game.drainEvents().length,0,'interrupted hold never completes');
 }
 for (const [extra, reason] of [[{ recovering: true }, 'recovery'], [{ onFoot: false }, 'not-on-foot'], [{ wanted: 2 }, 'wanted'], [{ sandbox: true }, 'mode-changed']]) {
   const { game, ctx } = fixture('rest');

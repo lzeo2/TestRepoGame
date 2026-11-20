@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {applyAirport} from '../Games/Capital Drive/airport.js';
+import {createTerrainSampler} from '../Games/Capital Drive/terrain.js';
+const data=JSON.parse(readFileSync(new URL('../Games/Capital Drive/data/airport-terrain.json',import.meta.url)));
+const g=data.terrain;assert.equal(g.heights.length,g.cols*g.rows);assert(g.heights.every(Number.isFinite));assert.equal(g.verticalDatum,'AHD');assert.equal(g.validation.nearestFillCells,0);assert.equal(g.license,'CC-BY-4.0');
+const map={bounds:{minX:0,maxX:100,minZ:0,maxZ:100},terrain:{minX:0,maxX:100,minZ:0,maxZ:100,cols:3,rows:3,heights:[1,3,6,2,5,8,4,7,11]},roads:[],buildings:[],areas:[],landmarks:[]};
+const snapshot={bounds:{minX:100,maxX:500,minZ:0,maxZ:100},roads:[{id:1,points:[[100,0],[500,100]]}],buildings:[],areas:[],landmarks:[],airport:{groundEstimate:{relativeHeight:25,blendMetres:1000},surfaces:[],aerodrome:{points:[]}}};
+const elevation={terrain:{...map.terrain,minX:100,maxX:500,heights:Array(9).fill(30),source:'fixture',verticalDatum:'AHD'}};
+const before=createTerrainSampler(map),after=createTerrainSampler(applyAirport(map,snapshot,elevation));
+for(const x of [0,50,99,100])for(const z of [0,17,55,100])assert.equal(after.groundHeightAt(x,z),before.groundHeightAt(x,z),'existing land and exact seam unchanged');
+assert.equal(after.groundHeightAt(500,50),30);
+console.log('Capital airport terrain PASS: licensed finite source grid, no fabricated fill, exact old land/seam and sourced east.');

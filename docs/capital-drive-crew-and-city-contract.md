@@ -57,6 +57,44 @@ Free roam can practice equipment without spending or earning career cash.
 Protected jobs/tutorials keep their attack lock. Ordinary wanted jobs and legal
 purchases retain their established rules. None of these modules owns storage.
 
+19 November continuation: `actor-view.js` smooths the player's ordinary joint
+poses and stride using supplied dt and a fixed 30-angle buffer. Root position,
+live aim pitch/recoil and authoritative impact/ragdoll poses remain immediate.
+This does not add a second clock, geometry, or a separate distant-NPC animation
+system. Pose regressions sample real transition time and retain aim/reload/hand
+and render-resource assertions.
+
+`stunt-ramps.js` admits up to six original fictional park ramps after mapped
+clearance checks. `vehicle-flight.js` shares their actual support plane with
+rendering, collision, driver height and camera: ascent can launch a fast car at
+the lip, then gravity and the real ground sampler determine landing. Transient
+flight state clears on reset/claim. Elevated vehicle/adult contacts use swept
+height intervals; ordinary vehicles retain the existing collision path.
+These are arcade gameplay additions, not surveyed Canberra facilities. See the
+[terrain source record](capital-drive-airport-sources.md) and the
+[19 November receipt](verification/capital-drive-streets-deliveries-2026-11-19.md)
+for source, native and hardware limits.
+
+20 November driving controls use C to switch between the actual fleet cockpit
+and chase camera while manually driving. The same authored hull pitch and
+seat anchor determine the driver eye. The normal view returns on exit or
+recovery. C remains the smoke key on foot. The camera helper owns no mesh or
+clock, and existing flight and foot views keep their controls.
+
+`driving-dynamics.js` owns measured slip and transient nitro fuel. At speed,
+Space and steering start a slide. Countersteering restores grip. Shift adds
+forward thrust for about five seconds of a full tank. Releasing Shift refills
+the tank over about twenty active seconds, with faster refill during a measured
+drift. The simulation still owns all vehicle sweeps, acceleration and position.
+
+`jetpack.js` owns one personal flight session. On clear exterior ground between
+jobs, U arms it, Space rises, Shift descends, WASD moves and U requests landing.
+Flight uses the same body sweeps and terrain height as ordinary walking, with a
+22 m lift limit and recharging ground battery. Shared collision prevents using
+flight to skip through buildings and fences. Jobs, stores, car entry and map
+travel wait for landing. Recovery and mode restart release flight state. The
+lightweight backpack view uses three pooled meshes and the existing render loop.
+
 ## Environment and geography
 
 The [airport source record](capital-drive-airport-sources.md) distinguishes OSM

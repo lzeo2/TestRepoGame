@@ -15,6 +15,13 @@ artwork or branded vehicle assets are used.
 
 ## Implementation map
 
+The [19 November streets/deliveries receipt](../../verification/capital-drive-streets-deliveries-2026-11-19.md)
+records the next controlled collision comparison, multi-cache house searches,
+physical courier orders, cargo jobs, extra safehouses, smoothed player poses,
+fictional stunt ramps, contour-derived airport terrain, drifting, nitro, the
+car cockpit and a personal jetpack. The receipt records the native and
+performance checks used for this update.
+
 The [17 November flamegraph/escape receipt](../../verification/capital-drive-flame-escape-2026-11-17.md)
 records fresh exact-source CPU/allocation comparisons, bounded faster police
 interceptors, eleven arrival-retaining escape stages and source-aware inferred
@@ -30,8 +37,8 @@ spotting aircraft, fictional cameras, vehicle bullet/blast damage, owned safehou
 conserved weapon/ammo/cash stashes and two hireable guards. The player drone and
 headlights use pooled presentation; the full day/night cycle now takes48 minutes.
 Crews enter ordinary rooms. Source-owned bridge levels now agree across road/car
-art, vehicle collision and shot cover. The Bunda ground passage stays open. Unowned house doors have a six-cue forced-entry challenge; an actual indoor search earns bounded, saved-cooldown loot. House floors and outer walls follow their source exterior polygons, while room layouts remain procedural.
-See the [current receipt](../../verification/capital-drive-city-systems-2026-11-16.md)
+art, vehicle collision and shot cover. The Bunda ground passage stays open. Unowned house doors have a six-cue forced-entry challenge; distinct indoor searches carry loot, and only the actual door exit banks a bounded reward and saved cooldown. Noise drives alarms. House floors and outer walls follow their source exterior polygons, while room layouts remain procedural.
+See the [16 November city receipt](../../verification/capital-drive-city-systems-2026-11-16.md)
 for the22-mission domain audit, source/native checks and bounded CPU measurements.
 
 
@@ -54,8 +61,10 @@ records analog mobile joysticks, keyboard aiming, live crew seats/window fire an
 safe shared-stage character transfers, three appended mission chains, timed hero
 powers, grenade/smoke stock and effects, actual garage physics upgrades, street
 NPC ragdolls, player-car crumpling/fire, physical rear gardens, day/night/weather
-and the sourced airport road extension. Airport terrain/massing are explicitly
-estimated; traffic cars do not deform and terminal interiors/airline services are absent. Two original stealable jets add bounded arcade flight.
+and the sourced airport road extension. Airport ground now uses a separately
+bundled ACT2020 two-metre contour interpolation with authored runway grading;
+terminal massing and roadside equipment remain estimates. Traffic cars do not
+deform and terminal interiors/airline services are absent. Two original stealable jets add bounded arcade flight.
 
 - `script.js`: sole loop, input/camera/modes, local loading, maps/routes, parked
   and abandoned meshes, storage and module integration.
@@ -63,6 +72,12 @@ estimated; traffic cars do not deform and terminal interiors/airline services ar
   reactive traffic cars (cap 56), bounded overtaking/road rage, vehicle claims,
   parked/abandoned descriptors, polygon line of sight and safe teleport. A bounded
   live adult-body index checks moving cars as well as people walking into cars.
+- `driving-dynamics.js`, `car-camera.js`: supplied-time drift/boost state and
+  cockpit framing from the current fleet seat. C toggles the car view. Space
+  and steering initiate a drift, and Shift uses fuel that refills off boost.
+- `jetpack.js` and `jetpack-view.js`: bounded exterior foot flight with shared
+  body clearance, controlled descent and three pooled backpack meshes. U starts
+  or lands. Space and Shift adjust height and WASD moves.
 - `water-contact.js`: immutable source water-ring segment trees for exact parity
   and nearest contacts; no simplified shoreline or per-position result cache.
 - `ride-service.js`/`ride-service-view.js`: one physical NPC-driven Yoober car,
@@ -76,7 +91,8 @@ estimated; traffic cars do not deform and terminal interiors/airline services ar
   room plans. Ordinary doors admit police; Milo's bound room and purchased safehouses are protected.
 - `progression.js`: recurring ordered jobs, costs/rewards/unlocks, saved four-weapon ownership and owned garage,
   condition-preserving retrieval, food/gun/ammo purchases, playable fitness/paid work, timed robbery,
-  cooldowns and strict legacy-compatible career-save validation.
+  cooldowns, eight sourced safehouse offers, receipt-bound paid bed rest, cargo
+  freshness/damage and courier escrow with strict legacy-compatible v1 saves.
 - `street-ui.js`: jobs/garage/shops, five-star HUD and recovery feedback; no clock
   or storage owner. `services.js` combines twenty-six mapped parody stores, the
   retained fictional Kingston gym/arms sites and three source-backed parody gyms.
@@ -186,6 +202,13 @@ never pays career cash or completes a job.
 Street Life starts with Crescent parcel on NSW Crescent. Ordered checkpoint,
 target-wagon theft and wanted-getaway jobs unlock after that delivery; later jobs
 pay more. Franklin and Kennedy deliveries are available immediately for$400/$450.
+Lunch round pays $372–620 according to freshness lost only after pickup;
+document courier pays a fixed $780. Medical supplies pays $900 within 100 seconds,
+requires at least 60% vehicle condition at loading/handover and fails after more
+than 15 cumulative damage. Equipment pays $700 for delivery and case return but
+fails at 25 cumulative damage. Repairs do not restore cargo quality; medical and
+equipment bind the actual loaded vehicle. These new jobs require contiguous
+stopped handovers and leave legacy job rules unchanged.
 Noodle preparation pays$60 and shop stocking pays$45 after the actual task completes.
 No time-only, interrupted or Free-roam task pays. Each fresh job requires arrival/stage/time conditions and pays once.
 Ordinary jobs, stock/noodle shifts and legal owned-car Yoober driver fares work
@@ -725,6 +748,27 @@ water exemptions with rendering/collision. North terrain is259×157 at roughly25
 cells with a100m seam blend, not a native DEM or bathymetry model. The fixed
 normal555.93mAHD lake surface is not a live water-level reading.
 
+The [airport source record](../../capital-drive-airport-sources.md) documents the
+89×122 ACT2020 contour grid at approximately50m spacing, © Australian Capital
+Territory and Aerometrex Limited, CC BY4.0, AHD with the550m local offset.
+`airport.js` preserves old base/north samples and the exact western seam, then
+blends the eastern tile over350m and authors runway grades with45m shoulder
+blends. Held-out contour residuals are numerical consistency checks, not survey
+accuracy; small cuts and depressions remain unresolved. The OSM airport elevation
+tag is only the fallback estimate, not the normal terrain authority.
+
+`airport-view.js` follows mapped axes in25m terrain-sampled strips.
+`airport-road-details.js` adds at most96 source-aligned decorative reflector
+posts, excluding restricted/bridge roads and junction mouths. These original
+estimated details are merged into streamed cells; they are not real guardrails
+or collision walls. `stunt-ramps.js` admits at most six original fictional park
+ramps after mapped road/building/water clearance checks. Shared vertices/support
+planes and `vehicle-flight.js` supply ascent, airtime and landing. Park tags do
+not imply real-world vehicle access or identify actual stunt facilities.
+Focused terrain, airport-details and stunt-ramp source fixtures cover these
+invariants; native visual and sustained hardware acceptance remain separate.
+
+
 Static world/neighbourhood normals and colours use normalized byte attributes;
 positions/UVs/triangle counts are preserved. A paired merged-map fixture measured
 1,073,925,468→563,969,097 attribute bytes (47.49% less). This is buffer storage,
@@ -840,10 +884,20 @@ Historical 12/13 November receipts remain separately dated.
 
 Current controls add N for headlights and O for drone recall. Launch a purchased
 drone through Phone outside on foot; WASD/Space/Shift move it while the body stays
-vulnerable. Phone also lists crew and safehouses. House purchase requires its real
-door, and storage requires being inside the owned room. Ammunition profiles and
-hired health persist separately from resumable hero poses, including wanted and
-active-mission saves. A pending renewal cannot charge twice.
+vulnerable. Phone lists crew and up to eight sourced safehouses; the original two
+property IDs/order/prices remain valid. House purchase requires its actual clear
+door, and storage requires being inside the owned room. Injured players can pay
+$80 for a full heal only after the real nearby safehouse bed's completed X-hold
+session; a fresh matching room receipt prevents repeated charges or healing.
+Phone food/weapon orders dispatch one physical courier. Progression escrows the
+catalogue price plus $50; actual stopped exterior E-handover grants the item once,
+while cancellation/failure refunds it. Pending orders are transient and the v1
+saved cash includes escrow, refunding abandoned orders on reload without an item.
+Ammunition profiles and hired health persist separately from resumable hero poses,
+including wanted and active-mission saves. A pending renewal cannot charge twice.
+The [city contract](../../capital-drive-city-systems-contract.md) records source
+selection, paid-rest authority, courier lifecycle and distinct cargo rules. Pure
+checks are not native collection/travel or device-performance evidence.
 
 ## Future outlook
 

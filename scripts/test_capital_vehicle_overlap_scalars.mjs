@@ -6,8 +6,9 @@ const sourceURL=new URL('../Games/Capital Drive/simulation.js',import.meta.url);
 const source=await readFile(sourceURL,'utf8');
 const baseline=execFileSync('git',['show',`${baselineRevision}:Games/Capital Drive/simulation.js`],{cwd:new URL('../',import.meta.url),encoding:'utf8',maxBuffer:1024*1024});
 const load=async text=>{
+ assert(text.includes('return { player,'),'actual simulation return must expose its vehicle overlap helper');
  text=text.replace(/from ['"]([^'"]+)['"]/g,(_,path)=>`from ${JSON.stringify(new URL(path,sourceURL).href)}`)
-  .replace('return { player, traffic,','return { overlapForTest:vehicleOverlap, player, traffic,');
+  .replace('return { player,','return { overlapForTest:vehicleOverlap, player,');
  return import(`data:text/javascript;base64,${Buffer.from(text).toString('base64')}`);
 };
 const old=await load(baseline),current=await load(source);

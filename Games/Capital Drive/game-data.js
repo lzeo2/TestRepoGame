@@ -2,7 +2,7 @@
 const DATA_FILES = new Set([
   'data/canberra.json', 'data/addresses.json', 'data/road-profiles.json',
   'data/canberra-north.json', 'data/north-terrain.json', 'data/traffic-signals.json',
-  'data/airport.json',
+  'data/airport.json','data/airport-terrain.json',
 ]);
 const MESSAGE_TYPE = 'CAPITAL_CACHE_FILES';
 

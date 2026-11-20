@@ -131,7 +131,16 @@ for(const surface of RAMP_SURFACES)for(const t of surface.triangles) {
   const x=t.reduce((s,p)=>s+p[0]/3,0),z=t.reduce((s,p)=>s+p[2]/3,0),y=t.reduce((s,p)=>s+p[1]/3,0);
   assert(Math.abs(skateHeightOffset(x,z)-y)<1e-7,'ramp height uses the rendered triangle surface');
 }
-assert.match(boot,/world\.heightAt=\(x,z\)=>ground\(x,z\)\+skateHeightOffset\(x,z\)/,'root actor grounding adds shared ramp height');
+const grounding=boot.match(/const ground=world\.heightAt;world\.heightAt=.*?;/)?.[0];
+assert(grounding,'root actor grounding remains discoverable');
+const groundedWorld={heightAt:()=>7};
+let stuntHeight=null;
+new Function('world','skateHeightOffset','stunts',grounding)(groundedWorld,skateHeightOffset,{heightAt:()=>stuntHeight});
+const skateSample=skateLocalPoint(3,10);
+assert.equal(groundedWorld.heightAt(skateSample[0],skateSample[2]),7+skateHeightOffset(skateSample[0],skateSample[2]),'actual boot wrapper preserves shared skate grounding');
+assert.equal(groundedWorld.heightAt(0,0),7,'ordinary ground remains unchanged');
+stuntHeight=20;
+assert.equal(groundedWorld.heightAt(skateSample[0],skateSample[2]),20,'higher stunt support wins without adding two independent ramp heights');
 assert.match(boot,/createCivicExtrasView\(scene,map,ground\)/,'ramp renderer receives the same base ground');
 
 // Preserve ordinary building, island, shoreline and bridge-water behavior while

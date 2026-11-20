@@ -20,7 +20,7 @@ let capturedOutside=null;
 const interiors={active:null,get exteriorPose(){return capturedOutside;},entries:[{id:'test-room'}]};
 const counters={mesh:0,population:0,save:0};
 const progression=createProgression(map);progression.state.cash=5432;progression.state.equipment.pistol=true;
-const env={aircraft:null,gameplay,simulation,campaign,interiors,protagonists:createProtagonistState(null,{bounds:map.bounds}),PROTAGONIST_IDS,WEAPONS,weaponById,recallDrone(){},prepareCharacterStart,CIVIC_INTERIOR_ENTRIES:[],
+const env={aircraft:null,resetDelivery(){},gameplay,simulation,campaign,interiors,protagonists:createProtagonistState(null,{bounds:map.bounds}),PROTAGONIST_IDS,WEAPONS,weaponById,recallDrone(){},prepareCharacterStart,CIVIC_INTERIOR_ENTRIES:[],
   heroPowers:{cancelActive(){}},ordnance:{reset(){}},campaignScenes:{people:[],canExchangeLeader:()=>false},
   developerReturn:null,started:true,gameMode:'campaign',progression,isSandbox:()=>false,
   activities:{snapshot:()=>({active:null})},micromobility:{snapshot:()=>({active:null}),reset(){}},buses:{reset(){}},rideService:{reset(){}},equipment:{reset(){}},

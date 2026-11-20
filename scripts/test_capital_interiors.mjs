@@ -514,7 +514,7 @@ console.log('PASS all 26 source-tied shops: visible/reachable counters and activ
   assert.equal(station.label, 'Pack the ledger case');
   const prop = plan.furniture.find(f => f.kind === 'ledger-case'); assert(prop && Object.isFrozen(prop));
   for (const kind of ['bed', 'bath', 'basin', 'kitchen-bench', 'television']) assert([...plan.furniture,...(plan.details||[])].some(f => f.kind === kind));
-  assert.equal(plan.activities.length, ordinary.activities.length,'safe ledger replaces the ordinary valuables search');
+  assert.equal(plan.activities.length, ordinary.activities.filter(s=>!s.id.includes('-valuables')).length+1,'safe ledger replaces burglary searches');
   assert(!plan.activities.some(s=>s.id.endsWith('-valuables')),'safehouse cannot supply burglary loot');
   assert(houses.hasLineOfSight(visitor, station), 'ledger task is visible from the open central hall');
   const { createInteriorActivities } = await import('../Games/Capital Drive/interior-activities.js');

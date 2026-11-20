@@ -9,6 +9,7 @@ import { createGameplay } from '../Games/Capital Drive/gameplay.js';
 import { createSimulation } from '../Games/Capital Drive/simulation.js';
 import { weaponById } from '../Games/Capital Drive/weapons.js';
 import { createBuses } from '../Games/Capital Drive/buses.js';
+import { createDeliveryService } from '../Games/Capital Drive/delivery-service.js';
 import { createRideService } from '../Games/Capital Drive/ride-service.js';
 import { BY_ID } from '../assets/car-arcade/fleet.js';
 
@@ -32,7 +33,7 @@ function helper(name) {
   throw new Error(`Unclosed helper ${name}`);
 }
 function owner(names, context) {
-  const scope = vm.createContext({ droneActive: false, ...context });
+  const scope = vm.createContext({ droneActive:false,delivery:null,houseController:null,burglaryContext:()=>({}),...context });
   vm.runInContext(names.map(helper).join('\n'), scope);
   return scope;
 }
@@ -113,6 +114,7 @@ game.state.mode='foot';game.state.health=60;game.state.actor.x=0;game.state.acto
 commerce.state.equipment.pistol=true;game.addAmmo(24,'pistol');
 let writes=0,menuPaused=true;
 const control=owner(['cityAction','recallDrone','stepDrone','canCrewAttack','canPlayerAttack','walkingInput','input','interact'],{
+  jetpack:null,
   developerReturn:null,progression:commerce,gameplay:game,interiors:{active:null},campaignScenes:{people:[]},
   careerContext:()=>({pose:{x:game.state.actor.x,z:game.state.actor.z},onFoot:true,health:game.state.health,vehicleHealth:100,wanted:0,respawnSerial:0,interior:control.interiors.active?{roomId:home.id}:null}),
   saveCareer:()=>writes++,clearInput:()=>{},notify:()=>{},cityUI:{render:()=>{}},
@@ -245,7 +247,8 @@ const vehicleMap={...tinyMap,spawn:{x:-100,z:-100,yaw:0},roads:[
   {id:'d',points:[[0,400],[0,0]],nodes:[4,1],oneway:1,width:11},
 ]};
 const carSimulation=createSimulation(vehicleMap,{trafficCount:1}),carGameplay=createGameplay(vehicleMap,carSimulation);
-const actualBus=createBuses(vehicleMap,carSimulation),actualRide=createRideService(vehicleMap,carSimulation);
+const actualBus=createBuses(vehicleMap,carSimulation),actualRide=createRideService(vehicleMap,carSimulation),actualDelivery=createDeliveryService(vehicleMap,carSimulation);
+const courier=actualDelivery.vehicles[0];Object.assign(courier,{x:200,z:200,yaw:0,active:true,health:100});
 const npc=carSimulation.traffic[0],taxi=actualRide.vehicles[0],bus=actualBus.vehicles[0];
 Object.assign(npc,{x:4,z:0,yaw:0,active:true,health:100});
 Object.assign(taxi,{x:40,z:40,active:true});
@@ -254,7 +257,7 @@ const patrol={id:'police:test',modelId:'relay',x:30,z:30,yaw:0,active:true,healt
 carGameplay.state.police.push({id:'officer:test',health:100,mode:'vehicle',car:patrol});
 let colliders;
 const damage=owner(['damageWorldVehicle','damageExplosionVehicles','shotVehicles','syncExternalVehicles','updateAbandonedMeshes'],{
-  simulation:carSimulation,gameplay:carGameplay,buses:actualBus,rideService:actualRide,aircraft:{snapshot:()=>({planes:[]})},
+  simulation:carSimulation,gameplay:carGameplay,buses:actualBus,rideService:actualRide,delivery:actualDelivery,aircraft:{snapshot:()=>({planes:[]})},
   aircraftObstacles:()=>[],BY_ID,handledVehicleBlasts:new WeakSet(),
   world:{heightAt:()=>0,vehicleHeightAt:()=>0},shotObstacles:createShotObstacles(vehicleMap,{heightAt:()=>0}),
   abandonedMeshes:new Map(),createCar:(modelId,{color})=>({modelId,color,visible:false}),addCarShadow:()=>{},
@@ -264,6 +267,8 @@ assert(damage.damageWorldVehicle(npc.id,10));assert.equal(npc.health,90);
 assert(damage.damageWorldVehicle(patrol.id,10));assert.equal(patrol.health,90);
 assert(damage.damageWorldVehicle(taxi.id,10));assert.equal(taxi.health,90);
 assert(damage.damageWorldVehicle(bus.id,10));assert.equal(bus.health,90);
+assert(damage.damageWorldVehicle(courier.id,10));assert.equal(courier.health,90,'physical courier damage routes to its authoritative owner');
+assert(damage.shotVehicles({x:200,z:200,range:5},null).some(car=>car.id===courier.id),'active physical courier remains shot cover');
 assert(damage.damageWorldVehicle('player',10));assert.equal(carGameplay.state.vehicleHealth,90);
 assert.equal(damage.damageWorldVehicle('missing',10),false);
 const blast={type:'explosion',x:0,y:.8,z:0,radius:8,maxDamage:100};
@@ -286,6 +291,7 @@ assert(damage.damageWorldVehicle(patrol.id,100));carGameplay.state.police.length
 assert(damage.shotVehicles({x:30,z:30,range:5},null).some(car=>car.id===patrol.id),'retained police wreck stays bullet cover after pursuit clears');
 const originalSet=carSimulation.setExternalVehicles;
 carSimulation.setExternalVehicles=list=>{colliders=list;};damage.syncExternalVehicles();carSimulation.setExternalVehicles=originalSet;
+assert(colliders.some(car=>car.id===courier.id),'active courier is registered with collision owner');
 assert(colliders.some(car=>car.id===patrol.id),'the same visible retained wreck remains a collider');
 damage.updateAbandonedMeshes({x:30,z:30},0);
 assert.equal(damage.abandonedMeshes.get(patrol.id).visible,true);

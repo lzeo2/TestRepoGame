@@ -325,6 +325,11 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
   const arrow = piece(marker, 'Objective arrow', palette.marker, [0, 3.2, 0], [1, 1, 1], arrowGeometry); arrow.rotation.x = Math.PI;
   marker.visible = false; actor.visible = false;
   let phase = 0, clock = 0, disposed = false, lastAttackTimer = 0, lastAttackSerial = null, punchingArm = 0;
+  // Fixed ordinary-pose history excludes the root and the impact solver. A fall
+  // must never become the next locomotion target during recovery.
+  const animatedJoints = [body, head, ...legs, ...knees, ...arms, ...elbows];
+  const blendedAngles = new Float64Array(animatedJoints.length * 3);
+  let poseReady = false, locomotionSpeed = 0, blendedBodyZ = 0, renderedAimOffset = 0;
   let lastShotSerial = 0, flashRemaining = 0;
   const playerMuzzle = new THREE.Vector3();
   const counters = { police: 0, officers: 0, shots: 0, playerVisible: false, objectiveVisible: false, meshes: 0, triangles: 0, drawCalls: 0, activeWeapon: null, weaponMeshes: weaponEntries.length };
@@ -359,11 +364,13 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       lastAttackSerial = serial; lastAttackTimer = attack;
       body.position.set(0,0,0); body.rotation.set(0,0,0); head.rotation.set(0,0,0);
       actor.rotation.set(0, finite(pose.yaw), 0);
-      phase += step * speed * 2.7;
-      const stride = Math.min(1, speed / 3) * Math.sin(phase) * (speed > 4 ? .85 : .55);
-      const jump = clamp(pose.jumpHeight, 0, 5);
+      const blend = finite(pose.impactTime) > 0 ? 1 : 1 - Math.exp(-step * 24);
+      locomotionSpeed += (speed - locomotionSpeed) * (1 - Math.exp(-step * 12));
+      phase = (phase + step * locomotionSpeed * 2.7) % (Math.PI * 2);
+      const stride = Math.min(1, locomotionSpeed / 3) * Math.sin(phase) * (.55 + .30 * clamp((locomotionSpeed - 3) / 3, 0, 1));
+      const jump = clamp(pose.jumpHeight, 0, 22);
       actor.position.set(pose.x, ground(pose.x, pose.z) + .035 + jump, pose.z); actor.rotation.y = finite(pose.yaw);
-      body.rotation.x = speed > 4 ? -.10 : 0;
+      body.rotation.x = -.10 * clamp((locomotionSpeed - 3) / 3, 0, 1);
       for (let i = 0; i < 2; i++) {
         const swing = stride * (i ? -1 : 1);
         legs[i].rotation.set(jump > .05 ? -.35 : swing, 0, 0);
@@ -373,15 +380,18 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       }
       const firearm = weapons[state.weapon];
       for (const [id, weapon] of weaponEntries) weapon.visible = id === state.weapon;
+      let aimOffset = 0;
       if (firearm && (state.aiming || attack > 0 || recoil > .001)) {
         const pitch = clamp(pose.aimPitch ?? state.aimPitch, -MAX_AIM_PITCH, MAX_AIM_PITCH);
         const kick = recoil * .12;
+        aimOffset = pitch + kick;
         body.rotation.x = 0;
         arms[1].rotation.set(Math.PI / 2 + pitch + kick, 0, 0); elbows[1].rotation.x = 0;
         arms[0].rotation.x = (state.weapon === 'pistol' ? 1.12 : 1.35) + pitch + kick;
         arms[0].rotation.z = .72; elbows[0].rotation.x = state.weapon === 'pistol' ? .40 : -.20;
       }
       if (firearm && finite(state.reloading) > 0) {
+        aimOffset = 0;
         arms[1].rotation.x = .65; elbows[1].rotation.x = 1.2;
         arms[0].rotation.x = .9; arms[0].rotation.z = .55; elbows[0].rotation.x = .55;
       }
@@ -398,8 +408,30 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
         body.rotation.y = value(3)*side; body.position.z = value(4); body.rotation.z = -.035*side*Math.sin(elapsed*Math.PI);
         knees[other].rotation.x += .10*Math.sin(elapsed*Math.PI);
       }
+      // Camera pitch/recoil respond immediately during aim. On release their
+      // offset fades with the stance instead of snapping the shoulders down.
+      const liveAim = firearm && finite(state.reloading) <= 0 && (state.aiming || attack > 0 || recoil > .001);
+      renderedAimOffset = liveAim ? aimOffset : renderedAimOffset * (1 - blend);
+      for (let i = 0; i < animatedJoints.length; i++) {
+        const rotation = animatedJoints[i].rotation, offset = i >= 6 && i < 8 ? aimOffset : 0;
+        const index = i * 3;
+        const x = rotation.x - offset, y = rotation.y, z = rotation.z;
+        if (!poseReady) {
+          blendedAngles[index] = x; blendedAngles[index + 1] = y; blendedAngles[index + 2] = z;
+        } else {
+          blendedAngles[index] += (x - blendedAngles[index]) * blend;
+          blendedAngles[index + 1] += (y - blendedAngles[index + 1]) * blend;
+          blendedAngles[index + 2] += (z - blendedAngles[index + 2]) * blend;
+        }
+        rotation.set(blendedAngles[index] + (i >= 6 && i < 8 ? renderedAimOffset : 0), blendedAngles[index + 1], blendedAngles[index + 2]);
+      }
+      blendedBodyZ = poseReady ? blendedBodyZ + (body.position.z - blendedBodyZ) * blend : body.position.z;
+      body.position.z = blendedBodyZ;
+      poseReady = true;
       impactPose.update(pose, step, state.health);
-    } else impactPose.reset();
+    } else {
+      impactPose.reset(); poseReady = false; locomotionSpeed = 0; renderedAimOffset = 0;
+    }
     counters.police = 0; counters.officers = 0;let muzzleCount=0;
     // Officers also render in lazy rooms that have no patrol-car allocation.
     for (let i = 0; i < policeLimit; i++) {

@@ -59,16 +59,30 @@ No source polygon, footprint attribution or road coordinates are rewritten.
 
 ## Safehouses, stashes and crew
 
-Phone → Safehouses lists two actual rendered house doors priced at$15,000 and
-$25,000. Buying requires a healthy player on foot within3m of the checked door.
-Ownership and stashes share the existing strict career writer. Owned houses and
-Milo's existing bound room are safehouses; ordinary interiors still admit police.
+Phone → Safehouses lists up to eight actual rendered house doors. The original
+two IDs, their order and their $15,000/$25,000 prices remain unchanged. Six added
+offers prefer source-tagged Red Hill, Narrabundah, Barton, Kingston and Griffith
+houses, then use the farthest remaining doors to spread access across the map.
+The base-map selection also includes Yarralumla; a Civic house is not invented.
+Added prices range from $22,000 to $42,000. Selection reads existing descriptors
+without generating room plans. Buying requires a healthy player on foot within
+3 m of the actual door with a clear approach. Ownership and stashes share the
+existing strict v1 career writer. Owned houses and Milo's bound room are
+safehouses; ordinary interiors still admit police.
 
 Inside an owned safehouse, the phone transfers weapons, ammunition and loot cash.
 The owners validate exact room, player context, ownership, integer amounts and
 caps before synchronous inventory mutation. Cash and each ammunition unit are
 conserved. Storing an equipped weapon unarms it; withdrawing one grants no
 starter ammunition. Optional fields preserve old career saves.
+
+The actual bed in an owned or story safehouse offers paid rest when injured.
+Release the activity keys, then hold X through its three-second cue. The house
+controller matches the live room, nearby bed, completed activity and fresh session
+before Progression consumes one frozen receipt, charges $80 and returns a full
+heal to Gameplay. A click, passive wait, remote room or repeated receipt cannot
+heal or charge. Leaving or interrupting the task grants nothing. Free roam and
+mission previews cannot bank paid rest.
 
 A separate strict ammunition profile for Street Life and each of the three
 heroes is saved with progression. It can capture inventory during wanted states
@@ -98,13 +112,17 @@ safehouses remain directly accessible. Success issues one physically rechecked
 entry permit, enters the real room and reports the alarm through the existing
 police owner. It never grants an arbitrary house teleport.
 
-Q at the house's visible valuables station starts an actual supplied-time search
-sequence. Only its matching completed room/station/session can mint one loot
-receipt. Progression consumes that receipt and pays a deterministic$200–600,
-with a saved300 second per-house cooldown. At most64 live cooldowns are stored;
-full wallets, invalid contexts, owned/story safehouses and repeated receipts
-cannot pay. Rejected searches discard pending receipts. Burglary retains one
-pending loot receipt, scalar replay history and at most32 diagnostic events.
+Q at a house's visible valuables stations starts actual supplied-time search
+sequences. Matching completed room/station/session receipts stage carried loot;
+searching indoors pays nothing. After the player physically leaves through the
+captured door, the burglary owner verifies a healthy exterior on-foot pose within
+4 m. Progression consumes one frozen exited receipt for one to eight valuables.
+Each contributes the house's deterministic $200–600 base value, capped at $1,200
+for the whole exit. A saved 300-second per-house cooldown begins on payment.
+At most 64 live cooldowns are stored; full wallets, remote/indoor contexts,
+owned/story safehouses, invalid counts and repeated receipts cannot pay. Abandoned
+carried loot is transient. Burglary retains one pending loot session and bounded
+diagnostic events.
 
 Houses now retain the actual source exterior polygon at original scale. Their
 floor triangles and outer walls follow it, including angled/concave sides and
@@ -136,6 +154,61 @@ owners and travel through the source road network. The campaign now has22mission
 six introductions, the meeting and fifteen shared chapters. Old save prefixes
 remain valid. Native playability, human difficulty and police survival require
 separate evidence from domain-chain fixtures.
+
+## Physical food and weapon orders
+
+Phone → Food & weapon deliveries dispatches one transient courier van on the
+existing directed public-road graph. Food comes from the actual mapped food
+service catalogue; weapons come from the three fictional street dealers and
+respect each dealer's stock and price multiplier. Orders require a healthy player
+outside on foot, compatible activity state and enough career cash. Prices include
+$50 delivery. Wanted stars alone do not prevent ordering or collection.
+
+Progression quotes the catalogue price, matches the live physical order identity
+and debits one escrow payment. The courier owns road travel, collision, damage,
+arrival and stopped handover; it cannot grant money or equipment. Walk beside the
+stopped van and press E. Only its fresh frozen completed event can grant the
+purchased healing or weapon/starter ammunition through the existing owners.
+Failure, cancellation, recovery and mode resets refund that escrow once.
+
+The van and pending order are transient. While an order is pending, the existing
+v1 serializer includes the escrow in saved cash, so reload refunds an abandoned
+order without restoring a van or granting its item. Successful handover saves the
+actual charge and updated inventory. No remote storefront purchase is used to
+bypass counter reach, and no new career-save version is introduced.
+
+## Distinct paid delivery work
+
+All four new jobs use real ordered pickup/handover markers, legal healthy vehicles
+and contiguous stopped holds; long caller frames cannot skip the holds. Existing
+job IDs, prerequisites, rewards and arrival rules remain unchanged. Ordinary paid
+jobs permit zero through five wanted stars while police continue pursuit. Explicit
+escape objectives still require clearing the real search.
+
+- Lunch delivery round has two handovers. Freshness begins at pickup and falls
+  by 0.2 percentage points per carried second, with a 60% floor. The final integer
+  payment ranges from $372 to $620. Waiting before pickup cannot spoil food;
+  repairs cannot restore freshness.
+- Inner south document courier retains its fixed $780 fee for three ordered
+  stops after Crescent parcel.
+- Urgent medical supplies keeps its 100-second deadline and $900 reward. Loading
+  and handover require at least 60% vehicle condition. More than 15 cumulative
+  health loss after loading ruins the supplies.
+- Workshop equipment delivery pays $700 after delivery and empty-case return.
+  At least 25 cumulative health loss breaks the cargo. Repairing the car never
+  removes recorded cargo damage.
+
+Medical and equipment cargo bind the actual physical vehicle key after loading;
+a same-model replacement cannot substitute for it. Cargo state, active reward and
+stop progress are transient and pause with the supplied simulation clock. Cargo
+failures, timeouts, respawn and cancellation grant no completion or reward. Job
+instructions and live freshness/damage appear in the existing work interface.
+
+The focused checks are `test_capital_jobs_rest.mjs`, `test_capital_job_cargo.mjs`,
+`test_capital_delivery_transactions.mjs`, `test_capital_safehouse_commerce.mjs`
+and `test_capital_burglary_economy.mjs` under `scripts/`. Their owner/adapter
+fixtures establish state and transaction rules, not natural travel, native
+collection, human difficulty or N100 performance.
 
 ## Repeatable work
 

@@ -1,4 +1,5 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
+import {airportRoadPosts} from './airport-road-details.js';
 
 const CELL=500,MAX_RESIDENT=28,LOAD_RADIUS=1250,EVICT_RADIUS=1750;
 const keyAt=(x,z)=>`${Math.floor(x/CELL)},${Math.floor(z/CELL)}`;
@@ -19,11 +20,19 @@ export function createAirportView(scene,map,heightAt) {
     if(!cells.has(key))cells.set(key,{key,x:(Math.floor(x/CELL)+.5)*CELL,z:(Math.floor(z/CELL)+.5)*CELL,items:[]});
     cells.get(key).items.push({points,tint,height,kind});
   };
+  const posts=airportRoadPosts(map);
+  for(const post of posts)add([[post.x,post.z]],0xe3ded0,1.05,'reflector');
   for(const s of airport?.surfaces||[]) {
     if(s.closed) add(s.points,0x898a80,.055);
     else for(let i=1;i<s.points.length;i++) {
       const a=s.points[i-1],b=s.points[i],p=segment(a,b,s.width);if(!p)continue;
-      add(p,s.kind==='runway'?0x444a4a:0x737771,s.kind==='runway'?.10:.075);
+      // Long source axes need intermediate terrain samples: endpoint-only
+      // planes can disappear into the contour surface between distant nodes.
+      const pieces=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/25));
+      for(let piece=0;piece<pieces;piece++) {
+        const point=t=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
+        add(segment(point(piece/pieces),point((piece+1)/pieces),s.width),s.kind==='runway'?0x444a4a:0x737771,s.kind==='runway'?.10:.075);
+      }
       if(s.kind==='runway') {
         const length=Math.hypot(b[0]-a[0],b[1]-a[1]),tx=(b[0]-a[0])/length,tz=(b[1]-a[1])/length;
         for(let d=0;d<length;d+=60) {
@@ -55,7 +64,12 @@ export function createAirportView(scene,map,heightAt) {
     const quad=(a,b,c,d,tint)=>{tri(a,b,c,tint);tri(a,c,d,tint);};
     for(const item of cell.items) {
       const {points,tint,height,kind}=item;
-      if(['wall','glass','mullion'].includes(kind)) {
+      if(kind==='reflector') {
+        const [[x,z]]=points,y=heightAt(x,z);
+        quad([x-.1,y,z],[x+.1,y,z],[x+.1,y+height,z],[x-.1,y+height,z],tint);
+        quad([x,y,z-.1],[x,y,z+.1],[x,y+height,z+.1],[x,y+height,z-.1],tint);
+        quad([x-.11,y+.78,z-.015],[x+.11,y+.78,z-.015],[x+.11,y+.98,z-.015],[x-.11,y+.98,z-.015],0xd5b858);
+      } else if(['wall','glass','mullion'].includes(kind)) {
         const [a,b]=points,base=Math.max(heightAt(...a),heightAt(...b));
         const low=base+(kind==='glass'?2.5:0),top=base+height;
         // Glazing is slightly outside the source wall to avoid coincident faces.
@@ -85,6 +99,6 @@ export function createAirportView(scene,map,heightAt) {
     for(const cell of queue.slice(0,2)){if(resident.size>=MAX_RESIDENT)break;build(cell);pending--;}
   }
   const stats=()=>Object.freeze({residentChunks:resident.size,maxResidentChunks:MAX_RESIDENT,sourceChunks:cells.size,pendingChunks:pending,createdChunks:created,evictedChunks:evicted,
-    drawCalls:[...resident.values()].filter(i=>i.mesh.visible).length,triangles:[...resident.values()].reduce((s,i)=>s+i.triangles,0),bufferBytes:[...resident.values()].reduce((s,i)=>s+i.bytes,0),terminalFootprints:terminal?1:0,sourceSurfaces:airport?.surfaces.length||0,disposed});
+    drawCalls:[...resident.values()].filter(i=>i.mesh.visible).length,triangles:[...resident.values()].reduce((s,i)=>s+i.triangles,0),bufferBytes:[...resident.values()].reduce((s,i)=>s+i.bytes,0),terminalFootprints:terminal?1:0,sourceSurfaces:airport?.surfaces.length||0,decorativePosts:posts.length,maxDecorativePosts:96,disposed});
   return {update,get stats(){return stats();},dispose(){if(disposed)return;disposed=true;for(const key of [...resident.keys()])remove(key);pending=0;material.dispose();scene.remove(root);}};
 }
