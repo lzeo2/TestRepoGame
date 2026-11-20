@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 import {carCockpitFrame} from '../Games/Capital Drive/car-camera.js';
 import {createCar,disposeCars} from '../assets/car-arcade/models.js';
 import {CARS} from '../assets/car-arcade/fleet.js';
@@ -37,4 +39,25 @@ const invalid=carCockpitFrame({x:NaN,z:Infinity,yaw:NaN},{eye:[NaN,Infinity,NaN]
 assert(Object.values(invalid.camera).every(Number.isFinite));assert(Object.values(invalid.target).every(Number.isFinite));
 assert.deepEqual(pose,{x:8,z:-3,yaw:0});assert.deepEqual(eye,[-.4,1.1,.15]);
 disposeCars();
+
+const source=readFileSync(new URL('../Games/Capital Drive/script.js',import.meta.url),'utf8');
+const start=source.indexOf("window.addEventListener('keydown', event => {");
+const end=source.indexOf("window.addEventListener('keyup'",start);
+assert(start>=0&&end>start);
+let keydown,paused=false,prevented=0;
+const actions=[],jetpack={active:false};
+runInNewContext(source.slice(start,end),{
+  window:{addEventListener:(name,handler)=>{assert.equal(name,'keydown');keydown=handler;}},
+  started:true,paused:()=>paused,cutscenes:{snapshot:()=>({active:false})},jetpack,keys:new Set(),
+  toggleCockpit:()=>actions.push('cockpit'),throwEquipment:kind=>actions.push(kind),
+});
+function press(code,repeat=false){
+  keydown({code,repeat,target:{tagName:'CANVAS'},preventDefault:()=>{prevented++;}});
+}
+press('KeyC');press('KeyV');press('F2');press('F2',true);
+assert.deepEqual(actions,['smoke','grenade','cockpit']);
+assert.equal(prevented,2,'F2 prevents the default action without repeat toggles');
+paused=true;press('F2');press('KeyC');
+paused=false;jetpack.active=true;press('KeyC');
+assert.deepEqual(actions,['smoke','grenade','cockpit'],'paused keys and smoke while flying remain guarded');
 console.log('PASS car cockpit camera: authored fleet seats, road/stunt pitch, bridge elevation, passenger seat, bounded look, finite frames and near clipping');

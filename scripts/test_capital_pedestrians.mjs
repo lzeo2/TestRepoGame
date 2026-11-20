@@ -322,3 +322,77 @@ assert.deepEqual(busy.snapshot(), civicPopulation, 'Civic arrivals remain determ
 assert.equal(JSON.stringify({ map, north }), sourceBytes, 'population does not rewrite the geographic sources');
 busy.dispose();
 console.log('PASS Civic64/suburban36 adaptation, source Bunda edges, stable IDs, offscreen activation and ten draw calls');
+
+{
+// Read the actual instance transforms: presentation must ease while physical
+// positions, target headings and stopped flags remain immediately authoritative.
+const motionScene = new THREE.Scene();
+const motion = createPedestrians(motionScene, fixture, () => 0);
+const motionPlayer = { x: 0, z: -30, speed: 0 };
+const torsoInstances = motionScene.children[0].children.find(m => m.name === 'Pedestrian torso');
+const legInstances = motionScene.children[0].children.find(m => m.name === 'Pedestrian legs');
+const motionMatrix = new THREE.Matrix4(), motionPosition = new THREE.Vector3();
+const motionScale = new THREE.Vector3(), torsoQuaternion = new THREE.Quaternion(), legQuaternion = new THREE.Quaternion();
+function renderedMotion(person) {
+  let index = -1;
+  for (let i = 0; i < torsoInstances.count; i++) {
+    torsoInstances.getMatrixAt(i, motionMatrix);
+    motionPosition.setFromMatrixPosition(motionMatrix);
+    if (Math.hypot(motionPosition.x - person.x, motionPosition.z - person.z) < 0.001) { index = i; break; }
+  }
+  assert(index >= 0, 'tracked adult remains visible at the authoritative contact');
+  torsoInstances.getMatrixAt(index, motionMatrix);
+  motionMatrix.decompose(motionPosition, torsoQuaternion, motionScale);
+  const yaw = Math.atan2(motionMatrix.elements[8], motionMatrix.elements[10]);
+  legInstances.getMatrixAt(index * 2, motionMatrix);
+  motionMatrix.decompose(motionPosition, legQuaternion, motionScale);
+  legQuaternion.premultiply(torsoQuaternion.clone().invert());
+  return { yaw, stride: Math.abs(2 * Math.atan2(legQuaternion.x, legQuaternion.w)) };
+}
+const angleGap = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+motion.update(motionPlayer, 1 / 60);
+const walker = motion.snapshot().find(p => !p.stopped && Math.abs(Math.sin(p.phase)) > 0.6 && Math.hypot(p.x, p.z + 30) < 150);
+assert(walker);
+const walkingPose = renderedMotion(walker);
+motion.setCrime({ type: 'mugging', targetId: `ped:${walker.id}`, phase: 'intimidation' });
+motion.update(motionPlayer, 1 / 60);
+let stoppedWalker = motion.snapshot().find(p => p.id === walker.id);
+assert(stoppedWalker.stopped);
+assert.equal(stoppedWalker.x, walker.x, 'stop contact applies on the first update');
+const stoppingPose = renderedMotion(stoppedWalker);
+assert(stoppingPose.stride > 0 && stoppingPose.stride < walkingPose.stride, 'stopping eases the rendered legs toward rest');
+for (let i = 0; i < 60; i++) motion.update(motionPlayer, 1 / 60);
+stoppedWalker = motion.snapshot().find(p => p.id === walker.id);
+assert(renderedMotion(stoppedWalker).stride < 0.0001, 'stopped legs settle into rest');
+const pausedMotion = Array.from(legInstances.instanceMatrix.array);
+motion.update(motionPlayer, 0);
+assert.deepEqual(Array.from(legInstances.instanceMatrix.array), pausedMotion, 'pause freezes the visual blend');
+motion.setCrime(null);
+motion.update(motionPlayer, 1 / 60);
+const startingWalker = motion.snapshot().find(p => p.id === walker.id);
+assert(!startingWalker.stopped && startingWalker.x !== stoppedWalker.x, 'movement restarts immediately');
+assert(renderedMotion(startingWalker).stride < Math.abs(Math.sin(startingWalker.phase)) * 0.5,
+  'restarting eases gait amplitude instead of snapping to a full stride');
+let previousMotion = motion.snapshot(), foundTurn = false;
+for (let frame = 0; frame < 1200 && !foundTurn; frame++) {
+  motion.update(motionPlayer, 0.1);
+  const current = motion.snapshot();
+  for (const p of current) {
+    const before = previousMotion.find(q => q.id === p.id);
+    if (p.routine === 'walk' && angleGap(p.yaw, before.yaw) > 2 && Math.hypot(p.x, p.z + 30) < 150) {
+      const pose = renderedMotion(p);
+      assert(angleGap(pose.yaw, p.yaw) > 0.2, 'authoritative sidewalk reversal keeps a visibly intermediate heading');
+      assert(angleGap(pose.yaw, p.yaw) < 2, 'rendered adult turns toward the new heading');
+      foundTurn = true; break;
+    }
+  }
+  previousMotion = current;
+}
+assert(foundTurn, 'fixture exercised a real sidewalk reversal');
+motion.resetPopulation(fixture.spawn);
+for (const p of motion.snapshot().filter(p => Math.hypot(p.x, p.z) < 150)) {
+  assert(angleGap(renderedMotion(p).yaw, p.yaw) < 0.00001, 'population resets do not retain a previous visual heading');
+}
+motion.dispose(); motion.dispose();
+console.log('PASS instanced pedestrian gait start/stop easing, immediate contacts, pause, sidewalk turns and reset');
+}

@@ -23,9 +23,20 @@ export function createCampaignScenesView(scene,heightAt) {
     mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);root.add(mesh);batches[name]=mesh;
   }
   let disposed=false;
+  const poses=new Map();
+  let jointPose=null,jointIndex=0,blend=1;
+  const targetJoint=new Float64Array(7);
   const stats={people:0,drawCalls:0,maxDrawCalls:7,geometries:3,materials:1,triangles:0,disposed:false};
   function part(name,x,y,z,sx,sy,sz,tint,rx=0) {
     const mesh=batches[name];if(mesh.count>=mesh.instanceMatrix.count)return;
+    if(jointPose && (name==='arms'||name==='hands'||name==='legs'||name==='shoes')) {
+      const target=targetJoint,index=jointIndex++;
+      target[0]=x;target[1]=y;target[2]=z;target[3]=sx;target[4]=sy;target[5]=sz;target[6]=rx;
+      let values=jointPose[index];
+      if(!values)values=jointPose[index]=Array.from(target);
+      else for(let i=0;i<7;i++)values[i]+=(target[i]-values[i])*blend;
+      [x,y,z,sx,sy,sz,rx]=values;
+    }
     local.position.set(x,y,z);local.rotation.set(rx,0,0);local.scale.set(sx,sy,sz);local.updateMatrix();
     matrix.multiplyMatrices(world.matrix,local.matrix);mesh.setMatrixAt(mesh.count,matrix);mesh.setColorAt(mesh.count,color.setHex(tint));mesh.count++;
   }
@@ -38,8 +49,9 @@ export function createCampaignScenesView(scene,heightAt) {
     local.rotation.set(0,Math.atan2(dx,dz),0);local.scale.set(.025,.025,length);local.updateMatrix();
     mesh.setMatrixAt(mesh.count,local.matrix);mesh.setColorAt(mesh.count,color.setHex(0xffd879));mesh.count++;
   }
-  function update(people=[],focus=null,{interiorId=null}={}) {
+  function update(people=[],focus=null,{interiorId=null,dt=0}={}) {
     if(disposed)return;
+    jointPose=null;blend=1-Math.exp(-14*Math.min(.1,Math.max(0,Number.isFinite(dt)?dt:0)));
     stats.people=stats.drawCalls=stats.triangles=0;
     for(const mesh of Object.values(batches))mesh.count=0;
     const seen=new Set();
@@ -51,6 +63,7 @@ export function createCampaignScenesView(scene,heightAt) {
       if(focus&&(!Number.isFinite(focus.x)||!Number.isFinite(focus.z)||Math.hypot(person.x-focus.x,person.z-focus.z)>140))continue;
       const y=person.interiorId?person.floorY:heightAt(person.x,person.z);if(!Number.isFinite(y))continue;
       if(person.seated===true) {
+        poses.delete(person.id);
         const cabin=cabins.get(person.carModelId);if(!cabin||![0,1].includes(person.seatIndex))continue;
         const {eye,scale,rear}=cabin,s=Math.sin(person.yaw),c=Math.cos(person.yaw);
         const frontY=heightAt(person.x-s*2,person.z-c*2),rearY=heightAt(person.x+s*2,person.z+c*2);
@@ -77,6 +90,10 @@ export function createCampaignScenesView(scene,heightAt) {
       if(typeof person.id==='string')seen.add(person.id);
       world.position.set(person.x,y+.035,person.z);world.rotation.set(person.hitPhase>0?-.10:0,person.yaw,0);world.scale.setScalar(appearance.height);world.updateMatrix();
       const combat=person.mode==='combat',armed=person.armed===true;
+      // Only local limb transforms ease; checked world and vehicle poses stay immediate.
+      jointIndex=0;
+      jointPose=poses.get(person.id);
+      if(!jointPose){jointPose=[];if(typeof person.id==='string')poses.set(person.id,jointPose);}
       let arm=0,hand=0;const gesture=Math.sin(person.gesturePhase*2.7+stats.people)*.12;
       emitPersonParts(appearance,{kind:'standing',stride:person.mode==='following'?Math.sin(person.gesturePhase*9)*Math.min(.6,(person.speed||0)*.16):0},(name,x,py,z,sx,sy,sz,tint,rx=0)=>{
         if(name==='arms'&&arm++===1){rx=combat?-1.45:armed?-.35:-.85+gesture;z=combat?-.23:-.10;}
@@ -89,9 +106,11 @@ export function createCampaignScenesView(scene,heightAt) {
         part('shoes',.30,gunY-.09,gunZ+.07,.07,.17,.08,0x43454a,-.2);
         part('shoes',.30,gunY+.015,gunZ-.18,.045,.045,.14,0x14181c);
       } else part('shoes',.30,1.10+gesture*.1,-.37,.18,.12,.018,0xe7dfc9,-.2);
+      jointPose=null;
       shotTrace(person.shot,y+1.22,person.interiorId?y:null);
       stats.people++;
     }
+    for(const id of poses.keys())if(!seen.has(id))poses.delete(id);
     for(const mesh of Object.values(batches)) {
       mesh.visible=mesh.count>0;mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;
       if(mesh.visible){stats.drawCalls++;stats.triangles+=mesh.count*mesh.geometry.index.count/3;}
@@ -101,7 +120,7 @@ export function createCampaignScenesView(scene,heightAt) {
     if(disposed)return;disposed=true;root.removeFromParent();
     for(const mesh of Object.values(batches))mesh.dispose();
     Object.values(shapes).forEach(shape=>shape.dispose());material.dispose();
-    cabins.clear();appearances.clear();
+    cabins.clear();appearances.clear();poses.clear();jointPose=null;
     stats.people=stats.drawCalls=stats.triangles=0;stats.disposed=true;
   }
   return {update,stats,dispose};

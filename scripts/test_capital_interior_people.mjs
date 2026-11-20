@@ -321,6 +321,28 @@ const utilsURL=url((await read('../assets/car-arcade/vendor/BufferGeometryUtils.
 const modelURL=url((await read('../Games/Capital Drive/person-model.js')).replace('../../assets/car-arcade/vendor/three.module.js',threeURL));
 const {createInteriorPeopleView}=await import(url((await read('../Games/Capital Drive/interior-people-view.js')).replace('./person-model.js',modelURL)
  .replace('../../assets/car-arcade/vendor/three.module.js',threeURL).replace('../../assets/car-arcade/vendor/BufferGeometryUtils.js',utilsURL)));
+
+// Ordinary walking and work gestures ease only local joints, using supplied dt.
+{
+  const testScene=new THREE.Scene(),testView=createInteriorPeopleView(testScene,()=>3),room=plans[0];
+  testView.load(room);
+  const idle={id:'motion-fixture',x:0,z:0,y:3,yaw:0,phase:.2,gesture:'idle',speed:0};
+  const walking={...idle,speed:2,gesture:'serve'};
+  const limbs=()=>Array.from(testScene.children[0].children[4].instanceMatrix.array.slice(0,64));
+  testView.update([idle],0);const before=limbs();
+  testView.update([walking],0);assert.deepEqual(limbs(),before,'zero dt freezes ordinary blend');
+  testView.update([walking],1/120);const first=limbs();assert.notDeepEqual(first,before);
+  testView.update([{...walking,x:9}],0);
+  assert.equal(testScene.children[0].children[0].instanceMatrix.array[12],9,'NPC world root follows simulation immediately');
+  testView.update([walking],0);
+  for(let i=0;i<100;i++)testView.update([walking],1/60);
+  const settled=limbs();
+  testView.update([],0);testView.update([walking],0);const direct=limbs();
+  assert.notDeepEqual(first,direct,'walk/work pose starts between the prior and target joint transforms');
+  assert(settled.every((value,i)=>Math.abs(value-direct[i])<.0001),'joint blend converges; culled pose cache is discarded');
+  assert.equal(idle.speed,0);assert.equal(walking.speed,2);
+  testView.dispose();testView.dispose();assert.equal(testScene.children.length,0);
+}
 const scene=new THREE.Scene(),view=createInteriorPeopleView(scene,()=>3);
 assert.equal(scene.children.length,0,'no inactive geometry');assert.equal(view.stats.geometryCount,0);
 view.load(encounterPlan);view.update(throwPose,0);
@@ -403,7 +425,7 @@ for(const plan of plans) {
   }
   if(plan.boothGuest) {
     const people=pool.snapshot(),guest=people.find(p=>p.character==='booth-guest');
-    const pose=timer=>people.map(p=>p.id===guest.id?{...p,reaction:'angry',attackTimer:timer,attackSerial:1}:p);
+    const pose=timer=>[{...guest,reaction:'angry',attackTimer:timer,attackSerial:1}];
     view.update(pose(.65),0);const windup=Array.from(root.children[4].instanceMatrix.array);
     view.update(pose(.30),0);assert.notDeepEqual(Array.from(root.children[4].instanceMatrix.array),windup,'emitted punch timer drives actual extension');
     view.update(pose(.30),1);const frozen=Array.from(root.children[4].instanceMatrix.array);view.update(pose(.30),1);assert.deepEqual(Array.from(root.children[4].instanceMatrix.array),frozen,'view has no independent attack clock');

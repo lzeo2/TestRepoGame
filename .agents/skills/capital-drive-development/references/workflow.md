@@ -1050,14 +1050,19 @@ node scripts/test_capital_safehouse_commerce.mjs
 ### Local joint blending and physical stunt support
 
 `actor-view.js` blends fixed local joint state and continuous speed-based stride
-from supplied dt. Retain immediate gameplay root translation/yaw/jump height and
-live look/recoil response. Ragdoll applies after ordinary pose generation and
-must not feed fallen transforms back into the locomotion history. Test pause
-mid-transition, a live melee timer sequence, sprint start/stop, recovery/culling,
-finite inputs and idempotent disposal. Keep `person-model.js` dimensions, identity
-and seated fits shared; do not change instanced callers' stride semantics as an
-incidental player-animation change. No new clock, RAF, frame-time geometry or
-unbounded pose cache is permitted.
+from supplied dt. `foot-motion.js` holds just the previous fixed tick. The
+displayed foot model and camera share one interpolated pose. Keep collisions,
+mission checks and saves on the live actor. Bypass interpolation for aim, attacks,
+impact poses and camera cuts. Clear history across room transitions and position
+jumps. Ragdoll applies after ordinary pose generation and must not feed fallen
+transforms back into the locomotion history.
+
+Street pedestrian stride and heading easing affects instance transforms.
+Campaign companions and indoor adults blend ordinary local joint poses. Keep
+seats, workout timing and indoor reactions on their existing poses. Test pause,
+sprint start/stop, recovery/culling and disposal. Keep `person-model.js`
+dimensions, identity and seated fits shared. Use the supplied time and bounded
+pose history without an extra clock, RAF, or frame-time geometry.
 
 Stunt ramps use mapped clearance/private-area exclusions and one shared rendered
 surface/support sampler. Simulation and `vehicle-flight.js` own supplied-dt
@@ -1067,6 +1072,10 @@ or an elevated mesh alone is not physical flight evidence.
 
 ```sh
 node scripts/test_capital_actors.mjs
+node scripts/test_capital_foot_motion.mjs
+node scripts/test_capital_pedestrians.mjs
+node scripts/test_capital_campaign_scenes.mjs
+node scripts/test_capital_interior_people.mjs
 node scripts/test_capital_combat_presentation.mjs
 node scripts/test_capital_ragdoll.mjs
 node scripts/test_capital_stunt_ramps.mjs

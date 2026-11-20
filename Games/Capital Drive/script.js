@@ -6,6 +6,7 @@ import {MAX_AIM_PITCH} from './ballistics.js';
 import {createShotObstacles} from './shot-obstacles.js';
 import {createRecon} from './recon.js';
 import {lookAngles,footCameraFrame,cameraBlend} from './camera-control.js';
+import {createFootMotion} from './foot-motion.js';
 import {createHeroPowers} from './hero-powers.js';
 import {createOrdnance} from './ordnance.js';
 import {createOrdnanceView} from './ordnance-view.js';
@@ -288,7 +289,7 @@ const heroPowers=createHeroPowers(),atmosphere=createAtmosphere(),vehicleDamage=
 let presentationOutcome={serial:0,roomId:null,outcome:null},workCompletion={serial:0,storeId:null};
 let schoolEntry,schoolAlarmOutcome={serial:0,roomId:null,outcome:null},heistOutcome={serial:0,storeId:null,kind:null};
 const cutscenes=createCutscenes(),renderGate=createRenderGate();
-const framePacer=createFramePacer();
+const framePacer=createFramePacer(),footMotion=createFootMotion();
 let viewRevision=0,renderedFrames=0,missionToolsUnlocked=false,developerReturn=null;
 let pendingCutscene=null,cutsceneAnchor=null,windowFocused=true;
 let homeActionOutcome={serial:0,roomId:null,outcome:null},missionLocations,missionGuideState=null,indoorObjective;
@@ -1658,12 +1659,15 @@ window.addEventListener('keydown', event => {
   if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(event.target.tagName) && event.code !== 'Escape') return;
   const controls = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyZ', 'KeyI', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight'];
   if (controls.includes(event.code)) event.preventDefault();
+  if(event.code==='F2'&&started&&!paused()){
+    event.preventDefault();if(!event.repeat)toggleCockpit();return;
+  }
   if (!event.repeat && started) {
     if(event.code==='KeyL'&&!paused()){activatePower();return;}
     if(event.code==='KeyN'&&!paused()){toggleHeadlights();return;}
     if(event.code==='KeyO'&&!paused()){recallDrone('recalled');return;}
     if(event.code==='KeyV'&&!paused()){throwEquipment('grenade');return;}
-    if(event.code==='KeyC'&&!paused()){if(cockpitAvailable())toggleCockpit();else if(!jetpack?.active)throwEquipment('smoke');return;}
+    if(event.code==='KeyC'&&!paused()){if(!jetpack?.active)throwEquipment('smoke');return;}
     if(event.code==='KeyU'&&!paused()){if(gameplay.state.mode==='foot'&&!gameplay.state.passenger)toggleJetpack();return;}
     if(event.code==='KeyT'){openPhone();return;}
     if(event.code==='KeyQ'&&!paused()){beginMini();return;}
@@ -2153,7 +2157,7 @@ function updateHud() {
   }
   $('jetpack-status').hidden=!jetpack.active;
   if(jetpack.active)$('jetpack-status').textContent=`Jetpack ${Math.round(jetpack.charge)}% · ${Math.round(gameplay.state.actor.jumpHeight)} m${jetpack.landing?' · Landing':''}`;
-  $('driving-hint').textContent = aircraft?.active?'W/S throttle · A/D turn · SPACE climb · SHIFT descend · E exit':buses?.passenger?'E request stop / leave bus':rideService?.passenger?'T phone · E exits when stopped':jetpack.active?'SPACE rise · SHIFT descend · U land':gameplay.state.mode==='foot'?'SHIFT sprint · SPACE jump · U jetpack':'SPACE drift · SHIFT nitro · C camera';
+  $('driving-hint').textContent = aircraft?.active?'W/S throttle · A/D turn · SPACE climb · SHIFT descend · E exit':buses?.passenger?'E request stop / leave bus':rideService?.passenger?'T phone · E exits when stopped':jetpack.active?'SPACE rise · SHIFT descend · U land':gameplay.state.mode==='foot'?'SHIFT sprint · SPACE jump · U jetpack':'SPACE drift · SHIFT nitro · F2 camera';
   $('destination-line').hidden=!destination;
   $('destination-line').textContent = destination ? `${destination.name} · ${(Math.hypot(destination.x - p.x, destination.z - p.z) / 1000).toFixed(1)} km away` : '';
   if (started && !paused()) for (const place of map.landmarks) {
@@ -2268,6 +2272,12 @@ function syncExternalPeople(){
   simulation.setExternalPeople(externalPeopleContacts);
 }
 function pendingWorldChunks(){return interiors.active?0:(world.stats.queuedChunks||0)+(neighbourhood.stats.queue||0)+(airportView?.stats.pendingChunks||0);}
+function ordinaryFootPose(){
+  const state=gameplay.state;
+  if(state.mode!=='foot'||state.passenger||micromobility.active||state.recovery||
+    state.aiming||state.attackTimer>0||state.combatFeedback.recoil>.001||state.actor.impactTime>0)return null;
+  return state.actor;
+}
 function animate(time) {
   if (disposed) return;
   raf = requestAnimationFrame(animate);
@@ -2279,6 +2289,7 @@ function animate(time) {
   if (!paused()||tracking) {
     accumulator += dt;
     while (accumulator >= 1 / 60) {
+      footMotion.capture(ordinaryFootPose(),interiors.active);
       stepDrone(1/60);
       stepSecurityCameras(1/60);updateBurglary(1/60);
       combatCueTime=Math.max(0,combatCueTime-1/60);
@@ -2348,6 +2359,8 @@ function animate(time) {
   if(!renderGate.shouldRender({paused:paused(),hidden:document.hidden,cinematic:cutscenes.snapshot().active,tracking,revision:viewRevision,pendingChunks:pendingWorldChunks()}))return;
   const renderDt = Math.min(.1, (time - (lastRender || time)) / 1000); lastRender = time;
   const p = focus(), activeDt = paused()&&!tracking ? 0 : renderDt;
+  const drawnActor=footMotion.sample(ordinaryFootPose(),interiors.active,accumulator*60,!cameraReady)||gameplay.state.actor;
+  const cameraPose=p===gameplay.state.actor?drawnActor:p;
   const cockpit=cockpitCamera&&cockpitAvailable();
   if(!cockpit)cockpitCamera=false;
   atmosphereView?.update(atmosphere.snapshot(),p,{interior:!!interiors.active,quality});
@@ -2357,7 +2370,7 @@ function animate(time) {
   vehicleDamageView?.update(vehicleDamage.snapshot(),playerMesh,{interiorId:interiors.active?.id||null});
   headlightsView?.update(simulation.player,{enabled:!aircraft?.active&&gameplay.state.mode==='vehicle'&&headlightsEnabled(atmosphere.snapshot().hour),interiorId:interiors.active?.id||null});
   policeSupportView?.update(gameplay.policeSupport(),activeDt,{interior:!!interiors.active});
-  jetpackView?.update(gameplay.state.actor,jetpack);
+  jetpackView?.update(drawnActor,jetpack);
   if(!interiors.active){
   airportView?.update(p);
   pedestrianFocus.x=p.x;pedestrianFocus.z=p.z;pedestrianFocus.yaw=p.yaw;pedestrianFocus.speed=gameplay.state.mode==='vehicle'?p.speed:0;
@@ -2397,14 +2410,14 @@ function animate(time) {
   document.body.classList.toggle('indoors',!!interiors.active);
   const objective = isSandbox() ? destination : campaign.state.active ? campaignNavigationTarget() : progression.state.activeJob?.target || progression.garage;
   roadGuidanceView?.update(route,p,{enabled:started&&gameplay.state.mode==='vehicle'&&!gameplay.state.passenger&&!interiors.active&&!!destination,guidance:guidanceRoute===route?guideState:null});
-  const exteriorState={...gameplay.state,police:gameplay.state.police.map(unit=>unit.interiorId||unit.car?.health===0?{...unit,mode:unit.interiorId?'inside':unit.mode,car:unit.car?.health===0?{...unit.car,active:false}:unit.car}:unit),shots:gameplay.state.shots.filter(shot=>!shot.interiorId)};
+  const exteriorState={...gameplay.state,actor:drawnActor,police:gameplay.state.police.map(unit=>unit.interiorId||unit.car?.health===0?{...unit,mode:unit.interiorId?'inside':unit.mode,car:unit.car?.health===0?{...unit.car,active:false}:unit.car}:unit),shots:gameplay.state.shots.filter(shot=>!shot.interiorId)};
   if(!interiors.active)actorView?.update(micromobility?.active||gameplay.state.passenger?{...exteriorState,mode:'vehicle'}:exteriorState, { dt: activeDt, time: time / 1000, focus: p, objective });
   deliveryView?.update(deliveryViewState,{focus:p,dt:activeDt});
   rideView?.update({car:rideService.vehicles[0],passenger:rideService.passenger,driver:rideService.people[0]},{focus:p,playerCar:{...simulation.player,modelId:gameplay.state.vehicle.modelId},job:progression.state.activeJob,dt:activeDt});
-  campaignScenesView?.update(campaignScenes.people,p,{interiorId:null});
+  campaignScenesView?.update(campaignScenes.people,p,{interiorId:null,dt:activeDt});
   if(interiors.active){
     if(!indoorCampaignScenesView&&!compatibility&&campaignScenes.people.some(person=>person.interiorId===interiors.active.id))indoorCampaignScenesView=createCampaignScenesView(interiorScene,()=>interiors.active?.floorY||0);
-    indoorCampaignScenesView?.update(campaignScenes.people,p,{interiorId:interiors.active.id});
+    indoorCampaignScenesView?.update(campaignScenes.people,p,{interiorId:interiors.active.id,dt:activeDt});
   }
   aircraftView?.update(aircraft.snapshot(),p);
   roomPeopleView?.update(roomPeople.snapshot(),activeDt,{activity:activities.snapshot()});
@@ -2419,7 +2432,7 @@ function animate(time) {
   } else if(droneActive){const flying=drone.snapshot();desiredCamera.set(flying.x,flying.y,flying.z);lookTarget.set(flying.x-Math.sin(footCameraYaw)*10,flying.y+Math.tan(footLookPitch)*10,flying.z-Math.cos(footCameraYaw)*10);}
   else if(interiors.active){
     const angle=footCameraYaw,ground=interiors.active.floorY;
-    const frame=footCameraFrame(p,{yaw:angle,pitch:footLookPitch,ground,aiming:gameplay.state.aiming||reconCameraVisible(reconnaissance.snapshot()),indoors:true});
+    const frame=footCameraFrame(cameraPose,{yaw:angle,pitch:footLookPitch,ground,aiming:gameplay.state.aiming||reconCameraVisible(reconnaissance.snapshot()),indoors:true});
     desiredCamera.set(frame.camera.x,frame.camera.y,frame.camera.z);
     const ahead={x:desiredCamera.x,z:desiredCamera.z};
     const cameraClear=interiors.hasLineOfSight(p,ahead);
@@ -2433,14 +2446,14 @@ function animate(time) {
         if(interiors.hasLineOfSight(p,view)){desiredCamera.set(view.x,ground+2.25,view.z);break;}
       }
     }
-    indoorActorView?.update({...gameplay.state,mode:cameraClear&&!workout?'foot':'vehicle',police:gameplay.state.police.filter(unit=>unit.interiorId===interiors.active.id),shots:gameplay.state.shots.filter(shot=>shot.interiorId===interiors.active.id)},{dt:activeDt,time:time/1000,focus:p,objective:null});
+    indoorActorView?.update({...gameplay.state,actor:drawnActor,mode:cameraClear&&!workout?'foot':'vehicle',police:gameplay.state.police.filter(unit=>unit.interiorId===interiors.active.id),shots:gameplay.state.shots.filter(shot=>shot.interiorId===interiors.active.id)},{dt:activeDt,time:time/1000,focus:p,objective:null});
   } else if(aircraft?.active){
     const angle=p.yaw+orbit,distance=19+Math.min(7,aircraft.active.speed*.1);
     desiredCamera.set(p.x+Math.sin(angle)*distance,p.y+7+orbitHeight,p.z+Math.cos(angle)*distance);
     lookTarget.set(p.x-Math.sin(p.yaw)*10,p.y+Math.tan(lookPitch)*(distance+10),p.z-Math.cos(p.yaw)*10);
   } else if (onFoot) {
     const aiming=gameplay.state.aiming||reconCameraVisible(reconnaissance.snapshot());
-    const frame=footCameraFrame(p,{yaw:footCameraYaw,pitch:footLookPitch,ground:world.heightAt(p.x,p.z),aiming});
+    const frame=footCameraFrame(cameraPose,{yaw:footCameraYaw,pitch:footLookPitch,ground:world.heightAt(cameraPose.x,cameraPose.z),aiming});
     desiredCamera.set(frame.camera.x,frame.camera.y,frame.camera.z);
     lookTarget.set(frame.target.x,frame.target.y,frame.target.z);
   } else {

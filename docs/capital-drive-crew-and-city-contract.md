@@ -75,11 +75,16 @@ These are arcade gameplay additions, not surveyed Canberra facilities. See the
 [19 November receipt](verification/capital-drive-streets-deliveries-2026-11-19.md)
 for source, native and hardware limits.
 
-20 November driving controls use C to switch between the actual fleet cockpit
-and chase camera while manually driving. The same authored hull pitch and
-seat anchor determine the driver eye. The normal view returns on exit or
-recovery. C remains the smoke key on foot. The camera helper owns no mesh or
-clock, and existing flight and foot views keep their controls.
+F2 switches between the fleet cockpit and chase camera while manually driving.
+The same authored hull pitch and seat anchor determine the driver eye. The
+normal view returns on exit or recovery. On foot, C throws smoke and V throws a
+grenade. The camera helper owns no mesh or clock.
+
+The foot model and foot camera share one interpolated pose between game ticks.
+Aim, attacks, impacts, room changes and camera cuts use the live pose. Street
+pedestrians ease into stride and sidewalk turns. Companions and indoor adults
+ease ordinary joint motion while timed actions and seated poses use their
+existing timing.
 
 `driving-dynamics.js` owns measured slip and transient nitro fuel. At speed,
 Space and steering start a slide. Countersteering restores grip. Shift adds

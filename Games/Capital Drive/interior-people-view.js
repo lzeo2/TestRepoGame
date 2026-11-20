@@ -11,7 +11,8 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
   let root = null, plan = null, material = null, meshes = [], disposed = false;
   const body = new THREE.Object3D(), part = new THREE.Object3D(), matrix = new THREE.Matrix4(), color = new THREE.Color();
   let count = 0, draws = 0, exerciseFocus = null;
-  const appearances=new Map();
+  const appearances=new Map(),poses=new Map(),seen=new Set();
+  let jointPose=null,jointIndex=0,blend=1;
   let playerAppearance=appearanceForPerson('player');
   function setPlayerAppearance(personId) {
     if(disposed || !['player','player:student','player:corporate','player:basement'].includes(personId))return false;
@@ -45,6 +46,16 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
   }
   function put(index,position,rotation,scale,tint) {
     const mesh=meshes[index];if(mesh.count>=mesh.instanceMatrix.count)return;const i=mesh.count++;
+    if(jointPose && (index===3 || index===4)) {
+      const slot=jointIndex++;
+      let values=jointPose[slot];
+      if(!values)values=jointPose[slot]=[position,rotation,scale];
+      else for(let group=0;group<3;group++) {
+        const target=group===0?position:group===1?rotation:scale;
+        for(let axis=0;axis<3;axis++)values[group][axis]+=(target[axis]-values[group][axis])*blend;
+      }
+      [position,rotation,scale]=values;
+    }
     part.position.set(...position);part.rotation.set(...rotation);part.scale.set(...scale);part.updateMatrix();
     matrix.multiplyMatrices(body.matrix,part.matrix);mesh.setMatrixAt(i,matrix);mesh.setColorAt(i,color.setHex(tint));
   }
@@ -58,6 +69,14 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
     const skin=appearance.skin,shirt=appearance.shirt;
     const phase=finite(p.phase),coerced=p.health>0 && p.crimePhase,down=finite(p.knockdown)>0 || p.health===0;
     const moving=!coerced && finite(p.speed)>0,gesture=p.gesture || 'idle',seated=!coerced && !down && Boolean(p.seated);
+    // Hits, falls, seated fits and timed action poses retain their immediate authority.
+    const ordinary=!lying&&!down&&!coerced&&!seated&&!(finite(p.stun)>0)&&p.reaction!=='angry'&&
+      !p.noodleThrow&&['idle','eat','serve','prepare','browse','exercise','coach'].includes(gesture);
+    seen.add(p.id);jointIndex=0;jointPose=null;
+    if(ordinary) {
+      jointPose=poses.get(p.id);
+      if(!jointPose){jointPose=[];poses.set(p.id,jointPose);}
+    } else poses.delete(p.id);
     body.position.set(p.x,Number.isFinite(p.y)?p.y:finite(heightAt(p.x,p.z)),p.z);
     body.rotation.set(0,finite(p.yaw),0);body.scale.set(1,1,1);
     if (lying) {
@@ -191,6 +210,7 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
   }
   function update(people,dt,{activity} = {}) {
     if (disposed || !plan) return;
+    seen.clear();blend=1-Math.exp(-14*Math.min(.1,Math.max(0,finite(dt))));
     for(const mesh of meshes) mesh.count=0;
     count=0;
     const list=Array.isArray(people)?people:people?.snapshot?.() || [];
@@ -212,6 +232,8 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
         exerciseFocus=Object.freeze({x,z,y:plan.floorY+1});
       }
     }
+    jointPose=null;
+    for(const id of poses.keys())if(!seen.has(id))poses.delete(id);
     const bench=plan.exercise;
     if (valid(bench)) {
       const exercising=workout==='bench';
@@ -229,7 +251,7 @@ export function createInteriorPeopleView(scene,heightAt = () => 0) {
   }
   function clear() {
     if(root) {scene.remove(root);for(const mesh of meshes){mesh.dispose();mesh.geometry.dispose();}material.dispose();}
-    root=null;plan=null;material=null;meshes=[];count=draws=0;appearances.clear();exerciseFocus=null;
+    root=null;plan=null;material=null;meshes=[];count=draws=0;appearances.clear();poses.clear();seen.clear();jointPose=null;exerciseFocus=null;
   }
   return {load,update,clear,setPlayerAppearance,get exerciseFocus(){return exerciseFocus;},get stats(){return Object.freeze({active:plan?.id || null,people:count,limit:LIMIT,drawCalls:draws,geometryCount:meshes.length,materialCount:material?1:0,disposed,accessoryCapacity:ACCESSORY_CAPACITY,noodleSegmentLimit:NOODLE_SEGMENTS,throwSegmentLimit:THROW_SEGMENTS,sharedModel:true,exerciseFocus});},
     dispose(){if(disposed)return;clear();disposed=true;}};

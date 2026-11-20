@@ -235,6 +235,8 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
     person.stopped = Boolean(person.site);
     person.routineClock = 7 + (person.id * 7) % 11;
     person.returning = false;
+    person.visualYaw = person.site && person.routine === 'coffee' ? person.site.yaw : person.yaw + (person.direction < 0 ? Math.PI : 0);
+    person.visualStride = person.stopped ? 0 : 0.5;
   }
   for (let i = 0; i < (paths.length ? MAX_POPULATION : 0); i++) {
     const direction = random() < 0.5 ? -1 : 1, speed = 0.85 + random() * 0.6, phase = random() * Math.PI * 2;
@@ -328,7 +330,21 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
     transform.scale.set(sx * person.height, sy * person.height, sz * person.height);
     transform.updateMatrix(); mesh.setMatrixAt(index, transform.matrix); mesh.setColorAt(index, color.setHex(tint));
   }
-  function render(player) {
+  function render(player, dt = 0) {
+    // Presentation follows supplied simulation time without delaying body contacts.
+    const strideBlend = -Math.expm1(-12 * dt), turnBlend = -Math.expm1(-10 * dt);
+    for (const p of pool) {
+      const falling = p.dead || p.impactTime > 0;
+      const yaw = p.routine === 'coffee' && p.reaction === 'calm' && !p.crimePhase
+        ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0);
+      const stride = p.stopped || falling ? 0 : p.reaction === 'flee' ? 0.85 : 0.5;
+      if (falling) { p.visualYaw = yaw; p.visualStride = 0; }
+      else {
+        const turn = Math.atan2(Math.sin(yaw - p.visualYaw), Math.cos(yaw - p.visualYaw));
+        p.visualYaw += turn * turnBlend;
+        p.visualStride += (stride - p.visualStride) * strideBlend;
+      }
+    }
     for (const mesh of Object.values(batches)) mesh.count = 0;
     const visible = pool.filter(p => Math.hypot(p.x - player.x, p.z - player.z) < VIEW_DISTANCE)
       .sort((a, b) => Math.hypot(a.x - player.x, a.z - player.z) - Math.hypot(b.x - player.x, b.z - player.z));
@@ -342,8 +358,8 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
       const working = !falling && !coerced && p.routine === 'work' && p.reaction === 'calm';
       const phone = !falling && !coerced && p.routine === 'phone' && p.reaction === 'calm';
       stats.drinking += Number(drinking); stats.working += Number(working);
-      const swing = p.stopped ? 0 : Math.sin(p.phase) * (p.reaction === 'flee' ? 0.85 : 0.5);
-      const yaw = drinking ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0);
+      const swing = Math.sin(p.phase) * p.visualStride;
+      const yaw = p.visualYaw;
       rootRotation.setFromAxisAngle(axis, falling ? Math.atan2(-p.impactVX, -p.impactVZ) : yaw);
       const fallBlend = p.dead ? Math.min(1, p.deathTime / .22) : falling ? Math.min(1, (RAGDOLL_DURATION - p.impactTime) / 0.22, p.impactTime / 0.6) : 0;
       tumbleRotation.setFromAxisAngle(limbAxis, -1.42 * fallBlend);
@@ -707,7 +723,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
         }
       }
     }
-    rebuildPeopleGrid(); render(player);
+    rebuildPeopleGrid(); render(player, dt);
   }
   function getCrimeTarget(id) {
     if (!(typeof id === 'number' && Number.isInteger(id)) && !(typeof id === 'string' && /^(ped:)?\d+$/.test(id))) return null;
