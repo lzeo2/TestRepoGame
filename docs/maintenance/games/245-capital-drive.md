@@ -13,7 +13,8 @@ Four original stealth contracts have their own planning board within Campaign.
 **Street Life** has jobs, cash, a
 garage, foot combat and police; **Free roam** has all cars, local address search
 and map teleporting. The mapped area covers the inner south and a source-derived
-lake/Civic corridor. A sourced road extension reaches the airport; whole-city coverage remains later work. No GTA code,
+lake/Civic corridor. Source road extensions reach the airport, Dickson,
+Lyneham, Acton and the western lake. Whole-city coverage remains later work. No GTA code,
 artwork or branded vehicle assets are used.
 
 ## Implementation map
