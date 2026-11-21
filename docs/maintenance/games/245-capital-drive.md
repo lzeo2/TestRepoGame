@@ -9,6 +9,7 @@ Operator-authorized original Canberra open-world preview, catalog 245, static en
 three fictional adult protagonists, two opening missions each, a shared Kingston
 meeting and fifteen assigned shared chapters, including reconnaissance and prepared heists.
 An optional aviation chapter uses the depot helicopter and airport jets.
+Four original stealth contracts have their own planning board within Campaign.
 **Street Life** has jobs, cash, a
 garage, foot combat and police; **Free roam** has all cars, local address search
 and map teleporting. The mapped area covers the inner south and a source-derived
@@ -129,6 +130,15 @@ Three fictional police posts near Jardine Street, Petrie Street and Rogan
 Street anchor ambient patrols. Destruction removes the post's obstruction and
 reduces future ground dispatch for the current session. Officers already on
 scene keep responding.
+
+The Stealth contracts board offers Ledger Switch, Echo Box, Silent Exchange,
+and Last Light Rehearsal. Each has two approaches and two extraction choices.
+Preview the intended entry and exit on the map before committing. The chosen
+plan orders four on-foot objectives with evidence, a relay diversion, a
+credential handover or a training rig. Each step checks actual location and
+sight. Scout or rehearsal steps can require crouching, and police searches
+must clear before the next interaction. Contracts share existing failure and
+checkpoint recovery and award payment once. Only nearby active props render.
 
 The fictional Capital Defence Depot sits on an airport-area service spur.
 Search for military base to route to its open vehicle gateway. The yard has

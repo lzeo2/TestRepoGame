@@ -264,6 +264,13 @@ body.intro-open #recovery-screen{display:none}
 .campaign-chapters { padding-left: 1.5rem; line-height: 1.7; }
 .campaign-chapters [aria-current="step"] { font-weight: 800; color: var(--ink); }
 #campaign-status { font-weight: 700; }
+.contract-list { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,180px),1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.contract-list button { width: 100%; text-align: left; }
+.contract-plan { margin: 14px 0; padding: 14px; border: 1px solid var(--line); border-radius: 6px; }
+.contract-plan h3 { margin-top: 0; }
+.contract-choices { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,170px),1fr)); gap: 10px; }
+.contract-choices label { display: grid; gap: 5px; }
+.contract-choices select { width: 100%; }
 @media (max-width: 620px) { .mode-options { grid-template-columns: 1fr; } .mode-options button { padding: .65rem .8rem; } }
 
 body.on-foot .driving-hud { display: none; }
