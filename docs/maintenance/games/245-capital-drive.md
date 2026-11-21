@@ -900,9 +900,10 @@ Each uses an explicit initial injured career fixture. The player reaches the
 outcome through keyboard and menu actions. The failure remains inactive until
 the player starts the mission again. The three runs passed 17, 19 and 16
 assertions with unchanged source hashes and no console or external request
-errors.
+errors. The 498-command source plan passed across a resumed run after
+updating a controller fixture for the mission checkpoint guard.
 
-The reusable runner checks 120 game JavaScript files, 183 pure Node
+The reusable runner checks 121 game JavaScript files, 184 pure Node
 suites, 5 support scripts, the flamegraph parser, cache closure and
 whitespace. The 20 November motion update passed 13 targeted Node suites,
 including shared foot/camera interpolation, actual pedestrian instance poses,
