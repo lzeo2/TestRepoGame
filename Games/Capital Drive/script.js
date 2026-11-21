@@ -119,9 +119,11 @@ import {createJetpack} from './jetpack.js';
 import {createJetpackView} from './jetpack-view.js';
 import {CAR_RENTAL_OFFERS,createCarRental} from './car-rental.js';
 import {createNitroView} from './nitro-view.js';
+import {createServiceMapIcons} from './service-map-icons.js';
 
 const ALL_STORES=[...MAPPED_STORES,...EXTRA_STORES];
 const $ = id => document.getElementById(id);
+const serviceMapIcons=createServiceMapIcons(document);
 const keys = new Set(), touch = new Set();
 const dialogs = [...document.querySelectorAll('dialog')];
 const SAVE_KEY = 'capital-drive-v1';
@@ -2100,18 +2102,9 @@ function drawMap(canvas, full) {
   }
   if(progression)for(const site of progression.services){if(map.landmarks.some(place=>place.id===site.id))continue;const x=sx(site.x),y=sz(site.z);ctx.fillStyle=site.type==='gym'?'#37614e':site.type==='arms'?'#80563e':'#986b34';ctx.fillRect(x-4,y-4,8,8);if(full)label(site.name,x,y,'12px Arial');}
   for(const site of map.servicePins||[]){
-    const x=sx(site.x),y=sz(site.z),r=full?10:12;
+    const x=sx(site.x),y=sz(site.z),size=full?22:24,r=size/2;
     if(x < -r||x > w+r||y < -r||y > h+r)continue;
-    const fuel=site.service==='petrol';
-    ctx.fillStyle=fuel?'#075d73':'#483781';ctx.strokeStyle='#fff';ctx.lineWidth=2;
-    ctx.fillRect(x-r,y-r,2*r,2*r);ctx.strokeRect(x-r,y-r,2*r,2*r);
-    ctx.fillStyle=ctx.strokeStyle='#fff';
-    if(fuel){
-      ctx.fillRect(x-5,y-6,8,11);ctx.fillStyle='#075d73';ctx.fillRect(x-3,y-4,4,3);
-      ctx.beginPath();ctx.moveTo(x+3,y+3);ctx.lineTo(x+6,y+3);ctx.lineTo(x+6,y-3);ctx.lineTo(x+4,y-6);ctx.stroke();
-    }else{
-      ctx.fillRect(x-6,y-1,12,5);ctx.fillRect(x-4,y-4,8,4);ctx.fillRect(x-5,y+4,2,2);ctx.fillRect(x+3,y+4,2,2);
-    }
+    serviceMapIcons.draw(ctx,site.service,x,y,size);
     if(full&&(mapView.zoom>=4||site.id===mapSelection?.id))label(site.name,x,y,'bold 13px Arial');
   }
   if (full && mapSelection) {
@@ -2268,10 +2261,16 @@ function serviceMapMatch(site){return {...site,label:site.name,kind:site.service
 function showMapMatches(matches){
   const results = $('search-results'); results.replaceChildren();
   if (!matches.length) { results.textContent = 'No mapped match. Try a street or landmark name.'; return; }
-  for (const match of matches) {
+  for (const result of matches) {
+    const pin=(map.servicePins||[]).find(site=>`landmark:${site.id}`===result.id);
+    const match=pin?serviceMapMatch(pin):result;
     const button = document.createElement('button'); button.type = 'button';
-    button.textContent = match.label;
-    const detail = document.createElement('span'); detail.textContent = `${match.kind} · ${match.detail || 'Local map point'}`; button.append(detail);
+    const copy=document.createElement('span'), title=document.createElement('strong'), detail=document.createElement('small');
+    copy.className='map-result-copy';title.textContent=match.label;
+    detail.textContent=`${match.kind} · ${match.detail||'Local map point'}`;copy.append(title,detail);
+    const icon=serviceMapIcons.createElement(match.service);
+    if(icon)button.append(icon);
+    button.append(copy);
     button.addEventListener('click', () => {
       mapView.x = match.x; mapView.z = match.z; mapView.zoom = 5; $('map-zoom-level').textContent = '5×';
       selectMapPoint({ ...match }); results.replaceChildren(); mapCanvas.focus();
@@ -2282,12 +2281,17 @@ $('map-search-form').addEventListener('submit', event => {
   event.preventDefault();
   showMapMatches(addressSearch.search($('map-search').value, 20).filter(result => isSandbox() || result.kind !== 'address').slice(0, 8));
 });
-for(const button of document.querySelectorAll('[data-map-service]'))button.addEventListener('click',()=>{
-  const p=focus(),service=button.dataset.mapService;
-  showMapMatches((map.servicePins||[]).filter(site=>site.service===service)
-    .map(site=>({...serviceMapMatch(site),distance:Math.round(Math.hypot(site.x-p.x,site.z-p.z))}))
-    .sort((a,b)=>a.distance-b.distance).map(match=>({...match,detail:`${match.distance} m · ${match.detail}`})));
-});
+for(const button of document.querySelectorAll('[data-map-service]')){
+  const service=button.dataset.mapService;
+  const icon=serviceMapIcons.createElement(service);
+  if(icon)button.prepend(icon);
+  button.addEventListener('click',()=>{
+    const p=focus();
+    showMapMatches((map.servicePins||[]).filter(site=>site.service===service)
+      .map(site=>({...serviceMapMatch(site),distance:Math.round(Math.hypot(site.x-p.x,site.z-p.z))}))
+      .sort((a,b)=>a.distance-b.distance).map(match=>({...match,detail:`${match.distance} m · ${match.detail}`})));
+  });
+}
 function updatePlaces() {
   $('explored').textContent = `${discovered.size} / ${map.landmarks.length} places discovered`;
   for (const place of map.landmarks) {
