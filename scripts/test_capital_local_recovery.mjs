@@ -4,6 +4,7 @@ import { createGameplay } from '../Games/Capital Drive/gameplay.js';
 import { createSimulation } from '../Games/Capital Drive/simulation.js';
 import { createProgression } from '../Games/Capital Drive/progression.js';
 import { applyMapExpansion, expansionPlaces } from '../Games/Capital Drive/map-expansion.js';
+import { WEAPONS } from '../Games/Capital Drive/weapons.js';
 const json = async name => JSON.parse(await readFile(new URL(`../Games/Capital Drive/data/${name}.json`, import.meta.url), 'utf8'));
 const map = applyMapExpansion(await json('canberra'), await json('canberra-north'));
 const simulation = createSimulation(map, { trafficCount: 0 });
@@ -13,7 +14,7 @@ const completed = [...progression.state.completedJobs];
 let room = null, seat = null, callbacks = 0;
 const events = [];
 const game = createGameplay(map, simulation, { getInterior: () => room, passengerPose: () => seat,
-  hasPistol: () => true, onEvent: event => events.push(event), onRespawn: reason => {
+  hasWeapon: () => true, onEvent: event => events.push(event), onRespawn: reason => {
     callbacks++; progression.penalize(reason); room = null; seat = null;
   } });
 const tick = seconds => { for (let i = 0; i < Math.ceil(seconds * 60); i++) game.step(1 / 60); };
@@ -26,7 +27,11 @@ function recover(origin, mode = 'vehicle') {
   else simulation.teleport(origin);
   const expected = mode === 'vehicle' ? { ...simulation.player } : origin;
   const cash = progression.state.cash, before = callbacks, serial = game.state.respawnSerial;
-  game.addAmmo(24); game.state.health = 0; game.step(1 / 60);
+  for (const weapon of WEAPONS) game.addAmmo(24, weapon.id);
+  game.setWeapon('shotgun');
+  game.setWeapon('pistol'); game.state.ammo = 0;
+  const ammunition = game.inventorySnapshot();
+  game.state.health = 0; game.step(1 / 60);
   assert(game.state.recovery); assert.equal(game.state.recovery.duration, 3.4);
   const captured = { ...game.state.recovery.origin };
   assert(Math.hypot(captured.x - expected.x, captured.z - expected.z) < .01);
@@ -42,10 +47,15 @@ function recover(origin, mode = 'vehicle') {
   assert(simulation.player.z >= map.bounds.minZ && simulation.player.z <= map.bounds.maxZ);
   assert(simulation.nearestRoad(simulation.player.x, simulation.player.z).distance < 140);
   assert.equal(game.state.health, 100); assert.equal(game.state.vehicleHealth, 100);
-  assert.equal(game.state.weapon, 'unarmed'); assert.equal(game.getAmmo('pistol').ammo, 0);
+  assert.equal(game.state.weapon, 'pistol', 'keeps the selected owned firearm after medical recovery');
+  assert.deepEqual(game.inventorySnapshot(), ammunition, 'medical transfer keeps each magazine and reserve');
   assert.equal(progression.state.cash, Math.max(0, cash - 250));
   assert.deepEqual(progression.state.completedJobs, completed);
   tick(1.6); assert.equal(game.state.recovery, null); assert.equal(callbacks, before + 1);
+  game.setWeapon('pistol');
+  assert.deepEqual(game.getAmmo('pistol'), ammunition.pistol, 'an empty equipped magazine does not auto-refill after medical recovery');
+  game.setWeapon('smg');
+  assert.equal(game.getAmmo('smg').ammo, 24, 'an unequipped firearm still loads on its first equip');
 }
 recover(map.spawn);
 const civicRoad = map.roads.find(road => /London Circuit/i.test(road.name || ''));
@@ -66,4 +76,31 @@ const fallbackGame = createGameplay(map, { ...simulation, teleport: point => {
 } });
 fallbackGame.state.health = 0; for (let i = 0; i < 120; i++) fallbackGame.step(1 / 60);
 assert(calls.length >= 3); assert.equal(fallbackGame.state.health, 100);
-console.log('Capital local medical recovery: PASS (inner south, Civic, bridge/aircraft/passenger seat, interior exterior, repeat, pause, costs, retained jobs, reset/sandbox, checked fallback)');
+// The full controller chooses an actual house. At the Gameplay boundary,
+// confirm its selected neighbourhood receives the car and its actual
+// arrival (rather than the outgoing anchor alone) drives feedback.
+let arranged = false, respawnEvent;
+const anchoredGame = createGameplay(map, simulation, {
+  getMedicalRecoveryOrigin: origin => {
+    assert(Math.hypot(origin.x - map.spawn.x, origin.z - map.spawn.z) < 10);
+    return civic;
+  },
+  onRespawn: reason => {
+    assert.equal(reason, 'knockout');
+    assert.equal(anchoredGame.state.health, 100);
+    assert(Math.hypot(simulation.player.x - civic.x, simulation.player.z - civic.z) < 180);
+    arranged = true;
+    return { safehouse: 'Civic safehouse' };
+  },
+  onEvent: event => {
+    if (event.kind === 'respawn') {
+      assert(arranged);
+      respawnEvent = event;
+    }
+  },
+});
+simulation.teleport(map.spawn); anchoredGame.state.health = 0;
+for (let i = 0; i < 120; i++) anchoredGame.step(1 / 60);
+assert.equal(anchoredGame.state.recovery.safehouse, 'Civic safehouse');
+assert.deepEqual(respawnEvent, { kind: 'respawn', message: 'Recovered at Civic safehouse.', reason: 'knockout', safehouse: 'Civic safehouse' });
+console.log('Capital local medical recovery: PASS (inner south, Civic, bridge/aircraft/passenger seat, interior exterior, repeat, pause, costs, retained jobs and ammo, safehouse anchor and feedback, reset/sandbox, checked fallback)');

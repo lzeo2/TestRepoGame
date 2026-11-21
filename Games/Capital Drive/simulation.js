@@ -537,9 +537,8 @@ export function createSimulation(map, options = {}) {
       odometer: 0, crashes: 0, lastImpactSpeed:0, offroad: false });
     crashCooldown = 0; stopRequests.clear(); vehicleImpacts.length=0; trafficLights.reset();
   }
-  // Teleport keeps the current heading unless an explicit finite yaw is supplied.
-  // It changes position/motion only; discovery and trip statistics belong to callers.
-  function teleport(point) {
+  // Placement previews use the same clearance and heading as teleport.
+  function previewTeleport(point) {
     const rejected = reason => ({ ok: false, x: player.x, z: player.z, yaw: player.yaw,
       adjusted: false, reason, distance: 0 });
     if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.z) ||
@@ -606,14 +605,20 @@ export function createSimulation(map, options = {}) {
     if (!target) return rejected('no-clear-position');
     const yaw = point.yaw === undefined ? (Number.isFinite(player.yaw) ? player.yaw : 0)
       : Math.atan2(Math.sin(point.yaw), Math.cos(point.yaw));
-    const road = nearestRoad(target.x, target.z);
-    flight?.clear(player);
-    Object.assign(driving, createDrivingState(), { nitroFuel: driving.nitroFuel });
-    Object.assign(player, { x: target.x, z: target.z, yaw, speed: 0, vx: 0, vz: 0, steer: 0,
-      offroad: !road || road.distance > roadProfile(road.road).driveWidth * 0.5 + 1 });
-    crashCooldown = 0;
     const distance = Math.hypot(target.x - point.x, target.z - point.z);
     return { ok: true, x: target.x, z: target.z, yaw, adjusted: distance > 0.000001, reason, distance };
+  }
+  // Teleport changes position/motion only. Discovery and trip statistics belong to callers.
+  function teleport(point) {
+    const result = previewTeleport(point);
+    if (!result.ok) return result;
+    const { x, z, yaw } = result, road = nearestRoad(x, z);
+    flight?.clear(player);
+    Object.assign(driving, createDrivingState(), { nitroFuel: driving.nitroFuel });
+    Object.assign(player, { x, z, yaw, speed: 0, vx: 0, vz: 0, steer: 0,
+      offroad: !road || road.distance > roadProfile(road.road).driveWidth * 0.5 + 1 });
+    crashCooldown = 0;
+    return result;
   }
   reset();
   // Source road centrelines can overlap retained fences/buildings/water. Cache
@@ -953,7 +958,7 @@ export function createSimulation(map, options = {}) {
       speed: 0, vx: 0, vz: 0, steer: 0 });
     return { ok: true, vehicle: { ...nearbyVehicles(player.x, player.z, 0).find(item => item.id === 'player'), health: car.health ?? 100 }, stolen, reason: 'claimed' };
   }
-  function moveActor(actor, dx, dz, radius = 0.45) {
+  function moveActor(actor, dx, dz, radius = 0.45, playerVehicle = player) {
     if (!actor || ![actor.x, actor.z, dx, dz, radius].every(Number.isFinite) || radius <= 0) return { moved: false, blocked: true, distance: 0 };
     radius = clamp(radius, 0.1, 2);
     const startX = actor.x, startZ = actor.z;
@@ -966,7 +971,7 @@ export function createSimulation(map, options = {}) {
       for (const index of [buildingIndex, barrierIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
         if (physicalContact(index,polygon,x,z,radius)) return false;
       }
-      return ![player, ...traffic, ...parkedIndex.query(x,z,radius+3), ...abandonedCars, ...externalVehicles].some(car => {
+      return ![playerVehicle, ...traffic, ...parkedIndex.query(x,z,radius+3), ...abandonedCars, ...externalVehicles].some(car => {
         if (car === actor || (typeof actor.id === 'string' && car.id === actor.id) || car.active === false) return false;
         const size = vehicleSize(car);
         const yaw = car.yaw || 0, dx = x - car.x, dz = z - car.z;
@@ -1003,7 +1008,7 @@ export function createSimulation(map, options = {}) {
     }
     return true;
   }
-  return { player, driving, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, nearestRoad, setParkedCars,
+  return { player, driving, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, previewTeleport, nearestRoad, setParkedCars,
     setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop, drainVehicleImpacts:()=>vehicleImpacts.splice(0),
     get peopleContacts() { return Object.freeze({ ...peopleStats }); },
     setPlayerVehicle, nearbyVehicles, claimVehicle, damageVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };

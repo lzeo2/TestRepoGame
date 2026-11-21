@@ -24,13 +24,19 @@ export function createAtmosphere() {
     const blend = smooth((weatherPhase % WEATHER_SECONDS - (WEATHER_SECONDS - TRANSITION_SECONDS)) / TRANSITION_SECONDS);
     const cloud = mix(current.cloud, next.cloud, blend), rain = mix(current.rain, next.rain, blend);
     const haze = mix(current.haze, next.haze, blend), wetness = mix(current.wetness, next.wetness, blend);
-    const daylightSky = color(0xa9c9d5, 0x8f9ba6, cloud * .72);
-    const skyColor = color(color(0x182b43, daylightSky, daylight), 0xa87969, twilight * .22 * (1 - cloud));
+    // Keep blue overhead light separate from paler distance haze; both use
+    // the existing background, fog and lights rather than extra sky geometry.
+    const clearSky = color(0x182b43, 0x91b9d1, daylight);
+    const clearHorizon = color(0x25364b, 0xc5d1d2, daylight);
+    const sunset = twilight * (1 - cloud);
+    const skyColor = color(color(clearSky, 0x929fa9, cloud * .72 * daylight), 0xb98571, sunset * .32);
+    const fogColor = color(color(clearHorizon, 0x99a5ab, haze * (.25 + daylight * .35)), 0xc1a18a, sunset * .46);
     return Object.freeze({ elapsed, hour, daylight, weather: current.id, cloud, rain, haze, wetness,
-      skyColor, fogColor: color(skyColor, 0x939fa5, haze * .25),
-      hemisphereSkyColor: color(0x94aacd, 0xf8f5dc, daylight), hemisphereGroundColor: color(0x4a5149, 0x697258, daylight),
-      hemisphereIntensity: .72 + daylight * .58 - rain * .08,
-      sunColor: color(0xffb77c, 0xfff0ce, daylight), sunIntensity: .08 + daylight * 1.92 * (1 - cloud * .68),
+      skyColor, fogColor,
+      hemisphereSkyColor: color(0x94aacd, 0xdce8ef, daylight), hemisphereGroundColor: color(0x4a5149, 0x77715f, daylight),
+      hemisphereIntensity: .72 + daylight * .42 - rain * .08,
+      sunColor: color(color(0xffb77c, 0xfff0d5, daylight), 0xffb97e, sunset * .65),
+      sunIntensity: .08 + daylight * 1.72 * (1 - cloud * .68),
       sunX: Math.cos(angle) * -430, sunY: Math.max(35, elevation * 500), sunZ: 180,
       fogNear: 230 - haze * 85, fogFar: 750 - haze * 230 - (1 - daylight) * 60,
       windX: 1.4 + Math.sin(elapsed * .037) * .6, windZ: -.6 + Math.cos(elapsed * .029) * .4 });

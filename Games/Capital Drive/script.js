@@ -102,6 +102,7 @@ import {createInteriorView} from './interior-view.js';
 import {createCampaign} from './campaign.js';
 import {createCutscenes} from './cutscenes.js';
 import {selectStoryHomes,createMissionGuide} from './mission-locations.js';
+import {planSafehouseReturn} from './safehouse-recovery.js';
 import {applyMapExpansion,expansionPlaces} from './map-expansion.js';
 import {createTerrainSampler} from './terrain.js';
 import {createCivicView,CIVIC_BUILDING_IDS,CIVIC_LANDMARKS,CIVIC_INTERIOR_ENTRIES} from './civic-view.js';
@@ -135,6 +136,7 @@ const guidance=createRouteGuidance();
 let guidanceRoute=null,guideState=null,followYoober=false;
 let trafficView,storefrontsView,shoppingView,campusView,civicView,noodleShopView,civicExtrasView;
 let interiors,interiorScene,interiorView,indoorActorView,campaign,terrainSampler,gymEntry;
+let missionCheckpoint=null;
 let gymEntries=[],wildlifeView,streetAssetsView,highwayBarriersView,localDetailsView;
 let campaignScenes,campaignScenesView,indoorCampaignScenesView,headlightsView,policeSupportView;
 let headlightsOverride=null,activeCrewEntry=null;
@@ -961,30 +963,122 @@ function openWork(){
   if(gameMode==='campaign')openCampaign();
   else {streetUI.renderJobs();openDialog('jobs-dialog');}
 }
-function startCampaignMission(){
-  clearRecon();
-  if(aircraft?.active||jetpack?.active)return;
-  if(developerReturn?.blocked){notify('Retry return in Pause > Developer before starting another mission.');return;}
-  const result=campaign.start(careerContext());
-  if(result.ok){if(campaign.state.active.combat===false)gameplay.setWeapon('unarmed');closeDialogs();routeTo(campaignNavigationTarget());}else notify(result.message);
+function missionLaunchReason(){
+  const state=gameplay.state;
+  if(developerReturn)return 'Return from the preview before starting a mission.';
+  if(aircraft?.active||jetpack?.active)return 'Land before starting a mission.';
+  if(state.health<=0||state.recovery||state.actor.impactTime>0)return 'Recover before starting a mission.';
+  if(state.passenger||buses?.passenger||rideService?.activeFare||micromobility?.active)return 'Finish your ride before starting a mission.';
+  if(state.carjacking||streetChallenge()||progression.state.activity||activities.snapshot().active)return 'Finish or cancel the active task first.';
+  if(delivery?.busy)return 'Collect or cancel your delivery before starting a mission.';
+  return '';
 }
-function retryCampaignMission(){
-  if(!started||gameMode!=='campaign'||paused()||developerReturn||aircraft?.active||
-    gameplay.state.recovery||gameplay.state.health<=0||!campaign.retryPending)return false;
-  const result=campaign.retry(careerContext());
-  if(!result.ok)return false;
-  stopMini();clearRecon();clearInput();campaignScenes?.clear();
-  if(interiors.active){activities.load(interiors.active);roomPeople.load(interiors.active);}
+function startCampaignMission(){
+  if(missionCheckpoint)return;
+  const blocked=missionLaunchReason();
+  if(blocked){notify(blocked);return;}
+  const body=protagonistCheckpoint();
+  if(PROTAGONIST_IDS.includes(campaign.state.character)){
+    try{protagonists.capture(campaign.state.character,body);}
+    catch{notify('Move to a clear place before starting the mission.');return;}
+  }
+  // A reload during an attempt resumes the same prelaunch career.
+  saveCareer();
+  const economy=progression.captureMissionState();
+  if(!economy){notify('Finish the current activity before starting a mission.');return;}
+  missionCheckpoint={body:{...body,...gameplay.missionRecoverySnapshot()},economy,protagonists:protagonists.serialize(),
+    room:interiors.active?{id:interiors.active.id,actor:{...gameplay.state.actor}}:null,
+    abandoned:simulation.abandonedCars.map(car=>({...car})),carKey:playerCarKey,nitro:simulation.driving.nitroFuel,
+    destination:destination&&{...destination},mapSelection:mapSelection&&{...mapSelection},
+    view:{footCameraYaw,footLookPitch,orbit,orbitHeight,orbitHold,lookPitch,cockpitCamera},
+    failure:null,retryIn:0,prepared:false};
+  clearRecon();
+  const result=campaign.start(careerContext());
+  if(!result.ok){
+    acceptMissionCheckpoint();
+    notify(result.message);return;
+  }
   if(campaign.state.active.combat===false)gameplay.setWeapon('unarmed');
-  routeTo(campaignNavigationTarget());
-  notify(`Retrying ${campaign.state.active.name}.`);
+  closeDialogs();routeTo(campaignNavigationTarget());
+}
+function acceptMissionCheckpoint(){
+  if(!missionCheckpoint)return;
+  progression.commitMissionState(missionCheckpoint.economy);missionCheckpoint=null;
+}
+function prepareFailedMissionReturn(checkpoint){
+  if(checkpoint.prepared)return;
+  checkpoint.prepared=true;
+  const outside=interiors.exteriorPose;
+  aircraft?.reset();jetpack?.reset(gameplay.state);aircraftRescueHealth=null;
+  clearInterior();
+  if(outside)Object.assign(gameplay.state.actor,outside,{speed:0});
+  micromobility?.reset();resetDelivery();rideService?.reset();buses?.reset();equipment?.reset();followYoober=false;
+  campaignScenes?.clear();ordnance?.reset();heroPowers.cancelActive();vehicleDamage.reset();fireWarningKey=null;
+  clearRecon();clearInput();syncExternalVehicles();syncExternalPeople();
+}
+function restoreMissionRoom(room){
+  if(!room)return true;
+  const entry=interiors.entries.find(item=>item.id===room.id);
+  if(!entry)return false;
+  const actor=gameplay.state.actor;
+  if(interiors.findEntry(actor)!==entry){
+    const probe={x:entry.x-Math.sin(entry.yaw)*1.8,z:entry.z-Math.cos(entry.yaw)*1.8,yaw:entry.yaw,y:entry.y};
+    if(interiors.findEntry(probe)!==entry||simulation.moveActor(probe,0,0,.45).blocked)return false;
+    Object.assign(actor,probe);
+  }
+  enterInterior(entry);
+  if(interiors.active?.id!==room.id)return false;
+  const pose={x:room.actor.x,z:room.actor.z,yaw:room.actor.yaw,y:interiors.active.floorY};
+  if(interiors.moveActor(pose,0,0,.45).blocked)return false;
+  Object.assign(actor,pose,{speed:0,jumpHeight:0});
   return true;
 }
+function restoreFailedMission(dt=0,force=false){
+  const checkpoint=missionCheckpoint;
+  if(!checkpoint?.failure)return true;
+  if(!force){
+    checkpoint.retryIn=Math.max(0,checkpoint.retryIn-Math.max(0,dt));
+    if(checkpoint.retryIn>0)return false;
+  }
+  prepareFailedMissionReturn(checkpoint);
+  const abandoned=simulation.abandonedCars,live=abandoned.slice();
+  abandoned.splice(0,abandoned.length,...checkpoint.abandoned.map(car=>({...car})));
+  const restored=gameplay.restoreMissionCheckpoint(checkpoint.body,{
+    canRestoreWeapon:checkpoint.economy.weaponOwned,
+    commit:()=>progression.restoreMissionState(checkpoint.economy,gameplay.state.respawnSerial)
+  });
+  if(!restored.ok){
+    abandoned.splice(0,abandoned.length,...live);
+    checkpoint.retryIn=.5;
+    if(!checkpoint.notified){checkpoint.notified=true;notify('Mission return is waiting for a clear space.');}
+    return false;
+  }
+  missionCheckpoint=null;
+  protagonists=createProtagonistState(checkpoint.protagonists,{bounds:map.bounds});
+  playerCarKey=checkpoint.carKey;simulation.driving.nitroFuel=checkpoint.nitro;
+  const roomRestored=restoreMissionRoom(checkpoint.room);
+  ({footCameraYaw,footLookPitch,orbit,orbitHeight,orbitHold,lookPitch,cockpitCamera}=checkpoint.view);
+  previousActorMode=gameplay.state.mode;
+  cameraReady=false;accumulator=0;clearInput();syncExternalVehicles();syncExternalPeople();
+  pedestrians.resetPopulation(focus());refreshProtagonistVehicle();syncPlayerAppearance();streetUI.refresh();
+  destination=null;route=[];lastJobTarget='';mapSelection=checkpoint.mapSelection;
+  if(checkpoint.destination)routeTo(checkpoint.destination);
+  saveCareer();
+  notify(`${checkpoint.failure} ${roomRestored&&!restored.adjusted?'Returned to your mission start.':'Returned near your mission start.'} J opens Campaign.`);
+  return true;
+}
+function endCampaignAttempt(){
+  campaign.cancel();campaign.drainEvents();
+  if(!missionCheckpoint)return true;
+  missionCheckpoint.failure||='Mission cancelled.';
+  return restoreFailedMission(0,true);
+}
 function playCampaignIntro(){
-  if(aircraft?.active)return;
-  if(developerReturn?.blocked){notify('Retry return in Pause > Developer before starting another mission.');return;}
+  if(missionCheckpoint?.failure){restoreFailedMission(0,true);openCampaign();return;}
   const chapter=campaign.current();
   if(gameMode!=='campaign'||campaign.state.active||!chapter)return;
+  const blocked=missionLaunchReason();
+  if(blocked){notify(blocked);return;}
   syncPlayerAppearance();
   if(!chapter.cutscene||!cutscenes.play(chapter.cutscene,{character:campaign.state.character,missionId:chapter.id})){startCampaignMission();return;}
   const state=cutscenes.snapshot();
@@ -1216,6 +1310,7 @@ function protagonistCheckpoint(){
 }
 function characterSwitchReason(){
   if(developerReturn?.blocked)return 'Return from the mission preview before switching characters.';
+  if(missionCheckpoint?.failure)return 'Return to your mission start before switching characters.';
   if(campaign.state.active)return 'Finish or cancel the active mission before switching characters.';
   if(!started)return '';
   const state=gameplay.state;
@@ -1340,10 +1435,10 @@ $('campaign-start').addEventListener('click',()=>{
   if(gameMode!=='campaign')return;
   playCampaignIntro();
 });
-$('campaign-cancel').addEventListener('click',()=>{campaign.cancel();clearRecon();finishDeveloperPreview(true);openCampaign();});
+$('campaign-cancel').addEventListener('click',()=>{endCampaignAttempt();clearRecon();finishDeveloperPreview(true);openCampaign();});
 $('campaign-resume').addEventListener('click',closeDialogs);
 function saveCareer() {
-  if (careerError || isSandbox() || !started) return;
+  if (careerError || isSandbox() || !started || missionCheckpoint) return;
   const owned = progression.state.ownedVehicles.find(car => car.id === gameplay.state.vehicle.modelId);
   if (owned && !gameplay.state.vehicle.stolen&&!developerReturn) { owned.health = gameplay.state.vehicleHealth; owned.color = selectedPaint; }
   try { captureCareerInventory();captureActiveProtagonist();localStorage.setItem(CAREER_KEY, JSON.stringify({...progression.serialize(),campaign:developerReturn?.campaign||campaign.serialize(),protagonists:protagonists.serialize()})); }
@@ -1434,8 +1529,9 @@ $('mission-dev-play').addEventListener('click',()=>{
   if(developerReturn){campaign.cancel();if(!finishDeveloperPreview(true))return;}
   const chapter=campaign.developerChapters().find(chapter=>chapter.id===$('mission-dev-select').value);
   const hero=campaign.characters.find(hero=>hero.id===chapter?.character);if(!chapter||!hero)return;
+  if(!endCampaignAttempt())return;
   saveCareer();developerReturn={mode:gameMode,body:protagonistCheckpoint(),campaign:campaign.serialize()};
-  campaign.cancel();campaign.drainEvents();progression.cancelJob();progression.cancelActivity();
+  progression.cancelJob();progression.cancelActivity();
   aircraft?.reset();clearInterior();resetDelivery();rideService?.reset();buses?.reset();micromobility?.reset();equipment?.reset();
   gameMode='campaign';selectedGameMode='campaign';gameplay.reset({sandbox:false});syncExternalVehicles();
   simulation.setPlayerVehicle({modelId:'lantern',color:0xe7e6df});
@@ -1453,6 +1549,7 @@ $('mission-dev-play').addEventListener('click',()=>{
 $('resume-button').addEventListener('click', closeDialogs);
 $('start-button').addEventListener('click', () => {
   if (!simulation || !gameplay || !streetUI || aircraft?.active) return;
+  if(missionCheckpoint&&!endCampaignAttempt())return;
   jetpack?.reset(gameplay.state);cockpitCamera=false;
   cutscenes.cancel();cutscenes.drainEvents();pendingCutscene=null;cutsceneAnchor=null;setCutsceneVisible(false);
   gameMode = selectedGameMode;
@@ -1501,7 +1598,8 @@ $('change-mode-button').addEventListener('click', () => {
   if(aircraft?.active){notify('Land and leave the jet before changing modes.');return;}
   if(jetpack?.active){notify('Land the jetpack before changing modes.');return;}
   if(developerReturn){campaign.cancel();if(!finishDeveloperPreview(true))return;}
-  campaign.cancel();campaign.drainEvents();clearRecon();
+  if(!endCampaignAttempt())return;
+  clearRecon();
   aircraft?.reset();ordnance?.reset();heroPowers.cancelActive();vehicleDamage.reset();
   saveCareer();closeDialogs();tutorial=createTutorial(tutorial.serialize());tutorialRunning=false;tutorialVisible=false;tutorialStamp='';started=false;setGameControls(false);syncTutorial();clearInput();$('start-panel').hidden=false;
   document.body.classList.add('intro-open');
@@ -2207,16 +2305,20 @@ function updateAbandonedMeshes(p, dt) {
   }
   for (const [id, mesh] of abandonedMeshes) if (!active.has(id)) { scene.remove(mesh); abandonedMeshes.delete(id); }
 }
-function updateCareer() {
+function updateCareer(dt=0) {
   for(const event of rideService?.drainEvents()||[])if(event.reason||event.message)notify(event.reason||event.message);
   for(const event of campaign.drainEvents()){
     if(event.type==='started'&&event.incident)gameplay.reportOffence('suspect vehicle',event.wantedLevel||2,{witnessed:true});
     if(event.type==='complete'){
+      acceptMissionCheckpoint();
       clearInput();
       progression.state.cash=Math.min(1000000000,progression.state.cash+event.reward);saveCareer();syncPlayerAppearance();
       notify(`${event.message} +$${event.reward}. J opens Campaign.`);
+    }else if(event.type==='failed'&&missionCheckpoint){
+      missionCheckpoint.failure=event.message;missionCheckpoint.retryIn=0;
     }else if(event.message)notify(event.message);
   }
+  restoreFailedMission(dt);
   for (const event of progression.drainEvents()) {
     if(event.type==='work-complete')workCompletion={serial:workCompletion.serial+1,storeId:event.serviceId};
     if(event.type==='robbery-complete')heistOutcome={serial:heistOutcome.serial+1,storeId:event.serviceId,kind:'robbery'};
@@ -2234,7 +2336,6 @@ function updateCareer() {
     if (['job-complete','penalty','robbery-complete','mugging-complete','workout-complete'].includes(event.type)) saveCareer();
   }
   finishDeveloperPreview();
-  retryCampaignMission();
   if (isSandbox()) return;
   const target = gameMode==='campaign'?(campaign.state.active?campaignNavigationTarget():null):progression.state.activeJob?.target;
   const key = target ? `${target.x},${target.z}:${target.label||target.name||''}` : '';
@@ -2349,7 +2450,7 @@ function animate(time) {
     if (destination && routeClock > 6&&!interiors.active) { routeClock = 0; route = findRoute(simulation.graph, focus(), destination); }
   } else {accumulator = 0;updateRecon(0);}
   if(tutorialRunning||tutorialVisible){if(tutorialRunning)tutorial.observe(tutorialContext(),dt);syncTutorial();}
-  updateMini();updateCareer();
+  updateMini();updateCareer(dt);
   if (audio) {
     const active = audio.enabled && !paused() && gameplay.state.mode === 'vehicle';
     audio.gain.gain.setTargetAtTime(active ? .022 : 0, audio.context.currentTime, .08);
@@ -2614,6 +2715,13 @@ async function boot() {
     drainEvents:()=>[...pedestrians.drainEvents(),...roomPeople.drainEvents(),...(rideService?.drainCombatEvents()||[])],
     alert:spec=>{if(interiors.active)roomPeople.alert(spec);else{pedestrians.alert(spec);streetDealers.alert(spec);rideService?.alert(spec);}},
     strike:spec=>{const results=(interiors.active?[roomPeople.strike(spec)]:[pedestrians.strike(spec),streetDealers.strike(spec),rideService?.strike(spec)]).filter(Boolean);return {hits:results.reduce((total,result)=>total+result.hits,0),people:results.flatMap(result=>result.people||[])};}};
+  const canStandForRecovery=pose=>!simulation.moveActor({...pose},0,0,.45).blocked;
+  const recoveryHouse=origin=>planSafehouseReturn({
+    entries:interiors.entries,origin,storyHome:map.storyHomes?.basement,
+    isOwned:id=>progression.isSafehouse(id),canStand:canStandForRecovery,
+    findEntry:pose=>interiors.findEntry(pose,{exteriorPreview:true}),
+  });
+  let recoveryPlan=null;
   gameplay = createGameplay(map, actorSimulation, { pedestrians:witnesses, heightAt: (x,z)=>interiors.active?.floorY??world.heightAt(x,z),
     powerModifiers:()=>heroPowers.modifiers(powerContext()),onVehicleImpacts:(events,dt)=>pedestrians.applyVehicleImpacts(events,dt),hasBlastLineOfSight:(a,b)=>visible(a,b,true),
     getInterior:()=>policeRooms.current,resolveInterior:id=>policeRooms.resolve(id),
@@ -2622,13 +2730,34 @@ async function boot() {
     hasWeapon:id=>!!progression.state.equipment[id],hasPistol:()=>progression.state.equipment.pistol,fitness:()=>progression.state.fitnessLevel,
     onCarjacked:pose=>occupantsView?.addExit(pose),
     onVehicleChanged: applyPlayerVehicle,
+    getMedicalRecoveryOrigin: origin => {
+      recoveryPlan=!developerReturn&&!missionCheckpoint?recoveryHouse(origin):null;
+      return recoveryPlan?.approach||origin;
+    },
     onRespawn: reason => {
+      const missionTransfer=!!missionCheckpoint;
+      const plannedHouse=recoveryPlan;
+      recoveryPlan=null;
       aircraft?.reset();jetpack?.reset(gameplay.state);cockpitCamera=false;clearInterior();micromobility.reset();resetDelivery();rideService?.reset();buses?.reset();equipment?.reset();followYoober=false;
-      if(!developerReturn)progression.penalize(reason === 'arrest' ? 'Arrest' : 'Hospital treatment');
+      if(!developerReturn&&!missionTransfer)progression.penalize(reason === 'arrest' ? 'Arrest' : 'Hospital treatment');
       const owned = progression.state.ownedVehicles.find(car => car.id === gameplay.state.vehicle.modelId);
       if (owned && !gameplay.state.vehicle.stolen&&!developerReturn&&aircraftRescueHealth===null) owned.health = 100;
       if(aircraftRescueHealth!==null){gameplay.state.vehicleHealth=aircraftRescueHealth;aircraftRescueHealth=null;}
+      let safehouse;
+      if(reason==='knockout'&&!missionTransfer&&!developerReturn){
+        const target=plannedHouse&&canStandForRecovery(plannedHouse.approach)&&interiors.findEntry(plannedHouse.approach)===plannedHouse.entry
+          ? plannedHouse : recoveryHouse(gameplay.state.recovery?.origin||focus());
+        if(target){
+          const body=gameplay.state.actor;
+          Object.assign(body,target.approach);
+          gameplay.state.mode='foot';
+          enterInterior(target.entry);
+          if(interiors.active?.id===target.entry.id)safehouse=target.name;
+          else gameplay.state.mode='vehicle';
+        }
+      }
       cameraReady = false; clearInput(); pedestrians.resetPopulation(focus());
+      if(safehouse)return {safehouse};
     },
     onEvent: event => {
       combatFeedback(event);
