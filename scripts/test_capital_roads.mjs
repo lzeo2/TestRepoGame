@@ -4,8 +4,8 @@ import { createHash } from 'node:crypto';
 const base = new URL('../Games/Capital Drive/', import.meta.url);
 const networkSource = await readFile(new URL('road-network.js', base), 'utf8');
 const networkUrl = `data:text/javascript;base64,${Buffer.from(networkSource).toString('base64')}`;
-const { roadProfile, applyRoadProfiles, createRoutePlanner } = await import(networkUrl);
-import {buildRoadGraph,createSimulation} from '../Games/Capital Drive/simulation.js';
+const { roadProfile, roadSpeed, applyRoadProfiles, createRoutePlanner } = await import(networkUrl);
+import {buildRoadGraph,createSimulation,pointOnLane} from '../Games/Capital Drive/simulation.js';
 const road = (id, points, nodes, extra = {}) => ({ id, points, nodes, type: 'residential', width: 8, oneway: 1, ...extra });
 const roads = [road('a', [[0, 0], [40, 0]], [1, 2]), road('b', [[40, 0], [40, 40]], [2, 3]),
   road('c', [[40, 40], [0, 40]], [3, 4]), road('d', [[0, 40], [0, 0]], [4, 1]),
@@ -39,6 +39,28 @@ assert.equal(annotated.roads[0].profile.pavementWidth, 0);
 assert.equal(annotated.roads[0].profile.trafficAllowed, false);
 assert.equal(roadProfile({ type: 'service', sourceTags: { service: 'parking_aisle' } }).hasKerb, false);
 assert.equal(roadProfile({ sourceTags: { bus: 'no' } }).busAllowed, false);
+assert.deepEqual(roadSpeed({ type: 'residential' }), { kmh: 50, source: 'estimate' });
+assert.deepEqual(roadSpeed({ type: 'service', speed: 40 }), { kmh: 20, source: 'estimate' });
+assert.deepEqual(roadSpeed({ type: 'motorway' }), { kmh: 100, source: 'estimate' });
+assert.deepEqual(roadSpeed({ type: 'residential', sourceTags: { maxspeed: '90;60' } }), { kmh: 50, source: 'estimate' });
+assert.deepEqual(roadSpeed({ type: 'motorway', speed: 100, sourceTags: { maxspeed: '80 km/h' } }), { kmh: 80, source: 'mapped' });
+const directional = { sourceTags: { maxspeed: '60', 'maxspeed:forward': '40', 'maxspeed:backward': '30 mph' } };
+assert.equal(roadSpeed(directional, 1).kmh, 40);
+assert.equal(roadSpeed(directional, -1).kmh, 48);
+assert.equal(roadSpeed(directional).kmh, 60);
+// A car can reach the actual limit on a clear straight, including the low
+// forecourt rates and the faster road rates clipped by the old common bounds.
+for (const kmh of [5, 100]) {
+  const straight = road(`limit-${kmh}`, [[-1500, 0], [1500, 0]], [90, 91], {
+    type: kmh === 5 ? 'service' : 'motorway', speed: 50, sourceTags: { maxspeed: String(kmh) },
+  });
+  const limitSim = createSimulation({ roads: [straight], spawn: { x: 0, z: 80, yaw: 0 },
+    bounds: { minX: -2000, maxX: 2000, minZ: -500, maxZ: 500 } }, { trafficCount: 1 });
+  const car = limitSim.traffic[0], edge = limitSim.graph.edges[0], position = 1350;
+  Object.assign(car, pointOnLane(edge, position), { edge, position, speed: 0, aggressive: false, cruiseFactor: 1, active: true });
+  for (let i = 0; i < 600; i++) limitSim.step(1 / 60);
+  assert(Math.abs(car.speed * 3.6 - kmh) < .05, `ambient target honours the mapped ${kmh} km/h limit`);
+}
 const map = { bounds: { minX: -200, maxX: 200, minZ: -200, maxZ: 200 }, roads,
   buildings: [{ points: [[10, -30], [10.1, -30], [10.1, 30], [10, 30]] }], spawn: { x: -100, z: -100, yaw: 0 } };
 const sim = createSimulation(map, { trafficCount: 0 });
@@ -64,6 +86,8 @@ assert.equal(sidecar.source.matchedRoads, actual.roads.length);
 const ids = new Set(actual.roads.map(r => r.id));
 assert(Object.keys(sidecar.roads).every(id => ids.has(id)));
 const profiled = applyRoadProfiles(actual, sidecar);
+const hindmarsh = profiled.roads.find(road => road.id === '220108364-0');
+assert.deepEqual(roadSpeed(hindmarsh), { kmh: 80, source: 'mapped' });
 const restricted = profiled.roads.filter(r => !r.profile.trafficAllowed);
 assert(restricted.length > 500, 'actual source driveway/private profiles restrict ambient traffic');
 const fleet = createSimulation(profiled, { trafficCount: 16 });

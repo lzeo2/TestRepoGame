@@ -1,10 +1,13 @@
 import { expansionPlaces } from './map-expansion.js';
 import { roadProfile } from './road-network.js';
+import { isVehicleStopped } from './driving-dynamics.js';
 
 // Original fiction. Mission rooms and encounters are authored, not surveyed private spaces.
 const clone = value => JSON.parse(JSON.stringify(value));
 const finitePoint = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+const PARKING_MARGIN = 14;
+const PARKING_MAX_SPEED = 1.2;
 const freeze = value => {
   if (value && typeof value === 'object') { Object.values(value).forEach(freeze); Object.freeze(value); }
   return value;
@@ -48,7 +51,9 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   const schoolRoomId = school.roomId || 'interior-telopea-school';
   const scene = (id, title, ...lines) => ({ id, title, lines: lines.map(([speaker, text]) => ({ speaker, text, duration: 3.5 })) });
   const crew = owner => ['student', 'corporate', 'basement'].filter(id => id !== owner);
-  const target = (point, label, kind = 'drive', extra = {}) => ({ x: point.x, z: point.z, label, kind, radius: 26, hold: 1, ...extra });
+  const target = (point, label, kind = 'drive', { radius = 26, ...extra } = {}) => ({
+    x: point.x, z: point.z, label, kind, radius: radius + (extra.stop ? PARKING_MARGIN : 0), hold: 1, ...extra,
+  });
   const noodle = place('store-5656111023', { id: 'store-5656111023', x: -367.096, z: -4406.948, name: 'Lambzhou 1919' });
   const bookshop = place('store-12918449444', shop);
   const paperback = place('store-439239650', shop);
@@ -323,6 +328,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     active.remaining = Math.max(0, active.remaining - step); active.elapsed += step; active.sawWanted ||= ctx.wanted > 0;
     if (!active.remaining) { fail(active.developer ? 'Mission preview time expired.' : 'Mission time expired.'); return; }
     let eligible = goal.anywhere || distance(ctx.pose, goal) <= goal.radius;
+    const parked = !goal.stop || (!ctx.passenger && !ctx.interior && isVehicleStopped(ctx.pose, PARKING_MAX_SPEED));
     if (goal.kind === 'interior') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.interior?.atCounter === true;
     else if (goal.kind === 'home-action') eligible = ctx.onFoot && ctx.interior?.roomId === goal.roomId && ctx.homeAction?.roomId === goal.roomId && ctx.homeAction?.outcome === 'packed' && serial(ctx.homeAction) > active.baselines.homeAction;
     else if (goal.kind === 'school-alarm') eligible = ctx.onFoot && ctx.interior?.roomId === goal.roomId && ctx.schoolAlarm?.roomId === goal.roomId && ctx.schoolAlarm?.outcome === 'triggered' && serial(ctx.schoolAlarm) > active.baselines.schoolAlarm;
@@ -339,14 +345,13 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
       // Arrival belongs to this attempt and stage. Clearing the search must not
       // send the player back to a waypoint already reached during the chase.
       if (eligible && !ctx.interior && (!goal.foot || ctx.onFoot) &&
-          (!goal.drive || (!ctx.onFoot && ctx.vehicleHealth > 0)) &&
-          (!goal.stop || Math.abs(ctx.pose.speed || 0) < 1.2)) active.escapeReached = true;
+          (!goal.drive || (!ctx.onFoot && ctx.vehicleHealth > 0)) && parked) active.escapeReached = true;
       // Departure objectives may already be clear; authored pursuits still need a real search.
       eligible = active.escapeReached && !ctx.interior && (goal.requireWanted === false || active.sawWanted) && ctx.wanted === 0;
     }
     else eligible &&= !ctx.onFoot && ctx.vehicleHealth > 0;
     if (goal.foot) eligible &&= ctx.onFoot && !ctx.interior;
-    if (goal.stop && goal.kind !== 'escape') eligible &&= Math.abs(ctx.pose.speed || 0) < 1.2;
+    if (goal.kind !== 'escape') eligible &&= parked;
     if (goal.stolen) eligible &&= ctx.vehicle?.stolen === true;
     if (goal.clear) eligible &&= ctx.wanted === 0;
     active.held = eligible ? active.held + step : 0;

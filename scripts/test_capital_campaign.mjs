@@ -447,7 +447,7 @@ workSave.character = 'student'; workSave.intros.student = ['student-paper-chase'
 const worker = createCampaign(map, workSave);
 worker.start(ctx);
 const receipt = { serial: 2, storeId: 'coals' };
-tick(worker, { ...ctx, pose: { x: 100, z: 10 }, workCompletion: receipt });
+tick(worker, { ...ctx, pose: { x: 100, z: 10, speed: 0 }, workCompletion: receipt });
 assert.equal(worker.state.active.stage, 1);
 const shift = { ...ctx, onFoot: true, interior: { storeId: 'coals' }, workCompletion: receipt };
 tick(worker, shift);
@@ -546,10 +546,14 @@ tick(homeCampaign, { ...homeExterior, interior: { roomId: homeDescriptor.roomId 
 assert.equal(homeCampaign.state.active.stage, 1, 'the outside objective cannot complete inside the home');
 tick(homeCampaign, homeExterior);
 assert.equal(homeCampaign.state.active.stage, 2);
-const coalsArrival={...ctx,pose:{x:100,z:10,speed:0},workCompletion:{serial:50,storeId:'coals'}};
+assert.equal(homeCampaign.state.active.target.radius,40,'the parking area includes nearby street space');
+const coalsArrival={...ctx,pose:{x:134,z:10,speed:0},workCompletion:{serial:50,storeId:'coals'}};
 for(const invalid of [
   {...coalsArrival,onFoot:true},
   {...coalsArrival,pose:{...coalsArrival.pose,speed:5}},
+  {...coalsArrival,pose:{...coalsArrival.pose,vx:0,vz:3}},
+  {...coalsArrival,pose:{...coalsArrival.pose,stuntActive:true}},
+  {...coalsArrival,passenger:true},
   {...coalsArrival,vehicleHealth:0},
   {...coalsArrival,pose:{x:45,z:55,speed:0}},
   {...coalsArrival,onFoot:true,interior:{storeId:'coals'},workCompletion:{serial:50,storeId:'coals'}},
@@ -586,7 +590,7 @@ assert.deepEqual(finale.current().stages.map(goal => goal.kind), ['drive', 'home
 assert.ok(finale.current().stages.every(goal => goal.label.includes('Dawes Street')), 'all finale objectives identify the actual supplied home street');
 assert.ok(finale.current().cutscene.lines.some(line => line.text.includes('Dawes Street')));
 finale.start({ ...ctx, homeAction: { ...homeAction, serial: 42 } });
-const finalePark = { ...ctx, pose: { x: 45, z: 55 } };
+const finalePark = { ...ctx, pose: { x: 45, z: 55, speed: 0 } };
 tick(finale, { ...finalePark, pose: { ...finalePark.pose, speed: 10 } });
 assert.equal(finale.state.active.stage, 0, 'final home arrival requires stopping');
 tick(finale, finalePark);
