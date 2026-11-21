@@ -15,6 +15,63 @@ artwork or branded vehicle assets are used.
 
 ## Implementation map
 
+The exterior materials pass gives streets baked aggregate and concrete grain,
+uses a wrapped atlas for brick, render and roof laps, and gives window panes a
+cooler tint. Roads and pavements use one shared diffuse texture with matte
+Lambert lighting. Pavement vertices add two UV coordinates (8 bytes per
+vertex). The underlying street ribbons and source footprints remain the
+basis for rendering and collision.
+
+Driveways, lawn sections and garden walls vary through their existing vertex
+colours. These colours represent authored material estimates. A 32×64 shadow
+stamp adds near-wheel contact shade beneath each player car and traffic
+model. The existing shadow draws use half the previous pixel storage and
+a footprint sized to each vehicle.
+
+Matched Telopea and Kingston Chromium captures kept the same draw-call counts
+in both Performance views. Resident world vertex buffers grew by 0.92–1.07 MB
+across the four Performance and Low comparisons. Texture, shader and streamed
+chunk counts held in each pair. Short software-rendered frame samples had
+similar medians. The samples measure these viewpoints on the cloud device.
+
+The build ID in the lower-right corner identifies the loaded page. The offline
+cache builder stamps the same content-derived ID into the service worker and
+binds it to the file manifest. The browser verifies a replacement set before
+activating it and retiring older Capital Drive file generations. A launch
+screen can reload into the ready version. An active session stays open and
+adopts the release on a subsequent visit. Career saves and settings are
+stored separately.
+
+Canalside Supplies sells a reusable jetpack for $1,200 in Street Life and
+Campaign. Ownership is validated as optional gear when loading older saves.
+Flight requires ownership, clear outdoor ground and a break between jobs.
+Horizontal thrust builds gradually, neutral lift hovers, and U requests a
+controlled landing. Powered flight lasts roughly 50–110 seconds depending on
+thrust. Fuel replenishes while standing outside between flights. A merged
+twin-tank shell and instanced exhaust use at most two draws.
+
+Search for nitro on the map to find one of twelve refill bays beside mapped
+petrol stations. The cyan bay markers share the street-assets batch. Drive
+onto a bay, stop and press E or USE. A career refill costs $45. The career
+tank level is saved, and Free roam offers free refills and automatic recharge.
+
+Food and equipment orders mark the live van on the minimap. For a distant van,
+an amber arrow at the edge points toward it. A square marks the handover point.
+The phone can follow the courier on the full map and show remaining route
+distance and an approximate ETA. Ending the order removes its markers and
+handover route.
+
+An owned drone can be upgraded for $100,000 through the Drone phone panel.
+While piloting in a career between jobs and missions, R triggers an in-game
+blast at the checked ground position beneath the drone. The existing effect
+pool renders it. A 30-second cooldown runs on the gameplay clock and persists
+through recall and relaunch. The upgrade is optional validated career gear.
+
+The fictional Capital Defence Depot sits on an airport-area service spur.
+Search for military base to route to its open vehicle gateway. The yard has
+hangars, a guardhouse, side aprons and physical fencing. The exterior takes
+one streamed draw with 352 triangles and releases its geometry when distant.
+
 The 21 November recovery update routes an ordinary medical transfer to the
 nearest usable owned safehouse. Milo's mapped home provides a fallback.
 The player enters through the actual room descriptor after clearance checks.
@@ -885,6 +942,11 @@ imports with retained source hashes; never turn rendering estimates into data.
 
 ```sh
 python3 -B scripts/check_capital_drive.py
+timeout 180s python3 -B scripts/test_capital_cache_browser.py --scenario fixture --output <fresh-external-output>
+timeout 180s python3 -B scripts/test_capital_cache_browser.py --scenario build --output <fresh-external-output>
+timeout 180s python3 -B scripts/test_capital_materials_browser.py --root <checkout> --label candidate --output <fresh-external-output>
+timeout 210s python3 -B scripts/test_capital_city_browser.py --scenario gear --capture --output <fresh-external-output>
+timeout 210s python3 -B scripts/test_capital_city_browser.py --scenario nitro --capture --output <fresh-external-output>
 timeout 360s python3 -B scripts/test_capital_recovery_checkpoint_browser.py --scenario city --capture --output <fresh-external-output>
 timeout 360s python3 -B scripts/test_capital_recovery_checkpoint_browser.py --scenario city --capture --mission-failure --output <fresh-external-output>
 timeout 360s python3 -B scripts/test_capital_recovery_checkpoint_browser.py --scenario city --capture --owned-safehouse --output <fresh-external-output>
@@ -903,7 +965,14 @@ assertions with unchanged source hashes and no console or external request
 errors. The 498-command source plan passed across a resumed run after
 updating a controller fixture for the mission checkpoint guard.
 
-The reusable runner checks 121 game JavaScript files, 184 pure Node
+The material and equipment release used a 22-assertion legacy-to-current
+worker migration test in Chromium. The test covers current code execution
+after offline reopening, old game cache retirement, an uninterrupted started
+tab and a separate local save. Native gear and nitro cases passed 17 and 13
+assertions. They use explicit initial funded checkpoints by Canalside and
+Kingston to exercise real purchase, flight, landing, reload and paid refill.
+
+The reusable runner checks 127 game JavaScript files, 188 pure Node
 suites, 5 support scripts, the flamegraph parser, cache closure and
 whitespace. The 20 November motion update passed 13 targeted Node suites,
 including shared foot/camera interpolation, actual pedestrian instance poses,

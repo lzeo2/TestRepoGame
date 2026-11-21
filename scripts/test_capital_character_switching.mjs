@@ -78,11 +78,12 @@ assert.equal(controller.selectCampaignCharacter('basement').ok,false);assert.dee
 const stored=env.protagonists.serialize();campaign.state.active={};gameplay.state.actor.x=99;controller.captureActiveProtagonist();assert.deepEqual(env.protagonists.serialize(),stored);
 campaign.state.active=null;campaign.state.character='legacy';controller.captureActiveProtagonist();assert.deepEqual(env.protagonists.serialize(),stored);
 let written;Object.assign(env,{careerError:'',isSandbox:()=>false,CAREER_KEY:'fixture',localStorage:{setItem(key,value){written=JSON.parse(value);}},$:()=>({}),notify(){}});
+simulation.driving.nitroFuel=.35;
 env.progression.state.ownedVehicles=[];env.progression.serialize=()=>({cash:env.progression.state.cash});campaign.serialize=()=>({version:2,character:campaign.state.character});
 Function('env',`with(env){${source.slice(source.indexOf('function saveCareer() {'),source.indexOf('function routeTo(point) {'))};saveCareer();}`)(Object.assign(env,controller));
 assert.equal(written.cash,cash);assert.deepEqual(written.protagonists,stored);assert.equal(written.campaign.version,2);
-const {campaign:storedCampaign,protagonists:storedHeroes,...careerRecord}=written;assert.deepEqual(careerRecord,{cash});assert.equal(storedCampaign.version,2);assert.deepEqual(createProtagonistState(storedHeroes,{bounds:map.bounds}).serialize(),stored);
-assert(source.includes('protagonists:savedProtagonists,...careerSave'),'outer optional record is removed before strict career validation');
+const {campaign:storedCampaign,protagonists:storedHeroes,nitroFuel,...careerRecord}=written;assert.deepEqual(careerRecord,{cash});assert.equal(nitroFuel,.35);assert.equal(storedCampaign.version,2);assert.deepEqual(createProtagonistState(storedHeroes,{bounds:map.bounds}).serialize(),stored);
+assert(source.includes('protagonists:savedProtagonists,nitroFuel:savedNitro,...careerSave'),'outer optional records are removed before strict career validation');
 assert(source.includes('!isSandbox()&&!heroCheckpoint'),'resume does not replay starter ammunition');
 assert(!body.includes('applyPlayerVehicle('),'restore only refreshes the mesh, preserving parked car placement');
 assert(source.includes("button.disabled=choice.id==='fight'&&protectedWork()"),'dialog pause cannot disable Fight');

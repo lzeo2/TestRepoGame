@@ -57,7 +57,8 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
       if(courier&&['approaching','waiting'].includes(courier.phase)){
         make('h3',courier.order.sourceName,body);
         make('p',courier.phase==='waiting'?'Courier stopped. Walk beside the van and press E.':'Courier en route. Your handover stop stays where you ordered.',body);
-        button(body,'Route to handover',()=>onRoute({...courier.dropoff,name:'Courier handover'}),'city-delivery-route');
+        button(body,'Track courier live',()=>act('track-delivery'),'city-delivery-track');
+        button(body,'Route to handover',()=>onRoute({...courier.dropoff,name:'Courier handover',courierOrderId:courier.order.id}),'city-delivery-route');
         button(body,'Cancel and refund',()=>act('cancel-delivery'),'city-delivery-cancel');
         return;
       }
@@ -94,8 +95,19 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
     }
     if (tab === 'drone') {
       title.textContent = 'Drone';
+      if(state.droneStrikeOwned){
+        make('p','Drone strike owned. Pilot above clear outdoor ground, then press R to strike directly below. 30 second cooldown. Unavailable during jobs, missions and Free roam.',body);
+      }else if(state.droneOwned&&!state.sandbox){
+        const upgrade=button(body,'Drone strike upgrade · $100,000',()=>act('buy-drone-strike'),'city-drone-strike-buy');
+        upgrade.disabled=state.cash<100000;
+        make('p',state.cash<100000?'Save $100,000 and visit an equipment dealer.':'Purchase at an equipment dealer. Requires your owned drone.',body);
+      }
       if (state.drone?.active) {
         make('p', `${Math.ceil(state.drone.battery)} seconds remaining`, body);
+        if(state.droneStrikeOwned){
+          const strike=button(body,state.drone.strikeCooldown>0?`Strike cooling down · ${Math.ceil(state.drone.strikeCooldown)}s`:'Strike ground below drone',()=>act('drone-strike'),'city-drone-strike');
+          strike.disabled=state.sandbox||state.drone.strikeCooldown>0;
+        }
         button(body, 'Recall drone', () => act('recall-drone'), 'city-drone-recall');
       } else if (state.droneOwned || state.sandbox) {
         make('p', 'Launch outside on foot. WASD moves, Space rises, Shift lowers. Your body stays behind.', body);

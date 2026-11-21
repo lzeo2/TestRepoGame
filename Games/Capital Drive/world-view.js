@@ -4,6 +4,7 @@ import { createTerrainSampler } from './terrain.js';
 import { roadProfile, roadMarkingOffsets } from './road-network.js';
 import { retailDistrict } from './districts.js';
 import { suburbCharacter } from './suburb-character.js';
+import { ROAD_TEXTURE_SIZE, SURFACE_TEXTURE_SIZE, ATLAS_INSET, ATLAS_SPAN, createRoadPixels, createSurfacePixels } from './exterior-materials.js';
 
 // Metres, with east = +x and south = +z. All art is generated locally.
 const CHUNK_SIZE = 350;
@@ -59,48 +60,33 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   materials.push(opaque);
   const waterMaterial=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.3,metalness:.18});
   materials.push(waterMaterial);
-  const glazing = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.28, metalness: 0.15 });
+  const glazing = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.16, metalness: 0 });
   materials.push(glazing);
   let roadMaterial = opaque;
   if (typeof document !== 'undefined') {
     const canvas = document.createElement('canvas');
-    canvas.width = 64; canvas.height = 64;
+    canvas.width = ROAD_TEXTURE_SIZE; canvas.height = ROAD_TEXTURE_SIZE;
     const context = canvas.getContext('2d');
-    const pixels = context.createImageData(64, 64);
-    for (let i = 0; i < pixels.data.length; i += 4) {
-      const tone = 237 + Math.floor(hash(i) * 18);
-      pixels.data[i] = pixels.data[i + 1] = pixels.data[i + 2] = tone;
-      pixels.data[i + 3] = 255;
-    }
+    const pixels = context.createImageData(ROAD_TEXTURE_SIZE, ROAD_TEXTURE_SIZE);
+    pixels.data.set(createRoadPixels());
     context.putImageData(pixels, 0, 0);
     const texture = new THREE.CanvasTexture(canvas);
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.colorSpace = THREE.SRGBColorSpace;
     textures.push(texture);
-    roadMaterial = new THREE.MeshStandardMaterial({ map: texture, roughnessMap: texture, roughness: 0.96, metalness: 0, vertexColors: true });
+    // Dry asphalt and concrete are matte: share one diffuse sample and keep
+    // pavement on the same inexpensive lighting model as the opaque batch.
+    roadMaterial = new THREE.MeshLambertMaterial({ map: texture, vertexColors: true });
     materials.push(roadMaterial);
   }
 
   let surfaceMaterial = opaque;
   if (typeof document !== 'undefined') {
     const canvas = document.createElement('canvas');
-    canvas.width = 512; canvas.height = 512;
+    canvas.width = SURFACE_TEXTURE_SIZE; canvas.height = SURFACE_TEXTURE_SIZE;
     const context = canvas.getContext('2d');
-    const pixels = context.createImageData(512, 512);
-    for (let y = 0; y < 512; y++) for (let x = 0; x < 512; x++) {
-      const kind = (x >= 256 ? 1 : 0) + (y < 256 ? 2 : 0);
-      const px = x % 256, py = y % 256, noise = hash(x + y * 513);
-      let tone = 238 + noise * 15;
-      if (kind === 0) {
-        const row = Math.floor(py / 16), joint = py % 16 < 2 || (px + row % 2 * 32) % 64 < 2;
-        tone = joint ? 194 : 220 + hash(Math.floor((px + row % 2 * 32) / 64) + row * 19) * 26 + noise * 8;
-      } else if (kind === 2) {
-        const tile = (px + Math.floor(py / 32) % 2 * 16) % 32;
-        tone = py % 32 < 3 ? 165 : 205 + Math.cos(tile / 32 * Math.PI * 2) * 15 + noise * 13;
-      } else if (kind === 3) tone = 224 + noise * 29 - (px % 7 === 0 && py % 11 < 4 ? 16 : 0);
-      const i = (y * 512 + x) * 4;
-      pixels.data[i] = pixels.data[i + 1] = pixels.data[i + 2] = tone; pixels.data[i + 3] = 255;
-    }
+    const pixels = context.createImageData(SURFACE_TEXTURE_SIZE, SURFACE_TEXTURE_SIZE);
+    pixels.data.set(createSurfacePixels());
     context.putImageData(pixels, 0, 0);
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = 4;
@@ -113,11 +99,11 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
         float surfaceIndex = floor(vSurfaceKind + 0.5);
         vec2 atlasOffset = vec2(mod(surfaceIndex, 2.0), floor(surfaceIndex / 2.0)) * 0.5;
-        vec2 atlasUv = fract(vMapUv) * 0.48 + atlasOffset + 0.01;
+        vec2 atlasUv = fract(vMapUv) * ${ATLAS_SPAN} + atlasOffset + ${ATLAS_INSET};
         diffuseColor *= texture2D(map, atlasUv);
       `);
     };
-    surfaceMaterial.customProgramCacheKey = () => 'capital-surface-atlas-rough-v2';
+    surfaceMaterial.customProgramCacheKey = () => 'capital-surface-atlas-gutter-v3';
     materials.push(surfaceMaterial);
   }
   const shadowMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false });
@@ -648,13 +634,13 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
         if (passage && y - 1.3 < footing) continue;
         const hh = isSchool ? 0.95 : shopping && row === 0 ? 1.2 : 0.72;
         if (simpleFacade) {
-          bay(u, y, hw, hh, 0.055, [0x566d70, 0x627b7b, 0x4c656c][(row + col + index) % 3]);
+          bay(u, y, hw, hh, 0.055, [0x586b79, 0x71818a, 0x485c6c][(row + col + index) % 3]);
           counters.windows++;
           continue;
         }
         bay(u, y, hw + 0.09, hh + 0.1, 0.042, isSchool ? 0xe8dfc6 : 0xd4cec0);
-        bay(u, y, hw, hh, 0.055, [0x566d70, 0x627b7b, 0x4c656c][(row + col + index) % 3], true);
-        bay(u, y + hh * 0.57, hw, hh * 0.18, 0.058, 0x8ba0a0);
+        bay(u, y, hw, hh, 0.055, [0x586b79, 0x71818a, 0x485c6c][(row + col + index) % 3], true);
+        bay(u, y + hh * 0.57, hw, hh * 0.18, 0.058, 0xa4b3bb);
         bay(u, y, 0.035, hh, 0.065, 0xc6c6b9);
         if (isSchool) bay(u, y - 0.08, hw, 0.035, 0.068, 0xc9cbbb);
         // Streamed facade detail cannot depend on which districts loaded first.
@@ -938,15 +924,15 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
           meshGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uvs, 2));
           meshGeometry.setAttribute('surfaceKind', new THREE.Uint8BufferAttribute(batch.kinds, 1));
         }
-        if (kind === 'road') {
+        if (kind === 'road' || kind === 'pavement') {
           const uv = [];
-          for (let i = 0; i < batch.positions.length; i += 3) uv.push(batch.positions[i] / 6, batch.positions[i + 2] / 6);
+          for (let i = 0; i < batch.positions.length; i += 3) uv.push(batch.positions[i] / 2, batch.positions[i + 2] / 2);
           meshGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
         }
       }
       meshGeometry.computeBoundingSphere();
       for (const attribute of Object.values(meshGeometry.attributes)) counters.bufferBytes += attribute.array.byteLength;
-      const mesh = new THREE.Mesh(meshGeometry, kind === 'sign' ? signMaterial : kind === 'road' ? roadMaterial : kind === 'surface' ? surfaceMaterial : kind === 'shadow' ? shadowMaterial : kind === 'glass' ? glazing : kind==='water'?waterMaterial:opaque);
+      const mesh = new THREE.Mesh(meshGeometry, kind === 'sign' ? signMaterial : (kind === 'road' || kind === 'pavement') ? roadMaterial : kind === 'surface' ? surfaceMaterial : kind === 'shadow' ? shadowMaterial : kind === 'glass' ? glazing : kind==='water'?waterMaterial:opaque);
       mesh.name = `Canberra ${kind}`;
       mesh.receiveShadow = false;
       mesh.castShadow = false;

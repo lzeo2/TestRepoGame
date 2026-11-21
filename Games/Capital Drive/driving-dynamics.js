@@ -19,10 +19,10 @@ export function prepareDriving(state, dt, { throttle, steer, forward, handbrake,
     handbrakeDrag: sliding ? .18 : handbrake ? .65 : 0 };
 }
 
-export function measureDriving(state, dt, { forward, lateral, boost, airborne }) {
+export function measureDriving(state, dt, { forward, lateral, boost, airborne, recharge = true }) {
   state.lateralSpeed = Number.isFinite(lateral) ? lateral : 0;
   state.slipAngle = Math.atan2(state.lateralSpeed, Math.max(.01, Math.abs(forward)));
   state.driftActive = Boolean(state.driftHold > 0 && forward > 5 && Math.abs(state.slipAngle) > .12 && !airborne);
   // Releasing boost refills in 20 seconds; an actual controlled slide doubles it.
-  if (!boost) state.nitroFuel = Math.min(1, state.nitroFuel + dt * (state.driftActive ? .1 : .05));
+  if (recharge && !boost) state.nitroFuel = Math.min(1, state.nitroFuel + dt * (state.driftActive ? .1 : .05));
 }

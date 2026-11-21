@@ -5,7 +5,8 @@ export const STREET_ASSET_VIEW_LIMITS = Object.freeze({stops:80,fuelStations:12,
 
 // Original unbranded street furniture. Exact source anchors remain in the data;
 // estimated pieces that do not clear retained road/building bodies are omitted.
-export function createStreetAssetsView(scene,heightAt) {
+export function createStreetAssetsView(scene,heightAt,{nitroStations=[]}={}) {
+  const bays=new Map(nitroStations.map(site=>[site.id,site]));
   const geometry=new THREE.BoxGeometry(1,1,1);
   const material=new THREE.MeshLambertMaterial({color:0xffffff});
   const mesh=new THREE.InstancedMesh(geometry,material,STREET_ASSET_VIEW_LIMITS.maxInstances);
@@ -59,6 +60,15 @@ export function createStreetAssetsView(scene,heightAt) {
       box(site.x,y+2.2,site.z,.34,.06,.16,site.yaw,0xe5e1d1);
     }
   }
+  function paintBay(site) {
+    // Raised paint strips follow the sampled forecourt without extra meshes.
+    for(const side of [-1,1]) {
+      const rail=local(site,side*1.6,0),cap=local(site,0,side*2.35);
+      const railY=ground(rail.x,rail.z),capY=ground(cap.x,cap.z);
+      if(railY!==null)box(rail.x,railY+.04,rail.z,.13,.04,4.8,site.yaw,0x62bfd5);
+      if(capY!==null)box(cap.x,capY+.04,cap.z,.95,.04,.13,site.yaw,0x62bfd5);
+    }
+  }
   function update(focus) {
     if(disposed)return;
     if(!focus || !Number.isFinite(focus.x) || !Number.isFinite(focus.z)) {
@@ -72,7 +82,9 @@ export function createStreetAssetsView(scene,heightAt) {
       const before=stats.instances;stop.furniture.forEach(furniture);if(stats.instances>before)stats.stops++;
     }
     for(const fuel of selected.fuelStations) {
-      const before=stats.instances;fuel.furniture.forEach(furniture);if(stats.instances>before)stats.fuelStations++;
+      const before=stats.instances;fuel.furniture.forEach(furniture);
+      const bay=bays.get(fuel.id);if(bay)paintBay(bay);
+      if(stats.instances>before)stats.fuelStations++;
     }
     mesh.count=stats.instances;mesh.visible=mesh.count>0;mesh.instanceMatrix.needsUpdate=true;
     if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;

@@ -1,6 +1,8 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
 import { createCar } from '../../assets/car-arcade/models.js';
+import { BY_ID } from '../../assets/car-arcade/fleet.js';
+import { createVehicleContactShadow, vehicleShadowScale } from './vehicle-contact-shadow.js';
 
 const MODELS = ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch'];
 const CAPACITY = 56;
@@ -11,6 +13,7 @@ export function createTrafficView(scene, heightAt, traffic, { vehicleHeightAt = 
   const root = new THREE.Group(); root.name = 'Instanced road traffic'; scene.add(root);
   const geometries = new Set(), materials = new Set(), materialCopies = new Map(), batches = new Map();
   const pose = new THREE.Object3D(), color = new THREE.Color(), heightPose = {x:0,z:0,yaw:0};
+  const shadowMatrix = new THREE.Matrix4();
   let disposed = false, heightRoad = null;
   function sampleVehicleHeight(x,z) {
     if(!vehicleHeightAt)return heightAt(x,z);
@@ -46,19 +49,12 @@ export function createTrafficView(scene, heightAt, traffic, { vehicleHeightAt = 
     // Allocate color storage before rendering; later updates only reuse it.
     for (let i = 0; i < CAPACITY; i++) paint.setColorAt(i, color.setHex(0xffffff));
     paint.instanceColor.setUsage(THREE.DynamicDrawUsage);
-    batches.set(id, { meshes, paint, count: 0, triangles: source.userData.triangles });
+    batches.set(id, { meshes, paint, count: 0, triangles: source.userData.triangles, shadowScale: vehicleShadowScale(BY_ID[id]) });
     stats.templateTriangles += source.userData.triangles;
   }
-  const pixels = new Uint8Array(64 * 64 * 4);
-  for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) {
-    pixels[(y * 64 + x) * 4 + 3] = Math.round(Math.max(0, 1 - Math.hypot((x - 31.5) / 31.5, (y - 31.5) / 31.5)) ** 1.5 * 110);
-  }
-  const shadowTexture = new THREE.DataTexture(pixels, 64, 64); shadowTexture.needsUpdate = true;
-  shadowTexture.magFilter = THREE.LinearFilter; shadowTexture.minFilter = THREE.LinearFilter;
-  const shadowMaterial = new THREE.MeshBasicMaterial({ map: shadowTexture, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
-  materials.add(shadowMaterial);
-  const shadowGeometry = new THREE.PlaneGeometry(3.3, 6.2); shadowGeometry.rotateX(-Math.PI / 2); shadowGeometry.translate(0, -.01, 0);
-  const shadows = instance(shadowGeometry, shadowMaterial, 'Traffic ground shadows');
+  const { geometry, material, texture: shadowTexture } = createVehicleContactShadow();
+  materials.add(material);
+  const shadows = instance(geometry, material, 'Traffic ground shadows');
   stats.geometries = geometries.size; stats.materials = materials.size;
   function update(focus, { lowGraphics = true } = {}) {
     if (disposed) return;
@@ -78,7 +74,7 @@ export function createTrafficView(scene, heightAt, traffic, { vehicleHeightAt = 
       pose.position.set(car.x, y + .18, car.z); pose.rotation.set(Math.atan2(front - rear, 4), car.yaw, 0, 'YXZ'); pose.updateMatrix();
       for (const mesh of batch.meshes) mesh.setMatrixAt(batch.count, pose.matrix);
       batch.paint.setColorAt(batch.count, color.set(car.color));
-      shadows.setMatrixAt(stats.visible, pose.matrix);
+      shadows.setMatrixAt(stats.visible, shadowMatrix.copy(pose.matrix).scale(batch.shadowScale));
       batch.count++; stats.visible++; stats.triangles += batch.triangles + 2;
     }
     for (const batch of batches.values()) {
