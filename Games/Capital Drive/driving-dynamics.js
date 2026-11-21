@@ -4,6 +4,12 @@ export function createDrivingState() {
   return { nitroFuel: 1, nitroActive: false, driftActive: false, slipAngle: 0, lateralSpeed: 0, driftHold: 0 };
 }
 
+export function isVehicleStopped(pose, maxSpeed) {
+  if (!pose || pose.stuntActive || !Number.isFinite(pose.speed) || Math.abs(pose.speed) > maxSpeed) return false;
+  if (pose.vx === undefined && pose.vz === undefined) return true;
+  return Number.isFinite(pose.vx) && Number.isFinite(pose.vz) && Math.hypot(pose.vx, pose.vz) <= maxSpeed;
+}
+
 // Supplied-time arcade assists; ordinary tyre/engine tuning stays with Simulation.
 export function prepareDriving(state, dt, { throttle, steer, forward, handbrake, boost, brake, airborne }) {
   const entry = handbrake && Math.abs(steer) > .15 && forward > 8 && !airborne;

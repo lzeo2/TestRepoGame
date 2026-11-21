@@ -50,10 +50,26 @@ controlled landing. Powered flight lasts roughly 50–110 seconds depending on
 thrust. Fuel replenishes while standing outside between flights. A merged
 twin-tank shell and instanced exhaust use at most two draws.
 
-Search for nitro on the map to find one of twelve refill bays beside mapped
-petrol stations. The cyan bay markers share the street-assets batch. Drive
-onto a bay, stop and press E or USE. A career refill costs $45. The career
-tank level is saved, and Free roam offers free refills and automatic recharge.
+The map has a Petrol stations shortcut and cyan fuel-pump markers. All twelve
+nitro bays have canopies, pumps and roadside fuel signs by mapped stations.
+Five use retained mapped roofs and seven have original fitted structures.
+Columns and fixtures use shared simulation collision while leaving the refill
+bay and approach open. Drive onto the cyan bay, stop and press E or USE. A
+career refill costs $45. Free roam refills are free. The active boost effect
+draws two animated cyan and orange exhaust plumes in one pooled draw.
+
+Car rentals are available at marked storefronts on Kennedy Street in Kingston,
+Bunda Street in Civic and Brindabella Circuit near the airport. Approach the
+door on foot and press E. The compact, estate and SUV cost $65, $95 and $140
+for the session in career modes. Free roam hires are free. Stop on the amber
+return bay at any rental storefront and press E to return the car.
+
+Driving speed uses the car's full horizontal velocity. Ambient cars use mapped
+speed limits where available, including tagged directions, and keep their turn,
+following and signal checks. The HUD marks estimated road speeds separately.
+Stopped mission goals accept 40–54 m in Campaign, 20 m for timed deliveries
+and 16 m for Yoober driver stops. Vehicle, cargo, stop and ordered-stage checks
+still apply.
 
 Food and equipment orders mark the live van on the minimap. For a distant van,
 an amber arrow at the edge points toward it. A square marks the handover point.
@@ -972,7 +988,7 @@ tab and a separate local save. Native gear and nitro cases passed 17 and 13
 assertions. They use explicit initial funded checkpoints by Canalside and
 Kingston to exercise real purchase, flight, landing, reload and paid refill.
 
-The reusable runner checks 127 game JavaScript files, 188 pure Node
+The reusable runner checks 132 game JavaScript files, 191 pure Node
 suites, 5 support scripts, the flamegraph parser, cache closure and
 whitespace. The 20 November motion update passed 13 targeted Node suites,
 including shared foot/camera interpolation, actual pedestrian instance poses,

@@ -17,7 +17,8 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 GAME = Path('Games/Capital Drive')
 MODULES = (
-    'driving-dynamics.js', 'car-camera.js', 'jetpack.js', 'jetpack-view.js', 'nitro-stations.js',
+    'driving-dynamics.js', 'car-camera.js', 'jetpack.js', 'jetpack-view.js', 'nitro-stations.js', 'nitro-view.js',
+    'petrol-forecourts.js', 'car-rental.js', 'rental-storefronts.js', 'rental-storefronts-view.js',
     'house-controller.js', 'delivery-service.js', 'delivery-view.js', 'vehicle-flight.js', 'stunt-ramps.js', 'stunt-ramps-view.js', 'airport-road-details.js',
     'burglary.js',
     'headlights-view.js', 'police-support.js', 'police-support-view.js', 'safehouse-storage.js', 'city-ui.js',
@@ -40,6 +41,7 @@ MODULES = (
 )
 SUITES = (
     'test_capital_driving_dynamics.mjs', 'test_capital_car_camera.mjs', 'test_capital_foot_motion.mjs', 'test_capital_jetpack.mjs', 'test_capital_nitro_stations.mjs', 'test_capital_defence_depot.mjs',
+    'test_capital_nitro_view.mjs', 'test_capital_car_rental.mjs', 'test_capital_rental_storefronts.mjs',
     'test_capital_delivery_actual.mjs', 'test_capital_job_cargo.mjs', 'test_capital_burglary_session.mjs', 'test_capital_jobs_rest.mjs', 'test_capital_delivery_service.mjs', 'test_capital_delivery_transactions.mjs', 'test_capital_house_stations.mjs', 'test_capital_house_controller.mjs', 'test_capital_static_occupancy.mjs', 'test_capital_airport_terrain.mjs', 'test_capital_stunt_ramps.mjs', 'test_capital_airport_details.mjs', 'test_capital_vehicle_flight.mjs',
     'test_capital_escape_objectives.mjs', 'test_capital_escape_navigation.mjs', 'test_capital_static_body_queries.mjs', 'test_capital_vehicle_overlap_scalars.mjs', 'test_capital_fast_pursuit.mjs', 'test_capital_yard_fit.mjs',
     'test_capital_burglary.mjs', 'test_capital_burglary_economy.mjs', 'test_capital_house_footprints.mjs', 'test_capital_footprint_navigation.mjs',

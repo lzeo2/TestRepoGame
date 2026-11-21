@@ -84,6 +84,14 @@ for (const extra of [{ pose: { ...map.spawn, speed: 5 } }, { pose: { ...map.spaw
   assert.equal(p.state.activeJob.stopTime, .1);
 }
 {
+  const { p, job, pickup, drop } = fixture(); assert(p.startJob(job.id, pickup).ok);
+  assert.equal(p.state.activeJob.target.radius,16);
+  const offset=(context,metres)=>({...context,pose:{...context.pose,x:context.pose.x+metres}});
+  stop(p,offset(pickup,17)); assert.equal(p.state.activeJob.passenger,false,'pickup still requires the local approach');
+  stop(p,offset(pickup,13)); assert.equal(p.state.activeJob.passenger,true,'nearby stopped parking boards the passenger');
+  stop(p,offset(drop,13)); assert.equal(p.state.cash,1000+job.reward,'nearby stopped drop-off pays once');
+}
+{
   const cars = [...legacy.ownedVehicles, { ...legacy.ownedVehicles[0], id: 'orchard' }];
   const { p, job, pickup, drop } = fixture({ ...legacy, ownedVehicles: cars });
   const wagon = { ...pickup, vehicle: { modelId: 'orchard', stolen: false } };

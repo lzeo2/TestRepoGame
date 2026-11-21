@@ -25,6 +25,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
   }
   function garageGuard() {
     if(gameplay.state.passenger)return {ok:false,message:'Step out before using the garage.'};
+    if(gameplay.state.vehicle.rented)return {ok:false,message:'Return your rental before changing garage vehicles.'};
     if (sandbox()) return null;
     const pose = gameplay.focus(), garage = progression.garage;
     if (Math.hypot(pose.x - garage.x, pose.z - garage.z) > garage.radius) return { ok: false, message: 'Visit the garage.' };

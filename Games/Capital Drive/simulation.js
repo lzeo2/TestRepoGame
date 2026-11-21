@@ -1,7 +1,7 @@
 import { createVehicleFlight } from './vehicle-flight.js';
 import { createDrivingState, prepareDriving, measureDriving } from './driving-dynamics.js';
 import { coveredCentrePassage } from './covered-passage.js';
-import { roadProfile } from './road-network.js';
+import { roadProfile, roadSpeed } from './road-network.js';
 import { prepareWaterRing } from './water-contact.js';
 import { createTrafficLights } from './traffic-lights.js';
 import { BY_ID } from '../../assets/car-arcade/fleet.js';
@@ -217,10 +217,13 @@ export function createSimulation(map, options = {}) {
     waterIndex.insert(area, Math.min(...area.points.map(p => p[0])), Math.min(...area.points.map(p => p[1])),
       Math.max(...area.points.map(p => p[0])), Math.max(...area.points.map(p => p[1])));
   }
-  for(const barrier of map.barriers||[]){
-    if(!barrier.points?.length)continue;
-    barrierIndex.insert(barrier,Math.min(...barrier.points.map(p=>p[0])),Math.min(...barrier.points.map(p=>p[1])),Math.max(...barrier.points.map(p=>p[0])),Math.max(...barrier.points.map(p=>p[1])));
+  function registerStaticBarriers(barriers){
+    for(const barrier of barriers){
+      if(!barrier.points?.length||barrierIndex.extents.has(barrier))continue;
+      barrierIndex.insert(barrier,Math.min(...barrier.points.map(p=>p[0])),Math.min(...barrier.points.map(p=>p[1])),Math.max(...barrier.points.map(p=>p[0])),Math.max(...barrier.points.map(p=>p[1])));
+    }
   }
+  registerStaticBarriers(map.barriers||[]);
   const waterEdges=new SpatialGrid(128),waterMask=new WeakMap(),waterRings=new WeakMap();
   for(const area of map.areas||[]){
     if(area.type!=='water')continue;
@@ -638,6 +641,15 @@ export function createSimulation(map, options = {}) {
     return trafficEdgeClearance.get(key);
   }
   const candidates = graph.edges.filter(edge => edge.length > 8 && roadProfile(edge.road).trafficAllowed);
+  const roadSpeeds = new WeakMap();
+  function laneSpeed(edge) {
+    let limits = roadSpeeds.get(edge.road);
+    if (!limits) {
+      limits = { forward: roadSpeed(edge.road, 1).kmh / 3.6, reverse: roadSpeed(edge.road, -1).kmh / 3.6 };
+      roadSpeeds.set(edge.road, limits);
+    }
+    return edge.direction < 0 ? limits.reverse : limits.forward;
+  }
   function nearbyEdges(radius, focus = focusPoint || player) {
     const nearby = [];
     for (const segment of roadIndex.query(focus.x, focus.z, radius)) {
@@ -652,7 +664,7 @@ export function createSimulation(map, options = {}) {
     let total = 0;
     return edges.map(edge => {
       const profile = roadProfile(edge.road), distance = projectSegment(focus.x, focus.z, edge.segment.a, edge.segment.b).distance;
-      const demand = profile.major ? 3 + Math.min(3, profile.lanes) + ((edge.road.speed || 50) >= 70 ? 1 : 0) : 1;
+      const demand = profile.major ? 3 + Math.min(3, profile.lanes) + (laneSpeed(edge) >= 70 / 3.6 ? 1 : 0) : 1;
       total += edge.length * demand / (1 + distance / 300);
       return { edge, cumulative: total };
     });
@@ -667,7 +679,7 @@ export function createSimulation(map, options = {}) {
   const trafficCount = Math.max(0, Math.min(options.trafficCount ?? 40, 56));
   for (let i = 0; i < trafficCount && candidates.length; i++) {
     const car = { id: `traffic:${i}`, slot: i, active: true, anger: 0, honks: 0, honkCooldown: 0, overtake: 0, overtakeCooldown: 0, aggressive: i % 3 !== 0, x: 0, z: 0, yaw: 0, speed: 0, modelId: models[i % models.length], color: colors[i % colors.length],
-      cruiseFactor: 0.78 + random() * 0.2 };
+      cruiseFactor: 0.88 + random() * 0.12 };
     let valid = false;
     for (let attempt = 0; attempt < 80; attempt++) {
       const pool = initialEdges.length && attempt < 60 ? initialEdges : fallbackEdges;
@@ -697,7 +709,7 @@ export function createSimulation(map, options = {}) {
         const gap = Math.hypot(pose.x - focus.x, pose.z - focus.z);
         // The renderer culls traffic at 300m; replacements enter beyond that view.
         if (gap < 330 || gap > 650 || traffic.some(other => other !== car && other.active && Math.hypot(pose.x - other.x, pose.z - other.z) < 15)) continue;
-        placeTraffic(car, edge, position); car.health = 100; car.active = true; car.anger = 0; car.overtake = 0; car.speed = Math.min(10, (edge.road.speed || 50) / 3.6); break;
+        placeTraffic(car, edge, position); car.health = 100; car.active = true; car.anger = 0; car.overtake = 0; car.speed = Math.min(10, laneSpeed(edge)); break;
       }
     }
   }
@@ -718,14 +730,16 @@ export function createSimulation(map, options = {}) {
       const body = vehicleSize(car);
       const signalDistance = trafficLights.stopDistance(car, body);
       const signalLimited = Number.isFinite(signalDistance);
-      // OSM maxspeed is km/h. Junction courtesy and spacing are intentionally simple.
-      let target = clamp((edge.road.speed || 50) / 3.6, 5, 24) * car.cruiseFactor * (car.aggressive ? 1.16 : 1);
+      const limit = laneSpeed(edge);
+      let target = limit * car.cruiseFactor;
+      if (car.aggressive && limit >= 40 / 3.6) target = Math.min(target * 1.05, limit + 3 / 3.6);
       const stopTime = stopRequests.get(car.id) || 0;
       if (stopTime > 0) { target = 0; car.overtake = 0; stopRequests.set(car.id, Math.max(0, stopTime - dt)); }
       const cruise = target;
       if (signalLimited) { target = Math.min(target, Math.sqrt(12 * Math.max(0, signalDistance))); car.overtake = 0; }
       let blocked = false, junctionDistance = Infinity;
-      if (edge.to.outgoing.length > 2 && remaining < 20) target = Math.min(target, 7.5);
+      const junctionSpeed = edge.to.outgoing.length > 2 ? Math.sqrt(7.5 ** 2 + 12 * Math.max(0, remaining - 20)) : Infinity;
+      target = Math.min(target, junctionSpeed);
       for (const other of traffic) {
         if (car === other || !other.active) continue;
         if(Math.abs(car.x-other.x)<30&&Math.abs(car.z-other.z)<30&&!sameVehicleLevel(car,other))continue;
@@ -785,7 +799,7 @@ export function createSimulation(map, options = {}) {
       if (car.overtake > 0) {
         car.overtake = Math.max(0, car.overtake - dt);
         if (!passClear) car.overtake = 0;
-        else target = Math.min(cruise * 1.1, 28);
+        else target = Math.min(cruise * 1.1, junctionSpeed, limit + (limit >= 40 / 3.6 ? 3 / 3.6 : 0));
       } else if (car.aggressive && blocked && car.anger > 0.4 && car.overtakeCooldown === 0 && stopTime <= 0 && !signalLimited && passClear) {
         car.overtake = 2; car.overtakeCooldown = 9;
       }
@@ -1011,7 +1025,7 @@ export function createSimulation(map, options = {}) {
   }
   return { player, driving, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, previewTeleport, nearestRoad, setParkedCars,
     setNitroAutoRecharge(enabled) { nitroAutoRecharge = enabled === true; },
-    setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop, drainVehicleImpacts:()=>vehicleImpacts.splice(0),
+    registerStaticBarriers, setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop, drainVehicleImpacts:()=>vehicleImpacts.splice(0),
     get peopleContacts() { return Object.freeze({ ...peopleStats }); },
     setPlayerVehicle, nearbyVehicles, claimVehicle, damageVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
 }

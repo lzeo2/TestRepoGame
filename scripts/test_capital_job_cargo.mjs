@@ -5,7 +5,13 @@ function fixture(id){const p=createProgression(map);p.state.completedJobs=['cres
 function stop(p,target,extra={}){for(let i=0;i<20;i++)p.update(.1,ctx(target,extra));}
 const food=fixture('food-round');
 food.p.update(30,ctx({x:10000,z:10000}));assert.equal(food.p.state.activeJob.cargo,undefined,'waiting before pickup cannot age food');
-stop(food.p,food.job.stages[0]);assert.equal(food.p.state.activeJob.cargo.kind,'food');
+const loading=food.job.stages[0];
+assert.equal(loading.radius,20);
+stop(food.p,{...loading,x:loading.x+21});assert.equal(food.p.state.activeJob.stage,0,'the stop must still be near its loading point');
+const parking={...loading,x:loading.x+14,speed:0};
+stop(food.p,parking,{pose:{...parking,vx:0,vz:2}});assert.equal(food.p.state.activeJob.stage,0,'sliding sideways is not parked');
+stop(food.p,parking,{pose:{...parking,stuntActive:true}});assert.equal(food.p.state.activeJob.stage,0,'airborne cars cannot load cargo');
+stop(food.p,parking);assert.equal(food.p.state.activeJob.cargo.kind,'food','a nearby stop can load cargo without hitting the exact point');
 const quality=food.p.state.activeJob.cargo.quality;food.p.update(10,ctx(food.job.stages[0],{paused:true}));assert.equal(food.p.state.activeJob.cargo.quality,quality);
 food.p.update(80,ctx({x:10000,z:10000}));const faded=food.p.state.activeJob.cargo.quality;assert(faded<quality);
 food.p.update(.1,ctx(food.job.stages[1],{vehicleHealth:100}));assert(food.p.state.activeJob.cargo.quality<=faded,'repairs do not improve freshness');

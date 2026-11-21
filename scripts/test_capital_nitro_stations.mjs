@@ -8,6 +8,7 @@ import { applyRoadProfiles, roadProfile } from '../Games/Capital Drive/road-netw
 import { FUEL_STATIONS, applyStreetAssetRoofs, selectStreetAssets } from '../Games/Capital Drive/street-assets.js';
 import { createStreetAssetsView } from '../Games/Capital Drive/street-assets-view.js';
 import { createNitroStations, NITRO_REFILL_COST } from '../Games/Capital Drive/nitro-stations.js';
+import { buildPetrolForecourts } from '../Games/Capital Drive/petrol-forecourts.js';
 import { createProgression } from '../Games/Capital Drive/progression.js';
 
 const json = async key => JSON.parse(await readFile(new URL(`../Games/Capital Drive/data/${key}.json`, import.meta.url), 'utf8'));
@@ -82,7 +83,57 @@ const scene = new THREE.Scene(), original = createStreetAssetsView(scene, () => 
 original.update(kingston); marked.update(kingston);
 const visibleBayCount = selectStreetAssets(kingston).fuelStations.length;
 assert(visibleBayCount > 0);
-assert.equal(marked.stats.instances, original.stats.instances + 4 * visibleBayCount);
+assert.equal(marked.stats.instances, original.stats.instances + 8 * visibleBayCount);
 assert.equal(marked.stats.drawCalls, 1, 'nitro paint reuses the street furniture geometry, material and draw');
+const {sites: petrolForecourts, barriers} = buildPetrolForecourts(nitroStations, FUEL_STATIONS, simulation, () => 0, map.buildings);
+assert.equal(petrolForecourts.length, nitroStations.length);
+assert(petrolForecourts.every(site => site.canopy && site.sign && site.pumps.length > 0));
+assert.equal(petrolForecourts.filter(site=>site.canopy.existing).length,5,'five mapped roofs retain their source geometry');
+const bodyProbe={length:1,width:.5,ignoreId:'player'};
+const solidProbes=barriers.map(({points})=>({
+  x:points.reduce((sum,point)=>sum+point[0],0)/points.length,
+  z:points.reduce((sum,point)=>sum+point[1],0)/points.length,yaw:0,
+}));
+assert(solidProbes.length>0 && solidProbes.every(p=>simulation.canOccupy(p,bodyProbe)),'supports and islands fit the clear source forecourt');
+simulation.registerStaticBarriers(barriers);
+assert(solidProbes.every(p=>!simulation.canOccupy(p,bodyProbe)),'rendered grounded forecourt objects have matching solid colliders');
+for (const bay of nitroStations) {
+  assert(simulation.canOccupy(bay,{length:5.2,width:2.1,ignoreId:'player'}),'a full-size car fits under each overhead canopy');
+  assert(simulation.previewTeleport(bay).ok,'Free roam can still reach every bay');
+}
+const sampleCourt = petrolForecourts.find(site => site.id === kingston.id);
+assert(sampleCourt && !sampleCourt.canopy.existing, 'Kingston needs an original canopy beside the retained solid building');
+const courtScene = new THREE.Scene();
+const courts = createStreetAssetsView(courtScene, () => 0, { nitroStations, petrolForecourts });
+for (const bay of nitroStations) {
+  const nearbyIds = new Set(selectStreetAssets(bay).fuelStations.map(station => station.id));
+  const nearby = petrolForecourts.filter(site => nearbyIds.has(site.id));
+  courts.update(bay);
+  assert.equal(courts.stats.petrolCanopies, nearby.filter(site => !site.canopy.existing).length);
+  assert.equal(courts.stats.petrolPylons, nearby.length);
+  assert.equal(courts.stats.drawCalls, 1, 'forecourts keep the existing instanced draw');
+  assert(courts.stats.instances < 2048);
+}
+courts.update(kingston);
+const [courtMesh] = courtScene.children;
+assert.equal(courtScene.children.length, 1);
+const meshPose = new THREE.Matrix4(), position = new THREE.Vector3(), scale = new THREE.Vector3();
+let roof = false, column = false, signFace = false;
+for (let i = 0; i < courtMesh.count; i++) {
+  courtMesh.getMatrixAt(i, meshPose);
+  position.setFromMatrixPosition(meshPose);
+  scale.setFromMatrixScale(meshPose);
+  if (Math.hypot(position.x - sampleCourt.canopy.x, position.z - sampleCourt.canopy.z) < .01 &&
+      Math.abs(scale.x - sampleCourt.canopy.width) < .01 && Math.abs(scale.z - sampleCourt.canopy.depth) < .01) roof ||= position.y - scale.y / 2 >= 4.19;
+  const [foot] = sampleCourt.canopy.feet;
+  if (Math.hypot(position.x - foot.x, position.z - foot.z) < .01 && scale.y > 3.8) column = true;
+  if (Math.hypot(position.x - sampleCourt.sign.x, position.z - sampleCourt.sign.z) < .01 &&
+      scale.x > 2.5 && position.y > 3) signFace = true;
+}
+assert(roof && column && signFace, 'actual instance transforms include a raised roof, grounded column and readable pylon board');
+courts.update(null);
+assert.equal(courts.stats.petrolCanopies + courts.stats.petrolPylons, 0);
+courts.dispose();
+assert.equal(courtScene.children.length, 0);
 marked.dispose(); original.dispose();
-console.log(`PASS ${nitroStations.length} checked petrol bays, actual stop/LOS/cash/wanted refill guards, no double charge, Free roam recharge and one instanced marker draw`);
+console.log(`PASS ${nitroStations.length} checked petrol bays, actual refill guards, cyan paint, pylon and supported canopy geometry in one bounded draw`);

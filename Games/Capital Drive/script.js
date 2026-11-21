@@ -62,7 +62,7 @@ import { createStreetUI } from './street-ui.js';
 import { createAddressSearch } from './address-search.js';
 import { LANDMARKS, LANDMARK_CLEARINGS, replacedBuildingIds,POOL_BARRIERS,POOL_GATE_APPROACHES,MANUKA_POOL_BASIN } from './landmarks.js';
 import { createLandmarksView } from './landmarks-view.js';
-import {applyRoadProfiles,roadProfile} from './road-network.js';
+import {applyRoadProfiles,roadProfile,roadSpeed} from './road-network.js';
 import {createBuses} from './buses.js';
 import {createBusView} from './bus-view.js';
 import {createVehicleOccupantsView} from './vehicle-occupants-view.js';
@@ -96,6 +96,9 @@ import {createWildlifeView} from './wildlife-view.js';
 import {createStreetAssetsView} from './street-assets-view.js';
 import {BUS_STOPS,FUEL_STATIONS,applyStreetAssetRoofs} from './street-assets.js';
 import {createNitroStations} from './nitro-stations.js';
+import {buildPetrolForecourts} from './petrol-forecourts.js';
+import {buildRentalStorefronts} from './rental-storefronts.js';
+import {createRentalStorefrontsView} from './rental-storefronts-view.js';
 import {HIGHWAY_BARRIERS} from './highway-barriers.js';
 import {createHighwayBarriersView} from './highway-barriers-view.js';
 import {createLocalDetailsView} from './local-details-view.js';
@@ -114,6 +117,8 @@ import {createCivicView,CIVIC_BUILDING_IDS,CIVIC_LANDMARKS,CIVIC_INTERIOR_ENTRIE
 import {carCockpitFrame} from './car-camera.js';
 import {createJetpack} from './jetpack.js';
 import {createJetpackView} from './jetpack-view.js';
+import {CAR_RENTAL_OFFERS,createCarRental} from './car-rental.js';
+import {createNitroView} from './nitro-view.js';
 
 const ALL_STORES=[...MAPPED_STORES,...EXTRA_STORES];
 const $ = id => document.getElementById(id);
@@ -131,10 +136,12 @@ const vehicles = [
   { id: 'finch', name: 'City hatchback', note: 'Small and nimble', label: 'HATCH' },
 ];
 let map, simulation, world, renderer, scene, camera, playerMesh, route = [], destination = null;
+let nitroView,rentalStorefrontsView,carRentalSites=[];
 let streetDealers,dealerView,delivery,deliveryView,deliveryCatalog=[],houseController,stunts,stuntsView;
 let jetpack,jetpackView,cockpitCamera=false;
 const deliveryReceipts=new Map(),deliveryViewState={car:null};
 let rideService,rideView,aircraft,aircraftView,aircraftRescueHealth=null;
+let carRental;
 let signalsView,equipment,equipmentView;
 let roadGuidanceView;
 const guidance=createRouteGuidance();
@@ -983,6 +990,53 @@ function refillCarNitro(){
   if(result.ok&&!isSandbox())saveCareer();
   notify(result.message);streetUI.refresh();return true;
 }
+function carRentalContext(){
+  return {...careerContext(),airborne:!!simulation.player.stuntActive,
+    busy:!!(developerReturn||tutorialRunning||campaign.state.active||progression.state.activeJob||progression.state.activity||
+      activities.snapshot().active||streetChallenge()||rideService?.activeFare||delivery?.busy||droneActive||jetpack?.active||aircraft?.active||micromobility?.active)};
+}
+function installRentalVehicle(vehicle,mode,exit){
+  const state=gameplay.state,rented=carRental.active;
+  selectedPaint=typeof vehicle.color==='number'?'#'+vehicle.color.toString(16).padStart(6,'0'):vehicle.color;
+  state.vehicle={modelId:vehicle.modelId,color:selectedPaint,stolen:!!vehicle.stolen,...(rented?{rented:true}:{})};
+  state.vehicleHealth=vehicle.health;state.mode=mode;
+  if(exit){Object.assign(state.actor,exit);footCameraYaw=exit.yaw;footLookPitch=0;}
+  else Object.assign(state.actor,{speed:0,jumpHeight:0});
+  simulation.setPlayerVehicle({modelId:vehicle.modelId,color:parseInt(selectedPaint.slice(1),16)});
+  playerCarKey++;cockpitCamera=false;cameraReady=false;clearInput();selectVehicle(vehicle.modelId);
+}
+function openRentalDesk(site){
+  const status=$('car-rental-status'),options=$('car-rental-options');
+  $('car-rental-title').textContent=site.name;
+  status.textContent=carRental.active?'Return your current rental to a marked bay first.':'';
+  options.replaceChildren();
+  if(!carRental.active)for(const offer of CAR_RENTAL_OFFERS){
+    const button=document.createElement('button');button.type='button';button.dataset.rentalCar=offer.modelId;
+    button.textContent=`${offer.name} · ${isSandbox()?'Free':'$'+offer.price}`;
+    button.disabled=!isSandbox()&&progression.state.cash<offer.price;
+    button.addEventListener('click',()=>{
+      if(!$('car-rental-dialog').open)return;
+      const ctx=carRentalContext();
+      saveCareer();
+      const result=carRental.rent(site.id,offer.modelId,ctx);
+      if(!result.ok){status.textContent=result.message;return;}
+      closeDialogs();saveCareer();streetUI.refresh();notify(result.message);
+    });options.append(button);
+  }
+  openDialog('car-rental-dialog');
+}
+function interactCarRental(){
+  if(!carRental)return false;
+  const context=carRentalContext();
+  if(carRental.rentalBay(context)){
+    const result=carRental.returnCar(context);
+    if(result.ok){saveCareer();streetUI.refresh();renderer.domElement.focus();}
+    notify(result.message);return true;
+  }
+  const site=carRental.desk(context);
+  if(!site)return false;
+  openRentalDesk(site);return true;
+}
 function interiorHint(){
   if(jetpack?.active)return 'WASD move · SPACE rise · SHIFT descend · U land';
   if(aircraft?.active)return aircraft.snapshot().prompt;
@@ -990,6 +1044,8 @@ function interiorHint(){
   if(aircraft?.nearest(focus()))return 'E bypass the jet lock';
   if(buses?.passenger)return 'E request stop / leave bus';
   if(rideService?.passenger)return ['arrived','exit-ready'].includes(rideService.phase)?'E step out · T phone':'Yoober passenger · T phone';
+  const rentalDriver=carRental?.active&&nitroContext();
+  if(rentalDriver&&carRental.rentalBay(rentalDriver))return 'Stop on the bay · E return rental';
   if(gameplay?.state.mode!=='foot'){
     const offer=nitroOfferForCar();
     if(!offer)return null;
@@ -1013,6 +1069,10 @@ function interiorHint(){
   if(streetChallenge())return 'Match the sequence · E cancel';
   if(activities.snapshot().active)return 'X + Y / ↑ activity controls · E stop';
   if(micromobility?.snapshot().active)return 'WASD ride · S brake · E dismount · T phone';
+  if(carRental&&!plan){
+    const desk=carRental.desk({pose,onFoot:true,passenger:gameplay.state.passenger,recovering:gameplay.state.recovery});
+    if(desk)return `E · ${desk.name}`;
+  }
   if(plan){
     if(interiors.nearExit(pose))return 'E leave building';
     if(plan.counter&&Math.hypot(pose.x-plan.counter.x,pose.z-plan.counter.z)<=plan.counter.radius)return `E ${plan.name} counter`;
@@ -1038,6 +1098,7 @@ function openWork(){
 }
 function missionLaunchReason(){
   const state=gameplay.state;
+  if(state.vehicle.rented)return 'Return the rental before starting a mission.';
   if(developerReturn)return 'Return from the preview before starting a mission.';
   if(aircraft?.active||jetpack?.active)return 'Land before starting a mission.';
   if(state.health<=0||state.recovery||state.actor.impactTime>0)return 'Recover before starting a mission.';
@@ -1387,6 +1448,7 @@ function characterSwitchReason(){
   if(campaign.state.active)return 'Finish or cancel the active mission before switching characters.';
   if(!started)return '';
   const state=gameplay.state;
+  if(state.vehicle.rented)return 'Return the rental before switching characters.';
   if(state.health<=0||state.recovery)return 'Recover before switching characters.';
   if(state.actor.impactTime>0)return 'Recover from the impact before switching characters.';
   if(state.wanted)return 'Lose the police before switching characters.';
@@ -1513,7 +1575,7 @@ $('campaign-resume').addEventListener('click',closeDialogs);
 function saveCareer() {
   if (careerError || isSandbox() || !started || missionCheckpoint) return;
   const owned = progression.state.ownedVehicles.find(car => car.id === gameplay.state.vehicle.modelId);
-  if (owned && !gameplay.state.vehicle.stolen&&!developerReturn) { owned.health = gameplay.state.vehicleHealth; owned.color = selectedPaint; }
+  if (owned && !gameplay.state.vehicle.stolen&&!gameplay.state.vehicle.rented&&!developerReturn) { owned.health = gameplay.state.vehicleHealth; owned.color = selectedPaint; }
   try { captureCareerInventory();captureActiveProtagonist();localStorage.setItem(CAREER_KEY, JSON.stringify({...progression.serialize(),campaign:developerReturn?.campaign||campaign.serialize(),protagonists:protagonists.serialize(),nitroFuel:simulation.driving.nitroFuel})); }
   catch (error) { careerError = `Career could not be saved: ${error.message}`; $('save-status').textContent = careerError; notify('Career storage is unavailable. You can keep playing.'); }
 }
@@ -1599,6 +1661,7 @@ $('mission-dev-return').addEventListener('click',()=>{campaign.cancel();finishDe
 $('mission-dev-play').addEventListener('click',()=>{
   if(aircraft?.active){notify('Land and leave the jet before a mission preview.');return;}
   if(!missionToolsUnlocked||!started||gameplay.state.recovery)return;
+  if(gameplay.state.vehicle.rented){notify('Return the rental before a mission preview.');return;}
   if(gameplay.state.health<=0||gameplay.state.actor.impactTime>0){notify('Recover from the impact before starting a mission preview.');return;}
   if(developerReturn){campaign.cancel();if(!finishDeveloperPreview(true))return;}
   const chapter=campaign.developerChapters().find(chapter=>chapter.id===$('mission-dev-select').value);
@@ -1627,6 +1690,7 @@ $('start-button').addEventListener('click', () => {
   jetpack?.reset(gameplay.state);cockpitCamera=false;
   cutscenes.cancel();cutscenes.drainEvents();pendingCutscene=null;cutsceneAnchor=null;setCutsceneVisible(false);
   if(selectedGameMode==='campaign'&&!campaign.state.character){renderCharacterChoices();notify('Choose a character first.');return;}
+  carRental?.recover();
   if(!isSandbox())careerNitro=simulation.driving.nitroFuel;
   gameMode = selectedGameMode;
   burglary.reset();aircraft?.reset();clearInterior();micromobility?.reset();resetDelivery();rideService?.reset();equipment?.reset();followYoober=false; campaign.cancel();campaign.drainEvents();
@@ -1688,6 +1752,7 @@ function recover() {
     aircraftRescueHealth=gameplay.state.vehicleHealth;gameplay.state.health=0;clearInput();closeDialogs();notify('Rescue requested. Medical recovery is starting.');return;
   }
   if (!isSandbox()) return;
+  carRental?.recover();
   aircraft?.reset();clearInterior();micromobility.reset();resetDelivery();rideService?.reset();buses?.reset();equipment?.reset();followYoober=false;
   const p = simulation.player, nearby = simulation.nearestRoad(p.x, p.z);
   if (nearby && nearby.distance < 500) {
@@ -1741,7 +1806,7 @@ function applyPlayerVehicle(vehicle, {newVehicle=true}={}) {
   }
   simulation.setPlayerVehicle({ modelId: vehicle.modelId, color: selectedPaint });
   if (gameplay) {
-    gameplay.state.vehicle = { modelId: vehicle.modelId, color: selectedPaint, stolen: Boolean(vehicle.stolen) };
+    gameplay.state.vehicle = { modelId: vehicle.modelId, color: selectedPaint, stolen: Boolean(vehicle.stolen), ...(vehicle.rented?{rented:true}:{}) };
     if (Number.isFinite(vehicle.health)) gameplay.state.vehicleHealth = vehicle.health;
   }
   selectVehicle(vehicle.modelId);
@@ -1887,6 +1952,7 @@ function interact() {
   if(gameplay.state.recovery||gameplay.state.actor.impactTime>0)return;
   if(gameplay.state.mode==='vehicle'&&simulation.player.stuntActive){notify('Land and stop before getting out.');return;}
   if(interactAircraft())return;
+  if(interactCarRental())return;
   if(refillCarNitro())return;
   if(delivery?.phase==='waiting'&&gameplay.state.mode==='foot'&&!interiors.active&&Math.hypot(focus().x-delivery.vehicles[0].x,focus().z-delivery.vehicles[0].z)<=6){const result=delivery.interact(deliveryContext());handleDeliveryEvents();notify(result.reason||result.message);return;}
   if(progression.state.activity?.interactive){progression.cancelActivity();notify('Hold-up cancelled.');return;}
@@ -2033,6 +2099,21 @@ function drawMap(canvas, full) {
     if(full&&(!place.store||mapView.zoom>=9||place.id===destination?.id))label(place.name,x,y);
   }
   if(progression)for(const site of progression.services){if(map.landmarks.some(place=>place.id===site.id))continue;const x=sx(site.x),y=sz(site.z);ctx.fillStyle=site.type==='gym'?'#37614e':site.type==='arms'?'#80563e':'#986b34';ctx.fillRect(x-4,y-4,8,8);if(full)label(site.name,x,y,'12px Arial');}
+  for(const site of map.servicePins||[]){
+    const x=sx(site.x),y=sz(site.z),r=full?10:12;
+    if(x < -r||x > w+r||y < -r||y > h+r)continue;
+    const fuel=site.service==='petrol';
+    ctx.fillStyle=fuel?'#075d73':'#483781';ctx.strokeStyle='#fff';ctx.lineWidth=2;
+    ctx.fillRect(x-r,y-r,2*r,2*r);ctx.strokeRect(x-r,y-r,2*r,2*r);
+    ctx.fillStyle=ctx.strokeStyle='#fff';
+    if(fuel){
+      ctx.fillRect(x-5,y-6,8,11);ctx.fillStyle='#075d73';ctx.fillRect(x-3,y-4,4,3);
+      ctx.beginPath();ctx.moveTo(x+3,y+3);ctx.lineTo(x+6,y+3);ctx.lineTo(x+6,y-3);ctx.lineTo(x+4,y-6);ctx.stroke();
+    }else{
+      ctx.fillRect(x-6,y-1,12,5);ctx.fillRect(x-4,y-4,8,4);ctx.fillRect(x-5,y+4,2,2);ctx.fillRect(x+3,y+4,2,2);
+    }
+    if(full&&(mapView.zoom>=4||site.id===mapSelection?.id))label(site.name,x,y,'bold 13px Arial');
+  }
   if (full && mapSelection) {
     const x = sx(mapSelection.x), y = sz(mapSelection.z);
     ctx.strokeStyle = '#a34624'; ctx.lineWidth = 3;
@@ -2089,7 +2170,8 @@ function selectMapPoint(point) {
     const road = simulation.nearestRoad(point.x, point.z);
     const lat = map.meta.origin[1] - point.z / 111320;
     const lon = map.meta.origin[0] + point.x / (111320 * Math.cos(map.meta.origin[1] * Math.PI / 180));
-    $('teleport-status').textContent = `${road?.road.name && road.distance < 50 ? 'Near ' + road.road.name : 'Selected ground'} · ${Math.abs(lat).toFixed(5)}° S, ${lon.toFixed(5)}° E`;
+    const location=road?.road.name && road.distance < 50 ? 'Near ' + road.road.name : 'Selected ground';
+    $('teleport-status').textContent = point.service ? `${point.label} · ${point.detail}` : `${location} · ${Math.abs(lat).toFixed(5)}° S, ${lon.toFixed(5)}° E`;
   } else $('teleport-status').textContent = 'Choose a point inside the mapped boundary.';
   drawMap($('full-map'), true);
 }
@@ -2100,6 +2182,7 @@ function teleportSelected() {
   if (!mapSelection) return;
   const arrival = simulation.teleport(mapSelection);
   if (!arrival.ok) { $('teleport-status').textContent = 'No clear ground at this point. Choose a nearby spot.'; return; }
+  carRental?.recover();
   aircraft?.reset();clearInterior();micromobility.reset();resetDelivery();rideService?.reset();buses?.reset();equipment?.reset();followYoober=false;gameplay.reset({ sandbox: true });
   pedestrians.resetPopulation(simulation.player);
   cameraReady = false; accumulator = 0; orbit = 0; orbitHeight = 0; lookPitch = 0; clearInput();
@@ -2139,7 +2222,12 @@ mapCanvas.addEventListener('pointermove', event => {
 });
 mapCanvas.addEventListener('pointerup', event => {
   if (!mapDrag || event.pointerId !== mapDrag.pointerId) return;
-  if (!mapDrag.moved) selectMapPoint(mapPointFromClient(fullMapProjection(), mapCanvas.getBoundingClientRect(), event.clientX, event.clientY, map.bounds));
+  if (!mapDrag.moved){
+    const projection=fullMapProjection();
+    const point=mapPointFromClient(projection,mapCanvas.getBoundingClientRect(),event.clientX,event.clientY,map.bounds);
+    const pin=point&&nearestServicePin(point,14/projection.scale);
+    selectMapPoint(pin?serviceMapMatch(pin):point);
+  }
   mapDrag = null;
 });
 for (const type of ['pointercancel', 'lostpointercapture']) mapCanvas.addEventListener(type, event => { if (event.pointerId === mapDrag?.pointerId) mapDrag = null; });
@@ -2167,9 +2255,18 @@ function routeSelected() {
   notify(route.length ? 'Road route set. Follow the yellow arrow.' : 'No connected road route found.');drawMap(mapCanvas,true);
 }
 $('map-route-button').addEventListener('click', routeSelected);
-$('map-search-form').addEventListener('submit', event => {
-  event.preventDefault(); const results = $('search-results'); results.replaceChildren();
-  const matches = addressSearch.search($('map-search').value, 20).filter(result => isSandbox() || result.kind !== 'address').slice(0, 8);
+function nearestServicePin(point,range,service){
+  let nearest=null;
+  for(const site of map.servicePins||[]){
+    if(service&&site.service!==service)continue;
+    const distance=Math.hypot(site.x-point.x,site.z-point.z);
+    if(distance<range){nearest=site;range=distance;}
+  }
+  return nearest;
+}
+function serviceMapMatch(site){return {...site,label:site.name,kind:site.service==='petrol'?'Petrol':'Car rental',detail:site.description};}
+function showMapMatches(matches){
+  const results = $('search-results'); results.replaceChildren();
   if (!matches.length) { results.textContent = 'No mapped match. Try a street or landmark name.'; return; }
   for (const match of matches) {
     const button = document.createElement('button'); button.type = 'button';
@@ -2180,6 +2277,16 @@ $('map-search-form').addEventListener('submit', event => {
       selectMapPoint({ ...match }); results.replaceChildren(); mapCanvas.focus();
     }); results.append(button);
   }
+}
+$('map-search-form').addEventListener('submit', event => {
+  event.preventDefault();
+  showMapMatches(addressSearch.search($('map-search').value, 20).filter(result => isSandbox() || result.kind !== 'address').slice(0, 8));
+});
+for(const button of document.querySelectorAll('[data-map-service]'))button.addEventListener('click',()=>{
+  const p=focus(),service=button.dataset.mapService;
+  showMapMatches((map.servicePins||[]).filter(site=>site.service===service)
+    .map(site=>({...serviceMapMatch(site),distance:Math.round(Math.hypot(site.x-p.x,site.z-p.z))}))
+    .sort((a,b)=>a.distance-b.distance).map(match=>({...match,detail:`${match.distance} m · ${match.detail}`})));
 });
 function updatePlaces() {
   $('explored').textContent = `${discovered.size} / ${map.landmarks.length} places discovered`;
@@ -2216,6 +2323,7 @@ function populatePlaces() {
       if (road) {
         const yaw = road.road.oneway === -1 ? road.yaw + Math.PI : road.yaw;
         aircraft?.reset();clearInterior();micromobility.reset();
+        carRental?.recover();
         simulation.reset(place.id === 'telopea' ? map.spawn : { x: road.x - Math.cos(yaw) * 2, z: road.z + Math.sin(yaw) * 2, yaw });
         gameplay.reset({ sandbox: true }); pedestrians.resetPopulation(simulation.player);
         cameraReady = false; closeDialogs(); notify(`Starting near ${place.name}.`);
@@ -2316,22 +2424,40 @@ function createCompatibilityRenderer(canvas) {
 window.addEventListener('resize', resize);
 function updateHud() {
   const p = focus(), nearby = simulation.nearestRoad(p.x, p.z);
-  $('speed').textContent = String(Math.round(Math.abs(p.speed) * 3.6));
+  const manual=gameplay.state.mode==='vehicle'&&!aircraft?.active&&!gameplay.state.passenger;
+  const car=simulation.player,speed=manual?Math.hypot(car.vx,car.vz):Math.abs(p.speed);
+  $('speed').textContent = String(Math.round(speed * 3.6));
   refreshAircraftRescue();
   $('gear').textContent = aircraft?.active?(aircraft.active.airborne?'AIR':'LAND'):p.speed < -.5 ? 'R' : Math.abs(p.speed) < .6 ? 'N' : String(Math.min(6, Math.floor(Math.abs(p.speed) / 8) + 1));
-  $('speed-fill').style.width = `${Math.min(100, Math.abs(p.speed) / 54 * 100)}%`;
+  $('speed-fill').style.width = `${Math.min(100, speed / 54 * 100)}%`;
   $('distance').textContent = aircraft?.active?`${Math.round(aircraftAltitude())} M AGL`:`${(simulation.player.odometer / 1000).toFixed(1)} KM`;
-  $('car-label').textContent = aircraft?.active?'JET':buses?.passenger?'BUS':rideService?.passenger?'YOOBER':gameplay?.state.mode === 'foot' ? 'ON FOOT' : vehicles.find(v => v.id === selectedCar)?.label || selectedCar.toUpperCase();
+  const carLabel=vehicles.find(v=>v.id===selectedCar)?.label||selectedCar.toUpperCase();
+  $('car-label').textContent = aircraft?.active?'JET':buses?.passenger?'BUS':rideService?.passenger?'YOOBER':gameplay?.state.mode==='foot'?'ON FOOT':gameplay.state.vehicle.rented?`RENTAL · ${carLabel}`:carLabel;
   $('street').textContent = interiors?.active?.name||nearby?.road.name || 'Canberra backstreets';
   const districtPlaces=map.landmarks.filter(place=>['telopea','manuka','kingston','foreshore','redhill','griffith','narrabundah','canberra-centre','canberra-airport','capital-defence-depot'].includes(place.id));
   const nearestPlace = districtPlaces.reduce((a, b) => Math.hypot(a.x - p.x, a.z - p.z) < Math.hypot(b.x - p.x, b.z - p.z) ? a : b);
   $('district').textContent = nearestPlace.id === 'telopea' ? 'BARTON' : nearestPlace.id==='canberra-centre'?'CIVIC':nearestPlace.name.replace(/ shops$/i,'').toUpperCase();
-  const manual=gameplay.state.mode==='vehicle'&&!aircraft?.active&&!gameplay.state.passenger;
   const boost=simulation.driving;
+  const roadLimit=$('road-limit');
+  roadLimit.hidden=!started||!manual||!nearby||nearby.distance>roadProfile(nearby.road).driveWidth/2+2;
+  if(!roadLimit.hidden){
+    const along=speed>.6?-(Math.sin(nearby.yaw)*car.vx+Math.cos(nearby.yaw)*car.vz):Math.cos(car.yaw-nearby.yaw);
+    const limit=roadSpeed(nearby.road,along>=0?1:-1),mapped=limit.source==='mapped';
+    roadLimit.classList.toggle('estimated',!mapped);
+    roadLimit.textContent=`${limit.kmh}${mapped?'':' est.'}`;
+    roadLimit.title=`${mapped?'Mapped speed limit':'Estimated road speed'} ${limit.kmh} km/h`;
+  }
   $('nitro-display').hidden=!manual;
   if(manual){
     $('nitro-fuel').value=boost.nitroFuel;
-    $('drift-status').textContent=boost.driftActive?`Drift ${Math.round(Math.abs(boost.slipAngle)*180/Math.PI)}°`:boost.nitroActive?'Nitro active':'Nitro';
+    $('drift-status').textContent=boost.nitroActive?'Nitro active':boost.driftActive?`Drift ${Math.round(Math.abs(boost.slipAngle)*180/Math.PI)}°`:'Nitro';
+  }
+  const petrol=started&&manual?nearestServicePin(p,65,'petrol'):null;
+  const petrolCue=$('petrol-cue');
+  petrolCue.hidden=!petrol;
+  if(petrol){
+    const distance=Math.hypot(p.x-petrol.x,p.z-petrol.z);
+    petrolCue.textContent=distance>petrol.radius?`${petrol.name} · ${Math.round(distance)} m to nitro bay`:boost.nitroFuel>=.995?'Nitro bay · tank full':'Nitro bay · stop and press E';
   }
   $('jetpack-status').hidden=!jetpack.active;
   if(jetpack.active)$('jetpack-status').textContent=`Jetpack fuel ${Math.round(jetpack.chargeFraction*100)}% · ${Math.round(gameplay.state.actor.jumpHeight)} m${jetpack.landing?' · Landing':''}`;
@@ -2558,6 +2684,8 @@ function animate(time) {
   pedestrianFocus.x=p.x;pedestrianFocus.z=p.z;pedestrianFocus.yaw=p.yaw;pedestrianFocus.speed=gameplay.state.mode==='vehicle'?p.speed:0;
   pedestrians?.update(pedestrianFocus, activeDt, simulation.traffic,simulation.hasLineOfSight);
   placeCar(playerMesh, simulation.player, activeDt);
+  const car=simulation.player;
+  nitroView?.update(playerMesh,BY_ID[car.modelId],started&&gameplay.state.mode==='vehicle'&&!gameplay.state.passenger&&simulation.driving.nitroActive,activeDt);
   trafficView?.update(p,{lowGraphics:quality!=='standard'});
   updateAbandonedMeshes(p, activeDt);
   busView?.update(buses.vehicles,p);servicesView?.update(p);signalsView?.update(simulation.trafficLights.heads,p);
@@ -2581,6 +2709,7 @@ function animate(time) {
   if (++frameCount % 8 === 0) {
     world.update(p, time / 1000); neighbourhood?.update(p); landmarkView?.update(p, time / 1000);storefrontsView?.update(p);shoppingView?.update(p);campusView?.update(p);civicView?.update(p);civicExtrasView?.update(p);
     streetAssetsView?.update(p);highwayBarriersView?.update(p);localDetailsView?.update(p);
+    rentalStorefrontsView?.update(p);
     syncParkedVisibility();
     for (const chunk of parkedChunks) chunk.group.visible = Math.hypot(chunk.x - p.x, chunk.z - p.z) < 600;
   }
@@ -2729,14 +2858,30 @@ async function boot() {
   stuntsView=compatibility?emptyView():createStuntRampsView(scene,stunts);
   simulation=createSimulation(map,{isOnBridge:terrainSampler.isOnBridge,vehicleHeightAt:groundVehicleHeightAt,stuntSupportAt:stunts.supportAt,nitroAutoRecharge:false,vehicleMods:()=>!isSandbox()&&gameplay?progression.vehicleMods(gameplay.state.vehicle):{},powerModifiers:()=>heroPowers.modifiers(powerContext())});
   const nitroStations=createNitroStations(FUEL_STATIONS,simulation),nitroById=new Map(nitroStations.map(site=>[site.id,site]));
+  const forecourts=buildPetrolForecourts(nitroStations,FUEL_STATIONS,simulation,terrainSampler.heightAt,map.buildings);
+  const rentals=buildRentalStorefronts(simulation,terrainSampler.heightAt);
+  carRentalSites=rentals.sites;
+  const serviceBarriers=[...forecourts.barriers,...rentals.barriers];
+  map.barriers.push(...serviceBarriers);
+  simulation.registerStaticBarriers(serviceBarriers);
+  map.landmarkTreeExclusions.push(...carRentalSites.map(site=>site.apron).filter(Boolean));
+  map.servicePins=[];
   for(const site of FUEL_STATIONS){
     if(site.category!=='petrol')continue;
     const bay=nitroById.get(site.id);
-    map.searchPlaces.push({id:site.id,name:site.name,aliases:[site.sourceName,'petrol','gas station','fuel',...(bay?['nitro','nitro refill']:[])],
-      x:bay?.x??site.x,z:bay?.z??site.z,radius:20,description:bay?'Nitro refill bay at a mapped petrol station':'Mapped petrol station'});
+    const road=bay&&simulation.nearestRoad(bay.x,bay.z)?.road.name;
+    const pin={id:site.id,name:site.name,service:'petrol',aliases:[site.sourceName,'petrol','gas station','fuel',...(bay?['nitro','nitro refill']:[])],
+      x:bay?.x??site.x,z:bay?.z??site.z,radius:bay?.radius??3.25,description:road?`${road} · Nitro refill`:bay?'Nitro refill':'Petrol station'};
+    map.servicePins.push(pin);map.searchPlaces.push(pin);
+  }
+  for(const site of carRentalSites){
+    const pin={...site,service:'rental',description:site.road||'Car rental storefront'};
+    map.servicePins.push(pin);map.searchPlaces.push(pin);
   }
   wildlifeView=compatibility?emptyView():createWildlifeView(scene,map,terrainSampler.heightAt);
-  streetAssetsView=compatibility?emptyView():createStreetAssetsView(scene,terrainSampler.heightAt,{nitroStations});
+  streetAssetsView=compatibility?emptyView():createStreetAssetsView(scene,terrainSampler.heightAt,{nitroStations,petrolForecourts:forecourts.sites});
+  rentalStorefrontsView=compatibility?emptyView():createRentalStorefrontsView(scene,terrainSampler.heightAt,carRentalSites);
+  nitroView=compatibility?emptyView():createNitroView(scene);
   highwayBarriersView=compatibility?emptyView():createHighwayBarriersView(scene,terrainSampler.heightAt);
   signalsView=compatibility?emptyView():createTrafficLightsView(scene,world.heightAt);
   roadGuidanceView=compatibility?emptyView():createRoadGuidanceView(scene,(x,z,yaw)=>world.vehicleHeightAt({x,z,yaw}),{
@@ -2831,8 +2976,9 @@ async function boot() {
       recoveryPlan=null;
       aircraft?.reset();jetpack?.reset(gameplay.state);cockpitCamera=false;clearInterior();micromobility.reset();resetDelivery();rideService?.reset();buses?.reset();equipment?.reset();followYoober=false;
       if(!developerReturn&&!missionTransfer)progression.penalize(reason === 'arrest' ? 'Arrest' : 'Hospital treatment');
+      const rentalRecovered=carRental?.recover();
       const owned = progression.state.ownedVehicles.find(car => car.id === gameplay.state.vehicle.modelId);
-      if (owned && !gameplay.state.vehicle.stolen&&!developerReturn&&aircraftRescueHealth===null) owned.health = 100;
+      if (owned && !rentalRecovered&&!gameplay.state.vehicle.stolen&&!developerReturn&&aircraftRescueHealth===null) owned.health = 100;
       if(aircraftRescueHealth!==null){gameplay.state.vehicleHealth=aircraftRescueHealth;aircraftRescueHealth=null;}
       let safehouse;
       if(reason==='knockout'&&!missionTransfer&&!developerReturn){
@@ -2856,6 +3002,7 @@ async function boot() {
       if (!['attack','dry-fire','reload','reload-complete'].includes(event.kind)) notify(event.message);
       if (event.kind === 'respawn') cameraReady = false;
     } });
+  carRental=createCarRental(carRentalSites,simulation,{pay:progression.payCarRental,install:installRentalVehicle,visible});
   houseController=createHouseController({burglary,activities,progression,getPlan:()=>interiors.active,save:saveCareer,heal:amount=>gameplay.heal(amount)});
   jetpack=createJetpack({moveActor:moveBody,heightAt:world.heightAt});
   jetpackView=compatibility?emptyView():createJetpackView(scene,world.heightAt);
@@ -2941,6 +3088,7 @@ async function boot() {
   raf = requestAnimationFrame(animate);
 }
 window.addEventListener('pagehide', () => {
+  nitroView?.dispose();rentalStorefrontsView?.dispose();
   if (progression && gameplay) saveCareer();
   disposed = true;resetDelivery();deliveryView?.dispose();stuntsView?.dispose();houseController?.reset();drone?.dispose();droneActive=false;droneView?.dispose();securityCameras?.dispose();securityCamerasView?.dispose();cityUI?.dispose(); cancelAnimationFrame(raf); clearTimeout(toastTimer); clearInput();
   moveStick.dispose(); lookStick.dispose();

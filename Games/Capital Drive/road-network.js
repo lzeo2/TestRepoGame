@@ -1,3 +1,27 @@
+function speedKmh(value) {
+  if (typeof value !== 'string' && typeof value !== 'number') return null;
+  const match = /^(\d{1,3})(?:\s*(km\/h|kph|mph))?$/i.exec(String(value).trim());
+  if (!match) return null;
+  const kmh = Math.round(Number(match[1]) * (match[2]?.toLowerCase() === 'mph' ? 1.609344 : 1));
+  return kmh >= 5 && kmh <= 130 ? kmh : null;
+}
+
+const estimatedSpeeds = Object.freeze({
+  living_street: 20, service: 20, motorway: 100, trunk: 80, primary: 70, secondary: 60,
+  motorway_link: 60, trunk_link: 50, primary_link: 50, secondary_link: 50,
+});
+
+export function roadSpeed(road = {}, direction = 0) {
+  const tags = road.sourceTags || {};
+  const directional = direction > 0 ? tags['maxspeed:forward'] : direction < 0 ? tags['maxspeed:backward'] : undefined;
+  const limit = speedKmh(directional) ?? speedKmh(tags.maxspeed);
+  if (limit !== null) return { kmh: limit, source: 'mapped' };
+  const estimate = speedKmh(road.speed);
+  const type = road.type || '';
+  if (type === 'service' || type === 'living_street') return { kmh: Math.min(estimate ?? 20, 20), source: 'estimate' };
+  return { kmh: estimate ?? (Object.hasOwn(estimatedSpeeds, type) ? estimatedSpeeds[type] : 50), source: 'estimate' };
+}
+
 // Widths are conservative presentation defaults, not surveyed carriageway measurements.
 export function roadProfile(road = {}) {
   const tags = road.sourceTags || {}, service = tags.service || road.service || '';

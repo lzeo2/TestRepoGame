@@ -103,6 +103,9 @@ export function createGameplay(map, simulation, options = {}) {
     const target = simulation.nearbyVehicles(state.actor.x, state.actor.z, 7)
       .filter(v => visible(state.actor, v)).sort((a, b) => distance(a, state.actor) - distance(b, state.actor))[0];
     if (!target) { emit('no-vehicle', 'Move closer to a car.'); return false; }
+    if (target.id !== 'player' && state.vehicle.rented) {
+      emit('blocked', 'Return your rental before switching cars.'); return false;
+    }
     if (target.id !== 'player' && target.owned !== true && target.unlocked !== true) {
       clearTheftChallenge();
       if (target.occupied) simulation.requestVehicleStop(target.id, 5);
@@ -117,7 +120,8 @@ export function createGameplay(map, simulation, options = {}) {
     if (!result.ok) { emit('blocked', result.reason || 'Car unavailable.'); return false; }
     state.mode = 'vehicle'; state.actor.speed = 0; state.actor.jumpHeight = 0; jumpVelocity = 0;
     state.vehicle = { modelId: result.vehicle.modelId || 'lantern', color: result.vehicle.color ?? 0xd4d7d3,
-      stolen: target.id === 'player' ? state.vehicle.stolen : Boolean(result.stolen) };
+      stolen: target.id === 'player' ? state.vehicle.stolen : Boolean(result.stolen),
+      ...(target.id === 'player' && state.vehicle.rented ? {rented:true} : {}) };
     state.vehicleHealth = target.id === 'player' ? state.vehicleHealth : (result.vehicle.health ?? 100);
     previousCrashes = simulation.player.crashes || 0;
     options.onVehicleChanged?.({ ...state.vehicle }, { newVehicle: target.id !== 'player' });

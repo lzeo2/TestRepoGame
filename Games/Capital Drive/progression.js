@@ -3,6 +3,8 @@ import {SERVICES,LEGACY_SHOP_IDS} from './services.js';
 import {WEAPON_IDS,weaponById} from './weapons.js';
 import {isWorkoutKind} from './interior-activities.js';
 import {nitroRefillQuote} from './nitro-stations.js';
+import {isVehicleStopped} from './driving-dynamics.js';
+import {CAR_RENTAL_OFFERS} from './car-rental.js';
 // Fictional job markers beside the mapped roads; these are not real businesses.
 const CARS = [
   { id: 'lantern', name: 'Neighbourhood saloon', price: 0 },
@@ -26,10 +28,13 @@ const MAX_CASH = 1000000000;
 const RIDE_MODELS = ['lantern', 'orchard', 'gravel', 'relay'];
 const RIDE_STOP_SECONDS = 2;
 const RIDE_STOP_SPEED = .8;
+const RIDE_STOP_RADIUS = 16;
+const DELIVERY_STOP_RADIUS = 20;
 const MUGGING_ID = /^ped:(?:0|[1-9]\d?|1[0-5]\d)$/;
 const copy = value => JSON.parse(JSON.stringify(value));
 const near = (a, b, radius = 17) => a && Math.hypot(a.x - b.x, a.z - b.z) <= radius;
 const point = (x, z, label) => ({ x, z, label });
+const deliveryStop = (x, z, label) => ({ ...point(x, z, label), radius: DELIVERY_STOP_RADIUS });
 const validVehicleKey = key => Number.isSafeInteger(key)&&key>=0||typeof key==='string'&&key.length>0&&key.length<=120;
 const object = value => value && typeof value === 'object' && !Array.isArray(value);
 const exactKeys = (value, keys) => Object.keys(value).every(key => keys.includes(key));
@@ -99,19 +104,19 @@ export function createProgression(map, saved = null, options = {}) {
       { ...point(411.48, -107.54, 'Kennedy Street checkpoint'), roadId: '5117419-0' },
       { ...point(707.93, 106.77, 'Kennedy Street drop'), roadId: '673311537-0' }] },
     { id: 'yoober-crescent', name: 'Yoober Crescent local fare', type: 'ride', legitimate: true, reward: 45, time: 120, requires: [], stages: [
-      { ...point(-342.84, -382.24, 'Crescent passenger pickup'), roadId: '454766146-0' },
-      { ...point(-322.32, -348.02, 'Crescent passenger drop-off'), roadId: '454766146-0' }] },
+      { ...point(-342.84, -382.24, 'Crescent passenger pickup'), roadId: '454766146-0', radius: RIDE_STOP_RADIUS },
+      { ...point(-322.32, -348.02, 'Crescent passenger drop-off'), roadId: '454766146-0', radius: RIDE_STOP_RADIUS }] },
     { id: 'yoober-franklin', name: 'Yoober Franklin Street fare', type: 'ride', legitimate: true, reward: 110, time: 180, requires: [], stages: [
-      { ...point(-412.29, 160.2, 'Franklin passenger pickup'), roadId: '488671941-0' },
-      { ...point(-297.93, 240.71, 'Franklin passenger drop-off'), roadId: '488671941-0' }] },
+      { ...point(-412.29, 160.2, 'Franklin passenger pickup'), roadId: '488671941-0', radius: RIDE_STOP_RADIUS },
+      { ...point(-297.93, 240.71, 'Franklin passenger drop-off'), roadId: '488671941-0', radius: RIDE_STOP_RADIUS }] },
     { id:'food-round',name:'Lunch delivery round',cargoKind:'food',description:'Two lunch handovers. Freshness falls after pickup; pay ranges from 60% to 100%.',type:'delivery',legitimate:true,stopSeconds:1.5,reward:620,time:210,requires:[],stages:[
-      point(-412.29,160.2,'Collect lunch orders on Franklin Street'),point(-297.93,240.71,'First lunch handover'),point(263.85,-215.82,'Kennedy lunch handover')] },
+      deliveryStop(-412.29,160.2,'Collect lunch orders on Franklin Street'),deliveryStop(-297.93,240.71,'First lunch handover'),deliveryStop(263.85,-215.82,'Kennedy lunch handover')] },
     { id:'inner-south-courier',name:'Inner south document courier',description:'Exchange sealed documents at three ordered stops for a fixed fee.',type:'delivery',legitimate:true,stopSeconds:1.5,reward:780,time:240,requires:['crescent-parcel'],stages:[
-      point(263.85,-215.82,'Collect the sealed documents'),point(-412.29,160.2,'Franklin document exchange'),point(-322.32,-348.02,'Crescent document handover')] },
+      deliveryStop(263.85,-215.82,'Collect the sealed documents'),deliveryStop(-412.29,160.2,'Franklin document exchange'),deliveryStop(-322.32,-348.02,'Crescent document handover')] },
     { id:'urgent-medical',name:'Urgent medical supplies',cargoKind:'medical',description:'100 seconds. Use a car at 60% condition or better; more than 15 damage after loading ruins the supplies.',type:'delivery',legitimate:true,stopSeconds:1.5,reward:900,time:100,requires:[],stages:[
-      point(-297.93,240.71,'Collect the medical supply crate'),point(707.93,106.77,'Urgent medical supply handover')] },
+      deliveryStop(-297.93,240.71,'Collect the medical supply crate'),deliveryStop(707.93,106.77,'Urgent medical supply handover')] },
     { id:'equipment-delivery',name:'Workshop equipment delivery',cargoKind:'equipment',description:'Keep the loaded vehicle. 25 cumulative damage breaks the equipment; repairs do not erase damage.',type:'delivery',legitimate:true,stopSeconds:2,reward:700,time:210,requires:['crescent-parcel'],stages:[
-      point(-349.73,-422.16,'Load workshop equipment'),point(411.48,-107.54,'Workshop equipment handover'),point(-349.73,-422.16,'Return the empty equipment cases')] },
+      deliveryStop(-349.73,-422.16,'Load workshop equipment'),deliveryStop(411.48,-107.54,'Workshop equipment handover'),deliveryStop(-349.73,-422.16,'Return the empty equipment cases')] },
     { id: 'priority-parcel', name: 'Priority parcel', type: 'delivery', reward: 1000, time: 110, requires: ['crescent-circuit', 'wagon-recovery'], stages: [south, north] },
   ];
   const state = { cash: 1000, ownedVehicles: [{ id: 'lantern', color: '#e7e6df', health: 100, stored: false, mods:stockMods() }], completedJobs: [], activeJob: null,
@@ -177,13 +182,14 @@ export function createProgression(map, saved = null, options = {}) {
     if ((!active && state.activeJob) || state.activity) return 'Finish or cancel the current activity first.';
     if (ctx.onFoot || !object(ctx.vehicle)) return 'Drive an owned four-door car first.';
     const owned = currentOwned(ctx.vehicle.modelId);
-    if (!RIDE_MODELS.includes(ctx.vehicle.modelId) || !owned || owned.stored || ctx.vehicle.stolen !== false) return 'Use an owned, legal four-door car.';
+    if (ctx.vehicle.rented || !RIDE_MODELS.includes(ctx.vehicle.modelId) || !owned || owned.stored || ctx.vehicle.stolen !== false) return 'Use an owned, legal four-door car.';
     if (ctx.vehicleHealth < 50 || ctx.vehicleHealth > 100) return 'Repair the car to at least 50% condition.';
     return '';
   }
   function rideEligibility(ctx) { return rideGuard(ctx); }
   function garageGuard() {
     if (!atGarage()) return result(false, 'Visit the Crescent garage first.');
+    if (context.vehicle?.rented) return result(false, 'Return your rental before using the garage.');
     if (context.wanted > 0) return result(false, 'Lose the police before using the garage.');
     return null;
   }
@@ -304,7 +310,7 @@ export function createProgression(map, saved = null, options = {}) {
     if (job.type === 'ride') {
       const reason = rideGuard(ctx, true);
       if (active.passenger && (reason || ctx.vehicle.modelId !== active.modelId)) { fail('Fare interrupted. No pay earned.'); return; }
-      const stopped = !reason && near(ctx.pose, active.target, 10) && Number.isFinite(ctx.pose.speed) && Math.abs(ctx.pose.speed) <= RIDE_STOP_SPEED;
+      const stopped = !reason && near(ctx.pose, active.target, active.target.radius) && isVehicleStopped(ctx.pose, RIDE_STOP_SPEED);
       // A long frame or a previous interrupted stop cannot board or pay instantly.
       if (active.stopModelId !== ctx.vehicle?.modelId) active.stopTime = 0;
       active.stopModelId = stopped ? ctx.vehicle.modelId : null;
@@ -319,7 +325,7 @@ export function createProgression(map, saved = null, options = {}) {
     } else if (job.stopSeconds) {
       const vehicleKey=validVehicleKey(ctx.vehicleKey)?ctx.vehicleKey:null;
       const stopped=driving&&ctx.vehicleHealth>=(job.cargoKind==='medical'?60:25)&&ctx.vehicleHealth<=100&&!ctx.vehicle.stolen&&
-        Number.isFinite(ctx.pose.speed)&&Math.abs(ctx.pose.speed)<=RIDE_STOP_SPEED&&near(ctx.pose,active.target,10)&&!ctx.paused&&!ctx.preview&&!ctx.passenger&&(!job.cargoKind||job.cargoKind==='food'||vehicleKey!==null);
+        isVehicleStopped(ctx.pose,RIDE_STOP_SPEED)&&near(ctx.pose,active.target,active.target.radius)&&!ctx.paused&&!ctx.preview&&!ctx.passenger&&(!job.cargoKind||job.cargoKind==='food'||vehicleKey!==null);
       const stopIdentity=job.cargoKind&&job.cargoKind!=='food'?vehicleKey:ctx.vehicle?.modelId;
       if(active.stopModelId!==stopIdentity)active.stopTime=0;
       active.stopModelId=stopped?stopIdentity:null;
@@ -363,7 +369,7 @@ export function createProgression(map, saved = null, options = {}) {
     if(state.activity||state.activeJob)return 'Finish or cancel the current activity first.';
     const car=currentOwned(id),mod=GARAGE_MODS.find(item=>item.id===modId);
     if(!car||!mod)return 'Choose an owned vehicle and a known upgrade.';
-    if(ctx.onFoot||car.stored||ctx.vehicle?.modelId!==id||ctx.vehicle.stolen!==false)return 'Drive this owned, legal vehicle into the garage.';
+    if(ctx.onFoot||car.stored||ctx.vehicle?.rented||ctx.vehicle?.modelId!==id||ctx.vehicle.stolen!==false)return 'Drive this owned, legal vehicle into the garage.';
     if(ctx.vehicleHealth<=0||ctx.vehicleHealth>100)return 'Repair this vehicle before upgrading.';
     if(!Number.isFinite(ctx.pose.speed)||Math.abs(ctx.pose.speed)>.8)return 'Stop the vehicle before upgrading.';
     if(car.mods[modId]>=mod.costs.length)return 'Maximum tier fitted.';
@@ -379,7 +385,7 @@ export function createProgression(map, saved = null, options = {}) {
     return result(true,`${mod.name} tier ${car.mods[modId]} fitted.`,{vehicle:copy(car),modId,tier:car.mods[modId],cost},'vehicle-upgraded');
   }
   function vehicleMods(vehicle) {
-    const car=vehicle?.stolen===false&&currentOwned(vehicle.modelId);
+    const car=vehicle?.stolen===false&&!vehicle.rented&&currentOwned(vehicle.modelId);
     return copy(car&&!car.stored?car.mods:stockMods());
   }
   function repairVehicle() {
@@ -734,6 +740,16 @@ export function createProgression(map, saved = null, options = {}) {
     if(!spend(amount))return result(false,'Not enough cash for this ride.');
     return result(true,`Ride hired for $${amount}.`,{cost:amount},'rental-started');
   }
+  function payCarRental(modelId, ctx, place) {
+    const offer=CAR_RENTAL_OFFERS.find(car=>car.modelId===modelId);
+    if (!offer || !validContext(ctx) || !ctx.onFoot || ctx.recovering || ctx.interior || ctx.passenger ||
+      ctx.vehicle?.rented || state.activeJob || state.activity) return result(false,'Car rental unavailable.');
+    const cost=ctx.sandbox?0:offer.price;
+    if (state.cash<cost) return result(false,'Not enough cash for that rental.');
+    if (typeof place!=='function' || !place()) return result(false,'The pickup bay is blocked. Try again when it clears.');
+    spend(cost);
+    return result(true,'Car rented.',{cost},'car-rental-started');
+  }
   function payRide(amount, ctx) {
     if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.onFoot || ctx.wanted > 0 || state.activeJob || state.activity || !Number.isSafeInteger(amount) || amount < 8 || amount > 400) return result(false, 'Yoober booking unavailable.');
     if (!spend(amount)) return result(false, 'Not enough cash for this fare.');
@@ -875,7 +891,7 @@ export function createProgression(map, saved = null, options = {}) {
     state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{serviceId:active.serviceId,cost:active.cost,kind:active.station.kind},'workout-complete');
   }
   return { state, jobs, garage,captureMissionState,restoreMissionState,commitMissionState,saveInventory,getInventory,saveCrewHealth,getCrewHealth,propertyOffers,crewOffers,buyProperty,restSafehouse,isSafehouse,hireCrew,rehireCrew,dismissCrew,buyDrone,claimHouseLoot,stash,get ownedProperties(){return [...state.ownedProperties];},crewRenewalSerial(id){return crewRenewals[id]??0;},get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, upgradeVehicle, upgradeEligibility, vehicleMods, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,quoteDelivery,reserveDelivery,completeDelivery,startActivity,startMugging,robberyEligibility,workoutEligibility,finishWorkout,payRental,payRide,consumeFlare,consumeThrowable,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
-    nitroOffer, refillNitro, buyDroneStrike,
+    nitroOffer, refillNitro, buyDroneStrike, payCarRental,
     cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;workoutPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
     serialize() { return copy({ version: 1, cash: Math.min(MAX_CASH,state.cash+(deliveryEscrow?.cost||0)), ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,gear:state.gear,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns,muggingCooldowns:state.muggingCooldowns,...(state.ownedProperties.length?{ownedProperties:state.ownedProperties}:{}),...(Object.keys(state.stashes).length?{stashes:state.stashes}:{}),...(state.hiredCrew.length?{hiredCrew:state.hiredCrew}:{}),...(Object.keys(state.inventoryProfiles).length?{inventoryProfiles:state.inventoryProfiles}:{}),...(Object.keys(state.crewHealth).length?{crewHealth:state.crewHealth}:{}),...(Object.keys(state.burglaryCooldowns).length?{burglaryCooldowns:state.burglaryCooldowns}:{}) }); },
