@@ -222,16 +222,18 @@ body[data-mode=free] #cash-value,body[data-mode=free] #wanted-level{display:none
 .map-search label{display:block;font-size:11px;font-weight:700;margin-bottom:6px}
 .map-search>div:first-of-type{display:flex;gap:7px}
 .map-service-filters{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
-.map-service-filters button{min-height:44px;padding:6px 10px;text-align:left}
-.map-service-filters button::before{display:inline-block;content:"";width:10px;height:10px;margin-right:7px;border:1px solid #fff;background:#075d73}
-.map-service-filters button[data-map-service="rental"]::before{background:#483781}
+.map-service-filters button,#search-results button{display:flex;align-items:center;gap:8px;text-align:left}
+.map-service-filters button{min-height:44px;padding:6px 10px}
+.map-service-icon{display:block;flex:none;width:22px;height:22px}
 .map-search input{min-width:0;width:100%;min-height:44px;padding:10px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:3px;font:13px Atkinson,Arial,sans-serif}
 .map-search input:focus-visible{outline:2px solid var(--accent)}
 .map-search p{font-size:10px;margin:7px 0 0}
 #search-results{display:grid;gap:5px;max-height:180px;overflow:auto}
 #search-results:not(:empty){margin-top:9px}
-#search-results button{text-align:left;font-size:11px}
-#search-results button span{display:block;font-size:10px;color:var(--muted);font-weight:400;margin-top:4px}
+#search-results button{font-size:11px}
+.map-result-copy{min-width:0}
+.map-result-copy strong,.map-result-copy small{display:block;overflow-wrap:anywhere}
+.map-result-copy small{font-size:10px;color:var(--muted);font-weight:400;margin-top:4px}
 .garage-services{display:flex;gap:7px;flex-wrap:wrap}
 .garage-services button{font-size:11px}
 .pause-access{display:flex;gap:8px;margin:12px 0}

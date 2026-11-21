@@ -50,7 +50,8 @@ controlled landing. Powered flight lasts roughly 50–110 seconds depending on
 thrust. Fuel replenishes while standing outside between flights. A merged
 twin-tank shell and instanced exhaust use at most two draws.
 
-The map has a Petrol stations shortcut and cyan fuel-pump markers. All twelve
+Petrol and rental symbols share artwork across the full map, minimap,
+shortcuts and search results. All twelve
 nitro bays have canopies, pumps and roadside fuel signs by mapped stations.
 Five use retained mapped roofs and seven have original fitted structures.
 Paving follows the terrain and leaves public lanes clear. Columns and fixtures
@@ -989,7 +990,7 @@ tab and a separate local save. Native gear and nitro cases passed 17 and 13
 assertions. They use explicit initial funded checkpoints by Canalside and
 Kingston to exercise real purchase, flight, landing, reload and paid refill.
 
-The reusable runner checks 132 game JavaScript files, 191 pure Node
+The reusable runner checks 133 game JavaScript files, 192 pure Node
 suites, 5 support scripts, the flamegraph parser, cache closure and
 whitespace. The 20 November motion update passed 13 targeted Node suites,
 including shared foot/camera interpolation, actual pedestrian instance poses,
