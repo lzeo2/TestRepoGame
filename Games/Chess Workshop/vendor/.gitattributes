@@ -1,0 +1,4 @@
+# Keep the npm releases verbatim, including the generated parser's indentation
+# and the Stockfish license's CRLF line endings.
+chess.js -text whitespace=-space-before-tab
+stockfish.COPYING -text whitespace=cr-at-eol
