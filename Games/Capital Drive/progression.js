@@ -5,6 +5,7 @@ import {isWorkoutKind} from './interior-activities.js';
 import {nitroRefillQuote} from './nitro-stations.js';
 import {isVehicleStopped} from './driving-dynamics.js';
 import {CAR_RENTAL_OFFERS} from './car-rental.js';
+import {deliveryMethod} from './delivery-service.js';
 // Fictional job markers beside the mapped roads; these are not real businesses.
 const CARS = [
   { id: 'lantern', name: 'Neighbourhood saloon', price: 0 },
@@ -563,6 +564,8 @@ export function createProgression(map, saved = null, options = {}) {
   function quoteDelivery(request,ctx){
     if(!commerceAllowed(ctx)||ctx.interior||ctx.paused||ctx.preview)return {ok:false,message:'Order outside on foot when ready.'};
     if(!object(request))return {ok:false,message:'Invalid delivery request.'};
+    const method=deliveryMethod(request.method);
+    if(!method)return {ok:false,message:'Choose a valid delivery method.'};
     const site=services.find(item=>item.id===request.sourceId);
     let cost,effect;
     if(request.kind==='food'&&site?.type==='food'&&request.itemId==='food'){
@@ -577,32 +580,43 @@ export function createProgression(map, saved = null, options = {}) {
     if(!Number.isSafeInteger(cost)||cost<=0||!object(effect)||Object.values(effect).some(value=>typeof value==='number'&&!Number.isFinite(value)))return {ok:false,message:'Delivery item unavailable.'};
     cost+=50;
     if(state.cash<cost)return {ok:false,message:'Not enough cash.'};
-    return {ok:true,cost,dispatchCost:50,...effect};
+    return {ok:true,cost,dispatchCost:50,method,...effect};
   }
   function reserveDelivery(orderId,request,ctx){
     if(deliveryEscrow)return result(false,'A paid delivery is already pending.');
     if(orderId===lastDeliveryOrderId)return result(false,'This delivery was already paid.');
     const quote=quoteDelivery(request,ctx);if(!quote.ok)return result(false,quote.message);
     let live;try{live=options.deliveryOrder?.();}catch{return result(false,'Courier unavailable.');}
-    if(!object(live)||typeof orderId!=='string'||!orderId||live.orderId!==orderId||live.kind!==request.kind||live.sourceId!==request.sourceId||live.itemId!==request.itemId)return result(false,'Book the matching physical courier first.');
+    if(!object(live))return result(false,'Book the matching physical courier first.');
+    if(typeof orderId!=='string'||!orderId||live.orderId!==orderId||live.kind!==request.kind||
+      live.sourceId!==request.sourceId||live.itemId!==request.itemId||deliveryMethod(live.method)!==quote.method)return result(false,'Book the matching physical courier first.');
     state.cash-=quote.cost;lastDeliveryOrderId=orderId;
-    deliveryEscrow={orderId,kind:request.kind,sourceId:request.sourceId,itemId:request.itemId,cost:quote.cost,effect:copy(quote)};
-    return result(true,'Delivery paid. Meet the courier.',{orderId,cost:quote.cost},'delivery-reserved');
+    deliveryEscrow={orderId,kind:request.kind,sourceId:request.sourceId,itemId:request.itemId,method:quote.method,cost:quote.cost,effect:copy(quote)};
+    return result(true,'Delivery paid. Meet the courier.',{orderId,cost:quote.cost,method:quote.method},'delivery-reserved');
   }
   function completeDelivery(orderId,ctx){
     if(!deliveryEscrow||deliveryEscrow.orderId!==orderId)return result(false,'No matching paid delivery.');
     let receipt;try{receipt=options.takeDeliveryReceipt?.(orderId);}catch{return result(false,'Delivery receipt unavailable.');}
     const pending=deliveryEscrow;
-    if(!object(receipt)||!Object.isFrozen(receipt)||receipt.orderId!==orderId||receipt.kind!==pending.kind||receipt.itemId!==pending.itemId||receipt.sourceId!==pending.sourceId||!['completed','failed','cancelled'].includes(receipt.type))return result(false,'Wait for the real courier handover.');
+    if(!object(receipt)||!Object.isFrozen(receipt))return result(false,'Wait for the real courier handover.');
+    const method=deliveryMethod(receipt.method),{type,risk}=receipt;
+    const confiscated=type==='confiscated';
+    const validRisk=confiscated ? method==='illegal'&&risk==='arrest' :
+      risk===undefined || (type==='completed'&&method==='illegal'&&risk==='reported');
+    if(receipt.orderId!==orderId||receipt.kind!==pending.kind||receipt.itemId!==pending.itemId||
+      receipt.sourceId!==pending.sourceId||method!==pending.method||!validRisk||
+      !['completed','failed','cancelled','confiscated'].includes(type))
+      return result(false,'Wait for the real courier handover.');
     deliveryEscrow=null;
+    if(confiscated)return result(true,'Delivery confiscated. The payment was forfeited.',{orderId,method,risk,confiscated:true,cost:pending.cost},'delivery-confiscated');
     const duplicate=pending.effect.weaponId&&(state.equipment[pending.effect.weaponId]||Object.values(state.stashes).some(store=>store.weapons.includes(pending.effect.weaponId)));
-    if(receipt.type!=='completed'||!commerceAllowed(ctx)||ctx.interior||ctx.paused||ctx.preview||duplicate){
+    if(type!=='completed'||!commerceAllowed(ctx)||ctx.interior||ctx.paused||ctx.preview||duplicate){
       state.cash=Math.min(MAX_CASH,state.cash+pending.cost);
-      return result(true,'Delivery cancelled. Payment refunded.',{orderId,refund:pending.cost},'delivery-refunded');
+      return result(true,'Delivery cancelled. Payment refunded.',{orderId,method,refund:pending.cost},'delivery-refunded');
     }
     const {cost,dispatchCost,ok,...effect}=pending.effect;
     if(effect.weaponId)state.equipment[effect.weaponId]=true;
-    return result(true,'Delivery received.',{orderId,cost,...effect},'delivery-complete');
+    return result(true,'Delivery received.',{orderId,cost,...effect,...(risk?{risk}:{})},'delivery-complete');
   }
   function startActivity(id,type,ctx){
     if(type==='workout'&&options.interactiveWorkouts)return startWorkout(id,ctx);

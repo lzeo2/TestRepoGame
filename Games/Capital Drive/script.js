@@ -204,7 +204,7 @@ function deliveryContext(){
 }
 function handleDeliveryEvents(){
   for(const event of delivery?.drainEvents()||[]){
-    if(['completed','cancelled','failed'].includes(event.type)){
+    if(['completed','cancelled','failed','confiscated'].includes(event.type)){
       const redraw=followCourier&&$('map-dialog').open;
       followCourier=false;
       if(destination?.courierOrderId===event.orderId){destination=null;route=[];}
@@ -215,7 +215,8 @@ function handleDeliveryEvents(){
         if(result.heal)gameplay.heal(result.heal);
         if(result.ammo)gameplay.addAmmo(result.ammo,result.weaponId);
         if(result.weaponId)gameplay.setWeapon(result.weaponId);
-        saveCareer();streetUI?.refresh();notify(result.message);
+        const policeReported=result.method==='illegal'&&result.risk&&gameplay.resolveDeliveryRisk(result.risk);
+        saveCareer();streetUI?.refresh();notify(policeReported&&result.risk==='reported'?`${result.message} Police spotted the handover.`:result.message);
       }
     }else if(event.type==='arrived')notify('Courier stopped. Walk beside the van and press E.');
   }
@@ -233,7 +234,7 @@ function orderDelivery(request){
   if(!paid.ok){delivery.cancel(paid.message);handleDeliveryEvents();return paid;}
   handleDeliveryEvents();saveCareer();closeDialogs();clearInput();
   if(booked.dropoff)routeTo({...booked.dropoff,name:'Courier handover',label:'Meet the courier',courierOrderId:booked.orderId});
-  notify('Courier dispatched. Meet the van at the marked stop.');return paid;
+  notify(`${paid.method==='illegal'?'Illegal':'Legal'} courier dispatched. Meet the van at the marked stop.`);return paid;
 }
 function recallDrone(reason){
   const recalled=drone?.recall(reason)||false;droneActive=false;
@@ -258,7 +259,7 @@ function resumeCheckpoint(checkpoint){
   return checkpoint;
 }
 function stepDrone(dt){
-  if(!droneActive){drone?.step(dt,{paused:paused()});return;}
+  if(!droneActive)return;
   const stick=moveStick.snapshot();
   droneInput.forward=THREE.MathUtils.clamp(Number(keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown'))-stick.y,-1,1);
   droneInput.right=THREE.MathUtils.clamp(Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'))+stick.x,-1,1);
@@ -269,11 +270,10 @@ function stepDrone(dt){
 }
 function strikeDrone(){
   const result=drone.strike(gameplay.state,{owned:progression.state.gear.drone===true,upgraded:progression.state.gear.droneStrike===true,
-    sandbox:isSandbox()||!!developerReturn,paused:paused(),interiorId:interiors.active?.id||null,
-    blocked:!canCrewAttack()||!!campaign.state.active||!!progression.state.activeJob||!!progression.state.activity||!!delivery?.busy});
+    paused:paused(),interiorId:interiors.active?.id||null});
   if(result.ok){
     gameplay.applyExplosion(result.event);ordnance.showExplosion(result.event);
-    gameplay.reportOffence('explosives',3,{witnessed:true,point:result.event});
+    if(!isSandbox()&&!developerReturn)gameplay.reportOffence('explosives',3,{witnessed:true,point:result.event});
   }
   notify(result.message);return result;
 }
@@ -555,7 +555,8 @@ function updateNavigation(){
   if(courierButton) courierButton.hidden=!courier;
   if(courierStatus) courierStatus.hidden=!courier;
   if(courier){
-    if(courierStatus) courierStatus.textContent=courier.phase==='waiting'?'Courier at handover stop':`${followCourier&&liveTracking()?'Live courier':'Courier'} · ${courier.distance} m · ~${Math.max(1,Math.ceil(courier.eta/60))} min`;
+    const label=courier.method==='illegal'?'Illegal courier':'Legal courier';
+    if(courierStatus) courierStatus.textContent=courier.phase==='waiting'?`${label} at handover stop`:`${followCourier&&liveTracking()?'Live · ':''}${label} · ${courier.distance} m · ~${Math.max(1,Math.ceil(courier.eta/60))} min`;
     if(followCourier&&liveTracking()){mapView.x=courier.car.x;mapView.z=courier.car.z;}
   }else followCourier=false;
 }
@@ -1956,7 +1957,10 @@ function interact() {
   if(interactAircraft())return;
   if(interactCarRental())return;
   if(refillCarNitro())return;
-  if(delivery?.phase==='waiting'&&gameplay.state.mode==='foot'&&!interiors.active&&Math.hypot(focus().x-delivery.vehicles[0].x,focus().z-delivery.vehicles[0].z)<=6){const result=delivery.interact(deliveryContext());handleDeliveryEvents();notify(result.reason||result.message);return;}
+  if(delivery?.phase==='waiting'&&gameplay.state.mode==='foot'&&!interiors.active&&Math.hypot(focus().x-delivery.vehicles[0].x,focus().z-delivery.vehicles[0].z)<=6){
+    const result=delivery.interact(deliveryContext());handleDeliveryEvents();
+    if(!result.ok)notify(result.reason||result.message);return;
+  }
   if(progression.state.activity?.interactive){progression.cancelActivity();notify('Hold-up cancelled.');return;}
   const victim=crimeCandidate();
   if(victim){const result=victim.type==='robbery'?progression.startActivity(victim.serviceId,'robbery',careerContext()):progression.startMugging(victim.targetId,careerContext());notify(result.message);return;}
@@ -2475,11 +2479,11 @@ function updateHud() {
     }
   }
   $('combat-note').hidden=!protectedWork();
-  $('combat-note').textContent=tutorialRunning?'Tutorial: attacks disabled.':'Work objective: attacks disabled.';
+  $('combat-note').textContent=tutorialRunning?'Tutorial: close combat and weapons disabled.':'Work objective: close combat and weapons disabled.';
   const power=heroPowers.snapshot().heroes[campaign.state.character];
   $('hero-power-status').hidden=gameMode!=='campaign'||!power;
   if(power)$('hero-power-status').textContent=`${power.name}: ${power.active?`${Math.ceil(power.remaining)}s active`:power.cooldown>0?`${Math.ceil(power.cooldown)}s recharge`:'ready · L'}`;
-  if(droneActive){const flight=drone.snapshot();$('driving-hint').textContent=`WASD move · SPACE/SHIFT altitude · O recall${progression.state.gear.droneStrike?' · R strike below · '+(isSandbox()?'Unavailable in Free roam':campaign.state.active||progression.state.activeJob||progression.state.activity?'Unavailable during work':flight.strikeCooldown>0?Math.ceil(flight.strikeCooldown)+'s cooldown':'Ready'):''}`;}
+  if(droneActive)$('driving-hint').textContent=`WASD move · SPACE/SHIFT altitude · O recall${progression.state.gear.droneStrike?' · R strike below':''}`;
   if(vehicleDamage.snapshot().burning)$('driving-hint').textContent='ENGINE FIRE · Stop and get out with E / USE';
   const footCombat=gameplay.state.mode==='foot'&&!gameplay.state.passenger&&!protectedWork();
   for(const button of document.querySelectorAll('#touch-actions [data-action],#touch-grenade,#touch-smoke'))button.disabled=!footCombat;
@@ -2976,10 +2980,11 @@ async function boot() {
     },
     onRespawn: reason => {
       const missionTransfer=!!missionCheckpoint;
+      const deliverySeizure=reason==='arrest'&&gameplay.state.recovery?.deliverySeizure;
       const plannedHouse=recoveryPlan;
       recoveryPlan=null;
       aircraft?.reset();jetpack?.reset(gameplay.state);cockpitCamera=false;clearInterior();micromobility.reset();resetDelivery();rideService?.reset();buses?.reset();equipment?.reset();followYoober=false;
-      if(!developerReturn&&!missionTransfer)progression.penalize(reason === 'arrest' ? 'Arrest' : 'Hospital treatment');
+      if(!developerReturn&&!missionTransfer&&!deliverySeizure)progression.penalize(reason === 'arrest' ? 'Arrest' : 'Hospital treatment');
       const rentalRecovered=carRental?.recover();
       const owned = progression.state.ownedVehicles.find(car => car.id === gameplay.state.vehicle.modelId);
       if (owned && !rentalRecovered&&!gameplay.state.vehicle.stolen&&!developerReturn&&aircraftRescueHealth===null) owned.health = 100;

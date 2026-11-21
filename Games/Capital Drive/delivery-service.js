@@ -1,6 +1,16 @@
 import { createRoutePlanner, roadProfile } from './road-network.js';
 
 const LENGTH = 5.2, WIDTH = 2.044, MAX_SPEED = 10;
+const ETA_SPEED = 6;
+export const DELIVERY_METHODS = Object.freeze({
+  legal:Object.freeze({speedMultiplier:1,arrestChance:0,reportChance:0}),
+  illegal:Object.freeze({speedMultiplier:3,arrestChance:.15,reportChance:.25}),
+});
+
+export function deliveryMethod(value) {
+  if (value === undefined) return 'legal';
+  return typeof value === 'string' && Object.hasOwn(DELIVERY_METHODS,value) ? value : null;
+}
 const angle = value => Math.atan2(Math.sin(value), Math.cos(value));
 const distance = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
 const copy = value => value == null ? null : JSON.parse(JSON.stringify(value));
@@ -18,7 +28,7 @@ export function deliverySources(stores = [], dealers = []) {
 
 // Transient physical transport only. The career owner debits/refunds and consumes
 // the one terminal event; this owner never grants inventory, money or passive pay.
-export function createDeliveryService(map, simulation, { sources = [] } = {}) {
+export function createDeliveryService(map, simulation, { sources = [], random = Math.random } = {}) {
   const planner = createRoutePlanner(simulation.graph);
   const edges = simulation.graph.edges.filter(e => e.length >= 18 && roadProfile(e.road).trafficAllowed);
   const catalog = sources.map(s => Object.freeze({...s,weaponIds:s.weaponIds ? Object.freeze([...s.weaponIds]) : undefined}));
@@ -28,15 +38,16 @@ export function createDeliveryService(map, simulation, { sources = [] } = {}) {
   let phase = 'idle', reason = '', orderData = null, serial = 0, mode = false;
   let route = [], points = [], remainingDistances = [], cursor = 0, legStart = null, elapsed = 0, stalled = 0, wait = 0;
   let pickup = null, dropoff = null, terminal = false;
-  const busy = () => ['approaching','waiting'].includes(phase);
-  function emit(type) {
-    events.push(Object.freeze({type,...orderData,reason}));
+  const busy = () => phase === 'approaching' || phase === 'waiting';
+  const pace = () => DELIVERY_METHODS[orderData.method].speedMultiplier;
+  function emit(type, risk) {
+    events.push(Object.freeze({type,...orderData,reason,...(risk ? {risk} : {})}));
     if (events.length > 16) events.shift();
   }
-  function finish(type, why) {
+  function finish(type, why, risk) {
     if (!busy() || terminal) return {ok:false,reason:'No active delivery'};
-    phase = type; reason = why; terminal = true; car.speed = 0; wait = 0; emit(type);
-    return {ok:true,orderId:orderData.id,reason};
+    phase = type; reason = why; terminal = true; car.speed = 0; wait = 0; emit(type,risk);
+    return {ok:true,orderId:orderData.id,method:orderData.method,reason,...(risk ? {risk} : {})};
   }
   function guard(ctx) {
     if (!ctx.pose || ![ctx.pose.x,ctx.pose.z].every(Number.isFinite)) return 'Player unavailable';
@@ -84,7 +95,7 @@ export function createDeliveryService(map, simulation, { sources = [] } = {}) {
     });
     return result;
   }
-  function drive(dt) {
+  function drive(dt, scale) {
     // Progress along the lane polyline, rather than stopping at every OSM node.
     // A bounded lookahead rounds the short joins between successive left lanes.
     while (cursor < points.length - 1) {
@@ -96,24 +107,25 @@ export function createDeliveryService(map, simulation, { sources = [] } = {}) {
     }
     const target = points[cursor];
     if (!target) { car.speed = 0; return; }
-    const gap = distance(car, target), finalGap = distance(car, points.at(-1));
-    if (cursor === points.length - 1 && finalGap < .2 && car.speed < .2) {
+    const gap = distance(car, target), speed = car.speed / scale;
+    if (cursor === points.length - 1 && gap < .2 && speed < .2) {
       car.speed = 0; phase = 'waiting'; wait = 0; emit('arrived'); return;
     }
-    let remaining = gap, cornerLimit = MAX_SPEED, ahead = gap;
+    const remaining = gap + (remainingDistances[cursor] || 0);
+    let cornerLimit = MAX_SPEED, ahead = gap;
     let previous = cursor ? points[cursor - 1] : legStart;
-    for (let i = cursor; i < points.length - 1; i++) {
+    for (let i = cursor; i < points.length - 1 && ahead < 35; i++) {
       const here = points[i], next = points[i + 1];
       const incoming = Math.atan2(here.z - previous.z, here.x - previous.x);
       const outgoing = Math.atan2(next.z - here.z, next.x - here.x);
       const bend = Math.abs(angle(outgoing - incoming));
-      if (ahead < 35 && bend > .2) {
+      if (bend > .2) {
         const cornerSpeed = Math.max(2, 6 - bend * 2.2);
         cornerLimit = Math.min(cornerLimit, Math.sqrt(cornerSpeed * cornerSpeed + 5 * Math.max(0, ahead - 3)));
       }
-      const span = distance(here, next); remaining += span; ahead += span; previous = here;
+      ahead += distance(here, next); previous = here;
     }
-    let look = Math.min(target.precision ? gap : 8, 2.2 + car.speed * .55), aim = target;
+    let look = Math.min(target.precision ? gap : 8, 2.2 + speed * .55), aim = target;
     let from = car;
     for (let i = cursor; i < points.length; i++) {
       const to = points[i], span = distance(from, to);
@@ -131,21 +143,25 @@ export function createDeliveryService(map, simulation, { sources = [] } = {}) {
     if (Math.abs(turn) > 1) wantedSpeed = 0;
     const signalGap = simulation.trafficLights?.stopDistance(car, { length: LENGTH }) ?? Infinity;
     wantedSpeed = Math.min(wantedSpeed, Math.sqrt(Math.max(0, signalGap - .12) * 8));
-    const clearance = Math.min(remaining, 2 + car.speed * .9);
+    const clearance = Math.min(remaining, 2 + speed * .9);
     const front = { x: car.x - Math.sin(car.yaw) * clearance, z: car.z - Math.cos(car.yaw) * clearance, yaw: car.yaw };
     if (!bodyClear(front, car)) wantedSpeed = 0;
-    car.speed += Math.max(-5 * dt, Math.min(2 * dt, wantedSpeed - car.speed));
+    const nextSpeed = speed + Math.max(-5 * dt, Math.min(2 * dt, wantedSpeed - speed));
+    car.speed = nextSpeed * scale;
     const yaw = angle(car.yaw + Math.max(-1.2 * dt, Math.min(1.2 * dt, turn)));
     if (bodyClear({ ...car, yaw }, car)) car.yaw = yaw;
-    const travel = Math.min(remaining, car.speed * dt, Math.max(0, signalGap));
+    const requestedTravel = nextSpeed * dt;
+    const travel = Math.min(remaining, requestedTravel, Math.max(0, signalGap));
     const movement = simulation.moveVehicle(car, -Math.sin(car.yaw) * travel, -Math.cos(car.yaw) * travel,
       { length: LENGTH, width: WIDTH });
-    if (movement.blocked || travel < car.speed * dt - 1e-6) car.speed = 0;
-    stalled = movement.distance > .002 || Number.isFinite(signalGap) ? 0 : stalled + dt;
+    if (movement.blocked || travel < requestedTravel - 1e-6) car.speed = 0;
+    stalled = movement.distance > .002 || Number.isFinite(signalGap) ? 0 : stalled + dt / scale;
   }
   function order(request = {}, ctx = {}, preview = false) {
     if (busy() || car.active) return {ok:false,reason:'A courier is already dispatched'};
     const denied = guard(ctx); if (denied) return {ok:false,reason:denied};
+    const method = deliveryMethod(request?.method);
+    if (!request || !method) return {ok:false,reason:'Choose a valid delivery method'};
     const source = catalog.find(s => s.id === request.sourceId && s.kind === request.kind);
     if (!source || !['food','arms'].includes(request.kind) || typeof request.itemId !== 'string' ||
       (source.kind === 'food' && request.itemId !== 'food') ||
@@ -160,16 +176,16 @@ export function createDeliveryService(map, simulation, { sources = [] } = {}) {
         const path = connect(from,to); if (!path) continue;
         const metres = lengthOf(path,from,to);
         if (metres < 35 || metres > 10000) continue;
-        if (preview) return {ok:true,kind:source.kind,itemId:request.itemId,sourceId:source.id,sourceName:source.name,pickup:copy(from),dropoff:copy(to),metres:Math.round(metres)};
+        if (preview) return {ok:true,kind:source.kind,method,itemId:request.itemId,sourceId:source.id,sourceName:source.name,pickup:copy(from),dropoff:copy(to),metres:Math.round(metres)};
         orderData = Object.freeze({id:`delivery-${++serial}`,orderId:`delivery-${serial}`,kind:source.kind,
-          itemId:request.itemId,sourceId:source.id,sourceName:source.name});
+          method,itemId:request.itemId,sourceId:source.id,sourceName:source.name});
         pickup = from; dropoff = to; mode = !!ctx.sandbox; terminal = false;
         route = path.map(e => e.id); points = routePoints(path,from,to); cursor = 0;
         remainingDistances = new Array(points.length).fill(0);
         for (let i = points.length - 2; i >= 0; i--) remainingDistances[i] = remainingDistances[i + 1] + distance(points[i], points[i + 1]);
         legStart = {...from}; elapsed = stalled = wait = 0; reason = ''; phase = 'approaching';
         Object.assign(car,from,{speed:0,health:100,active:true}); emit('accepted');
-        return {ok:true,orderId:orderData.id,pickup:copy(pickup),dropoff:copy(dropoff),metres:Math.round(metres)};
+        return {ok:true,orderId:orderData.id,method,pickup:copy(pickup),dropoff:copy(dropoff),metres:Math.round(metres)};
       }
     }
     return {ok:false,reason:'No clear directed public road delivery route'};
@@ -185,6 +201,12 @@ export function createDeliveryService(map, simulation, { sources = [] } = {}) {
       const t=steps ? i/steps : 0;
       if (!simulation.canOccupy({x:ctx.pose.x+(car.x-ctx.pose.x)*t,z:ctx.pose.z+(car.z-ctx.pose.z)*t,yaw:car.yaw},
         {length:1,width:.8,ignoreId:car.id,ignorePersonId:'player-body'})) return {ok:false,reason:'Courier handover blocked'};
+    }
+    const {arrestChance,reportChance}=DELIVERY_METHODS[orderData.method];
+    if (arrestChance || reportChance) {
+      const roll = random();
+      if (roll < arrestChance) return finish('confiscated','Police seized the delivery.','arrest');
+      if (roll < arrestChance + reportChance) return finish('completed','Delivery handed over and reported.','reported');
     }
     return finish('completed','Delivery handed over');
   }
@@ -203,7 +225,12 @@ export function createDeliveryService(map, simulation, { sources = [] } = {}) {
       const tick = Math.min(remaining,1/60); remaining -= tick;
       if (busy()) {
         elapsed += tick;
-        if (phase === 'approaching') drive(tick); else wait += tick;
+        if (phase === 'approaching') {
+          // Extra swept movement ticks keep the same turning geometry, body
+          // clearance and stop-line caps at the faster world pace.
+          const scale = pace();
+          for (let i = 0; i < scale && phase === 'approaching'; i++) drive(tick,scale);
+        } else wait += tick;
         if (stalled > 30 || elapsed > 600 || wait > 120) finish('failed','Delivery interrupted or road blocked');
       } else {
         wait += tick;
@@ -219,8 +246,8 @@ export function createDeliveryService(map, simulation, { sources = [] } = {}) {
   function tracking() {
     if (!busy() || !car.active || !orderData) return null;
     const remaining = phase === 'waiting' ? 0 : distance(car, points[cursor]) + (remainingDistances[cursor] || 0);
-    return {orderId:orderData.id,kind:orderData.kind,phase,car:{x:car.x,z:car.z,yaw:car.yaw},
-      dropoff:{x:dropoff.x,z:dropoff.z},distance:Math.max(0,Math.round(remaining)),eta:Math.ceil(Math.max(0,remaining)/6)};
+    return {orderId:orderData.id,kind:orderData.kind,method:orderData.method,phase,car:{x:car.x,z:car.z,yaw:car.yaw},
+      dropoff:{x:dropoff.x,z:dropoff.z},distance:Math.max(0,Math.round(remaining)),eta:Math.ceil(Math.max(0,remaining)/(ETA_SPEED*pace()))};
   }
   function snapshot() {
     return {phase,reason,order:orderData ? Object.freeze(copy(orderData)) : null,car:{...car},pickup:copy(pickup),dropoff:copy(dropoff),

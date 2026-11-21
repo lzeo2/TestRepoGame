@@ -368,20 +368,35 @@ assert.equal(orderController.destination,null);assert.equal(orderController.rout
 const manualRoute={id:'manual'};orderController.destination=manualRoute;
 orderEvents.push({type:'cancelled',orderId:'courier-2'});orderController.handleDeliveryEvents();
 assert.equal(orderController.destination,manualRoute);
+let cargoSeized=false;const courierRisk=[];
+orderController.gameplay={resolveDeliveryRisk:risk=>courierRisk.push(risk),heal:()=>assert.fail('confiscated food must not heal')};
+orderController.progression.completeDelivery=id=>{
+  if(cargoSeized||orderController.deliveryReceipts.get(id)?.type!=='confiscated')return {ok:false};
+  cargoSeized=true;return {ok:true,method:'illegal',risk:'arrest',confiscated:true};
+};
+orderController.destination={courierOrderId:'courier-3'};orderController.route=[[0,0],[1,2]];
+const seizure=Object.freeze({type:'confiscated',orderId:'courier-3',method:'illegal',risk:'arrest'});
+orderEvents.push(seizure,seizure);orderController.handleDeliveryEvents();
+assert.deepEqual(courierRisk,['arrest'],'only an accepted, once-only seizure triggers custody');
+assert.equal(orderController.destination,null);assert.equal(orderController.route.length,0);
+assert.equal(orderController.deliveryReceipts.size,0);
 console.log('PASS courier map/controller: automatic minimap van, directional edge arrow, preserved turn guidance, optional live follow, input clearing, hidden/closed-map pause and terminal cleanup');
 
 const strikeBody={mode:'foot',health:100,actor:{x:0,z:0,yaw:0}};
 const strikeOwner=createDrone({heightAt:()=>0});assert(strikeOwner.deploy(strikeBody,{owned:true}));
-let blastCalls=0,visualCalls=0,offenceCalls=0;
+let blastCalls=0,visualCalls=0,offenceCalls=0,strikePaused=false,strikeFreeRoam=false;
 const strikeAdapter=owner(['strikeDrone'],{
   drone:strikeOwner,gameplay:{state:strikeBody,applyExplosion:event=>{blastCalls++;assert.equal(event.radius,8);},reportOffence:()=>offenceCalls++},
   progression:{state:{gear:{drone:true,droneStrike:true},activeJob:null,activity:null}},
-  campaign:{state:{active:null}},developerReturn:null,interiors:{active:null},isSandbox:()=>false,paused:()=>false,
-  canCrewAttack:()=>true,ordnance:{showExplosion:()=>visualCalls++},notify:()=>{},
+  campaign:{state:{active:null}},developerReturn:null,interiors:{active:null},isSandbox:()=>strikeFreeRoam,paused:()=>strikePaused,
+  canCrewAttack:()=>false,ordnance:{showExplosion:()=>visualCalls++},notify:()=>{},
 });
-strikeAdapter.campaign.state.active={id:'mission'};assert.equal(strikeAdapter.strikeDrone().ok,false);
+strikeAdapter.campaign.state.active={id:'mission'};assert(strikeAdapter.strikeDrone().ok);
 strikeAdapter.campaign.state.active=null;strikeAdapter.progression.state.activeJob={id:'job'};
-assert.equal(strikeAdapter.strikeDrone().ok,false);strikeAdapter.progression.state.activeJob=null;
-assert(strikeAdapter.strikeDrone().ok);assert.equal(blastCalls,1);assert.equal(visualCalls,1);assert.equal(offenceCalls,1);
-assert.equal(strikeAdapter.strikeDrone().ok,false);assert.equal(blastCalls,1,'cooldown prevents a second area-damage call');
-console.log('PASS drone strike controller: protected job/mission denial, one authoritative blast, one visual cue/offence and cooldown replay guard');
+assert(strikeAdapter.strikeDrone().ok);strikeAdapter.progression.state.activeJob=null;
+assert.equal(blastCalls,2);assert.equal(visualCalls,2);assert.equal(offenceCalls,2);
+strikeFreeRoam=true;assert(strikeAdapter.strikeDrone().ok);
+assert.equal(blastCalls,3);assert.equal(visualCalls,3);assert.equal(offenceCalls,2,'Free roam strike has no police offence');
+strikePaused=true;assert.equal(strikeAdapter.strikeDrone().ok,false);
+assert.equal(blastCalls,3);assert.equal(visualCalls,3);
+console.log('PASS drone strike controller: fresh strikes during jobs, missions and Free roam, one authoritative blast and visual cue per action, career-only offence and pause guard');

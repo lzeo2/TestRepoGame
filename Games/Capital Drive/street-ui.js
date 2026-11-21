@@ -161,7 +161,8 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       screen.style.backgroundColor=`rgba(10,15,18,${recovery.phase==='out'?Math.min(.96,recovery.elapsed/1.8):Math.max(.12,.96-(recovery.elapsed-1.8)*.5)})`;
       const safehouse=recovery.phase==='in'&&recovery.safehouse;
       text('recovery-title',recovery.reason==='arrest'?'BUSTED':safehouse?'SAFEHOUSE':'HOSPITAL');
-      text('recovery-status',recovery.phase==='out'?'Transferring…':safehouse?`Returned to ${safehouse}. Ammo kept.`:'Recovering. Completed jobs kept.');
+      const deliveryStatus=recovery.phase==='out'?'The order was confiscated.':'Released. Your gear and ammo were kept.';
+      text('recovery-status',recovery.deliverySeizure?deliveryStatus:recovery.phase==='out'?'Transferring…':safehouse?`Returned to ${safehouse}. Ammo kept.`:'Recovering. Completed jobs kept.');
     }}
   }
   function renderServices(){

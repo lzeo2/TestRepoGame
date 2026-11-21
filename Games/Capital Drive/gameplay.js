@@ -283,7 +283,7 @@ export function createGameplay(map, simulation, options = {}) {
     state.heat = 0; state.pursuit = 'clear'; state.police.length = 0; state.shots.length = 0;
     state.actor.jumpHeight = 0; state.actor.speed = 0; state.aiming = false; state.reloading = 0;
     state.attackTimer = 0; state.arrestProgress = 0;
-    if (reason === 'arrest') {
+    if (reason === 'arrest' && !state.recovery?.deliverySeizure) {
       state.weapon = 'unarmed';
       clearAmmo(state.sandbox);
     }
@@ -297,15 +297,25 @@ export function createGameplay(map, simulation, options = {}) {
       safehouse ? `Recovered at ${safehouse}.` : 'Recovered on a nearby public road.';
     emit('respawn', message, safehouse ? { reason, safehouse } : { reason });
   }
-  function beginRecovery(reason) {
+  function beginRecovery(reason, deliverySeizure = false) {
     if (state.recovery) return;
     state.offencePressure=0;policeController.reset();
     const origin = recoveryOrigin();
     cancelCarjacking('recovery'); state.reloading = 0; state.aiming = false; state.actor.speed = 0; state.attackTimer = 0;
     clearVehicleImpact(); state.actor.jumpHeight = 0; jumpVelocity = 0;
     state.recovery = { reason, origin, phase: 'out', elapsed: 0, duration: 3.4, progress: 0 };
+    if (deliverySeizure) state.recovery.deliverySeizure = true;
     simulation.player.speed = 0; simulation.player.vx = 0; simulation.player.vz = 0;
     emit('recovery', reason === 'arrest' ? 'Being taken to the station.' : 'Medical help is arriving.', { reason });
+  }
+  function resolveDeliveryRisk(risk) {
+    if ((risk!=='reported'&&risk!=='arrest')||state.sandbox||state.recovery||state.health<=0||
+        state.mode!=='foot'||state.passenger||interiorId()) return false;
+    const nextThreshold=[1,4,9,16,25][Math.min(state.wanted,4)];
+    state.offencePressure=Math.max(state.offencePressure,nextThreshold-1);
+    reportOffence('illegal delivery',1,{witnessed:true});
+    if(risk==='arrest')beginRecovery('arrest',true);
+    return true;
   }
   function cancelCarjacking(reason = 'cancelled') {
     if (!state.carjacking) return false;
@@ -710,7 +720,7 @@ export function createGameplay(map, simulation, options = {}) {
     options.onVehicleExplosion?.(event);
     emit('explosion','Grenade detonated.',{hits});return true;
   }
-  return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, reportSighting, inventorySnapshot, restoreInventory,
+  return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, resolveDeliveryRisk, reportSighting, inventorySnapshot, restoreInventory,
     takeInventory:item=>transferInventory(item,false),giveInventory:item=>transferInventory(item,true),reset, restoreProtagonist, missionRecoverySnapshot, restoreMissionCheckpoint, switchToCompanion, applyExplosion, addAmmo, getAmmo, heal, strikePolice, damageVehicle, damagePoliceVehicle, get policeWrecks(){return policeController.wrecks;}, policeSupport:()=>policeController.support(), drainPoliceEvents:()=>policeEvents.splice(0),
     snapshot: () => freeze(JSON.parse(JSON.stringify(state))) };
 }

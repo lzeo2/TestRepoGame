@@ -79,11 +79,18 @@ The phone can follow the courier on the full map and show remaining route
 distance and an approximate ETA. Ending the order removes its markers and
 handover route.
 
+The Deliveries menu offers legal and illegal dispatch for both food and
+equipment at the same fee. Illegal couriers travel at three times the pace
+using the same road clearance and signal checks. A valid handover rolls once.
+Fifteen percent of illegal handovers result in arrest and loss of the order
+and its payment. Twenty-five percent deliver the cargo and add one wanted
+star, capped at five. Sixty percent are clean. The order-specific arrest uses
+the station transfer and preserves existing gear and ammo.
+
 An owned drone can be upgraded for $100,000 through the Drone phone panel.
-While piloting in a career between jobs and missions, R triggers an in-game
-blast at the checked ground position beneath the drone. The existing effect
-pool renders it. A 30-second cooldown runs on the gameplay clock and persists
-through recall and relaunch. The upgrade is optional validated career gear.
+While piloting, each press of R triggers an in-game blast at the checked ground
+position beneath the drone. The upgrade works during jobs, missions and Free
+roam, and draws from the existing effect pool.
 
 The fictional Capital Defence Depot sits on an airport-area service spur.
 Search for military base to route to its open vehicle gateway. The yard has

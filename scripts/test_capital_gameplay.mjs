@@ -413,3 +413,28 @@ traceGame.state.mode='foot';Object.assign(traceGame.state.actor,{x:0,z:0,yaw:-Ma
 assert(traceGame.setWeapon('pistol'));traceGame.step(1/60,{fire:true,aimYaw:-Math.PI/2});
 assert(traceGame.state.shots.length>0 && traceGame.state.shots.every(shot=>shot.interiorId===activeRoom.id),'actual player traces identify the active room');
 console.log('Capital gameplay: interior attack boundary and player shot space tags PASS');
+
+const deliveryGame=createGameplay(map,createSimulation(map,{trafficCount:0}),{hasWeapon:()=>true});
+assert.equal(deliveryGame.resolveDeliveryRisk('reported'),false,'a player in a vehicle cannot complete a courier handover');
+deliveryGame.reset({onFoot:true,sandbox:false,startPose:{x:-8,z:0,yaw:0}});
+deliveryGame.addAmmo(41,'pistol');deliveryGame.addAmmo(57,'smg');assert(deliveryGame.setWeapon('pistol'));
+const beforeSeizure=deliveryGame.inventorySnapshot();
+assert.equal(deliveryGame.resolveDeliveryRisk('clean'),false);
+for(const wanted of [1,2,3,4,5,5]){
+  assert(deliveryGame.resolveDeliveryRisk('reported'));
+  assert.equal(deliveryGame.state.wanted,wanted);
+  assert.equal(deliveryGame.state.pursuit,'search');
+}
+assert(deliveryGame.resolveDeliveryRisk('arrest'));
+assert.equal(deliveryGame.state.recovery.reason,'arrest');
+assert(deliveryGame.state.recovery.deliverySeizure);
+assert.equal(deliveryGame.resolveDeliveryRisk('arrest'),false,'a pending transfer cannot restart');
+for(let i=0;i<72;i++)deliveryGame.step(.05);
+assert.equal(deliveryGame.state.recovery,null);
+assert.equal(deliveryGame.state.wanted,0);
+assert.equal(deliveryGame.state.weapon,'pistol');
+assert.deepEqual(deliveryGame.inventorySnapshot(),beforeSeizure,'only the dispatched cargo can be seized in a courier arrest');
+deliveryGame.reset({onFoot:true,sandbox:true,startPose:{x:-8,z:0,yaw:0}});
+assert.equal(deliveryGame.resolveDeliveryRisk('reported'),false);
+assert.equal(deliveryGame.resolveDeliveryRisk('arrest'),false);
+console.log('Capital gameplay: courier risk increments stars, uses standard station recovery and preserves existing gear PASS');

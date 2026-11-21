@@ -32,20 +32,20 @@ let clear=true;
 const drone=createDrone({heightAt:()=>4,canOccupy:()=>clear}),permission={owned:true,upgraded:true};
 assert.equal(drone.strike(body,permission).ok,false,'requires actual flight');
 assert(drone.deploy(body,{owned:true}));
-for(const patch of [{owned:false},{upgraded:false},{sandbox:true},{blocked:true},{paused:true},{interiorId:'room'}]){
+for(const patch of [{owned:false},{upgraded:false},{paused:true},{interiorId:'room'}]){
   assert.equal(drone.strike(body,{...permission,...patch}).ok,false);
-  assert.equal(drone.snapshot().strikeCooldown,0);
 }
+for(const invalid of [{...body,recovery:{}},{...body,health:0},{...body,passenger:true},{...body,mode:'vehicle'},{...body,actor:{...body.actor,impactTime:1}}])
+  assert.equal(drone.strike(invalid,permission).ok,false);
 clear=false;assert.equal(drone.strike(body,permission).ok,false,'solid cover rejects ground strike');clear=true;
 const first=drone.strike(body,permission);assert(first.ok);assert.equal(first.event.radius,8);assert.equal(first.event.maxDamage,100);
 assert.equal(first.event.y,4.25);assert.equal(first.event.x,drone.snapshot().x);assert.equal(first.event.z,drone.snapshot().z);
-assert(Object.isFrozen(first.event));assert.equal(drone.snapshot().strikeCooldown,30);
-assert.equal(drone.strike(body,permission).ok,false,'repeated inputs cannot duplicate blast');
-drone.recall();assert(drone.deploy(body,{owned:true}));assert.equal(drone.strike(body,permission).ok,false,'relaunch does not bypass cooldown');
-drone.step(30,{body,paused:true});assert.equal(drone.snapshot().strikeCooldown,30);
-drone.recall();drone.step(29,{body});assert.equal(drone.snapshot().strikeCooldown,1);
-drone.step(1,{body});assert(drone.deploy(body,{owned:true}));
-const second=drone.strike(body,permission);assert(second.ok);assert.notEqual(first.event.id,second.event.id);
+assert(Object.isFrozen(first.event));
+const second=drone.strike(body,permission);assert(second.ok,'a fresh strike needs no elapsed time');
+assert.notEqual(first.event.id,second.event.id);
+drone.recall();assert.equal(drone.strike(body,permission).ok,false);
+assert(drone.deploy(body,{owned:true,sandbox:true}));
+assert(drone.strike(body,{...permission,sandbox:true}).ok,'Free roam permits an owned strike');
 assert.deepEqual(body,{mode:'foot',health:100,actor:{x:0,z:0,yaw:0}},'flight ability does not move or heal body');
 const visual=createOrdnance();
 for(let i=0;i<12;i++)assert(visual.showExplosion({...first.event,id:'visual:'+i}));
@@ -54,4 +54,4 @@ assert.equal(visual.drainEvents().length,0,'visual adapter never emits a second 
 visual.step(.25);visual.step(.25);visual.step(.25);assert.equal(visual.snapshot().bursts.length,0);
 assert.equal(visual.showExplosion({...first.event,x:NaN}),false);
 drone.dispose();assert.equal(drone.strike(body,permission).ok,false);
-console.log('PASS drone strike: exact $100,000 once, owned-drone/dealer/commerce gates, strict optional v1 gear, checked outdoor ground, body isolation, pause/recall-safe cooldown and reused four-burst visual pool without duplicate damage');
+console.log('PASS drone strike: exact $100,000 once, owned-drone/dealer/commerce gates, strict optional v1 gear, checked outdoor ground, body isolation, immediate repeat strikes and bounded four-burst visual pool');
