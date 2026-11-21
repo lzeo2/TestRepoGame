@@ -13,7 +13,7 @@ const options = { bounds };
 const make = (n = 1) => ({ mode: n === 2 ? 'vehicle' : 'foot', actor: { x: n * 10, z: n * -20, yaw: n / 10 },
   vehicle: { x: n * 30, z: n * -40, yaw: n / 5, modelId: ['lantern', 'orchard', 'relay'][n - 1], color: n === 1 ? 0xe7e6df : '#123ABC', health: 100 - n * 12, stolen: n === 3 },
   health: 100 - n * 17, weapon: ['pistol', 'shotgun', 'smg'][n - 1],
-  ammunition: Object.fromEntries(WEAPONS.map(weapon => [weapon.id, { ammo: n, reserveAmmo: n * 10 }])) });
+  ammunition: Object.fromEntries(WEAPONS.map(weapon => [weapon.id, { ammo: Math.min(n, weapon.magazine), reserveAmmo: Math.min(n * 10, weapon.reserveCap) }])) });
 let checks = 0;
 const check = (actual, expected, message) => { assert.deepEqual(actual, expected, message); checks++; };
 const rejects = fn => { assert.throws(fn, /Invalid protagonist checkpoint/); checks++; };
@@ -30,6 +30,13 @@ for (let n = 1; n <= 3; n++) check(store.get(PROTAGONIST_IDS[n - 1]), expected[n
 check(expected[0].vehicle.color, '#e7e6df'); check(expected[1].vehicle.color, '#123abc');
 const serialized = store.serialize(), restored = createProtagonistState(clone(serialized), options);
 check(restored.serialize(), serialized, 'reload preserves all three independently');
+const originalSave = clone(serialized);
+delete originalSave.student.ammunition.sniper;
+delete originalSave.student.ammunition.rpg;
+const migrated = createProtagonistState(originalSave, options).get('student').ammunition;
+check(migrated.pistol, serialized.student.ammunition.pistol, 'legacy checkpoint keeps its original ammo');
+check(migrated.sniper, { ammo: 0, reserveAmmo: 0 }, 'legacy checkpoint starts with an empty sniper pool');
+check(migrated.rpg, { ammo: 0, reserveAmmo: 0 }, 'legacy checkpoint starts with an empty RPG pool');
 assert.notEqual(store.get('student'), store.get('student')); checks++;
 assert.throws(() => { serialized.student.actor.x = 12; }, TypeError); checks++;
 bounds.maxX = 1;

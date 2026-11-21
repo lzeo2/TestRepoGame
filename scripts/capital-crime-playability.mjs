@@ -15,7 +15,7 @@ function progressionHandoff(source, environment) {
   // fixture records its notification without adding a second world simulation.
   const cameraReports = [];
   const environmentCopy = { workCompletion: { serial: 0 }, heistOutcome: { serial: 0 }, cameraReports,
-    recordCameraCrime(kind, point) { cameraReports.push({ kind, point }); },
+    recordCameraCrime(kind, point, alreadyReported) { cameraReports.push({ kind, point, alreadyReported }); },
     clearInput() {}, notify() {}, saveCareer() {}, isSandbox: () => false, ...environment };
   return () => { runInNewContext(source.slice(helperStart, helperEnd)+'\n'+source.slice(start, end), environmentCopy); return environmentCopy; };
 }
@@ -43,8 +43,10 @@ export async function executeCampaignCrime({ kind, target, fixture, ctx, active,
       for (const sign of [1, -1]) {
         const body = { x: car.x + Math.cos(car.yaw) * 3 * sign,
           z: car.z - Math.sin(car.yaw) * 3 * sign, yaw: car.yaw };
+        const exit={x:car.x+Math.cos(car.yaw)*2*sign,z:car.z-Math.sin(car.yaw)*2*sign,yaw:car.yaw};
         if (Math.hypot(body.x - simulation.player.x, body.z - simulation.player.z) > 7 &&
-          !simulation.moveActor({ ...body }, 0, 0, .45).blocked && simulation.hasLineOfSight(body, car)) { setup = { car, body }; break; }
+          !simulation.moveActor({ ...body }, 0, 0, .45).blocked && simulation.hasLineOfSight(body, car) &&
+          !simulation.moveActor({...exit},0,0,.45).blocked && simulation.hasLineOfSight(car,exit)) { setup = { car, body }; break; }
       }
       if (setup) break;
     }
@@ -56,25 +58,15 @@ export async function executeCampaignCrime({ kind, target, fixture, ctx, active,
       health: gameplay.state.health, wanted: gameplay.state.wanted, respawnSerial: gameplay.state.respawnSerial, interior: null });
     const live = simulation.nearbyVehicles(setup.body.x, setup.body.z, 7).find(car => car.id === setup.car.id);
     assert(live?.occupied, 'actual Simulation reports fixture as occupied');
-    gameplay.interact();
-    assert.equal(gameplay.state.carjacking?.id, setup.car.id, 'actual interact selects occupied fixture');
-    let neutral = true;
-    while (gameplay.state.carjacking && elapsed < 24) {
-      const challenge = gameplay.state.carjacking.challenge;
-      let input = {};
-      if (challenge?.phase === 'cue' && !neutral) { input = { challenge: { [challenge.expectedKey]: true } }; inputEdges++; neutral = true; }
-      else neutral = false;
-      gameplay.step(.05, input); sync(); advance(.05);
-    }
+    assert(gameplay.interact(),'normal interaction takes the actual stopped occupied fixture');
     sync();
     assert.equal(gameplay.state.mode, 'vehicle');
     assert.equal(gameplay.state.carjacking, null);
     assert.equal(gameplay.state.vehicle.stolen, true, 'stolen state comes from real claimVehicle result');
     assert.equal(setup.car.active, false, 'Simulation consumed exactly the occupied fixture');
-    assert.equal(inputEdges, 8, 'all eight timed cue inputs completed');
     return { status: 'DOMAIN_PASS', simulatedSeconds: elapsed, inputEdges,
       domainReceipt: { vehicle: { ...gameplay.state.vehicle }, consumedVehicleId: setup.car.id },
-      gates: ['checked occupied traffic placement', 'actual Gameplay interact', 'eight timed challenge cues', 'Simulation claimVehicle consumption', 'authoritative stolen vehicle state'], limitations: limits };
+      gates: ['checked occupied traffic placement', 'actual Gameplay interact with clear driver exit', 'Simulation claimVehicle consumption', 'authoritative stolen vehicle state'], limitations: limits };
   }
   assert.equal(kind, 'robbery');
   assert(plan && people && actor && interiors.active === plan, 'actual live entered room and people required');
@@ -108,7 +100,8 @@ export async function executeCampaignCrime({ kind, target, fixture, ctx, active,
   const admitted = progression.startActivity(target.storeId, 'robbery', ctx);
   assert(admitted.ok, admitted.message); inputEdges++;
   const startEnvironment = handoff(); ctx.wanted = gameplay.state.wanted;
-  assert.equal(startEnvironment.cameraReports.length, 0, 'an already witnessed robbery must not add duplicate camera wanted pressure');
+  assert.equal(startEnvironment.cameraReports.length, 1, 'a witnessed robbery is available to camera surveillance');
+  assert.equal(startEnvironment.cameraReports[0].alreadyReported, true, 'the camera adapter tags the observation to avoid duplicate pressure');
   assert.equal(startEnvironment.heistOutcome.serial, before, 'starting crime does not award till receipt');
   while (progression.state.activity && elapsed < 6) {
     people.setCrime(progression.state.activity);

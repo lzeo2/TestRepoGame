@@ -2,8 +2,9 @@ const PROFILES=Object.freeze({
   performance:Object.freeze({width:640,height:360,fps:20}),
   low:Object.freeze({width:960,height:540,fps:30}),
   standard:Object.freeze({width:1440,height:900,fps:60}),
+  realism:Object.freeze({width:1600,height:900,fps:45,exposure:.95}),
 });
-export const renderProfile=quality=>PROFILES[quality]||PROFILES.low;
+export const renderProfile=quality=>Object.hasOwn(PROFILES,quality)?PROFILES[quality]:PROFILES.low;
 export function chooseRenderQuality(saved,renderer=''){
   return Object.hasOwn(PROFILES,saved)?saved:/swiftshader|llvmpipe|software rasterizer/i.test(renderer)?'performance':'low';
 }

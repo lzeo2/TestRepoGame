@@ -1,7 +1,7 @@
 const LOGICAL_SIZE = 24;
 const RASTER_SIZE = LOGICAL_SIZE * 2;
 const WHITE = '#fff';
-const COLORS = { petrol: '#075d73', rental: '#483781' };
+const COLORS = { petrol: '#075d73', rental: '#483781', 'player-drone': '#166756', 'police-drone': '#943a3d', helicopter: '#794237', 'depot-helicopter': '#435874' };
 
 function pump(ctx, background) {
   ctx.fillStyle = WHITE;
@@ -48,6 +48,37 @@ function car(ctx, background) {
   ctx.fillRect(14.4, 13, 2.4, 1.2);
 }
 
+function drone(ctx) {
+  ctx.beginPath();
+  ctx.moveTo(6, 7);
+  ctx.lineTo(18, 17);
+  ctx.moveTo(18, 7);
+  ctx.lineTo(6, 17);
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fillStyle = WHITE;
+  for (const x of [4.3, 15.3]) for (const y of [5.5, 16.2]) ctx.fillRect(x, y, 4.4, 1.9);
+  ctx.beginPath();
+  ctx.roundRect(9, 9, 6, 6, 1.6);
+  ctx.fill();
+}
+
+function helicopter(ctx) {
+  ctx.fillStyle = WHITE;
+  ctx.fillRect(4.5, 6.5, 15, 1.5);
+  ctx.fillRect(11, 7.5, 1.5, 3);
+  ctx.fillRect(5, 12.1, 6, 1.5);
+  ctx.fillRect(4.3, 10.4, 1.4, 5);
+  ctx.fillRect(9, 17.1, 9, 1.5);
+  ctx.fillRect(10.8, 14.5, 1.2, 2.8);
+  ctx.fillRect(15, 14.5, 1.2, 2.8);
+  ctx.beginPath();
+  ctx.roundRect(8.3, 10.3, 11, 5.3, 2.3);
+  ctx.fill();
+}
+
+const GLYPHS = { petrol: pump, rental: car, 'player-drone': drone, 'police-drone': drone, helicopter, 'depot-helicopter': helicopter };
+
 export function createServiceMapIcons(document) {
   const rasters = new Map();
   for (const [kind, color] of Object.entries(COLORS)) {
@@ -63,8 +94,7 @@ export function createServiceMapIcons(document) {
     ctx.lineWidth = 1.7;
     ctx.strokeStyle = WHITE;
     ctx.stroke();
-    if (kind === 'petrol') pump(ctx, color);
-    else car(ctx, color);
+    GLYPHS[kind](ctx, color);
     rasters.set(kind, raster);
   }
   return {

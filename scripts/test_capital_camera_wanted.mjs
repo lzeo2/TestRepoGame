@@ -39,7 +39,7 @@ function fixture(witnessed){
     onEvent:event=>{if(event.kind==='attack'){attacks.push(event);bridge.recordCameraGameplayEvent(event);}}});
   gameplay.state.mode='foot';Object.assign(gameplay.state.actor,{x:0,z:-10,yaw:0});gameplay.addAmmo(100,'pistol');gameplay.setWeapon('pistol');
   const cameras=createSecurityCameras([{id:'camera',x:0,z:0,yaw:0}],{hasLineOfSight:()=>true});
-  bridge=owner(['recordCameraCrime','recordCameraGameplayEvent','recordCameraWorkEvent','stepSecurityCameras'],{securityCameras:cameras,cameraCrimeSerial:0,interiors:{active:null},focus:()=>gameplay.focus(),gameplay,isSandbox:()=>false});
+  bridge=owner(['recordCameraCrime','recordCameraGameplayEvent','recordCameraWorkEvent','stepSecurityCameras'],{securityCameras:cameras,cameraCrimeSerial:0,cameraRoomPlan:null,interiors:{active:null},focus:()=>gameplay.focus(),gameplay,isSandbox:()=>false});
   const shoot=()=>{gameplay.step(1/60,{aim:true,aimYaw:0,fire:true});bridge.stepSecurityCameras(.5);for(let i=0;i<30;i++)gameplay.step(1/60,{});};
   return {gameplay,bridge,cameras,attacks,shoot};
 }
@@ -59,6 +59,8 @@ assert.equal(walking.gameplay.state.offencePressure,0,'missing reported flag is 
 const robbery=fixture(false);robbery.bridge.recordCameraWorkEvent({type:'robbery-started',point:{x:0,z:-10}});
 assert.equal(robbery.gameplay.state.offencePressure,4);robbery.bridge.stepSecurityCameras(.5);
 assert.equal(robbery.gameplay.state.offencePressure,4,'explicit witnessed robbery is not reported again by hardware');
+assert.equal(robbery.cameras.snapshot()[0].state,'alert','a camera marks the witnessed robbery as seen');
+assert.equal(robbery.gameplay.state.pursuit,'pursuit','a camera sighting refreshes location without pressure');
 const ownCar={id:'player',modelId:'lantern',x:0,z:-10,y:0,yaw:0,length:4.8,width:1.8,height:1.6,active:true};
 let vehicles=[ownCar],solids=createShotObstacles(map,{heightAt:()=>0});
 const cover=owner(['cameraSight'],{focus:()=>ownCar,interiors:{active:null},aircraft:null,buses:null,rideService:null,gameplay:{state:{mode:'vehicle'}},ordnance:{blocksSight:()=>false},

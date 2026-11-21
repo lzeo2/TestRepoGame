@@ -27,7 +27,9 @@ export function createActivityUI({ document = globalThis.document } = {}) {
     counts.renders++;
     // A retained terminal snapshot must not leave live controls after leaving its room.
     if (!street && !interior) { state = EMPTY_STATE; nearest = null; }
-    const sequence = state.sequence || EMPTY_SEQUENCE, index = state.index || 0, active = !!state.active;
+    const sequence = (street && state.displaySequence) || state.sequence || EMPTY_SEQUENCE;
+    const index = state.index || 0, active = !!state.active;
+    const waiting = !!street && !sequence.length;
     if (sequence.length !== sequenceKeys.length || sequence.some((key, i) => key !== sequenceKeys[i])) {
       sequenceKeys = [...sequence];
       tiles = sequence.map(key => {
@@ -42,7 +44,7 @@ export function createActivityUI({ document = globalThis.document } = {}) {
       set(tiles[i], 'className', i < index ? 'done' : i === index ? 'current' : 'upcoming');
       attribute(tiles[i], 'aria-current', i === index ? 'step' : null);
     }
-    text(nodes.cue, !active ? '' : state.instruction || (state.requiresGrip && state.phase === 'grip' ? 'HOLD X + Y' : state.memorising ? 'READ THE SEQUENCE' : state.phase === 'lift' ? 'HOLD X + Y' : state.phase === 'prepare' ? 'WAIT' : state.expectedKey ? `PRESS ${KEY_LABEL[state.expectedKey]}` : state.kind === 'rest' ? 'REST' : 'WAIT'));
+    text(nodes.cue, !active || waiting ? '' : state.instruction || (state.requiresGrip && state.phase === 'grip' ? 'HOLD X + Y' : state.memorising ? 'READ THE SEQUENCE' : state.phase === 'lift' ? 'HOLD X + Y' : state.phase === 'prepare' ? 'WAIT' : state.expectedKey ? `PRESS ${KEY_LABEL[state.expectedKey]}` : state.kind === 'rest' ? 'REST' : 'WAIT'));
     attribute(nodes.cue, 'data-ready', String(state.phase === 'cue' || state.acceptsInput === true));
     text(nodes.grip, state.kind === 'rower' ? (state.phase === 'drive' ? 'Hold X + Y' : state.phase === 'release' ? 'Release X + Y' : '') : state.requiresGrip ? 'Keep X + Y held' : '');
     set(nodes.window, 'hidden', !active || !state.cueWindow || state.phase !== 'cue');
@@ -53,10 +55,10 @@ export function createActivityUI({ document = globalThis.document } = {}) {
     set(nodes.done, 'hidden', !!street || active || !state.kind);
     set(nodes.panel, 'hidden', !street && (!interior || (!state.kind && !nearest)));
     text(nodes.title, active || state.kind ? state.label : nearest?.label || '');
-    text(nodes.prompt, street ? (sequence.length ? 'Release between presses. E cancels.' : state.prompt) : state.kind ? (state.instruction || state.prompt) : 'E, Q or Play starts this activity.');
+    text(nodes.prompt, street ? (state.guidance || (sequence.length ? 'Release between presses. E cancels.' : state.prompt)) : state.kind ? (state.instruction || state.prompt) : 'E, Q or Play starts this activity.');
     set(nodes.progress, 'hidden', !!street);
     set(nodes.progress, 'value', state.progress || 0);
-    text(nodes.score, street ? `${index}/${sequence.length || 8} · ${state.mistakes || 0}/${state.maxMistakes || 2} mistakes` : state.kind ? `${state.score} points${isWorkoutKind(state.kind) ? ` · ${state.reps}/${state.kind === 'treadmill' ? 12 : 6} reps` : ''}` : '');
+    text(nodes.score, street ? (sequence.length ? `${index}/${sequence.length} · ${state.mistakes || 0}/${state.maxMistakes || 2} mistakes` : '') : state.kind ? `${state.score} points${isWorkoutKind(state.kind) ? ` · ${state.reps}/${state.kind === 'treadmill' ? 12 : 6} reps` : ''}` : '');
     let startText = !sandbox && interior?.storeId && ['noodle', 'stock'].includes(nearest?.kind) ? `Work · +$${nearest.kind === 'noodle' ? 60 : 45}` : 'Play';
     if(nearest?.kind==='rest')startText=sandbox?'Practice rest':safehouse?'Rest · $80':'Owned safehouse required';
     if (isWorkoutKind(nearest?.kind)) startText = sandbox || fitnessLevel >= 3 ? 'Practice' : `Train · $${(gymPrice || 120) * (fitnessLevel + 1)}`;
@@ -64,7 +66,10 @@ export function createActivityUI({ document = globalThis.document } = {}) {
     set(nodes.start, 'hidden', active);
     set(nodes.start, 'disabled', !nearest);
     set(nodes.cancel, 'hidden', !active);
-    for (const button of buttons) set(button, 'disabled', !active);
+    for (const button of buttons) {
+      set(button,'hidden',waiting);
+      set(button,'disabled',!active||waiting);
+    }
   }
   return Object.freeze({ render, clear: () => render(), dispose: () => { disposed = true; }, get stats() { return Object.freeze({ ...counts }); } });
 }

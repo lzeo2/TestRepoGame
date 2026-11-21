@@ -144,7 +144,16 @@ for (const kind of ['car', 'scooter']) {
 const waitingCar = { active: true, kind: 'car', prompt: 'Stay beside the car.' };
 ui.render({ street: waitingCar, state: waitingCar });
 assert.equal(n.prompt.textContent, 'Stay beside the car.');
-assert.equal(n.score.textContent, '0/8 · 0/2 mistakes');
+assert.equal(n.score.textContent, '');
+assert.equal(n.cue.textContent, '');
+assert(buttons.every(button=>button.hidden&&button.disabled));
+const recall={active:true,kind:'car',phase:'cue',sequence:['x','y'],displaySequence:['?','?'],expectedKey:'x',instruction:'ENTER KEY 1',guidance:'Recall the pattern.'};
+ui.render({street:recall,state:recall});
+assert.deepEqual(n.sequence.children.map(tile=>tile.textContent),['?','?']);
+assert.equal(n.cue.textContent,'ENTER KEY 1');
+assert.equal(n.prompt.textContent,'Recall the pattern.');
+assert(buttons.every(button=>!button.hidden&&!button.disabled));
+stable(f,{street:recall,state:recall});
 for (const phase of ['complete', 'failed', 'cancelled']) {
   const terminal = { ...state, phase, active: false };
   ui.render({ interior, state: terminal });

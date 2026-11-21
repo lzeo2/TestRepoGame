@@ -169,4 +169,25 @@ for (const [ctx, reason] of [[{ valid: false, sandbox: false }, 'invalid-context
   assert.equal(game.snapshot().phase, 'idle');
   assert.equal(game.start('car', options), true);
 }
+{
+  const memory=fixture('car',{targetId:'a',style:'varied'});
+  assert.equal(memory.snapshot().style,'memory');
+  assert.equal(memory.snapshot().phase,'memorise');
+  assert.deepEqual(memory.snapshot().displaySequence,memory.snapshot().sequence);
+  tick(memory,{x:true},1);assert.equal(memory.snapshot().index,0);
+  tick(memory,{},2);
+  const hidden=cue(memory);
+  assert(hidden.displaySequence.every(key=>key==='?'));
+  assert.equal(hidden.instruction,'ENTER KEY 1');
+  for(let i=0;i<8;i++)tick(memory,{[cue(memory).expectedKey]:true});
+  assert.equal(result(memory,'complete').targetId,'a');
+  assert(memory.start('car',{...options,targetId:'a',style:'varied'}));
+  assert.equal(memory.snapshot().style,'rhythm');
+  const short=cue(memory).cueWindow;
+  tick(memory,{[memory.snapshot().expectedKey]:true});
+  assert(cue(memory).cueWindow>short,'rhythm alternates noticeably shorter and longer cue windows');
+  const consoleLock=fixture('jet');assert.equal(consoleLock.snapshot().style,'console');
+  for(let i=0;i<8;i++)tick(consoleLock,{[cue(consoleLock).expectedKey]:true});
+  assert.equal(result(consoleLock,'complete').kind,'jet');
+}
 console.log('PASS vehicle challenges: full scooter/car sequences; timing, early/wrong/late/chord/repeat guards; pause; deadlines; validation/mode cancellation; immutable snapshots; exactly-once events; deterministic varied retries.');

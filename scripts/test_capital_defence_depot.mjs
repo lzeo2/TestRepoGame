@@ -21,11 +21,15 @@ assert.equal(applyDefenceDepot(obstructed),obstructed,'new source obstacle safel
 assert(Math.abs(depot.landmark.x-6001.201314547463)<1e-8&&Math.abs(depot.landmark.z+1287.8535423644714)<1e-8,'pinned depot retains proven coordinates');
 assert.equal(map.roads.length,source.roads.length+1);assert.equal(map.buildings.length,source.buildings.length+3);
 assert.equal(depot.gatewayWidth,12);assert(depot.landmark.aliases.includes('military base'));
-map.barriers=[...(source.barriers||[]),...depot.fences];
+assert.equal(depot.parkedVehicles.filter(v=>v.kind==='tank').length,2);
+assert.equal(depot.parkedVehicles.filter(v=>v.kind==='plane').length,1);
+map.barriers=[...(source.barriers||[]),...depot.fences,...depot.vehicleBarriers];
 const terrain=createTerrainSampler(map),simulation=createSimulation(map,{trafficCount:0,parkedCount:0,isOnBridge:terrain.isOnBridge});
 const spur=map.roads.at(-1),yaw=Math.atan2(-(spur.points[1][0]-spur.points[0][0]),-(spur.points[1][1]-spur.points[0][1]));
 for(let i=1;i<spur.points.length;i++)for(let t=0;t<=1;t+=.025){const a=spur.points[i-1],b=spur.points[i],x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;assert(simulation.canOccupy({x,z,yaw},{length:4.5,width:1.8}),'actual car body clears approach, gate and central aisle');}
-for(const footprint of [...depot.fences,...depot.buildings]){const p=footprint.points,centre=p.reduce((a,p)=>({x:a.x+p[0]/4,z:a.z+p[1]/4}),{x:0,z:0});assert.equal(simulation.canOccupy({...centre,yaw},{length:4.5,width:1.8}),false,'rendered fence and hangar footprint remains physical');}
+for(const footprint of [...depot.fences,...depot.buildings,...depot.vehicleBarriers]){const p=footprint.points,centre=p.reduce((a,p)=>({x:a.x+p[0]/4,z:a.z+p[1]/4}),{x:0,z:0});assert.equal(simulation.canOccupy({...centre,yaw},{length:4.5,width:1.8}),false,'rendered depot fence, hangar and parked vehicle footprints remain physical');}
+assert(simulation.canOccupy(depot.helipad,{length:8,width:4}),'the marked rotorcraft stand fits the ground hull');
+for(const u of [-5,-2.5,0,2.5,5]){const [x,z]=depot.point(u,64);assert(simulation.canOccupy({x,z,yaw},{length:10,width:1}),'rotor clearance does not touch the hangars');}
 const planner=createRoutePlanner(buildRoadGraph(map.roads)),out=planner.findEdges(map.spawn,depot.landmark),back=planner.findEdges(depot.landmark,map.spawn);
 assert(out.length>40&&back.length>40,'fictional depot connects both ways to existing city road graph');
 assert(out.some(e=>e.road.id==='fictional-depot-access'),'route reaches the authored entrance spur');

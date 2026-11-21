@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { createDrone } from '../Games/Capital Drive/drone.js';
 import { createSecurityCameras } from '../Games/Capital Drive/security-cameras.js';
+import { drawCameraMarks } from '../Games/Capital Drive/security-cameras-view.js';
 import { createShotObstacles } from '../Games/Capital Drive/shot-obstacles.js';
 import { createProgression } from '../Games/Capital Drive/progression.js';
 import { createGameplay } from '../Games/Capital Drive/gameplay.js';
@@ -11,6 +12,8 @@ import { weaponById } from '../Games/Capital Drive/weapons.js';
 import { createBuses } from '../Games/Capital Drive/buses.js';
 import { createDeliveryService } from '../Games/Capital Drive/delivery-service.js';
 import { createRideService } from '../Games/Capital Drive/ride-service.js';
+import { validExplosion } from '../Games/Capital Drive/ordnance.js';
+import { createVehicleFires } from '../Games/Capital Drive/vehicle-damage.js';
 import { BY_ID } from '../assets/car-arcade/fleet.js';
 
 // Execute exact controller helpers with bounded owner doubles. This is adapter
@@ -33,7 +36,8 @@ function helper(name) {
   throw new Error(`Unclosed helper ${name}`);
 }
 function owner(names, context) {
-  const scope = vm.createContext({ droneActive:false,delivery:null,houseController:null,burglaryContext:()=>({}),...context });
+  const scope = vm.createContext({ droneActive:false,delivery:null,houseController:null,aircraft:null,policeStations:null,
+    securityCameras:null,interiors:{active:null},burglaryContext:()=>({}),...context });
   vm.runInContext(names.map(helper).join('\n'), scope);
   return scope;
 }
@@ -98,7 +102,7 @@ rooms.leaveInterior();
 assert(calls.some(call => call[0] === 'leave'));
 assert(calls.some(call => call[0] === 'dispose-leave'));
 assert.equal(rooms.indoorCampaignScenesView, null);
-assert(source.includes('onVehicleShot:({vehicleId,damage})=>damageWorldVehicle(vehicleId,damage),onVehicleExplosion:damageExplosionVehicles'));
+assert(source.includes('onVehicleShot:hitWorldVehicle,onVehicleExplosion:damageExplosionVehicles'));
 assert(source.includes("if(event.code==='KeyL'&&!paused()){activatePower();return;}"));
 assert(source.includes("if(event.code==='KeyN'&&!paused()){toggleHeadlights();return;}"));
 assert(source.includes('attacksAllowed:canCrewAttack()'));
@@ -218,7 +222,7 @@ assert.equal(coverQueries,beforeCover,'far and cross-room camera observations st
 const hardware=createSecurityCameras([{id:'fixture-camera',x:0,z:0,yaw:0}],{heightAt:()=>0,hasLineOfSight:()=>true});
 const reports=[],sightings=[];
 const surveillance=owner(['recordCameraCrime','stepSecurityCameras','shotTargets'],{
-  securityCameras:hardware,cameraCrimeSerial:0,interiors:{active:null},focus:()=>({x:0,z:-10}),
+  securityCameras:hardware,cameraCrimeSerial:0,cameraRoomPlan:null,interiors:{active:null},isSandbox:()=>false,focus:()=>({x:0,z:-10}),
   gameplay:{state:{wanted:0},reportOffence:(...args)=>reports.push(args),reportSighting:event=>sightings.push(event)},
   pedestrians:{shotTargets:()=>[]},streetDealers:{shotTargets:()=>[]},rideService:{shotTargets:()=>[]},
 });
@@ -235,8 +239,8 @@ assert.equal(reports.length,1,'destroyed hardware cannot report new attacks');
 assert.equal(surveillance.shotTargets().length,0);
 hardware.dispose();assert.equal(hardware.snapshot().length,0);
 assert(source.includes('dialogs.push(...cityUI.dialogs)'));
-assert(source.includes('droneView?.dispose();securityCameras?.dispose();securityCamerasView?.dispose();cityUI?.dispose()'));
-assert(source.includes("event.kind==='attack'&&(event.weapon||event.hits>0)&&event.offenceReported===false"));
+assert(source.includes('droneView?.dispose();securityCameras?.dispose();securityCamerasView?.dispose();indoorSecurityCamerasView?.dispose();cityUI?.dispose()'));
+assert(source.includes("event.kind==='attack'&&(event.weapon||event.hits>0)&&typeof event.offenceReported==='boolean'"));
 assert(source.includes("['mugging-started','robbery-started'].includes(event.type)"));
 console.log('PASS city owner adapters: native stash callbacks/writer denial, owned transient drone/body vulnerability/neutral input/pause/3D walls and roofs, evidence-only cameras, identity damage, once-only reports and disposal');
 
@@ -256,9 +260,9 @@ actualBus.vehicles.forEach((car,i)=>Object.assign(car,{x:60+i*20,z:60,active:tru
 const patrol={id:'police:test',modelId:'relay',x:30,z:30,yaw:0,active:true,health:100};
 carGameplay.state.police.push({id:'officer:test',health:100,mode:'vehicle',car:patrol});
 let colliders;
-const damage=owner(['damageWorldVehicle','damageExplosionVehicles','shotVehicles','syncExternalVehicles','updateAbandonedMeshes'],{
+const damage=owner(['damageWorldVehicle','damageExplosionVehicles','vehicleForGunfire','hitWorldVehicle','shotVehicles','syncExternalVehicles','updateAbandonedMeshes'],{
   simulation:carSimulation,gameplay:carGameplay,buses:actualBus,rideService:actualRide,delivery:actualDelivery,aircraft:{snapshot:()=>({planes:[]})},
-  aircraftObstacles:()=>[],BY_ID,handledVehicleBlasts:new WeakSet(),
+  aircraftObstacles:()=>[],BY_ID,handledVehicleBlasts:new WeakSet(),validExplosion,
   world:{heightAt:()=>0,vehicleHeightAt:()=>0},shotObstacles:createShotObstacles(vehicleMap,{heightAt:()=>0}),
   abandonedMeshes:new Map(),createCar:(modelId,{color})=>({modelId,color,visible:false}),addCarShadow:()=>{},
   scene:{add:()=>{},remove:()=>{}},placeCar:()=>{},
@@ -283,6 +287,13 @@ assert(npc.health>0&&npc.health<100,'falloff reaches the nearest finite rotated 
 const onceHealth=npc.health;
 assert.equal(damage.damageExplosionVehicles(blast),0);assert.equal(npc.health,onceHealth,'the same physical event cannot damage a vehicle twice');
 assert.equal(carGameplay.state.vehicleHealth,90,'external blast callback never double-charges the player car');
+Object.assign(npc,{x:11,z:0,health:100});
+assert.equal(damage.damageExplosionVehicles({...blast}),0,'a grenade cannot reach this vehicle');
+const droneBlast={...blast,kind:'drone-strike',radius:12,maxDamage:160};
+assert.equal(damage.damageExplosionVehicles(droneBlast),1,'the upgraded strike reaches an outer-zone vehicle');
+assert(npc.health<100);
+assert.equal(damage.damageExplosionVehicles(droneBlast),0,'one drone strike routes outside vehicle damage once');
+Object.assign(npc,{x:4,z:0,health:100});
 Object.assign(taxi,{x:2,z:0,yaw:0,health:100});npc.health=100;
 damage.damageExplosionVehicles({...blast});
 assert.equal(npc.health,100,'another vehicle remains physical blast cover');
@@ -302,10 +313,33 @@ damage.updateAbandonedMeshes({x:0,z:0},0);
 assert.equal(damage.abandonedMeshes.size,18,'render map capacity follows the twelve abandoned plus six patrol bound');
 assert([...damage.abandonedMeshes.values()].every(mesh=>mesh.modelId==='lantern'),'unknown patrol models have a visible valid fleet fallback');
 assert(source.includes('vehicleWrecks:freezeCopy({police:gameplay.policeWrecks,meshes:abandonedMeshes.size,capacity:18})'));
-console.log('PASS vehicle controller owners: NPC/patrol/ride/bus/player routing, physical wall/foreign-car blast cover, room exclusion, nearest-hull falloff, once-only damage and bounded visible collider wrecks');
+const removed=[],stationBlast={...blast,x:-700,z:-700};
+damage.policeStations={damageExplosion:event=>{assert.equal(event,stationBlast);return [{id:'fixture-station'}];}};
+damage.shotObstacles={trace:ray=>ray.range,removeBarrier:id=>removed.push(id)};
+damage.notify=()=>{};
+assert.equal(damage.damageExplosionVehicles(stationBlast),0);
+assert.equal(damage.damageExplosionVehicles(stationBlast),0);
+assert.deepEqual(removed,['fixture-station'],'destroyed station permanently removes its shot collider once');
+damage.policeStations=null;
+damage.shotObstacles=createShotObstacles(vehicleMap,{heightAt:()=>0});
+damage.vehicleFires=createVehicleFires({resolve:damage.vehicleForGunfire,damage:damage.damageWorldVehicle,heightAt:()=>0});
+Object.assign(npc,{x:600,z:600,health:100});
+Object.assign(taxi,{x:604,z:600,health:100});
+assert(damage.damageWorldVehicle(npc.id,5));assert.equal(damage.vehicleFires.tracked,0,'non-shot damage does not build bullet heat');
+assert(damage.hitWorldVehicle({vehicleId:npc.id,damage:45}));
+assert(damage.hitWorldVehicle({vehicleId:npc.id,damage:45}));
+assert.equal(damage.vehicleFires.snapshot(npc).length,1);
+for(let i=0;i<20;i++)damage.vehicleFires.step(.1);
+const burns=damage.vehicleFires.drainExplosions();
+assert.equal(burns.length,1);assert.equal(npc.health,0);
+assert.equal(damage.damageExplosionVehicles(burns[0]),1,'the exploding source body does not shield a nearby car from its own blast');
+assert(taxi.health<100&&taxi.health>60);
+assert.equal(damage.damageExplosionVehicles(burns[0]),0,'the same burn blast never damages another vehicle twice');
+assert.equal(damage.vehicleFires.tracked,1,'the nearby blast target never enters the gunfire pool');
+console.log('PASS vehicle controller owners: NPC/patrol/ride/bus/player routing, physical blast cover and falloff, sustained-shot burn and single blast, bounded visible wrecks');
 
 // Execute the actual map adapter: couriers appear without enabling map follow.
-const paint = [], translations = [];
+const paint = [], translations = [], airIcons = [];
 const canvasContext = new Proxy({
   fillRect(...args){paint.push({kind:'rect',color:this.fillStyle,args});},
   fill(){paint.push({kind:'fill',color:this.fillStyle});},
@@ -316,6 +350,7 @@ const mini=owner(['drawMap'],{
   mapImage:{},map:{bounds:{minX:-10000,maxX:10000,minZ:-10000,maxZ:10000},landmarks:[]},
   focus:()=>({x:0,z:0,yaw:0}),mapView:{zoom:1,x:null,z:null},
   createMapProjection:()=>({scale:1,cx:0,cz:0}),route:[],destination:{},
+  drawCameraMarks,serviceMapIcons:{draw:(ctx,kind,x,y)=>airIcons.push({kind,x,y})},
   rideService:{activeFare:null},delivery:{tracking:()=>courierTracking},progression:null,mapSelection:null,
   guideState:{point:{x:0,z:-40},incomingYaw:0,outgoingYaw:0},equipment:null,gameplay:{state:{police:[]}},
 });
@@ -330,6 +365,33 @@ assert(paint.some(item=>item.kind==='fill'&&item.color==='#a16a19'),'out-of-rang
 assert(translations.some(p=>p.x>170&&p.x<200&&p.z===100),'edge arrow points east inside minimap boundary');
 paint.length=0;courierTracking=null;mini.drawMap(canvas,false);
 assert(!paint.some(item=>item.color==='#a16a19'),'terminal orders remove courier marker');
+mini.gameplay.policeSupport=()=>[
+  {kind:'drone',x:10,z:20},{kind:'helicopter',x:55,z:90},{kind:'drone',x:5000,z:0},
+];
+mini.aircraft={snapshot:()=>({planes:[{kind:'helicopter',wrecked:false,x:-30,z:45,name:'Depot'},
+  {kind:'helicopter',wrecked:true,x:15,z:90,name:'Wreck'},{kind:'jet',x:11,z:10}]})};
+mini.droneActive=true;mini.drone={snapshot:()=>({x:-10,z:20})};
+const activePulse=createSecurityCameras([{id:'pulse',x:20,z:15,yaw:0},{id:'offmap',x:5000,z:0,yaw:0}]);
+mini.securityCameras=activePulse;
+assert.equal(activePulse.markNearby({x:0,z:0}),1);
+activePulse.jamNearby({x:20,z:15});
+paint.length=0;mini.drawMap(canvas,false);
+assert.deepEqual(airIcons.map(icon=>icon.kind),['police-drone','helicopter','depot-helicopter','player-drone']);
+assert(airIcons.every(icon=>icon.x>=0&&icon.x<=canvas.width&&icon.y>=0&&icon.y<=canvas.height),'wrecked/out-of-range planes are omitted');
+assert(paint.some(item=>item.color==='#8b5011'),'a marked jammed camera is amber on the actual minimap');
+activePulse.step(12);paint.length=0;mini.drawMap(canvas,false);
+assert(!paint.some(item=>item.color==='#8b5011'),'expired camera pulse marker leaves the actual minimap');
+
+const pulseAction=owner(['cityAction','pulseCameras'],{
+  progression:{state:{gear:{scanner:false}}},gameplay:{state:{recovery:null}},focus:()=>({x:0,z:0}),
+  securityCameras:activePulse,closeDialogs:()=>{pulseAction.closed=true;},notify:()=>{},
+  careerContext:()=>({}),isSandbox:()=>false,developerReturn:null,saveCareer:()=>assert.fail('pulse never saves or spends gear'),
+});
+assert.equal(pulseAction.cityAction('camera-pulse').ok,false);
+pulseAction.progression.state.gear.scanner=true;
+assert.equal(pulseAction.cityAction('camera-pulse').count,1);
+assert.equal(pulseAction.closed,true);
+assert.equal(activePulse.mapMarks()[0].state,'jammed','phone pulse leaves camera operation unchanged');
 const nodes=new Map(),node=id=>{if(!nodes.has(id))nodes.set(id,{open:false,textContent:''});return nodes.get(id);};
 let cleared=0,closed=0;
 const courierOwner={busy:true,vehicles:[{active:true}],tracking:()=>({car:{x:70,z:80,yaw:1}})};
@@ -385,8 +447,10 @@ console.log('PASS courier map/controller: automatic minimap van, directional edg
 const strikeBody={mode:'foot',health:100,actor:{x:0,z:0,yaw:0}};
 const strikeOwner=createDrone({heightAt:()=>0});assert(strikeOwner.deploy(strikeBody,{owned:true}));
 let blastCalls=0,visualCalls=0,offenceCalls=0,strikePaused=false,strikeFreeRoam=false;
-const strikeAdapter=owner(['strikeDrone'],{
-  drone:strikeOwner,gameplay:{state:strikeBody,applyExplosion:event=>{blastCalls++;assert.equal(event.radius,8);},reportOffence:()=>offenceCalls++},
+const shakeCalls=[];
+const strikeAdapter=owner(['applyWorldExplosion','strikeDrone'],{
+  drone:strikeOwner,droneActive:true,reducedCombatMotion:{matches:false},explosionShake:{kick:(...args)=>shakeCalls.push(args)},
+  gameplay:{state:strikeBody,applyExplosion:event=>{blastCalls++;assert.equal(event.radius,12);assert.equal(event.maxDamage,160);return true;},reportOffence:()=>offenceCalls++},
   progression:{state:{gear:{drone:true,droneStrike:true},activeJob:null,activity:null}},
   campaign:{state:{active:null}},developerReturn:null,interiors:{active:null},isSandbox:()=>strikeFreeRoam,paused:()=>strikePaused,
   canCrewAttack:()=>false,ordnance:{showExplosion:()=>visualCalls++},notify:()=>{},
@@ -397,6 +461,8 @@ assert(strikeAdapter.strikeDrone().ok);strikeAdapter.progression.state.activeJob
 assert.equal(blastCalls,2);assert.equal(visualCalls,2);assert.equal(offenceCalls,2);
 strikeFreeRoam=true;assert(strikeAdapter.strikeDrone().ok);
 assert.equal(blastCalls,3);assert.equal(visualCalls,3);assert.equal(offenceCalls,2,'Free roam strike has no police offence');
+assert.equal(shakeCalls.length,3,'successful nearby strikes deliver one camera shake apiece');
+assert(shakeCalls.every(([distance,radius,damage])=>distance>0&&distance<radius&&radius===12&&damage===160));
 strikePaused=true;assert.equal(strikeAdapter.strikeDrone().ok,false);
 assert.equal(blastCalls,3);assert.equal(visualCalls,3);
 console.log('PASS drone strike controller: fresh strikes during jobs, missions and Free roam, one authoritative blast and visual cue per action, career-only offence and pause guard');

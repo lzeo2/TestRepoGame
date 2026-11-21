@@ -66,6 +66,14 @@ for (const [name, pool] of [['street', street], ['room', indoor]]) {
   assert.equal(result.hits, 12, `${name}: only the nearest twelve are processed`);
   assert.equal(calls, 12);
 }
+const droneBlast = { ...explosion, blastKind: 'drone-strike', range: 12, damage: 160, hasLineOfSight: () => true };
+for (const pool of [street, dealers]) {
+  pool.fixture([{ x: 2, z: 0 }, { x: 10, z: 0 }, { x: 12, z: 0 }]);
+  const result = pool.strike(droneBlast);
+  assert.equal(result.hits, 2, 'outdoor drone blast extends beyond grenade range');
+  near(result.people[0].health, 0);
+  near(result.people[1].health, 100 - 160 / 6);
+}
 const wallMap = { ...map, buildings: [{ id: 'wall', points: [[1, -10], [1.4, -10], [1.4, 10], [1, 10]], height: 4 }] };
 const simulation = createSimulation(wallMap, { trafficCount: 0 });
 for (const pool of [street, indoor, dealers]) {

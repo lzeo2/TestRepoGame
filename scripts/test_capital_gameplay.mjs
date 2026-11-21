@@ -236,6 +236,85 @@ for(let i=0;i<100 && !combat.state.recovery;i++)combat.step(1/60);
 assert.equal(combat.state.recovery?.reason,'knockout','police gunshot death uses existing recovery');
 console.log('Capital gameplay: injected attack guard, actual ally police damage/reach/LOS, sidearm player damage and recovery PASS');
 
+// The armour owner receives validated player combat damage exactly once. The
+// gameplay adapter owns health and retains the existing collision and trace paths.
+const armourSim=createSimulation(map,{trafficCount:0});
+Object.assign(armourSim.player,{x:0,z:-100});
+const absorbedCalls=[], incoming=[];
+let armour=20;
+const armoured=createGameplay(map,armourSim,{pedestrians:{drainEvents:()=>incoming.splice(0)},absorbArmour:damage=>{
+  absorbedCalls.push(damage);
+  const blocked=Math.min(armour,damage*.7);
+  armour-=blocked;
+  return damage-blocked;
+}});
+const armouredFoot={x:0,z:0,yaw:0};
+armoured.reset({onFoot:true,startPose:armouredFoot});
+const melee={type:'retaliation',x:0,z:1,damage:10};
+incoming.push(melee);armoured.step(1/60);
+assert.equal(armoured.state.health,97);
+assert.equal(armour,13);
+incoming.push(melee);armoured.step(1/60);
+assert.deepEqual(absorbedCalls,[10],'melee cooldown prevents replaying a damage debit');
+const armouredBlast={type:'explosion',x:0,z:4,radius:8,maxDamage:80};
+assert(armoured.applyExplosion({...armouredBlast,interiorId:'other-room'}));
+assert.deepEqual(absorbedCalls,[10],'different room cannot consume armour');
+assert(armoured.applyExplosion(armouredBlast));
+assert.equal(armoured.state.health,70,'explosion falloff uses the remaining partial charge');
+assert.equal(armour,0);
+assert.deepEqual(absorbedCalls,[10,40]);
+
+armoured.reset({onFoot:true,startPose:armouredFoot});armour=20;
+const shootingOfficer={id:'armour-test-officer',x:8,z:0,yaw:0,speed:0,health:100,mode:'foot',fireCooldown:0};
+armoured.state.police.push(shootingOfficer,...[1,2,3].map(i=>({id:`armour-dead:${i}`,x:0,z:-100,health:0,mode:'foot'})));
+armoured.state.wanted=3;armoured.state.heat=100;
+for(let i=0;i<50 && absorbedCalls.length<3;i++)armoured.step(1/60);
+assert.equal(absorbedCalls.at(-1),9,'real visible officer shots use the shared combat damage owner');
+assert(Math.abs(armoured.state.health-97.3)<1e-8);
+assert(Math.abs(armour-13.7)<1e-8);
+assert(armoured.state.shots.some(shot=>shot.kind==='pistol'),'armour preserves the shot trace');
+
+armoured.reset();armour=20;
+armourSim.player.lastImpactSpeed=30;armourSim.player.crashes++;armoured.step(1/60);
+assert.equal(armoured.state.health,72);
+assert.equal(armour,20,'car crashes bypass body armour');
+armoured.reset({onFoot:true,startPose:armouredFoot});
+armourSim.drainVehicleImpacts=()=>[{targetId:'player-body',offenderId:'fixture-vehicle',speed:10,vx:10,vz:0}];
+armoured.step(1/60);
+assert(Math.abs(armoured.state.health-92.8)<1e-8);
+assert.equal(armour,20,'car-to-pedestrian collision bypasses body armour');
+armourSim.drainVehicleImpacts=()=>[];
+armoured.reset({sandbox:true,onFoot:true,startPose:armouredFoot});
+incoming.push(melee);armoured.step(1/60);armoured.applyExplosion(armouredBlast);
+assert.equal(armoured.state.health,100);
+armoured.reset({sandbox:false,onFoot:true,startPose:armouredFoot});
+armoured.state.recovery={reason:'knockout',phase:'out',elapsed:0,duration:3.4};
+armoured.applyExplosion(armouredBlast);
+assert.equal(armoured.state.health,100);
+assert.deepEqual(absorbedCalls,[10,40,9],'collision, sandbox and recovery never call the armour owner');
+const invalidArmour=createGameplay(map,createSimulation(map,{trafficCount:0}),{absorbArmour:()=>NaN});
+invalidArmour.reset({onFoot:true,startPose:armouredFoot});invalidArmour.applyExplosion(armouredBlast);
+assert.equal(invalidArmour.state.health,60,'invalid optional adapter output preserves the ordinary damage');
+let invulnerable=true;
+const protectedSim=createSimulation(map,{trafficCount:0});
+const protectedPlayer=createGameplay(map,protectedSim,{godMode:()=>invulnerable,absorbArmour:()=>{assert.fail('invulnerability must preserve armour');}});
+protectedPlayer.reset({onFoot:true,startPose:armouredFoot});
+protectedPlayer.applyExplosion(armouredBlast);
+protectedSim.drainVehicleImpacts=()=>[{targetId:'player-body',offenderId:'fixture-vehicle',speed:10,vx:10,vz:0}];
+protectedPlayer.step(1/60);
+assert.equal(protectedPlayer.state.health,100);
+protectedSim.drainVehicleImpacts=()=>[];
+protectedPlayer.reset();
+protectedSim.player.lastImpactSpeed=30;protectedSim.player.crashes++;
+protectedPlayer.step(1/60);
+assert.equal(protectedPlayer.state.health,100);
+invulnerable=false;
+protectedPlayer.reset();
+protectedSim.player.lastImpactSpeed=30;protectedSim.player.crashes++;
+protectedPlayer.step(1/60);
+assert.equal(protectedPlayer.state.health,72,'the session toggle restores normal damage');
+console.log('Capital gameplay armour: melee, line-of-sight blast and police trace share one debit; collisions, other rooms, sandbox and recovery bypass it PASS');
+
 // Protagonist checkpoints restore body/car/ammo only after live placement passes.
 const { WEAPONS: checkpointWeapons } = await moduleFrom('../Games/Capital Drive/weapons.js');
 const checkpointAmmo = amount => Object.fromEntries(checkpointWeapons.map(weapon => [weapon.id,

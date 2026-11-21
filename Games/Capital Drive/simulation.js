@@ -45,6 +45,18 @@ class SpatialGrid {
       }
     }
   }
+  remove(item) {
+    const box = this.extents.get(item);
+    if (!box) return;
+    for (let x = Math.floor(box.minX / this.size); x <= Math.floor(box.maxX / this.size); x++) {
+      for (let z = Math.floor(box.minZ / this.size); z <= Math.floor(box.maxZ / this.size); z++) {
+        const key = `${x},${z}`, items = this.cells.get(key), index = items.indexOf(item);
+        if (index >= 0) items.splice(index, 1);
+        if (!items.length) this.cells.delete(key);
+      }
+    }
+    this.extents.delete(item);
+  }
   query(x, z, radius) {
     const found = new Set();
     const minX = x - radius, maxX = x + radius, minZ = z - radius, maxZ = z + radius;
@@ -943,9 +955,12 @@ export function createSimulation(map, options = {}) {
         ...(options.vehicleHeightAt?{y:vehicleBase(car)}:{}),
         health: car === player ? undefined : car.health ?? 100, disabled: car !== player && car.health === 0, active: true, occupied: traffic.includes(car), unlocked: car === player || abandonedCars.includes(car), speed: car.speed || 0 }));
   }
+  function vehicleForDamage(id) {
+    return parkedById.get(id) || traffic.find(item => item.id === id) || abandonedCars.find(item => item.id === id);
+  }
   function damageVehicle(id, amount) {
     if (id === 'player' || !Number.isFinite(amount) || amount <= 0) return false;
-    const car = parkedById.get(id) || traffic.find(item => item.id === id) || abandonedCars.find(item => item.id === id);
+    const car = vehicleForDamage(id);
     if (!car || car.active === false || car.health === 0) return false;
     car.health = Math.max(0, (car.health ?? 100) - amount);
     if (car.health === 0) { car.speed = 0; car.vx = 0; car.vz = 0; car.overtake = 0; }
@@ -1025,7 +1040,8 @@ export function createSimulation(map, options = {}) {
   }
   return { player, driving, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, previewTeleport, nearestRoad, setParkedCars,
     setNitroAutoRecharge(enabled) { nitroAutoRecharge = enabled === true; },
-    registerStaticBarriers, setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop, drainVehicleImpacts:()=>vehicleImpacts.splice(0),
+    registerStaticBarriers, unregisterStaticBarriers: barriers => barriers.forEach(part=>barrierIndex.remove(part)),
+    setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop, drainVehicleImpacts:()=>vehicleImpacts.splice(0),
     get peopleContacts() { return Object.freeze({ ...peopleStats }); },
-    setPlayerVehicle, nearbyVehicles, claimVehicle, damageVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
+    setPlayerVehicle, nearbyVehicles, claimVehicle, vehicleForDamage, damageVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
 }

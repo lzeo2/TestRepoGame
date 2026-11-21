@@ -300,12 +300,12 @@ def main():
             pulse('e')
             page.wait_for_function('capitalDriveSnapshot().gameplay.carjacking?.challenge?.active')
             first = record('parked car lock admitted')['gameplay']['carjacking']['challenge']
-            check(len(first['sequence']) == 8 and first['cueWindow'] < 1.4,
-                  'Car unlock is eight keys with a shorter window than the four-key scooter hack')
+            check(len(first['sequence']) == 8 and first['style'] in ('memory', 'rhythm'),
+                  'Parked car lock starts one of the eight-key puzzle styles')
             page.wait_for_timeout(2000)
             check(snap()['gameplay']['mode'] == 'foot' and snap()['gameplay']['carjacking'] is not None,
                   'Elapsed time alone does not steal the parked car')
-            page.wait_for_function('capitalDriveSnapshot().gameplay.carjacking===null', timeout=10000)
+            page.wait_for_function('capitalDriveSnapshot().gameplay.carjacking===null', timeout=16000)
             check(snap()['gameplay']['mode'] == 'foot',
                   'Missing the car cues fails without automatically claiming the target')
             focus_world()

@@ -1,3 +1,5 @@
+import { DRONE_STRIKE_BLAST } from './ordnance.js';
+
 const finite = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const axis = n => Number.isFinite(n) ? clamp(n, -1, 1) : 0;
@@ -67,7 +69,7 @@ export function createDrone({ heightAt = () => 0, canOccupy = () => true } = {})
       from = next;
     }
     return {ok:true,message:'Drone strike deployed.',event:Object.freeze({type:'explosion',id:`drone-strike:${++strikeSerial}`,
-      kind:'drone-strike',x:pose.x,y:floor+.25,z:pose.z,radius:8,maxDamage:100,interiorId:null})};
+      kind:'drone-strike',x:pose.x,y:floor+.25,z:pose.z,...DRONE_STRIKE_BLAST,interiorId:null})};
   }
   function snapshot() {
     const g=ground(pose.x,pose.z);

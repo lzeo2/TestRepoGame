@@ -1,6 +1,7 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { appearanceForPerson, createPersonGeometries, emitPersonParts, PERSON_MODEL } from './person-model.js';
 import { rayTargetDistance } from './ballistics.js';
+import { blastLimits } from './ordnance.js';
 
 const POPULATION = 36;
 const MAX_POPULATION = 64;
@@ -14,6 +15,11 @@ const PAVEMENT_LIFT = 0.05;
 const CELL = 32;
 const RAGDOLL_DURATION = 2.8;
 const RAGDOLL_SPEED = 8;
+const CREWS = Object.freeze({
+  kingston: Object.freeze({ name: 'Harbour Crew', color: 0x277d77 }),
+  'canberra-centre': Object.freeze({ name: 'Laneway Crew', color: 0x976335 }),
+});
+const CREW_RADIUS = 18;
 
 function indexBoxes(items) {
   const cells = new Map();
@@ -181,6 +187,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
   const spawn = map.spawn || { x: 0, z: 0, yaw: 0 };
   const anchors = (map.landmarks || []).filter(p => ['manuka', 'kingston', 'telopea'].includes(p.id));
   const civic = (map.landmarks || []).find(p => p.id === 'canberra-centre');
+  const crewZones = (map.landmarks || []).filter(p => Object.hasOwn(CREWS, p.id) && [p.x, p.z].every(Number.isFinite));
   const populationAt = target => paths.length ? (civic && Math.hypot(target.x - civic.x, target.z - civic.z) < 650 ? MAX_POPULATION : POPULATION) : 0;
   const pool = [], residents = [], events = [];
   const peopleCells = new Map(), peopleById = new Map();
@@ -225,6 +232,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
     person.recklessExposure = 0; person.drivingReportCooldown = 0;
     person.hitCooldown = 0; person.witnessCooldown = 0; person.retaliationCooldown = 0;
     person.playerHitTimer = 0; person.crimePhase = null;
+    person.crew = null; person.backupTimer = 0; person.backupCooldown = 0; person.backupYaw = null;
     person.impactTime = 0; person.impactSerial = 0; person.impactStrength = 0;
     person.impactVX = 0; person.impactVZ = 0; person.impactVY = 0; person.impactHeight = 0;
     person.impactCooldown = 0; person.offsetX = 0; person.offsetZ = 0; person.isPedestrian = true;
@@ -237,6 +245,22 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
     person.returning = false;
     person.visualYaw = person.site && person.routine === 'coffee' ? person.site.yaw : person.yaw + (person.direction < 0 ? Math.PI : 0);
     person.visualStride = person.stopped ? 0 : 0.5;
+  }
+  function assignCrews(player) {
+    for (const zone of crewZones) {
+      if (Math.hypot(zone.x - player.x, zone.z - player.z) > 165) continue;
+      const crew = CREWS[zone.id];
+      if (pool.some(p => p.crew === crew)) continue;
+      const local = pool.filter(p => !p.crew && p.health > 0 && p.ambient === 'walk' && Math.hypot(p.x - zone.x, p.z - zone.z) < 105)
+        .sort((a,b) => Math.hypot(a.x - zone.x, a.z - zone.z) - Math.hypot(b.x - zone.x, b.z - zone.z));
+      for (const leader of local) {
+        const allies = local.filter(p => p !== leader && Math.hypot(p.x - leader.x, p.z - leader.z) < CREW_RADIUS).slice(0,2);
+        if (!allies.length) continue;
+        leader.crew = crew;
+        for (const ally of allies) ally.crew = crew;
+        break;
+      }
+    }
   }
   for (let i = 0; i < (paths.length ? MAX_POPULATION : 0); i++) {
     const direction = random() < 0.5 ? -1 : 1, speed = 0.85 + random() * 0.6, phase = random() * Math.PI * 2;
@@ -306,7 +330,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
       occupied.push(pool[i]);
     }
     recycleTimer = 0; events.length = 0;
-    rebuildPeopleGrid(); render(player);
+    assignCrews(player); rebuildPeopleGrid(); render(player);
   }
   const transform = new THREE.Object3D(), color = new THREE.Color(), rootRotation = new THREE.Quaternion();
   const tumbleRotation = new THREE.Quaternion();
@@ -335,8 +359,8 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
     const strideBlend = -Math.expm1(-12 * dt), turnBlend = -Math.expm1(-10 * dt);
     for (const p of pool) {
       const falling = p.dead || p.impactTime > 0;
-      const yaw = p.routine === 'coffee' && p.reaction === 'calm' && !p.crimePhase
-        ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0);
+      const yaw = p.backupYaw ?? (p.routine === 'coffee' && p.reaction === 'calm' && !p.crimePhase
+        ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0));
       const stride = p.stopped || falling ? 0 : p.reaction === 'flee' ? 0.85 : 0.5;
       if (falling) { p.visualYaw = yaw; p.visualStride = 0; }
       else {
@@ -391,7 +415,8 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
             y += ground;
           } else { y += ground; z = footLocalZ; }
         }
-        part(name, p, x, y, z, sx, sy, sz, tint, rotation);
+        const crewColor = p.crew && (name === 'torso' || name === 'arms') ? p.crew.color : tint;
+        part(name, p, x, y, z, sx, sy, sz, crewColor, rotation);
       });
       if (drinking) {
         part('cups', p, 0.28, 1.20, -0.32, 0.065, 0.085, 0.065, 0xf1e7d1);
@@ -457,11 +482,21 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
       height: p.impactTime > 0 ? .7 : 1.8 * p.height, radius: .36, interiorId: null, health: p.health });
   }
   function shotTargets() { return Object.freeze(disposed ? [] : pool.filter(p => p.health > 0).map(shotDescriptor)); }
+  function rallyCrew(victim, source) {
+    if (!victim.crew || source.offenderId !== 'player' || Math.hypot(victim.x - source.x, victim.z - source.z) > CREW_RADIUS) return;
+    for (const ally of peopleIn(victim.x-CREW_RADIUS, victim.x+CREW_RADIUS, victim.z-CREW_RADIUS, victim.z+CREW_RADIUS)) {
+      if (ally === victim || ally.crew !== victim.crew || ally.health <= 0 || ally.backupCooldown > 0 ||
+        Math.hypot(ally.x - victim.x, ally.z - victim.z) > CREW_RADIUS ||
+        (source.hasLineOfSight && !source.hasLineOfSight(ally,victim))) continue;
+      ally.backupTimer = 6; ally.backupCooldown = 10;
+    }
+  }
   function damagePerson(p, dealt, source, kind, report = true) {
     p.health = Math.max(0, p.health - dealt); p.hitCooldown = 0.4;
     if (p.health === 0) p.crimePhase = null;
     if (source.offenderId === 'player' && kind === 'melee') p.playerHitTimer = 12;
     react(p, source, kind, true, report);
+    if (kind !== 'explosion') rallyCrew(p,source);
     if (p.health === 0 && ['pistol', 'gunshot', 'firearm', 'shot', 'fire', 'explosion'].includes(kind)) {
       p.dead = true; p.deathTime = 0; p.stopped = true; p.anger = 0; p.angerOffender = null;
       p.impactTime = 0; p.impactHeight = 0; p.impactVX = p.impactVZ = p.impactVY = 0;
@@ -510,12 +545,13 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
     }
     return count;
   }
-  function strike({ x, z, yaw = 0, range = 2, damage = 20, kind = 'melee', hasLineOfSight, offenderId = 'player' } = {}) {
+  function strike({ x, z, yaw = 0, range = 2, damage = 20, kind = 'melee', blastKind, hasLineOfSight, offenderId = 'player' } = {}) {
     const people = [];
     if (disposed || ![x, z, yaw, range, damage].every(Number.isFinite)) return { hits: 0, people };
     const explosion = kind === 'explosion';
     if (explosion && typeof hasLineOfSight !== 'function') return { hits: 0, people };
-    const reach = Math.max(0, Math.min(explosion ? 8 : 100, range)), power = Math.max(0, Math.min(100, damage));
+    const limits = explosion ? blastLimits(blastKind) : null;
+    const reach = Math.max(0, Math.min(limits?.radius ?? 100, range)), power = Math.max(0, Math.min(limits?.maxDamage ?? 100, damage));
     const gun = ['pistol', 'gunshot', 'firearm', 'shot', 'fire'].includes(kind);
     const candidates = peopleIn(x - reach, x + reach, z - reach, z + reach).map(p => ({ p, distance: Math.hypot(p.x - x, p.z - z) }))
       .filter(({ p, distance }) => {
@@ -528,7 +564,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
     for (const { p, distance } of candidates.slice(0, explosion ? 12 : gun ? 1 : 3)) {
       if (explosion && hasLineOfSight({ x, z }, p) !== true) continue;
       const dealt = explosion ? power * (1 - distance / reach) : power;
-      people.push(damagePerson(p, dealt, { x, z, offenderId }, kind, !explosion || p.health > dealt));
+      people.push(damagePerson(p, dealt, { x, z, offenderId, hasLineOfSight }, kind, !explosion || p.health > dealt));
     }
     if (people.length && !explosion) alert({ x, z, radius: gun ? 40 : 16, kind, hasLineOfSight, offenderId });
     return { hits: people.length, people };
@@ -583,7 +619,8 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
         p.reaction = 'dead'; p.stopped = true;
         continue;
       }
-      for (const key of ['drivingReportCooldown', 'hitCooldown', 'witnessCooldown', 'retaliationCooldown', 'stun', 'knockdown', 'reactionTimer', 'yieldTimer', 'playerHitTimer', 'impactCooldown']) p[key] = Math.max(0, p[key] - dt);
+      for (const key of ['drivingReportCooldown', 'hitCooldown', 'witnessCooldown', 'retaliationCooldown', 'stun', 'knockdown', 'reactionTimer', 'yieldTimer', 'playerHitTimer', 'impactCooldown', 'backupTimer', 'backupCooldown']) p[key] = Math.max(0, p[key] - dt);
+      p.backupYaw = null;
       if (p.impactTime > 0) {
         p.impactTime = Math.max(0, p.impactTime - dt);
         moveImpactBody(p, p.impactVX * dt, p.impactVZ * dt);
@@ -631,10 +668,26 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
         p.routine = 'interrupted'; p.returning = Boolean(p.site); p.fear = Math.max(p.fear, 0.8);
         if (p.knockdown <= 0 && p.stun <= 0) p.reaction = 'compliant';
       }
-      if (!coerced && p.reaction === 'angry' && p.angerOffender === 'player' && gap < 2.1 && p.retaliationCooldown <= 0 &&
+      const backing = p.backupTimer > 0 && !coerced && p.health > 0 && p.knockdown <= 0 && p.stun <= 0 &&
+        speed < 3 && gap < CREW_RADIUS && (!hasLineOfSight || hasLineOfSight(p,player));
+      if (backing) {
+        p.reaction = 'angry'; p.backupYaw = Math.atan2(dx,dz);
+      }
+      if (!coerced && p.reaction === 'angry' && (backing || p.angerOffender === 'player') && gap < 2.1 && p.retaliationCooldown <= 0 &&
         (!hasLineOfSight || hasLineOfSight(p, player))) {
         emit({ type: 'retaliation', kind: 'melee', x: p.x, z: p.z, personId: p.id, targetId: 'player', damage: 5 });
         p.retaliationCooldown = 2.2;
+      }
+      if (backing) {
+        const beforeX = p.x, beforeZ = p.z;
+        const stride = Math.min(2.2 * dt, Math.max(0,gap - 1.55));
+        if (stride > 0) moveImpactBody(p, -dx / gap * stride, -dz / gap * stride);
+        p.stopped = Math.hypot(p.x - beforeX,p.z - beforeZ) < .001;
+        const base = pointAlong(p.path,p.distance);
+        p.offsetX = p.x - base.x - p.nx * p.escape; p.offsetZ = p.z - base.z - p.nz * p.escape;
+        p.y = heightAt(p.x,p.z) + PAVEMENT_LIFT;
+        if (!p.stopped) p.phase += dt * 8;
+        continue;
       }
       if (p.reaction === 'calm') {
         if (p.routine === 'interrupted') { p.routine = 'walk'; p.returning = Boolean(p.site); }
@@ -722,6 +775,7 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
           place(p, path, distance); stats.recycled++;
         }
       }
+      assignCrews(player);
     }
     rebuildPeopleGrid(); render(player, dt);
   }
@@ -753,10 +807,10 @@ export function createPedestrians(scene, map, heightAt, { entrances = [], moveAc
   return { update, applyVehicleImpacts, resetPopulation, clipMovement, writeContacts, stats, alert, strike, setCrime, getCrimeTarget, shotTargets, hitByShot,
     drainEvents() { return events.splice(0); },
     snapshot() { return Object.freeze(pool.map(p => Object.freeze({ id: p.id, appearanceKey: p.appearance.key, appearance: p.appearance, x: p.x, y: p.y, z: p.z,
-      yaw: p.routine === 'coffee' && p.reaction === 'calm' ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0), roadId: p.path.roadId, roadName: p.path.name,
+      yaw: p.backupYaw ?? (p.routine === 'coffee' && p.reaction === 'calm' ? p.site.yaw : p.yaw + (p.direction < 0 ? Math.PI : 0)), roadId: p.path.roadId, roadName: p.path.name,
       sidewalkOffset: p.path.offset, yieldTimer: p.yieldTimer, escape: p.escape, stopped: p.stopped, phase: p.phase,
       routine: p.routine, ambient: p.ambient, routineClock: p.routineClock, returning: p.returning, personality: p.personality,
-      seat: null,
+      seat: null, crew: p.crew?.name ?? null, backing: p.backupYaw !== null,
       routineSite: p.site ? Object.freeze({ x: p.site.x, z: p.site.z, roadId: p.path.roadId }) : null,
       threatened: p.playerHitTimer > 0, lastPlayerHit: p.playerHitTimer > 0, crimePhase: p.health > 0 ? p.crimePhase : null,
       health: p.health, dead: p.dead, deathTime: p.deathTime, reaction: p.reaction, fear: p.fear, anger: p.anger,

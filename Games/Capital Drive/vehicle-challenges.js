@@ -5,7 +5,15 @@ const RULES = {
   scooter: { length: 4, cue: 1.4, prepare: 0.38, duration: 20, maxMistakes: 3 },
   car: { length: 8, cue: 1, prepare: 0.38, duration: 24, maxMistakes: 2 },
   house: { length: 6, cue: 1.3, prepare: 0.38, duration: 24, maxMistakes: 2 },
+  jet: { length: 8, cue: 1, prepare: .48, duration: 24, maxMistakes: 2 },
 };
+const MEMORY_PREVIEW = 3;
+const STYLES = Object.freeze({
+  tap: {label:'Quick cues',guidance:'Press the highlighted key. Release between taps. E cancels.'},
+  rhythm: {label:'Alternating beats',guidance:'Follow the short and long beats. Release between taps. E cancels.'},
+  memory: {label:'Recall the pattern',guidance:'Read the sequence, then repeat it from memory. E cancels.'},
+  console: {label:'Console cadence',guidance:'Match each console pulse. Release between taps. E cancels.'},
+});
 const TERMINAL = new Set(['complete', 'failed', 'cancelled']);
 const heldKeys = input => Object.fromEntries(KEYS.map(key => [key, input?.[key] === true]));
 const finitePoint = point => point && Number.isFinite(point.x) && Number.isFinite(point.z);
@@ -16,6 +24,24 @@ function makeSequence(kind, targetId, serial) {
     seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
     return KEYS[seed % KEYS.length];
   });
+}
+function selectStyle(kind, targetId, serial, style) {
+  if (style==='varied' && kind==='car') {
+    let sum=serial;
+    for (const char of targetId) sum+=char.codePointAt(0);
+    return sum%2 ? 'rhythm' : 'memory';
+  }
+  return kind==='jet'?'console':kind==='house'?'rhythm':'tap';
+}
+function timing(session) {
+  const rules=RULES[session.kind];
+  if (session.kind==='house') return {...rules,cue:rules.cue+(session.index%2?.2:-.14)};
+  if (session.style==='rhythm') return session.index%2
+    ? {prepare:rules.prepare+.19,cue:rules.cue+.2}
+    : {prepare:rules.prepare-.08,cue:rules.cue-.14};
+  if (session.style==='memory') return {prepare:.3,cue:1.7};
+  if (session.style==='console') return {prepare:rules.prepare+(session.index%3===2?.17:0),cue:rules.cue};
+  return rules;
 }
 
 export function createVehicleChallenge() {
@@ -35,10 +61,10 @@ export function createVehicleChallenge() {
   function start(kind, options) {
     if (running() || !Object.hasOwn(RULES, kind) || typeof options?.targetId !== 'string' ||
         !options.targetId.trim() || !finitePoint(options.anchor) || typeof options.sandbox !== 'boolean') return false;
-    const sessionId = ++serial;
+    const sessionId = ++serial, style=selectStyle(kind,options.targetId,sessionId,options.style);
     session = { kind, targetId: options.targetId, anchor: { x: options.anchor.x, z: options.anchor.z },
-      sandbox: options.sandbox, sessionId, sequence: makeSequence(kind, options.targetId, sessionId),
-      phase: 'prepare', phaseTime: 0, elapsed: 0, index: 0, mistakes: 0, reason: null, released: false };
+      sandbox: options.sandbox, sessionId, style, sequence: makeSequence(kind, options.targetId, sessionId),
+      phase:style==='memory'?'memorise':'prepare', phaseTime: 0, elapsed: 0, index: 0, mistakes: 0, reason: null, released: false };
     previous = heldKeys(null);
     return true;
   }
@@ -57,16 +83,20 @@ export function createVehicleChallenge() {
     if (context.sandbox !== session.sandbox) { cancel('mode-changed'); return snapshot(); }
     // Consume paused edges without advancing the clock or accepting a press after resume.
     if (!Number.isFinite(dt) || dt <= 0) return snapshot();
-    const s = session, rules = RULES[s.kind], phaseBefore = s.phase;
+    const s = session, rules = RULES[s.kind], pace=timing(s), phaseBefore = s.phase;
     s.elapsed += dt;
     if (s.elapsed >= rules.duration) { finish('failed', 'Time ran out.'); return snapshot(); }
     const down = KEYS.filter(key => held[key]);
     if (!down.length) s.released = true;
     s.phaseTime += dt;
-    if (s.phase === 'prepare' && s.phaseTime >= rules.prepare) {
-      s.phase = 'cue'; s.phaseTime -= rules.prepare;
+    if (s.phase==='memorise') {
+      if (s.phaseTime>=MEMORY_PREVIEW) prepare();
+      return snapshot();
     }
-    if (s.phase === 'cue' && s.phaseTime > rules.cue) {
+    if (s.phase === 'prepare' && s.phaseTime >= pace.prepare) {
+      s.phase = 'cue'; s.phaseTime -= pace.prepare;
+    }
+    if (s.phase === 'cue' && s.phaseTime > pace.cue) {
       mistake('Too late. Wait for the next key cue.'); return snapshot();
     }
     if (!pressed.length) return snapshot();
@@ -75,7 +105,7 @@ export function createVehicleChallenge() {
       mistake('Wrong key. Release all keys and follow the sequence.');
     } else {
       s.index++; s.reason = null;
-      if (s.index === s.sequence.length) finish('complete', s.kind === 'car' ? 'Car lock bypassed.' : s.kind === 'house' ? 'House lock bypassed.' : 'Lemon lock bypassed.');
+      if (s.index === s.sequence.length) finish('complete', s.kind === 'car' ? 'Car lock bypassed.' : s.kind === 'house' ? 'House lock bypassed.' : s.kind==='jet'?'Jet console unlocked.':'Lemon lock bypassed.');
       else prepare();
     }
     return snapshot();
@@ -86,19 +116,26 @@ export function createVehicleChallenge() {
     if (s.phase === 'complete') return s.reason;
     if (s.phase === 'failed') return `${s.reason} Press E to retry.`;
     if (s.phase === 'cancelled') return 'Lock challenge cancelled.';
+    if (s.style==='memory') return STYLES.memory.guidance;
     const label = LABELS[s.sequence[s.index]];
-    return `${s.kind === 'car' ? 'CAR LOCK' : s.kind === 'house' ? 'HOUSE LOCK' : 'LEMON HACK'}: ${s.phase === 'cue' ? `Press ${label} now!` : `Release keys. Wait for ${label}.`} ${s.index}/${s.sequence.length}. ${s.mistakes}/${RULES[s.kind].maxMistakes} mistakes. E cancels.`;
+    const title=s.kind==='car'?'CAR LOCK':s.kind==='house'?'HOUSE LOCK':s.kind==='jet'?'AIRCRAFT CONSOLE':'SCOOTER LOCK';
+    return `${title} · ${s.phase === 'cue' ? `Press ${label} now!` : `Release keys. Wait for ${label}.`} ${s.index}/${s.sequence.length}. ${s.mistakes}/${RULES[s.kind].maxMistakes} mistakes. E cancels.`;
   }
   function snapshot() {
-    const s = session, rules = s ? RULES[s.kind] : null;
+    const s = session, rules = s ? RULES[s.kind] : null,pace=s?timing(s):null;
+    const sequence=Object.freeze(s?[...s.sequence]:[]), memorising=s?.phase==='memorise';
+    const displaySequence=s?.style==='memory'&&!memorising&&running()?Object.freeze(sequence.map(()=>'?')):sequence;
+    const action=s?.style==='memory'?(memorising?'READ THE PATTERN':s.phase==='cue'?`ENTER KEY ${s.index+1}`:'WAIT'):
+      s?.phase==='cue'?`PRESS ${LABELS[s.sequence[s.index]]}`:undefined;
     return Object.freeze({ active: running(), sessionId: s?.sessionId ?? null,
       kind: s?.kind ?? null, targetId: s?.targetId ?? null, phase: s?.phase ?? 'idle',
-      sequence: Object.freeze(s ? [...s.sequence] : []), index: s?.index ?? 0,
+      sequence,displaySequence,index:s?.index??0,style:s?.style??null,label:STYLES[s?.style]?.label,
+      guidance:STYLES[s?.style]?.guidance,instruction:action,memorising,
       expectedKey: running() ? s.sequence[s.index] : null,
       progress: s ? s.index / s.sequence.length : 0,
       remaining: s ? Math.max(0, rules.duration - s.elapsed) : 0,
-      cueWindow: rules?.cue ?? 0,
-      cueRemaining: s?.phase === 'cue' ? Math.max(0, rules.cue - s.phaseTime) : 0,
+      cueWindow: pace?.cue ?? 0,
+      cueRemaining: s?.phase === 'cue' ? Math.max(0, pace.cue - s.phaseTime) : 0,
       mistakes: s?.mistakes ?? 0, maxMistakes: rules?.maxMistakes ?? 0,
       prompt: prompt(), reason: s?.reason ?? null, sandbox: s?.sandbox ?? false,
       anchor: s ? Object.freeze({ ...s.anchor }) : null });

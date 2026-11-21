@@ -4,6 +4,7 @@ import {createOrdnance, ORDNANCE_LIMITS} from '../Games/Capital Drive/ordnance.j
 import {createOrdnanceView} from '../Games/Capital Drive/ordnance-view.js';
 import {createGameplay} from '../Games/Capital Drive/gameplay.js';
 import {createSimulation} from '../Games/Capital Drive/simulation.js';
+import {createShotObstacles} from '../Games/Capital Drive/shot-obstacles.js';
 
 // Controller-shaped handoff: actual fuse events feed Gameplay while rendering
 // consumes a detached snapshot after drainEvents, never the damage queue.
@@ -46,4 +47,37 @@ assert(system.throw('smoke',{pose:{x:0,z:0,yaw:0},onFoot:true,sandbox:true}).ok)
 for(let i=0;i<120;i++)tick();assert.equal(blasts,1,'smoke cannot explode');assert.equal(system.snapshot().clouds.length,1);
 system.reset();assert.equal(system.snapshot().bursts.length,0);
 view.dispose();assert.equal(view.stats.geometryCount,0);assert.equal(view.stats.materialCount,0);assert.equal(scene.children.length,0);
-console.log('Capital grenade detonation PASS: fuse/controller damage once, visible pooled burst after event drain, room isolation, pause, expiry, smoke and disposal');
+
+const rocketMap={...map,buildings:[{points:[[-3,-7],[3,-7],[3,-6],[-3,-6]],height:3}]};
+const rocketWalls=createShotObstacles(rocketMap), rocketSim=createSimulation(rocketMap,{trafficCount:0});
+let directHits=0, rocketDetonations=0;
+const rocketOwner=createOrdnance({traceRocket:ray=>rocketWalls.trace(ray)});
+const launcher=createGameplay(rocketMap,rocketSim,{hasWeapon:id=>id==='rpg',heightAt:()=>0,
+  launchRocket:ray=>rocketOwner.launchRocket(ray),onVehicleShot:()=>{directHits++;return true;},
+  onVehicleExplosion:()=>{rocketDetonations++;}});
+assert(launcher.interact());
+Object.assign(launcher.state.actor,{x:0,z:0,yaw:0});
+assert(launcher.addAmmo(3,'rpg'));assert(launcher.setWeapon('rpg'));
+const trialRay={x:12,y:1.35,z:0,dx:0,dy:0,dz:-1,range:60,interiorId:null};
+for(let i=0;i<ORDNANCE_LIMITS.projectiles;i++)assert(rocketOwner.launchRocket(trialRay));
+assert.equal(rocketOwner.launchRocket(trialRay),false,'active rockets stay within the shared projectile budget');
+launcher.step(.01,{fire:true,aim:true,aimYaw:0});
+assert.deepEqual(launcher.getAmmo('rpg'),{ammo:1,reserveAmmo:2},'a rejected launch cannot debit ammunition');
+rocketOwner.reset();launcher.step(.01,{fire:true,aim:true,aimYaw:0});
+assert.deepEqual(launcher.getAmmo('rpg'),{ammo:0,reserveAmmo:2});
+assert.equal(directHits,0,'launching cannot deal an additional hitscan hit');
+rocketOwner.step(1/60);
+assert.equal(rocketOwner.snapshot().projectiles[0].kind,'rocket');
+assert.equal(rocketOwner.drainEvents().length,0,'the rocket must first travel');
+const rocketEvents=[];
+for(let i=0;i<14;i++){
+  rocketOwner.step(1/60);
+  for(const event of rocketOwner.drainEvents()){rocketEvents.push(event);launcher.applyExplosion(event);}
+}
+assert.equal(rocketEvents.length,1);assert.equal(rocketDetonations,1);
+const [rocketBlast]=rocketEvents;
+assert.equal(rocketBlast.kind,'rocket');assert.equal(rocketBlast.radius,10);assert.equal(rocketBlast.maxDamage,130);
+assert(rocketBlast.z>-6&&rocketBlast.z<-5.9,'an intervening building stops the blast on its launch side');
+assert.equal(rocketOwner.snapshot().projectiles.length,0);
+assert.equal(rocketOwner.snapshot().bursts[0].radius,10,'the same explosion drives pooled presentation');
+console.log('Capital grenade and rocket detonation PASS: fuse/controller damage once, visible pooled burst after event drain, room isolation, pause, expiry, smoke and disposal');

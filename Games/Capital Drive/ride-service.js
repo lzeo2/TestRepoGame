@@ -1,5 +1,6 @@
 import { createRoutePlanner, roadProfile } from './road-network.js';
 import { rayTargetDistance } from './ballistics.js';
+import { blastLimits } from './ordnance.js';
 
 const LENGTH = 4.66, WIDTH = 1.884, MAX_SPEED = 10;
 const angle = value => Math.atan2(Math.sin(value), Math.cos(value));
@@ -272,17 +273,18 @@ export function createRideService(map, simulation, { pay = () => false, canPay =
       !(hasLineOfSight || simulation.hasLineOfSight)({ x, z }, driver)) return 0;
     driver.reaction = 'returning'; return 1;
   }
-  function strike({ x, z, yaw = 0, range = 2, damage = 20, kind = 'melee', hasLineOfSight } = {}) {
+  function strike({ x, z, yaw = 0, range = 2, damage = 20, kind = 'melee', blastKind, hasLineOfSight } = {}) {
     const result = { hits: 0, people: [] };
     if (!driver.active || driver.health <= 0 || driver.hitCooldown > 0 || ![x, z, yaw, range, damage].every(Number.isFinite)) return result;
     const gap = distance(driver, { x, z }), forward = (driver.x - x) * -Math.sin(yaw) + (driver.z - z) * -Math.cos(yaw);
     const lateral = Math.abs((driver.x - x) * Math.cos(yaw) - (driver.z - z) * Math.sin(yaw));
     const gun = ['pistol', 'shotgun', 'smg', 'carbine', 'gunshot', 'firearm', 'shot', 'fire'].includes(kind);
-    const explosion = kind === 'explosion', reach = Math.max(0, Math.min(explosion ? 8 : 100, range));
+    const explosion = kind === 'explosion', limits = explosion ? blastLimits(blastKind) : null;
+    const reach = Math.max(0, Math.min(limits?.radius ?? 100, range));
     const sight = hasLineOfSight || simulation.hasLineOfSight;
     if (damage <= 0 || gap > reach || (explosion ? gap >= reach : forward < -.3 || (gun ? lateral > .55 : forward < gap * .25)) ||
       typeof sight !== 'function' || (explosion ? sight({ x, z }, driver) !== true : !sight({ x, z }, driver))) return result;
-    const dealt = Math.min(100, damage) * (explosion ? 1 - gap / reach : 1);
+    const dealt = Math.min(limits?.maxDamage ?? 100, damage) * (explosion ? 1 - gap / reach : 1);
     result.hits = 1; result.people.push(damageDriver(dealt)); return result;
   }
   function interact(ctx = {}) {

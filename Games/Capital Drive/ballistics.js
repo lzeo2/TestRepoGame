@@ -1,6 +1,7 @@
 // Deterministic metre-based hitscan shared by gameplay and adult owners.
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 export const MAX_AIM_PITCH = Math.PI * 70 / 180;
+const MAX_SHOT_RANGE = 200;
 export function createShotRays({ x, y, z, yaw, pitch = 0, range, pellets = 1, spread = 0, aiming = false, serial = 1, interiorId = null }) {
   const count = clamp(Math.floor(pellets), 1, 6), width = spread * (aiming ? .42 : 1);
   return Array.from({ length: count }, (_, pellet) => {
@@ -13,7 +14,7 @@ export function createShotRays({ x, y, z, yaw, pitch = 0, range, pellets = 1, sp
 export function rayTargetDistance(ray, target) {
   if (!ray || !target || !Number.isFinite(target.health) || target.health <= 0 || target.active === false || (target.interiorId || null) !== (ray.interiorId || null)) return Infinity;
   const feet = target.feetY ?? target.y, height = target.height ?? 1.8, radius = target.radius ?? .36;
-  if (![ray.x,ray.y,ray.z,ray.dx,ray.dy,ray.dz,ray.range,target.x,feet,target.z,height,radius].every(Number.isFinite) || height <= 0 || radius <= 0 || ray.range <= 0 || ray.range > 100 || Math.abs(Math.hypot(ray.dx,ray.dy,ray.dz)-1)>1e-6) return Infinity;
+  if (![ray.x,ray.y,ray.z,ray.dx,ray.dy,ray.dz,ray.range,target.x,feet,target.z,height,radius].every(Number.isFinite) || height <= 0 || radius <= 0 || ray.range <= 0 || ray.range > MAX_SHOT_RANGE || Math.abs(Math.hypot(ray.dx,ray.dy,ray.dz)-1)>1e-6) return Infinity;
   const lower = feet + Math.min(radius, height / 2), upper = feet + Math.max(height - radius, height / 2);
   let nearest = Infinity;
   const accept = t => { if (t >= 0 && t <= ray.range) nearest = Math.min(nearest, t); };

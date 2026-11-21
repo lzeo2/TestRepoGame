@@ -4,11 +4,18 @@ import { createPoliceSupport } from './police-support.js';
 const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
 const gap = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
 const angle = a => Math.atan2(Math.sin(a),Math.cos(a));
+const DRONE_SCAN_INTERVAL = .2, DRONE_RANGE = 48, DRONE_SCAN_LIMIT = 6;
+const PATROL_DISTANCE = 180, PATROL_REFRESH = .75, PATROL_CAP = 2;
 export function createPolice(simulation, options = {}) {
   const planner = createRoutePlanner(simulation.graph);
   const support=createPoliceSupport(simulation,options);
   const routes = new Map(), tactics = new Map(), approaches = new Map(), events = [];
+  const crouchedSight = new WeakMap();
+  const observesDrone = typeof options.getDrone === 'function' && typeof options.droneLineOfSight === 'function';
+  const hasPatrolStations = typeof options.getPatrolStations === 'function';
   let serial = 0, arrest = 0, spawnDelay = 0, lastSeen = { ...simulation.player };
+  let awarenessClock = 0, droneNoticed = false, blast = null, sightTime = 0;
+  let ambientActive = false, patrolRefresh = 0, previousLoss = 0;
   const knownRooms = new Set(), wrecks = [];
   const currentInterior = () => options.getInterior?.() || null;
   const resolveInterior = id => id ? (options.resolveInterior?.(id) || (currentInterior()?.id === id ? currentInterior() : null)) : null;
@@ -24,10 +31,41 @@ export function createPolice(simulation, options = {}) {
     else remember(point);
   }
   function playerGap(unit,target){const altitude=options.playerAltitude?.();const horizontal=gap(unit,target);return Number.isFinite(altitude)&&altitude>0?Math.hypot(horizontal,altitude):horizontal;}
+  function playerTargetHeight() {
+    const height=options.playerTargetHeight?.();
+    return Number.isFinite(height) ? clamp(height,.45,2.1) : 1.2;
+  }
+  function feetHeight(pose,room) {
+    return Number.isFinite(pose.feetY) ? pose.feetY : Number.isFinite(pose.y) ? pose.y :
+      Number.isFinite(room?.floorY) ? room.floorY : options.heightAt?.(pose.x,pose.z)||0;
+  }
   function sees(unit,target,room) {
     if (unit.health<=0 || playerGap(unit,target)>=145 || (unit.interiorId || null)!==(room?.id || null)) return false;
-    if (unit.interiorId) return !room.safehouse && room.hasLineOfSight(unit,target);
-    return simulation.hasLineOfSight(unit,target);
+    const clear = unit.interiorId ? !room.safehouse && room.hasLineOfSight(unit,target) : simulation.hasLineOfSight(unit,target);
+    if (!clear || !options.shotClear) return clear;
+    const height=playerTargetHeight();
+    if (height>=1.2) return true;
+    const cached=crouchedSight.get(unit),space=room?.id||null;
+    if (cached && cached.until>=sightTime && cached.space===space && cached.height===height &&
+        gap(unit,cached.from)<.65 && gap(target,cached.to)<.65) return cached.visible;
+    const from={x:unit.x,y:eyeHeight(unit),z:unit.z,interiorId:space};
+    const to={x:target.x,y:feetHeight(target,room)+height,z:target.z,id:'player',interiorId:space};
+    const visible=options.shotClear(from,to,{unit,room,interiorId:space})!==false;
+    crouchedSight.set(unit,{until:sightTime+.12,space,height,from,to,visible});
+    return visible;
+  }
+  function eyeHeight(unit) {
+    const floor = unit.interiorId ? resolveInterior(unit.interiorId)?.floorY : options.heightAt?.(unit.x,unit.z);
+    return (Number.isFinite(floor) ? floor : 0) + (unit.mode === 'vehicle' ? 1.35 : 1.62);
+  }
+  function noteExplosion(event) {
+    if (event?.type !== 'explosion' || ![event.x,event.z,event.radius].every(Number.isFinite) || event.radius <= 0) return false;
+    const floor = event.interiorId ? resolveInterior(event.interiorId)?.floorY : options.heightAt?.(event.x,event.z);
+    const y = Number.isFinite(event.y) ? event.y : Number.isFinite(floor) ? floor : 0;
+    // A short local attention cue has no authority over crime reports or player sight.
+    blast = {point:Object.freeze({kind:'blast',x:event.x,y,z:event.z}), room:event.interiorId||null,
+      range:Math.min(60,24+event.radius*2),remaining:2};
+    return true;
   }
   function separated(pose,unit,state,target,roomId) {
     return !state.police.some(other=>other!==unit && other.health>0 && other.mode==='foot' &&
@@ -114,7 +152,40 @@ export function createPolice(simulation, options = {}) {
   }
   let checkpointDelay=0;
   function reset({ clearWrecks = false } = {}) {
-    if (clearWrecks) wrecks.length = 0; support.reset(); checkpointDelay=0; approaches.clear(); routes.clear(); tactics.clear(); events.length=0; knownRooms.clear(); arrest = 0; spawnDelay = 0; remember(simulation.player); }
+    if (clearWrecks) wrecks.length = 0;
+    support.reset(); checkpointDelay=0; approaches.clear(); routes.clear(); tactics.clear(); events.length=0; knownRooms.clear(); arrest = 0; spawnDelay = 0;
+    awarenessClock=0;droneNoticed=false;blast=null;remember(simulation.player);
+    ambientActive=false;patrolRefresh=0;previousLoss=0;
+  }
+  function refreshPatrols(state,target,dt) {
+    patrolRefresh-=dt;
+    if(patrolRefresh>0) return;
+    patrolRefresh=PATROL_REFRESH;
+    const stations=options.getPatrolStations();
+    const nearby=(Array.isArray(stations)?stations:[]).filter(station=>station && typeof station.id==='string' &&
+      [station.x,station.z].every(Number.isFinite) && gap(station,target)<=PATROL_DISTANCE)
+      .sort((a,b)=>gap(a,target)-gap(b,target)).slice(0,PATROL_CAP);
+    for(let i=state.police.length-1;i>=0;i--) {
+      if(!nearby.some(station=>station.id===state.police[i].stationId)) state.police.splice(i,1);
+    }
+    for(const station of nearby) {
+      if(state.police.some(unit=>unit.stationId===station.id)) continue;
+      const anchor={x:station.x,z:station.z},pose={...anchor};
+      if(simulation.moveActor(pose,0,0,.45)?.blocked || gap(pose,anchor)>.1 || !separated(pose,null,state,target,null)) continue;
+      const yaw=Number.isFinite(station.yaw)?station.yaw:0;
+      const endpoint={...anchor};
+      const moved=simulation.moveActor(endpoint,Math.cos(yaw)*4,-Math.sin(yaw)*4,.45);
+      const id=`station-patrol:${station.id}`;
+      const patrolPoints=(!moved?.blocked && gap(anchor,endpoint)>2)?[endpoint,anchor]:null;
+      state.police.push({id,...pose,yaw,stationId:station.id,patrolPoints,patrolIndex:0,mode:'foot',role:'patrol',interiorId:null,
+        searchTime:0,speed:0,health:100,car:{id,...anchor,yaw,speed:0,active:false,length:4.8,width:1.9}});
+    }
+  }
+  function lookAtAwareness(unit,yaw,dt) {
+    if(!unit.awareness || gap(unit,unit.awareness)<=.1) return;
+    const direction=Math.atan2(unit.x-unit.awareness.x,unit.z-unit.awareness.z);
+    unit.yaw=angle(yaw+clamp(angle(direction-yaw),-2.5*dt,2.5*dt));
+  }
   const lanePoint = (edge,t) => ({ x:edge.from.x+edge.dx*t+edge.dz*edge.laneOffset,
     z:edge.from.z+edge.dz*t-edge.dx*edge.laneOffset,yaw:edge.yaw });
   const publicEdges = simulation.graph.edges.filter(edge => roadProfile(edge.road).trafficAllowed);
@@ -286,8 +357,10 @@ export function createPolice(simulation, options = {}) {
     room=unit.interiorId?resolveInterior(unit.interiorId):null;
     if(unit.interiorId&&(!room||room.safehouse))return;
     const playerThreat=state.wanted>=3 || (state.weapon && state.weapon!=='unarmed' && (state.aiming || state.attackTimer>0));
+    const targetHeight=playerTargetHeight();
     const candidates=[];
-    if(playerThreat && state.health!==0 && (unit.interiorId || null)===playerRoomId && !room?.safehouse) candidates.push({...target,id:'player'});
+    if(playerThreat && state.health!==0 && (unit.interiorId || null)===playerRoomId && !room?.safehouse &&
+        (targetHeight>=1.2 || sees(unit,target,room))) candidates.push({...target,id:'player'});
     for(const ally of options.getAllies?.() || []) if((unit.interiorId||null)===(ally.interiorId||null) && !room?.safehouse && (state.wanted>=3 || ally.mode==='combat' || ally.shot?.remaining>0) && ally.active!==false && ally.health>0 && ally.armed &&
       Number.isFinite(ally.x) && Number.isFinite(ally.z)) candidates.push(ally);
     const victim=candidates.filter(person=>(person.id==='player'?playerGap(unit,person):gap(unit,person))<=52 && (unit.interiorId ? room?.hasLineOfSight(unit,person) : simulation.hasLineOfSight(unit,person)))
@@ -297,12 +370,11 @@ export function createPolice(simulation, options = {}) {
     unit.yaw=Math.atan2(-(victim.x-unit.x),-(victim.z-unit.z));
     if(unit.fireCooldown>0) return;
     unit.fireCooldown=unit.armour?.75:1.1;
-    const base=point=>Number.isFinite(point.feetY)?point.feetY:Number.isFinite(point.y)?point.y:
-      unit.interiorId&&Number.isFinite(room?.floorY)?room.floorY:options.heightAt?.(point.x,point.z)||0;
     const ground=unit.interiorId&&Number.isFinite(room?.floorY)?room.floorY:options.heightAt?.(unit.x,unit.z)||0;
     const from={x:unit.x,y:ground+1.35,z:unit.z,interiorId:unit.interiorId||null};
     const altitude=victim.id==='player'&&!Number.isFinite(victim.y)&&!Number.isFinite(victim.feetY)?Math.max(0,options.playerAltitude?.()||0):0;
-    const to={...victim,y:base(victim)+1.2+altitude,interiorId:unit.interiorId||null};
+    const height=victim.id==='player' ? targetHeight : 1.2;
+    const to={...victim,y:feetHeight(victim,room)+height+altitude,interiorId:unit.interiorId||null};
     if(options.shotClear?.(from,to,{unit,state,room,interiorId:unit.interiorId||null,playerAltitude:altitude})===false)return;
     unit.shotTimer=.13;
     events.push({kind:'shot',interiorId:unit.interiorId || null,officerId:unit.id,targetId:victim.id,from,to,damage:unit.armour?12:9});
@@ -311,31 +383,83 @@ export function createPolice(simulation, options = {}) {
   function step(dt,state,target) {
     if(!Number.isFinite(dt) || dt<=0) return;
     dt=Math.min(dt,.05);
-    if (state.sandbox || state.wanted<=0) { reset();state.police.length=0;state.offencePressure=0; state.pursuit='clear'; return; }
+    sightTime+=dt;
+    const ambient=state.wanted<=0;
+    if (state.sandbox || (ambient && !hasPatrolStations)) { reset();state.police.length=0;state.offencePressure=0;state.pursuit='clear';return; }
+    if (ambient && !ambientActive) {
+      reset(); state.police.length=0;
+    }
+    ambientActive=ambient;
+    if (ambient) refreshPatrols(state,target,dt);
+    const scan = observesDrone && (awarenessClock -= dt) <= 0;
+    const drone = scan ? options.getDrone() : null;
+    const dronePoint = drone?.active && !drone.interiorId && [drone.x,drone.y,drone.z].every(Number.isFinite)
+      ? Object.freeze({kind:'drone',x:drone.x,y:drone.y,z:drone.z}) : null;
+    if (scan) awarenessClock = DRONE_SCAN_INTERVAL;
+    if (blast && (blast.remaining -= dt) <= 0) blast = null;
+    let checks = DRONE_SCAN_LIMIT, droneObserver = null;
     const room=currentInterior();
     const entry=room && (room.known || knownRooms.has(room.id)) ? room : null;
     const outsideTarget=entry?.outside || lastSeen;
-    spawnDelay=Math.max(0,spawnDelay-dt);
-    checkpointDelay=Math.max(0,checkpointDelay-dt);
-    if(spawnDelay===0) {
-      for (let i = wrecks.length - 1; i >= 0; i--) if (gap(wrecks[i],target) > 850 && !state.police.some(unit=>unit.car===wrecks[i])) wrecks.splice(i,1);
-      const cap=Math.max(0,Math.min(6,state.wanted+1)-wrecks.filter(car=>!state.police.some(unit=>unit.car===car)).length);
-      if(state.wanted>=4&&!room&&checkpointDelay===0){
-        for(let i=state.police.filter(unit=>unit.checkpointRemaining>0).length;i<2&&state.police.length<cap;i++)if(!spawn(state,target,true))break;
-        checkpointDelay=30;
+    if(!ambient) {
+      const reportedLoss=options.getResponseLoss?.();
+      const loss=Number.isInteger(reportedLoss)?clamp(reportedLoss,0,3):0;
+      spawnDelay=Math.max(0,spawnDelay-dt+Math.max(0,loss-previousLoss)*1.25);
+      previousLoss=loss;
+      checkpointDelay=Math.max(0,checkpointDelay-dt);
+      if(spawnDelay===0) {
+        for(let i=wrecks.length-1;i>=0;i--) if(gap(wrecks[i],target)>850&&!state.police.some(unit=>unit.car===wrecks[i])) wrecks.splice(i,1);
+        const capacity=Math.max(2,Math.min(6,state.wanted+1)-loss);
+        const cap=Math.max(0,capacity-wrecks.filter(car=>!state.police.some(unit=>unit.car===car)).length);
+        if(state.wanted>=4&&!room&&checkpointDelay===0){
+          const checkpoints=loss>=2?1:2;
+          for(let i=state.police.filter(unit=>unit.checkpointRemaining>0).length;i<checkpoints&&state.police.length<cap;i++)if(!spawn(state,target,true))break;
+          checkpointDelay=30+loss*5;
+        }
+        while(state.police.length<cap) if(!spawn(state,room?outsideTarget:target)) break;
+        spawnDelay=1+loss*1.25;
       }
-      while(state.police.length<cap) if(!spawn(state,room?outsideTarget:target)) break;
-      spawnDelay=1;
     }
-    let seen=support.step(dt,state,target,room),arresting=false;
+    let seen=!ambient && support.step(dt,state,target,room),arresting=false;
     if(seen)remember(target);
     for(const unit of state.police) {
       // Accept restored descriptors while keeping one stable car object for rendering/blockers.
       if(!unit.car) unit.car={id:unit.id,x:unit.x,z:unit.z,yaw:unit.yaw,speed:unit.speed||0,active:true,length:4.8,width:1.9};
       unit.mode ||= 'vehicle';
       unit.interiorId ||= null;
-      unit.seesPlayer=sees(unit,target,room);
-      if(unit.health<=0) { unit.speed=0;unit.car.speed=0;continue; }
+      unit.seesPlayer=!ambient && sees(unit,target,room);
+      if(unit.health<=0) { unit.speed=0;unit.car.speed=0;if(unit.awareness)unit.awareness=null;continue; }
+      if (scan) {
+        if (unit.awareness?.kind === 'drone') unit.awareness = null;
+        if (dronePoint && checks && unit.active !== false && !unit.interiorId) {
+          const y = eyeHeight(unit);
+          if (Math.hypot(drone.x-unit.x,drone.y-y,drone.z-unit.z) <= DRONE_RANGE) {
+            checks--;
+            if (options.droneLineOfSight?.({x:unit.x,y,z:unit.z},dronePoint,{unit}) === true) {
+              unit.awareness = dronePoint;
+              droneObserver ||= unit;
+            }
+          }
+        }
+      }
+      if (unit.active === false || (unit.awareness?.kind === 'drone' && unit.interiorId)) unit.awareness = null;
+      if (unit.active !== false && unit.awareness?.kind !== 'drone') {
+        const heard = blast && blast.room === unit.interiorId &&
+          Math.hypot(blast.point.x-unit.x,blast.point.y-eyeHeight(unit),blast.point.z-unit.z) <= blast.range;
+        if (heard) unit.awareness = blast.point;
+        else if (unit.awareness?.kind === 'blast') unit.awareness = null;
+      }
+      const previousYaw=unit.yaw;
+      if(ambient) {
+        if(unit.awareness) { unit.speed=0;lookAtAwareness(unit,previousYaw,dt); }
+        else if(unit.patrolPoints) {
+          if(gap(unit,unit.patrolPoints[unit.patrolIndex])<.8) unit.patrolIndex=1-unit.patrolIndex;
+          const before={x:unit.x,z:unit.z,yaw:unit.yaw};
+          walk(unit,unit.patrolPoints[unit.patrolIndex],dt,null,state,target,1.25);
+          if(!separated(unit,unit,state,target,null)) Object.assign(unit,before,{speed:0});
+        }
+        continue;
+      }
       if(state.wanted>=5&&unit.role!=='swat'){unit.role='swat';unit.armour=true;unit.health=Math.min(150,unit.health+50);}
       if(unit.seesPlayer) { seen=true;remember(room?room.outside:target);unit.searchTime=0; } else unit.searchTime+=dt;
       if(unit.checkpointRemaining>0 && unit.car.health!==0){unit.checkpointRemaining=Math.max(0,unit.checkpointRemaining-dt);unit.car.speed=unit.speed=0;continue;}
@@ -373,12 +497,19 @@ export function createPolice(simulation, options = {}) {
       }
       fire(unit,state,target,dt,returning,room);
       unit.seesPlayer=sees(unit,target,room);
+      if(unit.awareness?.kind==='drone' && unit.interiorId) unit.awareness=null;
+      if(unit.mode==='foot' && !unit.seesPlayer && !returning && !unit.aiming && Math.abs(unit.speed)<.3) lookAtAwareness(unit,previousYaw,dt);
       if(unit.mode==='foot' && unit.seesPlayer && playerGap(unit,target)<3.4 && Math.abs(target.speed)<2) arresting=true;
     }
+    if (scan) {
+      if (droneObserver && !droneNoticed) options.onAwareness?.({kind:'drone-spotted',officerId:droneObserver.id,x:drone.x,y:drone.y,z:drone.z});
+      droneNoticed = !!droneObserver;
+    }
+    if(ambient) {state.offencePressure=0;state.pursuit='clear';state.arrestProgress=0;return;}
     if(seen) { state.pursuit='pursuit';state.heat=28+state.wanted*9; }
     else { state.pursuit='search';state.heat=Math.max(0,state.heat-dt);if(state.heat<=0) { state.wanted=0;state.offencePressure=0;state.pursuit='clear';state.police.length=0;reset();options.onEscape?.(); } }
     arrest=arresting?arrest+dt:Math.max(0,arrest-dt*2);state.arrestProgress=clamp(arrest/3.5,0,1);
     if(arrest>=3.5) { arrest=0;options.onArrest?.(); }
   }
-  return {step,reset,report,damageVehicle,get wrecks(){return [...wrecks];},support:()=>support.snapshot(),drainEvents:()=>events.splice(0)};
+  return {step,reset,report,noteExplosion,damageVehicle,get wrecks(){return [...wrecks];},support:()=>support.snapshot(),drainEvents:()=>events.splice(0)};
 }

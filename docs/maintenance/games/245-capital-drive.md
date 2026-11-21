@@ -7,7 +7,9 @@
 Operator-authorized original Canberra open-world preview, catalog 245, static entry
 `Games/Capital Drive/index.html`. Three modes share one runtime. **Campaign** has
 three fictional adult protagonists, two opening missions each, a shared Kingston
-meeting and fifteen assigned shared chapters, including reconnaissance and prepared heists. **Street Life** has jobs, cash, a
+meeting and fifteen assigned shared chapters, including reconnaissance and prepared heists.
+An optional aviation chapter uses the depot helicopter and airport jets.
+**Street Life** has jobs, cash, a
 garage, foot combat and police; **Free roam** has all cars, local address search
 and map teleporting. The mapped area covers the inner south and a source-derived
 lake/Civic corridor. A sourced road extension reaches the airport; whole-city coverage remains later work. No GTA code,
@@ -40,7 +42,9 @@ binds it to the file manifest. The browser verifies a replacement set before
 activating it and retiring older Capital Drive file generations. A launch
 screen can reload into the ready version. An active session stays open and
 adopts the release on a subsequent visit. Career saves and settings are
-stored separately.
+stored separately. An FPS counter beside the build number measures rendered
+frames during play. The Realism preset targets 45 FPS, caps the render size
+at 1600 × 900 and softens exposure using the existing render pass.
 
 Canalside Supplies sells a reusable jetpack for $1,200 in Street Life and
 Campaign. Ownership is validated as optional gear when loading older saves.
@@ -90,12 +94,49 @@ the station transfer and preserves existing gear and ammo.
 An owned drone can be upgraded for $100,000 through the Drone phone panel.
 While piloting, each press of R triggers an in-game blast at the checked ground
 position beneath the drone. The upgrade works during jobs, missions and Free
-roam, and draws from the existing effect pool.
+roam, and draws from the existing effect pool. Its 12 m damage radius uses
+physical cover. Nearby explosions briefly shake the camera unless reduced
+motion is enabled.
+
+During pursuits, officers can react to a visible drone or nearby blast.
+Police and player drones, police helicopters and the depot helicopter have
+distinct icons on both maps. Simulated security cameras report visible
+offences and display an alert. An owned police scanner unlocks **Camera pulse**
+under Phone → Gear, which marks cameras in the player's current space for a
+short time. A separate $250 jammer temporarily disables nearby cameras. Both
+operate entirely within the game simulation.
+
+Canalside Supplies sells $350 body armour, $120 medkits, $160 repair kits, a
+sniper rifle and an RPG. Armour absorbs some combat damage. Phone → Gear
+uses a medkit or repairs a nearby stopped car. Keys 6 and 7 equip the two
+weapons. The sniper uses a tighter view when aimed, and the RPG launches a
+pooled projectile that detonates after a collision or at the end of its range.
+Older saves retain their weapon inventory and start with empty pools for new
+weapons. Hold X or the touch DUCK button to crouch. Walls and objects can then
+block attacks and police sight at the player's lower height.
+
+An occupied, stopped vehicle can be taken when its driver has a clear path
+to get out. If it is moving, the driver must first stop. Parked locks still
+use memory or rhythm puzzles. Scooters, houses and aircraft use their own
+cue patterns. Crews in Kingston and Civic can back up nearby members, using
+the existing pedestrian retaliation and line-of-sight checks.
+
+Sustained gunfire can start fires on traffic, parked, police and service
+vehicles. The owner applies damage until the car burns out. The visual pool
+shows up to four nearby fires using the existing flame and smoke draws.
+
+Three fictional police posts near Jardine Street, Petrie Street and Rogan
+Street anchor ambient patrols. Destruction removes the post's obstruction and
+reduces future ground dispatch for the current session. Officers already on
+scene keep responding.
 
 The fictional Capital Defence Depot sits on an airport-area service spur.
 Search for military base to route to its open vehicle gateway. The yard has
-hangars, a guardhouse, side aprons and physical fencing. The exterior takes
-one streamed draw with 352 triangles and releases its geometry when distant.
+hangars, a guardhouse, side aprons, physical fencing, two parked tanks, a
+display aircraft and a working helipad. The exterior takes one streamed
+draw with 705 triangles and releases its geometry when distant. A stealable
+helicopter can lift vertically and land back on the pad. Jets require a
+ground roll aligned with the runway and at least 101 km/h before they can lift.
 
 The 21 November recovery update routes an ordinary medical transfer to the
 nearest usable owned safehouse. Milo's mapped home provides a fallback.

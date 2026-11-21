@@ -172,7 +172,9 @@ def main():
             page.goto(base + '/Games/Capital%20Drive/', wait_until='load', timeout=60000)
             page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=60000)
             check(not snap()['rendering']['compatibility'], 'Actual software WebGL boots with aircraft')
-            check(len(snap()['aircraft']['planes']) == 2, 'Actual sourced apron admits two original jets')
+            planes = snap()['aircraft']['planes']
+            check(sum(plane['kind'] == 'jet' for plane in planes) == 2, 'Actual sourced apron admits two original jets')
+            check(sum(plane['kind'] == 'helicopter' for plane in planes) == 1, 'Actual map admits one checked helicopter')
             page.locator('[data-game-mode=free]').click()
             page.locator('#guided-tutorial').uncheck()
             page.locator('#start-button').click()

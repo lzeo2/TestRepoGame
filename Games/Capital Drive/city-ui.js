@@ -1,4 +1,6 @@
 import { DELIVERY_METHODS } from './delivery-service.js';
+import { UTILITY_GEAR } from './progression.js';
+import { CAMERA_PULSE } from './security-cameras.js';
 
 // Event-driven phone panels. All money, inventory and world actions stay with owners.
 export function createCityUI({ document, getState, onAction, onRoute, onOpen, onClose }) {
@@ -42,6 +44,7 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
   button(section, 'Safehouses & storage', () => open('properties'), 'city-properties-open');
   button(section, 'Hire crew', () => open('crew'), 'city-crew-open');
   button(section, 'Drone', () => open('drone'), 'city-drone-open');
+  button(section, 'Gear', () => open('gear'), 'city-gear-open');
   button(section, 'Food & weapon deliveries', () => open('deliveries'), 'city-deliveries-open');
   const amount = (parent, label, id, value) => {
     const wrapper = make('label', label, parent);
@@ -53,6 +56,30 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
     if (disposed) return;
     const state = getState();
     body.replaceChildren();
+    if(tab==='gear'){
+      title.textContent='Gear';
+      const gear=state.gear||{};
+      const armour=make('section',undefined,body);armour.className='city-row';
+      make('h3',`${UTILITY_GEAR.armour.name} · ${gear.armour??0}/${UTILITY_GEAR.armour.capacity}`,armour,'city-armour-state');
+      make('p','Armour reduces incoming damage until depleted. Buy armour and supplies at an equipment dealer.',armour);
+      for(const kind of ['medkit','repair-kit','jammer']){
+        const item=UTILITY_GEAR[kind],count=gear[item.field]??0,availability=state.utilityAvailability?.[kind];
+        const row=make('section',undefined,body);row.className='city-row';
+        make('h3',`${item.name} · ${count}/${item.capacity} carried`,row,`city-${kind}-count`);
+        make('p',kind==='medkit'?`Restores up to ${item.amount} health. Use on foot.`:kind==='repair-kit'?`Restores up to ${item.amount} car condition. Use beside your stopped car outdoors.`:'Temporarily jams nearby security cameras. Use near a working camera.',row);
+        const use=button(row,`Use ${item.name.toLowerCase()}`,()=>act('use-utility',kind),`city-use-${kind}`);
+        use.disabled=count<1||availability?.ok!==true;
+        use.setAttribute('aria-describedby',`city-${kind}-availability`);
+        make('p',availability?.message||(count<1?`Buy a ${item.name.toLowerCase()} at an equipment dealer.`:use.disabled?'Unavailable right now.':'Ready to use.'),row,`city-${kind}-availability`);
+      }
+      const scanner=make('section',undefined,body);scanner.className='city-row';
+      make('h3','Police scanner',scanner);
+      const pulse=button(scanner,'Camera pulse',()=>act('camera-pulse'),'city-camera-pulse');
+      pulse.disabled=gear.scanner!==true;pulse.setAttribute('aria-describedby','city-camera-pulse-help');
+      const detail=gear.scanner===true?`Marks cameras within ${CAMERA_PULSE.radius} m for ${CAMERA_PULSE.seconds}s.`:'Buy a police scanner at an equipment dealer.';
+      make('p',detail,scanner,'city-camera-pulse-help');
+      return;
+    }
     if(tab==='deliveries'){
       title.textContent='Food & weapon deliveries';
       const courier=state.delivery;

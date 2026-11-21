@@ -98,9 +98,17 @@ assert(view.stats.drawCalls - additionalPatrolDraws <= 50, `four-car equivalent 
 assert(view.stats.triangles < 60000, `triangle budget: ${view.stats.triangles}`);
 assert.equal(find('Adult player').position.y, heightAt(2, 3) + .035);
 root.updateMatrixWorld(true);
-const shoeBounds = new THREE.Box3().setFromObject(find('Adult player'));
+const shoeBounds = new THREE.Box3();
+// Pooled, unequipped guns remain hidden children of the player's joints.
+find('Adult player').traverseVisible(mesh=>{if(mesh.isMesh)shoeBounds.expandByObject(mesh,true);});
 assert(shoeBounds.min.y >= heightAt(2, 3), 'idle shoe soles rest above ground');
 const hip = find('Hip');
+state.actor.crouching=true;
+for(let frame=0;frame<12;frame++)view.update(state,options);
+assert(hip.rotation.x<-.8&&find('Knee').rotation.x>1.6,'crouch bends the hips and knees');
+assert(find('Adult player').position.y<heightAt(2,3)-.3,'the crouched body is lower');
+state.actor.crouching=false;
+for(let frame=0;frame<12;frame++)view.update(state,options);
 state.actor.speed = 5;
 view.update(state, options); const walking = hip.rotation.x;
 view.update(state, options); assert.notEqual(hip.rotation.x, walking, 'walking articulates hips');

@@ -6,6 +6,7 @@ import { createSimulation } from '../Games/Capital Drive/simulation.js';
 import { createProgression } from '../Games/Capital Drive/progression.js';
 import { createPolice } from '../Games/Capital Drive/police.js';
 import { applyAirport } from '../Games/Capital Drive/airport.js';
+import { applyDefenceDepot } from '../Games/Capital Drive/defence-depot.js';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
 import { BY_ID } from '../assets/car-arcade/fleet.js';
@@ -45,6 +46,9 @@ for (const [owner, key, value] of [[env.campaign.state, 'active', {}], [env.prog
   assert.equal(api.aircraftContext().valid, false); api.interactAircraft(); assert.equal(aircraft.challenge.active, false);
   owner[key] = previous;
 }
+env.campaign.state.active={aviation:true};
+assert(api.aircraftContext().valid,'the designated aviation chapter permits boarding');
+env.campaign.state.active=null;
 assert(api.interactAircraft()); assert(aircraft.challenge.active); assert.equal(api.streetChallenge().sequence.length, 8);
 assert(api.interactAircraft()); assert.equal(aircraft.challenge.active, false, 'E cancels the actual jet challenge first');
 assert(api.interactAircraft());
@@ -95,7 +99,7 @@ const progress = createProgression(map), context = { pose: { x: 0, z: 0 }, onFoo
   vehicleHealth: 100, wanted: 3, respawnSerial: 0, sandbox: false, recovering: false, passenger: true };
 assert.equal(progress.startJob(progress.jobs[0].id, context).ok, false, 'a passenger cannot start a paid job through another handler');
 assert.equal(progress.startJob(progress.jobs[0].id, { ...context, passenger: false }).ok, true, 'ordinary wanted jobs remain permitted');
-assert(source.includes("if(!aircraft?.active)campaign.update(1/60,careerContext())"));
+assert(source.includes("if(!aircraft?.active||campaign.state.active?.aviation===true)campaign.update(1/60,careerContext())"));
 assert(source.includes("if (!isSandbox()&&!aircraft?.active) progression.update(1 / 60, careerContext())"));
 assert(source.includes('desiredCamera.set(p.x+Math.sin(angle)*distance,p.y+7+orbitHeight'));
 assert(source.includes("document.body.classList.toggle('piloting',!!aircraft?.active)"));
@@ -118,10 +122,13 @@ console.log('Capital aircraft controller: actual eight-cue theft, cancellation/a
 // Reproduce the native failure: map search retains arbitrary car yaw. A marker
 // at the jet door parked that car under the wing and prevented every taxi step.
 const data = async name => JSON.parse(await readFile(new URL(`../Games/Capital Drive/data/${name}.json`, import.meta.url)));
-const airportMap = applyAirport(applyMapExpansion(await data('canberra'), await data('canberra-north')), await data('airport'));
+const airportMap = applyDefenceDepot(applyAirport(applyMapExpansion(await data('canberra'), await data('canberra-north')), await data('airport')));
+airportMap.barriers=[...airportMap.defenceDepot.fences,...airportMap.defenceDepot.vehicleBarriers];
 const terrain = createTerrainSampler(airportMap), airportSim = createSimulation(airportMap, { trafficCount: 0, isOnBridge: terrain.isOnBridge });
 const airportJets = createAircraft(airportMap, airportSim, { heightAt: terrain.heightAt });
 const parkingFor = Function('env', `with(env){${extract('aircraftStandParking')};return aircraftStandParking;}`)({ aircraft: airportJets, simulation: airportSim });
+const depotRotor=airportJets.snapshot().planes.find(plane=>plane.kind==='helicopter');
+assert(depotRotor?.depot && parkingFor(depotRotor),'the marked depot pad admits its own helicopter and checked arrival parking');
 const airportGame = createGameplay(airportMap, airportSim);
 let parkingCases = 0;
 for (const id of ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch']) for (const standIndex of [0, 1]) {

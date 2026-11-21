@@ -44,7 +44,7 @@ assert.equal(defaults.state.reserveAmmo, 31); assert(defaults.reload()); advance
 assert.deepEqual(defaults.getAmmo('smg'), { ammo: 30, reserveAmmo: 1 });
 assert.deepEqual(defaults.getAmmo('pistol'), { ammo: 0, reserveAmmo: 25 });
 
-for (const weapon of WEAPONS) {
+for (const weapon of WEAPONS.filter(item => !item.projectile)) {
   const { game, strikes, alerts } = fixture();
   assert(game.addAmmo(weapon.magazine * 3, weapon.id));
   assert(game.setWeapon(weapon.id));
@@ -94,7 +94,7 @@ for (const weapon of WEAPONS) {
 
 // Every ray is clipped by the real polygon LOS adapter, including off-centre pellets.
 const wall = { id: 'wall', points: [[15, -30], [18, -30], [18, 30], [15, 30]], height: 8 };
-for (const weapon of WEAPONS) {
+for (const weapon of WEAPONS.filter(item => !item.projectile)) {
   const { game, strikes, events } = fixture({ buildings: [wall] });
   Object.assign(game.state.actor, { x: 10, z: 0, yaw: -Math.PI / 2 });
   game.addAmmo(weapon.magazine, weapon.id); game.setWeapon(weapon.id);
@@ -124,6 +124,7 @@ for (const weapon of WEAPONS) {
   assert(free.setWeapon(weapon.id));
   assert.equal(free.state.ammo, weapon.magazine);
   advance(free, 5, { fire: true });
+  if (free.state.reloading) advance(free, weapon.reload + .01);
   assert(free.state.shots.length <= 16, 'sustained automatic fire keeps bounded traces');
   assert.equal(free.state.wanted, 0);
 }
@@ -144,4 +145,4 @@ assert.equal(recovering.setWeapon('pistol'), false); assert.equal(recovering.add
 advance(recovering, 3.5);
 assert.equal(recovering.state.weapon, 'carbine');
 for (const weapon of WEAPONS) assert.deepEqual(recovering.getAmmo(weapon.id), beforeRecovery[weapon.id]);
-console.log('Capital weapons: four profiles, ownership, isolated capped pools, switching/reload/pause, deterministic spread, per-pellet polygon clipping, trigger offences, bounded traces, sandbox and recovery PASS');
+console.log('Capital weapons: catalogue and hitscan profiles, ownership, isolated capped pools, switching/reload/pause, deterministic spread, per-pellet polygon clipping, trigger offences, bounded traces, sandbox and recovery PASS');

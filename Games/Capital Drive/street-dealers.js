@@ -4,6 +4,7 @@ import {MANUKA_POOL_SITE} from './landmarks.js';
 import {MAPPED_STORES} from './stores.js';
 import {EXTRA_STORES, SKATEPARK} from './civic-extras.js';
 import {rayTargetDistance} from './ballistics.js';
+import {blastLimits} from './ordnance.js';
 
 // Original adult characters. These estimates imply no real person or business trades arms.
 const CONTACTS = [
@@ -123,12 +124,13 @@ export function createStreetDealers(map,{avoidPoints=[],heightAt=()=>0}={}) {
     }
     for(const shot of Array.isArray(shots)?shots.slice(0,32):[])if(valid(shot))alert({...shot,radius:40});
   }
-  function strike({x,z,yaw=0,range=2,damage=20,kind='melee',hasLineOfSight}={}) {
+  function strike({x,z,yaw=0,range=2,damage=20,kind='melee',blastKind,hasLineOfSight}={}) {
     const hit=[];
     if(![x,z,yaw,range,damage].every(Number.isFinite))return {hits:0,people:hit};
     const explosion=kind==='explosion';
     if(explosion&&typeof hasLineOfSight!=='function')return {hits:0,people:hit};
-    const gun=['pistol','shotgun','smg','carbine','gunshot','firearm','shot','fire'].includes(kind),reach=clamp(range,0,explosion?8:100),power=clamp(damage,0,100);
+    const limits=explosion?blastLimits(blastKind):null;
+    const gun=['pistol','shotgun','smg','carbine','gunshot','firearm','shot','fire'].includes(kind),reach=clamp(range,0,limits?.radius??100),power=clamp(damage,0,limits?.maxDamage??100);
     const candidates=people.map(p=>({p,d:distance(p,{x,z})})).filter(({p,d})=> {
       const forward=(p.x-x)*-Math.sin(yaw)+(p.z-z)*-Math.cos(yaw),lateral=Math.abs((p.x-x)*Math.cos(yaw)-(p.z-z)*Math.sin(yaw));
       return power>0&&p.health>0&&p.hitCooldown===0&&d<=reach&&(explosion?d<reach:forward>=-.3&&(gun?lateral<=.55:forward>=d*.25))&&(!hasLineOfSight||(explosion?hasLineOfSight({x,z},p)===true:hasLineOfSight({x,z},p)));

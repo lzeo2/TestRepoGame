@@ -41,6 +41,27 @@ assert(indoor.trace(roomRay(-.5),room)<3,'floor blocks downward fire');
 room.walls.push({x:0,z:7,width:4,depth:.2,height:2.65,y:0,yaw:.3});
 assert(indoor.trace(roomRay(),room)<6,'rotated wall blocks body-height shot');
 const map={bounds:{minX:-100,maxX:100,minZ:-100,maxZ:100},roads:[{id:'r',points:[[-90,0],[90,0]],width:12,speed:40}],buildings:[],spawn:{x:0,z:0,yaw:0},landmarks:[]};
+{
+  const lowWall = {points:[[-3,-3],[3,-3],[3,-2.8],[-3,-2.8]],height:1.1};
+  const coverMap = {...map,barriers:[lowWall]}, obstacle = createShotObstacles(coverMap);
+  const arrivals = [], target = {...person,z:-6,damage:()=>{arrivals.push(1);return true;}};
+  const sim = createSimulation(coverMap,{trafficCount:0}), rays = [];
+  Object.assign(sim.player,{x:50,z:50});
+  const game = createGameplay(coverMap,sim,{sandbox:true,heightAt:()=>0,getShotTargets:()=>[target],
+    traceShot:ray=>{rays.push(ray);return obstacle.trace(ray);}});
+  const preparing = () => {
+    game.reset({sandbox:true,onFoot:true,startPose:{x:5,z:0,yaw:0}});
+    Object.assign(game.state.actor,{x:0,z:0});game.setWeapon('pistol');
+  };
+  preparing();game.step(.05,{crouch:true,sprint:true,jump:true,moveZ:-1});
+  assert(game.state.actor.crouching);assert.equal(game.state.actor.jumpHeight,0);
+  assert(Math.abs(game.state.actor.speed-1.65)<1e-9,'crouching prevents sprinting and jumping');
+  game.step(.05,{});assert.equal(game.state.actor.crouching,false,'release returns to standing');
+  preparing();game.step(.01,{aim:true,aimYaw:0,fire:true});
+  assert.equal(rays[0].y,1.35);assert.equal(arrivals.length,1,'standing fire clears the low wall');
+  preparing();game.step(.01,{crouch:true,aim:true,aimYaw:0,fire:true});
+  assert.equal(rays.at(-1).y,.9);assert.equal(arrivals.length,1,'crouched fire is blocked by the same physical wall');
+}
 function fixture({targets=[],modifier=1,blocked=false}={}) {
   const sim=createSimulation(map,{trafficCount:0}),events=[];
   const obstacle=createShotObstacles(map);
@@ -59,6 +80,18 @@ hits=0;({game}=fixture({targets:[victim]}));game.step(.01,{fire:true,aimPitch:1}
 hits=0;({game}=fixture({targets:[victim],blocked:true}));game.step(.01,{fire:true});assert.equal(hits,0);
 let farHits=0;({game}=fixture({targets:[{...victim,id:'far',z:-10,damage:()=>{farHits++;return true;}},victim]}));
 game.setWeapon('pistol');game.step(.01,{fire:true});assert.equal(farHits,0,'nearby bodies stop the ray');
+// The scope extends the same geometry-aware hitscan.
+const distantTarget={...victim,z:-130,damage:()=>{farHits++;return true;}};
+farHits=0;
+({game}=fixture({targets:[distantTarget]}));
+game.setWeapon('sniper');game.step(.01,{fire:true});
+assert.equal(farHits,0,'the unaimed sniper cannot hit distant targets');
+({game}=fixture({targets:[distantTarget]}));
+game.setWeapon('sniper');game.step(.01,{fire:true,aim:true,aimYaw:0});
+assert.equal(farHits,1,'the scope supports a distant one-shot hit');
+({game}=fixture({targets:[distantTarget],blocked:true}));
+game.setWeapon('sniper');game.step(.01,{fire:true,aim:true,aimYaw:0});
+assert.equal(farHits,1,'the scope still respects indexed obstruction');
 // Automatic cadence carries supplied-time overshoot; short Focus intervals stay frame-rate consistent.
 function sustain(dt) {
   const {game}=fixture({modifier:.5});game.setWeapon('smg');

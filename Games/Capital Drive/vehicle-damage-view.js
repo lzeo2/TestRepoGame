@@ -1,12 +1,17 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
+import {VEHICLE_FIRE_LIMITS} from './vehicle-damage.js';
+
+const PLAYER_PUFFS=5,NPC_PUFFS=3;
+const PARTICLE_CAPACITY=PLAYER_PUFFS+NPC_PUFFS*VEHICLE_FIRE_LIMITS.visible;
 
 // Only the current full player car is deformed. Traffic keeps its instanced ABI.
 export function createVehicleDamageView(scene, heightAt) {
-  const root = new THREE.Group(); root.name = 'Player vehicle fire and smoke'; scene.add(root);
+  const root = new THREE.Group(); root.name = 'Vehicle fire and smoke'; scene.add(root);
   const geometry = new THREE.SphereGeometry(1, 6, 4);
   const fireMaterial = new THREE.MeshBasicMaterial({ color: 0xf79324 });
   const smokeMaterial = new THREE.MeshBasicMaterial({ color: 0x47443f, transparent: true, opacity: .48, depthWrite: false });
-  const fire = new THREE.InstancedMesh(geometry, fireMaterial, 5), smoke = new THREE.InstancedMesh(geometry, smokeMaterial, 5);
+  const fire = new THREE.InstancedMesh(geometry, fireMaterial, PARTICLE_CAPACITY);
+  const smoke = new THREE.InstancedMesh(geometry, smokeMaterial, PARTICLE_CAPACITY);
   fire.name = 'Engine flames'; smoke.name = 'Engine smoke';
   for (const mesh of [fire, smoke]) {
     mesh.count = 0; mesh.visible = false; mesh.frustumCulled = false;
@@ -50,30 +55,38 @@ export function createVehicleDamageView(scene, heightAt) {
   function put(mesh, i, x, y, z, sx, sy, sz) {
     pose.position.set(x, y, z); pose.scale.set(sx, sy, sz); pose.updateMatrix(); mesh.setMatrixAt(i, pose.matrix);
   }
-  function update(state, playerMesh, { interiorId = null } = {}) {
+  function putFire(state,length,count) {
+    const engine=length*.32,age=state.age;
+    const x=state.x-Math.sin(state.yaw)*engine,z=state.z-Math.cos(state.yaw)*engine;
+    const ground=Number.isFinite(state.y)?state.y:heightAt(x,z);
+    if(!Number.isFinite(ground))return;
+    for(let i=0;i<count;i++){
+      const angle=i*2.4+age*.3,offset=i?.22:0;
+      if(state.fire>0){
+        const flicker=.8+Math.sin(age*17+i*2)*.2,size=state.fire*flicker;
+        put(fire,fire.count++,x+Math.cos(angle)*offset,ground+.8+i%2*.16,z+Math.sin(angle)*offset,
+          .18*size,(.45+i%2*.18)*size,.18*size);
+      }
+      if(state.smoke>0){
+        const rise=(age*.65+i*.21)%1,size=(.25+rise*.45)*state.smoke;
+        put(smoke,smoke.count++,x+Math.sin(i*2+age*.4)*rise*.45,ground+1.2+rise*2.4,
+          z+Math.cos(i*2+age*.3)*rise*.35,size,size*1.2,size);
+      }
+    }
+  }
+  function update(state, playerMesh, { interiorId = null, npcFires = [] } = {}) {
     if (disposed) return;
     const valid = state?.active && [state.severity, state.x, state.z, state.yaw, state.age, state.fire, state.smoke].every(Number.isFinite);
     deform(playerMesh || null, valid ? Math.round(Math.max(0, Math.min(1, state.severity)) * 20) / 20 : 0);
     fire.count = smoke.count = 0;
     if (valid && playerMesh && interiorId === null && (state.fire > 0 || state.smoke > 0)) {
       phase = state.age;
-      const dimensions = playerMesh.userData?.dimensions;
-      const length = dimensions?.length || 4.7, engine = length * .32;
-      const x = state.x - Math.sin(state.yaw) * engine, z = state.z - Math.cos(state.yaw) * engine;
-      const ground = heightAt(x, z);
-      if (Number.isFinite(ground)) for (let i = 0; i < 5; i++) {
-        const angle = i * 2.4 + phase * .3, offset = i ? .22 : 0;
-        if (state.fire > 0) {
-          const flicker = .8 + Math.sin(phase * 17 + i * 2) * .2, size = state.fire * flicker;
-          put(fire, fire.count++, x + Math.cos(angle) * offset, ground + .8 + i % 2 * .16,
-            z + Math.sin(angle) * offset, .18 * size, (.45 + i % 2 * .18) * size, .18 * size);
-        }
-        if (state.smoke > 0) {
-          const rise = (phase * .65 + i * .21) % 1, size = (.25 + rise * .45) * state.smoke;
-          put(smoke, smoke.count++, x + Math.sin(i * 2 + phase * .4) * rise * .45,
-            ground + 1.2 + rise * 2.4, z + Math.cos(i * 2 + phase * .3) * rise * .35, size, size * 1.2, size);
-        }
-      }
+      putFire(state,playerMesh.userData?.dimensions?.length||4.7,PLAYER_PUFFS);
+    }
+    if(interiorId===null)for(let i=0;i<Math.min(npcFires.length,VEHICLE_FIRE_LIMITS.visible);i++){
+      const source=npcFires[i];
+      if(!source||![source.x,source.y,source.z,source.yaw,source.age,source.fire,source.smoke].every(Number.isFinite))continue;
+      putFire(source,Number.isFinite(source.length)&&source.length>0?source.length:4.7,NPC_PUFFS);
     }
     for (const mesh of [fire, smoke]) { mesh.visible = mesh.count > 0; mesh.instanceMatrix.needsUpdate = true; }
   }
@@ -84,6 +97,6 @@ export function createVehicleDamageView(scene, heightAt) {
     fire.count = smoke.count = 0;
   }
   return { update, dispose, get stats() { return Object.freeze({ disposed, fireInstances: fire.count, smokeInstances: smoke.count,
-    drawCalls: Number(fire.visible && !disposed) + Number(smoke.visible && !disposed), capacity: 10,
+    drawCalls: Number(fire.visible && !disposed) + Number(smoke.visible && !disposed), capacity: PARTICLE_CAPACITY*2,
     clonedGeometries: records.length, effectGeometries: disposed ? 0 : 1, effectMaterials: disposed ? 0 : 2, phase }); } };
 }
