@@ -76,7 +76,7 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
       method.value=deliveryMethod;
       method.addEventListener('change',()=>{deliveryMethod=method.value==='illegal'?'illegal':'legal';});
       const illegal=DELIVERY_METHODS.illegal,percent=value=>`${Math.round(value*100)}%`;
-      make('p',`Legal uses normal road speed with no added delivery risk. Illegal travels at ${illegal.speedMultiplier}× speed on clear roads. Per illegal order: ${percent(illegal.arrestChance)} courier arrest and confiscation of only that order’s cargo, no refund; ${percent(illegal.reportChance)} adds 1 wanted star while delivery continues; ${percent(1-illegal.arrestChance-illegal.reportChance)} clean.`,body,'city-delivery-method-help');
+      make('p',`Legal uses normal road speed with no added delivery risk. Illegal travels at ${illegal.speedMultiplier}× speed on clear roads. At an illegal handover, there’s a ${percent(illegal.arrestChance)} chance you’re arrested and your order is seized with no refund, a ${percent(illegal.reportChance)} chance you get the cargo and gain one wanted star, and a ${percent(1-illegal.arrestChance-illegal.reportChance)} chance it goes cleanly.`,body,'city-delivery-method-help');
       for(const source of state.deliveryOffers||[]){
         const row=make('section',undefined,body);row.className='city-row';
         make('h3',source.name,row);

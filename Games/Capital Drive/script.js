@@ -556,7 +556,8 @@ function updateNavigation(){
   if(courierStatus) courierStatus.hidden=!courier;
   if(courier){
     const label=courier.method==='illegal'?'Illegal courier':'Legal courier';
-    if(courierStatus) courierStatus.textContent=courier.phase==='waiting'?`${label} at handover stop`:`${followCourier&&liveTracking()?'Live · ':''}${label} · ${courier.distance} m · ~${Math.max(1,Math.ceil(courier.eta/60))} min`;
+    const eta=courier.eta<60?`${Math.max(1,courier.eta)} s`:`${Math.ceil(courier.eta/60)} min`;
+    if(courierStatus) courierStatus.textContent=courier.phase==='waiting'?`${label} at handover stop`:`${followCourier&&liveTracking()?'Live · ':''}${label} · ${courier.distance} m · ~${eta}`;
     if(followCourier&&liveTracking()){mapView.x=courier.car.x;mapView.z=courier.car.z;}
   }else followCourier=false;
 }
