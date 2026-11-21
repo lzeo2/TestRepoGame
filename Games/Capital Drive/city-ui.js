@@ -1,3 +1,7 @@
+import { DELIVERY_METHODS } from './delivery-service.js';
+import { UTILITY_GEAR } from './progression.js';
+import { CAMERA_PULSE } from './security-cameras.js';
+
 // Event-driven phone panels. All money, inventory and world actions stay with owners.
 export function createCityUI({ document, getState, onAction, onRoute, onOpen, onClose }) {
   const make = (tag, text, parent, id) => {
@@ -33,13 +37,14 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
   dialog.addEventListener('close', () => onClose?.());
   const body = make('div', undefined, dialog); body.className = 'city-panel';
   dialog.append(status);
-  let tab = 'properties';
+  let tab = 'properties', deliveryMethod = 'legal';
   function open(next) {
     tab = next; status.textContent = ''; onOpen?.(); render(); dialog.showModal();
   }
   button(section, 'Safehouses & storage', () => open('properties'), 'city-properties-open');
   button(section, 'Hire crew', () => open('crew'), 'city-crew-open');
   button(section, 'Drone', () => open('drone'), 'city-drone-open');
+  button(section, 'Gear', () => open('gear'), 'city-gear-open');
   button(section, 'Food & weapon deliveries', () => open('deliveries'), 'city-deliveries-open');
   const amount = (parent, label, id, value) => {
     const wrapper = make('label', label, parent);
@@ -51,25 +56,60 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
     if (disposed) return;
     const state = getState();
     body.replaceChildren();
+    if(tab==='gear'){
+      title.textContent='Gear';
+      const gear=state.gear||{};
+      const armour=make('section',undefined,body);armour.className='city-row';
+      make('h3',`${UTILITY_GEAR.armour.name} · ${gear.armour??0}/${UTILITY_GEAR.armour.capacity}`,armour,'city-armour-state');
+      make('p','Armour reduces incoming damage until depleted. Buy armour and supplies at an equipment dealer.',armour);
+      for(const kind of ['medkit','repair-kit','jammer']){
+        const item=UTILITY_GEAR[kind],count=gear[item.field]??0,availability=state.utilityAvailability?.[kind];
+        const row=make('section',undefined,body);row.className='city-row';
+        make('h3',`${item.name} · ${count}/${item.capacity} carried`,row,`city-${kind}-count`);
+        make('p',kind==='medkit'?`Restores up to ${item.amount} health. Use on foot.`:kind==='repair-kit'?`Restores up to ${item.amount} car condition. Use beside your stopped car outdoors.`:'Temporarily jams nearby security cameras. Use near a working camera.',row);
+        const use=button(row,`Use ${item.name.toLowerCase()}`,()=>act('use-utility',kind),`city-use-${kind}`);
+        use.disabled=count<1||availability?.ok!==true;
+        use.setAttribute('aria-describedby',`city-${kind}-availability`);
+        make('p',availability?.message||(count<1?`Buy a ${item.name.toLowerCase()} at an equipment dealer.`:use.disabled?'Unavailable right now.':'Ready to use.'),row,`city-${kind}-availability`);
+      }
+      const scanner=make('section',undefined,body);scanner.className='city-row';
+      make('h3','Police scanner',scanner);
+      const pulse=button(scanner,'Camera pulse',()=>act('camera-pulse'),'city-camera-pulse');
+      pulse.disabled=gear.scanner!==true;pulse.setAttribute('aria-describedby','city-camera-pulse-help');
+      const detail=gear.scanner===true?`Marks cameras within ${CAMERA_PULSE.radius} m for ${CAMERA_PULSE.seconds}s.`:'Buy a police scanner at an equipment dealer.';
+      make('p',detail,scanner,'city-camera-pulse-help');
+      return;
+    }
     if(tab==='deliveries'){
       title.textContent='Food & weapon deliveries';
       const courier=state.delivery;
       if(courier&&['approaching','waiting'].includes(courier.phase)){
         make('h3',courier.order.sourceName,body);
+        make('p',courier.order.method==='illegal'?`Illegal delivery · ${DELIVERY_METHODS.illegal.speedMultiplier}× speed on clear roads`:'Legal delivery · normal road speed',body,'city-delivery-method-state');
         make('p',courier.phase==='waiting'?'Courier stopped. Walk beside the van and press E.':'Courier en route. Your handover stop stays where you ordered.',body);
         button(body,'Track courier live',()=>act('track-delivery'),'city-delivery-track');
         button(body,'Route to handover',()=>onRoute({...courier.dropoff,name:'Courier handover',courierOrderId:courier.order.id}),'city-delivery-route');
         button(body,'Cancel and refund',()=>act('cancel-delivery'),'city-delivery-cancel');
         return;
       }
-      make('p','Orders arrive by road. Collect outside on foot. Prices include $50 delivery.',body);
+      make('p','Orders arrive by road. Collect outside on foot. Both methods use the listed item prices, including $50 delivery.',body);
       if(state.sandbox){make('p','Order deliveries in Street Life or Campaign.',body);return;}
+      const methodLabel=make('label','Delivery method',body);methodLabel.className='setting';
+      const method=make('select',undefined,methodLabel,'city-delivery-method');
+      method.setAttribute('aria-describedby','city-delivery-method-help');
+      for(const [value,label] of [['legal','Legal'],['illegal','Illegal']]){
+        const option=make('option',label,method);option.value=value;
+      }
+      method.value=deliveryMethod;
+      method.addEventListener('change',()=>{deliveryMethod=method.value==='illegal'?'illegal':'legal';});
+      const illegal=DELIVERY_METHODS.illegal,percent=value=>`${Math.round(value*100)}%`;
+      make('p',`Legal uses normal road speed with no added delivery risk. Illegal travels at ${illegal.speedMultiplier}× speed on clear roads. At an illegal handover, there’s a ${percent(illegal.arrestChance)} chance you’re arrested and your order is seized with no refund, a ${percent(illegal.reportChance)} chance you get the cargo and gain one wanted star, and a ${percent(1-illegal.arrestChance-illegal.reportChance)} chance it goes cleanly.`,body,'city-delivery-method-help');
       for(const source of state.deliveryOffers||[]){
         const row=make('section',undefined,body);row.className='city-row';
         make('h3',source.name,row);
         for(const item of source.items){
           const label=item.ok?`${item.name} · $${item.cost.toLocaleString()}`:`${item.name} · ${item.message}`;
-          const order=button(row,label,()=>act('order-delivery',{kind:source.kind,sourceId:source.id,itemId:item.itemId}),`city-delivery-${source.id}-${item.itemId}`);
+          const order=button(row,label,()=>act('order-delivery',{kind:source.kind,sourceId:source.id,itemId:item.itemId,method:deliveryMethod}),`city-delivery-${source.id}-${item.itemId}`);
           order.disabled=!item.ok;
         }
       }
@@ -96,7 +136,7 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
     if (tab === 'drone') {
       title.textContent = 'Drone';
       if(state.droneStrikeOwned){
-        make('p','Drone strike owned. Pilot above clear outdoor ground, then press R to strike directly below. 30 second cooldown. Unavailable during jobs, missions and Free roam.',body);
+        make('p','Pilot above clear outdoor ground and press R to strike directly below.',body);
       }else if(state.droneOwned&&!state.sandbox){
         const upgrade=button(body,'Drone strike upgrade · $100,000',()=>act('buy-drone-strike'),'city-drone-strike-buy');
         upgrade.disabled=state.cash<100000;
@@ -104,10 +144,7 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
       }
       if (state.drone?.active) {
         make('p', `${Math.ceil(state.drone.battery)} seconds remaining`, body);
-        if(state.droneStrikeOwned){
-          const strike=button(body,state.drone.strikeCooldown>0?`Strike cooling down · ${Math.ceil(state.drone.strikeCooldown)}s`:'Strike ground below drone',()=>act('drone-strike'),'city-drone-strike');
-          strike.disabled=state.sandbox||state.drone.strikeCooldown>0;
-        }
+        if(state.droneStrikeOwned)button(body,'Strike ground below drone',()=>act('drone-strike'),'city-drone-strike');
         button(body, 'Recall drone', () => act('recall-drone'), 'city-drone-recall');
       } else if (state.droneOwned || state.sandbox) {
         make('p', 'Launch outside on foot. WASD moves, Space rises, Shift lowers. Your body stays behind.', body);

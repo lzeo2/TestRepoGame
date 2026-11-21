@@ -208,12 +208,27 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       ['long stock', [0, -.005, .24], [.08, .11, .36]],
       ['stock heel', [0, -.025, .43], [.09, .18, .055]],
     ]],
+    ['sniper', 'Sniper rifle', [
+      ['receiver', [0, .02, -.12], [.11, .16, .49]],
+      ['barrel', [0, .035, -.79], [.06, .06, .88]],
+      ['scope', [0, .16, -.14], [.13, .12, .34]],
+      ['lens casing', [0, .16, -.32], [.16, .15, .10]],
+      ['stock', [0, -.025, .33], [.095, .17, .46]],
+      ['grip', [0, -.12, .01], [.07, .19, .11]],
+    ]],
+    ['rpg', 'RPG launcher', [
+      ['main tube', [0, .045, -.20], [.19, .20, 1.14]],
+      ['fore casing', [0, .045, -.77], [.23, .24, .15]],
+      ['rear casing', [0, .045, .38], [.25, .25, .15]],
+      ['sight', [0, .19, -.28], [.07, .10, .13]],
+      ['grip', [0, -.10, .04], [.075, .20, .14]],
+    ]],
   ]) {
     const weapon = joint(elbows[1], name, 0, -.28, -.08);
     weapon.rotation.x = -Math.PI / 2; weapon.visible = false;
     for (const [part, position, size] of parts) piece(weapon, `${name} ${part}`, palette.gun, position, size);
     // The barrel tip is measured from the owned merged silhouette below.
-    weapon.userData.muzzleY = id === 'pistol' ? 0 : id === 'carbine' ? .035 : .025;
+    weapon.userData.muzzleY = id === 'pistol' ? 0 : id === 'carbine' || id === 'sniper' ? .035 : id === 'rpg' ? .045 : .025;
     weapons[id] = weapon;
   }
 
@@ -329,7 +344,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
   // must never become the next locomotion target during recovery.
   const animatedJoints = [body, head, ...legs, ...knees, ...arms, ...elbows];
   const blendedAngles = new Float64Array(animatedJoints.length * 3);
-  let poseReady = false, locomotionSpeed = 0, blendedBodyZ = 0, renderedAimOffset = 0;
+  let poseReady = false, locomotionSpeed = 0, blendedBodyZ = 0, renderedAimOffset = 0, crouchAngle = 0;
   let lastShotSerial = 0, flashRemaining = 0;
   const playerMuzzle = new THREE.Vector3();
   const counters = { police: 0, officers: 0, shots: 0, playerVisible: false, objectiveVisible: false, meshes: 0, triangles: 0, drawCalls: 0, activeWeapon: null, weaponMeshes: weaponEntries.length };
@@ -369,18 +384,26 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       phase = (phase + step * locomotionSpeed * 2.7) % (Math.PI * 2);
       const stride = Math.min(1, locomotionSpeed / 3) * Math.sin(phase) * (.55 + .30 * clamp((locomotionSpeed - 3) / 3, 0, 1));
       const jump = clamp(pose.jumpHeight, 0, 22);
-      actor.position.set(pose.x, ground(pose.x, pose.z) + .035 + jump, pose.z); actor.rotation.y = finite(pose.yaw);
-      body.rotation.x = -.10 * clamp((locomotionSpeed - 3) / 3, 0, 1);
+      const crouch = pose.crouching ? 1.14 : 0;
+      crouchAngle = poseReady ? crouchAngle + (crouch - crouchAngle) * blend : crouch;
+      // Pay for the raised heels as the knee bends so the toes stay above ground.
+      const crouchDrop = Math.max(0, .8 * (1 - Math.cos(crouchAngle)) - .10 * Math.sin(crouchAngle)) * actor.scale.y;
+      actor.position.set(pose.x, ground(pose.x, pose.z) + .035 + jump - crouchDrop, pose.z); actor.rotation.y = finite(pose.yaw);
+      body.rotation.x = -.10 * clamp((locomotionSpeed - 3) / 3, 0, 1) - crouch * .16;
       for (let i = 0; i < 2; i++) {
-        const swing = stride * (i ? -1 : 1);
-        legs[i].rotation.set(jump > .05 ? -.35 : swing, 0, 0);
-        knees[i].rotation.set(jump > .05 ? .75 : Math.max(0, -swing) * .7, 0, 0);
+        const swing = stride * (i ? -1 : 1) * (pose.crouching ? .45 : 1);
+        legs[i].rotation.set(jump > .05 ? -.35 : swing - crouch, 0, 0);
+        knees[i].rotation.set(jump > .05 ? .75 : 2 * crouch + Math.max(0, -swing) * .7, 0, 0);
         arms[i].rotation.set(-swing * .7, 0, (i ? -1 : 1) * .08);
         elbows[i].rotation.set(-.12, 0, 0);
       }
       const firearm = weapons[state.weapon];
       for (const [id, weapon] of weaponEntries) weapon.visible = id === state.weapon;
       let aimOffset = 0;
+      if (state.weapon === 'sniper' || state.weapon === 'rpg') {
+        arms[1].rotation.x = .8; elbows[1].rotation.x = .38;
+        arms[0].rotation.x = .85; arms[0].rotation.z = .53; elbows[0].rotation.x = .35;
+      }
       if (firearm && (state.aiming || attack > 0 || recoil > .001)) {
         const pitch = clamp(pose.aimPitch ?? state.aimPitch, -MAX_AIM_PITCH, MAX_AIM_PITCH);
         const kick = recoil * .12;
@@ -430,7 +453,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       poseReady = true;
       impactPose.update(pose, step, state.health);
     } else {
-      impactPose.reset(); poseReady = false; locomotionSpeed = 0; renderedAimOffset = 0;
+      impactPose.reset(); poseReady = false; locomotionSpeed = 0; renderedAimOffset = 0; crouchAngle = 0;
     }
     counters.police = 0; counters.officers = 0;let muzzleCount=0;
     // Officers also render in lazy rooms that have no patrol-car allocation.

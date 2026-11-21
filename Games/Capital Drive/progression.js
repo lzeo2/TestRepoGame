@@ -1,10 +1,11 @@
 import {emptyStash,validStash,transferStash,STASH_CASH_CAP} from './safehouse-storage.js';
 import {SERVICES,LEGACY_SHOP_IDS} from './services.js';
-import {WEAPON_IDS,weaponById} from './weapons.js';
+import {WEAPON_IDS,weaponById,normalizeAmmoInventory} from './weapons.js';
 import {isWorkoutKind} from './interior-activities.js';
 import {nitroRefillQuote} from './nitro-stations.js';
 import {isVehicleStopped} from './driving-dynamics.js';
 import {CAR_RENTAL_OFFERS} from './car-rental.js';
+import {deliveryMethod} from './delivery-service.js';
 // Fictional job markers beside the mapped roads; these are not real businesses.
 const CARS = [
   { id: 'lantern', name: 'Neighbourhood saloon', price: 0 },
@@ -19,6 +20,12 @@ export const GARAGE_MODS = Object.freeze([
   {id:'handling',name:'Handling',costs:Object.freeze([300,600]),description:'Sharper steering and tyre grip'},
 ].map(Object.freeze));
 export const JETPACK_OFFER = Object.freeze({siteId:'canalside-supplies',siteName:'Canalside Supplies',price:1200});
+export const UTILITY_GEAR = Object.freeze({
+  armour:Object.freeze({field:'armour',name:'Body armour',price:350,capacity:100}),
+  medkit:Object.freeze({field:'medkits',name:'Medkit',price:120,capacity:3,amount:35}),
+  'repair-kit':Object.freeze({field:'repairKits',name:'Repair kit',price:160,capacity:3,amount:35}),
+  jammer:Object.freeze({field:'jammers',name:'Camera jammer',price:250,capacity:3}),
+});
 const THROWABLES = Object.freeze({grenade:Object.freeze({field:'grenades',name:'Grenade',price:120}),smoke:Object.freeze({field:'smokeGrenades',name:'Smoke grenade',price:80})});
 const stockGear = () => ({scanner:false,flares:0,grenades:0,smokeGrenades:0});
 const stockMods = () => ({engine:0,brakes:0,handling:0});
@@ -38,13 +45,16 @@ const deliveryStop = (x, z, label) => ({ ...point(x, z, label), radius: DELIVERY
 const validVehicleKey = key => Number.isSafeInteger(key)&&key>=0||typeof key==='string'&&key.length>0&&key.length<=120;
 const object = value => value && typeof value === 'object' && !Array.isArray(value);
 const exactKeys = (value, keys) => Object.keys(value).every(key => keys.includes(key));
+const validOptionalLevel = (value,capacity,integer = true) => value===undefined ||
+  (Number.isFinite(value)&&(!integer||Number.isInteger(value))&&value>=0&&value<=capacity);
+const validSavedGear = gear => object(gear) &&
+  exactKeys(gear,['drone','droneStrike','jetpack','scanner','flares','grenades','smokeGrenades','armour','medkits','repairKits','jammers']) &&
+  ['drone','droneStrike','jetpack'].every(key=>gear[key]===undefined||typeof gear[key]==='boolean') &&
+  (gear.droneStrike!==true||gear.drone===true) && typeof gear.scanner==='boolean' &&
+  Number.isInteger(gear.flares) && gear.flares>=0 && gear.flares<=12 &&
+  ['grenades','smokeGrenades'].every(key=>validOptionalLevel(gear[key],6)) &&
+  Object.values(UTILITY_GEAR).every(({field,capacity})=>validOptionalLevel(gear[field],capacity,field!=='armour'));
 const INVENTORY_PROFILES = Object.freeze(['street','student','corporate','basement']);
-const validInventory = pools => object(pools)&&Object.keys(pools).length===WEAPON_IDS.length&&exactKeys(pools,WEAPON_IDS)&&WEAPON_IDS.every(id=>{
-  const pool=pools[id],weapon=weaponById(id);
-  return object(pool)&&Object.keys(pool).length===2&&exactKeys(pool,['ammo','reserveAmmo'])&&
-    Number.isSafeInteger(pool.ammo)&&pool.ammo>=0&&pool.ammo<=weapon.magazine&&
-    Number.isSafeInteger(pool.reserveAmmo)&&pool.reserveAmmo>=0&&pool.reserveAmmo<=weapon.reserveCap;
-});
 const validCrewHealth = (value,ids) => object(value)&&Object.keys(value).every(id=>ids.includes(id)&&Number.isFinite(value[id])&&value[id]>=0&&value[id]<=100);
 
 export function createProgression(map, saved = null, options = {}) {
@@ -124,19 +134,25 @@ export function createProgression(map, saved = null, options = {}) {
   if (saved !== null) {
     if (!object(saved) || !exactKeys(saved, ['version', 'cash', 'ownedVehicles', 'completedJobs','equipment','gear','fitnessLevel','robberyCooldowns','muggingCooldowns','ownedProperties','stashes','hiredCrew','inventoryProfiles','crewHealth','burglaryCooldowns']) || saved.version !== 1 || !Number.isSafeInteger(saved.cash) || saved.cash < 0 || saved.cash > MAX_CASH || !Array.isArray(saved.ownedVehicles) || saved.ownedVehicles.length < 1 || saved.ownedVehicles.length > CARS.length || !Array.isArray(saved.completedJobs) || saved.completedJobs.length > jobs.length) throw new Error('Unsupported or corrupt career save.');
     if(saved.equipment!==undefined&&(!object(saved.equipment)||!exactKeys(saved.equipment,WEAPON_IDS)||typeof saved.equipment.pistol!=='boolean'||Object.values(saved.equipment).some(value=>typeof value!=='boolean')))throw new Error('Invalid saved equipment.');
-    if(saved.gear!==undefined&&(!object(saved.gear)||!exactKeys(saved.gear,['drone','droneStrike','jetpack','scanner','flares','grenades','smokeGrenades'])||['drone','droneStrike','jetpack'].some(key=>saved.gear[key]!==undefined&&typeof saved.gear[key]!=='boolean')||(saved.gear.droneStrike===true&&saved.gear.drone!==true)||typeof saved.gear.scanner!=='boolean'||!Number.isInteger(saved.gear.flares)||saved.gear.flares<0||saved.gear.flares>12||['grenades','smokeGrenades'].some(key=>saved.gear[key]!==undefined&&(!Number.isInteger(saved.gear[key])||saved.gear[key]<0||saved.gear[key]>6))))throw new Error('Invalid saved gear.');
+    if(saved.gear!==undefined&&!validSavedGear(saved.gear))throw new Error('Invalid saved gear.');
     if(saved.fitnessLevel!==undefined&&(!Number.isInteger(saved.fitnessLevel)||saved.fitnessLevel<0||saved.fitnessLevel>3))throw new Error('Invalid saved fitness.');
     if(saved.robberyCooldowns!==undefined&&(!object(saved.robberyCooldowns)||!exactKeys(saved.robberyCooldowns,[...services.filter(s=>s.robbery).map(s=>s.id),...LEGACY_SHOP_IDS])||Object.values(saved.robberyCooldowns).some(v=>!Number.isFinite(v)||v<0||v>180)))throw new Error('Invalid saved shop cooldown.');
     if(saved.muggingCooldowns!==undefined&&(!object(saved.muggingCooldowns)||Object.keys(saved.muggingCooldowns).some(id=>!MUGGING_ID.test(id))||Object.values(saved.muggingCooldowns).some(v=>!Number.isFinite(v)||v<0||v>180)))throw new Error('Invalid saved mugging cooldown.');
     if(saved.ownedProperties!==undefined&&(!Array.isArray(saved.ownedProperties)||saved.ownedProperties.length>propertyOffers.length||new Set(saved.ownedProperties).size!==saved.ownedProperties.length||saved.ownedProperties.some(id=>!propertyOffers.some(home=>home.id===id))))throw new Error('Invalid saved property.');
     if(saved.hiredCrew!==undefined&&(!Array.isArray(saved.hiredCrew)||saved.hiredCrew.length>2||new Set(saved.hiredCrew).size!==saved.hiredCrew.length||saved.hiredCrew.some(id=>!crewOffers.some(crew=>crew.id===id))))throw new Error('Invalid saved crew.');
     if(saved.burglaryCooldowns!==undefined&&(!object(saved.burglaryCooldowns)||Object.keys(saved.burglaryCooldowns).length>64||Object.entries(saved.burglaryCooldowns).some(([id,time])=>!homeIds.has(id)||!Number.isFinite(time)||time<0||time>300)))throw new Error('Invalid saved burglary cooldowns.');
-    if(saved.inventoryProfiles!==undefined&&(!object(saved.inventoryProfiles)||!exactKeys(saved.inventoryProfiles,INVENTORY_PROFILES)||Object.values(saved.inventoryProfiles).some(pools=>!validInventory(pools))))throw new Error('Invalid saved inventory profiles.');
+    if(saved.inventoryProfiles!==undefined&&(!object(saved.inventoryProfiles)||!exactKeys(saved.inventoryProfiles,INVENTORY_PROFILES)))throw new Error('Invalid saved inventory profiles.');
     if(saved.crewHealth!==undefined&&!validCrewHealth(saved.crewHealth,saved.hiredCrew||[]))throw new Error('Invalid saved crew health.');
     if(saved.stashes!==undefined&&(!object(saved.stashes)||Object.entries(saved.stashes).some(([id,value])=>!(saved.ownedProperties||[]).includes(id)&&id!==map.storyHomes?.basement?.roomId||!validStash(value))))throw new Error('Invalid saved stash.');
     const stashedWeapons=Object.values(saved.stashes||{}).flatMap(value=>value.weapons);
     if(new Set(stashedWeapons).size!==stashedWeapons.length||stashedWeapons.some(id=>saved.equipment?.[id]===true))throw new Error('Invalid saved weapon ownership.');
-    state.ownedProperties=copy(saved.ownedProperties||[]);state.hiredCrew=copy(saved.hiredCrew||[]);state.stashes=copy(saved.stashes||{});state.inventoryProfiles=copy(saved.inventoryProfiles||{});state.crewHealth=copy(saved.crewHealth||{});
+    state.ownedProperties=copy(saved.ownedProperties||[]);state.hiredCrew=copy(saved.hiredCrew||[]);state.stashes=copy(saved.stashes||{});state.crewHealth=copy(saved.crewHealth||{});
+    for(const stash of Object.values(state.stashes))stash.ammo={...emptyStash().ammo,...stash.ammo};
+    for(const [profile,pools] of Object.entries(saved.inventoryProfiles||{})){
+      const inventory=normalizeAmmoInventory(pools);
+      if(!inventory)throw new Error('Invalid saved inventory profiles.');
+      state.inventoryProfiles[profile]=inventory;
+    }
     const ids = new Set();
     for (const car of saved.ownedVehicles) {
       if (!object(car) || !exactKeys(car, ['id', 'color', 'health', 'stored', 'mods']) || !CARS.some(item => item.id === car.id) || ids.has(car.id) || !COLOR.test(car.color) || !Number.isFinite(car.health) || car.health < 0 || car.health > 100 || typeof car.stored !== 'boolean' || (car.mods!==undefined&&!validMods(car.mods))) throw new Error('Invalid saved garage.');
@@ -502,6 +518,16 @@ export function createProgression(map, saved = null, options = {}) {
       if(!Number.isFinite(ctx.health)||ctx.health>=100)return result(false,'Health is already full.');
       cost=site.price;effect={heal:site.heal};
     }else if(site.type==='arms'){
+      const utility=Object.hasOwn(UTILITY_GEAR,item)?UTILITY_GEAR[item]:null;
+      if(utility){
+        if(ctx.passenger||ctx.bus||ctx.ride||ctx.preview||!Number.isFinite(ctx.health)||ctx.health<=0||ctx.health>100)
+          return result(false,'Recover before trading.');
+        const stock=state.gear[utility.field]??0;
+        if(stock>=utility.capacity)return result(false,item==='armour'?'Armour is already full.':'You cannot carry any more of this kit.');
+        if(!spend(utility.price))return result(false,'Not enough cash.');
+        state.gear[utility.field]=item==='armour'?utility.capacity:stock+1;
+        return result(true,`${utility.name} purchased.`,{cost:utility.price,gear:copy(state.gear)},'service-purchase');
+      }
       const throwable=Object.hasOwn(THROWABLES,item)?THROWABLES[item]:null;
       if(throwable){
         if(ctx.passenger||!Number.isFinite(ctx.health)||ctx.health<=0||ctx.health>100)return result(false,'Recover before trading.');
@@ -563,6 +589,8 @@ export function createProgression(map, saved = null, options = {}) {
   function quoteDelivery(request,ctx){
     if(!commerceAllowed(ctx)||ctx.interior||ctx.paused||ctx.preview)return {ok:false,message:'Order outside on foot when ready.'};
     if(!object(request))return {ok:false,message:'Invalid delivery request.'};
+    const method=deliveryMethod(request.method);
+    if(!method)return {ok:false,message:'Choose a valid delivery method.'};
     const site=services.find(item=>item.id===request.sourceId);
     let cost,effect;
     if(request.kind==='food'&&site?.type==='food'&&request.itemId==='food'){
@@ -577,32 +605,43 @@ export function createProgression(map, saved = null, options = {}) {
     if(!Number.isSafeInteger(cost)||cost<=0||!object(effect)||Object.values(effect).some(value=>typeof value==='number'&&!Number.isFinite(value)))return {ok:false,message:'Delivery item unavailable.'};
     cost+=50;
     if(state.cash<cost)return {ok:false,message:'Not enough cash.'};
-    return {ok:true,cost,dispatchCost:50,...effect};
+    return {ok:true,cost,dispatchCost:50,method,...effect};
   }
   function reserveDelivery(orderId,request,ctx){
     if(deliveryEscrow)return result(false,'A paid delivery is already pending.');
     if(orderId===lastDeliveryOrderId)return result(false,'This delivery was already paid.');
     const quote=quoteDelivery(request,ctx);if(!quote.ok)return result(false,quote.message);
     let live;try{live=options.deliveryOrder?.();}catch{return result(false,'Courier unavailable.');}
-    if(!object(live)||typeof orderId!=='string'||!orderId||live.orderId!==orderId||live.kind!==request.kind||live.sourceId!==request.sourceId||live.itemId!==request.itemId)return result(false,'Book the matching physical courier first.');
+    if(!object(live))return result(false,'Book the matching physical courier first.');
+    if(typeof orderId!=='string'||!orderId||live.orderId!==orderId||live.kind!==request.kind||
+      live.sourceId!==request.sourceId||live.itemId!==request.itemId||deliveryMethod(live.method)!==quote.method)return result(false,'Book the matching physical courier first.');
     state.cash-=quote.cost;lastDeliveryOrderId=orderId;
-    deliveryEscrow={orderId,kind:request.kind,sourceId:request.sourceId,itemId:request.itemId,cost:quote.cost,effect:copy(quote)};
-    return result(true,'Delivery paid. Meet the courier.',{orderId,cost:quote.cost},'delivery-reserved');
+    deliveryEscrow={orderId,kind:request.kind,sourceId:request.sourceId,itemId:request.itemId,method:quote.method,cost:quote.cost,effect:copy(quote)};
+    return result(true,'Delivery paid. Meet the courier.',{orderId,cost:quote.cost,method:quote.method},'delivery-reserved');
   }
   function completeDelivery(orderId,ctx){
     if(!deliveryEscrow||deliveryEscrow.orderId!==orderId)return result(false,'No matching paid delivery.');
     let receipt;try{receipt=options.takeDeliveryReceipt?.(orderId);}catch{return result(false,'Delivery receipt unavailable.');}
     const pending=deliveryEscrow;
-    if(!object(receipt)||!Object.isFrozen(receipt)||receipt.orderId!==orderId||receipt.kind!==pending.kind||receipt.itemId!==pending.itemId||receipt.sourceId!==pending.sourceId||!['completed','failed','cancelled'].includes(receipt.type))return result(false,'Wait for the real courier handover.');
+    if(!object(receipt)||!Object.isFrozen(receipt))return result(false,'Wait for the real courier handover.');
+    const method=deliveryMethod(receipt.method),{type,risk}=receipt;
+    const confiscated=type==='confiscated';
+    const validRisk=confiscated ? method==='illegal'&&risk==='arrest' :
+      risk===undefined || (type==='completed'&&method==='illegal'&&risk==='reported');
+    if(receipt.orderId!==orderId||receipt.kind!==pending.kind||receipt.itemId!==pending.itemId||
+      receipt.sourceId!==pending.sourceId||method!==pending.method||!validRisk||
+      !['completed','failed','cancelled','confiscated'].includes(type))
+      return result(false,'Wait for the real courier handover.');
     deliveryEscrow=null;
+    if(confiscated)return result(true,'Delivery confiscated. The payment was forfeited.',{orderId,method,risk,confiscated:true,cost:pending.cost},'delivery-confiscated');
     const duplicate=pending.effect.weaponId&&(state.equipment[pending.effect.weaponId]||Object.values(state.stashes).some(store=>store.weapons.includes(pending.effect.weaponId)));
-    if(receipt.type!=='completed'||!commerceAllowed(ctx)||ctx.interior||ctx.paused||ctx.preview||duplicate){
+    if(type!=='completed'||!commerceAllowed(ctx)||ctx.interior||ctx.paused||ctx.preview||duplicate){
       state.cash=Math.min(MAX_CASH,state.cash+pending.cost);
-      return result(true,'Delivery cancelled. Payment refunded.',{orderId,refund:pending.cost},'delivery-refunded');
+      return result(true,'Delivery cancelled. Payment refunded.',{orderId,method,refund:pending.cost},'delivery-refunded');
     }
     const {cost,dispatchCost,ok,...effect}=pending.effect;
     if(effect.weaponId)state.equipment[effect.weaponId]=true;
-    return result(true,'Delivery received.',{orderId,cost,...effect},'delivery-complete');
+    return result(true,'Delivery received.',{orderId,cost,...effect,...(risk?{risk}:{})},'delivery-complete');
   }
   function startActivity(id,type,ctx){
     if(type==='workout'&&options.interactiveWorkouts)return startWorkout(id,ctx);
@@ -646,8 +685,10 @@ export function createProgression(map, saved = null, options = {}) {
     missionState=null;return true;
   }
   function saveInventory(profile,pools){
-    if(!INVENTORY_PROFILES.includes(profile)||!validInventory(pools))return false;
-    state.inventoryProfiles[profile]=copy(pools);return true;
+    if(!INVENTORY_PROFILES.includes(profile))return false;
+    const inventory=normalizeAmmoInventory(pools);
+    if(!inventory)return false;
+    state.inventoryProfiles[profile]=inventory;return true;
   }
   function getInventory(profile){return INVENTORY_PROFILES.includes(profile)&&Object.hasOwn(state.inventoryProfiles,profile)?copy(state.inventoryProfiles[profile]):null;}
   function saveCrewHealth(id,health){
@@ -765,6 +806,43 @@ export function createProgression(map, saved = null, options = {}) {
     if (offer.cost && !spend(offer.cost)) return result(false, `You need $${offer.cost} for nitro.`);
     driving.nitroFuel = 1;
     return result(true, offer.cost ? `Nitro refilled for $${offer.cost}.` : 'Nitro refilled.', { cost: offer.cost, stationId: offer.station.id }, 'nitro-refill');
+  }
+  function absorbArmour(damage) {
+    const charge=state.gear.armour??0;
+    if(!Number.isFinite(damage)||damage<=0||charge<=0)return damage;
+    const absorbed=Math.min(charge,damage*.7);
+    state.gear.armour=charge-absorbed;
+    return damage-absorbed;
+  }
+  function utilityAvailability(item,ctx) {
+    const kit=Object.hasOwn(UTILITY_GEAR,item)&&item!=='armour'?UTILITY_GEAR[item]:null;
+    const deny=message=>({ok:false,message});
+    if(!kit)return deny('Unknown utility item.');
+    if(!validContext(ctx)||ctx.sandbox||ctx.preview||ctx.paused||ctx.recovering||!ctx.onFoot||
+      ctx.passenger||ctx.bus||ctx.ride||!Number.isFinite(ctx.health)||ctx.health<=0||ctx.health>100)
+      return deny('Use a kit on foot after recovering.');
+    const remaining=state.gear[kit.field]??0;
+    if(!remaining)return deny(`Buy a ${kit.name.toLowerCase()} first.`);
+    if(item==='medkit'){
+      if(ctx.health>=100)return deny('Health is already full.');
+      return {ok:true,heal:Math.min(kit.amount,100-ctx.health),remaining};
+    }
+    if(item==='jammer'){
+      if(!Number.isFinite(ctx.jammerTargets)||ctx.jammerTargets<=0)return deny('No active camera is close enough to jam.');
+      return {ok:true,remaining};
+    }
+    if(ctx.interior||!ctx.vehiclePose||!near(ctx.pose,ctx.vehiclePose,5)||!isVehicleStopped(ctx.vehiclePose,.6)||
+      (options.hasLineOfSight&&!options.hasLineOfSight(ctx.pose,ctx.vehiclePose)))
+      return deny('Stand next to your stopped car outside.');
+    if(ctx.vehicleHealth<0||ctx.vehicleHealth>=100)return deny('The car does not need repairs.');
+    return {ok:true,vehicleHealth:Math.min(100,ctx.vehicleHealth+kit.amount),remaining};
+  }
+  function useUtility(item,ctx) {
+    const {ok,message,remaining,...effect}=utilityAvailability(item,ctx);
+    if(!ok)return result(false,message);
+    const kit=UTILITY_GEAR[item];
+    state.gear[kit.field]=remaining-1;
+    return result(true,`${kit.name} used.`,{kind:item,remaining:remaining-1,...effect},'utility-used');
   }
   function consumeThrowable(kind,ctx) {
     const item=Object.hasOwn(THROWABLES,kind)?THROWABLES[kind]:null;
@@ -891,7 +969,7 @@ export function createProgression(map, saved = null, options = {}) {
     state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{serviceId:active.serviceId,cost:active.cost,kind:active.station.kind},'workout-complete');
   }
   return { state, jobs, garage,captureMissionState,restoreMissionState,commitMissionState,saveInventory,getInventory,saveCrewHealth,getCrewHealth,propertyOffers,crewOffers,buyProperty,restSafehouse,isSafehouse,hireCrew,rehireCrew,dismissCrew,buyDrone,claimHouseLoot,stash,get ownedProperties(){return [...state.ownedProperties];},crewRenewalSerial(id){return crewRenewals[id]??0;},get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, upgradeVehicle, upgradeEligibility, vehicleMods, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,quoteDelivery,reserveDelivery,completeDelivery,startActivity,startMugging,robberyEligibility,workoutEligibility,finishWorkout,payRental,payRide,consumeFlare,consumeThrowable,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
-    nitroOffer, refillNitro, buyDroneStrike, payCarRental,
+    nitroOffer, refillNitro, buyDroneStrike, payCarRental, absorbArmour, utilityAvailability, useUtility,
     cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;workoutPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },
     serialize() { return copy({ version: 1, cash: Math.min(MAX_CASH,state.cash+(deliveryEscrow?.cost||0)), ownedVehicles: state.ownedVehicles, completedJobs: state.completedJobs,equipment:state.equipment,gear:state.gear,fitnessLevel:state.fitnessLevel,robberyCooldowns:state.robberyCooldowns,muggingCooldowns:state.muggingCooldowns,...(state.ownedProperties.length?{ownedProperties:state.ownedProperties}:{}),...(Object.keys(state.stashes).length?{stashes:state.stashes}:{}),...(state.hiredCrew.length?{hiredCrew:state.hiredCrew}:{}),...(Object.keys(state.inventoryProfiles).length?{inventoryProfiles:state.inventoryProfiles}:{}),...(Object.keys(state.crewHealth).length?{crewHealth:state.crewHealth}:{}),...(Object.keys(state.burglaryCooldowns).length?{burglaryCooldowns:state.burglaryCooldowns}:{}) }); },

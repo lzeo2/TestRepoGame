@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import * as THREE from '../assets/car-arcade/vendor/three.module.js';
 import { createCar } from '../assets/car-arcade/models.js';
 import { BY_ID } from '../assets/car-arcade/fleet.js';
-import { createVehicleDamage } from '../Games/Capital Drive/vehicle-damage.js';
+import { createVehicleDamage, createVehicleFires, VEHICLE_FIRE_LIMITS } from '../Games/Capital Drive/vehicle-damage.js';
 import { createVehicleDamageView } from '../Games/Capital Drive/vehicle-damage-view.js';
 
 const car = { x: 10, z: 20, yaw: .7 }, context = health => ({ car, carKey: 'car:1', health });
@@ -46,6 +46,49 @@ for (const invalid of [{ ...context(1), health: NaN }, { ...context(1), carKey: 
 }
 damage.reset(); assert.equal(damage.snapshot().carKey, null);
 
+const roadFleet=new Map(),focus={x:0,z:0};
+const fires=createVehicleFires({resolve:id=>roadFleet.get(id),heightAt:()=>3,damage:(id,amount)=>{
+  const target=roadFleet.get(id);
+  if(target)target.health=Math.max(0,target.health-amount);
+}});
+function npc(id,x=10){
+  const target={id,active:true,x,z:5,yaw:0,length:4.6,health:100};
+  roadFleet.set(id,target);return target;
+}
+function shot(target,amount){
+  const previous=target.health;target.health=Math.max(0,previous-amount);
+  return fires.recordShot(target,previous);
+}
+const patrol=npc('police:4');
+assert(!shot(patrol,45));assert.equal(fires.snapshot(focus).length,0);
+assert(shot(patrol,35));assert.equal(fires.snapshot(focus)[0].fire,1);
+patrol.x=18;assert.equal(fires.snapshot(focus)[0].x,18,'fire follows current vehicle position');
+assert.equal(fires.snapshot({x:300,z:0}).length,0,'distant fire is culled');
+for(let i=0;i<50;i++)fires.step(.1);
+assert.equal(patrol.health,0,'burn damage is applied by the vehicle owner');
+const blown=fires.drainExplosions();
+assert.equal(blown.length,1);assert.equal(blown[0].kind,'vehicle-fire');assert.equal(blown[0].x,18);
+for(let i=0;i<100;i++)fires.step(.1);
+assert.equal(fires.tracked,0);assert.deepEqual(fires.drainExplosions(),[]);
+assert(!shot(patrol,999));assert.deepEqual(fires.drainExplosions(),[],'dead cars never restart fires');
+const delivery=npc('courier:1');shot(delivery,45);assert(shot(delivery,45));
+const replacement=npc(delivery.id);
+fires.step(.1);assert.equal(fires.tracked,0,'replacement car does not inherit tracked damage');
+assert.equal(replacement.health,100);
+const parked=npc('parked:2');shot(parked,45);assert(shot(parked,45));
+roadFleet.delete(parked.id);fires.step(.1);
+assert.equal(fires.tracked,0,'retired cars leave the pool');
+const unrelated=npc('blast-only');unrelated.health=12;fires.step(.1);assert.equal(fires.tracked,0);
+const stray=npc('stale');shot(stray,40);for(let i=0;i<60;i++)fires.step(.1);
+assert(!shot(stray,60),'expired bullet history cannot ignite a newly hit car');
+for(let i=0;i<20;i++){
+  const target=npc(`traffic:${i}`,i);
+  shot(target,45);shot(target,45);
+}
+assert(fires.tracked<=VEHICLE_FIRE_LIMITS.tracked);
+const nearbyFires=fires.snapshot(focus);
+assert.equal(nearbyFires.length,VEHICLE_FIRE_LIMITS.visible);
+
 const scene = new THREE.Scene(), view = createVehicleDamageView(scene, () => 3);
 const state = Object.freeze({ active: true, severity: .8, x: 10, z: 20, yaw: .7, age: 1, fire: 1, smoke: 1 });
 for (const id of Object.keys(BY_ID)) {
@@ -77,6 +120,12 @@ for (const id of Object.keys(BY_ID)) {
   assert.equal(sourceDisposed, 0); assert.equal(materialDisposed, 0);
 }
 const old = createCar('lantern'), fresh = createCar('atlas'), oldSource = old.getObjectByName('body').geometry;
+view.update(state,old,{npcFires:nearbyFires});
+assert.equal(view.stats.drawCalls,2);
+assert.equal(view.stats.fireInstances,5+3*VEHICLE_FIRE_LIMITS.visible);
+assert.equal(view.stats.smokeInstances,5+3*VEHICLE_FIRE_LIMITS.visible);
+view.update(state,old,{interiorId:'room',npcFires:nearbyFires});
+assert.equal(view.stats.drawCalls,0);
 view.update(state, old); const oldClone = old.getObjectByName('body').geometry;
 let cloneDisposed = 0; oldClone.addEventListener('dispose', () => cloneDisposed++);
 view.update(state, fresh);
@@ -87,4 +136,4 @@ view.dispose(); view.dispose();
 assert.equal(fresh.getObjectByName('body').geometry, freshSource);
 assert.equal(scene.children.length, 0); assert.equal(view.stats.drawCalls, 0); assert.equal(view.stats.clonedGeometries, 0);
 view.update(state, fresh); assert.equal(scene.children.length, 0, 'disposed view cannot allocate new resources');
-console.log(`PASS vehicle burn authority/thresholds/caps/pause/identity, ten-second wreck expiry, ${Object.keys(BY_ID).length} original models deformed with shared-resource isolation, pooled effects, repair/replacement and disposal`);
+console.log(`PASS vehicle burn authority, sustained NPC ignition, one blast and cleanup, ten-second player wreck expiry, ${Object.keys(BY_ID).length} original models deformed with shared-resource isolation, two shared draws, repair/replacement and disposal`);

@@ -1,3 +1,5 @@
+import { DRONE_STRIKE_BLAST } from './ordnance.js';
+
 const finite = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const axis = n => Number.isFinite(n) ? clamp(n, -1, 1) : 0;
@@ -6,7 +8,7 @@ const axis = n => Number.isFinite(n) ? clamp(n, -1, 1) : 0;
 // economy, camera, weapons and mission authority throughout a flight.
 export function createDrone({ heightAt = () => 0, canOccupy = () => true } = {}) {
   let pose = { x: 0, y: 3, z: 0, yaw: 0 }, origin = { x: 0, z: 0 };
-  let active = false, disposed = false, battery = 90, reason = null, strikeCooldown = 0, strikeSerial = 0;
+  let active = false, disposed = false, battery = 90, reason = null, strikeSerial = 0;
   const ground = (x, z) => heightAt(x, z);
   function bodyReady(body, ctx = {}) {
     return finite(body?.actor || body) && body?.mode === 'foot' && Number.isFinite(body.health) && body.health > 0 &&
@@ -28,9 +30,7 @@ export function createDrone({ heightAt = () => 0, canOccupy = () => true } = {})
     pose = next; origin = { x: p.x, z: p.z }; battery = 90; active = true; reason = null; return true;
   }
   function step(dt, input = {}) {
-    if (disposed || input.paused || !Number.isFinite(dt) || dt <= 0) return;
-    strikeCooldown = Math.max(0, strikeCooldown - dt);
-    if (!active) return;
+    if (disposed || !active || input.paused || !Number.isFinite(dt) || dt <= 0) return;
     if (!bodyReady(input.body, input)) { recall('body-unavailable'); return; }
     const elapsed = Math.min(dt, battery);
     battery = Math.max(0, battery - elapsed);
@@ -57,9 +57,8 @@ export function createDrone({ heightAt = () => 0, canOccupy = () => true } = {})
     if (!battery) recall('battery-empty');
   }
   function strike(body, ctx = {}) {
-    if (disposed || !active || ctx.paused || ctx.sandbox || ctx.blocked || body?.passenger || body?.actor?.impactTime > 0 || !ctx.owned || !ctx.upgraded || !bodyReady(body, ctx))
-      return {ok:false,message:'Drone strike unavailable. Fly your upgraded drone outside between jobs.'};
-    if (strikeCooldown > 0) return {ok:false,message:`Drone strike cooling down: ${Math.ceil(strikeCooldown)}s.`};
+    if (disposed || !active || ctx.paused || body?.passenger || body?.actor?.impactTime > 0 || !ctx.owned || !ctx.upgraded || !bodyReady(body, ctx))
+      return {ok:false,message:'Fly your upgraded drone outside to use a strike.'};
     const floor = ground(pose.x,pose.z);
     if (!Number.isFinite(floor)) return {ok:false,message:'No clear ground below the drone.'};
     let from = pose;
@@ -69,14 +68,13 @@ export function createDrone({ heightAt = () => 0, canOccupy = () => true } = {})
       if (!clear(next,from)) return {ok:false,message:'Move above clear outdoor ground first.'};
       from = next;
     }
-    strikeCooldown = 30;
-    return {ok:true,message:'Drone strike deployed. 30 second cooldown.',event:Object.freeze({type:'explosion',id:`drone-strike:${++strikeSerial}`,
-      kind:'drone-strike',x:pose.x,y:floor+.25,z:pose.z,radius:8,maxDamage:100,interiorId:null})};
+    return {ok:true,message:'Drone strike deployed.',event:Object.freeze({type:'explosion',id:`drone-strike:${++strikeSerial}`,
+      kind:'drone-strike',x:pose.x,y:floor+.25,z:pose.z,...DRONE_STRIKE_BLAST,interiorId:null})};
   }
   function snapshot() {
     const g=ground(pose.x,pose.z);
     return Object.freeze({ ...pose, active, battery, range:Math.hypot(pose.x-origin.x,pose.z-origin.z),
-      altitude:Number.isFinite(g)?pose.y-g:0, strikeCooldown, reason, disposed });
+      altitude:Number.isFinite(g)?pose.y-g:0, reason, disposed });
   }
   return { deploy, step, recall, strike, snapshot, dispose() { if(disposed)return; recall('disposed'); disposed=true; } };
 }

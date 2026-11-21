@@ -1,4 +1,4 @@
-import {GARAGE_MODS,JETPACK_OFFER} from './progression.js';
+import {GARAGE_MODS,JETPACK_OFFER,UTILITY_GEAR} from './progression.js';
 import {WEAPONS,weaponById} from './weapons.js';
 // DOM adapter only. World movement, career time and persistence belong to the controller.
 export function createStreetUI({ gameplay, progression, simulation, vehicles, notify,
@@ -161,7 +161,8 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       screen.style.backgroundColor=`rgba(10,15,18,${recovery.phase==='out'?Math.min(.96,recovery.elapsed/1.8):Math.max(.12,.96-(recovery.elapsed-1.8)*.5)})`;
       const safehouse=recovery.phase==='in'&&recovery.safehouse;
       text('recovery-title',recovery.reason==='arrest'?'BUSTED':safehouse?'SAFEHOUSE':'HOSPITAL');
-      text('recovery-status',recovery.phase==='out'?'Transferring…':safehouse?`Returned to ${safehouse}. Ammo kept.`:'Recovering. Completed jobs kept.');
+      const deliveryStatus=recovery.phase==='out'?'The order was confiscated.':'Released. Your gear and ammo were kept.';
+      text('recovery-status',recovery.deliverySeizure?deliveryStatus:recovery.phase==='out'?'Transferring…':safehouse?`Returned to ${safehouse}. Ammo kept.`:'Recovering. Completed jobs kept.');
     }}
   }
   function renderServices(){
@@ -224,6 +225,12 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
         }
         purchase('Grenade $120','grenade',120,throwableReason||(progression.state.gear?.grenades>=6?'Throwable inventory is full.':''),gearRow);
         purchase('Smoke grenade $80','smoke',80,throwableReason||(progression.state.gear?.smokeGrenades>=6?'Throwable inventory is full.':''),gearRow);
+        for(const [item,kit] of Object.entries(UTILITY_GEAR)){
+          const stock=progression.state.gear[kit.field]??0;
+          const amount=item==='armour'?Math.round(stock):stock;
+          const full=stock>=kit.capacity?(item==='armour'?'Armour is full.':'Kit inventory is full.'):'';
+          purchase(`${kit.name} ${money(kit.price)} · ${amount}/${kit.capacity}`,item,kit.price,throwableReason||full,gearRow);
+        }
         entry.append(heading,description,gearRow);
       }
       else entry.append(title,detail,status,row);

@@ -43,13 +43,18 @@ assert.equal(polygonReads, 0, 'same-cell distant polygons never reach polygon na
 assert(!local.canOccupy({ id: 'probe', x: 30.5, z: 30.5, yaw: 0, modelId: 'lantern' }));
 assert(polygonReads > 0, 'nearby polygons retain physical contact');
 
-// Pin the pre-optimization implementation, retaining its actual SAT, sweep,
-// routing and contact logic rather than a second simplified collision model.
+async function simulationAt(revision) {
+  const historical = execFileSync('git', ['show', `${revision}:Games/Capital Drive/simulation.js`],
+    { cwd: new URL('../', import.meta.url), encoding: 'utf8', maxBuffer: 1024 * 1024 });
+  const source = historical.replace(/from ['"]([^'"]+)['"]/g, (_, path) => `from ${JSON.stringify(new URL(path, sourceURL).href)}`);
+  return (await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`)).createSimulation;
+}
+// Keep the original broad-phase comparator. The traffic replay uses the
+// pre-pursuit build, which already includes later driving and traffic rules.
 const baselineRevision = '87b5d21325de3acb2ef51df1653c32ca8012f8eb';
-let baselineSource = execFileSync('git', ['show', `${baselineRevision}:Games/Capital Drive/simulation.js`],
-  { cwd: new URL('../', import.meta.url), encoding: 'utf8', maxBuffer: 1024 * 1024 });
-baselineSource = baselineSource.replace(/from ['"]([^'"]+)['"]/g, (_, path) => `from ${JSON.stringify(new URL(path, sourceURL).href)}`);
-const { createSimulation: baselineSimulation } = await import(`data:text/javascript;base64,${Buffer.from(baselineSource).toString('base64')}`);
+const trafficRevision = '68c00062b86c7266980d5fc4b9466155cae09c0c';
+const baselineSimulation = await simulationAt(baselineRevision);
+const trafficSimulation = await simulationAt(trafficRevision);
 const openMap = { ...fixture, buildings: [] };
 const satBefore = baselineSimulation(openMap, { trafficCount: 0 }), satAfter = createSimulation(openMap, { trafficCount: 0 });
 for (let i = 0; i < 2500; i++) {
@@ -86,11 +91,11 @@ const replay = (sim, verify) => {
   for (let frame = 0; frame < 600; frame++) { sim.step(1/60, { throttle: .25, steer: Math.sin(frame/90)*.2 }); verify?.(frame); }
   return performance.now()-start;
 };
-const recorded = [];
-const baselineReplayMs = replay(before, frame => { if (frame%60===0) recorded.push({ player: { ...before.player }, traffic: traffic(before) }); });
+const recorded = [], reference = trafficSimulation(map, options);
+const baselineReplayMs = replay(reference, frame => { if (frame%60===0) recorded.push({ player: { ...reference.player }, traffic: traffic(reference) }); });
 let sample = 0;
 const optimizedReplayMs = replay(after, frame => {
   if (frame%60===0) { assert.deepEqual({ player: { ...after.player }, traffic: traffic(after) }, recorded[sample++], 'actual-map 40-car physical replay remains exact'); }
 });
 console.log(`PASS collision broad phase: 300 exact AABB queries, same-cell polygon rejection, 2500 rotated-body SAT comparisons, ${checks} actual-map differential probes and 600-frame/40-car exact replay.`);
-console.log(JSON.stringify({ measurementOnly: true, baselineRevision, baselineInitMs, optimizedInitMs, baselineReplayMs, optimizedReplayMs }));
+console.log(JSON.stringify({ measurementOnly: true, baselineRevision, trafficRevision, baselineInitMs, optimizedInitMs, baselineReplayMs, optimizedReplayMs }));

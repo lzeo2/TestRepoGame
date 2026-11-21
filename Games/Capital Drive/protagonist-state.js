@@ -1,5 +1,5 @@
 import { BY_ID } from '../../assets/car-arcade/fleet.js';
-import { WEAPONS } from './weapons.js';
+import { normalizeAmmoInventory, WEAPON_IDS } from './weapons.js';
 
 // Career rewards and ownership remain global. Only resumable body/car state lives here.
 export const PROTAGONIST_IDS = Object.freeze(['student', 'corporate', 'basement']);
@@ -36,18 +36,16 @@ export function createProtagonistState(saved = null, options = {}) {
   function checkpoint(value) {
     if (!keys(value, ['mode', 'actor', 'vehicle', 'health', 'weapon', 'ammunition']) ||
       !['foot', 'vehicle'].includes(value.mode) || !pose(value.actor) || !number(value.health, 0, 100) ||
-      !['unarmed', ...WEAPONS.map(weapon => weapon.id)].includes(value.weapon)) invalid();
+      !['unarmed', ...WEAPON_IDS].includes(value.weapon)) invalid();
     const car = value.vehicle;
     if (!keys(car, ['x', 'z', 'yaw', 'modelId', 'color', 'health', 'stolen']) ||
       !pose({ x: car.x, z: car.z, yaw: car.yaw }) || typeof car.modelId !== 'string' || !Object.hasOwn(BY_ID, car.modelId) ||
       !number(car.health, 0, 100) || typeof car.stolen !== 'boolean' ||
       !(integer(car.color, 0xffffff) || (typeof car.color === 'string' && /^#[0-9a-f]{6}$/i.test(car.color)))) invalid();
-    if (!keys(value.ammunition, WEAPONS.map(weapon => weapon.id))) invalid();
-    for (const weapon of WEAPONS) {
-      const pool = value.ammunition[weapon.id];
-      if (!keys(pool, ['ammo', 'reserveAmmo']) || !integer(pool.ammo, weapon.magazine) || !integer(pool.reserveAmmo, weapon.reserveCap)) invalid();
-    }
+    const ammunition=normalizeAmmoInventory(value.ammunition);
+    if (!ammunition) invalid();
     const result = copy(value);
+    result.ammunition=ammunition;
     result.vehicle.color = typeof car.color === 'number' ? '#' + car.color.toString(16).padStart(6, '0') : car.color.toLowerCase();
     return freeze(result);
   }

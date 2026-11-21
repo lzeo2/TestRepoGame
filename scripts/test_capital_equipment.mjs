@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import * as THREE from '../assets/car-arcade/vendor/three.module.js';
-import { createProgression } from '../Games/Capital Drive/progression.js';
+import { createProgression, UTILITY_GEAR } from '../Games/Capital Drive/progression.js';
 import { createEquipment } from '../Games/Capital Drive/equipment.js';
 import { createEquipmentView } from '../Games/Capital Drive/equipment-view.js';
 import { createStreetUI } from '../Games/Capital Drive/street-ui.js';
@@ -40,6 +40,14 @@ const fresh = (saved = legacy, options = {}) => createProgression(map, saved, { 
     { scanner: false, flares: -1 }, { scanner: false, flares: 13 }, { scanner: false, flares: 1.5 },
     { scanner: false, flares: Infinity }, { scanner: false, flares: 0, other: true }]) assert.throws(() => fresh({ ...legacy, gear }), /gear/);
   for (const flares of [0, 1, 10, 12]) assert.equal(fresh({ ...legacy, gear: { scanner: true, flares } }).state.gear.flares, flares);
+  for (const key of ['armour','medkits','repairKits','jammers']) {
+    assert.equal(p.state.gear[key], undefined, 'old career saves start with no new equipment');
+    const over=key==='armour'?101:4;
+    for (const value of [null,true,'1',-1,over,NaN,Infinity])
+      assert.throws(() => fresh({ ...legacy, gear:{scanner:false,flares:0,[key]:value} }),/gear/);
+    if (key!=='armour') assert.throws(() => fresh({ ...legacy, gear:{scanner:false,flares:0,[key]:.5} }),/gear/);
+  }
+  assert.equal(fresh({...legacy,gear:{scanner:false,flares:0,armour:25.5}}).state.gear.armour,25.5);
   assert.throws(() => fresh({ ...legacy, unknownGear: true }));
   assert.throws(() => fresh({ ...legacy, equipment: { pistol: false, scanner: true } }), /equipment/);
 }
@@ -55,6 +63,14 @@ for (const site of fresh().services.filter(site => site.type === 'arms')) {
   unchanged(p, () => p.purchaseService(site.id, 'flares', actor));
   assert.deepEqual(fresh(p.serialize()).serialize(), p.serialize(), 'gear reloads in the same strict career save');
   assert.deepEqual(p.state.equipment, { pistol: false }, 'gear never grants a weapon');
+  const beforeUtilities=p.state.cash;
+  for (const [key,item] of Object.entries(UTILITY_GEAR)) {
+    const bought=p.purchaseService(site.id,key,actor);
+    assert(bought.ok,'every arms store and contact stocks the utility gear');
+    assert.equal(bought.cost,item.price);
+    assert.equal(p.state.gear[item.field],key==='armour'?100:1);
+  }
+  assert.equal(p.state.cash,beforeUtilities-350-120-160-250);
 }
 for (const flares of [10, 11, 12]) {
   const p = fresh({ ...legacy, gear: { scanner: false, flares } });
@@ -75,6 +91,53 @@ for (const [item, cash] of [['scanner', 499], ['flares', 119]]) {
   unchanged(p, () => p.purchaseService(food.id, 'scanner', ctx(food)));
   assert(p.startActivity(gym.id, 'workout', ctx(gym, { wanted: 0 })).ok);
   unchanged(p, () => p.purchaseService(dealer.id, 'flares', ctx(dealer)));
+}
+{
+  const p=fresh(),actor=ctx(dealer);
+  assert.equal(p.absorbArmour(40),40);
+  assert(p.purchaseService(dealer.id,'armour',actor).ok);
+  unchanged(p,()=>p.purchaseService(dealer.id,'armour',actor));
+  assert.equal(p.absorbArmour(-1),-1);assert.equal(p.state.gear.armour,100);
+  assert.equal(p.absorbArmour(40),12);assert.equal(p.state.gear.armour,72);
+  assert.equal(p.absorbArmour(100),30);assert.equal(p.state.gear.armour,2);
+  assert.equal(p.absorbArmour(5),3);assert.equal(p.state.gear.armour,0);
+  assert(p.purchaseService(dealer.id,'armour',actor).ok);assert.equal(p.state.gear.armour,100);
+  for (const key of ['medkit','repair-kit','jammer']) {
+    for (let count=1;count<=3;count++) {
+      const before=p.state.cash,kit=UTILITY_GEAR[key];
+      assert(p.purchaseService(dealer.id,key,actor).ok);
+      assert.equal(p.state.cash,before-kit.price);
+      assert.equal(p.state.gear[kit.field],count);
+    }
+    unchanged(p,()=>p.purchaseService(dealer.id,key,actor));
+  }
+  const beforeUse=p.serialize();
+  assert.equal(p.utilityAvailability('medkit',actor).heal,30);
+  assert.deepEqual(p.serialize(),beforeUse,'reading availability never consumes stock');
+  for (const extra of [{health:100},{health:0},{onFoot:false},{recovering:true},{paused:true},
+    {sandbox:true},{preview:true},{passenger:true},{bus:true},{ride:true}])
+    unchanged(p,()=>p.useUtility('medkit',ctx(dealer,extra)));
+  const treated=p.useUtility('medkit',ctx(dealer,{health:58,interior:{roomId:'room'}}));
+  assert(treated.ok);assert.equal(treated.heal,35);assert.equal(treated.remaining,2);
+  assert.equal(p.useUtility('medkit',actor).heal,30);
+  const vehiclePose={x:dealer.x+3,z:dealer.z,speed:0,vx:0,vz:0};
+  for (const extra of [{vehicleHealth:100},{vehicleHealth:-1},{interior:{}},{vehiclePose:undefined},
+    {vehiclePose:{...vehiclePose,x:dealer.x+8}}, {vehiclePose:{...vehiclePose,vx:2}},
+    {vehiclePose:{...vehiclePose,speed:3}}, {vehiclePose:{...vehiclePose,stuntActive:true}}])
+    unchanged(p,()=>p.useUtility('repair-kit',ctx(dealer,{vehiclePose,vehicleHealth:51,...extra})));
+  const walled=fresh(p.serialize(),{hasLineOfSight:()=>false});
+  unchanged(walled,()=>walled.useUtility('repair-kit',ctx(dealer,{vehiclePose,vehicleHealth:51})));
+  const repaired=p.useUtility('repair-kit',ctx(dealer,{vehiclePose,vehicleHealth:51}));
+  assert(repaired.ok);assert.equal(repaired.vehicleHealth,86);assert.equal(repaired.remaining,2);
+  assert.equal(p.useUtility('repair-kit',ctx(dealer,{vehiclePose,vehicleHealth:80})).vehicleHealth,100);
+  for (const jammerTargets of [undefined,0,-1,Infinity,'1'])
+    unchanged(p,()=>p.useUtility('jammer',ctx(dealer,{jammerTargets})));
+  assert.equal(p.utilityAvailability('jammer',ctx(dealer,{jammerTargets:2})).remaining,3);
+  assert.equal(p.useUtility('jammer',ctx(dealer,{jammerTargets:2})).remaining,2);
+  assert.equal(fresh(p.serialize()).state.gear.medkits,1);
+  assert.equal(fresh(p.serialize()).state.gear.repairKits,1);
+  assert.equal(fresh(p.serialize()).state.gear.jammers,2);
+  assert.equal(p.state.cash,beforeUse.cash,'using supplies never charges again');
 }
 {
   const p = fresh({ ...legacy, gear: { scanner: true, flares: 3 } });
@@ -161,6 +224,16 @@ for (const query of [{ hasLineOfSight: (a, b) => b.z > -2 }, { canOccupy: p => p
   article = list.children.find(entry => entry.dataset.serviceId === dealer.id); scanner = all(article).find(node => node.dataset.serviceItem === 'scanner');
   assert.equal(scanner.disabled, true); assert.equal(scanner.dataset.reason, 'Owned');
   const flares = all(article).find(node => node.dataset.serviceItem === 'flares'); assert.equal(flares.textContent, '3 flares $120'); flares.listeners.click();
-  assert.equal(p.state.gear.flares, 3); assert.equal(saves, 2); ui.dispose(); delete globalThis.document;
+  assert.equal(p.state.gear.flares, 3); assert.equal(saves, 2);
+  for (const [key,kit] of Object.entries(UTILITY_GEAR)) {
+    article=list.children.find(entry=>entry.dataset.serviceId===dealer.id);
+    const buy=all(article).find(node=>node.dataset.serviceItem===key);
+    assert.equal(buy.textContent,`${kit.name} $${kit.price} · 0/${kit.capacity}`);
+    assert.equal(buy.disabled,false);buy.listeners.click();
+  }
+  assert.equal(saves,6);
+  article=list.children.find(entry=>entry.dataset.serviceId===dealer.id);
+  assert(all(article).find(node=>node.dataset.serviceItem==='armour').disabled);
+  ui.dispose(); delete globalThis.document;
 }
-console.log('PASS equipment: strict legacy v1 gear; all arms/contact five-star stock; exact scanner/pack spend and caps; authority denials; flare inventory/reload; clear four-metre reach/callback once; bounded transient IDs/lifetime/pause; four-draw pooled no-light view/disposal; actual stock UI prices/Owned/inventory/B cue.');
+console.log('PASS equipment: strict legacy v1 gear; arms/contact stock and caps; armour absorption; guarded first aid, stopped-car repairs and nearby camera tools; actual stock UI; bounded flare disposal.');

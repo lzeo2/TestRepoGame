@@ -194,6 +194,11 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     outro: 'Mara: Three people, one fraudulent depot. We take back the money together. Meet on the Crescent for the interception.',
     stages: [target(meetingPoint || kingston, 'Meet the three couriers at the Kingston public approach', 'foot', { radius: 16, hold: 5 }), target(map.spawn, 'Drive to the Crescent for the late shift', 'drive', { stop: true })] });
   const ids = characters.map(c => c.id);
+  const optional = freeze([{ id: 'above-the-paperwork', name: 'Optional: Above the paperwork', contact: 'Jules', reward: 1800, time: 1800, aviation: true, optional: true, combat: true,
+    briefing: 'Jules needs an aerial copy of the depot route. Take a parked helicopter, climb above 15 metres, then land beside the airport jets and step out. Take a jet and climb above 20 metres to send the second copy. This optional flight leaves the main story order unchanged.',
+    outro: 'Jules: Two flight records, one paper trail. The evidence is safely copied.',
+    stages: [target(airport, 'Reach the marked helicopter; E bypasses its lock', 'aviation', { aircraftKind: 'helicopter', anywhere: true }), target(airport, 'Helicopter: hold Space and climb above 15 m', 'aviation', { aircraftKind: 'helicopter', minimumAltitude: 15, airborne: true, anywhere: true }), target(airport, 'Land near the marked jet; stop and press E to step out', 'foot', { radius: 120, hold: 1 }), target(airport, 'Take the marked jet; W builds runway speed, then Space climbs above 20 m', 'aviation', { aircraftKind: 'jet', minimumAltitude: 20, airborne: true, anywhere: true })] }]);
+  let optionalChapter = null;
   const developerEntries = [
     ...ids.flatMap(character => intros[character].map(chapter => ({ chapter, character }))),
     { chapter: meeting, character: 'student' },
@@ -206,7 +211,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   })));
   let developerChapter = null;
   const emptyIntros = () => Object.fromEntries(ids.map(id => [id, []]));
-  const state = { character: null, intros: emptyIntros(), meeting: false, legacy: false, completed: [], active: null, message: 'Choose a character to begin.', failed: false };
+  const state = { character: null, intros: emptyIntros(), meeting: false, legacy: false, completed: [], optionalCompleted: [], active: null, message: 'Choose a character to begin.', failed: false };
   const object = value => value && typeof value === 'object' && !Array.isArray(value);
   const keys = (value, allowed) => object(value) && Object.keys(value).length === allowed.length && Object.keys(value).every(k => allowed.includes(k));
   const prefix = (value, chapters) => Array.isArray(value) && value.length <= chapters.length && value.every((id, index) => chapters[index]?.id === id);
@@ -214,18 +219,21 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     if (keys(saved, ['version', 'completed']) && saved.version === 1 && prefix(saved.completed, shared)) {
       state.character = 'legacy'; state.legacy = true; state.completed = [...saved.completed];
     } else {
-      if (!keys(saved, ['version', 'character', 'intros', 'meeting', 'legacy', 'completed']) || saved.version !== 2 ||
+      if (!(keys(saved, ['version', 'character', 'intros', 'meeting', 'legacy', 'completed']) || keys(saved, ['version', 'character', 'intros', 'meeting', 'legacy', 'completed', 'optionalCompleted'])) || saved.version !== 2 ||
+          (saved.optionalCompleted!==undefined&&(!Array.isArray(saved.optionalCompleted)||new Set(saved.optionalCompleted).size!==saved.optionalCompleted.length||saved.optionalCompleted.some(id=>!optional.some(chapter=>chapter.id===id)))) ||
           ![null, 'legacy', ...ids].includes(saved.character) || typeof saved.meeting !== 'boolean' || typeof saved.legacy !== 'boolean' ||
           !keys(saved.intros, ids) || ids.some(id => !prefix(saved.intros[id], intros[id])) || !prefix(saved.completed, shared) ||
-          (saved.character === 'legacy' && !saved.legacy) || (saved.character === null && (saved.legacy || saved.meeting || saved.completed.length || ids.some(id => saved.intros[id].length))) ||
+          (saved.character === 'legacy' && !saved.legacy) || (saved.character === null && (saved.legacy || saved.meeting || saved.completed.length || saved.optionalCompleted?.length || ids.some(id => saved.intros[id].length))) ||
           (saved.meeting && ids.some(id => saved.intros[id].length !== intros[id].length)) ||
           (saved.completed.length && !saved.legacy && !saved.meeting)) throw new Error('Unsupported or corrupt campaign progress.');
       state.character = saved.character; state.intros = clone(saved.intros); state.meeting = saved.meeting; state.legacy = saved.legacy; state.completed = [...saved.completed];
+      state.optionalCompleted = [...(saved.optionalCompleted || [])];
     }
   }
   const events = [];
   const allIntroduced = () => ids.every(id => state.intros[id].length === intros[id].length);
   const current = () => {
+    if (optionalChapter) return optionalChapter;
     if (developerChapter) return developerChapter;
     if (state.active) {
       const chapter = shared.find(chapter => chapter.id === state.active.id);
@@ -251,7 +259,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     const hero = nextRequiredCharacter();
     return hero ? `Switch to ${hero.name} for ${shared[state.completed.length].name}.` : null;
   };
-  const isCompleted = id => state.completed.includes(id) || (id === meeting.id && state.meeting) || ids.some(hero => state.intros[hero].includes(id));
+  const isCompleted = id => state.completed.includes(id) || state.optionalCompleted.includes(id) || (id === meeting.id && state.meeting) || ids.some(hero => state.intros[hero].includes(id));
   function validContext(ctx) {
     return ctx && finitePoint(ctx.pose) && typeof ctx.onFoot === 'boolean' && Number.isSafeInteger(ctx.respawnSerial) && Number.isFinite(ctx.wanted) && ctx.wanted >= 0 && ctx.wanted <= 5;
   }
@@ -301,8 +309,23 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   function begin(chapter, ctx, developer = false) {
     state.active = { id: chapter.id, name: chapter.name, reward: developer ? 0 : chapter.reward, combat: chapter.combat !== false, companions: clone(chapter.companions || []), cutscene: chapter.cutscene ? clone(chapter.cutscene) : null, stage: 0, target: clone(chapter.stages[0]), remaining: chapter.time, elapsed: 0, held: 0, escapeReached: false, serial: ctx.respawnSerial, sawWanted: ctx.wanted > 0, baselines: baselines(ctx), ...(developer ? { developer: true, character: chapter.character } : { startCharacter: state.character }) };
     state.failed = false; state.message = chapter.briefing;
+    state.active.stageCount = chapter.stages.length;
+    if(chapter.aviation) { state.active.aviation = true; state.active.optional = true; }
     events.push({ type: 'started', id: chapter.id, incident: Boolean(chapter.incident), wantedLevel: chapter.wantedLevel || 0 });
     return { ok: true, message: chapter.name };
+  }
+  function startOptional(id, ctx) {
+    if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.campaign || !state.character || state.active || ctx.aircraft) return { ok: false, message: 'Choose a character and finish the current action before this optional flight.' };
+    const chapter = optional.find(chapter=>chapter.id===id);
+    if(!chapter||isCompleted(id))return {ok:false,message:'This optional chapter is unavailable or already complete.'};
+    const locations=(Array.isArray(ctx.aircraftLocations)?ctx.aircraftLocations:[]).filter(point=>finitePoint(point)&&typeof point.id==='string'&&point.id&&!point.wrecked);
+    const helicopter=locations.find(point=>point.kind==='helicopter');
+    const jet=locations.filter(point=>point.kind==='jet').sort((a,b)=>distance(a,helicopter||airport)-distance(b,helicopter||airport))[0];
+    if(!helicopter||!jet)return {ok:false,message:'This flight needs an available helicopter and jet. Return after the aircraft are ready.'};
+    optionalChapter=clone(chapter);
+    optionalChapter.stages.forEach((goal,index)=>{const point=index<2?helicopter:jet;goal.x=point.x;goal.z=point.z;if(goal.kind==='aviation')goal.aircraftId=point.id;});
+    optionalChapter=freeze(optionalChapter);
+    return begin(optionalChapter,ctx);
   }
   function startDeveloper(id, ctx) {
     if (ctx?.developer !== true || !validContext(ctx) || ctx.respawnSerial < 0 || ctx.sandbox || ctx.recovering || ctx.campaign !== true) return { ok: false, message: 'Mission preview unavailable here.' };
@@ -315,7 +338,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
   function fail(message) {
     if (!state.active) return false;
     if (!state.active.developer) state.character = state.active.startCharacter;
-    state.active = null; developerChapter = null; state.failed = true; state.message = message;
+    state.active = null; developerChapter = null; optionalChapter = null; state.failed = true; state.message = message;
     events.push({ type: 'failed', message }); return true;
   }
   function update(dt, ctx) {
@@ -329,7 +352,8 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     if (!active.remaining) { fail(active.developer ? 'Mission preview time expired.' : 'Mission time expired.'); return; }
     let eligible = goal.anywhere || distance(ctx.pose, goal) <= goal.radius;
     const parked = !goal.stop || (!ctx.passenger && !ctx.interior && isVehicleStopped(ctx.pose, PARKING_MAX_SPEED));
-    if (goal.kind === 'interior') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.interior?.atCounter === true;
+    if (goal.kind === 'aviation') eligible = !ctx.interior && ctx.aircraft?.id===goal.aircraftId && ctx.aircraft?.kind===goal.aircraftKind && ctx.aircraft.wrecked===false && (!goal.airborne||ctx.aircraft.airborne===true) && Number.isFinite(ctx.aircraft.altitude) && ctx.aircraft.altitude >= (goal.minimumAltitude||0);
+    else if (goal.kind === 'interior') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.interior?.atCounter === true;
     else if (goal.kind === 'home-action') eligible = ctx.onFoot && ctx.interior?.roomId === goal.roomId && ctx.homeAction?.roomId === goal.roomId && ctx.homeAction?.outcome === 'packed' && serial(ctx.homeAction) > active.baselines.homeAction;
     else if (goal.kind === 'school-alarm') eligible = ctx.onFoot && ctx.interior?.roomId === goal.roomId && ctx.schoolAlarm?.roomId === goal.roomId && ctx.schoolAlarm?.outcome === 'triggered' && serial(ctx.schoolAlarm) > active.baselines.schoolAlarm;
     else if (goal.kind === 'robbery') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.heist?.storeId === goal.storeId && ctx.heist?.kind === 'robbery' && serial(ctx.heist) > active.baselines.heist;
@@ -339,7 +363,7 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
     else if (goal.kind === 'evidence') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.evidence?.storeId === goal.storeId && ctx.evidence?.roomId === ctx.interior?.roomId && ctx.evidence?.missionId === active.id && ctx.evidence?.outcome === 'secured' && serial(ctx.evidence) > active.baselines.evidence;
     else if (goal.kind === 'fight') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.encounter?.storeId === goal.storeId && ctx.encounter?.roomId === ctx.interior?.roomId && ctx.encounter?.missionId === active.id && ctx.encounter?.character === 'booth-guest' && ctx.encounter?.phase === 'complete' && ctx.encounter?.outcome === 'noodle-victory' && ctx.encounter?.victory === true && serial(ctx.encounter) > active.baselines.encounter;
     else if (goal.kind === 'work') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.workCompletion?.storeId === goal.storeId && serial(ctx.workCompletion) > active.baselines.work;
-    else if (goal.kind === 'foot') eligible &&= ctx.onFoot && !ctx.interior;
+    else if (goal.kind === 'foot') eligible &&= ctx.onFoot && !ctx.interior && (!active.aviation || !ctx.aircraft);
     else if (goal.kind === 'stolen') eligible &&= !ctx.onFoot && ctx.vehicle?.stolen === true;
     else if (goal.kind === 'escape') {
       // Arrival belongs to this attempt and stage. Clearing the search must not
@@ -367,14 +391,15 @@ export function createCampaign(map, saved = null, { meetingPoint } = {}) {
       }
       if (ids.includes(state.character) && intros[state.character].some(item => item.id === chapter.id)) state.intros[state.character].push(chapter.id);
       else if (chapter.id === meeting.id) state.meeting = true;
+      else if(chapter.optional)state.optionalCompleted.push(chapter.id);
       else state.completed.push(chapter.id);
-      state.active = null; state.message = chapter.outro; state.failed = false;
+      state.active = null; optionalChapter = null; state.message = chapter.outro; state.failed = false;
       events.push({ type: 'complete', id: chapter.id, reward: chapter.reward, message: chapter.outro });
     }
   }
-  return { state, characters, get chapters() { return chapters(); }, current, nextRequiredCharacter, start, startDeveloper, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, companionSwitchReason, canSwitchCompanion, switchCompanion, isCompleted,
+  return { state, characters, get chapters() { return chapters(); }, optionalChapters: optional, current, nextRequiredCharacter, start, startOptional, startDeveloper, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, companionSwitchReason, canSwitchCompanion, switchCompanion, isCompleted,
     cancel: () => fail('Mission cancelled.'),
-    serialize: () => clone({ version: 2, character: state.character, intros: state.intros, meeting: state.meeting, legacy: state.legacy, completed: state.completed }),
+    serialize: () => clone({ version: 2, character: state.character, intros: state.intros, meeting: state.meeting, legacy: state.legacy, completed: state.completed, ...(state.optionalCompleted.length?{optionalCompleted:state.optionalCompleted}:{}) }),
     journal: () => freeze(clone({ character: state.character, introductions: ids.map(id => ({ character: id, chapters: intros[id].map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })), meeting: state.meeting, shared: shared.map(item => ({ id: item.id, character: item.character, name: item.name, complete: isCompleted(item.id) })) })),
     snapshot: () => freeze(clone({ ...state, next: current()?.id || null, switching: ids.filter(canSelectCharacter) })), drainEvents: () => events.splice(0) };
 }

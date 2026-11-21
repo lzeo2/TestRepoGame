@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import * as THREE from '../assets/car-arcade/vendor/three.module.js';
-import { createAircraft } from '../Games/Capital Drive/aircraft.js';
+import { createAircraft, JET_TAKEOFF_SPEED } from '../Games/Capital Drive/aircraft.js';
 import { createAircraftView } from '../Games/Capital Drive/aircraft-view.js';
 import { applyAirport } from '../Games/Capital Drive/airport.js';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
@@ -13,8 +13,11 @@ const map = applyAirport(applyMapExpansion(await data('canberra.json'), await da
 const terrain = createTerrainSampler(map);
 const sim = createSimulation(map, { trafficCount: 0, parkedCount: 0, isOnBridge: terrain.isOnBridge });
 const jets = createAircraft(map, sim, { heightAt: terrain.heightAt });
-const parked = jets.snapshot().planes;
+const fleet = jets.snapshot().planes;
+const parked = fleet.filter(plane=>plane.kind==='jet');
+const helicopter=fleet.find(plane=>plane.kind==='helicopter');
 assert.equal(parked.length, 2, 'two checked sourced apron stands');
+assert(helicopter,'checked airport apron fallback supplies one helicopter');
 assert.equal(jets.active, null);
 for (const p of parked) {
   assert.equal(p.y, terrain.heightAt(p.x, p.z));
@@ -55,12 +58,16 @@ assert.deepEqual(jets.snapshot(), still, 'zero supplied time freezes flight');
 // Register the actual ground bodies through the same external ABI as runtime.
 const sync = () => sim.setExternalVehicles(jets.snapshot().planes.filter(p=>!p.airborne).map(p=>({...p,width:4})));
 sync();
+for(let i=0;i<70;i++)jets.step(.02,{climb:true},pilot);
+assert.equal(jets.active.speed,0);assert.equal(jets.active.airborne,false,'Space alone cannot lift a parked jet');
+for(let i=0;i<110&&jets.active.speed<12;i++)jets.step(.02,{throttle:1},pilot);
+assert(jets.active.takeoffRoll>0 && jets.active.speed<JET_TAKEOFF_SPEED && !jets.active.airborne,'actual ground roll precedes takeoff');
 for(let i=0;i<500 && jets.active.altitude<10;i++){jets.step(.02,{throttle:1,climb:true},pilot);sync();}
 assert(jets.active.airborne && jets.active.y>terrain.heightAt(jets.active.x,jets.active.z)+3,
   'normal throttle and climb take off from the checked source apron');
+assert(jets.active.speed>=JET_TAKEOFF_SPEED && jets.active.takeoffRoll>=22);
 assert.equal(jets.active.wrecked,false,'source apron takeoff is clear');
 assert.equal(jets.interact(pilot).ok,false,'no airborne exit');
-const airborne = jets.active;
 for(let i=0;i<500 && jets.active.airborne;i++){
   const throttle=jets.active.speed>38?-1:jets.active.speed<30?1:0;
   jets.step(.02,{descend:true,throttle},pilot);sync();
@@ -75,16 +82,48 @@ assert(Number.isFinite(exited.exitPose.y));
 assert.equal(jets.active,null);
 assert.equal(jets.drainEvents().filter(e=>e.type==='stolen').length,0,'flying cannot repeat theft');
 jets.reset();
-assert.deepEqual(jets.snapshot().planes,parked,'reset restores finite original pool');
+assert.deepEqual(jets.snapshot().planes,fleet,'reset restores finite original pool');
 assert.equal(jets.interact(ctx).challenge,true);
 jets.step(.02,{}, {...ctx,pose:map.spawn});
 assert.equal(jets.challenge.active,false,'walking away cancels admission');
 assert.equal(jets.active,null);
 
+const rotorContext={...ctx,pose:door(helicopter)};
+assert(jets.interact(rotorContext).challenge);
+assert.equal(jets.challenge.aircraftKind,'helicopter');
+solve(jets,rotorContext);
+assert.equal(jets.active.id,helicopter.id);
+assert.equal(jets.drainEvents().filter(event=>event.type==='stolen').length,1);
+const rotorPilot={...rotorContext,onFoot:false};
+for(let i=0;i<60;i++)jets.step(.02,{throttle:1},rotorPilot);
+assert.equal(jets.active.x,helicopter.x);assert.equal(jets.active.z,helicopter.z);
+assert.equal(jets.active.airborne,false,'helicopter translates only after takeoff');
+for(let i=0;i<150;i++)jets.step(.02,{climb:true},rotorPilot);
+assert(jets.active.airborne && jets.active.altitude>10 && !jets.active.wrecked);
+assert.equal(jets.active.speed,0,'helicopter takes off vertically from rest');
+assert.equal(jets.interact(rotorPilot).ok,false);
+for(let i=0;i<30;i++)jets.step(.02,{turn:.4},rotorPilot);
+for(let i=0;i<100;i++)jets.step(.02,{throttle:1},rotorPilot);
+assert(Math.hypot(jets.active.x-helicopter.x,jets.active.z-helicopter.z)>10 && !jets.active.wrecked);
+// Backtrack to the checked pad before descending. The outbound path can
+// cross real nearby buildings while the helicopter is above their roofs.
+for(let i=0;i<100;i++)jets.step(.02,{throttle:-1},rotorPilot);
+for(let i=0;i<160;i++)jets.step(.02,{},rotorPilot);
+assert(Math.abs(jets.active.speed)<.5 && Math.abs(jets.active.verticalSpeed)<.5,'neutral input holds a slow hover');
+assert(Math.hypot(jets.active.x-helicopter.x,jets.active.z-helicopter.z)<1,'reverse controls return to the clear pad');
 const scene = new THREE.Scene(), view = createAircraftView(scene,terrain.heightAt);
+view.update(jets.snapshot(),jets.active,.02);
+const rotorMesh=scene.getObjectByName('Wattle main rotor');
+assert(rotorMesh.rotation.y>0);
+const bladeAngle=rotorMesh.rotation.y;
+view.update(jets.snapshot(),jets.active,0);
+assert.equal(rotorMesh.rotation.y,bladeAngle,'paused frames freeze rotor animation');
+for(let i=0;i<540 && jets.active.airborne;i++)jets.step(.02,{descend:true},rotorPilot);
+assert(!jets.active.airborne && !jets.active.wrecked);
+assert(jets.interact(rotorPilot).exited);
 view.update(jets.snapshot(),parked[0]);
 const resources = view.stats;
-assert.equal(resources.models,2); assert.equal(resources.meshes,2); assert.equal(resources.drawCalls,2);
+assert.equal(resources.models,3); assert.equal(resources.meshes,4); assert.equal(resources.drawCalls,4);
 assert(resources.triangles<1000 && resources.bufferBytes<100000,'small merged original models');
 const meshes=[];scene.traverse(o=>{if(o.isMesh)meshes.push(o);});
 for(const mesh of meshes)assert(mesh.geometry.boundingSphere && mesh.geometry.boundingBox);
@@ -92,4 +131,4 @@ for(let i=0;i<300;i++)view.update(jets.snapshot(),parked[0]);
 assert.deepEqual(view.stats,resources,'no frame model allocations');
 view.update(jets.snapshot(),{x:map.bounds.minX,z:map.bounds.minZ});assert.equal(view.stats.drawCalls,0,'distant pool is culled');
 view.dispose();view.dispose();assert.equal(view.stats.bufferBytes,0);assert.equal(scene.children.length,0);
-console.log(`Capital aircraft PASS: 2 source apron stands; eight-cue theft, pause, ${Math.round(airborne.y-25)}m takeoff, landing/brake/exit, reset and pooled view (${resources.triangles} triangles).`);
+console.log(`Capital aircraft PASS: two checked jet stands, visible ground roll, fixed-wing landing, helicopter hijack/vertical lift/hover/land/exit, pooled view (${resources.triangles} triangles).`);

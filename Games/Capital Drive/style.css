@@ -202,6 +202,7 @@ body.light{color:var(--ink)}
 .intro-facts{padding:11px 0;margin-top:15px}
 #career-hud{position:absolute;top:115px;right:30px;width:205px;padding:13px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px}
 .status-line,.vitals{display:flex;justify-content:space-between;gap:10px;font-size:10px}
+#career-hud .vitals{flex-wrap:wrap;row-gap:4px}
 #cash-value{font-size:18px}
 #mode-label{font-size:9px;letter-spacing:1px}
 #wanted-level{font-size:18px;color:var(--accent);margin-top:7px;letter-spacing:2px}
@@ -214,6 +215,7 @@ body[data-mode=free] #cash-value,body[data-mode=free] #wanted-level{display:none
 .interaction-hint{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:10px 14px;color:var(--ink);font-size:11px;text-align:center;max-width:44vw}
 .intro-open #career-hud,.intro-open #job-hud,.intro-open .interaction-hint{display:none}
 #aim-reticle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:32px Arial;color:white;text-shadow:0 1px 3px black;pointer-events:none}
+#aim-reticle.scope{width:64px;height:64px;border:1px solid currentColor;border-radius:50%;padding:14px}
 #touch-actions{display:none;position:absolute;right:16px;bottom:142px;gap:6px}
 #touch-actions button{width:46px;padding:5px;touch-action:none;font-size:10px;background:var(--panel);color:var(--ink)}
 .map-search{padding:12px;background:var(--panel);color:var(--ink);border-bottom:1px solid var(--line)}
@@ -338,6 +340,8 @@ body:not([data-mode=campaign]) #touch-power{display:none}#hero-power-status{colo
 
 @media(pointer:coarse){#touch-enter{grid-column:1;grid-row:1}#touch-jump{grid-column:2;grid-row:1}#touch-sprint{grid-column:3;grid-row:1}#touch-weapon{grid-column:4;grid-row:1}#touch-power{grid-column:5;grid-row:1}#touch-grenade{grid-column:1;grid-row:2}#touch-smoke{grid-column:2;grid-row:2}#touch-actions [data-action=aim]{grid-column:4;grid-row:2}#touch-actions [data-action=fire]{grid-column:5;grid-row:2}}
 body.passenger.piloting #touch-controls #touch-move{visibility:visible}body.passenger.piloting #touch-actions>button#touch-jump,body.passenger.piloting #touch-actions>button#touch-sprint{display:block}
+body:not(.on-foot) #touch-crouch{display:none}
+@media(pointer:coarse){#touch-crouch{grid-column:3;grid-row:2}}
 
 body.piloting #driving-hint{display:none}
 

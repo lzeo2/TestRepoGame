@@ -9,7 +9,8 @@ for(const entry of [{...house,type:'shop'},{...house,owned:true},{...house,safeh
 for(const change of [{sandbox:true},{onFoot:false},{health:0},{recovering:true},{interiorId:'room'},{mission:{}},{pose:{x:10,z:0}},{paused:true}])assert.equal(burglary.start(house,{...outside,...change}),false);
 assert(burglary.start(house,outside));
 assert.equal(burglary.snapshot().sequence.length,6);
-assert.equal(burglary.snapshot().cueWindow,1.3);
+assert.equal(burglary.snapshot().style,'rhythm');
+assert(Math.abs(burglary.snapshot().cueWindow-1.16)<1e-8);
 assert.equal(burglary.snapshot().remaining,24);
 assert.equal(burglary.snapshot().maxMistakes,2);
 assert.match(burglary.snapshot().prompt,/HOUSE LOCK/);

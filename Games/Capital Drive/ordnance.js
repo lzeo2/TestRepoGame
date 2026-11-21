@@ -1,19 +1,59 @@
 // Original arcade thrown equipment. The controller owns admission and inventory.
 export const ORDNANCE_LIMITS = Object.freeze({ projectiles: 4, clouds: 3, bursts: 4, burstLifetime: .65, fuse: 2, smokeLifetime: 10, smokeRadius: 5, blastRadius: 8 });
+export const DRONE_STRIKE_BLAST = Object.freeze({ radius: 12, maxDamage: 160 });
+const GRENADE_BLAST = Object.freeze({ radius: ORDNANCE_LIMITS.blastRadius, maxDamage: 100 });
+const ROCKET_BLAST = Object.freeze({ radius: 10, maxDamage: 130 });
+const ROCKET_SPEED = 58;
 const RADIUS = .12, MAX_STEP = .25, SLICE = 1 / 60;
 const point = value => value && Number.isFinite(value.x) && Number.isFinite(value.z);
 const room = value => value == null ? null : typeof value === 'string' && value.length > 0 && value.length <= 160 ? value : undefined;
 const copy = value => Object.freeze({ ...value });
+
+export const blastLimits = kind => kind === 'drone-strike' ? DRONE_STRIKE_BLAST : kind === 'rocket' ? ROCKET_BLAST : GRENADE_BLAST;
+
+export function validExplosion(event) {
+  if (event?.type !== 'explosion' || !point(event) || (event.kind === 'drone-strike' && event.interiorId != null)) return false;
+  const limits = blastLimits(event.kind);
+  return Number.isFinite(event.radius) && event.radius > 0 && event.radius <= limits.radius &&
+    Number.isFinite(event.maxDamage) && event.maxDamage > 0 && event.maxDamage <= limits.maxDamage;
+}
 
 export function blastDamage(distance, maxDamage = 100) {
   return Number.isFinite(distance) && distance >= 0 && Number.isFinite(maxDamage) && maxDamage > 0 ?
     Math.max(0, maxDamage * (1 - distance / ORDNANCE_LIMITS.blastRadius)) : 0;
 }
 
-export function createOrdnance({ consumeThrow, moveProjectile, heightAt = () => 0, canThrow } = {}) {
+export function createOrdnance({ consumeThrow, moveProjectile, traceRocket, heightAt = () => 0, canThrow } = {}) {
   let projectiles = [], clouds = [], bursts = [], events = [], serial = 0;
   const failure = message => ({ ok: false, message });
   function emit(event) { if (events.length < 16) events.push(copy(event)); }
+  function detonate({ id, kind, x, y, z, interiorId }) {
+    const event={type:'explosion',id,kind,x,y,z,interiorId,...blastLimits(kind)};
+    emit(event);
+    if (bursts.length === ORDNANCE_LIMITS.bursts) bursts.shift();
+    bursts.push({...event,age:0,remaining:ORDNANCE_LIMITS.burstLifetime});
+  }
+  function launchRocket(ray) {
+    if (typeof traceRocket !== 'function' || !point(ray) || ![ray.y,ray.dx,ray.dy,ray.dz,ray.range].every(Number.isFinite) ||
+      ray.range <= 0 || ray.range > 100 || Math.abs(Math.hypot(ray.dx,ray.dy,ray.dz)-1)>1e-6 ||
+      projectiles.length >= ORDNANCE_LIMITS.projectiles || events.length + projectiles.length >= 16) return false;
+    const interiorId=room(ray.interiorId);
+    if(interiorId===undefined)return false;
+    const {x,y,z,dx,dy,dz,range}=ray;
+    projectiles.push({id:`ordnance:${++serial}`,kind:'rocket',x,y,z,dx,dy,dz,range,interiorId,age:0,remaining:range/ROCKET_SPEED});
+    return true;
+  }
+  function stepRocket(item,dt) {
+    const range=Math.min(item.range,ROCKET_SPEED*dt);
+    const hit=traceRocket({x:item.x,y:item.y,z:item.z,dx:item.dx,dy:item.dy,dz:item.dz,range,interiorId:item.interiorId});
+    const impact=!Number.isFinite(hit)||hit < range-1e-6;
+    // Keep the blast on the launch side of the hit surface for the cover check.
+    const advance=impact?Math.max(0,(Number.isFinite(hit)?hit:0)-.02):range;
+    item.x+=item.dx*advance;item.y+=item.dy*advance;item.z+=item.dz*advance;
+    item.age+=dt;item.range=Math.max(0,item.range-range);
+    item.remaining=impact?0:item.range/ROCKET_SPEED;
+    if(item.remaining<=1e-9)detonate(item);
+  }
   function throwItem(kind, ctx) {
     if (!['grenade', 'smoke'].includes(kind)) return failure('Unknown thrown equipment.');
     if (!ctx || !point(ctx.pose) || ctx.onFoot !== true || ctx.recovering || ctx.passenger || ctx.bus || ctx.ride || ctx.activity)
@@ -52,6 +92,7 @@ export function createOrdnance({ consumeThrow, moveProjectile, heightAt = () => 
       for (const cloud of clouds) { cloud.age += slice; cloud.remaining = Math.max(0, ORDNANCE_LIMITS.smokeLifetime - cloud.age); }
       clouds = clouds.filter(cloud => cloud.remaining > 1e-9);
       for (const item of projectiles) {
+        if(item.kind==='rocket'){stepRocket(item,slice);continue;}
         const previousX = item.x, previousZ = item.z;
         const result = moveProjectile(item, item.vx * slice, item.vz * slice, RADIUS, { ...ctx, interiorId: item.interiorId });
         const finiteMove = point(item);
@@ -66,11 +107,7 @@ export function createOrdnance({ consumeThrow, moveProjectile, heightAt = () => 
         if (item.remaining <= 1e-9) {
           const event = { type: item.kind === 'grenade' ? 'explosion' : 'smoke-deployed', id: item.id, kind: item.kind,
             x: item.x, y: item.y, z: item.z, interiorId: item.interiorId };
-          if (item.kind === 'grenade') {
-            emit({ ...event, radius: ORDNANCE_LIMITS.blastRadius, maxDamage: 100 });
-            if (bursts.length === ORDNANCE_LIMITS.bursts) bursts.shift();
-            bursts.push({ ...event, age: 0, remaining: ORDNANCE_LIMITS.burstLifetime });
-          }
+          if (item.kind === 'grenade') detonate(event);
           else {
             const cloud = { id: item.id, x: item.x, y: item.groundY, z: item.z, interiorId: item.interiorId,
               radius: ORDNANCE_LIMITS.smokeRadius, height: 4, age: 0, remaining: ORDNANCE_LIMITS.smokeLifetime };
@@ -110,12 +147,12 @@ export function createOrdnance({ consumeThrow, moveProjectile, heightAt = () => 
     return false;
   }
   function showExplosion(event) {
-    if (!event || event.type !== 'explosion' || !point(event) || !Number.isFinite(event.y) || event.interiorId != null) return false;
+    if (!validExplosion(event) || !Number.isFinite(event.y) || event.interiorId != null) return false;
     if (bursts.length === ORDNANCE_LIMITS.bursts) bursts.shift();
-    bursts.push({id:event.id,kind:'grenade',x:event.x,y:event.y,z:event.z,interiorId:null,age:0,remaining:ORDNANCE_LIMITS.burstLifetime});
+    bursts.push({id:event.id,kind:event.kind,x:event.x,y:event.y,z:event.z,radius:event.radius,interiorId:null,age:0,remaining:ORDNANCE_LIMITS.burstLifetime});
     return true;
   }
-  return { throw: throwItem, step, blocksSight, showExplosion, drainEvents: () => events.splice(0),
+  return { throw: throwItem, launchRocket, step, blocksSight, showExplosion, drainEvents: () => events.splice(0),
     snapshot: () => Object.freeze({ projectiles: Object.freeze(projectiles.map(copy)), clouds: Object.freeze(clouds.map(copy)), bursts: Object.freeze(bursts.map(copy)) }),
     reset() { projectiles = []; clouds = []; bursts = []; events = []; } };
 }

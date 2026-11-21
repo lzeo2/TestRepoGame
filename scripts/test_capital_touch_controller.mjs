@@ -32,6 +32,8 @@ env.keys.add('KeyS');near(api.input().throttle,.5);
 env.keys.clear();env.touch.add('boost');env.touch.add('handbrake');
 assert(api.input().boost&&api.input().handbrake&&api.walkingInput().sprint&&api.walkingInput().jump);
 env.actionTouch.add('aim');env.actionTouch.add('fire');assert(api.walkingInput().aim&&api.walkingInput().fire);
+env.keys.add('KeyX');assert(api.walkingInput().crouch);env.keys.delete('KeyX');assert(!api.walkingInput().crouch);
+env.actionTouch.add('crouch');assert(api.walkingInput().crouch);env.actionTouch.delete('crouch');
 env.canPlayerAttack=()=>false;assert(!api.walkingInput().fire&&!api.walkingInput().aim);
 env.gameplay.state.passenger=true;assert.deepEqual(api.walkingInput(),{});env.gameplay.state.passenger=false;
 env.footCameraYaw=0;look={x:1,y:.5,active:true};api.updateTouchCamera(.05);

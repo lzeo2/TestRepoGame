@@ -12,10 +12,10 @@ export function createDefenceDepotView(scene,map,heightAt) {
     const tri=(a,b,c,tint)=>{color.set(tint);for(const vertex of [a,b,c]){positions.push(...vertex);colors.push(color.r,color.g,color.b);}};
     const quad=(a,b,c,d,tint)=>{tri(a,b,c,tint);tri(a,c,d,tint);};
     const vertex=(u,v,y)=>{const [x,z]=p(u,v);return [x,heightAt(x,z)+y,z];};
-    const box=(u,v,w,h,d,tint,base=0)=>{
+    const box=(u,v,w,h,d,tint,base=0,topColor=0xa0a493)=>{
       const q=[vertex(u-w/2,v-d/2,base),vertex(u+w/2,v-d/2,base),vertex(u+w/2,v+d/2,base),vertex(u-w/2,v+d/2,base)];
       const top=q.map(a=>[a[0],a[1]+h,a[2]]);
-      for(let i=0;i<4;i++){const j=(i+1)%4;quad(q[i],q[j],top[j],top[i],tint);}quad(...top,0xa0a493);
+      for(let i=0;i<4;i++){const j=(i+1)%4;quad(q[i],q[j],top[j],top[i],tint);}quad(...top,topColor);
     };
     // Small terrain-draped apron tiles retain the mapped ground instead of a
     // large floating flat slab. The real approach remains an ordinary road.
@@ -24,6 +24,32 @@ export function createDefenceDepotView(scene,map,heightAt) {
     for(let u=-40;u<40;u+=10)for(let v=5;v<45;v+=10){
       if(u>=-10&&u<10)continue;
       quad(vertex(u,v,.18),vertex(u+10,v,.18),vertex(u+10,v+10,.18),vertex(u,v+10,.18),0x77796e);
+    }
+    const mark=(u,v,w,d,h,tint)=>quad(vertex(u-w/2,v-d/2,h),vertex(u+w/2,v-d/2,h),vertex(u+w/2,v+d/2,h),vertex(u-w/2,v+d/2,h),tint);
+    mark(0,64,12,12,.087,0x515659);
+    mark(-1.15,64,.45,3.8,.103,0xf3e5b4);
+    mark(1.15,64,.45,3.8,.103,0xf3e5b4);
+    mark(0,64,2.3,.45,.103,0xf3e5b4);
+    for(const {kind,u,v} of depot.parkedVehicles){
+      if(kind==='tank'){
+        for(const side of [-1,1]){
+          box(u+side*1.7,v,1,.97,6.6,0x333935,.2,0x424944);
+          for(let i=-2;i<=2;i++)box(u+side*2.14,v+i*1.04,.12,.27,.72,0x666c5a,.46,0x777d6a);
+        }
+        box(u,v,3.7,.92,5.9,0x53644d,1,0x697a59);
+        box(u,v+.3,2.5,1.1,2.8,0x53644d,1.92,0x697a59);
+        box(u,v-1.65,.32,.35,2.4,0x535f50,2.3,0x65725d);
+      }else{
+        box(u,v,2.8,1.54,12.8,0x787c79,.59,0xa1a7a2);
+        box(u,v+2.8,1.8,.96,2.5,0x2f4d58,2.1,0x567d86);
+        for(const side of [-1,1]){
+          const wing=(dx,dz,y)=>vertex(u+side*dx,v+dz,y);
+          tri(wing(1.3,-.55,1.66),wing(6,-.55,1.32),wing(6,2.35,1.33),0x89938d);
+          tri(wing(1.3,-.55,1.66),wing(6,2.35,1.33),wing(1.3,2.35,1.63),0x89938d);
+          box(u+side*.97,v-1.3,.55,.52,.75,0x2c3334,.2,0x404844);
+        }
+        tri(vertex(u,v-5.9,2),vertex(u,v-3.8,4.1),vertex(u,v-2.9,2),0x929d97);
+      }
     }
     for(const u of [-25,25]){
       box(u,68,28,7,40,0x737b65);

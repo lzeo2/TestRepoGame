@@ -27,14 +27,17 @@ console.log('PASS render gate: paused/hidden static frames, dirty revision, chun
 assert.deepEqual(renderProfile('performance'),{width:640,height:360,fps:20});
 assert.deepEqual(renderProfile('low'),{width:960,height:540,fps:30});
 assert.deepEqual(renderProfile('standard'),{width:1440,height:900,fps:60});
+assert.deepEqual(renderProfile('realism'),{width:1600,height:900,fps:45,exposure:.95});
+assert.equal(renderProfile('__proto__'),renderProfile('low'));
 assert.equal(chooseRenderQuality(null,'ANGLE SwiftShader Vulkan'),'performance');
 assert.equal(chooseRenderQuality(null,'Intel UHD Graphics'),'low');
 assert.equal(chooseRenderQuality('standard','SwiftShader'),'standard');
+assert.equal(chooseRenderQuality('realism','SwiftShader'),'realism');
 assert.equal(chooseRenderQuality('performance','Intel UHD Graphics'),'performance');
 assert.equal(chooseRenderQuality('broken','Intel UHD Graphics'),'low');
 console.log('PASS render profiles: saved choice, software default and bounded resolution/frame targets');
 
-for(const fps of [20,30,60]){
+for(const fps of [20,30,45,60]){
  const pacer=createFramePacer();let renders=0;
  for(let frame=0;frame<3600;frame++){const time=frame*1000/60+Math.sin(frame*.7)*.35;if(pacer.ready(time,fps))renders++;}
  assert(Math.abs(renders-fps*60)<=1,`jittered RAF retains ${fps}Hz cadence`);

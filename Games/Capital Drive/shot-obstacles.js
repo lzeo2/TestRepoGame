@@ -46,7 +46,7 @@ function rayPrismDistance(ray,solid) {
 }
 export function createShotObstacles(map,{heightAt=()=>0,groundHeightAt=heightAt,vehicleHeightAt=null,bridgeSegments=[]}={}) {
   const roomBoundaries=new WeakMap();
-  const cellSize=64,cells=new Map(),replaced=new Set(map.collisionReplacedBuildingIds||[]);
+  const cellSize=64,cells=new Map(),removable=new Map(),replaced=new Set(map.collisionReplacedBuildingIds||[]);
   function insertSolid(solid) {
     const xs=solid.points.map(p=>p[0]),zs=solid.points.map(p=>p[1]);
     for(let x=Math.floor(Math.min(...xs)/cellSize);x<=Math.floor(Math.max(...xs)/cellSize);x++)
@@ -70,6 +70,7 @@ export function createShotObstacles(map,{heightAt=()=>0,groundHeightAt=heightAt,
     const bottom=Number.isFinite(polygon.y)?polygon.y:heightAt((minX+maxX)/2,(minZ+maxZ)/2);
     const top=bottom+(polygon.height||3);
     const solid={points,holes:(polygon.innerRings||[]).map(ring=>ring.points||ring),bottom:polygon.type==='roof'?top-.2:bottom,top};
+    if(polygon.destructible===true)removable.set(polygon.id,solid);
     insertSolid(solid);
   }
   // The same prepared source deck profiles used for road rendering provide
@@ -116,6 +117,7 @@ export function createShotObstacles(map,{heightAt=()=>0,groundHeightAt=heightAt,
       const endX=ray.x+ray.dx*ray.range,endZ=ray.z+ray.dz*ray.range,found=new Set();
       for(let x=Math.floor(Math.min(ray.x,endX)/cellSize);x<=Math.floor(Math.max(ray.x,endX)/cellSize);x++)for(let z=Math.floor(Math.min(ray.z,endZ)/cellSize);z<=Math.floor(Math.max(ray.z,endZ)/cellSize);z++)for(const solid of cells.get(`${x},${z}`)||[])found.add(solid);
       for(const solid of found) {
+        if(solid.removed)continue;
         const p=solid.plane;
         const local=p?{...ray,y:ray.y-p.y-(ray.x-p.x)*p.gx-(ray.z-p.z)*p.gz,dy:ray.dy-ray.dx*p.gx-ray.dz*p.gz}:ray;
         nearest=Math.min(nearest,rayPrismDistance(local,solid));
@@ -150,5 +152,10 @@ export function createShotObstacles(map,{heightAt=()=>0,groundHeightAt=heightAt,
     return {distance:nearest===ray.range?nearest:Math.max(0,nearest-.005),vehicleId};
   }
   const trace=(ray,room=null,vehicles=[])=>traceHit(ray,room,vehicles).distance;
-  return {trace,traceHit};
+  function removeBarrier(id) {
+    const solid=removable.get(id);
+    if(!solid)return false;
+    solid.removed=true;removable.delete(id);return true;
+  }
+  return {trace,traceHit,removeBarrier};
 }

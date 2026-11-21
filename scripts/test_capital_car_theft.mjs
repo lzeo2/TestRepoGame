@@ -30,7 +30,7 @@ function fixture({ occupied = false, sandbox = false } = {}) {
 const tick = (f, seconds, input = {}) => { for (let i = 0; i < Math.ceil(seconds / dt); i++) f.game.step(dt, input); };
 function begin(f) { assert.equal(f.game.interact(), false); assert(f.game.state.carjacking); f.game.step(dt); }
 function cue(f) {
-  for (let frame = 0; frame < 60 && f.game.state.carjacking?.challenge?.phase !== 'cue'; frame++) f.game.step(dt);
+  for (let frame = 0; frame < 240 && f.game.state.carjacking?.challenge?.phase !== 'cue'; frame++) f.game.step(dt);
   assert.equal(f.game.state.carjacking?.challenge?.phase, 'cue');
   return f.game.state.carjacking.challenge.expectedKey;
 }
@@ -39,9 +39,9 @@ function complete(f) {
   for (let i = 0; i < 8 && f.game.state.carjacking; i++) pressCorrect(f);
   assert.equal(f.game.state.carjacking, null); assert.equal(f.game.state.mode, 'vehicle');
 }
-// Actual parked/traffic claims require eight cue presses; each succeeds and reports only once.
-for (const occupied of [false, true]) {
-  const f = fixture({ occupied }); begin(f);
+// Parked cars require eight cue presses. Occupied cars never open a challenge.
+{
+  const f = fixture(); begin(f);
   assert.equal(f.game.state.carjacking.challenge.sequence.length, 8);
   const snapshot = f.game.snapshot(); assert(Object.isFrozen(snapshot.carjacking.challenge.sequence));
   assert.throws(() => { snapshot.carjacking.challenge.sequence[0] = 'up'; });
@@ -57,12 +57,8 @@ for (const occupied of [false, true]) {
   assert.equal(f.game.state.vehicle.modelId, 'relay'); assert.equal(f.game.state.vehicle.color, 0x123456);
   assert.equal(f.game.state.vehicle.stolen, true); assert.equal(f.stats.changes.length, 1);
   assert.equal(f.stats.events.filter(event => event.offence === 'vehicle theft').length, 1);
-  assert.equal(f.stats.exits.length, occupied ? 1 : 0);
-  if (occupied) {
-    assert(f.stats.stops > 20); assert.equal(f.stats.exits[0].x, 10);
-    assert.equal(f.stats.exits[0].personId, f.source.id, 'driver identity survives claim and exit event ID');
-  }
-  tick(f, 3); assert.equal(f.stats.claims, 1); assert.equal(f.stats.exits.length, occupied ? 1 : 0);
+  assert.equal(f.stats.exits.length, 0);
+  tick(f, 3); assert.equal(f.stats.claims, 1); assert.equal(f.stats.exits.length, 0);
   assert(f.game.interact()); assert(f.game.interact(), 'current player car re-entry stays instant');
   assert.equal(f.game.state.carjacking, null); assert.equal(f.stats.claims, 2);
 }
@@ -70,16 +66,19 @@ for (const occupied of [false, true]) {
 {
   const f = fixture({ occupied: true });
   f.source.personId = 'fixture-driver';
-  begin(f); complete(f);
+  assert(f.game.interact(),'one interaction immediately takes a stopped occupied car');
+  assert.equal(f.game.state.carjacking,null);assert.equal(f.stats.stops,0);assert.equal(f.stats.claims,1);
+  assert.equal(f.game.state.mode,'vehicle');assert.equal(f.stats.exits[0].x,10);
   assert.equal(f.stats.exits[0].personId, 'fixture-driver');
   assert.notEqual(f.stats.exits[0].id, f.stats.exits[0].personId);
+  assert.equal(f.stats.events.filter(event=>event.offence==='vehicle theft').length,1);
 }
 // Taking B leaves the previously controlled A unlocked for instant, lawful re-entry.
 for (const occupied of [false, true]) {
   const f = fixture({ occupied });
   const original = { x: f.simulation.player.x, z: f.simulation.player.z,
     modelId: f.simulation.player.modelId, color: f.simulation.player.color };
-  begin(f); complete(f);
+  if(occupied)assert(f.game.interact());else {begin(f);complete(f);}
   assert.equal(f.stats.claims, 1);
   const theftReports = f.stats.events.filter(event => event.offence === 'vehicle theft').length;
   const displaced = f.stats.exits.length;
@@ -104,18 +103,19 @@ for (const occupied of [false, true]) {
 {
   const f = fixture({ occupied: true }); f.source.speed = 4; begin(f); tick(f, 7.4);
   assert.equal(f.stats.claims, 0); assert.equal(f.game.state.carjacking.challenge, null); assert(f.stats.stops > 400);
-  f.source.speed = 0; f.game.step(dt); complete(f);
-  assert.equal(f.stats.claims, 1, 'an almost-eight-second wait still permits a full key challenge');
+  f.source.speed = 0; f.game.step(dt);
+  assert.equal(f.stats.claims, 1, 'a safely stopped occupied car claims without a key challenge');
+  assert.equal(f.game.state.carjacking,null);assert.equal(f.game.state.mode,'vehicle');
 }
 {
   const f = fixture({ occupied: true }); f.source.speed = 4; begin(f); tick(f, 8.2);
   assert.equal(f.game.state.carjacking, null); assert.equal(f.stats.claims, 0);
 }
-// Neither elapsed time nor wrong-key presses can take either type of car.
-for (const occupied of [false, true]) {
-  const late = fixture({ occupied }); begin(late); tick(late, 5);
+// Neither elapsed time nor wrong-key presses can take a locked parked car.
+{
+  const late = fixture(); begin(late); tick(late, 7);
   assert.equal(late.game.state.carjacking, null); assert.equal(late.stats.claims, 0); assert.equal(late.game.state.wanted, 0);
-  const wrong = fixture({ occupied }); begin(wrong);
+  const wrong = fixture(); begin(wrong);
   for (let i = 0; i < 2; i++) {
     const key = cue(wrong), bad = ['x', 'y', 'up'].find(value => value !== key);
     wrong.game.step(dt, { challenge: { [bad]: true } });
@@ -142,11 +142,16 @@ for (const reason of ['lost', 'far', 'moving', 'occluded', 'cancel', 'recovery',
 {
   const f = fixture({ occupied: true });
   f.simulation.claimVehicle = () => { f.stats.claims++; return { ok: false, reason: 'vehicle-limit' }; };
-  begin(f);
-  for (let i = 0; i < 8; i++) pressCorrect(f);
+  assert.equal(f.game.interact(),false);
   assert.equal(f.game.state.carjacking, null); assert.equal(f.game.state.mode, 'foot');
   assert.equal(f.stats.claims, 1); assert.equal(f.stats.exits.length, 0); assert.equal(f.game.state.wanted, 0);
   tick(f, 2); assert.equal(f.stats.claims, 1);
+}
+{
+  const f=fixture({occupied:true});
+  f.simulation.moveActor=()=>({blocked:true});
+  assert.equal(f.game.interact(),false,'taking an occupied car leaves a safe place to put its driver');
+  assert.equal(f.stats.claims,0);assert.equal(f.stats.exits.length,0);
 }
 // Reset discards partial sessions/events; retry starts at zero and uses fresh actual input.
 {
@@ -160,4 +165,4 @@ for (const reason of ['lost', 'far', 'moving', 'occluded', 'cancel', 'recovery',
   const f = fixture({ sandbox: true }); begin(f); complete(f);
   assert.equal(f.game.state.wanted, 0); assert.equal(f.stats.events.filter(event => event.offence === 'vehicle theft').length, 0);
 }
-console.log('Capital car theft: actual parked/occupied claims, eight cue presses, independent stop wait, input lock, pause, mistakes/timeouts, final-target guards, cancel/reset/recovery, current/prior-car re-entry and sandbox PASS');
+console.log('Capital car theft PASS: parked cue challenges, immediate stopped-driver take, live stop wait, safe exits, exact driver identity, pause, final-target guards and same-car re-entry');
