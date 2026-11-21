@@ -1,125 +1,206 @@
+import { Chessground } from './vendor/chessground/chessground.min.js';
+
 const FILES = 'abcdefgh';
-const SYMBOLS = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
 const NAMES = { k: 'king', q: 'queen', r: 'rook', b: 'bishop', n: 'knight', p: 'pawn' };
-const SIDE = { w: 'White', b: 'Black' };
+const COLORS = { w: 'white', b: 'black' };
+const ARROWS = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -8, ArrowDown: 8 };
 
 export const uciMove = uci => ({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] });
 
+function squareAt(index, side) {
+  const file = index % 8, rank = Math.floor(index / 8);
+  return side === 'w' ? FILES[file] + (8 - rank) : FILES[7 - file] + (rank + 1);
+}
+
+function legalMoves(game) {
+  const destinations = new Map(), choices = new Map();
+  for (const move of game.moves({ verbose: true })) {
+    const id = move.from + move.to;
+    if (choices.has(id)) choices.get(id).push(move);
+    else {
+      choices.set(id, [move]);
+      if (!destinations.has(move.from)) destinations.set(move.from, []);
+      destinations.get(move.from).push(move.to);
+    }
+  }
+  return { destinations, choices };
+}
+
+const pair = move => move ? move.from + move.to : '';
+
 export function createBoard(element, onMove) {
-  let frame, selected = null, destinations = [], dragFrom = null, focusedIndex = 56;
+  let frame, revision = 0, legal, focusedIndex = 56, pressed = null;
+  const labels = [];
+  const overlay = document.createElement('div');
+  overlay.className = 'board-keys';
   const cells = Array.from({ length: 64 }, (_, index) => {
     const button = document.createElement('button');
     button.type = 'button';
-    const piece = document.createElement('span'), rank = document.createElement('span'), file = document.createElement('span');
-    piece.className = 'piece';
-    rank.className = 'coord rank';
-    file.className = 'coord file';
-    for (const child of [piece, rank, file]) child.setAttribute('aria-hidden', 'true');
-    button.append(piece, rank, file);
-    element.append(button);
+    button.className = 'board-key';
+    button.tabIndex = index === focusedIndex ? 0 : -1;
+    button.setAttribute('aria-pressed', 'false');
+    overlay.append(button);
     button.addEventListener('focus', () => {
-      cells[focusedIndex].button.tabIndex = -1;
+      cells[focusedIndex].tabIndex = -1;
       focusedIndex = index;
       button.tabIndex = 0;
     });
-    return { button, piece, rank, file };
+    button.addEventListener('click', () => {
+      if (!frame?.interactive) return;
+      const square = button.dataset.square;
+      ground.selectSquare(ground.state.selected === square ? null : square);
+      syncSelection();
+    });
+    return button;
   });
 
-  function paint() {
-    const { game, side, interactive, last, hint } = frame;
-    const checked = game.isCheck();
-    for (let index = 0; index < 64; index++) {
-      const { button, piece, rank, file } = cells[index];
-      const column = index % 8, row = Math.floor(index / 8);
-      const square = side === 'w' ? FILES[column] + (8 - row) : FILES[7 - column] + (1 + row);
-      const item = game.get(square);
-      button.className = 'square';
-      button.classList.toggle('dark', Boolean((column + row) % 2));
-      button.classList.toggle('last', square === last?.from || square === last?.to);
-      button.classList.toggle('hint', square === hint?.from || square === hint?.to);
-      button.classList.toggle('selected', square === selected);
-      button.classList.toggle('legal', destinations.some(move => move.to === square));
-      button.classList.toggle('occupied', Boolean(item));
-      button.classList.toggle('checked', Boolean(checked && item?.type === 'k' && item.color === game.turn()));
-      button.dataset.square = square;
-      button.tabIndex = index === focusedIndex ? 0 : -1;
-      button.setAttribute('aria-label', item ? `${square} ${SIDE[item.color]} ${NAMES[item.type]}` : square);
-      button.setAttribute('aria-pressed', String(selected === square));
-      piece.textContent = item ? SYMBOLS[item.type] : '';
-      piece.className = item?.color === 'w' ? 'piece white' : 'piece';
-      piece.draggable = Boolean(interactive && item?.color === game.turn());
-      rank.textContent = column === 0 ? square[1] : '';
-      file.textContent = row === 7 ? square[0] : '';
-    }
+  function syncSelection() {
+    const square = ground.state.selected;
+    if (pressed?.dataset.square === square) return;
+    pressed?.setAttribute('aria-pressed', 'false');
+    pressed = square ? cells.find(cell => cell.dataset.square === square) : null;
+    pressed?.setAttribute('aria-pressed', 'true');
   }
 
-  function choose(square) {
-    selected = square;
-    destinations = square ? frame.game.moves({ square, verbose: true }) : [];
-    paint();
-  }
-
-  function move(to) {
-    const choices = destinations.filter(candidate => candidate.to === to);
-    if (!choices.length) return false;
-    choose(null);
-    onMove(choices);
-    return true;
-  }
-
-  element.addEventListener('click', event => {
-    const square = event.target.closest('.square')?.dataset.square;
-    if (!frame?.interactive || !square) return;
-    if (move(square)) return;
-    choose(square !== selected && frame.game.get(square)?.color === frame.game.turn() ? square : null);
+  const ground = Chessground(element, {
+    coordinates: true,
+    animation: { enabled: false, duration: 160 },
+    drawable: { enabled: false },
+    premovable: { enabled: false },
+    movable: { free: false, color: undefined, rookCastle: false },
+    events: {
+      select: syncSelection,
+      insert(elements) {
+        elements.board.setAttribute('aria-hidden', 'true');
+        for (const child of elements.container.querySelectorAll('coords, svg')) child.setAttribute('aria-hidden', 'true');
+        elements.container.append(overlay);
+      },
+    },
   });
-  element.addEventListener('keydown', event => {
-    const directions = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -8, ArrowDown: 8 };
-    const delta = directions[event.key];
+
+  overlay.addEventListener('keydown', event => {
+    const delta = ARROWS[event.key];
     if (!delta) return;
     event.preventDefault();
     const column = focusedIndex % 8;
     if ((delta === -1 && column === 0) || (delta === 1 && column === 7)) return;
-    cells[focusedIndex + delta]?.button.focus();
+    cells[focusedIndex + delta]?.focus({ preventScroll: true });
   });
-  element.addEventListener('dragstart', event => {
-    if (!frame?.interactive || !event.target.draggable) return;
-    dragFrom = event.target.closest('.square')?.dataset.square ?? null;
-    if (!dragFrom) return;
-    event.dataTransfer.setData('text/plain', dragFrom);
-    event.dataTransfer.effectAllowed = 'move';
-    choose(dragFrom);
+  element.addEventListener('touchcancel', () => {
+    ground.cancelMove();
+    syncSelection();
   });
-  element.addEventListener('dragover', event => {
-    const square = event.target.closest('.square')?.dataset.square;
-    if (frame?.interactive && dragFrom && destinations.some(candidate => candidate.to === square)) {
-      event.preventDefault();
-      event.dataTransfer.dropEffect = 'move';
-    }
-  });
-  element.addEventListener('drop', event => {
-    if (!frame?.interactive || !dragFrom) return;
-    event.preventDefault();
-    const square = event.target.closest('.square')?.dataset.square;
-    dragFrom = null;
-    if (!move(square)) choose(null);
-  });
-  element.addEventListener('dragend', () => {
-    if (dragFrom) choose(null);
-    dragFrom = null;
-  });
+  for (const event of ['mouseup', 'touchend']) document.addEventListener(event, syncSelection);
 
-  let lastFen;
+  function moveConfig(inputRevision) {
+    return {
+      color: frame.interactive ? COLORS[frame.game.turn()] : undefined,
+      dests: frame.interactive ? legal.destinations : undefined,
+      showDests: frame.legalHints,
+      events: {
+        // Chessground schedules callbacks. Ignore a move superseded by a new position.
+        after: (from, to) => {
+          if (inputRevision === revision) submit(from, to);
+        },
+      },
+    };
+  }
+
+  function restorePosition() {
+    ground.cancelMove();
+    ground.state.animation.current = undefined;
+    // Cancel speculative animation when a puzzle rejects a move or a choice is pending.
+    ground.set({
+      fen: frame.fen,
+      turnColor: COLORS[frame.game.turn()],
+      lastMove: frame.last,
+      check: frame.game.isCheck(),
+      movable: moveConfig(revision),
+      animation: { enabled: false },
+    });
+    if (frame.animation) ground.set({ animation: { enabled: true } });
+    syncSelection();
+  }
+
+  function submit(from, to) {
+    const choices = legal?.choices.get(from + to);
+    if (!frame.interactive || !choices?.length) {
+      restorePosition();
+      return;
+    }
+    const submitted = revision;
+    if (choices.length > 1) restorePosition();
+    try {
+      onMove(choices);
+    } finally {
+      // Accepted moves render the new position synchronously. Otherwise restore the old one.
+      if (choices.length === 1 && revision === submitted) restorePosition();
+    }
+  }
+
+  function updateLabels() {
+    for (const [index, button] of cells.entries()) {
+      const square = squareAt(index, frame.side), piece = frame.game.get(square);
+      const name = piece ? `${square} ${piece.color === 'w' ? 'White' : 'Black'} ${NAMES[piece.type]}` : square;
+      if (button.dataset.square !== square) button.dataset.square = square;
+      if (labels[index] !== name) {
+        button.setAttribute('aria-label', name);
+        labels[index] = name;
+      }
+    }
+  }
+
   return {
     show(next) {
       const fen = next.game.fen();
-      if (fen !== lastFen || !next.interactive || frame?.game !== next.game || frame.side !== next.side) {
-        selected = null;
-        destinations = [];
+      const { coordinates = true, animation = true, legalHints = true } = next;
+      const positionChanged = fen !== frame?.fen || next.game !== frame.game;
+      const interactiveChanged = next.interactive !== frame?.interactive;
+      const inputChanged = positionChanged || interactiveChanged;
+      const sideChanged = next.side !== frame?.side;
+      const prefsChanged = animation !== frame?.animation || legalHints !== frame.legalHints;
+      const moveChanged = pair(next.last) !== frame?.lastKey;
+      const hintChanged = pair(next.hint) !== frame?.hintKey;
+      if (element.dataset.coordinates !== String(coordinates)) element.dataset.coordinates = String(coordinates);
+      if (!inputChanged && !sideChanged && !prefsChanged && !moveChanged && !hintChanged) return;
+
+      frame = {
+        game: next.game, fen, side: next.side, interactive: next.interactive, legalHints, animation,
+        last: next.last ? [next.last.from, next.last.to] : undefined,
+        lastKey: pair(next.last), hintKey: pair(next.hint),
+      };
+      if (inputChanged) {
+        revision++;
+        legal = frame.interactive ? legalMoves(frame.game) : undefined;
+        ground.cancelMove();
       }
-      lastFen = fen;
-      frame = next;
-      paint();
+      if (interactiveChanged) {
+        element.dataset.interactive = String(frame.interactive);
+        for (const button of cells) button.setAttribute('aria-disabled', String(!frame.interactive));
+      }
+      if (positionChanged || sideChanged) updateLabels();
+
+      const focused = sideChanged && overlay.contains(document.activeElement);
+      const config = {};
+      if (sideChanged) config.orientation = COLORS[frame.side];
+      if (inputChanged) {
+        config.fen = fen;
+        config.turnColor = COLORS[frame.game.turn()];
+        config.check = frame.game.isCheck();
+      }
+      if (inputChanged || prefsChanged) config.movable = moveConfig(revision);
+      if (inputChanged || moveChanged) config.lastMove = frame.last;
+      if (hintChanged) {
+        config.drawable = {
+          autoShapes: frame.hintKey ? [{ orig: next.hint.from, dest: next.hint.to, brush: 'green' }] : [],
+        };
+      }
+      config.animation = { enabled: animation && !sideChanged };
+      if (!animation) ground.state.animation.current = undefined;
+      ground.set(config);
+      if (sideChanged && animation) ground.set({ animation: { enabled: true } });
+      syncSelection();
+      if (focused) cells[focusedIndex].focus({ preventScroll: true });
     },
   };
 }

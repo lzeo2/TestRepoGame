@@ -48,12 +48,19 @@ try {
   await assert.rejects(engine.search('8/8/8/8/8/8/4k3/4K3 w - - 0 1'), /Invalid position/);
   await assert.rejects(engine.search('4k3/8/8/8/8/8/8/4K3 w - - 0 11111111111'), /Invalid position/);
   await assert.rejects(engine.search(fen, { searchMoves: ['e2e4\nquit'] }), /Invalid analysis moves/);
+  await assert.rejects(engine.search(fen, { history: { fen, moves: ['e2e4'] } }), /Game history does not match/);
+  await assert.rejects(engine.search(fen, { history: { fen, moves: ['e2e5'] } }), /Game history does not match/);
+  await assert.rejects(engine.search(fen, { history: { fen, moves: ['e2e4\nquit'] } }), /Game history does not match/);
   assert.equal(starts, 0, 'Invalid requests must not boot the worker.');
 
+  const cancelBoot = new AbortController();
+  const opening = engine.search(fen, { signal: cancelBoot.signal });
   const real = engine.search(fen, { nodes: 5_000, elo: MIN_ELO - 50 });
   const forced = engine.search(fen, { nodes: 5_000, searchMoves: ['e2e4'] });
+  cancelBoot.abort();
+  await assert.rejects(opening, { name: 'AbortError' });
   const [result, line] = await Promise.all([real, forced]);
-  assert.equal(starts, 1, 'Consecutive requests should share the worker.');
+  assert.equal(starts, 1, 'Consecutive requests share the worker, including cancellation during startup.');
   assert(legal.has(result.move), 'Stockfish returned a legal opening move.');
   assert.deepEqual(line.pv[0], 'e2e4');
   assert.equal(line.move, 'e2e4');
@@ -77,9 +84,25 @@ try {
   const after = engine.search(fen, { nodes: 5_000, searchMoves: ['c2c4'] });
   cancelActive.abort();
   await assert.rejects(active, { name: 'AbortError' });
+  assert.equal(lastCommand, 'stop', 'The next request waits for the cancelled search to drain.');
   assert.equal((await after).move, 'c2c4');
-  assert.equal(starts, 2, 'Cancelling an active search retires the worker.');
+  assert.equal(starts, 1, 'Normal active cancellation keeps the initialized worker.');
   assert.match(lastCommand, /searchmoves c2c4$/);
+
+  const repeatStart = '6nk/8/8/8/8/8/8/KR4N1 w - - 0 1';
+  const trail = ['g1f3', 'g8f6', 'f3g1', 'f6g8', 'g1f3', 'g8f6', 'f3g1'];
+  const repeating = new Chess(repeatStart);
+  for (const move of trail) repeating.move(move);
+  const repeatPosition = repeating.fen();
+  repeating.move('f6g8');
+  assert(repeating.isThreefoldRepetition());
+  const onlyPosition = await engine.search(repeatPosition, { nodes: 5_000, searchMoves: ['f6g8'] });
+  const withHistory = await engine.search(repeatPosition, {
+    nodes: 5_000, searchMoves: ['f6g8'], history: { fen: repeatStart, moves: trail },
+  });
+  assert(onlyPosition.score.type === 'cp' && onlyPosition.score.value < -100);
+  assert(withHistory.score.type === 'cp' && Math.abs(withHistory.score.value) <= 2,
+    'Stockfish should see the imminent draw when supplied the legal history.');
 
   const mate = await engine.search('7k/6Q1/5K2/8/8/8/8/8 b - - 0 1');
   assert.equal(mate.move, null);
@@ -88,4 +111,4 @@ try {
   engine.dispose();
 }
 await assert.rejects(engine.search(fen), { name: 'AbortError' });
-console.log('PASS chess.js legality, Stockfish WASM search, Elo, forced lines, cancellations, and terminal scores');
+console.log('PASS Stockfish WASM legality, Elo, forced lines, warm cancellation, history-dependent draw, and terminal scores');

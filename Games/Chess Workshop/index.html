@@ -8,6 +8,8 @@
   <title>Chess Workshop</title>
   <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./chessground.css">
+  <link rel="stylesheet" href="./appearance.css">
   <link rel="stylesheet" href="./bot-builder.css">
   <script type="module" src="./app.js"></script>
 </head>
@@ -28,7 +30,10 @@
   <main id="main" class="workshop">
     <div class="heading">
       <div><h1 id="mode-title">Play chess</h1><p id="mode-description">Pick a bot, choose your side and play at your own pace.</p></div>
-      <button type="button" id="flip-board" class="secondary"><span aria-hidden="true">⇅</span> Flip board</button>
+      <div id="board-tools" class="board-tools">
+        <button type="button" id="appearance-open" class="secondary" aria-haspopup="dialog">Appearance</button>
+        <button type="button" id="flip-board" class="secondary"><span aria-hidden="true">⇅</span> Flip board</button>
+      </div>
     </div>
     <div id="table" class="table">
       <section class="board-column" aria-label="Chess game">
@@ -53,7 +58,7 @@
           </div>
           <div class="match-status" id="play-status" role="status">White to move.</div>
           <div class="notation" id="play-moves" aria-label="Moves"></div>
-          <div class="panel-actions"><button type="button" id="review-match" class="secondary" disabled>Review game</button><button type="button" id="resign" class="quiet">Resign</button></div>
+          <div class="panel-actions"><button type="button" id="retry-bot" class="primary" hidden>Retry bot move</button><button type="button" id="review-match" class="secondary" disabled>Review game</button><button type="button" id="resign" class="quiet">Resign</button></div>
         </section>
         <section id="puzzles-panel" class="panel" hidden>
           <div class="panel-top"><h2 id="puzzle-title">Tactics</h2><span id="puzzle-count" class="panel-note">0 solved</span></div>
@@ -89,6 +94,7 @@
     <section id="studio" aria-label="Bot Studio" hidden></section>
     <footer><a href="./credits.html">Credits &amp; engine source</a></footer>
   </main>
+  <dialog id="appearance" aria-labelledby="appearance-title"></dialog>
   <dialog id="promotion" aria-labelledby="promotion-title">
     <form method="dialog">
       <h2 id="promotion-title">Promote pawn</h2>
