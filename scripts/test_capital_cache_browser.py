@@ -13,6 +13,8 @@ import hashlib
 import http.server
 import json
 import math
+import re
+import subprocess
 from pathlib import Path
 import signal
 import sys
@@ -36,6 +38,7 @@ class CountedServer(http.server.ThreadingHTTPServer):
     def __init__(self):
         super().__init__(('127.0.0.1', 0), functools.partial(CountedHandler, directory=str(ROOT)))
         self.events, self.fixture_version = [], 1
+        self.legacy_worker = None
         self.lock = threading.Lock()
 
     def record(self, path, size, status=200):
@@ -69,14 +72,20 @@ class CountedHandler(http.server.SimpleHTTPRequestHandler):
         path = unquote(urlsplit(self.path).path)
         if path.startswith('/__capital_cache_fixture/'):
             version = self.server.fixture_version
-            document = b'<!doctype html><title>Cache worker fixture</title><link rel="icon" href="data:,"><p>Worker fixture only</p>'
+            build = hashlib.sha256(f'fixture-v{version}'.encode()).hexdigest()[:12]
+            document = f'<!doctype html><title>Cache worker fixture</title><link rel="icon" href="data:,"><p>Worker fixture only</p><code id="build-version">{build}</code><p id="cache-status"></p><script src="code.js"></script>'.encode()
+            client = (GAME / 'cache-client.js').read_bytes()
+            launcher = (GAME / 'cache-launcher.js').read_bytes()
+            worker = self.server.legacy_worker if version == 1 and self.server.legacy_worker else (GAME / 'service-worker.js').read_bytes()
+            worker = re.sub(rb"const buildId = '[0-9a-f]{12}';", f"const buildId = '{build}';".encode(), worker)
             asset = f'fixture-v{version}'.encode()
-            manifest = {'version': hashlib.sha256(f'fixture-v{version}'.encode()).hexdigest(), 'files': [
+            code = f'window.fixtureCode = "fixture-v{version}";'.encode()
+            manifest = {'build': build, 'version': hashlib.sha256(f'fixture-v{version}'.encode()).hexdigest(), 'files': [
                 {'url': name, 'sha256': hashlib.sha256(body).hexdigest(), 'bytes': len(body)}
-                for name, body in [('index.html', document), ('asset.js', asset)]]}
+                for name, body in [('index.html', document), ('asset.js', asset), ('cache-client.js', client), ('cache-launcher.js', launcher), ('code.js', code)]]}
             files = {'index.html': ('text/html', document), 'asset.js': ('text/javascript', asset),
                      'cache-manifest.js': ('text/javascript', ('self.CAPITAL_CACHE_MANIFEST = ' + json.dumps(manifest) + ';').encode()),
-                     'service-worker.js': ('text/javascript', (GAME / 'service-worker.js').read_bytes())}
+                     'service-worker.js': ('text/javascript', worker), 'cache-client.js': ('text/javascript', client), 'cache-launcher.js': ('text/javascript', launcher), 'code.js': ('text/javascript', code)}
             name = path.removeprefix(FIXTURE_PATH)
             if path == '/__capital_cache_fixture/sibling.txt':
                 kind, body = 'text/plain', f'sibling-v{version}'.encode()
@@ -109,7 +118,7 @@ def skip_guided_tutorial(page):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True, type=Path)
-    parser.add_argument('--scenario', choices=['native', 'fallback', 'fixture', 'restart-fixture', 'heroes', 'all'], default='native')
+    parser.add_argument('--scenario', choices=['native', 'fallback', 'fixture', 'restart-fixture', 'heroes', 'build', 'all'], default='native')
     parser.add_argument('--budget', type=int, default=240, choices=range(30, 601), metavar='30..600')
     args = parser.parse_args()
     output = args.output.resolve()
@@ -119,6 +128,11 @@ def main():
         parser.error('--output must be fresh or empty')
     output.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
+    source_paths = ['index.html','style.css','script.js','cache-client.js','cache-launcher.js','service-worker.js','cache-manifest.js']
+    def source_hashes():
+        return {name:hashlib.sha256((GAME/name).read_bytes()).hexdigest() for name in source_paths}
+    source_before = source_hashes()
+    harness_sha256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     checks, page_errors, console_errors, failed_requests, external, observations = [], [], [], [], [], []
     failure = None
     map_requests = []
@@ -138,6 +152,14 @@ def main():
         assert value, label
         checks.append(label)
         print('PASS', label, flush=True)
+
+    def wait_async(page, predicate, arg=None, timeout=30000):
+        end = time.monotonic() + timeout / 1000
+        while time.monotonic() < end:
+            if page.evaluate(predicate, arg):
+                return
+            page.wait_for_timeout(100)
+        raise AssertionError('Asynchronous worker/cache lifecycle observation timed out')
 
     def snapshot(page):
         return page.evaluate('capitalDriveSnapshot()')
@@ -387,37 +409,96 @@ def main():
                       'Reload preserves the selected hero, inactive hero checkpoints, starter cash and career progress')
                 context.close()
 
-            if args.scenario in ('fixture', 'all'):
-                context = browser.new_context()
+            if args.scenario == 'build':
+                context = browser.new_context(viewport={'width':1280,'height':800})
                 stack.callback(context.close)
+                context.add_init_script('localStorage.setItem("capital-drive-rendering-v1","performance")')
                 page = new_page(context)
-                fixture_url = base + FIXTURE_PATH + 'index.html'
-                page.goto(fixture_url)
-                page.evaluate('''async()=>{await caches.open('unrelated-sibling-cache');await navigator.serviceWorker.register('./service-worker.js',{scope:'./',updateViaCache:'none'});await navigator.serviceWorker.ready;}''')
-                page.reload()
-                page.wait_for_function('!!navigator.serviceWorker.controller')
-                check(page.evaluate('fetch("asset.js").then(r=>r.text())') == 'fixture-v1', 'Isolated worker fixture serves installed v1 bytes')
-                server.fixture_version = 2
-                page.evaluate('navigator.serviceWorker.getRegistration().then(r=>r.update())')
-                page.wait_for_function('navigator.serviceWorker.getRegistration().then(r=>!!r.waiting)', timeout=30000)
-                check(page.evaluate('fetch("asset.js").then(r=>r.text())') == 'fixture-v1', 'Waiting v2 does not replace a running v1 game client')
-                fixture_prefix = 'capital-drive-files-v1-' + FIXTURE_PATH.replace('/', '%2F') + '-'
-                check(page.evaluate('(prefix)=>caches.keys().then(names=>names.filter(name=>name.startsWith(prefix)).length)', fixture_prefix) == 2,
-                      'Waiting update retains both complete fixture revisions')
-                check(page.evaluate('fetch("../sibling.txt").then(r=>r.text())') == 'sibling-v2', 'Sibling request outside the worker scope reaches current origin bytes')
-                check(page.evaluate('caches.has("unrelated-sibling-cache")'), 'Update installation preserves unrelated sibling caches')
-                page.close()
-                page = new_page(context)
-                page.goto(base + '/__capital_cache_blank')
-                page.wait_for_function('(scope)=>navigator.serviceWorker.getRegistration(scope).then(r=>!!r?.active&&!r.waiting)', arg=base + FIXTURE_PATH, timeout=30000)
-                page.goto(fixture_url)
-                page.wait_for_function('!!navigator.serviceWorker.controller')
-                check(page.evaluate('fetch("asset.js").then(r=>r.text())') == 'fixture-v2', 'Closing all old clients permits v2 activation on reopen')
-                check(page.evaluate('(prefix)=>caches.keys().then(names=>names.filter(name=>name.startsWith(prefix)).length)', fixture_prefix) == 1,
-                      'Activation removes only the obsolete cache in its own fixture scope')
-                check(page.evaluate('caches.has("unrelated-sibling-cache")'), 'Activation cleanup preserves unrelated origin cache')
+                ready(page)
+                manifest_source = (GAME/'cache-manifest.js').read_text()
+                manifest = json.loads(manifest_source[manifest_source.index('{'):].rstrip().removesuffix(';'))
+                expected = manifest['build']
+                check(page.locator('#build-version').text_content() == expected, 'Actual full-game corner badge matches generated manifest build')
+                page.wait_for_function('document.querySelector("#cache-status").textContent.includes("Saved for faster starts")', timeout=60000)
+                observations.append({'label':'actual build menu','build':expected,'state':snapshot(page),
+                    'sourceSHA256':{name:hashlib.sha256((GAME/name).read_bytes()).hexdigest() for name in ['index.html','style.css','script.js','cache-client.js','cache-launcher.js','service-worker.js','cache-manifest.js']}})
+                page.screenshot(path=str(output/'build-menu-desktop.png'))
+                page.set_viewport_size({'width':390,'height':844})
+                page.wait_for_timeout(250)
+                bounds = page.locator('#build-version').evaluate('(e)=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:innerWidth,height:innerHeight}}')
+                check(bounds['left'] >= 0 and bounds['right'] <= bounds['width'] and bounds['top'] >= 0 and bounds['bottom'] <= bounds['height'], 'Build badge remains visible within 390px mobile viewport')
+                observations.append({'label':'mobile build badge bounds',**bounds})
+                page.screenshot(path=str(output/'build-menu-mobile.png'))
+                page.set_viewport_size({'width':1280,'height':800})
+                page.locator('[data-game-mode=free]').click()
+                skip_guided_tutorial(page)
+                page.locator('#start-button').click()
+                page.wait_for_function('capitalDriveSnapshot().started && !capitalDriveSnapshot().paused')
+                state = observe(page,'actual current build Telopea Free roam')
+                check(state['gameMode'] == 'free' and not state['rendering']['compatibility'] and state['rendering']['quality'] == 'performance' and page.locator('#build-version').text_content() == expected, 'Current full-game build starts actual WebGL Free roam with visible badge')
+                page.screenshot(path=str(output/'build-telopea-performance.png'))
+                page.locator('#map-button').click()
+                page.locator('#map-search').fill('Capital Defence Depot')
+                page.locator('#map-search-form button[type=submit]').click()
+                page.locator('#search-results button').first.click()
+                page.locator('#teleport-button').click()
+                page.locator('#map-dialog').wait_for(state='hidden')
+                page.wait_for_timeout(1500)
+                depot=observe(page,'official Free-roam depot arrival')
+                place=next(place for place in depot['places'] if place['id']=='capital-defence-depot')
+                check(math.hypot(depot['player']['x']-place['x'],depot['player']['z']-place['z'])<150 and depot.get('defenceDepot'), 'Actual search and official Free-roam teleport reach rendered fictional depot')
+                page.screenshot(path=str(output/'build-defence-depot.png'))
                 context.close()
 
+            if args.scenario in ('fixture', 'all'):
+                revision = '01f8c861719c1621d4ffe454847702aacdae5134'
+                server.legacy_worker = subprocess.check_output(['git', 'show', revision + ':Games/Capital Drive/service-worker.js'], cwd=ROOT)
+                observations.append({'label':'upgrade fixture source', 'legacyWorkerRevision':revision,
+                    'legacyWorkerSHA256':hashlib.sha256(server.legacy_worker).hexdigest(),
+                    'currentWorkerSHA256':hashlib.sha256((GAME/'service-worker.js').read_bytes()).hexdigest(),
+                    'currentClientSHA256':hashlib.sha256((GAME/'cache-client.js').read_bytes()).hexdigest(),
+                    'scope':'Actual legacy worker and current cache-client over tiny explicit fixture assets, not a complete old game.'})
+                for playing in (True, False):
+                    server.fixture_version = 1
+                    context = browser.new_context()
+                    stack.callback(context.close)
+                    page = new_page(context)
+                    fixture_url = base + FIXTURE_PATH + 'index.html'
+                    page.goto(fixture_url)
+                    page.evaluate('''async()=>{const c=await caches.open('unrelated-sibling-cache');await c.put('/unrelated-sentinel',new Response('keep-me'));localStorage.setItem('capital-drive-career-v1','fixture-save-sentinel');await navigator.serviceWorker.register('./service-worker.js',{scope:'./',updateViaCache:'none'});await navigator.serviceWorker.ready;}''')
+                    page.reload()
+                    page.wait_for_function('!!navigator.serviceWorker.controller')
+                    check(page.evaluate('fetch("asset.js").then(r=>r.text())') == 'fixture-v1', 'Legacy actual worker controls complete v1 fixture')
+                    token = page.evaluate('''(playing)=>{window.fixtureStarted=playing;window.fixtureToken='same-document';return document.querySelector('#build-version').textContent;}''', playing)
+                    page.evaluate('''async()=>{const {setupGameCache}=await import('./cache-client.js');setupGameCache({canReload:()=>!window.fixtureStarted});}''')
+                    page.wait_for_timeout(100)
+                    server.fixture_version = 2
+                    page.evaluate('void navigator.serviceWorker.getRegistration().then(r=>r.update())')
+                    expected = hashlib.sha256(b'fixture-v2').hexdigest()[:12]
+                    wait_async(page, '''(build)=>new Promise(async resolve=>{const reg=await navigator.serviceWorker.getRegistration();if(!reg?.active||reg.waiting||reg.installing)return resolve(false);const channel=new MessageChannel();const timer=setTimeout(()=>{channel.port1.close();resolve(false)},1000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data?.type==='CAPITAL_CACHE_BUILD'&&e.data.build===build)};navigator.serviceWorker.controller.postMessage({type:'CAPITAL_CACHE_BUILD'},[channel.port2]);})''', arg=expected, timeout=30000)
+                    prefix = 'capital-drive-files-v1-' + FIXTURE_PATH.replace('/', '%2F') + '-'
+                    wait_async(page, '(prefix)=>caches.keys().then(names=>names.filter(name=>name.startsWith(prefix)).length===1)', arg=prefix)
+                    check(page.evaluate('fetch("asset.js").then(r=>r.text())') == 'fixture-v2', 'Fully hashed v2 worker activates automatically without closing the old tab')
+                    check(page.evaluate('(name)=>caches.has(name)', prefix + hashlib.sha256(b'fixture-v2').hexdigest()), 'Only the exact new content-addressed scoped cache remains')
+                    check(page.evaluate('caches.open("unrelated-sibling-cache").then(c=>c.match("/unrelated-sentinel")).then(r=>r.text())') == 'keep-me', 'Migration deletes old scoped cache and preserves unrelated cached response')
+                    check(page.evaluate('localStorage.getItem("capital-drive-career-v1")') == 'fixture-save-sentinel', 'Worker migration preserves career save bytes')
+                    if playing:
+                        check(page.evaluate('window.fixtureToken') == 'same-document' and page.locator('#build-version').text_content() == token, 'Already-started session does not reload or switch running document build')
+                        page.wait_for_function('document.querySelector("#cache-status").textContent.includes("Reopen")')
+                        check(page.evaluate('fetch("../sibling.txt").then(r=>r.text())') == 'sibling-v2', 'Sibling fetch remains outside worker scope')
+                        page.goto(fixture_url)
+                    else:
+                        page.wait_for_function('(build)=>document.querySelector("#build-version").textContent===build', arg=expected)
+                        check(page.evaluate('typeof window.fixtureToken') == 'undefined', 'Unstarted menu automatically reloads into newly activated build')
+                    check(page.locator('#build-version').text_content() == expected and page.evaluate('window.fixtureCode') == 'fixture-v2' and page.evaluate('fetch("asset.js").then(r=>r.text())') == 'fixture-v2', 'Online next document displays exact new build badge and code bytes')
+                    context.set_offline(True)
+                    page.reload(wait_until='load')
+                    check(page.locator('#build-version').text_content() == expected and page.evaluate('window.fixtureCode') == 'fixture-v2' and page.evaluate('fetch("asset.js").then(r=>r.text())') == 'fixture-v2', 'Offline reload serves exact activated build document badge and asset')
+                    check(page.evaluate('localStorage.getItem("capital-drive-career-v1")') == 'fixture-save-sentinel', 'Offline new build retains save sentinel')
+                    observations.append({'label':'upgrade lifecycle result','playing':playing,'oldBuild':token,'newBuild':expected,'cacheNames':page.evaluate('caches.keys()')})
+                    context.close()
+
+            check(source_hashes() == source_before, 'Exact cache build and client source hashes remain unchanged')
             check(not page_errors, 'No uncaught browser errors')
             check(not external, 'No external runtime requests')
     except Exception as error:
@@ -429,7 +510,7 @@ def main():
         server.shutdown()
         server.server_close()
         thread.join(timeout=3)
-        report = {'status': 'FAIL' if failure else 'PASS', 'scenario': args.scenario, 'failure': failure,
+        report = {'sourceSHA256':source_before,'sourceSHA256End':source_hashes(),'sourcesUnchanged':source_before == source_hashes(),'harnessSHA256':harness_sha256, 'status': 'FAIL' if failure else 'PASS', 'scenario': args.scenario, 'failure': failure,
                   'checks': checks, 'pageErrors': page_errors, 'consoleErrors': console_errors,
                   'failedRequests': failed_requests, 'external': external, 'observations': observations,
                   'originResponses': server.events, 'elapsedSeconds': round(time.monotonic()-started, 2),

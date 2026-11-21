@@ -109,7 +109,13 @@ export function createOrdnance({ consumeThrow, moveProjectile, heightAt = () => 
     }
     return false;
   }
-  return { throw: throwItem, step, blocksSight, drainEvents: () => events.splice(0),
+  function showExplosion(event) {
+    if (!event || event.type !== 'explosion' || !point(event) || !Number.isFinite(event.y) || event.interiorId != null) return false;
+    if (bursts.length === ORDNANCE_LIMITS.bursts) bursts.shift();
+    bursts.push({id:event.id,kind:'grenade',x:event.x,y:event.y,z:event.z,interiorId:null,age:0,remaining:ORDNANCE_LIMITS.burstLifetime});
+    return true;
+  }
+  return { throw: throwItem, step, blocksSight, showExplosion, drainEvents: () => events.splice(0),
     snapshot: () => Object.freeze({ projectiles: Object.freeze(projectiles.map(copy)), clouds: Object.freeze(clouds.map(copy)), bursts: Object.freeze(bursts.map(copy)) }),
     reset() { projectiles = []; clouds = []; bursts = []; events = []; } };
 }

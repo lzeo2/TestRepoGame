@@ -26,7 +26,7 @@ export function createDeliveryService(map, simulation, { sources = [] } = {}) {
     color:'#b68b48',length:LENGTH,width:WIDTH,x:0,z:0,yaw:0,speed:0,health:100,active:false,occupied:true};
   const vehicles = [car], events = [];
   let phase = 'idle', reason = '', orderData = null, serial = 0, mode = false;
-  let route = [], points = [], cursor = 0, legStart = null, elapsed = 0, stalled = 0, wait = 0;
+  let route = [], points = [], remainingDistances = [], cursor = 0, legStart = null, elapsed = 0, stalled = 0, wait = 0;
   let pickup = null, dropoff = null, terminal = false;
   const busy = () => ['approaching','waiting'].includes(phase);
   function emit(type) {
@@ -165,6 +165,8 @@ export function createDeliveryService(map, simulation, { sources = [] } = {}) {
           itemId:request.itemId,sourceId:source.id,sourceName:source.name});
         pickup = from; dropoff = to; mode = !!ctx.sandbox; terminal = false;
         route = path.map(e => e.id); points = routePoints(path,from,to); cursor = 0;
+        remainingDistances = new Array(points.length).fill(0);
+        for (let i = points.length - 2; i >= 0; i--) remainingDistances[i] = remainingDistances[i + 1] + distance(points[i], points[i + 1]);
         legStart = {...from}; elapsed = stalled = wait = 0; reason = ''; phase = 'approaching';
         Object.assign(car,from,{speed:0,health:100,active:true}); emit('accepted');
         return {ok:true,orderId:orderData.id,pickup:copy(pickup),dropoff:copy(dropoff),metres:Math.round(metres)};
@@ -212,13 +214,19 @@ export function createDeliveryService(map, simulation, { sources = [] } = {}) {
   function reset() {
     if (busy()) finish('cancelled','Delivery reset');
     car.active = false; car.speed = 0;
-    phase = 'idle'; reason = ''; orderData = null; route = []; points = []; pickup = dropoff = null;
+    phase = 'idle'; reason = ''; orderData = null; route = []; points = []; remainingDistances = []; pickup = dropoff = null;
+  }
+  function tracking() {
+    if (!busy() || !car.active || !orderData) return null;
+    const remaining = phase === 'waiting' ? 0 : distance(car, points[cursor]) + (remainingDistances[cursor] || 0);
+    return {orderId:orderData.id,kind:orderData.kind,phase,car:{x:car.x,z:car.z,yaw:car.yaw},
+      dropoff:{x:dropoff.x,z:dropoff.z},distance:Math.max(0,Math.round(remaining)),eta:Math.ceil(Math.max(0,remaining)/6)};
   }
   function snapshot() {
     return {phase,reason,order:orderData ? Object.freeze(copy(orderData)) : null,car:{...car},pickup:copy(pickup),dropoff:copy(dropoff),
-      route:[...route],waypoint:cursor,stats:{couriers:Number(car.active),courierLimit:1}};
+      route:[...route],waypoint:cursor,tracking:tracking(),stats:{couriers:Number(car.active),courierLimit:1}};
   }
   const quote = (request,ctx) => order(request,ctx,true);
-  return {vehicles,order,quote,canOrder:quote,interact,cancel,step,reset,snapshot,damageVehicle,
+  return {vehicles,order,quote,canOrder:quote,interact,cancel,step,reset,snapshot,tracking,damageVehicle,
     get phase() {return phase;},get busy() {return busy();},drainEvents:() => events.splice(0)};
 }

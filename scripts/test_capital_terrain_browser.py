@@ -2,7 +2,7 @@
 """Bounded native Free-roam ramp and airport previews; run with an exclusive CPU lease.
 
 Official map travel is explicit fixture setup. All vehicle movement uses real keys;
-only the public read-only snapshot is inspected. No state setters or career grants.
+the controls scenario starts with a pre-owned jetpack in a validated local career.
 """
 import argparse
 from contextlib import ExitStack
@@ -245,6 +245,11 @@ def main():
             stack.callback(browser.close)
             context = browser.new_context(viewport={'width': 1280, 'height': 800}, service_workers='block')
             stack.callback(context.close)
+            if args.scenario == 'controls':
+                context.add_init_script("""localStorage.setItem('capital-drive-career-v1', JSON.stringify({
+                    version:1, cash:0, ownedVehicles:[{id:'lantern', color:'#e7e6df', health:100, stored:false}],
+                    completedJobs:[], gear:{scanner:false,flares:0,jetpack:true}
+                }));""")
             base = f'http://127.0.0.1:{server.server_port}'
             def route(request):
                 if urlsplit(request.request.url).scheme in ('http', 'https') and urlsplit(request.request.url).netloc != urlsplit(base).netloc:

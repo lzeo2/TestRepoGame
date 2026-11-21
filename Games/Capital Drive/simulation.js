@@ -518,6 +518,7 @@ export function createSimulation(map, options = {}) {
   }
   const player = { id: 'player', modelId: 'lantern', color: 0xd4d7d3, active: true, x: 0, z: 0, yaw: 0, speed: 0, vx: 0, vz: 0, steer: 0, odometer: 0, crashes: 0, lastImpactSpeed:0, offroad: false };
   const driving = createDrivingState();
+  let nitroAutoRecharge = options.nitroAutoRecharge !== false;
   const flight = options.stuntSupportAt && options.vehicleHeightAt
     ? createVehicleFlight({supportAt:options.stuntSupportAt,heightAt:options.vehicleHeightAt}) : null;
   const random = seededRandom(options.seed ?? 20261112);
@@ -905,7 +906,7 @@ export function createSimulation(map, options = {}) {
     }
     player.speed = player.vx * fx + player.vz * fz;
     measureDriving(driving, dt, { forward: player.speed, lateral: player.vx * -fz + player.vz * fx,
-      boost: input.boost, airborne: Boolean(player.stuntActive) });
+      boost: input.boost, airborne: Boolean(player.stuntActive), recharge: nitroAutoRecharge });
     player.odometer += Math.hypot(player.vx, player.vz) * dt;
     if (![player.x, player.z, player.yaw, player.speed, player.vx, player.vz].every(Number.isFinite) ||
       player.x < bounds.minX - 15 || player.x > bounds.maxX + 15 || player.z < bounds.minZ - 15 || player.z > bounds.maxZ + 15) {
@@ -1009,6 +1010,7 @@ export function createSimulation(map, options = {}) {
     return true;
   }
   return { player, driving, traffic, parkedCars, abandonedCars, graph, trafficLights, step, reset, teleport, previewTeleport, nearestRoad, setParkedCars,
+    setNitroAutoRecharge(enabled) { nitroAutoRecharge = enabled === true; },
     setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop, drainVehicleImpacts:()=>vehicleImpacts.splice(0),
     get peopleContacts() { return Object.freeze({ ...peopleStats }); },
     setPlayerVehicle, nearbyVehicles, claimVehicle, damageVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };

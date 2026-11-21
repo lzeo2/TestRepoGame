@@ -1,4 +1,4 @@
-import {GARAGE_MODS} from './progression.js';
+import {GARAGE_MODS,JETPACK_OFFER} from './progression.js';
 import {WEAPONS,weaponById} from './weapons.js';
 // DOM adapter only. World movement, career time and persistence belong to the controller.
 export function createStreetUI({ gameplay, progression, simulation, vehicles, notify,
@@ -217,6 +217,10 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
         purchase('Police scanner $500','scanner',500,progression.state.gear?.scanner?'Owned':'',gearRow);
         purchase('3 flares $120','flares',120,progression.state.gear?.flares>9?'No room for a full three-flare pack':'',gearRow);
         const throwableReason=ctx.passenger||!Number.isFinite(ctx.health)||ctx.health<=0||ctx.health>100?'Recover before trading.':'';
+        if(site.id===JETPACK_OFFER.siteId){
+          const jetpackReason=progression.state.gear.jetpack?'Owned':throwableReason||(progression.state.activeJob?'Finish your current job first.':'');
+          purchase(`Jetpack ${money(JETPACK_OFFER.price)}`,'jetpack',JETPACK_OFFER.price,jetpackReason,gearRow);
+        }
         purchase('Grenade $120','grenade',120,throwableReason||(progression.state.gear?.grenades>=6?'Throwable inventory is full.':''),gearRow);
         purchase('Smoke grenade $80','smoke',80,throwableReason||(progression.state.gear?.smokeGrenades>=6?'Throwable inventory is full.':''),gearRow);
         entry.append(heading,description,gearRow);

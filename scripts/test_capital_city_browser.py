@@ -33,7 +33,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=ROOT)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--scenario', choices=['city', 'workplace', 'burglary'], default='city')
+    parser.add_argument('--scenario', choices=['city', 'workplace', 'burglary', 'gear', 'nitro'], default='city')
     parser.add_argument('--capture', action='store_true')
     parser.add_argument('--preview-only', action='store_true', help='Burglary entry preview only; skips loot, reward, repeat and exit acceptance')
     args = parser.parse_args()
@@ -56,7 +56,7 @@ def main():
     def hashes():
         game = source / 'Games/Capital Drive'
         paths = [*game.glob('*.js'), *game.glob('data/*.json'), game / 'index.html', game / 'style.css',
-                 source / 'scripts/capital-city-browser-fixture.mjs', source / 'scripts/capital-campaign-fixture.mjs']
+                 source / 'scripts/test_capital_city_browser.py', source / 'scripts/capital-city-browser-fixture.mjs', source / 'scripts/capital-campaign-fixture.mjs']
         return {str(p.relative_to(source)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(paths)}
 
     initial_hashes = hashes()
@@ -128,6 +128,18 @@ def main():
 
     def start():
         page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=90000)
+        if args.scenario == 'nitro' and not fixture.get('nitroInstalled'):
+            bay = next(b for b in snap()['nitro']['bays'] if b['id'] == 'fuel-457103413')
+            fixture['nitroBay'] = bay
+            body = fixture['career']['protagonists'][fixture['hero']]
+            body['mode']='vehicle'
+            body['vehicle'].update({k:bay[k] for k in ('x','z','yaw')})
+            body['actor']={k:bay[k] for k in ('x','z','yaw')}
+            fixture['nitroInstalled']=True
+            page.evaluate('(save)=>localStorage.setItem("capital-drive-career-v1",JSON.stringify(save))', fixture['career'])
+            observations.append({'label':'explicit initial checked-bay fixture','bay':bay,'scope':'Actual readonly menu bay supplies an unearned initial career checkpoint, then normal reload/start; no runtime setter.'})
+            page.reload(wait_until='load')
+            page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=90000)
         check(not snap()['rendering']['compatibility'], 'Actual WebGL boots')
         page.locator('[data-game-mode=campaign]').click()
         page.locator('#intro-characters [data-character=' + fixture['hero'] + ']').click()
@@ -192,6 +204,72 @@ def main():
     def ammo(state):
         pool = state['gameplay']['ammunition']['pistol']
         return pool['ammo'] + pool['reserveAmmo']
+
+    def nitro():
+        baseline=record('Explicit initial full-tank checked petrol bay')
+        bay=fixture['nitroBay']
+        check(baseline['gameplay']['mode']=='vehicle' and baseline['career']['cash']==1500, 'Accepted checked-bay fixture starts driving with explicit $1500')
+        check(math.hypot(baseline['player']['x']-bay['x'],baseline['player']['z']-bay['z'])<.1 and baseline['driving']['nitroFuel']==1, 'Initial car occupies the actual checked Kingston bay with full tank')
+        keys(['w','Shift'])
+        try:
+            used=wait(lambda state:state['driving']['nitroFuel']<.985, 'Native throttle and boost consume real tank', seconds=12)
+        finally:
+            keys([])
+        keys(['s','Space'])
+        try:
+            stopped=wait(lambda state:abs(state['player']['speed'])<.15, 'Native brake stops car on petrol bay', seconds=12)
+        finally:
+            keys([])
+        fuel=stopped['driving']['nitroFuel']
+        page.wait_for_timeout(700)
+        resting=record('Actual depleted stationary tank')
+        check(abs(resting['driving']['nitroFuel']-fuel)<1e-8, 'Career tank stays depleted while resting')
+        offer=resting['nitro']['offer']
+        check(offer and offer['ok'] and offer['cost']==45 and offer['station']['id']==bay['id'], 'Actual checked petrol bay offers stationary $45 refill')
+        pulse('e')
+        filled=wait(lambda state:state['driving']['nitroFuel']==1, 'Native E buys actual full tank')
+        check(filled['career']['cash']==1455 and filled['gameplay']['mode']=='vehicle', 'Native refill charges exactly $45 once and keeps player driving')
+        pulse('e')
+        check(snap()['career']['cash']==1455, 'Full tank cannot charge a second refill')
+        capture('01-paid-nitro-refill')
+
+
+    def gear():
+        initial=record('Explicit funded unowned Canalside checkpoint')
+        check(initial['career']['cash']==1500 and not initial['career']['gear'].get('jetpack',False), 'Explicit initial funded career owns no jetpack')
+        pulse('u')
+        denied=record('Native unowned U denial')
+        check(not denied['jetpack']['active'] and 'Canalside' in page.locator('#toast').text_content() and '1,200' in page.locator('#toast').text_content(), 'Unowned U gives actual shop and price without launching')
+        page.locator('#services-button').click()
+        page.locator('#services-filter').select_option('arms')
+        buy=page.locator('[data-service-id="canalside-supplies"] [data-service-item="jetpack"]')
+        buy.scroll_into_view_if_needed()
+        check(buy.is_enabled(), 'Actual nearby Canalside jetpack purchase is eligible')
+        buy.click()
+        bought=record('Actual jetpack purchase')
+        check(bought['career']['cash']==300 and bought['career']['gear']['jetpack'], 'Native purchase pays exact $1200 and grants durable jetpack ownership')
+        check(page.locator('[data-service-id="canalside-supplies"] [data-service-item="jetpack"]').is_disabled(), 'Owned jetpack cannot be purchased twice')
+        close()
+        pulse('u')
+        wait(lambda s:s['jetpack']['active'], 'Owned U launches actual jetpack')
+        keys(['Space'])
+        try:
+            flown=wait(lambda s:s['jetpack']['altitude']>1, 'Native held Space raises actual player', seconds=20)
+        finally:
+            keys([])
+        check(flown['jetpack']['charge']<100 and flown['gameplay']['health']>0, 'Live flight consumes charge and retains healthy body')
+        capture('01-paid-jetpack-flight')
+        pulse('u')
+        wait(lambda s:not s['jetpack']['active'], 'Native U lands actual jetpack', seconds=40)
+        page.reload(wait_until='load')
+        start()
+        restored=record('Actual owned jetpack reload')
+        check(restored['career']['cash']==300 and restored['career']['gear']['jetpack'], 'Native save/reload preserves exact payment and jetpack ownership')
+        pulse('u')
+        wait(lambda s:s['jetpack']['active'], 'Reloaded owned jetpack launches without a second purchase')
+        pulse('u')
+        wait(lambda s:not s['jetpack']['active'], 'Reloaded jetpack lands')
+        capture('02-owned-after-reload')
 
     def city():
         baseline = record('Accepted unearned wealth and exterior checkpoint setup')
@@ -421,11 +499,16 @@ def main():
     prior = signal.signal(signal.SIGALRM, expired)
     signal.alarm(budget)
     try:
-        built = subprocess.run(['node', str(source / 'scripts/capital-city-browser-fixture.mjs'), args.scenario], cwd=source, text=True, capture_output=True, timeout=120)
+        built = subprocess.run(['node', str(source / 'scripts/capital-city-browser-fixture.mjs'), ('city' if args.scenario in ('gear','nitro') else args.scenario)], cwd=source, text=True, capture_output=True, timeout=120)
         (output / 'fixture-build.stdout').write_text(built.stdout)
         (output / 'fixture-build.stderr').write_text(built.stderr)
         assert built.returncode == 0, 'Source fixture builder failed; see retained stdout/stderr'
         fixture = json.loads(built.stdout)
+        if args.scenario in ('gear','nitro'):
+            fixture['career']['cash']=1500
+            fixture['career']['protagonists'][fixture['hero']]['actor']={'x':567.32,'z':-634.87,'yaw':0}
+            fixture['initialActor']=fixture['career']['protagonists'][fixture['hero']]['actor']
+            fixture['provenance']='Explicit unearned $1500 wealth, equipment and source checkpoint setup. Purchases and movement after Start use native input.'
         (output / 'fixture.json').write_text(json.dumps(fixture, indent=2) + '\n')
         observations.append({'fixtureDisclosure': fixture['provenance'], 'sourceClearance': fixture['sourceClearance'], 'sourceLimits': fixture['limits']})
         server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(QuietHandler, directory=str(source)))
@@ -466,7 +549,7 @@ def main():
             stack.push(retain_failure)
             page.goto(base + '/Games/Capital%20Drive/', wait_until='load', timeout=90000)
             start()
-            {'city': city, 'workplace': workplace, 'burglary': burglary_case}[args.scenario]()
+            {'city': city, 'workplace': workplace, 'burglary': burglary_case, 'gear': gear, 'nitro': nitro}[args.scenario]()
             check(not errors, 'No page or console errors')
             check(not requests, 'No failed requests or HTTP errors')
             check(not external, 'No external runtime requests')

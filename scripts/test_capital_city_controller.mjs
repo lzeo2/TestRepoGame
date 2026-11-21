@@ -303,3 +303,85 @@ assert.equal(damage.abandonedMeshes.size,18,'render map capacity follows the twe
 assert([...damage.abandonedMeshes.values()].every(mesh=>mesh.modelId==='lantern'),'unknown patrol models have a visible valid fleet fallback');
 assert(source.includes('vehicleWrecks:freezeCopy({police:gameplay.policeWrecks,meshes:abandonedMeshes.size,capacity:18})'));
 console.log('PASS vehicle controller owners: NPC/patrol/ride/bus/player routing, physical wall/foreign-car blast cover, room exclusion, nearest-hull falloff, once-only damage and bounded visible collider wrecks');
+
+// Execute the actual map adapter: couriers appear without enabling map follow.
+const paint = [], translations = [];
+const canvasContext = new Proxy({
+  fillRect(...args){paint.push({kind:'rect',color:this.fillStyle,args});},
+  fill(){paint.push({kind:'fill',color:this.fillStyle});},
+  translate(x,z){translations.push({x,z});},measureText:()=>({width:50}),
+}, {get:(object,key)=>key in object?object[key]:()=>{}});
+let courierTracking={car:{x:100,z:0,yaw:0},dropoff:{x:50,z:0},distance:50,eta:9,phase:'approaching'};
+const mini=owner(['drawMap'],{
+  mapImage:{},map:{bounds:{minX:-10000,maxX:10000,minZ:-10000,maxZ:10000},landmarks:[]},
+  focus:()=>({x:0,z:0,yaw:0}),mapView:{zoom:1,x:null,z:null},
+  createMapProjection:()=>({scale:1,cx:0,cz:0}),route:[],destination:{},
+  rideService:{activeFare:null},delivery:{tracking:()=>courierTracking},progression:null,mapSelection:null,
+  guideState:{point:{x:0,z:-40},incomingYaw:0,outgoingYaw:0},equipment:null,gameplay:{state:{police:[]}},
+});
+const canvas={width:200,height:200,getContext:()=>canvasContext};
+mini.drawMap(canvas,false);
+assert(paint.some(item=>item.kind==='rect'&&item.color==='#a16a19'),'active courier gets minimap van marker automatically');
+assert(paint.some(item=>item.color==='#ffd23f'),'courier preserves existing navigation turn arrow');
+paint.length=0;translations.length=0;courierTracking.car.x=5000;
+mini.drawMap(canvas,false);
+assert(!paint.some(item=>item.kind==='rect'&&item.color==='#a16a19'));
+assert(paint.some(item=>item.kind==='fill'&&item.color==='#a16a19'),'out-of-range courier gets directional edge arrow');
+assert(translations.some(p=>p.x>170&&p.x<200&&p.z===100),'edge arrow points east inside minimap boundary');
+paint.length=0;courierTracking=null;mini.drawMap(canvas,false);
+assert(!paint.some(item=>item.color==='#a16a19'),'terminal orders remove courier marker');
+const nodes=new Map(),node=id=>{if(!nodes.has(id))nodes.set(id,{open:false,textContent:''});return nodes.get(id);};
+let cleared=0,closed=0;
+const courierOwner={busy:true,vehicles:[{active:true}],tracking:()=>({car:{x:70,z:80,yaw:1}})};
+const following=owner(['trackCourier','trackYoober','liveTracking'],{
+  delivery:courierOwner,rideService:{activeFare:{},vehicles:[{x:90,z:100,active:true}]},
+  started:true,document:{hidden:false},followYoober:true,followCourier:false,mapView:{},$:node,
+  closeDialogs:()=>closed++,clearInput:()=>cleared++,openDialog:id=>node(id).open=true,
+});
+assert.equal(following.trackCourier().ok,true);
+assert.equal(following.followCourier,true);assert.equal(following.followYoober,false);
+assert.equal(following.mapView.x,70);assert.equal(following.mapView.z,80);assert.equal(following.mapView.zoom,6);
+assert.equal(closed,1);assert.equal(cleared,1);assert.equal(following.liveTracking(),true);
+following.document.hidden=true;assert.equal(following.liveTracking(),false,'hidden tabs cannot advance tracked courier');
+following.document.hidden=false;node('map-dialog').open=false;
+assert.equal(following.liveTracking(),false,'ordinary minimap tracking does not bypass pause');
+node('map-dialog').open=true;courierOwner.busy=false;
+assert.equal(following.liveTracking(),false,'completed/cancelled courier cannot keep world ticking');
+following.trackYoober();assert.equal(following.followCourier,false);assert.equal(following.followYoober,true);
+courierOwner.tracking=()=>null;
+assert.equal(following.trackCourier().ok,false,'no stale full-map follow after terminal order');
+const orderEvents=[];
+const orderController=owner(['handleDeliveryEvents','orderDelivery'],{
+  delivery:{order:()=>({ok:true,orderId:'courier-1',dropoff:{x:4,z:8}}),drainEvents:()=>orderEvents.splice(0)},
+  progression:{quoteDelivery:()=>({ok:true}),reserveDelivery:()=>({ok:true}),completeDelivery:()=>({ok:true})},
+  destination:null,route:[],followCourier:false,deliveryReceipts:new Map(),careerContext:()=>({}),deliveryContext:()=>({}),
+  saveCareer(){},closeDialogs(){},clearInput(){},notify(){},streetUI:null,$:node,
+  routeTo:point=>{orderController.destination=point;orderController.route=[[0,0],[point.x,point.z]];},
+  drawMap:(canvas,full)=>{assert.equal(canvas,node('full-map'));assert.equal(full,true);redraws++;},
+});
+let redraws=0;
+assert.equal(orderController.orderDelivery({}).ok,true);
+assert.equal(orderController.destination.courierOrderId,'courier-1');
+orderController.followCourier=true;orderEvents.push({type:'failed',orderId:'courier-1'});
+orderController.handleDeliveryEvents();
+assert.equal(orderController.destination,null);assert.equal(orderController.route.length,0);assert.equal(redraws,1);
+const manualRoute={id:'manual'};orderController.destination=manualRoute;
+orderEvents.push({type:'cancelled',orderId:'courier-2'});orderController.handleDeliveryEvents();
+assert.equal(orderController.destination,manualRoute);
+console.log('PASS courier map/controller: automatic minimap van, directional edge arrow, preserved turn guidance, optional live follow, input clearing, hidden/closed-map pause and terminal cleanup');
+
+const strikeBody={mode:'foot',health:100,actor:{x:0,z:0,yaw:0}};
+const strikeOwner=createDrone({heightAt:()=>0});assert(strikeOwner.deploy(strikeBody,{owned:true}));
+let blastCalls=0,visualCalls=0,offenceCalls=0;
+const strikeAdapter=owner(['strikeDrone'],{
+  drone:strikeOwner,gameplay:{state:strikeBody,applyExplosion:event=>{blastCalls++;assert.equal(event.radius,8);},reportOffence:()=>offenceCalls++},
+  progression:{state:{gear:{drone:true,droneStrike:true},activeJob:null,activity:null}},
+  campaign:{state:{active:null}},developerReturn:null,interiors:{active:null},isSandbox:()=>false,paused:()=>false,
+  canCrewAttack:()=>true,ordnance:{showExplosion:()=>visualCalls++},notify:()=>{},
+});
+strikeAdapter.campaign.state.active={id:'mission'};assert.equal(strikeAdapter.strikeDrone().ok,false);
+strikeAdapter.campaign.state.active=null;strikeAdapter.progression.state.activeJob={id:'job'};
+assert.equal(strikeAdapter.strikeDrone().ok,false);strikeAdapter.progression.state.activeJob=null;
+assert(strikeAdapter.strikeDrone().ok);assert.equal(blastCalls,1);assert.equal(visualCalls,1);assert.equal(offenceCalls,1);
+assert.equal(strikeAdapter.strikeDrone().ok,false);assert.equal(blastCalls,1,'cooldown prevents a second area-damage call');
+console.log('PASS drone strike controller: protected job/mission denial, one authoritative blast, one visual cue/offence and cooldown replay guard');
