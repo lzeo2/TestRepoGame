@@ -1262,8 +1262,8 @@ function showContractPlanMap(){
   const entry=planned.stages[0],exit=planned.stages.at(-1);
   stealthPreview={entry,exit,route:findRoute(simulation.graph,entry,exit)};
   mapView.x=(entry.x+exit.x)/2;mapView.z=(entry.z+exit.z)/2;
-  fitMapCanvas();
   openDialog('map-dialog');
+  $('map-mode-note').textContent='Green marks the approach. Purple marks extraction. Open Campaign to keep planning.';
   const canvas=$('full-map'),scale=createMapProjection(map.bounds,canvas.width,canvas.height).scale;
   mapView.zoom=Math.max(1,Math.min(12,Math.floor(Math.min(
     (canvas.width-140)/Math.max(1,Math.abs(entry.x-exit.x)),
@@ -2293,6 +2293,19 @@ function drawMap(canvas, full) {
     ctx.beginPath(); route.forEach(([x, z], i) => ctx[i ? 'lineTo' : 'moveTo'](sx(x), sz(z)));
     ctx.strokeStyle = '#db742a'; ctx.lineWidth = full ? 5 : 6; ctx.lineJoin = 'round'; ctx.stroke();
   }
+  const places=full?[...map.landmarks].sort((a,b)=>Number(b.id===destination?.id)-Number(a.id===destination?.id)):map.landmarks;
+  for (const place of places) {
+    const x = sx(place.x), y = sz(place.z);
+    ctx.beginPath(); ctx.arc(x, y, full ? 8 : 6, 0, Math.PI * 2); ctx.fillStyle = discovered.has(place.id) ? '#608467' : '#efb15e'; ctx.fill(); ctx.strokeStyle = '#fff8e7'; ctx.lineWidth = 2; ctx.stroke();
+    if(full&&!stealthPreview&&(!place.store||mapView.zoom>=9||place.id===destination?.id))label(place.name,x,y);
+  }
+  if(progression)for(const site of progression.services){if(map.landmarks.some(place=>place.id===site.id))continue;const x=sx(site.x),y=sz(site.z);ctx.fillStyle=site.type==='gym'?'#37614e':site.type==='arms'?'#80563e':'#986b34';ctx.fillRect(x-4,y-4,8,8);if(full&&!stealthPreview)label(site.name,x,y,'12px Arial');}
+  for(const site of map.servicePins||[]){
+    const x=sx(site.x),y=sz(site.z),size=full?22:24,r=size/2;
+    if(x < -r||x > w+r||y < -r||y > h+r)continue;
+    serviceMapIcons.draw(ctx,site.service,x,y,size);
+    if(full&&!stealthPreview&&(mapView.zoom>=4||site.id===mapSelection?.id))label(site.name,x,y,'bold 13px Arial');
+  }
   if(full&&stealthPreview){
     const {route:preview,entry,exit}=stealthPreview;
     if(preview.length){
@@ -2304,19 +2317,6 @@ function drawMap(canvas, full) {
       ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.fillStyle=colour;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
       label(name,x,y,'bold 13px Arial');
     }
-  }
-  const places=full?[...map.landmarks].sort((a,b)=>Number(b.id===destination?.id)-Number(a.id===destination?.id)):map.landmarks;
-  for (const place of places) {
-    const x = sx(place.x), y = sz(place.z);
-    ctx.beginPath(); ctx.arc(x, y, full ? 8 : 6, 0, Math.PI * 2); ctx.fillStyle = discovered.has(place.id) ? '#608467' : '#efb15e'; ctx.fill(); ctx.strokeStyle = '#fff8e7'; ctx.lineWidth = 2; ctx.stroke();
-    if(full&&(!place.store||mapView.zoom>=9||place.id===destination?.id))label(place.name,x,y);
-  }
-  if(progression)for(const site of progression.services){if(map.landmarks.some(place=>place.id===site.id))continue;const x=sx(site.x),y=sz(site.z);ctx.fillStyle=site.type==='gym'?'#37614e':site.type==='arms'?'#80563e':'#986b34';ctx.fillRect(x-4,y-4,8,8);if(full)label(site.name,x,y,'12px Arial');}
-  for(const site of map.servicePins||[]){
-    const x=sx(site.x),y=sz(site.z),size=full?22:24,r=size/2;
-    if(x < -r||x > w+r||y < -r||y > h+r)continue;
-    serviceMapIcons.draw(ctx,site.service,x,y,size);
-    if(full&&(mapView.zoom>=4||site.id===mapSelection?.id))label(site.name,x,y,'bold 13px Arial');
   }
   if (full && mapSelection) {
     const x = sx(mapSelection.x), y = sz(mapSelection.z);
