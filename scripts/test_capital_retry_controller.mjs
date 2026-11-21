@@ -87,7 +87,7 @@ const env = {
   careerContext: () => ({ ...initialContext, pose: state.actor, health: state.health, wanted: state.wanted,
     respawnSerial: state.respawnSerial, recovering: Boolean(state.recovery) }),
   activities: { snapshot: () => ({ active: false }) }, campaignScenes: { people: [], clear() {} },
-  rideService: { drainEvents: () => [], reset() {} }, heroPowers: { cancelActive() {} }, vehicleDamage: { reset() {} },
+  rideService: { drainEvents: () => [], reset() {} }, heroPowers: { cancelActive() {} }, vehicleDamage: { reset() {} }, watercraft: null,
   clearRecon() {}, closeDialogs() {}, clearInput() {}, resetDelivery() {}, syncExternalVehicles() {}, syncExternalPeople() {},
   clearInterior() { interiors.active = null; interiors.exteriorPose = null; },
   enterInterior(selected) { assert.equal(selected, entry); interiors.exteriorPose = { ...state.actor }; interiors.active = initialRoom; },

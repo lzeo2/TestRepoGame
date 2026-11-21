@@ -127,6 +127,18 @@ Sustained gunfire can start fires on traffic, parked, police and service
 vehicles. The owner applies damage until the car burns out. The visual pool
 shows up to four nearby fires using the existing flame and smoke draws.
 
+Swimming follows the mapped Lake Burley Griffin shoreline and island holes.
+Walk in from a low bank, use WASD or the left stick, and hold Shift or RUN to
+swim faster. Shore and bridge checks distinguish the water beneath a deck
+from the driving surface above it. Cars keep their shore collision.
+
+The original Boat Shed on Menindee Drive is marked on the map. Its Lake launch
+costs $2,400 and its Reed jet ski costs $1,600 in the career modes. Ownership
+persists. Free roam can use both. The craft have separate speed and turn
+limits. W/S changes throttle, A/D steers, Space brakes and E leaves after
+stopping. The game checks the exit and places you on shore or swimming.
+The two craft, small wakes and dock sign share one nearby render batch.
+
 Three fictional police posts near Jardine Street, Petrie Street and Rogan
 Street anchor ambient patrols. Destruction removes the post's obstruction and
 reduces future ground dispatch for the current session. Officers already on
