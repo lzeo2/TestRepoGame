@@ -5,23 +5,33 @@
 ## Identity and status
 
 Chess Workshop is catalog entry 247. It is a separate single-player chess
-game with local Stockfish play, generated tactics, on-demand reviews and a
-visual bot builder. The existing Chess entry and Capital Drive keep their own
+game with local Stockfish play, generated tactics, on-demand reviews, a
+visual bot builder and a Community tab for bot listings and personal rankings. The existing Chess entry and Capital Drive keep their own
 entries and assets.
 
 ## Implementation map
 
 - `index.html`, `style.css` and `board.js` provide four responsive views. The
   board adapter uses Lichess Chessground for input and rendering, with legal
-  destinations and promotion choices supplied by chess.js. Keyboard square
-  buttons remain available.
+  destinations and promotion choices supplied by chess.js. The adapter derives
+  coordinates from legal SAN per occupied square, avoiding construction of
+  full verbose move snapshots simply to show choices. Keyboard square buttons
+  remain available.
 - `appearance.js` and `appearance.css` supply board themes, custom colours,
   piece sets, display controls and browser-local settings.
-- `app.js` appends new notation cells without rebuilding the existing list.
-- `app.js` owns view state, move application, goals, opponent turns and review
-  navigation.
+- `app.js` owns view state, move application, goals and review navigation.
+  It appends new notation cells, fixes the allowance at the start of each bot
+  turn, resumes interrupted
+  turns with their remaining moves and caps Stockfish work at 96,000 nodes
+  per uninterrupted multi-move turn.
+- `turns.js` adapts the pinned chess.js null-move support for bonus turns and
+  PGN. The skip keeps the real-move fifty-move clock, clears en passant and
+  recomputes the position hash with the correct side to move.
 - `bots.js` validates profiles and evaluates event-count rules. `bot-builder.js`
   and `bot-builder.css` provide the visual editor and local bot library.
+  The versioned share codec transports rules and starting settings.
+- `market.js` provides the curated marketplace, code preview and save flow.
+  `rankings.js` stores personal bests by alias and challenge.
 - `puzzles.js` generates original position variations and verifies every legal
   defence against a forced mate. `puzzle-source.js` owns the reusable
   `puzzle-worker.js` and a bounded local fallback.
@@ -31,7 +41,9 @@ entries and assets.
 - `engine.js` owns a lazy single-threaded worker and sequential searches.
   Cancellation issues a UCI stop and drains the response before reusing the
   worker. Reversible legal move history is passed to Stockfish for repetition.
-  All runtime dependencies are local.
+  A bounded verified history prefix avoids replaying unchanged moves, and the
+  worker receives strength options when those options change. All runtime
+  dependencies are local.
 
 ## Gameplay and controls
 
@@ -47,6 +59,13 @@ Below the Stockfish rating range, weaker targets mix in random legal moves.
 Draw Trial starts in a balanced pawn ending and counts actual stalemate,
 repetition, insufficient material or fifty-move-rule draws as success.
 
+Double and Triple Stockfish are allowed two or three consecutive moves per bot
+turn, respectively. Momentum Stockfish starts at one and gains one move on later
+turns for each capture, up to four. A check gives the next move to the player.
+A completed game ends the turn. Every actual move still follows chess legality.
+When the bot continues its turn, the move list records a Pass on the player's
+side. The bot can also take a bonus opening turn when playing as White.
+
 Puzzles offers mate in one, mate in two or a mix. Hint highlights a legal mating
 line. The procedural generator has no session quota and avoids recent repeats.
 The mode focuses on forced-mate motifs across seven position templates.
@@ -54,20 +73,36 @@ The mode focuses on forced-mate motifs across seven position templates.
 Review accepts a pasted PGN or a game played in Chess Workshop. The board can
 step through the game while Stockfish works. A per-position node budget bounds
 the engine's work. There is no app-imposed review count or ply quota.
+Workshop Bonus Turns PGNs retain replayable skipped turns. Review labels actual
+moves as position estimates under standard alternating play. It does not assign
+move-quality grades to a position played under the bonus-turn rules.
 
 Bot Studio supports drag-and-drop and select-then-place. The rule input lists
 bot moves, player moves, bot captures and bot checks. The output raises or drops
-the Elo target by a chosen integer. A profile chooses its name, starting target,
-rules, and whether the player should win or draw. Save, edit, delete, play, and
-import/export are available in the studio. Playing an unsaved draft keeps it
-selectable for new matches in the current tab.
+the Elo target or move allowance by a chosen integer. A profile chooses its
+name, starting Elo, starting moves per turn (one to four), rules, and whether
+the player should win or draw. Move-count blocks affect the allowance at the
+start of a turn. Elo blocks can change strength on each actual move. Save,
+edit, delete, play, and import/export are available in the studio. Playing an unsaved draft keeps it
+selectable for new matches in the current tab. Rules can respond to player and
+bot moves, checks or captures every one to 99 occurrences. The designer shows
+a readable preview, copies a reusable code, and loads pasted codes as drafts.
+
+Community lists six curated opponents with search, filters and direct play.
+Codes or shared links open profiles for preview, save or play. A creator can
+open a GitHub issue draft for a listing review. Published listings come from the
+checked-in catalog. Leaderboards rank genuine built-in bot wins or draw
+challenges and completed puzzles recorded on this browser. Match rankings use
+fewest player moves and then active time. Puzzle rankings use time within the
+puzzle's actual depth.
 
 ## State and persistence
 
 Local storage retains board appearance, up to 24 custom profiles, the
 puzzle-solved count, and the most recent reviewed or completed match as PGN. Profiles can be exported as
-portable JSON. The current match, search and puzzle remain bounded by the page
-session. Storage denial leaves play and the in-tab profile library available.
+portable JSON or versioned text codes. Aliases and up to 20 personal bests per
+challenge persist in this browser. The current match, search and puzzle remain
+bounded by the page session. Storage denial leaves play and the in-tab profile library available.
 
 ## Dependencies and provenance
 
@@ -103,6 +138,10 @@ source and SHA-256 evidence when replacing vendor files.
 
 ```sh
 node scripts/test_chess_workshop_bots.mjs
+node scripts/test_chess_workshop_board.mjs --benchmark
+node scripts/test_chess_workshop_turns.mjs
+node scripts/test_chess_workshop_market.mjs
+node scripts/test_chess_workshop_rankings.mjs
 node scripts/test_chess_workshop_engine.mjs
 node scripts/test_chess_workshop_puzzles.mjs
 node scripts/test_chess_workshop_puzzle_source.mjs
@@ -131,8 +170,17 @@ used zero new searches instead of 21. In a 1,280-puzzle mate-in-two generation
 sample, p95 fallback time dropped from 64.9 ms to 11.3 ms. Normal browser
 generation runs on the worker. The extended puzzle suite covers 738 cases.
 
+For the bonus-turn update, a local Node benchmark over 205 positions timed
+median board move-list construction dropped from 481.96 ms to 42.48 ms
+with identical legal choices. A separate simulated-worker benchmark reduced
+history validation and command preparation for 144 searches from 522.35 ms
+to 22.79 ms. The latter excludes Stockfish's search time. Native
+browser tests cover real multi-move play, rule-driven allowances and variant
+review. The turn fixture covers skip bookkeeping and terminal interruption.
+
 ## Future outlook
 
 The current engine and profile format leave room for additional puzzle goals,
-time controls and visual rule blocks. Profile portability presently uses
-JSON files exchanged by players.
+time controls and visual rule blocks. A shared live leaderboard would need an
+online store and result validation. Profiles saved before bonus turns load with
+a one-move allowance.
