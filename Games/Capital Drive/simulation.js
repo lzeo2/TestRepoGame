@@ -1022,7 +1022,8 @@ export function createSimulation(map, options = {}) {
       const nextWater=allowSwimming ? waterAt(x,z,water?underDeck:undefined) : null;
       if(water && !nextWater && options.groundHeightAt?.(x,z)>water.y+1.55) return false;
       const blocked=[playerVehicle, ...traffic, ...parkedIndex.query(x,z,radius+3), ...abandonedCars, ...externalVehicles].some(car => {
-        if (car === actor || (typeof actor.id === 'string' && car.id === actor.id) || car.active === false) return false;
+        if (!car || !Number.isFinite(car.x) || !Number.isFinite(car.z) || car === actor ||
+            (typeof actor.id === 'string' && car.id === actor.id) || car.active === false) return false;
         const size = vehicleSize(car);
         const yaw = car.yaw || 0, dx = x - car.x, dz = z - car.z;
         const along = Math.abs(-Math.sin(yaw) * dx - Math.cos(yaw) * dz);
