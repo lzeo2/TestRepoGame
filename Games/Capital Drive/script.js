@@ -114,6 +114,7 @@ import {createCutscenes} from './cutscenes.js';
 import {selectStoryHomes,createMissionGuide} from './mission-locations.js';
 import {planSafehouseReturn} from './safehouse-recovery.js';
 import {applyMapExpansion,expansionPlaces} from './map-expansion.js';
+import {applyNorthWest} from './north-west.js';
 import {createTerrainSampler} from './terrain.js';
 import {createCivicView,CIVIC_BUILDING_IDS,CIVIC_LANDMARKS,CIVIC_INTERIOR_ENTRIES} from './civic-view.js';
 import {carCockpitFrame} from './car-camera.js';
@@ -3073,11 +3074,12 @@ function animate(time) {
   if (hudTime > .18) { renderBurglaryHUD();updateHud(); streetUI.refresh();renderMissionGuide(); hudTime = 0; }
 }
 async function boot() {
-  const [response, addressResponse,profileResponse,northResponse,terrainResponse,signalResponse,airportResponse,airportTerrainResponse] = await loadGameData(['./data/canberra.json','./data/addresses.json','./data/road-profiles.json','./data/canberra-north.json','./data/north-terrain.json','./data/traffic-signals.json','./data/airport.json','./data/airport-terrain.json']);
-  if (!response.ok || !addressResponse.ok||!profileResponse.ok||!northResponse.ok||!terrainResponse.ok||!signalResponse.ok||!airportResponse.ok||!airportTerrainResponse.ok) throw new Error('Local map or address data could not be loaded.');
+  const [response, addressResponse,profileResponse,northResponse,terrainResponse,signalResponse,airportResponse,airportTerrainResponse,northWestResponse,northWestTerrainResponse] = await loadGameData(['./data/canberra.json','./data/addresses.json','./data/road-profiles.json','./data/canberra-north.json','./data/north-terrain.json','./data/traffic-signals.json','./data/airport.json','./data/airport-terrain.json','./data/north-west.json','./data/north-west-terrain.json']);
+  if (!response.ok || !addressResponse.ok||!profileResponse.ok||!northResponse.ok||!terrainResponse.ok||!signalResponse.ok||!airportResponse.ok||!airportTerrainResponse.ok||!northWestResponse.ok||!northWestTerrainResponse.ok) throw new Error('Local map or address data could not be loaded.');
   map = applyStreetAssetRoofs(applyMapExpansion(applyRoadProfiles(await response.json(),await profileResponse.json()),await northResponse.json()));
   map.terrainTiles=[(await terrainResponse.json()).terrain];
   map=applyDefenceDepot(applyAirport(map,await airportResponse.json(),await airportTerrainResponse.json()));
+  map=applyNorthWest(map,await northWestResponse.json(),await northWestTerrainResponse.json());
   map.trafficSignals=await signalResponse.json();
   map.lakeWaterLevel=5.93;
   terrainSampler=createTerrainSampler(map);
