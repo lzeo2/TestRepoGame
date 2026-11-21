@@ -93,11 +93,11 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     if (!chunk.batches.has(kind)) chunk.batches.set(kind, { positions: [], normals: [], colors: [], uvs: [] });
     return chunk.batches.get(kind);
   }
-  function triangle(batch, a, b, c, tint) {
+  function triangle(batch, a, b, c, tint, shade = 1) {
     if (!batch) { stats.triangles++; return; }
     edgeAB.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
     edgeAC.set(c[0] - a[0], c[1] - a[1], c[2] - a[2]);
-    normal.crossVectors(edgeAB, edgeAC).normalize(); color.set(tint);
+    normal.crossVectors(edgeAB, edgeAC).normalize(); color.set(tint).multiplyScalar(shade);
     for (const p of [a, b, c]) { batch.positions.push(...p); batch.normals.push(normal.x, normal.y, normal.z); batch.colors.push(color.r, color.g, color.b); }
     stats.triangles++;
   }
@@ -107,10 +107,14 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     matrix.compose(position.set(x, y, z), rotation.setFromAxisAngle(axis, yaw), size.set(sx, sy, sz));
     normalMatrix.getNormalMatrix(matrix); color.set(tint);
     const p = source.attributes.position, n = source.attributes.normal;
+    // Existing vertices carry a restrained weathered foot / cleaner cap. Keep
+    // the pooled material and buffers unchanged, including on Performance/Low.
+    const weather = 0.97 + hash(x * 0.13 + z * 0.19) * 0.06;
     for (let i = 0; i < p.count; i++) {
       vertex.fromBufferAttribute(p, i).applyMatrix4(matrix);
       normal.fromBufferAttribute(n, i).applyMatrix3(normalMatrix).normalize();
-      batch.positions.push(vertex.x, vertex.y, vertex.z); batch.normals.push(normal.x, normal.y, normal.z); batch.colors.push(color.r, color.g, color.b);
+      const shade = weather * (source === box ? 0.92 + (p.getY(i) + 0.5) * 0.12 : 0.97 + (p.getY(i) + 1) * 0.03);
+      batch.positions.push(vertex.x, vertex.y, vertex.z); batch.normals.push(normal.x, normal.y, normal.z); batch.colors.push(color.r * shade, color.g * shade, color.b * shade);
     }
     stats.triangles += p.count / 3;
   }
@@ -125,7 +129,10 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
       const x1 = THREE.MathUtils.lerp(a[0], b[0], (i + 1) / steps), z1 = THREE.MathUtils.lerp(a[1], b[1], (i + 1) / steps);
       const p = (x, z) => [x, heightAt(x, z) + 0.12, z];
       const q = [p(x0 - nx, z0 - nz), p(x1 - nx, z1 - nz), p(x1 + nx, z1 + nz), p(x0 + nx, z0 + nz)];
-      const batch = batchAt(x0, z0); triangle(batch, q[0], q[2], q[1], tint); triangle(batch, q[0], q[3], q[2], tint);
+      // Existing two-metre panels read as poured concrete, without extra seams
+      // or geometry. Matching corners retain the exact terrain/approach surface.
+      const shade = 0.96 + hash(a[0] * 0.17 + a[1] * 0.23 + i) * 0.08;
+      const batch = batchAt(x0, z0); triangle(batch, q[0], q[2], q[1], tint, shade); triangle(batch, q[0], q[3], q[2], tint, shade);
     }
   }
   function planSource(build) {
@@ -420,7 +427,10 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
             return [x,heightAt(x,z)+.035,z];
           };
           const q = [point(0,0),point(1,0),point(1,1),point(0,1)], batch = batchAt(q[0][0],q[0][2],'garden');
-          triangle(batch,q[0],q[2],q[1],lawnColor);triangle(batch,q[0],q[3],q[2],lawnColor);
+          // Muted dry/green patches use the already-draped lawn cells. These
+          // remain inferred garden treatments, not surveyed private planting.
+          const shade = 0.94 + hash(seed * 7 + column * 0.73 + row * 1.31) * 0.12;
+          triangle(batch,q[0],q[2],q[1],lawnColor,shade);triangle(batch,q[0],q[3],q[2],lawnColor,shade);
         }
         stats.lawns++;
         if (seed % 3 === 0) {

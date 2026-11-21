@@ -6,15 +6,20 @@ const threeURL = url(await read('../assets/car-arcade/vendor/three.module.js'));
 const THREE = await import(threeURL);
 const utilsURL = url((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace("'./three.module.js'", JSON.stringify(threeURL)));
 const fleetURL = url(await read('../assets/car-arcade/fleet.js'));
+const { BY_ID } = await import(fleetURL);
 const factoryURL = url((await read('../assets/car-arcade/models.js'))
   .replace("'./vendor/three.module.js'", JSON.stringify(threeURL))
   .replace("'./vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
   .replace("'./fleet.js'", JSON.stringify(fleetURL)));
 const { createCar, disposeCars } = await import(factoryURL);
+const shadowURL = url((await read('../Games/Capital Drive/vehicle-contact-shadow.js'))
+  .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL)));
 const { createTrafficView } = await import(url((await read('../Games/Capital Drive/traffic-view.js'))
   .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL))
   .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
-  .replace("'../../assets/car-arcade/models.js'", JSON.stringify(factoryURL))));
+  .replace("'../../assets/car-arcade/models.js'", JSON.stringify(factoryURL))
+  .replace("'../../assets/car-arcade/fleet.js'", JSON.stringify(fleetURL))
+  .replace("'./vehicle-contact-shadow.js'", JSON.stringify(shadowURL))));
 const models = ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch'];
 const colors = [0xd4d7d3, 0x777e84, 0x274d79, 0xa4463b, 0xd1c8b4, 0x555952, 0xc5b86e];
 const traffic = Array.from({ length: 40 }, (_, i) => ({ id: `traffic:${i}`, modelId: models[i % 6], color: colors[i % 7], x: i, z: i * .2, yaw: i * .1, active: true }));
@@ -69,6 +74,24 @@ assert(Math.abs(matrix.elements[13] - .18) < .000001);
 const expectedPose = new THREE.Object3D();
 expectedPose.position.set(0, .18, 0); expectedPose.rotation.set(Math.atan2(-.04, 4), 0, 0, 'YXZ'); expectedPose.updateMatrix();
 assert(matrix.elements.every((value, i) => Math.abs(value - expectedPose.matrix.elements[i]) < .000001), 'terrain pitch uses controller convention');
+const shadowBatch = root.children.at(-1);
+const { data, width, height } = shadowBatch.material.map.image;
+assert.deepEqual([width, height, data.byteLength], [32, 64, 8192], 'compact stamp uses half the old pixel storage');
+for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+  const alpha = data[(y * width + x) * 4 + 3];
+  assert.equal(alpha, data[((height - 1 - y) * width + (width - 1 - x)) * 4 + 3], 'shadow stamp is symmetric');
+  if (x === 0 || y === 0 || x === width - 1 || y === height - 1) assert.equal(alpha, 0);
+}
+const centerAlpha = data[((height / 2) * width + width / 2) * 4 + 3];
+assert(Math.max(...data) > centerAlpha && centerAlpha > 100, 'a denser tread contact sits around the underbody stamp');
+for (const [index, model] of models.entries()) {
+  shadowBatch.getMatrixAt(index, matrix);
+  const size = new THREE.Vector3().setFromMatrixScale(matrix);
+  assert(Math.abs(size.x - BY_ID[model].width - .95) < .00001);
+  assert(Math.abs(size.z - BY_ID[model].length - 1.18) < .00001);
+}
+shadowBatch.geometry.computeBoundingBox();
+assert(Math.abs(shadowBatch.geometry.boundingBox.min.y + .062) < .000001, 'stamp follows the sampled vehicle surface below the chassis');
 assert.deepEqual(traffic, originalSnapshot, 'renderer owns no simulation state');
 traffic[0].active = false; view.update({ x: 0, z: 0 }); assert.equal(view.stats.visible, 39, 'claimed vehicle immediately hidden');
 traffic[0].active = true; traffic[0].x = 250; traffic[0].z = 0;

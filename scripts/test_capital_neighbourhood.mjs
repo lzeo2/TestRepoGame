@@ -32,6 +32,34 @@ scene.traverse(object => {
 });
 let first; scene.traverse(o => { if (!first && o.isMesh && o.name === 'Neighbourhood solid') first = o.geometry; });
 assert.ok(first.attributes.normal.getY(0) > 0, 'driveway front face points upwards');
+// Surface variation stays in existing compact color buffers, with no material
+// split, texture or additional draw for concrete/lawn on either quality.
+function surfaceTones(scene, meshName, elevation) {
+  const tones = new Set();
+  scene.traverse(mesh => {
+    if (mesh.name !== meshName) return;
+    const { position, normal, color } = mesh.geometry.attributes;
+    assert(color.array instanceof Uint8Array && color.normalized);
+    for (let i = 0; i < position.count; i++) {
+      if (Math.abs(position.getY(i) - elevation) < 1e-5 && normal.getY(i) > .99)
+        tones.add([color.getX(i), color.getY(i), color.getZ(i)].join(','));
+    }
+  });
+  return tones;
+}
+assert(surfaceTones(scene, 'Neighbourhood solid', .12).size > 1, 'existing concrete panels have restrained material variation');
+assert(surfaceTones(scene, 'Neighbourhood garden', .035).size > 1, 'existing lawn cells carry dry/green tonal variation');
+const lowSurfaceScene = new THREE.Scene();
+const lowSurface = createNeighbourhoodDetails(lowSurfaceScene, base, () => 0, { lowGraphics: true });
+assert(surfaceTones(lowSurfaceScene, 'Neighbourhood solid', .12).size > 1, 'Low retains concrete material readability');
+assert(surfaceTones(lowSurfaceScene, 'Neighbourhood garden', .035).size > 1, 'Low retains lawn variation');
+const pooledMaterials = new Set();
+lowSurfaceScene.traverse(mesh => { if (mesh.isMesh) { pooledMaterials.add(mesh.material); assert.equal(mesh.material.map, null); } });
+assert.equal(pooledMaterials.size, 1, 'surface details reuse one untextured batch material');
+assert.deepEqual(lowSurface.entries, details.entries, 'surface treatment preserves actual doorway descriptors');
+assert.deepEqual(lowSurface.backyardBarriers, details.backyardBarriers, 'surface treatment preserves fence ownership and openings');
+lowSurface.dispose();
+
 details.update({ x: 1e6, z: 1e6 });
 assert.ok(scene.children[0].children.every(chunk => !chunk.visible));
 details.update(base.spawn);

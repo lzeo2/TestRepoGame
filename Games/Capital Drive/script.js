@@ -67,6 +67,7 @@ import {createServicesView} from './services-view.js';
 import {MAPPED_STORES} from './stores.js';
 import {createStorefrontsView} from './storefronts-view.js';
 import {createTrafficView} from './traffic-view.js';
+import {createVehicleContactShadow,vehicleShadowScale} from './vehicle-contact-shadow.js';
 import {createNoodleShopView,NOODLE_SHOP_ID} from './noodle-shop-view.js';
 import {SHOPPING_BUILDING_IDS} from './shopping-precincts.js';
 import {createShoppingView,SHOPPING_CLEARINGS} from './shopping-view.js';
@@ -1648,19 +1649,13 @@ function selectVehicle(id) {
 function addCarShadow(mesh) {
   if (compatibility) return;
   if (!carShadowGeometry) {
-    const canvas = document.createElement('canvas'); canvas.width = canvas.height = 64;
-    const context = canvas.getContext('2d'), image = context.createImageData(64, 64);
-    for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) {
-      const radius = Math.hypot((x - 31.5) / 31.5, (y - 31.5) / 31.5);
-      image.data[(y * 64 + x) * 4 + 3] = Math.round(Math.max(0, 1 - radius) ** 1.5 * 110);
-    }
-    context.putImageData(image, 0, 0);
-    const texture = new THREE.CanvasTexture(canvas);
-    carShadowGeometry = new THREE.PlaneGeometry(3.3, 6.2); carShadowGeometry.rotateX(-Math.PI / 2);
-    carShadowMaterial = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
-    parkedResources.push(texture, carShadowGeometry, carShadowMaterial);
+    const {geometry,material,texture}=createVehicleContactShadow();
+    carShadowGeometry=geometry;carShadowMaterial=material;
+    parkedResources.push(texture,geometry,material);
   }
-  const shadow = new THREE.Mesh(carShadowGeometry, carShadowMaterial); shadow.position.y = -.01; mesh.add(shadow);
+  const shadow=new THREE.Mesh(carShadowGeometry,carShadowMaterial);
+  shadow.scale.copy(vehicleShadowScale(BY_ID[mesh.userData.carId]));
+  mesh.add(shadow);
 }
 function applyPlayerVehicle(vehicle, {newVehicle=true}={}) {
   if(newVehicle)playerCarKey++;
