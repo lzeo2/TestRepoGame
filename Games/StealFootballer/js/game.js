@@ -46,8 +46,42 @@ const EVENTS = [
 ];
 const AXES = ['attacking','pace','passing','defending','stamina','goalkeeping'];
 const STADIUMS = [
-  {name:'Home Pitch',cost:0,recruits:0}, {name:'Training Ground',cost:1200,recruits:3},
-  {name:'Club Stadium',cost:4500,recruits:6}, {name:'Floodlit Stadium',cost:12000,recruits:11}
+  {
+    "name": "Home Pitch",
+    "cost": 0,
+    "recruits": 0,
+    "features": [
+      "Basic pitch"
+    ]
+  },
+  {
+    "name": "Training Ground",
+    "cost": 1200,
+    "recruits": 3,
+    "features": [
+      "Bleachers",
+      "Team benches"
+    ]
+  },
+  {
+    "name": "Club Stadium",
+    "cost": 4500,
+    "recruits": 6,
+    "features": [
+      "Expanded stands",
+      "Live scoreboard"
+    ]
+  },
+  {
+    "name": "Floodlit Stadium",
+    "cost": 12000,
+    "recruits": 11,
+    "features": [
+      "Canopies",
+      "Floodlights",
+      "Entrance gate"
+    ]
+  }
 ];
 const DEV_SQUAD = ['courtois','maldini','vandijk','saliba','rodri','maradona','messi','neymar','mbappe','r9','yamal_superstar','ronaldo','henry','barcola'];
 const DEV_XI = ['courtois','maldini','vandijk','saliba','neymar','maradona','rodri','messi','yamal_superstar','mbappe','r9'];

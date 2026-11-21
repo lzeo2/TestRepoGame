@@ -1,6 +1,31 @@
 # Capital Drive browser previews
 
-## Current: 13 November 2026
+## Current: Street Life, 13 November 2026
+
+Actual software WebGL captures of the two-mode Street Life continuation.
+The [verification receipt](../verification/capital-drive-street-life-2026-11-13.md)
+records 66 browser checks, 37 focused commands and a separate 16-check UI review.
+These are real game frames from normal controls, not concept images or a
+measured Intel N100 benchmark.
+
+- [Parliament House](street-life-2026-11-13/parliament-house.png): pavilion,
+  grass roof, four-leg mast and forecourt from the sampled public approach.
+- [Old Parliament House](street-life-2026-11-13/old-parliament-house-clear-approach.png).
+- [Kingston Powerhouse](street-life-2026-11-13/kingston-powerhouse-clear-approach.png).
+- [Manuka Oval](street-life-2026-11-13/manuka-oval.png).
+- [On foot](street-life-2026-11-13/street-life-on-foot.png) and
+  [claimed parked wagon](street-life-2026-11-13/claimed-parked-wagon.png).
+- [Free roam map](street-life-2026-11-13/map-teleport.png): local address
+  search and teleporting, available only in this mode.
+- [Phone Street Life](street-life-2026-11-13/phone-street-life.png) and
+  [phone garage](street-life-2026-11-13/phone-garage.png).
+- [Desktop start](street-life-2026-11-13/desktop-intro.png).
+
+See the [actually inspected landmark references](../capital-drive-landmark-references.md)
+and [source record](../capital-drive-sources.md). Ordinary architecture and
+landmark geometry remain simplified; no proprietary imagery is bundled.
+
+## Historical: detail/terrain iteration, 13 November 2026
 
 Actual software WebGL captures of the detail/terrain/teleport iteration, with
 [36 browser checks](../verification/capital-drive-2026-11-13.md). They show

@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import {airportRoadPosts} from '../Games/Capital Drive/airport-road-details.js';
+import {createAirportView} from '../Games/Capital Drive/airport-view.js';
+const road=(id,z,tags={})=>({id,sourceId:`way/${id}`,name:'Pialligo Avenue',type:'primary',width:10,sourceTags:tags,points:[[0,z],[10000,z]]});
+const bounds={minX:0,maxX:11000,minZ:-100,maxZ:100};
+const map={airport:{surfaces:[]},airportTerrain:bounds,roads:[road(1,0)]};
+const posts=airportRoadPosts(map);assert.equal(posts.length,96);assert(posts.every(p=>p.decorative&&p.estimated&&p.sourceId==='way/1'));assert(posts.every(p=>Math.abs(p.z)>5));
+for(const tags of [{bridge:'yes'},{access:'private'},{motor_vehicle:'no'},{railway:'rail'},{aeroway:'taxiway'}])assert.equal(airportRoadPosts({...map,roads:[road(1,0,tags)]}).length,0);
+const junctionMap={...map,roads:[{...road(1,0),points:[[0,0],[100,0],[200,0]]},{id:2,points:[[100,0],[100,50]]}]};
+assert(airportRoadPosts(junctionMap).every(p=>Math.abs(p.x-100)>=30),'junction mouths remain clear');
+const heightAt=(x,z)=>Math.sin(x/100)*3+z*.01;
+const viewMap={airport:{surfaces:[{kind:'runway',width:20,closed:false,points:[[0,0],[600,0]]}]},roads:[],buildings:[]};
+const scene=new THREE.Scene(),view=createAirportView(scene,viewMap,heightAt);
+for(let i=0;i<10;i++)view.update({x:300,z:0});
+let triangles=0,intermediate=false;
+scene.traverse(mesh=>{if(!mesh.isMesh)return;const a=mesh.geometry.attributes.position;
+for(let i=0;i<a.count;i++){assert(Math.abs(a.getY(i)-(heightAt(a.getX(i),a.getZ(i))+(Math.abs(a.getZ(i))<1?.14:.1)))<1e-5);if(a.getX(i)===300)intermediate=true;}
+for(let i=0;i<a.count;i+=3){triangles++;const xs=[a.getX(i),a.getX(i+1),a.getX(i+2)];assert(Math.max(...xs)-Math.min(...xs)<=25);}});
+assert(intermediate);assert(triangles>40);assert.equal(view.stats.decorativePosts,0);assert(view.stats.residentChunks<=28);view.dispose();assert.equal(scene.children.length,0);
+console.log('Capital airport details PASS: bounded 96 source-aligned decorative posts; access/bridge/junction filters; sampled 25m runway strips and disposal.');

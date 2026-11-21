@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 133,
+  "catalog_entries": 135,
   "games": [
     {
       "directory": "Games/2048",
@@ -295,10 +295,10 @@
       "title": "Capital Drive: Canberra (Preview)",
       "registered": true,
       "entry": "Games/Capital Drive/index.html",
-      "entry_blob": "c45acbd600bbe11edab656c12b82f923b797f71d",
-      "tree": "9145865f56009ee6d117c8ddd5ad54884d8fc89e",
-      "files": 15,
-      "bytes": 7986198,
+      "entry_blob": "5e39959b9e429b7b7f81d04ddf688272e4202a23",
+      "tree": "7eb28df52906ef71bd2e3b45fbdca93aae9978de",
+      "files": 162,
+      "bytes": 18868895,
       "document": "docs/maintenance/games/245-capital-drive.md"
     },
     {
@@ -336,6 +336,18 @@
       "files": 24,
       "bytes": 365188,
       "document": "docs/maintenance/games/084-chess.md"
+    },
+    {
+      "directory": "Games/Chess Workshop",
+      "id": 247,
+      "title": "Chess Workshop",
+      "registered": true,
+      "entry": "Games/Chess Workshop/index.html",
+      "entry_blob": "11f84727da210d71cf6c9c73491e8582f2c6d2b2",
+      "tree": "9973809b450024113e9e579e804c80d2b98f2d4a",
+      "files": 64,
+      "bytes": 14851924,
+      "document": "docs/maintenance/games/247-chess-workshop.md"
     },
     {
       "directory": "Games/ChromeDino",
@@ -1407,15 +1419,15 @@
     },
     {
       "directory": "Games/StealBasketballer",
-      "id": null,
-      "title": "StealBasketballer",
-      "registered": false,
+      "id": 246,
+      "title": "Steal a Basketballer (Preview)",
+      "registered": true,
       "entry": "Games/StealBasketballer/index.html",
-      "entry_blob": "3d17a350316505c0bbabe3cdefd78a3e61c22dd0",
-      "tree": "a6b855dbeb0584d329196790d1932f87904a1b63",
-      "files": 25,
-      "bytes": 2767042,
-      "document": "docs/maintenance/games/unregistered-stealbasketballer.md"
+      "entry_blob": "c890d4acc29d90f29f90881e00bb348b32e064bf",
+      "tree": "f234b4c326bf7f8b090f1d14136f25bb53c6644c",
+      "files": 35,
+      "bytes": 2838921,
+      "document": "docs/maintenance/games/246-stealbasketballer.md"
     },
     {
       "directory": "Games/StealFootballer",
@@ -1424,9 +1436,9 @@
       "registered": true,
       "entry": "Games/StealFootballer/index.html",
       "entry_blob": "8f94e387ceef2350f534f65b9bb984b679ea34ab",
-      "tree": "fbae42173934ede1f2f59df8ca0644c51f1fd5aa",
-      "files": 30,
-      "bytes": 2917670,
+      "tree": "53bb0da5d67364adc8b8e78ddcfba8097a20624b",
+      "files": 32,
+      "bytes": 2930429,
       "document": "docs/maintenance/games/227-stealfootballer.md"
     },
     {

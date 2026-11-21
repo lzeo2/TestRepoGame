@@ -1,0 +1,64 @@
+@import url("./vendor/chessground/chessground.base.css");
+
+#board.cg-wrap {
+  box-sizing: border-box;
+  display: block;
+  border: 0;
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+#board.cg-wrap cg-container {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#board[data-interactive="false"] cg-board { pointer-events: none; }
+#board[data-coordinates="false"] coords { display: none; }
+
+#board.cg-wrap coords { z-index: 13; font: 700 clamp(.62rem, 1.3vw, .83rem)/1 Atkinson, system-ui, sans-serif; opacity: 1; }
+#board.cg-wrap coords coord { color: var(--board-light-label, #233643); }
+#board.cg-wrap coords:not(.black) coord:nth-child(odd),
+#board.cg-wrap coords.black coord:nth-child(even) { color: var(--board-dark-label, #fff7e9); }
+#board.cg-wrap coords.ranks { left: 5px; top: 0; }
+#board.cg-wrap coords.ranks coord { flex: 0 0 12.5%; padding-top: 4px; transform: none; }
+#board.cg-wrap coords.files { left: 0; bottom: 4px; height: auto; text-transform: none; }
+#board.cg-wrap coords.files coord { flex: 0 0 12.5%; padding-right: 5px; text-align: right; }
+
+#board cg-board square.last-move { background: #f0bb59a6; }
+#board cg-board square.selected { box-shadow: inset 0 0 0 4px #ffd583; }
+#board cg-board square.check { background: #e88f67b3; }
+#board cg-board square.move-dest::after {
+  content: "";
+  position: absolute;
+  inset: 37.5%;
+  border-radius: 50%;
+  background: #162a4580;
+}
+#board cg-board square.move-dest.oc::after {
+  inset: 6%;
+  border: 3px solid #182c44b0;
+  background: transparent;
+}
+
+#board .board-keys {
+  position: absolute;
+  z-index: 14;
+  inset: 0;
+  display: grid;
+  grid-template: repeat(8, minmax(0, 1fr)) / repeat(8, minmax(0, 1fr));
+  pointer-events: none;
+}
+#board .board-key {
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+}
+#board .board-key:focus-visible {
+  outline: 3px solid #101721;
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 1px #ffda98;
+}

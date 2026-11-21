@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { createSimulation } from '../Games/Capital Drive/simulation.js';
+import { createGameplay } from '../Games/Capital Drive/gameplay.js';
+import { createShotObstacles } from '../Games/Capital Drive/shot-obstacles.js';
+import { createShotRays } from '../Games/Capital Drive/ballistics.js';
+const map={bounds:{minX:-100,maxX:100,minZ:-100,maxZ:100},roads:[{id:'r',points:[[-90,0],[90,0]],width:12,speed:40}],buildings:[],spawn:{x:30,z:0,yaw:0},landmarks:[]};
+const sim=createSimulation(map,{trafficCount:1});
+sim.setParkedCars([{id:'parked:test',x:0,z:-8,yaw:0,modelId:'lantern'}]);
+const cover=createShotObstacles(map);
+let bodyHits=0,requests=0;
+const game=createGameplay(map,sim,{sandbox:true,heightAt:()=>0,
+ getShotTargets:()=>[{id:'behind',x:0,z:-12,feetY:0,health:100,damage:()=>{bodyHits++;return true;}}],
+ traceShot:ray=>cover.traceHit(ray,null,sim.nearbyVehicles(ray.x,ray.z,ray.range+12)),
+ onVehicleShot:({vehicleId,damage})=>{requests++;return sim.damageVehicle(vehicleId,damage);}});
+game.reset({sandbox:true,onFoot:true,startPose:{x:0,z:0,yaw:0}});
+Object.assign(game.state.actor,{x:0,z:0,yaw:0});
+game.setWeapon('shotgun');
+game.step(.01,{fire:true});
+assert.equal(requests,1,'one shotgun trigger damages a car once');
+assert.equal(bodyHits,0,'car still covers the adult behind it');
+const damaged=sim.nearbyVehicles(0,-8,1)[0];
+assert(damaged.health<100&&damaged.health>0);
+assert(sim.damageVehicle('parked:test',1000));
+assert.equal(sim.nearbyVehicles(0,-8,1)[0].health,0);
+assert.equal(sim.claimVehicle('parked:test').reason,'disabled');
+assert.equal(sim.moveActor({x:0,z:-8},0,0,.4).blocked,true,'wreck retains physical collision');
+const ray=createShotRays({x:0,y:1.35,z:0,yaw:0,pitch:.025,range:30})[0];
+assert.equal(cover.traceHit(ray,null,sim.nearbyVehicles(0,0,40)).vehicleId,'parked:test','pitched ray preserves wreck cover identity');
+assert.equal(cover.traceHit({...ray,interiorId:'other'},null,sim.nearbyVehicles(0,0,40)).vehicleId,null,'wrong room cannot damage outdoor car');
+const wall=createShotObstacles({...map,buildings:[{points:[[-3,-3],[3,-3],[3,-4],[-3,-4]],height:4}]});
+assert.equal(wall.traceHit(ray,null,sim.nearbyVehicles(0,0,40)).vehicleId,null,'nearer nonvehicle wall never becomes car damage');
+assert.equal(cover.traceHit({...ray,dy:.9,dx:0,dz:-Math.sqrt(.19)},null,sim.nearbyVehicles(0,0,40)).vehicleId,null,'high shot misses car');
+const traffic=sim.traffic[0];Object.assign(traffic,{active:true,x:20,z:0,speed:10});
+assert(sim.damageVehicle(traffic.id,100));const pose={x:traffic.x,z:traffic.z};
+sim.step(.1,{},sim.player);assert.equal(traffic.speed,0);assert.equal(traffic.x,pose.x);assert.equal(traffic.z,pose.z);assert(traffic.active,'disabled traffic remains a collider');
+assert(!sim.damageVehicle('missing',30));assert(!sim.damageVehicle('player',30));
+sim.setParkedCars([{id:'parked:claim',x:10,z:0,active:true}]);
+sim.damageVehicle('parked:claim',35);
+const claimed=sim.claimVehicle('parked:claim',{health:42});
+assert(claimed.ok);assert.equal(claimed.vehicle.health,65,'claim preserves bullet damage');
+assert.equal(sim.abandonedCars.at(-1).health,42,'old player car retains its authoritative condition');
+console.log('PASS vehicle bullets: pitched nearest cover identity, owner HP, one trigger once, room/wall/high misses, adult cover, retained disabled colliders and claim condition');

@@ -16,6 +16,15 @@ See [scope](../SCOPE.md), [disabled proxy](proxy-disabled.md), and
 
 ## Implementation map
 
+On 14 November 2026, fresh GitHub Pages metadata confirmed `main` at repository
+root, legacy build type, with successful deployment `7766955409` of merge
+`13c5b7e6`. The live basketball entry returned 200 but the fresh 133-row
+`games.json` omitted it: this was a missing catalog registration, not a failed
+deployment. The listing correction adds existing game 246 and its sitemap URL.
+The observed Pages catalog response used `max-age=600`; verify the published
+catalog/build rather than assuming Netlify settings apply. See the
+[listing receipt](../../verification/basketball-site-listing-2026-11-14.md).
+
 - `netlify.toml:[build]` sets `publish = "."`; no build command is configured.
   `[functions]` names `netlify/functions`. The only tracked function is
   `netlify/functions/bare.js`, an informational status handler, not a relay.

@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import { createStealthContractsView } from '../Games/Capital Drive/stealth-contracts-view.js';
+
+const scene = new THREE.Scene();
+let samples=0;
+const view=createStealthContractsView(scene,()=>{samples++;return 4;});
+const [mesh]=scene.children, pose={x:12,z:28}, visuals=['scope','credential','ledger','relay','case','dummy','exit'];
+const signatures=new Set();
+for (const visual of visuals) {
+  const target={id:visual,visual,...pose};
+  view.update([target],pose);
+  assert.equal(view.stats.props,1);
+  assert.equal(view.stats.drawCalls,1);
+  assert(mesh.count>1&&mesh.count<=9);
+  const matrix=new THREE.Matrix4();mesh.getMatrixAt(0,matrix);
+  const box=new THREE.Box3(new THREE.Vector3(-.5,-.5,-.5),new THREE.Vector3(.5,.5,.5)).applyMatrix4(matrix);
+  assert(Math.abs(box.min.y-4)<1e-6,'the base rests on real supplied terrain');
+  signatures.add(JSON.stringify([mesh.count,...mesh.instanceMatrix.array.slice(0,mesh.count*16),...mesh.instanceColor.array.slice(0,mesh.count*3)]));
+}
+assert.equal(signatures.size,visuals.length,'each objective has a distinct rendered silhouette and palette');
+const uses=samples, uploads=mesh.instanceMatrix.version;
+view.update([{id:'exit',visual:'exit',...pose}],pose);
+assert.equal(samples,uses,'identical visible poses never resample terrain');
+assert.equal(mesh.instanceMatrix.version,uploads,'identical visible poses never upload matrices');
+view.update(visuals.map(visual=>({visual,...pose})),pose);
+assert.equal(view.stats.props,3);assert(view.stats.triangles<=324);
+view.update([{visual:'exit',...pose}],{x:500,z:500});
+assert.equal(view.stats.drawCalls,0);
+view.update([{visual:'missing',...pose},{visual:'exit',x:NaN,z:2},null],pose);
+assert.equal(view.stats.props,0);
+view.update([{visual:'exit',...pose,y:12,yaw:Math.PI/2}],pose);
+const matrix=new THREE.Matrix4();mesh.getMatrixAt(0,matrix);
+assert(Math.abs(matrix.elements[13]-12.04)<1e-6,'elevation overrides terrain for the current objective');
+const resources=[];
+mesh.geometry.addEventListener('dispose',()=>resources.push('geometry'));
+mesh.material.addEventListener('dispose',()=>resources.push('material'));
+view.dispose();view.dispose();view.update([{visual:'exit',...pose}],pose);
+assert.deepEqual(resources,['geometry','material']);assert.equal(scene.children.length,0);assert(view.stats.disposed);
+console.log('PASS stealth contract props: seven distinguishable terrain-grounded forms, single bounded draw, unchanged-buffer stability, cull and disposal');

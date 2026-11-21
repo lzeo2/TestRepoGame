@@ -1,0 +1,1022 @@
+{
+  "checks": [
+    {
+      "name": "real Game PLAY and HUD",
+      "pass": true
+    },
+    {
+      "name": "natural affordable signing available",
+      "pass": true
+    },
+    {
+      "name": "natural signing completed",
+      "pass": true
+    },
+    {
+      "name": "real 5v5 thumbnail scene",
+      "pass": true
+    },
+    {
+      "name": "1280 All contains listing",
+      "pass": true
+    },
+    {
+      "name": "1280 new thumbnail decoded",
+      "pass": true
+    },
+    {
+      "name": "1280 search discovers basketball",
+      "pass": true
+    },
+    {
+      "name": "1280 Sports contains basketball",
+      "pass": true
+    },
+    {
+      "name": "1280 Info correct title",
+      "pass": true
+    },
+    {
+      "name": "real Game PLAY and HUD",
+      "pass": true
+    },
+    {
+      "name": "1280 iframe correct local game",
+      "pass": true
+    },
+    {
+      "name": "1280 same portal page",
+      "pass": true
+    },
+    {
+      "name": "390 All contains listing",
+      "pass": true
+    },
+    {
+      "name": "390 new thumbnail decoded",
+      "pass": true
+    },
+    {
+      "name": "390 search discovers basketball",
+      "pass": true
+    },
+    {
+      "name": "390 Sports contains basketball",
+      "pass": true
+    },
+    {
+      "name": "390 Info correct title",
+      "pass": true
+    },
+    {
+      "name": "real Game PLAY and HUD",
+      "pass": true
+    },
+    {
+      "name": "390 iframe correct local game",
+      "pass": true
+    },
+    {
+      "name": "390 same portal page",
+      "pass": true
+    },
+    {
+      "name": "no page exceptions",
+      "pass": true
+    },
+    {
+      "name": "no new listing/game HTTP errors",
+      "pass": true
+    },
+    {
+      "name": "no new listing/game request failures",
+      "pass": true
+    },
+    {
+      "name": "no external runtime requests",
+      "pass": true
+    },
+    {
+      "name": "no non-thumbnail console errors",
+      "pass": true
+    }
+  ],
+  "console": [
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x293c00a75600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "location": {
+        "url": "http://127.0.0.1:39873/Games/StealBasketballer/",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x293c00a75600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "location": {
+        "url": "http://127.0.0.1:39873/Games/StealBasketballer/",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x293c00a75600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "location": {
+        "url": "http://127.0.0.1:39873/Games/StealBasketballer/",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x293c00a75600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)",
+      "location": {
+        "url": "http://127.0.0.1:39873/Games/StealBasketballer/",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/towerdefense.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/asteroids.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/duckhunt.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/balatro.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/courtyardcast.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/capitaldrivecanberrapreview.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/gapglide.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/lanerun.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/brainrotboulevardafterdark.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/tagrelay.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/wings.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/belowtheobvious.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/citisten.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/jankolock.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "warning",
+      "text": "Allow attribute will take precedence over 'allowfullscreen'.",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/portal-ux.js",
+        "line": 376,
+        "column": 0,
+        "lineNumber": 376,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/duckhunt.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/balatro.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/tagrelay.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/wings.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/belowtheobvious.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/jankolock.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/citisten.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/lanerun.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/gapglide.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/brainrotboulevardafterdark.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/courtyardcast.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/capitaldrivecanberrapreview.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "warning",
+      "text": "Allow attribute will take precedence over 'allowfullscreen'.",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/portal-ux.js",
+        "line": 376,
+        "column": 0,
+        "lineNumber": 376,
+        "columnNumber": 0
+      }
+    }
+  ],
+  "pageErrors": [],
+  "httpErrors": [
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/towerdefense.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/asteroids.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/duckhunt.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/balatro.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/courtyardcast.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/capitaldrivecanberrapreview.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/gapglide.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/lanerun.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/brainrotboulevardafterdark.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/tagrelay.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/wings.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/belowtheobvious.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/citisten.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/jankolock.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/duckhunt.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/balatro.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/tagrelay.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/wings.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/belowtheobvious.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/jankolock.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/citisten.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/lanerun.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/gapglide.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/brainrotboulevardafterdark.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/courtyardcast.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/capitaldrivecanberrapreview.jpg",
+      "status": 404
+    }
+  ],
+  "failedRequests": [],
+  "externalRequests": [],
+  "observations": [
+    {
+      "viewport": [
+        1280,
+        720
+      ],
+      "nativeFullscreen": true,
+      "started": true,
+      "overflow": false
+    },
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "nativeFullscreen": true,
+      "started": true,
+      "overflow": false
+    }
+  ],
+  "thumbnail": {
+    "path": "assets/thumbs/stealabasketballerpreview.jpg",
+    "sha256": "2df99c307a8923fe33d8d197a3b10c6577f6f7fc056ead898053a4120b79d7df",
+    "bytes": 105705,
+    "viewport": [
+      1280,
+      720
+    ],
+    "quality": 80,
+    "sourceCommit": "96cb95d4",
+    "source": "whole-page browser screenshot after natural PLAY/signing/BATTLE and fullcourt selection; no image edits",
+    "snapshot": {
+      "match": "Q1",
+      "camera": {
+        "mode": "pitch",
+        "index": 0,
+        "zoom": 1,
+        "yaw": 0,
+        "pitchIndex": 0,
+        "position": [
+          -300.0000000314622,
+          157.85000035851368,
+          2.2999999671170146
+        ],
+        "target": [
+          -300,
+          2.85000042617321,
+          -100
+        ],
+        "aspect": 1.7777777777777777
+      },
+      "roster": [
+        "Tyus Jones"
+      ]
+    }
+  },
+  "legacyThumbnailHttpErrors": [
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/towerdefense.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/asteroids.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/duckhunt.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/balatro.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/courtyardcast.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/capitaldrivecanberrapreview.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/gapglide.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/lanerun.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/brainrotboulevardafterdark.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/tagrelay.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/wings.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/belowtheobvious.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/citisten.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/jankolock.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/duckhunt.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/balatro.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/tagrelay.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/wings.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/belowtheobvious.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/jankolock.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/citisten.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/lanerun.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/gapglide.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/brainrotboulevardafterdark.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/courtyardcast.jpg",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:39873/assets/thumbs/capitaldrivecanberrapreview.jpg",
+      "status": 404
+    }
+  ],
+  "otherHttpErrors": [],
+  "legacyThumbnailFailedRequests": [],
+  "otherFailedRequests": [],
+  "consoleErrors": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/towerdefense.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/asteroids.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/duckhunt.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/balatro.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/courtyardcast.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/capitaldrivecanberrapreview.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/gapglide.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/lanerun.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/brainrotboulevardafterdark.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/tagrelay.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/wings.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/belowtheobvious.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/citisten.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/jankolock.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/duckhunt.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/balatro.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/tagrelay.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/wings.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/belowtheobvious.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/jankolock.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/citisten.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/lanerun.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/gapglide.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/brainrotboulevardafterdark.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/courtyardcast.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "location": {
+        "url": "http://127.0.0.1:39873/assets/thumbs/capitaldrivecanberrapreview.jpg",
+        "line": 0,
+        "column": 0,
+        "lineNumber": 0,
+        "columnNumber": 0
+      }
+    }
+  ],
+  "otherConsoleErrors": [],
+  "status": "PASS listing and actual PLAY; legacy thumbnail failures separately recorded"
+}

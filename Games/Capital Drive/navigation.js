@@ -7,12 +7,15 @@ export function findRoute(graph, start, destination) {
   const from = closest(start), goal = closest(destination);
   const heap = [], costs = new Map([[from.id, 0]]), previous = new Map();
   function push(node, cost) {
-    const entry = { node, cost };
+    // buildRoadGraph uses Euclidean edge lengths. Straight-line distance is
+    // therefore an admissible, consistent lower bound on this directed graph.
+    const priority = cost + Math.hypot(node.x - goal.x, node.z - goal.z);
+    const entry = { node, cost, priority };
     heap.push(entry);
     let i = heap.length - 1;
     while (i > 0) {
       const parent = (i - 1) >> 1;
-      if (heap[parent].cost <= cost) break;
+      if (heap[parent].priority <= priority) break;
       heap[i] = heap[parent]; i = parent;
     }
     heap[i] = entry;
@@ -23,8 +26,8 @@ export function findRoute(graph, start, destination) {
       let i = 0;
       while (i * 2 + 1 < heap.length) {
         let child = i * 2 + 1;
-        if (child + 1 < heap.length && heap[child + 1].cost < heap[child].cost) child++;
-        if (last.cost <= heap[child].cost) break;
+        if (child + 1 < heap.length && heap[child + 1].priority < heap[child].priority) child++;
+        if (last.priority <= heap[child].priority) break;
         heap[i] = heap[child]; i = child;
       }
       heap[i] = last;

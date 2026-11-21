@@ -44,7 +44,8 @@ function parseElements(markup,parent){
     const node=new Element(tag,attrs,stack.at(-1));stack.at(-1)?.children.push(node);
     if(node.id){assert.ok(!elements.has(node.id),'Unique parsed ID: '+node.id);elements.set(node.id,node);}
     if(tag==='button')buttons.push(node);
-    if(!['meta','link','img','br','input'].includes(tag))stack.push(node);
+    const svgPath=tag==='path'&&raw.trimEnd().endsWith('/');
+    if(!['meta','link','img','br','input'].includes(tag)&&!svgPath)stack.push(node);
   }
   assert.equal(stack.length,1,'Complete fixture markup');return buttons;
 }
@@ -53,7 +54,7 @@ const document={hidden:false,activeElement:null,
   getElementById(id){assert.ok(elements.has(id),'Missing actual HTML element: '+id);return elements.get(id);},
   addEventListener(name,handler){if(!documentListeners.has(name))documentListeners.set(name,[]);documentListeners.get(name).push(handler);},
   createElement(tag){assert.equal(tag,'canvas');return {getContext(kind){
-    assert.equal(kind,'2d');return {fillRect(){},fillText(){},strokeText(){}};
+    assert.equal(kind,'2d');return {fillRect(){},fillText(){},strokeText(){},beginPath(){},moveTo(){},bezierCurveTo(){},stroke(){}};
   }};}
 };
 assert.equal(elements.size,ids.length);
@@ -132,6 +133,7 @@ const snapshot=window.basketballerSnapshot();
 assert.equal(snapshot.state.roster.length,0);assert.equal(snapshot.state.rivals.length,12);
 assert.equal(snapshot.world.camera.mode,'avatar');assert.equal(snapshot.world.camera.pitchIndex,0);
 assert.equal(snapshot.world.staticParts,3057);assert.ok(snapshot.world.batches>0);
+assert.equal(snapshot.match,null,'Absent match has a stable JSON null diagnostic');
 assert.equal(requests.sort().join(','),'./data/catalog.json,./data/world.json');
 console.log(`PASS source boot: ${ids.length} HTML IDs; actual app/Game/World/actors; 2 local JSONs; setCamera; exact readiness predicate true; 1 RAF queued, 0 frames run`);
 
@@ -189,5 +191,55 @@ assert.ok(storageReads.every(key=>key.startsWith('steal-basketballer:v1')));
 assert.ok(storageWrites.every(key=>key.startsWith('steal-basketballer:v1')));
 footballKeys.forEach(key=>assert.equal(storage.get(key),'untouched football save'));
 assert.deepEqual(errors,[]);
-console.log(`PASS ordinary app UI: installed PLAY -> SHOP/conveyor -> ${recruit.id} (${recruit.cost}/150 coins) -> BATTLE; real Match 5v5 + ten World actors; Q1/score/shot-clock HUD; isolated save; 22 bounded RAF callbacks`);
+click(document.getElementById('pause'));
+const paused=window.basketballerSnapshot();
+assert.equal(paused.paused,true);assert.equal(document.getElementById('hud').inert,true);
+for(let index=0;index<3;index++){
+  assert.equal(frames.length,1,'Paused app retains one RAF chain');frames.shift()(3000+index*50);
+}
+const held=window.basketballerSnapshot();
+assert.equal(held.match.elapsed,paused.match.elapsed);
+assert.deepEqual(held.world.avatar,paused.world.avatar);
+assert.equal(held.state.coins,paused.state.coins);
+assert.equal(held.state.event.remaining,paused.state.event.remaining,'App-owned active clock freezes event deadlines');
+click(document.getElementById('resume'));
+for(let index=0;index<2;index++)frames.shift()(4000+index*50);
+assert.equal(window.basketballerSnapshot().paused,false);
+assert.ok(window.basketballerSnapshot().match.elapsed>held.match.elapsed);
+click(staticButtons.find(button=>button.dataset.panel==='match'));
+const controlButton=actionButton('controlPlayer');
+for(let index=0;index<22;index++)frames.shift()(5000+index*50);
+assert.equal(actionButton('controlPlayer'),controlButton,'Live match panel keeps its button nodes');
+assert.equal(controlButton.isConnected,true);
+let frameTime=6050,liveWait=0;
+while(controlButton.disabled&&liveWait<160){frameTime+=50;frames.shift()(frameTime);liveWait++;}
+assert.equal(controlButton.disabled,false,'Player control becomes available during actual live play');
+click(controlButton);
+assert.ok(window.basketballerSnapshot().match.control,'Stable normal control button remains actionable');
+const beforeSlow=window.basketballerSnapshot().match.elapsed;
+for(let index=0;index<10;index++){frameTime+=200;frames.shift()(frameTime);}
+assert.ok(window.basketballerSnapshot().match.elapsed-beforeSlow>=1.95,'Slow frames retain elapsed match time');
+console.log(`PASS ordinary app UI: installed PLAY -> SHOP/conveyor -> ${recruit.id} (${recruit.cost}/150 coins) -> BATTLE; real Match 5v5 + ten World actors; Q1/score/shot-clock HUD; isolated save; pause/deadline freeze/resume; stable match menu/player-control input; slow-frame elapsed time; ${59+liveWait} bounded RAF callbacks`);
+
+click(document.getElementById('zoom-out'));
+assert.notEqual(window.basketballerSnapshot().world.camera.zoom,1);
+click(staticButtons.find(button=>button.dataset.panel==='match'));
+click(actionButton('forfeit'));
+click(actionButton('confirmForfeit'));
+const finalReport=window.basketballerSnapshot();
+assert.equal(finalReport.match.finished,true);
+assert.equal(finalReport.report.forfeit,true);
+assert.equal(finalReport.world.camera.mode,'pitch');
+click(document.getElementById('close-sheet'));
+frameTime+=50;frames.shift()(frameTime);
+const home=window.basketballerSnapshot();
+const homeBase=JSON.parse(await readFile(new URL('data/world.json',root),'utf8')).bases[0];
+assert.equal(home.match,null,'closing a completed report clears the match owner');
+assert.equal(home.report,null);
+assert.equal(home.world.camera.mode,'avatar');
+assert.equal(home.world.camera.zoom,1);
+assert.deepEqual([home.world.avatar.x,home.world.avatar.z],[homeBase.spawn[0],homeBase.spawn[2]]);
+assert(home.world.avatar.z>homeBase.deposit[2],'home avatar spawns in front of the deposit sign');
+assert.equal(document.getElementById('score-strip').hidden,true);
+console.log('PASS finished report close returns to the clear home spawn, drops match state and restores avatar camera zoom.');
 console.log('LIMIT: restricted DOM/2D/fetch/storage/RAF and WebGLRenderer doubles; AudioContext absent follows production fallback. No browser/GPU/layout/native audio/touch/full-match acceptance.');

@@ -1,0 +1,118 @@
+{
+  "rendering": "system Chromium headless software WebGL; no hardware/sandbox acceptance",
+  "flags": [
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--enable-unsafe-swiftshader",
+    "--ignore-gpu-blocklist"
+  ],
+  "checks": [
+    {
+      "name": "desktop PLAY",
+      "pass": true
+    },
+    {
+      "name": "desktop affordable natural conveyor recruit",
+      "pass": true
+    },
+    {
+      "name": "album displays 100 identities",
+      "pass": true
+    },
+    {
+      "name": "desktop actual 5v5 match",
+      "pass": true
+    },
+    {
+      "name": "pause freezes match, avatar and economy",
+      "pass": true
+    },
+    {
+      "name": "resume advances live match",
+      "pass": true
+    },
+    {
+      "name": "manual player control accepted",
+      "pass": false
+    }
+  ],
+  "observations": {
+    "desktop recruitment": {
+      "attempts": [
+        {
+          "offers": [
+            {
+              "id": "alex-caruso",
+              "cost": 70
+            },
+            {
+              "id": "grayson-allen",
+              "cost": 195
+            },
+            {
+              "id": "kyle-kuzma",
+              "cost": 1735
+            },
+            {
+              "id": "lauri-markkanen",
+              "cost": 2235
+            },
+            {
+              "id": "stephen-curry",
+              "cost": 2300
+            }
+          ],
+          "coins": 150,
+          "affordable": {
+            "id": "alex-caruso",
+            "cost": 70
+          },
+          "toast": "Alex Caruso signed"
+        }
+      ],
+      "panel": "market",
+      "text": "Sign a player with your coins. They join your home roster and start earning immediately.\n\nCommon\nGrayson Allen\n\nSG \u00b7 Power 41 \u00b7 2/s\n\n195 coins\n\nNEED MORE COINS\nRare\nKyle Kuzma\n\nPF \u00b7 Power 64 \u00b7 10/s\n\n1,735 coins\n\nNEED MORE COINS\nEpic\nLauri Markkanen\n\nPF \u00b7 Power 72 \u00b7 12/s\n\n2,235 coins\n\nNEED MORE COINS\nLegendary\nStephen Curry\n\nPG \u00b7 Power 74 \u00b7 12/s\n\n2,300 coins\n\nNEED MORE COINS"
+    },
+    "abilityAvailable": true
+  },
+  "console": [
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x2bec009e6e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x2bec009e6e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x2bec009e6e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x2bec009e6e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestFailures": [],
+  "httpErrors": [],
+  "externalRequests": [],
+  "revision": "2c9aa9b03d1f61fa68c4177070584764550c5fbe",
+  "sourceHashes": {
+    "Games/StealBasketballer/js/actors.js": "5b120a2a496468d836a9c9548edc000aeb9fad0eac471a75fbf5902d73ad3105",
+    "Games/StealBasketballer/js/app.js": "118ee71e4198d349b59e25276b787b4766989aa0c824d4f0397f317be0c9095d",
+    "Games/StealBasketballer/js/court-view.js": "42905c8fc7bc9b523bb9334987d5823045d2fe9ef69e7cfd18099396916227c2",
+    "Games/StealBasketballer/js/game.js": "3ae715d3f0cadc3e509273da331bc869a84dfa8ef3394df4ebf31da9078b94dc",
+    "Games/StealBasketballer/js/match.js": "b087346b2489e512331b43e943aa8801c34b8ae2f6693e50e41113efc4029f89",
+    "Games/StealBasketballer/js/world.js": "21d3dddc9ee56495e82dec2f533dee933eee03324b767257a2c26f96933234b9"
+  },
+  "status": "FAIL",
+  "error": "manual player control accepted",
+  "browserCleanupNotice": "Event loop is closed! Is Playwright already stopped?",
+  "elapsedSeconds": 39.1
+}

@@ -1,0 +1,642 @@
+{
+  "rendering": "system Chromium headless software WebGL; no hardware/sandbox acceptance",
+  "flags": [
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--enable-unsafe-swiftshader",
+    "--ignore-gpu-blocklist"
+  ],
+  "checks": [
+    {
+      "name": "desktop followup PLAY",
+      "pass": true
+    },
+    {
+      "name": "desktop followup affordable natural conveyor recruit",
+      "pass": true
+    },
+    {
+      "name": "desktop followup actual 5v5 match",
+      "pass": true
+    },
+    {
+      "name": "forfeit gives a real zero-reward report",
+      "pass": true
+    },
+    {
+      "name": "absent match remains explicit null in browser diagnostics",
+      "pass": true
+    },
+    {
+      "name": "rested restart actual 5v5 match",
+      "pass": true
+    },
+    {
+      "name": "restarted match can finish through normal abandon controls",
+      "pass": true
+    },
+    {
+      "name": "phone dark PLAY",
+      "pass": true
+    },
+    {
+      "name": "phone world no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "phone world visible interactive targets >=44px",
+      "pass": true
+    },
+    {
+      "name": "phone live touch joystick movement",
+      "pass": true
+    },
+    {
+      "name": "phone affordable natural conveyor recruit",
+      "pass": true
+    },
+    {
+      "name": "phone album no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "phone album visible interactive targets >=44px",
+      "pass": true
+    },
+    {
+      "name": "phone actual 5v5 match",
+      "pass": true
+    },
+    {
+      "name": "phone match no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "phone match visible interactive targets >=44px",
+      "pass": true
+    },
+    {
+      "name": "phone landscape match no horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "phone landscape match visible interactive targets >=44px",
+      "pass": true
+    },
+    {
+      "name": "no page errors",
+      "pass": true
+    },
+    {
+      "name": "no console errors (unfiltered)",
+      "pass": true
+    },
+    {
+      "name": "no failed local requests",
+      "pass": true
+    },
+    {
+      "name": "no external runtime requests",
+      "pass": true
+    }
+  ],
+  "observations": {
+    "desktop followup recruitment": {
+      "attempts": [
+        {
+          "offers": [
+            {
+              "id": "alex-caruso",
+              "cost": 70
+            },
+            {
+              "id": "davion-mitchell",
+              "cost": 550
+            },
+            {
+              "id": "mike-conley",
+              "cost": 1550
+            },
+            {
+              "id": "anthony-edwards",
+              "cost": 2070
+            },
+            {
+              "id": "stephen-curry",
+              "cost": 2300
+            }
+          ],
+          "coins": 150,
+          "affordable": {
+            "id": "alex-caruso",
+            "cost": 70
+          },
+          "toast": "Alex Caruso signed"
+        }
+      ],
+      "panel": "market",
+      "text": "Sign a player with your coins. They join your home roster and start earning immediately.\n\nCommon\nDavion Mitchell\n\nPG \u00b7 Power 46 \u00b7 3/s\n\n550 coins\n\nNEED MORE COINS\nRare\nMike Conley\n\nPG \u00b7 Power 62 \u00b7 9/s\n\n1,550 coins\n\nNEED MORE COINS\nEpic\nAnthony Edwards\n\nSG \u00b7 Power 71 \u00b7 11/s\n\n2,070 coins\n\nNEED MORE COINS\nLegendary\nKevin Durant\n\nSF \u00b7 Power 76 \u00b7 13/s\n\n2,340 coins\n\nNEED MORE COINS"
+    },
+    "normalRestWaitSeconds": 49.49,
+    "phone world": {
+      "overflow": false,
+      "targets": [
+        {
+          "id": "pause",
+          "label": "PAUSE",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "menu-toggle",
+          "label": "\u2630",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "01\nROSTER",
+          "width": 112,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "02\nUPGRADE",
+          "width": 112,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "shield",
+          "label": "03\nSHIELD",
+          "width": 112,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "battle",
+          "label": "04\nBATTLE",
+          "width": 112,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "?\nHELP",
+          "width": 112,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "SHOP",
+          "width": 58,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "EVENTS",
+          "width": 58,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "TACTICS",
+          "width": 58,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "KITS",
+          "width": 58,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "STAFF",
+          "width": 58,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "ALBUM",
+          "width": 58,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "home",
+          "label": "GO HOME",
+          "width": 75,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "pitch",
+          "label": "GO COURT",
+          "width": 75,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "route",
+          "label": "SHOW ROUTE",
+          "width": 75,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "FIND A PLAYER\n\u2192",
+          "width": 341,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "interaction",
+          "label": "E \u00b7 Home court",
+          "width": 116,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "joystick",
+          "label": "Movement joystick",
+          "width": 104,
+          "height": 104,
+          "small": false
+        },
+        {
+          "id": "touch-jump",
+          "label": "JUMP",
+          "width": 75,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "touch-interact",
+          "label": "E",
+          "width": 75,
+          "height": 44,
+          "small": false
+        }
+      ]
+    },
+    "phone recruitment": {
+      "attempts": [
+        {
+          "offers": [
+            {
+              "id": "tyus-jones",
+              "cost": 50
+            },
+            {
+              "id": "gary-trent-jr",
+              "cost": 695
+            },
+            {
+              "id": "fred-vanvleet",
+              "cost": 1175
+            },
+            {
+              "id": "jaylen-brown",
+              "cost": 1965
+            },
+            {
+              "id": "mystery",
+              "cost": 2000
+            }
+          ],
+          "coins": 150,
+          "affordable": {
+            "id": "tyus-jones",
+            "cost": 50
+          },
+          "toast": "Tyus Jones signed"
+        }
+      ],
+      "panel": "market",
+      "text": "Sign a player with your coins. They join your home roster and start earning immediately.\n\nCommon\nGary Trent Jr.\n\nSG \u00b7 Power 49 \u00b7 4/s\n\n695 coins\n\nNEED MORE COINS\nRare\nFred VanVleet\n\nPG \u00b7 Power 56 \u00b7 7/s\n\n1,175 coins\n\nNEED MORE COINS\nEpic\nJaylen Brown\n\nSF \u00b7 Power 70 \u00b7 11/s\n\n1,965 coins\n\nNEED MORE COINS\nMystery\nMystery Player\n\nSF \u00b7 Power ? \u00b7 0/s\n\n2,000 coins\n\nNEED MORE COINS"
+    },
+    "phone album": {
+      "overflow": false,
+      "targets": [
+        {
+          "id": "close-sheet",
+          "label": "\u2715",
+          "width": 44,
+          "height": 44,
+          "small": false
+        }
+      ]
+    },
+    "phone match": {
+      "overflow": false,
+      "targets": [
+        {
+          "id": "pause",
+          "label": "PAUSE",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "MATCH",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "DEFENSE PLAYS",
+          "width": 91,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "PASS Z",
+          "width": 91,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "DRIVE X",
+          "width": 91,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "SHOOT C",
+          "width": 91,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "THREE V",
+          "width": 91,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "PICK & ROLL B",
+          "width": 91,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "TRIANGLE N",
+          "width": 91,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "FAST BREAK M",
+          "width": 91,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "ABILITY F",
+          "width": 91,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "CONTROL PLAYER",
+          "width": 91,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "previous",
+          "label": "\u25c0",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "follow",
+          "label": "FOLLOW BALL\nFULL COURT\nHOME \u00b7 Tyus Jones\nHOME \u00b7 Academy SG\nHOME \u00b7 Academy SF\nHOM",
+          "width": 131,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "next",
+          "label": "\u25b6",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "zoom-in",
+          "label": "+",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "zoom-out",
+          "label": "\u2212",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "SUBS",
+          "width": 44,
+          "height": 44,
+          "small": false
+        }
+      ]
+    },
+    "phone landscape match": {
+      "overflow": false,
+      "targets": [
+        {
+          "id": "pause",
+          "label": "PAUSE",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "MATCH",
+          "width": 52,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "DEFENSE PLAYS",
+          "width": 88,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "PASS Z",
+          "width": 49,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "DRIVE X",
+          "width": 54,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "SHOOT C",
+          "width": 58,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "THREE V",
+          "width": 55,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "PICK & ROLL B",
+          "width": 82,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "TRIANGLE N",
+          "width": 72,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "FAST BREAK M",
+          "width": 82,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "ABILITY F",
+          "width": 63,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "CONTROL PLAYER",
+          "width": 97,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "previous",
+          "label": "\u25c0",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "follow",
+          "label": "FOLLOW BALL\nFULL COURT\nHOME \u00b7 Tyus Jones\nHOME \u00b7 Academy SG\nHOME \u00b7 Academy SF\nHOM",
+          "width": 210,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "next",
+          "label": "\u25b6",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "zoom-in",
+          "label": "+",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "zoom-out",
+          "label": "\u2212",
+          "width": 44,
+          "height": 44,
+          "small": false
+        },
+        {
+          "id": "",
+          "label": "SUBS",
+          "width": 50,
+          "height": 44,
+          "small": false
+        }
+      ]
+    }
+  },
+  "console": [
+    {
+      "context": "desktop followup",
+      "type": "warning",
+      "text": "[.WebGL-0x3dc0206cc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop followup",
+      "type": "warning",
+      "text": "[.WebGL-0x3dc0206cc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop followup",
+      "type": "warning",
+      "text": "[.WebGL-0x3dc0206cc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop followup",
+      "type": "warning",
+      "text": "[.WebGL-0x3dc0206cc00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestFailures": [],
+  "httpErrors": [],
+  "externalRequests": [],
+  "revision": "33689fd40ce58f9d1f2505aa595fe88724cf87b1",
+  "sourceHashes": {
+    "Games/StealBasketballer/js/actors.js": "5b120a2a496468d836a9c9548edc000aeb9fad0eac471a75fbf5902d73ad3105",
+    "Games/StealBasketballer/js/app.js": "f42fd9fbec5faed13570808ab4fc9bc9081f7f6690bf0b8de5864a1addb20c0b",
+    "Games/StealBasketballer/js/court-view.js": "42905c8fc7bc9b523bb9334987d5823045d2fe9ef69e7cfd18099396916227c2",
+    "Games/StealBasketballer/js/game.js": "3ae715d3f0cadc3e509273da331bc869a84dfa8ef3394df4ebf31da9078b94dc",
+    "Games/StealBasketballer/js/match.js": "b087346b2489e512331b43e943aa8801c34b8ae2f6693e50e41113efc4029f89",
+    "Games/StealBasketballer/js/world.js": "f38c83a653a3765efa71284548ef8f23577e21eca7f60dc63b8c82e1297115b2"
+  },
+  "status": "PASS",
+  "elapsedSeconds": 107.06
+}

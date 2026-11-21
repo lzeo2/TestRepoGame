@@ -1,0 +1,519 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const moduleURL = async url => {
+  let source = await readFile(url, 'utf8');
+  for (const match of [...source.matchAll(/from ['"](\.[^'"]+)['"]/g)]) source = source.replace(match[1], await moduleURL(new URL(match[1], url)));
+  return `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
+};
+const moduleFrom = async path => import(await moduleURL(new URL(path, import.meta.url)));
+const { createGameplay } = await moduleFrom('../Games/Capital Drive/gameplay.js');
+const { createSimulation } = await moduleFrom('../Games/Capital Drive/simulation.js');
+const map = { bounds: { minX: -500, maxX: 500, minZ: -500, maxZ: 500 },
+  roads: [{ id: 'main', points: [[-400, 0], [400, 0]], nodes: [1, 2], width: 12, speed: 40 }],
+  buildings: [{ id: 'wall', points: [[15, -30], [18, -30], [18, 30], [15, 30]], height: 8 }],
+  spawn: { x: 0, z: 0, yaw: 0 }, landmarks: [] };
+const simulation = createSimulation(map, { trafficCount: 0 });
+let strikeArgs, respawns = [], changes = [], events = [];
+const pedestrians = { snapshot: () => [{ x: 4, z: 4, health: 100 }],
+  strike: args => { strikeArgs = args; return { hits: 1, people: [{ id: 1 }] }; },
+  alert() {}, drainEvents: () => events.splice(0) };
+const game = createGameplay(map, simulation, { pedestrians, hasPistol: () => true, onRespawn: reason => respawns.push(reason), onVehicleChanged: v => changes.push(v) });
+const tick = (seconds, input = {}) => { for (let i = 0; i < Math.ceil(seconds * 60); i++) game.step(1 / 60, input); };
+assert.equal(game.focus(), simulation.player);
+simulation.player.speed = 8;
+assert.equal(game.interact(), false); assert.equal(simulation.player.speed, 0);
+assert.equal(game.interact(), true); assert.equal(game.state.mode, 'foot');
+assert.equal(game.focus(), game.state.actor);
+const start = { ...game.state.actor }; tick(1, { moveZ: -1 });
+const walked = Math.hypot(game.state.actor.x - start.x, game.state.actor.z - start.z);
+assert(walked > 3.4 && walked < 3.8);
+const walkEnd = game.state.actor.z; tick(1, { moveZ: -1, sprint: true });
+assert(walkEnd - game.state.actor.z > 6.5);
+tick(0.2, { jump: true }); assert(game.state.actor.jumpHeight > 0); tick(1); assert.equal(game.state.actor.jumpHeight, 0);
+const frozen = JSON.stringify(game.snapshot()); game.step(0, { fire: true, jump: true }); assert.equal(JSON.stringify(game.snapshot()), frozen);
+// Position a fixture actor before a real polygon, aim through it, and verify clipped hit adapter.
+Object.assign(game.state.actor, { x: 10, z: 0, yaw: -Math.PI / 2 });
+game.addAmmo(84); game.setWeapon('pistol'); game.step(1 / 60, { aim: true, aimYaw: -Math.PI / 2, fire: true });
+assert(strikeArgs.range > 4.8 && strikeArgs.range < 5);
+assert.equal(game.state.ammo, 11); assert.equal(game.state.shots.length, 1);
+assert.deepEqual(game.getAmmo('pistol'), { ammo: 11, reserveAmmo: 72 }, 'legacy aliases share the independent pistol pool');
+const heldAmmunition = game.snapshot().ammunition;
+assert(Object.isFrozen(heldAmmunition.pistol));
+game.step(1 / 60, { fire: true }); assert.equal(game.state.ammo, 11, 'fire cooldown');
+assert(game.reload()); tick(1.5); assert.equal(game.state.ammo, 12); assert.equal(game.state.reserveAmmo, 71);
+assert.deepEqual(heldAmmunition.pistol, { ammo: 11, reserveAmmo: 72 }, 'ammunition snapshots stay detached during reload');
+assert.equal(game.state.wanted > 0, true);
+// Police on the opposite side of the building must search and cannot arrest through it.
+game.state.police.splice(0, game.state.police.length, ...Array.from({ length: 4 }, (_, i) => ({ id: `test${i}`, x: 23, z: i, yaw: 0, speed: 0, health: 100, searchTime: 0 })));
+game.state.wanted = 5; game.step(1 / 60);
+assert(game.state.police.every(p => !p.seesPlayer)); assert.equal(game.state.pursuit, 'search');
+assert(game.state.police.length <= 4);
+const heat = game.state.heat; tick(1); assert(game.state.heat < heat);
+game.reportOffence('theft', 1, { witnessed: true }); assert(game.state.heat > heat - 1);
+// A lost-sight fixture cannot retain pursuit indefinitely.
+game.state.police.forEach(p => { p.health = 0; }); tick(75); assert.equal(game.state.wanted, 0); assert.equal(game.state.police.length, 0);
+// Nearby adult retaliation changes health once per cooldown, never through the wall.
+events.push({ type: 'retaliation', kind: 'melee', x: 11, z: 0, damage: 5 });
+game.step(1 / 60); assert.equal(game.state.health, 95);
+events.push({ type: 'retaliation', kind: 'melee', x: 11, z: 0, damage: 5 });
+game.step(1 / 60); assert.equal(game.state.health, 95);
+// A stationary driver can be arrested by visible officers after a real hold period.
+game.reset(); game.addAmmo(24); game.setWeapon('pistol');
+game.reportOffence('fixture arrest', 1, { witnessed: true });
+game.state.police.splice(0, game.state.police.length, ...Array.from({ length: 4 }, (_, i) => ({ id: `arrest${i}`,
+  x: simulation.player.x + 3, z: simulation.player.z, yaw: 0, speed: 0, health: 100, mode: 'foot', searchTime: 0 })));
+const serial = game.state.respawnSerial; tick(3.6);
+assert(game.state.recovery); assert.equal(game.state.respawnSerial, serial); tick(3.5);
+assert.equal(game.state.respawnSerial, serial + 1); assert.equal(respawns.at(-1), 'arrest');
+assert.equal(game.state.wanted, 0); assert.equal(game.state.arrestProgress, 0);
+assert.deepEqual(game.getAmmo('pistol'), { ammo: 0, reserveAmmo: 0 }, 'arrest inventory rules stay independent of medical recovery');
+respawns.length = 0;
+// Explicitly unwitnessed and sandbox offences do not raise police.
+game.reset(); assert.equal(game.reportOffence('theft', 1, { witnessed: false }), false);
+game.reset({ sandbox: true }); assert.equal(game.reportOffence('gunfire', 3, { witnessed: true }), false);
+simulation.player.crashes += 7; tick(0.1); assert.equal(respawns.length, 0); assert.equal(game.state.wanted, 0);
+game.reset({ sandbox: false });
+// Scraping and small bumps cannot send a healthy driver to hospital.
+simulation.player.lastImpactSpeed = 3;
+for (let i = 0; i < 30; i++) { simulation.player.crashes++; tick(0.05); }
+assert.equal(game.state.vehicleHealth, 100); assert.equal(game.state.health, 100);
+simulation.player.lastImpactSpeed = 10; simulation.player.crashes++; tick(0.05);
+const dented = game.state.vehicleHealth;
+assert(dented < 100 && dented >= 90); assert.equal(game.state.health, 100);
+for (let i = 0; i < 10; i++) { simulation.player.crashes++; game.step(0); }
+assert.equal(game.state.vehicleHealth, dented, 'pause freezes crash damage and its cooldown');
+for (let i = 0; i < 10; i++) { simulation.player.crashes++; tick(0.05); }
+assert.equal(game.state.vehicleHealth, dented, 'pinned-wall contacts share a brief cooldown');
+// Repeated moderate impacts can disable the car without injuring its driver.
+for (let i = 0; i < 16; i++) { tick(0.9); simulation.player.crashes++; tick(0.05); }
+assert.equal(game.state.vehicleHealth, 0); assert.equal(game.state.health, 100);
+assert.equal(game.state.recovery, null); assert.equal(respawns.length, 0);
+simulation.player.speed = 5; tick(0.05); assert.equal(simulation.player.speed, 0);
+assert(game.interact(), 'healthy driver can leave a disabled car');
+game.reset(); simulation.player.lastImpactSpeed = 36;
+for (let i = 0; i < 3; i++) { tick(0.9); simulation.player.crashes++; tick(0.05); }
+assert(game.state.recovery); assert.equal(respawns.length, 0);
+const recovering = game.snapshot(); game.step(0); assert.deepEqual(game.snapshot(), recovering);
+tick(3.5);
+assert.equal(respawns.at(-1), 'knockout'); assert.equal(respawns.length, 1);
+assert.equal(game.state.health, 100); assert.equal(game.state.vehicleHealth, 100);
+// Enter source with exact metadata and preserve claim state.
+simulation.setParkedCars([{ id: 'test-parked', x: 8, z: 0, yaw: 0, modelId: 'orchard', color: 0xabcdef }]);
+simulation.teleport({ x: 0, z: 0 }); game.reset(); game.interact(); Object.assign(game.state.actor, { x: 6, z: 0 });
+assert.equal(game.interact(), false);
+for (let frame = 0; frame < 1200 && game.state.carjacking; frame++) {
+  const challenge = game.state.carjacking.challenge;
+  game.step(1 / 60, { challenge: challenge?.phase === 'cue' ? { [challenge.expectedKey]: true } : {} });
+}
+assert.equal(game.state.carjacking, null); assert.equal(game.state.vehicle.modelId, 'orchard'); assert.equal(game.state.vehicle.color, 0xabcdef); assert.equal(changes.length, 1);
+assert.equal(game.state.vehicle.stolen, true); assert.equal(game.state.mode, 'vehicle');
+const snap = game.snapshot(); assert(Object.isFrozen(snap.actor)); assert.throws(() => { snap.health = 0; });
+// Full source map exercises actual indexed collision/LOS and finite long-run police movement.
+const actual = JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra.json', import.meta.url), 'utf8'));
+const realSimulation = createSimulation(actual, { trafficCount: 0 });
+const realGame = createGameplay(actual, realSimulation);
+assert(realGame.interact(), 'can exit the actual spawn car');
+const realStart = { ...realGame.state.actor };
+for (let i = 0; i < 600; i++) realGame.step(1 / 60, { moveX: Math.cos(i / 80), moveZ: Math.sin(i / 80), sprint: true });
+assert(Math.hypot(realGame.state.actor.x - realStart.x, realGame.state.actor.z - realStart.z) < 70);
+realGame.reportOffence('fixture report', 5, { witnessed: true });
+for (let i = 0; i < 1800; i++) {
+  realGame.step(1 / 60, { moveZ: 1 });
+  for (const p of realGame.state.police) {
+    assert(Number.isFinite(p.x) && Number.isFinite(p.z));
+    if (p.seesPlayer) assert(realSimulation.hasLineOfSight(p, realGame.focus()));
+    assert(p.x >= actual.bounds.minX && p.x <= actual.bounds.maxX);
+    assert(p.z >= actual.bounds.minZ && p.z <= actual.bounds.maxZ);
+  }
+  assert(realGame.state.police.length <= 6);
+}
+console.log('Capital gameplay: foot collision/sprint/jump, entry/theft, combat occlusion/ammo, wanted/search, sandbox, respawn and actual-map finite police PASS');
+
+// Reproduce innocent stationary player beside frightened adults on the real map.
+const THREE = await import('../assets/car-arcade/vendor/three.module.js');
+const { createPedestrians } = await import('../Games/Capital Drive/pedestrians.js');
+const attributionSimulation = createSimulation(actual, { trafficCount: 0 });
+const actualAdults = createPedestrians(new THREE.Scene(), actual, () => 0);
+const innocentGame = createGameplay(actual, attributionSimulation, { pedestrians: actualAdults });
+assert(innocentGame.interact());
+const adult = actualAdults.snapshot()[0];
+actualAdults.update(innocentGame.focus(), 0.1, [{ id: 'traffic:23', x: adult.x, z: adult.z, speed: 25 }]);
+assert.notEqual(actualAdults.snapshot()[0].reaction, 'calm');
+innocentGame.step(1 / 60);
+assert.equal(innocentGame.state.wanted, 0, 'actual-map AI reckless driving cannot implicate a stationary on-foot player');
+assert.equal(innocentGame.state.health, 100);
+actualAdults.resetPopulation(actual.spawn);
+actualAdults.alert({ x: adult.x, z: adult.z, kind: 'gunshot' });
+innocentGame.step(1 / 60);
+assert(innocentGame.state.wanted > 0, 'player gunfire witnesses still report the offence');
+actualAdults.dispose();
+// Defensive event consumer also rejects external NPC offence/retaliation descriptors.
+game.reset(); game.interact();
+events.push({ type: 'witness', kind: 'reckless', offenderId: 'traffic:9' },
+  { type: 'offence', kind: 'assault', offenderId: 'traffic:9' },
+  { type: 'retaliation', targetId: 'traffic:9', x: game.state.actor.x, z: game.state.actor.z, damage: 20 });
+game.step(1 / 60);
+assert.equal(game.state.wanted, 0); assert.equal(game.state.health, 100);
+assert.equal(game.reportOffence('reckless', 1, { witnessed: true, offenderId: 'traffic:9' }), false);
+events.push({ type: 'witness', kind: 'reckless', offenderId: 'player' });
+game.step(1 / 60); assert(game.state.wanted > 0, 'explicit player reckless report still raises wanted');
+console.log('Capital gameplay: actual-map AI panic leaves innocent player clear; explicit player offences still report PASS');
+
+// Reckless reporting has its own long cooldown, with combat still immediate.
+game.reset();
+events.push({ type: 'witness', kind: 'reckless', offenderId: 'player' });
+game.step(1 / 60); assert.equal(game.state.wanted, 1);
+events.push({ type: 'witness', kind: 'gunshot', offenderId: 'player' });
+game.step(1 / 60); assert.equal(game.state.wanted, 1); assert.equal(game.state.offencePressure, 2, 'reckless reporting cannot delay witnessed gunfire pressure');
+tick(1.1);
+events.push({ type: 'witness', kind: 'reckless', offenderId: 'player' });
+game.step(1 / 60); assert.equal(game.state.offencePressure, 2, 'multiple adults cannot rapidly stack reckless reports');
+for (let i = 0; i < 600; i++) game.step(0);
+events.push({ type: 'witness', kind: 'reckless', offenderId: 'player' });
+game.step(1 / 60); assert.equal(game.state.offencePressure, 2, 'pause preserves reckless cooldown');
+events.push({ type: 'witness', kind: 'assault', offenderId: 'player' });
+game.step(1 / 60); assert.equal(game.state.wanted, 1); assert.equal(game.state.offencePressure, 3, 'actual assault remains promptly reported without jumping a full star per minor offence');
+console.log('Capital gameplay: independent reckless/combat report cooldowns and pause PASS');
+
+// Passenger focus follows the physical service car without foot movement or combat.
+const passengerSimulation=createSimulation(map,{trafficCount:0});
+let attached=null,passengerStrikes=0;
+const passengerGame=createGameplay(map,passengerSimulation,{passengerPose:()=>attached,hasPistol:()=>true,
+  pedestrians:{snapshot:()=>[],drainEvents:()=>[],strike:()=>{passengerStrikes++;return {hits:0,people:[]};},alert(){}}});
+passengerGame.interact();passengerGame.addAmmo(24);passengerGame.setWeapon('pistol');
+attached={x:100,z:40,yaw:.4,speed:5};
+const passengerAmmo=passengerGame.state.ammo;
+passengerGame.step(1/60,{moveX:1,moveZ:1,jump:true,aim:true,fire:true,melee:true});
+assert.equal(passengerGame.focus(),attached);assert.equal(passengerGame.state.passenger,true);
+assert.equal(passengerGame.state.actor.x,attached.x);assert.equal(passengerGame.state.actor.jumpHeight,0);
+assert.equal(passengerGame.state.ammo,passengerAmmo);assert.equal(passengerStrikes,0);assert.equal(passengerGame.state.aiming,false);
+assert.equal(passengerGame.interact(),false,'ordinary vehicle claiming cannot run while a passenger');
+attached.x+=3;assert.equal(passengerGame.focus().x,103,'attachment follows the live physical car');
+attached=null;assert.equal(passengerGame.state.passenger,false);assert.equal(passengerGame.focus(),passengerGame.state.actor);
+const afterRideX=passengerGame.state.actor.x;passengerGame.step(1/60,{moveX:1});assert(passengerGame.state.actor.x>afterRideX,'normal movement resumes after detachment');
+assert.equal(passengerGame.snapshot().passenger,false);
+console.log('Capital gameplay: supplied passenger attachment, live focus, safe input exclusion and detachment PASS');
+
+// The caller's activity guard precedes every ammunition, hit, timer and offence mutation.
+let attackAllowed=false,guardStrikes=0;
+const guarded=createGameplay(map,simulation,{hasPistol:()=>true,canAttack:()=>attackAllowed,
+  pedestrians:{strike:()=>{guardStrikes++;return {hits:1};},snapshot:()=>[],drainEvents:()=>[]}});
+guarded.state.mode='foot';Object.assign(guarded.state.actor,{x:0,z:-50,yaw:0});
+guarded.addAmmo(24);guarded.setWeapon('pistol');
+const guardAmmo=guarded.state.ammo;
+for(let i=0;i<20;i++)guarded.step(1/60,{fire:true,aim:true});
+assert.equal(guarded.state.ammo,guardAmmo);assert.equal(guarded.state.wanted,0);
+assert.equal(guarded.state.attackTimer,0);assert.equal(guardStrikes,0);assert.equal(guarded.state.shots.length,0);
+attackAllowed=true;guarded.step(1/60,{fire:true});
+assert.equal(guarded.state.ammo,guardAmmo-1,'a denied attack leaves no cooldown');assert.equal(guardStrikes,1);
+guarded.reset();guarded.state.mode='foot';attackAllowed=false;
+guarded.step(1/60,{melee:true});assert.equal(guarded.state.attackSerial,0);assert.equal(guardStrikes,1);
+attackAllowed=true;guarded.step(1/60,{melee:true});assert.equal(guarded.state.attackSerial,1);assert.equal(guardStrikes,2);
+// Ally strikes use live officer reach and occlusion; player sidearm injuries use ordinary recovery.
+const combatSim=createSimulation(map,{trafficCount:0});Object.assign(combatSim.player,{x:0,z:-100});
+const combat=createGameplay(map,combatSim);
+combat.state.mode='foot';Object.assign(combat.state.actor,{x:0,z:0});
+const liveOfficer={id:'live-officer',x:8,z:0,yaw:0,speed:0,health:100,mode:'foot',searchTime:0};
+combat.state.police.push(liveOfficer,...[1,2,3].map(i=>({id:`dead:${i}`,x:0,z:-100,health:0,mode:'foot'})));
+assert.equal(combat.strikePolice({from:{x:23,z:0},targetId:liveOfficer.id,damage:12,range:28}),false,'building blocks ally gunfire');
+assert.equal(combat.strikePolice({from:{x:-40,z:0},targetId:liveOfficer.id,damage:12,range:28}),false,'remote ally cannot damage');
+assert.equal(combat.strikePolice({from:{x:0,z:0},targetId:liveOfficer.id,damage:12,range:28}),true);
+assert.equal(liveOfficer.health,88);assert.equal(combat.state.wanted,0,'allied attacks do not attribute player offences');
+assert.equal(combat.state.shots.length,1);
+assert.equal(combat.strikePolice({from:{x:0,z:0},targetId:liveOfficer.id,damage:1000,range:1000}),true);
+assert.equal(liveOfficer.health,76,'ally damage is bounded to the live weapon maximum');
+assert.equal(combat.strikePolice({from:{x:-25,z:0},targetId:liveOfficer.id,damage:12,range:1000}),false,'caller range cannot exceed the ally weapon maximum');
+
+liveOfficer.mode='vehicle';assert.equal(combat.strikePolice({from:{x:0,z:0},targetId:liveOfficer.id,damage:12,range:28}),false);
+liveOfficer.mode='foot';combat.state.wanted=3;combat.state.heat=100;
+const unhurt=combat.state.health;combat.step(0);assert.equal(combat.state.health,unhurt);
+let sawPoliceTrace=false;
+for(let i=0;i<50;i++){combat.step(1/60);sawPoliceTrace ||= combat.state.shots.some(shot=>shot.kind==='pistol');}
+assert(combat.state.health<unhurt,'actual visible officer shots injure the player');
+assert(sawPoliceTrace);
+combat.state.health=1;
+for(let i=0;i<100 && !combat.state.recovery;i++)combat.step(1/60);
+assert.equal(combat.state.recovery?.reason,'knockout','police gunshot death uses existing recovery');
+console.log('Capital gameplay: injected attack guard, actual ally police damage/reach/LOS, sidearm player damage and recovery PASS');
+
+// The armour owner receives validated player combat damage exactly once. The
+// gameplay adapter owns health and retains the existing collision and trace paths.
+const armourSim=createSimulation(map,{trafficCount:0});
+Object.assign(armourSim.player,{x:0,z:-100});
+const absorbedCalls=[], incoming=[];
+let armour=20;
+const armoured=createGameplay(map,armourSim,{pedestrians:{drainEvents:()=>incoming.splice(0)},absorbArmour:damage=>{
+  absorbedCalls.push(damage);
+  const blocked=Math.min(armour,damage*.7);
+  armour-=blocked;
+  return damage-blocked;
+}});
+const armouredFoot={x:0,z:0,yaw:0};
+armoured.reset({onFoot:true,startPose:armouredFoot});
+const melee={type:'retaliation',x:0,z:1,damage:10};
+incoming.push(melee);armoured.step(1/60);
+assert.equal(armoured.state.health,97);
+assert.equal(armour,13);
+incoming.push(melee);armoured.step(1/60);
+assert.deepEqual(absorbedCalls,[10],'melee cooldown prevents replaying a damage debit');
+const armouredBlast={type:'explosion',x:0,z:4,radius:8,maxDamage:80};
+assert(armoured.applyExplosion({...armouredBlast,interiorId:'other-room'}));
+assert.deepEqual(absorbedCalls,[10],'different room cannot consume armour');
+assert(armoured.applyExplosion(armouredBlast));
+assert.equal(armoured.state.health,70,'explosion falloff uses the remaining partial charge');
+assert.equal(armour,0);
+assert.deepEqual(absorbedCalls,[10,40]);
+
+armoured.reset({onFoot:true,startPose:armouredFoot});armour=20;
+const shootingOfficer={id:'armour-test-officer',x:8,z:0,yaw:0,speed:0,health:100,mode:'foot',fireCooldown:0};
+armoured.state.police.push(shootingOfficer,...[1,2,3].map(i=>({id:`armour-dead:${i}`,x:0,z:-100,health:0,mode:'foot'})));
+armoured.state.wanted=3;armoured.state.heat=100;
+for(let i=0;i<50 && absorbedCalls.length<3;i++)armoured.step(1/60);
+assert.equal(absorbedCalls.at(-1),9,'real visible officer shots use the shared combat damage owner');
+assert(Math.abs(armoured.state.health-97.3)<1e-8);
+assert(Math.abs(armour-13.7)<1e-8);
+assert(armoured.state.shots.some(shot=>shot.kind==='pistol'),'armour preserves the shot trace');
+
+armoured.reset();armour=20;
+armourSim.player.lastImpactSpeed=30;armourSim.player.crashes++;armoured.step(1/60);
+assert.equal(armoured.state.health,72);
+assert.equal(armour,20,'car crashes bypass body armour');
+armoured.reset({onFoot:true,startPose:armouredFoot});
+armourSim.drainVehicleImpacts=()=>[{targetId:'player-body',offenderId:'fixture-vehicle',speed:10,vx:10,vz:0}];
+armoured.step(1/60);
+assert(Math.abs(armoured.state.health-92.8)<1e-8);
+assert.equal(armour,20,'car-to-pedestrian collision bypasses body armour');
+armourSim.drainVehicleImpacts=()=>[];
+armoured.reset({sandbox:true,onFoot:true,startPose:armouredFoot});
+incoming.push(melee);armoured.step(1/60);armoured.applyExplosion(armouredBlast);
+assert.equal(armoured.state.health,100);
+armoured.reset({sandbox:false,onFoot:true,startPose:armouredFoot});
+armoured.state.recovery={reason:'knockout',phase:'out',elapsed:0,duration:3.4};
+armoured.applyExplosion(armouredBlast);
+assert.equal(armoured.state.health,100);
+assert.deepEqual(absorbedCalls,[10,40,9],'collision, sandbox and recovery never call the armour owner');
+const invalidArmour=createGameplay(map,createSimulation(map,{trafficCount:0}),{absorbArmour:()=>NaN});
+invalidArmour.reset({onFoot:true,startPose:armouredFoot});invalidArmour.applyExplosion(armouredBlast);
+assert.equal(invalidArmour.state.health,60,'invalid optional adapter output preserves the ordinary damage');
+let invulnerable=true;
+const protectedSim=createSimulation(map,{trafficCount:0});
+const protectedPlayer=createGameplay(map,protectedSim,{godMode:()=>invulnerable,absorbArmour:()=>{assert.fail('invulnerability must preserve armour');}});
+protectedPlayer.reset({onFoot:true,startPose:armouredFoot});
+protectedPlayer.applyExplosion(armouredBlast);
+protectedSim.drainVehicleImpacts=()=>[{targetId:'player-body',offenderId:'fixture-vehicle',speed:10,vx:10,vz:0}];
+protectedPlayer.step(1/60);
+assert.equal(protectedPlayer.state.health,100);
+protectedSim.drainVehicleImpacts=()=>[];
+protectedPlayer.reset();
+protectedSim.player.lastImpactSpeed=30;protectedSim.player.crashes++;
+protectedPlayer.step(1/60);
+assert.equal(protectedPlayer.state.health,100);
+invulnerable=false;
+protectedPlayer.reset();
+protectedSim.player.lastImpactSpeed=30;protectedSim.player.crashes++;
+protectedPlayer.step(1/60);
+assert.equal(protectedPlayer.state.health,72,'the session toggle restores normal damage');
+console.log('Capital gameplay armour: melee, line-of-sight blast and police trace share one debit; collisions, other rooms, sandbox and recovery bypass it PASS');
+
+// Protagonist checkpoints restore body/car/ammo only after live placement passes.
+const { WEAPONS: checkpointWeapons } = await moduleFrom('../Games/Capital Drive/weapons.js');
+const checkpointAmmo = amount => Object.fromEntries(checkpointWeapons.map(weapon => [weapon.id,
+  { ammo: Math.min(amount, weapon.magazine), reserveAmmo: Math.min(amount * 3, weapon.reserveCap) }]));
+const studentCheckpoint = { mode: 'foot', actor: { x: -60, z: -30, yaw: .3 },
+  vehicle: { x: -70, z: -30, yaw: .7, modelId: 'orchard', color: '#aabbcc', health: 48, stolen: true },
+  health: 63, weapon: 'pistol', ammunition: checkpointAmmo(2) };
+const corporateCheckpoint = { mode: 'vehicle', actor: { x: 80, z: 60, yaw: -.2 },
+  vehicle: { x: 80, z: 60, yaw: -.9, modelId: 'finch', color: 0x123456, health: 92, stolen: false },
+  health: 87, weapon: 'shotgun', ammunition: checkpointAmmo(0) };
+corporateCheckpoint.ammunition.shotgun.reserveAmmo = 7;
+let restoreChanges = 0;
+const restoreSimulation = createSimulation(map, { trafficCount: 0 });
+const restoreGame = createGameplay(map, restoreSimulation, { hasWeapon: () => true, onVehicleChanged: () => { restoreChanges++; } });
+const restoreSnapshot = () => ({ gameplay: restoreGame.snapshot(), player: { ...restoreSimulation.player } });
+assert.deepEqual(restoreGame.restoreProtagonist(studentCheckpoint), { ok: true, adjusted: false });
+assert.equal(restoreGame.state.mode, 'foot');
+assert.equal(restoreGame.state.health, 63); assert.equal(restoreGame.state.vehicleHealth, 48);
+assert.deepEqual(restoreGame.state.vehicle, { modelId: 'orchard', color: '#aabbcc', stolen: true });
+assert.equal(restoreSimulation.player.modelId, 'orchard'); assert.equal(restoreSimulation.player.color, 0xaabbcc);
+assert.equal(restoreSimulation.player.x, -70); assert.equal(restoreGame.state.actor.x, -60);
+assert.deepEqual(restoreGame.state.ammunition, studentCheckpoint.ammunition);
+assert.equal(restoreChanges, 0, 'restore cannot invoke the controller callback that moves cars beside actors');
+assert.deepEqual(restoreGame.restoreProtagonist(corporateCheckpoint), { ok: true, adjusted: false });
+assert.equal(restoreGame.state.mode, 'vehicle'); assert.equal(restoreGame.state.health, 87);
+assert.equal(restoreGame.state.vehicleHealth, 92); assert.equal(restoreGame.state.vehicle.stolen, false);
+assert.equal(restoreSimulation.player.modelId, 'finch'); assert.equal(restoreSimulation.player.x, 80);
+assert.equal(restoreSimulation.player.color, 0x123456); assert.equal(restoreSimulation.player.speed, 0);
+assert.equal(restoreGame.state.weapon, 'shotgun');
+restoreGame.setWeapon('unarmed'); restoreGame.setWeapon('shotgun');
+assert.deepEqual(restoreGame.getAmmo('shotgun'), { ammo: 0, reserveAmmo: 7 }, 'empty restored magazine does not auto-load on later equip');
+assert.deepEqual(restoreGame.restoreProtagonist(studentCheckpoint), { ok: true, adjusted: false });
+assert.deepEqual(restoreGame.state.ammunition, studentCheckpoint.ammunition, 'switching back restores exact independent pools');
+for (const invalid of [null, { ...studentCheckpoint, health: NaN }, { ...studentCheckpoint, extra: true },
+  { ...studentCheckpoint, actor: { x: 9999, z: 0, yaw: 0 } }, { ...studentCheckpoint, health: 0 }]) {
+  const before = restoreSnapshot();
+  assert.equal(restoreGame.restoreProtagonist(invalid).ok, false);
+  assert.deepEqual(restoreSnapshot(), before, 'invalid checkpoints change no live fields');
+}
+const unownedGame = createGameplay(map, createSimulation(map, { trafficCount: 0 }));
+const unownedBefore = unownedGame.snapshot();
+assert.equal(unownedGame.restoreProtagonist(studentCheckpoint).reason, 'unowned-weapon');
+assert.deepEqual(unownedGame.snapshot(), unownedBefore);
+for (const [field, value] of [['wanted', 1], ['recovery', { reason: 'knockout' }], ['carjacking', { id: 'car' }]]) {
+  restoreGame.state[field] = value;
+  const before = restoreSnapshot();
+  assert.equal(restoreGame.restoreProtagonist(corporateCheckpoint).reason, 'busy');
+  assert.deepEqual(restoreSnapshot(), before);
+  restoreGame.state[field] = field === 'wanted' ? 0 : null;
+}
+assert.equal(passengerGame.restoreProtagonist(studentCheckpoint).ok, true);
+attached = { x: 0, z: 0 }; const attachedBefore = passengerGame.snapshot();
+assert.equal(passengerGame.restoreProtagonist(studentCheckpoint).reason, 'busy');
+assert.deepEqual(passengerGame.snapshot(), attachedBefore); attached = null;
+
+const blockedCheckpoint = structuredClone(studentCheckpoint);
+blockedCheckpoint.vehicle.x = 16; blockedCheckpoint.vehicle.z = 0;
+blockedCheckpoint.actor.x = 16; blockedCheckpoint.actor.z = 10;
+assert.equal(restoreGame.restoreProtagonist(blockedCheckpoint).adjusted, true, 'stale wall poses receive only bounded nearby clear placement');
+assert(restoreSimulation.canOccupy(restoreSimulation.player, { ignoreId: 'player' }));
+assert.equal(restoreSimulation.moveActor({ ...restoreGame.state.actor }, 0, 0, .45).blocked, false);
+assert(Math.hypot(restoreSimulation.player.x - 16, restoreSimulation.player.z) <= 12.000001);
+assert(Math.hypot(restoreGame.state.actor.x - 16, restoreGame.state.actor.z - 10) <= 6.000001);
+const canOccupy = restoreSimulation.canOccupy, moveActor = restoreSimulation.moveActor;
+for (const failBody of ['car', 'actor']) {
+  if (failBody === 'car') restoreSimulation.canOccupy = () => false;
+  else restoreSimulation.moveActor = () => ({ blocked: true });
+  Object.assign(restoreSimulation.player, { speed: 3, vx: 1, vz: 2, steer: .4 });
+  const before = restoreSnapshot();
+  assert.equal(restoreGame.restoreProtagonist(studentCheckpoint).ok, false);
+  assert.deepEqual(restoreSnapshot(), before, 'failed body placement rolls back original car model, color, motion and all gameplay state');
+  restoreSimulation.canOccupy = canOccupy; restoreSimulation.moveActor = moveActor;
+}
+// A recent shot/jump/reload must not leak private clocks into the resumed hero.
+restoreGame.restoreProtagonist(studentCheckpoint);
+restoreGame.step(1 / 60, { fire: true, jump: true });
+restoreGame.state.wanted = 0;
+restoreGame.restoreProtagonist(studentCheckpoint);
+restoreGame.step(1 / 60, { fire: true });
+assert.equal(restoreGame.getAmmo('pistol').ammo, 1, 'restoration clears the previous hero fire cooldown');
+assert.equal(restoreGame.state.actor.jumpHeight, 0, 'restoration clears jump velocity');
+assert.equal(restoreGame.state.reloading, 0);
+console.log('Capital gameplay: protagonist body/car state, exact independent ammunition, safe bounded placement/rollback, ownership and activity guards PASS');
+
+// Mission restoration preflights both bodies and only commits an in-progress
+// failure after a trusted owner accepts the progression rollback.
+let pistolOwned = true, recoveries = 0, missionCommits = 0, playerSeat = null;
+const missionSimulation = createSimulation(map, { trafficCount: 0 });
+const missionGame = createGameplay(map, missionSimulation, {
+  hasWeapon: id => id !== 'pistol' || pistolOwned,
+  onRespawn: () => { recoveries++; },
+  passengerPose: () => playerSeat,
+});
+missionGame.addAmmo(24, 'pistol'); missionGame.setWeapon('pistol'); missionGame.state.ammo = 0;
+missionGame.addAmmo(12, 'shotgun');
+missionGame.reportOffence('prelaunch witness', 2, { witnessed: true });
+const missionContext = missionGame.missionRecoverySnapshot();
+const missionBody = { ...studentCheckpoint, ammunition: missionGame.inventorySnapshot(), ...missionContext };
+missionGame.state.health = 0;
+missionGame.step(1 / 60);
+assert(missionGame.state.recovery);
+playerSeat = { x: 0, z: 3 };
+missionGame.state.carjacking = { id: 'fixture' };
+missionSimulation.driving.driftHold = .5;
+missionSimulation.driving.nitroFuel = .37;
+pistolOwned = false;
+const missionLive = () => ({
+  body: missionGame.snapshot(), context: missionGame.missionRecoverySnapshot(),
+  player: { ...missionSimulation.player }, driving: { ...missionSimulation.driving },
+});
+const beforeReturn = missionLive();
+assert.equal(missionGame.restoreProtagonist(studentCheckpoint).reason, 'busy');
+assert.equal(missionGame.restoreMissionCheckpoint(missionBody).reason, 'unowned-weapon');
+assert.equal(missionGame.restoreMissionCheckpoint({ ...missionBody, heat: NaN }).reason, 'invalid-checkpoint');
+assert.equal(missionGame.restoreMissionCheckpoint({ ...missionBody, equipped: ['pistol', 'pistol'] }).reason, 'invalid-checkpoint');
+assert.equal(missionGame.restoreMissionCheckpoint(missionBody, {
+  canRestoreWeapon: () => true,
+  commit: () => { missionCommits++; return false; },
+}).reason, 'commit-rejected');
+assert.deepEqual(missionLive(), beforeReturn, 'rejected commit does not alter car, driving, police, inventory or live death state');
+const missionMoveActor = missionSimulation.moveActor;
+missionSimulation.moveActor = () => ({ blocked: true });
+assert.equal(missionGame.restoreMissionCheckpoint(missionBody, {
+  canRestoreWeapon: () => true,
+  commit: () => { missionCommits++; return true; },
+}).reason, 'actor-blocked');
+assert.equal(missionCommits, 1, 'blocked actor placement never commits');
+assert.deepEqual(missionLive(), beforeReturn);
+missionSimulation.moveActor = missionMoveActor;
+const preview = missionSimulation.previewTeleport({ x: 16, z: 0, yaw: .7 });
+assert(preview.ok && preview.adjusted, 'pure preview resolves a known building overlap');
+assert.deepEqual(missionLive(), beforeReturn);
+assert.deepEqual(missionGame.restoreMissionCheckpoint(missionBody, {
+  canRestoreWeapon: id => id === 'pistol',
+  commit: () => { missionCommits++; pistolOwned = true; playerSeat = null; return true; },
+}), { ok: true, adjusted: false });
+assert.equal(missionCommits, 2);
+assert.equal(missionGame.state.respawnSerial, beforeReturn.body.respawnSerial);
+assert.equal(missionGame.state.recovery, null);
+assert.equal(missionGame.state.carjacking, null);
+assert.equal(missionGame.state.health, studentCheckpoint.health);
+assert.equal(missionGame.state.vehicleHealth, studentCheckpoint.vehicle.health);
+assert.equal(missionGame.state.actor.x, studentCheckpoint.actor.x);
+assert.equal(missionSimulation.player.x, studentCheckpoint.vehicle.x);
+assert.deepEqual(missionGame.inventorySnapshot(), missionBody.ammunition);
+assert.deepEqual(missionGame.missionRecoverySnapshot(), missionContext);
+missionGame.setWeapon('shotgun');
+assert.deepEqual(missionGame.getAmmo('shotgun'), { ammo: 6, reserveAmmo: 6 }, 'mission returns exact prelaunch first-equip state');
+for (let frame = 0; frame < 240; frame++) missionGame.step(1 / 60);
+assert.equal(recoveries, 0, 'a successful mission rollback cancels the pending medical transfer');
+console.log('Capital gameplay: mission rollback preflights placement and commit, restores prelaunch ammo/health/wanted and cancels pending recovery PASS');
+
+// The room adapter may share x/z with exterior geometry; police damage and
+// presentation still require the exact gameplay space, independent of LOS.
+const roomSim=createSimulation({...map,buildings:[]},{trafficCount:0});
+let activeRoom={id:'indoor-test',known:true,playerInside:true,safehouse:false,
+  outside:{x:0,z:10},inside:{x:0,z:0},exit:{x:0,z:0},
+  moveActor(actor,dx,dz){actor.x+=dx;actor.z+=dz;return {blocked:false};},
+  hasLineOfSight:()=>true,nextWaypoint:(from,to)=>to};
+const roomGame=createGameplay(map,roomSim,{sandbox:true,getInterior:()=>activeRoom,
+  resolveInterior:id=>id===activeRoom?.id?activeRoom:null});
+roomGame.state.mode='foot';Object.assign(roomGame.state.actor,{x:0,z:0,yaw:-Math.PI/2});
+const outsideOfficer={id:'outside-officer',x:1,z:0,yaw:0,speed:0,health:100,mode:'foot',interiorId:null};
+roomGame.state.police.push(outsideOfficer);
+roomGame.step(1/60,{melee:true,aimYaw:-Math.PI/2});
+assert.equal(outsideOfficer.health,100,'inside melee cannot damage an outside officer at matching coordinates');
+roomGame.state.police.push(outsideOfficer);
+outsideOfficer.interiorId=activeRoom.id;
+assert.equal(roomGame.strikePolice({from:{x:0,z:0},targetId:outsideOfficer.id,damage:12,range:10}),false,'outside allies cannot target officers inside a room');
+outsideOfficer.interiorId=null;
+assert(roomGame.strikePolice({from:{x:0,z:0},targetId:outsideOfficer.id,damage:12,range:10}),'outdoor cover remains available while player is indoors');
+assert.equal(roomGame.state.shots.at(-1).interiorId,null,'outside ally trace keeps its outside space');
+const traceGame=createGameplay(map,roomSim,{sandbox:true,getInterior:()=>activeRoom});
+traceGame.state.mode='foot';Object.assign(traceGame.state.actor,{x:0,z:0,yaw:-Math.PI/2});
+assert(traceGame.setWeapon('pistol'));traceGame.step(1/60,{fire:true,aimYaw:-Math.PI/2});
+assert(traceGame.state.shots.length>0 && traceGame.state.shots.every(shot=>shot.interiorId===activeRoom.id),'actual player traces identify the active room');
+console.log('Capital gameplay: interior attack boundary and player shot space tags PASS');
+
+const deliveryGame=createGameplay(map,createSimulation(map,{trafficCount:0}),{hasWeapon:()=>true});
+assert.equal(deliveryGame.resolveDeliveryRisk('reported'),false,'a player in a vehicle cannot complete a courier handover');
+deliveryGame.reset({onFoot:true,sandbox:false,startPose:{x:-8,z:0,yaw:0}});
+deliveryGame.addAmmo(41,'pistol');deliveryGame.addAmmo(57,'smg');assert(deliveryGame.setWeapon('pistol'));
+const beforeSeizure=deliveryGame.inventorySnapshot();
+assert.equal(deliveryGame.resolveDeliveryRisk('clean'),false);
+for(const wanted of [1,2,3,4,5,5]){
+  assert(deliveryGame.resolveDeliveryRisk('reported'));
+  assert.equal(deliveryGame.state.wanted,wanted);
+  assert.equal(deliveryGame.state.pursuit,'search');
+}
+assert(deliveryGame.resolveDeliveryRisk('arrest'));
+assert.equal(deliveryGame.state.recovery.reason,'arrest');
+assert(deliveryGame.state.recovery.deliverySeizure);
+assert.equal(deliveryGame.resolveDeliveryRisk('arrest'),false,'a pending transfer cannot restart');
+for(let i=0;i<72;i++)deliveryGame.step(.05);
+assert.equal(deliveryGame.state.recovery,null);
+assert.equal(deliveryGame.state.wanted,0);
+assert.equal(deliveryGame.state.weapon,'pistol');
+assert.deepEqual(deliveryGame.inventorySnapshot(),beforeSeizure,'only the dispatched cargo can be seized in a courier arrest');
+deliveryGame.reset({onFoot:true,sandbox:true,startPose:{x:-8,z:0,yaw:0}});
+assert.equal(deliveryGame.resolveDeliveryRisk('reported'),false);
+assert.equal(deliveryGame.resolveDeliveryRisk('arrest'),false);
+console.log('Capital gameplay: courier risk increments stars, uses standard station recovery and preserves existing gear PASS');

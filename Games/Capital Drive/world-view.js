@@ -1,4 +1,10 @@
+import { coveredCentrePassage } from './covered-passage.js';
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
+import { createTerrainSampler } from './terrain.js';
+import { roadProfile, roadMarkingOffsets } from './road-network.js';
+import { retailDistrict } from './districts.js';
+import { suburbCharacter } from './suburb-character.js';
+import { ROAD_TEXTURE_SIZE, SURFACE_TEXTURE_SIZE, ATLAS_INSET, ATLAS_SPAN, createRoadPixels, createSurfacePixels } from './exterior-materials.js';
 
 // Metres, with east = +x and south = +z. All art is generated locally.
 const CHUNK_SIZE = 350;
@@ -10,17 +16,30 @@ const COLORS = {
   roof: 0x8e5643, metal: 0x737975, trunk: 0x796b57, green: 0x537158,
 };
 
-export function createWorldView(scene, map) {
+// Positions/UVs stay float32. Static lighting inputs need only bounded byte
+// precision; Three normalizes these attributes before the shader uses them.
+function compactAttribute(values, itemSize, signed = false) {
+  const scale = signed ? 127 : 255;
+  const output = signed ? new Int8Array(values.length) : new Uint8Array(values.length);
+  for (let i = 0; i < values.length; i++) output[i] = Math.round(Math.max(signed ? -1 : 0, Math.min(1, values[i])) * scale);
+  return new THREE.BufferAttribute(output, itemSize, true);
+}
+
+export function createWorldView(scene, map, { lowGraphics = false, streaming = false } = {}) {
   const root = new THREE.Group();
   root.name = 'Canberra streets';
   scene.add(root);
   const bounds = map.bounds;
   const terrain = map.terrain;
   const chunks = new Map();
+  // Sources contain references/primitive transforms only, never expanded vertices.
+  // Eviction drops both renderer resources and the only typed-buffer references.
+  const sources = new Map();
+  let preparing = streaming, targetKey = null, targetBounds = null;
   const temporaryGeometry = [];
   const textures = [];
   const materials = [];
-  const counters = { buildings: 0, trees: 0, treesNearSpawn: 0, windows: 0, roofFacets: 0, texturedBuildings: 0, signs: 0, roadSegments: 0, triangles: 0, chunks: 0, meshes: 0 };
+  const counters = { lowGraphics, bufferBytes: 0, buildings: 0, trees: 0, treesNearSpawn: 0, windows: 0, roofFacets: 0, texturedBuildings: 0, balconies: 0, signs: 0, roadSegments: 0, triangles: 0, chunks: 0, meshes: 0 };
   const color = new THREE.Color();
   const matrix = new THREE.Matrix4();
   const normalMatrix = new THREE.Matrix3();
@@ -30,24 +49,33 @@ export function createWorldView(scene, map) {
   const scale = new THREE.Vector3();
   const vertex = new THREE.Vector3();
   const normal = new THREE.Vector3();
+  const edgeAB = new THREE.Vector3(), edgeAC = new THREE.Vector3();
+  const tintCache = new Map();
+  function setTint(tint) {
+    if (typeof tint !== 'number') { color.set(tint); return; }
+    if (!tintCache.has(tint)) tintCache.set(tint, new THREE.Color(tint));
+    color.copy(tintCache.get(tint));
+  }
   const opaque = new THREE.MeshLambertMaterial({ vertexColors: true });
   materials.push(opaque);
+  const waterMaterial=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.3,metalness:.18});
+  materials.push(waterMaterial);
+  const glazing = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.16, metalness: 0 });
+  materials.push(glazing);
   let roadMaterial = opaque;
   if (typeof document !== 'undefined') {
     const canvas = document.createElement('canvas');
-    canvas.width = 64; canvas.height = 64;
+    canvas.width = ROAD_TEXTURE_SIZE; canvas.height = ROAD_TEXTURE_SIZE;
     const context = canvas.getContext('2d');
-    const pixels = context.createImageData(64, 64);
-    for (let i = 0; i < pixels.data.length; i += 4) {
-      const tone = 237 + Math.floor(hash(i) * 18);
-      pixels.data[i] = pixels.data[i + 1] = pixels.data[i + 2] = tone;
-      pixels.data[i + 3] = 255;
-    }
+    const pixels = context.createImageData(ROAD_TEXTURE_SIZE, ROAD_TEXTURE_SIZE);
+    pixels.data.set(createRoadPixels());
     context.putImageData(pixels, 0, 0);
     const texture = new THREE.CanvasTexture(canvas);
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.colorSpace = THREE.SRGBColorSpace;
     textures.push(texture);
+    // Dry asphalt and concrete are matte: share one diffuse sample and keep
+    // pavement on the same inexpensive lighting model as the opaque batch.
     roadMaterial = new THREE.MeshLambertMaterial({ map: texture, vertexColors: true });
     materials.push(roadMaterial);
   }
@@ -55,28 +83,15 @@ export function createWorldView(scene, map) {
   let surfaceMaterial = opaque;
   if (typeof document !== 'undefined') {
     const canvas = document.createElement('canvas');
-    canvas.width = 512; canvas.height = 512;
+    canvas.width = SURFACE_TEXTURE_SIZE; canvas.height = SURFACE_TEXTURE_SIZE;
     const context = canvas.getContext('2d');
-    const pixels = context.createImageData(512, 512);
-    for (let y = 0; y < 512; y++) for (let x = 0; x < 512; x++) {
-      const kind = (x >= 256 ? 1 : 0) + (y < 256 ? 2 : 0);
-      const px = x % 256, py = y % 256, noise = hash(x + y * 513);
-      let tone = 238 + noise * 15;
-      if (kind === 0) {
-        const row = Math.floor(py / 16), joint = py % 16 < 2 || (px + row % 2 * 32) % 64 < 2;
-        tone = joint ? 194 : 220 + hash(Math.floor((px + row % 2 * 32) / 64) + row * 19) * 26 + noise * 8;
-      } else if (kind === 2) {
-        const tile = (px + Math.floor(py / 32) % 2 * 16) % 32;
-        tone = py % 32 < 3 ? 165 : 205 + Math.cos(tile / 32 * Math.PI * 2) * 15 + noise * 13;
-      } else if (kind === 3) tone = 224 + noise * 29 - (px % 7 === 0 && py % 11 < 4 ? 16 : 0);
-      const i = (y * 512 + x) * 4;
-      pixels.data[i] = pixels.data[i + 1] = pixels.data[i + 2] = tone; pixels.data[i + 3] = 255;
-    }
+    const pixels = context.createImageData(SURFACE_TEXTURE_SIZE, SURFACE_TEXTURE_SIZE);
+    pixels.data.set(createSurfacePixels());
     context.putImageData(pixels, 0, 0);
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace; texture.anisotropy = 4;
     textures.push(texture);
-    surfaceMaterial = new THREE.MeshLambertMaterial({ map: texture, vertexColors: true });
+    surfaceMaterial = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.92, metalness: 0, vertexColors: true });
     surfaceMaterial.onBeforeCompile = shader => {
       shader.vertexShader = 'attribute float surfaceKind; varying float vSurfaceKind;\n' + shader.vertexShader;
       shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvSurfaceKind = surfaceKind;');
@@ -84,26 +99,35 @@ export function createWorldView(scene, map) {
       shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
         float surfaceIndex = floor(vSurfaceKind + 0.5);
         vec2 atlasOffset = vec2(mod(surfaceIndex, 2.0), floor(surfaceIndex / 2.0)) * 0.5;
-        vec2 atlasUv = fract(vMapUv) * 0.48 + atlasOffset + 0.01;
+        vec2 atlasUv = fract(vMapUv) * ${ATLAS_SPAN} + atlasOffset + ${ATLAS_INSET};
         diffuseColor *= texture2D(map, atlasUv);
       `);
     };
-    surfaceMaterial.customProgramCacheKey = () => 'capital-surface-atlas-v1';
+    surfaceMaterial.customProgramCacheKey = () => 'capital-surface-atlas-gutter-v3';
     materials.push(surfaceMaterial);
   }
   const shadowMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false });
   materials.push(shadowMaterial);
 
-  function heightAt(x, z) {
-    if (!terrain || terrain.cols < 2 || terrain.rows < 2 || !terrain.heights?.length) return 0;
-    const tx = THREE.MathUtils.clamp((x - terrain.minX) / (terrain.maxX - terrain.minX), 0, 1) * (terrain.cols - 1);
-    const tz = THREE.MathUtils.clamp((z - terrain.minZ) / (terrain.maxZ - terrain.minZ), 0, 1) * (terrain.rows - 1);
-    const ix = Math.min(terrain.cols - 2, Math.floor(tx));
-    const iz = Math.min(terrain.rows - 2, Math.floor(tz));
-    const fx = tx - ix, fz = tz - iz;
-    const at = (a, b) => Number(terrain.heights[b * terrain.cols + a]) || 0;
-    return THREE.MathUtils.lerp(THREE.MathUtils.lerp(at(ix, iz), at(ix + 1, iz), fx),
-      THREE.MathUtils.lerp(at(ix, iz + 1), at(ix + 1, iz + 1), fx), fz);
+  const {heightAt,groundHeightAt,roadHeightAt,vehicleHeightAt}=createTerrainSampler(map);
+
+  const keyAt = (x, z) => `${Math.floor(x / CHUNK_SIZE)},${Math.floor(z / CHUNK_SIZE)}`;
+  function deferSource(x, z, draw, extent) {
+    if (!streaming || !preparing) { draw(); return; }
+    const box = extent || [x, z, x, z];
+    for (let cx = Math.floor(box[0] / CHUNK_SIZE); cx <= Math.floor(box[2] / CHUNK_SIZE); cx++) {
+      for (let cz = Math.floor(box[1] / CHUNK_SIZE); cz <= Math.floor(box[3] / CHUNK_SIZE); cz++) {
+        const key = `${cx},${cz}`;
+        if (!sources.has(key)) sources.set(key, []);
+        sources.get(key).push(draw);
+      }
+    }
+  }
+  const owns = (x, z) => !streaming || keyAt(x, z) === targetKey;
+  function gridRange(origin, step, count, axis) {
+    if (!targetBounds) return [0, count];
+    return [Math.max(0, Math.floor((targetBounds[axis] - origin) / step)),
+      Math.min(count, Math.ceil((targetBounds[axis + 2] - origin) / step))];
   }
 
   function chunkAt(x, z) {
@@ -119,16 +143,18 @@ export function createWorldView(scene, map) {
   }
 
   function batchAt(x, z, kind = 'solid') {
+    if (streaming && !owns(x, z)) return null;
     const chunk = chunkAt(x, z);
     if (!chunk.batches.has(kind)) chunk.batches.set(kind, { positions: [], normals: [], colors: [], uvs: [], kinds: [] });
     return chunk.batches.get(kind);
   }
 
   function triangle(batch, a, b, c, tint, uv) {
-    const ab = new THREE.Vector3(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
-    const ac = new THREE.Vector3(c[0] - a[0], c[1] - a[1], c[2] - a[2]);
-    normal.crossVectors(ab, ac).normalize();
-    color.set(tint);
+    if (!batch) return;
+    edgeAB.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    edgeAC.set(c[0] - a[0], c[1] - a[1], c[2] - a[2]);
+    normal.crossVectors(edgeAB, edgeAC).normalize();
+    setTint(tint);
     for (const p of [a, b, c]) {
       batch.positions.push(...p);
       batch.normals.push(normal.x, normal.y, normal.z);
@@ -145,11 +171,15 @@ export function createWorldView(scene, map) {
 
   function surfaceTriangle(x, z, a, b, c, tint, kind, uv) {
     const batch = batchAt(x, z, 'surface');
+    if (!batch) return;
     triangle(batch, a, b, c, tint, uv || [a[0] / 3, a[2] / 3, b[0] / 3, b[2] / 3, c[0] / 3, c[2] / 3]);
     batch.kinds.push(kind, kind, kind);
   }
   function softShadow(x, z, rx, rz, strength = 0.12) {
+    if (lowGraphics) return;
+    if (preparing) { deferSource(x, z, () => softShadow(x, z, rx, rz, strength)); return; }
     const batch = batchAt(x, z, 'shadow');
+    if (!batch) return;
     for (let i = 0; i < 10; i++) {
       const points = [[x, z], [x + Math.cos(i / 10 * Math.PI * 2) * rx, z + Math.sin(i / 10 * Math.PI * 2) * rz],
         [x + Math.cos((i + 1) / 10 * Math.PI * 2) * rx, z + Math.sin((i + 1) / 10 * Math.PI * 2) * rz]];
@@ -162,7 +192,9 @@ export function createWorldView(scene, map) {
   }
 
   function primitive(geometry, x, y, z, sx, sy, sz, tint, yaw = 0) {
+    if (preparing) { deferSource(x, z, () => primitive(geometry, x, y, z, sx, sy, sz, tint, yaw)); return; }
     const batch = batchAt(x, z);
+    if (!batch) return;
     position.set(x, y, z);
     scale.set(sx, sy, sz);
     quaternion.setFromAxisAngle(up, yaw);
@@ -170,7 +202,7 @@ export function createWorldView(scene, map) {
     normalMatrix.getNormalMatrix(matrix);
     const p = geometry.attributes.position;
     const n = geometry.attributes.normal;
-    color.set(tint);
+    setTint(tint);
     for (let i = 0; i < p.count; i++) {
       vertex.fromBufferAttribute(p, i).applyMatrix4(matrix);
       normal.fromBufferAttribute(n, i).applyMatrix3(normalMatrix).normalize();
@@ -191,51 +223,102 @@ export function createWorldView(scene, map) {
   const trunk = geometry(new THREE.CylinderGeometry(0.65, 1, 1, 5));
   const crown = geometry(new THREE.IcosahedronGeometry(1, 0));
   const leafCrown = geometry(new THREE.IcosahedronGeometry(1, 1));
+  // Radial normals smooth the existing low-poly crowns without extra vertices.
+  for (const foliage of [crown, leafCrown]) {
+    const p = foliage.attributes.position, n = foliage.attributes.normal;
+    for (let i = 0; i < p.count; i++) {
+      normal.fromBufferAttribute(p, i).normalize(); n.setXYZ(i, normal.x, normal.y, normal.z);
+    }
+  }
 
   function hash(n) {
     const a = Math.sin(n * 127.1 + 311.7) * 43758.5453;
     return a - Math.floor(a);
   }
 
-  function groundPolygon(points, tint, lift = 0.018) {
-    if (!points || points.length < 3) return;
-    const level = Math.min(...points.map(p => heightAt(...p))) + lift;
-    const shape = points.map(p => new THREE.Vector2(p[0], p[1]));
-    const faces = THREE.ShapeUtils.triangulateShape(shape, []);
-    const batch = batchAt(points[0][0], points[0][1]);
-    for (const face of faces) {
-      const p = face.map(i => [points[i][0], level, points[i][1]]);
-      if ((p[1][0] - p[0][0]) * (p[2][2] - p[0][2]) - (p[1][2] - p[0][2]) * (p[2][0] - p[0][0]) > 0) p.reverse();
-      triangle(batch, ...p, tint);
+  function groundPolygon(area, tint, lift = 0.018) {
+    const openRing=ring=>ring.length>1&&ring[0][0]===ring.at(-1)[0]&&ring[0][1]===ring.at(-1)[1]?ring.slice(0,-1):ring;
+    const points=area.points&&openRing(area.points);
+    if(!points||points.length<3)return;
+    const lake=area.id==='osm-relation-3400115-0';
+    const level=lake?(map.lakeWaterLevel??5.93):Math.min(...points.map(p=>groundHeightAt(...p)))+lift;
+    const rings=(area.innerRings||[]).map(r=>openRing(r.points||r)).filter(r=>r.length>=3);
+    const flat=[...points,...rings.flat()];
+    const faces=THREE.ShapeUtils.triangulateShape(points.map(p=>new THREE.Vector2(...p)),rings.map(r=>r.map(p=>new THREE.Vector2(...p))));
+    function tile(a,b,c,depth=0){
+      if (targetBounds && (Math.max(a[0],b[0],c[0]) < targetBounds[0] || Math.min(a[0],b[0],c[0]) >= targetBounds[2] || Math.max(a[1],b[1],c[1]) < targetBounds[1] || Math.min(a[1],b[1],c[1]) >= targetBounds[3])) return;
+      const edges=[[a,b,c],[b,c,a],[c,a,b]].sort((u,v)=>Math.hypot(v[0][0]-v[1][0],v[0][1]-v[1][1])-Math.hypot(u[0][0]-u[1][0],u[0][1]-u[1][1]));
+      const [p,q,r]=edges[0];
+      if(depth<10&&Math.hypot(p[0]-q[0],p[1]-q[1])>180){const mid=[(p[0]+q[0])/2,(p[1]+q[1])/2];tile(p,mid,r,depth+1);tile(mid,q,r,depth+1);return;}
+      const vertices=[a,b,c].map(p=>[p[0],level,p[1]]);
+      if((b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])>0)vertices.reverse();
+      const x=(a[0]+b[0]+c[0])/3,z=(a[1]+b[1]+c[1])/3;
+      triangle(batchAt(x,z,'water'),...vertices,tint);
     }
+    for(const face of faces)tile(...face.map(i=>flat[i]));
   }
 
   // Match bilinear terrain cells. Adaptive subdivision bounds the difference
   // between the rendered triangles and heightAt to under eight centimetres.
   function terrainTile(x, z, dx, dz) {
     const shade = new THREE.Color(COLORS.grass).multiplyScalar(0.98 + hash(x + z * 0.3) * 0.04);
-    const point = (px, pz) => [px, heightAt(px, pz) - 0.18, pz];
+    const point = (px, pz) => [px, groundHeightAt(px, pz) - 0.18, pz];
     const a = point(x, z), b = point(x, z + dz), c = point(x + dx, z + dz), d = point(x + dx, z);
     surfaceTriangle(x, z, a, b, c, shade, 3); surfaceTriangle(x, z, a, c, d, shade, 3);
   }
-  if (terrain?.cols > 1 && terrain?.rows > 1) {
-    const dx = (terrain.maxX - terrain.minX) / (terrain.cols - 1);
-    const dz = (terrain.maxZ - terrain.minZ) / (terrain.rows - 1);
-    for (let iz = 0; iz < terrain.rows - 1; iz++) for (let ix = 0; ix < terrain.cols - 1; ix++) {
-      const x = terrain.minX + ix * dx, z = terrain.minZ + iz * dz;
-      const mixed = Math.abs(heightAt(x, z) + heightAt(x + dx, z + dz) - heightAt(x + dx, z) - heightAt(x, z + dz));
-      const divisions = Math.max(Math.max(dx, dz) > 28 ? 2 : 1, Math.ceil(Math.sqrt(mixed / 0.28)));
-      for (let j = 0; j < divisions; j++) for (let i = 0; i < divisions; i++) terrainTile(x + i * dx / divisions, z + j * dz / divisions, dx / divisions, dz / divisions);
+  function drawTerrain() {
+    if (terrain?.cols > 1 && terrain?.rows > 1) {
+      const dx = (terrain.maxX - terrain.minX) / (terrain.cols - 1);
+      const dz = (terrain.maxZ - terrain.minZ) / (terrain.rows - 1);
+      const [ix0, ix1] = gridRange(terrain.minX, dx, terrain.cols - 1, 0);
+      const [iz0, iz1] = gridRange(terrain.minZ, dz, terrain.rows - 1, 1);
+      for (let iz = iz0; iz < iz1; iz++) for (let ix = ix0; ix < ix1; ix++) {
+        const x = terrain.minX + ix * dx, z = terrain.minZ + iz * dz;
+        const mixed = Math.abs(groundHeightAt(x, z) + groundHeightAt(x + dx, z + dz) - groundHeightAt(x + dx, z) - groundHeightAt(x, z + dz));
+        const divisions = Math.max(Math.max(dx, dz) > 28 ? 2 : 1, Math.ceil(Math.sqrt(mixed / 0.28)));
+        for (let j = 0; j < divisions; j++) for (let i = 0; i < divisions; i++) terrainTile(x + i * dx / divisions, z + j * dz / divisions, dx / divisions, dz / divisions);
+      }
+    } else {
+      const [ix0, ix1] = gridRange(bounds.minX, 35, Math.ceil((bounds.maxX - bounds.minX) / 35), 0);
+      const [iz0, iz1] = gridRange(bounds.minZ, 35, Math.ceil((bounds.maxZ - bounds.minZ) / 35), 1);
+      for (let iz = iz0; iz < iz1; iz++) for (let ix = ix0; ix < ix1; ix++) terrainTile(bounds.minX + ix * 35, bounds.minZ + iz * 35, 35, 35);
     }
-  } else {
-    for (let z = bounds.minZ; z < bounds.maxZ; z += 35) for (let x = bounds.minX; x < bounds.maxX; x += 35) terrainTile(x, z, 35, 35);
+    for(const tile of map.terrainTiles||[]){
+      const dx=(tile.maxX-tile.minX)/(tile.cols-1),dz=(tile.maxZ-tile.minZ)/(tile.rows-1);
+      const [ix0, ix1] = gridRange(tile.minX, dx, tile.cols - 1, 0);
+      const [iz0, iz1] = gridRange(tile.minZ, dz, tile.rows - 1, 1);
+      for(let iz=iz0;iz<iz1;iz++)for(let ix=ix0;ix<ix1;ix++){
+        const x=tile.minX+ix*dx,z=tile.minZ+iz*dz;
+        if(!terrain){terrainTile(x,z,dx,dz);continue;}
+        // Draw the cell outside the complete base rectangle. Left/right bands
+        // own the corners; north/south strips use only the overlapping x span.
+        // This retains the original north cells and also supports east tiles.
+        const endX=x+dx,endZ=z+dz;
+        const left=Math.min(endX,terrain.minX),right=Math.max(x,terrain.maxX);
+        if(left-x>1e-8)terrainTile(x,z,left-x,dz);
+        if(endX-right>1e-8)terrainTile(right,z,endX-right,dz);
+        const middleX=Math.max(x,terrain.minX),middleEnd=Math.min(endX,terrain.maxX);
+        if(middleEnd-middleX<=1e-8)continue;
+        const middleWidth=middleX===x&&middleEnd===endX?dx:middleEnd-middleX;
+        const northEnd=Math.min(endZ,terrain.minZ),southStart=Math.max(z,terrain.maxZ);
+        if(northEnd-z>1e-8)terrainTile(middleX,z,middleWidth,northEnd-z);
+        if(endZ-southStart>1e-8)terrainTile(middleX,southStart,middleWidth,endZ-southStart);
+      }
+    }
+    const [outerX0, outerX1] = gridRange(bounds.minX - 245, 35, Math.ceil((bounds.maxX - bounds.minX + 490) / 35), 0);
+    const [outerZ0, outerZ1] = gridRange(bounds.minZ - 245, 35, Math.ceil((bounds.maxZ - bounds.minZ + 490) / 35), 1);
+    for (let iz = outerZ0; iz < outerZ1; iz++) for (let ix = outerX0; ix < outerX1; ix++) {
+      const x = bounds.minX - 245 + ix * 35, z = bounds.minZ - 245 + iz * 35;
+      if (x < bounds.minX || z < bounds.minZ || x >= bounds.maxX || z >= bounds.maxZ) terrainTile(x, z, 35, 35);
+    }
   }
-  for (let z = bounds.minZ - 245; z < bounds.maxZ + 245; z += 35) for (let x = bounds.minX - 245; x < bounds.maxX + 245; x += 35) {
-    if (x < bounds.minX || z < bounds.minZ || x >= bounds.maxX || z >= bounds.maxZ) terrainTile(x, z, 35, 35);
-  }
+  if (!streaming) drawTerrain();
   // Grass polygons cannot be draped with boundary-only triangles on a hill.
   // Terrain already supplies grass; reserve overlays for the water itself.
-  for (const area of map.areas || []) if (/water|lake|basin/.test(area.type)) groundPolygon(area.points, 0x658b8f, -0.12);
+  for (const area of map.areas || []) if (/water|lake|basin/.test(area.type) && area.points?.length) {
+    const p = area.points, xs = p.map(v => v[0]), zs = p.map(v => v[1]);
+    deferSource(p[0][0], p[0][1], () => groundPolygon(area, 0x547b82, -0.12), [Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs)]);
+  }
 
   // Spatial indices keep avenue placement linear in the size of the map.
   const roadCells = new Map(), buildingCells = new Map();
@@ -272,12 +355,12 @@ export function createWorldView(scene, map) {
 
   const nodes = new Map();
   for (const road of map.roads || []) {
-    const width = Math.max(3.2, Number(road.width) || 7);
+    const profile = roadProfile(road), width = profile.driveWidth;
     for (let i = 1; i < road.points.length; i++) {
       const a = road.points[i - 1], b = road.points[i];
       const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
       if (length < 0.2) continue;
-      const segment = { a, b, road, width, length };
+      const segment = { a, b, road, width, length, profile };
       roadSegments.push(segment);
       indexBounds(roadCells, segment, Math.min(a[0], b[0]) - width - 5, Math.min(a[1], b[1]) - width - 5,
         Math.max(a[0], b[0]) + width + 5, Math.max(a[1], b[1]) + width + 5);
@@ -291,24 +374,25 @@ export function createWorldView(scene, map) {
   }
 
   // Subdivide only where a road triangle would cut through a bilinear hill.
-  function drapedTriangle(batch, a, b, c, tint, lift, depth = 0) {
+  function drapedTriangle(batch, a, b, c, tint, lift, sampleHeight = heightAt, depth = 0) {
     const middle = (p, q) => {
       const x = (p[0] + q[0]) / 2, z = (p[2] + q[2]) / 2;
-      return [x, heightAt(x, z) + lift, z];
+      return [x, sampleHeight(x, z) + lift, z];
     };
     const ab = middle(a, b), bc = middle(b, c), ca = middle(c, a);
     const x = (a[0] + b[0] + c[0]) / 3, z = (a[2] + b[2] + c[2]) / 3;
     const error = Math.max(Math.abs(ab[1] - (a[1] + b[1]) / 2), Math.abs(bc[1] - (b[1] + c[1]) / 2),
-      Math.abs(ca[1] - (c[1] + a[1]) / 2), Math.abs(heightAt(x, z) + lift - (a[1] + b[1] + c[1]) / 3));
+      Math.abs(ca[1] - (c[1] + a[1]) / 2), Math.abs(sampleHeight(x, z) + lift - (a[1] + b[1] + c[1]) / 3));
     if (depth < 4 && error > 0.045) {
-      drapedTriangle(batch, a, ab, ca, tint, lift, depth + 1);
-      drapedTriangle(batch, ab, b, bc, tint, lift, depth + 1);
-      drapedTriangle(batch, ca, bc, c, tint, lift, depth + 1);
-      drapedTriangle(batch, ab, bc, ca, tint, lift, depth + 1);
+      drapedTriangle(batch, a, ab, ca, tint, lift, sampleHeight, depth + 1);
+      drapedTriangle(batch, ab, b, bc, tint, lift, sampleHeight, depth + 1);
+      drapedTriangle(batch, ca, bc, c, tint, lift, sampleHeight, depth + 1);
+      drapedTriangle(batch, ab, bc, ca, tint, lift, sampleHeight, depth + 1);
     } else triangle(batch, a, b, c, tint);
   }
 
-  function ribbon(a, b, left, right, tint, lift) {
+  function ribbon(a, b, left, right, tint, lift, road) {
+    const sampleHeight = road ? (x,z)=>roadHeightAt(road,x,z) : heightAt;
     const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
     if (length < 0.1) return;
     const nx = -(b[1] - a[1]) / length, nz = (b[0] - a[0]) / length;
@@ -317,58 +401,92 @@ export function createWorldView(scene, map) {
       const t0 = i / pieces, t1 = (i + 1) / pieces;
       const x0 = THREE.MathUtils.lerp(a[0], b[0], t0), z0 = THREE.MathUtils.lerp(a[1], b[1], t0);
       const x1 = THREE.MathUtils.lerp(a[0], b[0], t1), z1 = THREE.MathUtils.lerp(a[1], b[1], t1);
-      const p = (x, z, d) => [x + nx * d, heightAt(x + nx * d, z + nz * d) + lift, z + nz * d];
+      const p = (x, z, d) => [x + nx * d, sampleHeight(x + nx * d, z + nz * d) + lift, z + nz * d];
       const batch = batchAt(x0, z0, tint === COLORS.asphalt ? 'road' : 'pavement');
+      if (!batch) continue;
       const pa = p(x0, z0, right), pb = p(x1, z1, right), pc = p(x1, z1, left), pd = p(x0, z0, left);
-      drapedTriangle(batch, pa, pb, pc, tint, lift);
-      drapedTriangle(batch, pa, pc, pd, tint, lift);
+      drapedTriangle(batch, pa, pb, pc, tint, lift, sampleHeight);
+      drapedTriangle(batch, pa, pc, pd, tint, lift, sampleHeight);
     }
   }
-  for (const s of roadSegments) {
+  function drawRoad(s) {
+    const roadRibbon=(...args)=>ribbon(...args,s.road);
     const half = s.width / 2;
     // Side strips avoid hidden duplicate pavement under the entire carriageway.
     const residentialPath = s.road.type === 'residential';
-    const pathWidth = residentialPath ? 1.45 : 2;
-    ribbon(s.a, s.b, -half - pathWidth, -half - 0.18, residentialPath ? 0xb7b59c : COLORS.path, 0.045);
-    ribbon(s.a, s.b, half + 0.18, half + pathWidth, COLORS.path, 0.045);
-    ribbon(s.a, s.b, -half - 0.18, -half, COLORS.kerb, 0.065);
-    ribbon(s.a, s.b, half, half + 0.18, COLORS.kerb, 0.065);
-    ribbon(s.a, s.b, -half, half, COLORS.asphalt, 0.083);
-    const marked = s.width >= 7 && !/service|living_street|footway|path|track/.test(s.road.type);
+    const pathWidth = s.profile.pavementWidth;
+    const kerbWidth = s.profile.hasKerb ? 0.18 : 0;
+    if (pathWidth > 0) {
+      if (s.profile.sidewalkLeft) roadRibbon(s.a, s.b, -half - kerbWidth - pathWidth, -half - kerbWidth, residentialPath ? 0xb7b59c : COLORS.path, 0.045);
+      if (s.profile.sidewalkRight) roadRibbon(s.a, s.b, half + kerbWidth, half + kerbWidth + pathWidth, COLORS.path, 0.045);
+    }
+    if (kerbWidth) {
+      roadRibbon(s.a, s.b, -half - kerbWidth, -half, COLORS.kerb, 0.065);
+      roadRibbon(s.a, s.b, half, half + kerbWidth, COLORS.kerb, 0.065);
+    }
+    roadRibbon(s.a, s.b, -half, half, COLORS.asphalt, 0.083);
+    const marked = s.profile.markings;
     const schoolAnchor = (map.landmarks || []).find(l => l.id === 'telopea');
     const schoolApproach = schoolAnchor && /New South Wales Crescent/i.test(s.road.name || '') && Math.hypot((s.a[0] + s.b[0]) / 2 - schoolAnchor.x, (s.a[1] + s.b[1]) / 2 - schoolAnchor.z) < 350;
     if (marked && schoolApproach) {
-      ribbon(s.a, s.b, -0.2, -0.09, COLORS.paint, 0.105);
-      ribbon(s.a, s.b, 0.09, 0.2, COLORS.paint, 0.105);
+      roadRibbon(s.a, s.b, -0.2, -0.09, COLORS.paint, 0.105);
+      roadRibbon(s.a, s.b, 0.09, 0.2, COLORS.paint, 0.105);
     } else if (marked) {
       const dx = (s.b[0] - s.a[0]) / s.length, dz = (s.b[1] - s.a[1]) / s.length;
-      for (let d = 8; d < s.length - 6; d += 12) {
-        ribbon([s.a[0] + dx * d, s.a[1] + dz * d], [s.a[0] + dx * Math.min(d + 3, s.length - 6), s.a[1] + dz * Math.min(d + 3, s.length - 6)], -0.065, 0.065, COLORS.paint, 0.105);
+      const offsets = roadMarkingOffsets(s.road, s.profile);
+      for (const offset of offsets) for (let d = 8; d < s.length - 6; d += 12) {
+        roadRibbon([s.a[0] + dx * d, s.a[1] + dz * d], [s.a[0] + dx * Math.min(d + 3, s.length - 6), s.a[1] + dz * Math.min(d + 3, s.length - 6)], offset - .065, offset + .065, COLORS.paint, 0.105);
       }
+      if (s.profile.major) for (const side of [-1, 1]) roadRibbon(s.a, s.b, side * (half - .25) - .06, side * (half - .25) + .06, COLORS.paint, .105);
     }
     counters.roadSegments++;
   }
+  for (const s of roadSegments) {
+    const margin = s.width + s.profile.pavementWidth + 6;
+    deferSource(s.a[0], s.a[1], () => drawRoad(s), [Math.min(s.a[0],s.b[0])-margin, Math.min(s.a[1],s.b[1])-margin, Math.max(s.a[0],s.b[0])+margin, Math.max(s.a[1],s.b[1])+margin]);
+  }
 
+  function nodeSurfaces(node) {
+    const surfaces=[];
+    for(const road of node.roads.values()) {
+      const y=roadHeightAt(road,node.x,node.z),width=roadProfile(road).driveWidth;
+      const previous=surfaces.find(item=>Math.abs(item.y-y)<.02);
+      if(!previous)surfaces.push({road,y,width});
+      else if(width>previous.width)Object.assign(previous,{road,y,width});
+    }
+    return surfaces.map(item=>item.road);
+  }
   // A small apron joins consecutive road segments at every bend, including
   // nodes on a single named way, rather than only named intersections.
   for (const node of nodes.values()) {
-    const radius = node.width / 2;
-    const batch = batchAt(node.x, node.z, 'road');
-    for (let i = 0; i < 10; i++) {
-      const p = a => [node.x + Math.cos(a) * radius, heightAt(node.x + Math.cos(a) * radius, node.z + Math.sin(a) * radius) + 0.09, node.z + Math.sin(a) * radius];
-      drapedTriangle(batch, [node.x, heightAt(node.x, node.z) + 0.09, node.z], p((i + 1) / 10 * Math.PI * 2), p(i / 10 * Math.PI * 2), COLORS.asphalt, 0.09);
-    }
+    deferSource(node.x, node.z, () => {
+      for (const road of nodeSurfaces(node)) {
+      const sampleHeight=(x,z)=>roadHeightAt(road,x,z);
+      const radius = roadProfile(road).driveWidth / 2;
+      const batch = batchAt(node.x, node.z, 'road');
+      for (let i = 0; i < 10; i++) {
+        const p = a => [node.x + Math.cos(a) * radius, sampleHeight(node.x + Math.cos(a) * radius, node.z + Math.sin(a) * radius) + 0.09, node.z + Math.sin(a) * radius];
+        drapedTriangle(batch, [node.x, sampleHeight(node.x, node.z) + 0.09, node.z], p((i + 1) / 10 * Math.PI * 2), p(i / 10 * Math.PI * 2), COLORS.asphalt, 0.09, sampleHeight);
+      }
+      }
+    });
   }
   const intersections = [...nodes.values()].filter(n => n.roads.size > 1);
-  // Asphalt aprons cover the crossing footpaths where named streets meet.
+  // Keep junction fill inside the widest participating carriageway; enlarged
+  // discs used to turn small access junctions into broad asphalt plazas.
   for (const node of intersections) {
-    const radius = node.width / 2 + 2.1;
-    const batch = batchAt(node.x, node.z, 'road');
-    for (let i = 0; i < 12; i++) {
-      const a = i / 12 * Math.PI * 2, b = (i + 1) / 12 * Math.PI * 2;
-      const p = angle => [node.x + Math.cos(angle) * radius, heightAt(node.x + Math.cos(angle) * radius, node.z + Math.sin(angle) * radius) + 0.115, node.z + Math.sin(angle) * radius];
-      drapedTriangle(batch, [node.x, heightAt(node.x, node.z) + 0.115, node.z], p(b), p(a), COLORS.asphalt, 0.115);
-    }
+    deferSource(node.x, node.z, () => {
+      for (const road of nodeSurfaces(node)) {
+      const sampleHeight=(x,z)=>roadHeightAt(road,x,z);
+      const radius = roadProfile(road).driveWidth / 2;
+      const batch = batchAt(node.x, node.z, 'road');
+      for (let i = 0; i < 12; i++) {
+        const a = i / 12 * Math.PI * 2, b = (i + 1) / 12 * Math.PI * 2;
+        const p = angle => [node.x + Math.cos(angle) * radius, sampleHeight(node.x + Math.cos(angle) * radius, node.z + Math.sin(angle) * radius) + 0.115, node.z + Math.sin(angle) * radius];
+        drapedTriangle(batch, [node.x, sampleHeight(node.x, node.z) + 0.115, node.z], p(b), p(a), COLORS.asphalt, 0.115, sampleHeight);
+      }
+      }
+    });
   }
 
   for (const anchor of (map.landmarks || []).filter(l => /^(manuka|kingston)$/.test(l.id))) {
@@ -376,22 +494,25 @@ export function createWorldView(scene, map) {
     if (!node) continue;
     const segment = roadSegments.find(s => Math.hypot(s.a[0] - node.x, s.a[1] - node.z) < 3 && s.length > 28);
     if (!segment) continue;
-    const dx = (segment.b[0] - segment.a[0]) / segment.length, dz = (segment.b[1] - segment.a[1]) / segment.length;
-    const cx = node.x + dx * 15, cz = node.z + dz * 15, half = segment.width / 2 - 0.5;
-    ribbon([cx - dx * 1.9, cz - dz * 1.9], [cx + dx * 1.9, cz + dz * 1.9], -half, half, 0x986f58, 0.135);
-    for (let side = -half + 0.3; side < half; side += 0.8) {
-      ribbon([cx - dx * 1.5, cz - dz * 1.5], [cx + dx * 1.5, cz + dz * 1.5], side - 0.23, side + 0.23, COLORS.paint, 0.15);
-    }
-    const ix = node.x + dx * 7, iz = node.z + dz * 7, iy = heightAt(ix, iz);
-    primitive(box, ix, iy + 0.15, iz, 0.85, 0.3, 3.2, COLORS.kerb, Math.atan2(dx, dz));
-    primitive(box, ix, iy + 0.8, iz, 0.16, 1.2, 0.16, 0xe5e4d5);
-    primitive(box, ix, iy + 1.28, iz, 0.45, 0.45, 0.1, 0x527d94, Math.atan2(dx, dz));
+    deferSource(node.x, node.z, () => {
+      const dx = (segment.b[0] - segment.a[0]) / segment.length, dz = (segment.b[1] - segment.a[1]) / segment.length;
+      const cx = node.x + dx * 15, cz = node.z + dz * 15, half = segment.width / 2 - 0.5;
+      ribbon([cx - dx * 1.9, cz - dz * 1.9], [cx + dx * 1.9, cz + dz * 1.9], -half, half, 0x986f58, 0.135);
+      for (let side = -half + 0.3; side < half; side += 0.8) {
+        ribbon([cx - dx * 1.5, cz - dz * 1.5], [cx + dx * 1.5, cz + dz * 1.5], side - 0.23, side + 0.23, COLORS.paint, 0.15);
+      }
+      const ix = node.x + dx * 7, iz = node.z + dz * 7, iy = heightAt(ix, iz);
+      primitive(box, ix, iy + 0.15, iz, 0.85, 0.3, 3.2, COLORS.kerb, Math.atan2(dx, dz));
+      primitive(box, ix, iy + 0.8, iz, 0.16, 1.2, 0.16, 0xe5e4d5);
+      primitive(box, ix, iy + 1.28, iz, 0.45, 0.45, 0.1, 0x527d94, Math.atan2(dx, dz));
+    }, [node.x - 50, node.z - 50, node.x + 50, node.z + 50]);
   }
 
   const school = (map.landmarks || []).find(l => l.id === 'telopea');
   const polygonArea = points => Math.abs(points.reduce((sum, p, i) => { const q = points[(i + 1) % points.length]; return sum + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2;
   const schoolMain = school && (map.buildings || []).filter(b => /school|education/.test(b.type || '') && b.points?.length && Math.hypot(b.points[0][0] - school.x, b.points[0][1] - school.z) < 220).sort((a, b) => polygonArea(b.points) - polygonArea(a.points))[0];
   let schoolDetailed = false;
+  const coveredPassage = coveredCentrePassage(map);
   function buildingView(building, index) {
     let points = building.points;
     if (!points || points.length < 3) return;
@@ -399,25 +520,62 @@ export function createWorldView(scene, map) {
     const x = points.reduce((sum, p) => sum + p[0], 0) / points.length, z = points.reduce((sum, p) => sum + p[1], 0) / points.length;
     if (String(building.id).startsWith('osm-') && nearby(buildingCells, x, z).some(b => String(b.id).startsWith('act-') && inside(x, z, b.points))) return;
     const isSchool = school && Math.hypot(x - school.x, z - school.z) < (school.radius || 140) && !/residential|house|apartment|diplomatic/.test(building.type || '');
-    const shopping = (map.landmarks || []).some(l => /^(manuka|kingston|griffith|narrabundah)$/.test(l.id) && Math.hypot(x - l.x, z - l.z) < l.radius);
+    const shopping = Boolean(retailDistrict(map, x, z));
     const utility = /shed|garage|carport|roof/.test(building.type || '');
     const residential = !isSchool && !shopping && !/apartments|commercial|retail|industrial|school|public|office/.test(building.type || '');
-    const lowShop = shopping && /commercial|retail/.test(building.type || '') && String(building.id).startsWith('act-') && Number(building.height) <= 10;
+    const passage = building === coveredPassage?.building ? coveredPassage : null;
+    const lowShop = !passage && shopping && /commercial|retail/.test(building.type || '') && (Number(building.height) || 4) <= 10;
+    // Low keeps footprint walls, roof form and school identity. Ordinary bays
+    // use one coloured pane rather than layered frames, mullions and glazing.
+    const simpleFacade = lowGraphics && !isSchool;
     const height = Math.max(2.5, Math.min(50, building === schoolMain ? 7.8 : lowShop ? 3.9 : isSchool ? Math.min(7.8, Number(building.height) || 4.2) : Number(building.height) || (residential ? 3.8 : 7)));
     const floorHeights = points.map(p => heightAt(...p));
     const base = (isSchool ? floorHeights.reduce((a, b) => a + b, 0) / points.length : Math.max(...floorHeights)) + 0.12;
-    const footing = Math.min(...floorHeights) - 0.3;
+    const footing = passage ? base + passage.clearance : Math.min(...floorHeights) - 0.3;
+    if (passage) {
+      // Ground walls use exactly the same clipped polygons as physical contacts.
+      for (const part of passage.groundParts) for(let i=0;i<part.points.length;i++) {
+        const a=part.points[i],b=part.points[(i+1)%part.points.length];
+        const vertices=[[a[0],Math.min(...floorHeights)-.3,a[1]],[b[0],Math.min(...floorHeights)-.3,b[1]],
+          [b[0],footing,b[1]],[a[0],footing,a[1]]];
+        quad(batchAt(x,z),...vertices,building.color||0xc4bca9);
+        quad(batchAt(x,z),...vertices.slice().reverse(),building.color||0xc4bca9);
+      }
+      // A visible underside makes the actual 4.8m opening legible from the street.
+      const faces=THREE.ShapeUtils.triangulateShape(points.map(p=>new THREE.Vector2(...p)),[]);
+      for(const face of faces) {
+        const vertices=face.map(i=>[points[i][0],footing,points[i][1]]);
+        triangle(batchAt(x,z),...vertices,0x777d79);triangle(batchAt(x,z),...vertices.slice().reverse(),0x777d79);
+      }
+    }
+    if(building.type==='roof'){
+      const faces=THREE.ShapeUtils.triangulateShape(points.map(p=>new THREE.Vector2(...p)),[]);
+      for(const face of faces){
+        const p=face.map(i=>[points[i][0],base+height,points[i][1]]);
+        if((p[1][0]-p[0][0])*(p[2][2]-p[0][2])-(p[1][2]-p[0][2])*(p[2][0]-p[0][0])>0)p.reverse();
+        triangle(batchAt(x,z),...p,0x85887d);
+        triangle(batchAt(x,z),...p.slice().reverse(),0xaaa99a);
+      }
+      for(let i=0;i<points.length;i+=Math.max(1,Math.ceil(points.length/6))){
+        const p=points[i],ground=groundHeightAt(...p);
+        primitive(box,p[0],ground+(base+height-ground)/2,p[1],.16,base+height-ground,.16,0xaaa99a);
+      }
+      counters.buildings++;return;
+    }
+
     const signedArea = points.reduce((sum, p, i) => { const q = points[(i + 1) % points.length]; return sum + p[0] * q[1] - q[0] * p[1]; }, 0);
     const reverse = signedArea > 0;
-    const walls = isSchool ? 0xe0d2b4 : building.color || (residential ? [0xa97860, 0xc8b598, 0xddd4bd, 0x996e59, 0xbca68a][index % 5] : 0xc4bca9);
-    const roofColor = isSchool ? 0x9f5943 : residential ? [0x92604b, 0x686964, 0xa26e53, 0x726558][index % 4] : 0x777d79;
+    const character = suburbCharacter(map, x, z, building);
+    const apartment = /apartments/.test(building.type || '');
+    const walls = isSchool ? 0xe0d2b4 : lowShop ? 0xd6c9ae : building.color || (residential ? character.walls[index % character.walls.length] : 0xc4bca9);
+    const roofColor = isSchool ? 0x9f5943 : residential ? character.roofs[index % character.roofs.length] : 0x777d79;
     const wallKind = isSchool || index % 3 === 0 || !residential ? 1 : 0;
     const pitched = !utility && (isSchool || residential && height < 10) && building.roof !== 'flat';
     const batch = batchAt(x, z);
     const floors = Math.min(8, Math.max(1, Math.floor((height + 0.2) / 3.1)));
     const windowColumns = points.map((a, i) => {
       const b = points[(i + 1) % points.length], length = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      return utility || length < 3 ? 0 : Math.min(residential ? 7 : 16, Math.floor(length / (isSchool ? 3 : residential ? 3.8 : 3.2)));
+      return utility || length < 3 ? 0 : Math.min(simpleFacade ? 3 : residential ? 7 : 16, Math.floor(length / (isSchool ? 3 : residential ? 3.8 : 3.2)));
     });
     const eligibleSides = windowColumns.filter(Boolean).length;
     const columnBudget = Math.max(eligibleSides, Math.floor((residential ? 40 : 120) / floors));
@@ -432,7 +590,7 @@ export function createWorldView(scene, map) {
       shares.sort((a, b) => (b.share % 1) - (a.share % 1));
       for (const { index } of shares) if (unassigned && windowColumns[index]) { windowColumns[index]++; unassigned--; }
     }
-    function faceQuad(vertices, tint, detail = false) { quad(detail ? batchAt(x, z, 'detail') : batch, ...(reverse ? vertices.slice().reverse() : vertices), tint); }
+    function faceQuad(vertices, tint, detail = false) { quad(detail ? batchAt(x, z, detail === 'glass' ? 'glass' : 'detail') : batch, ...(reverse ? vertices.slice().reverse() : vertices), tint); }
     for (let i = 0; i < points.length; i++) {
       const a = points[i], b = points[(i + 1) % points.length], length = Math.hypot(b[0] - a[0], b[1] - a[1]);
       if (length < 0.1) continue;
@@ -456,32 +614,47 @@ export function createWorldView(scene, map) {
         faceQuad([[a[0] + nx * offset, y0, a[1] + nz * offset], [b[0] + nx * offset, y0, b[1] + nz * offset],
           [b[0] + nx * offset, y1, b[1] + nz * offset], [a[0] + nx * offset, y1, a[1] + nz * offset]], tint);
       }
-      stripe(base, base + 0.26, 0.025, isSchool ? 0xb2a58a : 0x8a8172);
-      stripe(base + height - 0.18, base + height + 0.05, 0.1, isSchool ? 0xded4bc : 0xc1b9a6);
-      const eave = [[a[0], base + height - 0.05, a[1]], [b[0], base + height - 0.05, b[1]],
-        [b[0] + nx * 0.28, base + height - 0.05, b[1] + nz * 0.28], [a[0] + nx * 0.28, base + height - 0.05, a[1] + nz * 0.28]];
-      quad(batch, ...eave, 0x807c6d); quad(batch, ...eave.slice().reverse(), 0x807c6d);
+      if (!simpleFacade) {
+        if (!passage) stripe(base, base + 0.26, 0.025, isSchool ? 0xb2a58a : 0x8a8172);
+        stripe(base + height - 0.18, base + height + (lowShop ? 0.5 : 0.05), 0.1, isSchool ? 0xded4bc : lowShop ? 0xe0d5bf : 0xc1b9a6);
+        const eave = [[a[0], base + height - 0.05, a[1]], [b[0], base + height - 0.05, b[1]],
+          [b[0] + nx * 0.28, base + height - 0.05, b[1] + nz * 0.28], [a[0] + nx * 0.28, base + height - 0.05, a[1] + nz * 0.28]];
+        quad(batch, ...eave, 0x807c6d); quad(batch, ...eave.slice().reverse(), 0x807c6d);
+      }
       if (utility || length < 3) continue;
       const columns = windowColumns[i];
-      const bay = (u, v, halfWidth, halfHeight, offset, tint) => {
+      const bay = (u, v, halfWidth, halfHeight, offset, tint, glass = false) => {
         const cx = a[0] + ex * u + nx * offset, cz = a[1] + ez * u + nz * offset;
         faceQuad([[cx - ex * halfWidth, v - halfHeight, cz - ez * halfWidth], [cx + ex * halfWidth, v - halfHeight, cz + ez * halfWidth],
-          [cx + ex * halfWidth, v + halfHeight, cz + ez * halfWidth], [cx - ex * halfWidth, v + halfHeight, cz - ez * halfWidth]], tint, true);
+          [cx + ex * halfWidth, v + halfHeight, cz + ez * halfWidth], [cx - ex * halfWidth, v + halfHeight, cz - ez * halfWidth]], tint, glass ? 'glass' : true);
       };
       for (let row = 0; row < floors; row++) for (let col = 0; col < columns; col++) {
         const u = (col + 0.5) / columns * length, y = base + (isSchool ? 1.7 : 1.9) + row * (isSchool ? 3.55 : 3.0);
         const hw = Math.min(isSchool ? 1.0 : shopping && row === 0 ? 1.25 : 0.82, length / columns * 0.34);
+        if (passage && y - 1.3 < footing) continue;
         const hh = isSchool ? 0.95 : shopping && row === 0 ? 1.2 : 0.72;
+        if (simpleFacade) {
+          bay(u, y, hw, hh, 0.055, [0x586b79, 0x71818a, 0x485c6c][(row + col + index) % 3]);
+          counters.windows++;
+          continue;
+        }
         bay(u, y, hw + 0.09, hh + 0.1, 0.042, isSchool ? 0xe8dfc6 : 0xd4cec0);
-        bay(u, y, hw, hh, 0.055, [0x566d70, 0x627b7b, 0x4c656c][(row + col + index) % 3]);
-        bay(u, y + hh * 0.57, hw, hh * 0.18, 0.058, 0x8ba0a0);
+        bay(u, y, hw, hh, 0.055, [0x586b79, 0x71818a, 0x485c6c][(row + col + index) % 3], true);
+        bay(u, y + hh * 0.57, hw, hh * 0.18, 0.058, 0xa4b3bb);
         bay(u, y, 0.035, hh, 0.065, 0xc6c6b9);
         if (isSchool) bay(u, y - 0.08, hw, 0.035, 0.068, 0xc9cbbb);
+        // Streamed facade detail cannot depend on which districts loaded first.
+        if (apartment && row > 0 && col % 2 === 0 && length > 6 && (streaming || counters.balconies < 3000)) {
+          // Slab and opaque rail planes suggest recessed balcony rhythm cheaply.
+          bay(u, y - hh - 0.12, hw + 0.22, 0.07, 0.32, 0xbab4a5);
+          bay(u, y - hh + 0.32, hw + 0.22, 0.3, 0.38, 0x8a938b);
+          counters.balconies++;
+        }
         counters.windows++;
       }
-      if (shopping && length > 7 && length < 70) {
-        primitive(box, (a[0] + b[0]) / 2 + nx * 0.45, base + 3, (a[1] + b[1]) / 2 + nz * 0.45, 1.05, 0.18, length,
-          0x414b48, Math.atan2(ex, ez));
+      if (lowShop && length > 7 && length < 70) {
+        primitive(box, (a[0] + b[0]) / 2 + nx * 0.45, base + 3, (a[1] + b[1]) / 2 + nz * 0.45, 1.85, 0.18, length,
+          0x414743, Math.atan2(ex, ez));
       }
     }
     if (building === schoolMain) {
@@ -542,8 +715,8 @@ export function createWorldView(scene, map) {
       if (cross > 0) vertices.reverse();
       surfaceTriangle(x, z, ...vertices, roofColor, 2); counters.roofFacets++;
     }
-    for (const f of faces) roofTriangle(points[f[0]], points[f[1]], points[f[2]], pitched ? points.length <= 10 ? 2 : 1 : 0);
-    if (residential && !utility && index % 3 === 0) {
+    for (const f of faces) roofTriangle(points[f[0]], points[f[1]], points[f[2]], pitched ? simpleFacade ? 1 : points.length <= 10 ? 2 : 1 : 0);
+    if (!simpleFacade && residential && !utility && index % 3 === 0) {
       const top = roofHeight([x, z]);
       primitive(box, x, top + 0.4, z, 0.55, 1.0, 0.65, 0x9c7b61);
       primitive(box, x, top + 0.94, z, 0.7, 0.12, 0.8, 0x747366);
@@ -554,11 +727,35 @@ export function createWorldView(scene, map) {
     if (isSchool) schoolDetailed = true;
     counters.buildings++; counters.texturedBuildings++;
   }
-  (map.buildings || []).forEach(buildingView);
+  const landmarkBuildingIds = new Set(map.landmarkBuildingIds || []);
+  (map.buildings || []).forEach((building, index) => {
+    if (landmarkBuildingIds.has(building.id) || !building.points?.length) return;
+    const p = building.points, xs = p.map(v => v[0]), zs = p.map(v => v[1]);
+    const points = p.length > 3 && p[0][0] === p.at(-1)[0] && p[0][1] === p.at(-1)[1] ? p.slice(0, -1) : p;
+    const x = points.reduce((sum, v) => sum + v[0], 0) / points.length;
+    const z = points.reduce((sum, v) => sum + v[1], 0) / points.length;
+    deferSource(x, z, () => {
+      const before = { ...counters };
+      buildingView(building, index);
+      if (!owns(x, z)) for (const name of ['buildings', 'windows', 'roofFacets', 'texturedBuildings', 'balconies']) counters[name] = before[name];
+    }, [Math.min(...xs)-2, Math.min(...zs)-2, Math.max(...xs)+2, Math.max(...zs)+2]);
+  });
+
+  // Signs are indexed before streamed bodies are built. Resolve source campus
+  // presence now so a later district's load order cannot add extra sign posts.
+  if (streaming && school) schoolDetailed = (map.buildings || []).some(building => {
+    if (landmarkBuildingIds.has(building.id) || !building.points?.length || /residential|house|apartment|diplomatic/.test(building.type || '')) return false;
+    let points = building.points;
+    if (points.length > 3 && points[0][0] === points.at(-1)[0] && points[0][1] === points.at(-1)[1]) points = points.slice(0, -1);
+    const x = points.reduce((sum, p) => sum + p[0], 0) / points.length;
+    const z = points.reduce((sum, p) => sum + p[1], 0) / points.length;
+    return Math.hypot(x - school.x, z - school.z) < (school.radius || 140);
+  });
 
   // Each canopy is a small faceted crown, avoiding thousands of transparent leaves.
   const treeChunks = new Map(), treeCells = new Map();
   function tree(x, z, seed, park = false) {
+    if ((map.landmarkTreeExclusions || []).some(points => inside(x, z, points))) return;
     const chunkKey = `${Math.floor(x / CHUNK_SIZE)},${Math.floor(z / CHUNK_SIZE)}`;
     if (counters.trees >= 9000 || (treeChunks.get(chunkKey) || 0) >= 90) return;
     const treeKey = `${Math.floor(x / 12)},${Math.floor(z / 12)}`;
@@ -570,15 +767,19 @@ export function createWorldView(scene, map) {
     const eucalyptus = !avenue && seed % 3 !== 0, angle = hash(seed + 3) * Math.PI * 2;
     const leanX = Math.cos(angle) * h * 0.1, leanZ = Math.sin(angle) * h * 0.1;
     primitive(trunk, x, y + h * 0.31, z, 0.24 + h * 0.008, h * 0.62, 0.25, eucalyptus ? 0x8b8672 : 0x756b59);
-    primitive(trunk, x + leanX * 0.4, y + h * 0.58, z + leanZ * 0.4, 0.15, h * 0.3, 0.15, 0x8b8370, angle);
+    if (!lowGraphics) primitive(trunk, x + leanX * 0.4, y + h * 0.58, z + leanZ * 0.4, 0.15, h * 0.3, 0.15, 0x8b8370, angle);
     const foliage = eucalyptus ? [0x657d61, 0x71876b, 0x6a805f][seed % 3] : [0x647d48, 0x7c8b51, 0x70834c][seed % 3];
-    primitive(avenue ? leafCrown : crown, x + leanX, y + h * 0.8, z + leanZ, h * (park ? 0.38 : 0.32), h * (eucalyptus ? 0.29 : 0.32), h * 0.3, foliage, angle);
-    for (let i = 0; i < 2; i++) {
+    primitive(avenue && !lowGraphics ? leafCrown : crown, x + leanX, y + h * 0.8, z + leanZ, h * (park ? 0.38 : 0.32), h * (eucalyptus ? 0.29 : 0.32), h * 0.3, foliage, angle);
+    for (let i = 0; i < (lowGraphics ? 0 : 2); i++) {
       const a = angle + i * 2.6, r = h * 0.19;
       primitive(crown, x + leanX + Math.cos(a) * r, y + h * (0.67 + i * 0.15), z + leanZ + Math.sin(a) * r,
         h * 0.23, h * 0.22, h * 0.24, new THREE.Color(foliage).multiplyScalar(0.94 + i * 0.07), a);
     }
     softShadow(x + leanX * 0.5, z + leanZ * 0.5, h * 0.4, h * 0.34, 0.13);
+    if (preparing) deferSource(x, z, () => {
+      counters.trees++;
+      if (map.spawn && Math.hypot(x - map.spawn.x, z - map.spawn.z) < 250) counters.treesNearSpawn++;
+    });
     counters.trees++;
     if (map.spawn && Math.hypot(x - map.spawn.x, z - map.spawn.z) < 250) counters.treesNearSpawn++;
     treeCells.set(treeKey, true);
@@ -589,6 +790,7 @@ export function createWorldView(scene, map) {
   const anchorDistance = road => Math.min(...(map.landmarks || [map.spawn]).filter(Boolean).map(l => Math.hypot(road.points[0][0] - l.x, road.points[0][1] - l.z)));
   streetRoads.sort((a, b) => anchorDistance(a) - anchorDistance(b));
   for (const road of streetRoads) {
+    const profile = roadProfile(road);
     let untilNext = 8 + hash(seed++) * 18;
     for (let i = 1; i < road.points.length; i++) {
       const a = road.points[i - 1], b = road.points[i];
@@ -597,10 +799,10 @@ export function createWorldView(scene, map) {
       const dx = (b[0] - a[0]) / length, dz = (b[1] - a[1]) / length;
       while (untilNext < length) {
         for (const side of [-1, 1]) {
-          const offset = side * ((Number(road.width) || 7) / 2 + 5 + hash(seed) * 1.5);
+          const offset = side * (profile.driveWidth / 2 + profile.pavementWidth + 3.5 + hash(seed) * 1.5);
           tree(a[0] + dx * untilNext - dz * offset, a[1] + dz * untilNext + dx * offset, seed++);
         }
-        untilNext += 24 + hash(seed + 17) * 8;
+        untilNext += 33 + hash(seed + 17) * 11;
       }
       untilNext -= length;
     }
@@ -697,37 +899,40 @@ export function createWorldView(scene, map) {
     materials.push(signMaterial);
     for (const p of signPlacements) {
       if (p.label === undefined) continue;
-      const dx = Math.cos(p.yaw) * p.width / 2, dz = Math.sin(p.yaw) * p.width / 2;
-      const a = [p.x - dx, p.y - p.height / 2, p.z - dz], b = [p.x + dx, p.y - p.height / 2, p.z + dz];
-      const c = [b[0], p.y + p.height / 2, b[2]], d = [a[0], p.y + p.height / 2, a[2]];
-      const u0 = (p.label % 4) / 4, u1 = u0 + 0.25;
-      const v1 = 1 - Math.floor(p.label / 4) / 32, v0 = v1 - 1 / 32;
-      quad(batchAt(p.x, p.z, 'sign'), a, b, c, d, 0xffffff, [[u0, v0], [u1, v0], [u1, v1], [u0, v1]]);
-      counters.signs++;
+      deferSource(p.x, p.z, () => {
+        const dx = Math.cos(p.yaw) * p.width / 2, dz = Math.sin(p.yaw) * p.width / 2;
+        const a = [p.x - dx, p.y - p.height / 2, p.z - dz], b = [p.x + dx, p.y - p.height / 2, p.z + dz];
+        const c = [b[0], p.y + p.height / 2, b[2]], d = [a[0], p.y + p.height / 2, a[2]];
+        const u0 = (p.label % 4) / 4, u1 = u0 + 0.25;
+        const v1 = 1 - Math.floor(p.label / 4) / 32, v0 = v1 - 1 / 32;
+        quad(batchAt(p.x, p.z, 'sign'), a, b, c, d, 0xffffff, [[u0, v0], [u1, v0], [u1, v1], [u0, v1]]);
+        counters.signs++;
+      });
     }
   }
 
-  for (const chunk of chunks.values()) {
+  function compileChunk(chunk) {
     for (const [kind, batch] of chunk.batches) {
       if (!batch.positions.length) continue;
       const meshGeometry = new THREE.BufferGeometry();
       meshGeometry.setAttribute('position', new THREE.Float32BufferAttribute(batch.positions, 3));
-      meshGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(batch.normals, 3));
+      meshGeometry.setAttribute('normal', compactAttribute(batch.normals, 3, true));
       if (kind === 'sign') meshGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uvs, 2));
       else {
-        meshGeometry.setAttribute('color', new THREE.Float32BufferAttribute(batch.colors, kind === 'shadow' ? 4 : 3));
+        meshGeometry.setAttribute('color', compactAttribute(batch.colors, kind === 'shadow' ? 4 : 3));
         if (kind === 'surface') {
           meshGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uvs, 2));
-          meshGeometry.setAttribute('surfaceKind', new THREE.Float32BufferAttribute(batch.kinds, 1));
+          meshGeometry.setAttribute('surfaceKind', new THREE.Uint8BufferAttribute(batch.kinds, 1));
         }
-        if (kind === 'road') {
+        if (kind === 'road' || kind === 'pavement') {
           const uv = [];
-          for (let i = 0; i < batch.positions.length; i += 3) uv.push(batch.positions[i] / 6, batch.positions[i + 2] / 6);
+          for (let i = 0; i < batch.positions.length; i += 3) uv.push(batch.positions[i] / 2, batch.positions[i + 2] / 2);
           meshGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
         }
       }
       meshGeometry.computeBoundingSphere();
-      const mesh = new THREE.Mesh(meshGeometry, kind === 'sign' ? signMaterial : kind === 'road' ? roadMaterial : kind === 'surface' ? surfaceMaterial : kind === 'shadow' ? shadowMaterial : opaque);
+      for (const attribute of Object.values(meshGeometry.attributes)) counters.bufferBytes += attribute.array.byteLength;
+      const mesh = new THREE.Mesh(meshGeometry, kind === 'sign' ? signMaterial : (kind === 'road' || kind === 'pavement') ? roadMaterial : kind === 'surface' ? surfaceMaterial : kind === 'shadow' ? shadowMaterial : kind === 'glass' ? glazing : kind==='water'?waterMaterial:opaque);
       mesh.name = `Canberra ${kind}`;
       mesh.receiveShadow = false;
       mesh.castShadow = false;
@@ -739,19 +944,87 @@ export function createWorldView(scene, map) {
     // Release the temporary JavaScript arrays after uploading typed buffers.
     chunk.batches.clear();
   }
-  for (const g of temporaryGeometry) g.dispose();
+  if (!streaming) {
+    for (const chunk of chunks.values()) compileChunk(chunk);
+    for (const g of temporaryGeometry) g.dispose();
+  } else {
+    preparing = false;
+    for (const key of Object.keys(counters)) if (key !== 'lowGraphics') counters[key] = 0;
+    // The acceptance grids are construction-only. Rebuilds use the stable source recipes.
+    treeCells.clear(); treeChunks.clear();
+  }
   counters.chunks = chunks.size;
-  const stats = Object.freeze(counters);
-  let disposed = false;
+  let peakResidentBytes = counters.bufferBytes, loads = 0, evictions = 0;
+  let queue = [], lastCellX = NaN, lastCellZ = NaN, disposed = false;
+  const MAX_RESIDENT = 36, LOAD_RADIUS = 575, EVICT_RADIUS = 1050;
+  const countKeys = Object.keys(counters).filter(key => key !== 'lowGraphics' && key !== 'chunks');
+  function loadChunk(key) {
+    const [cx, cz] = key.split(',').map(Number);
+    targetKey = key;
+    targetBounds = [cx * CHUNK_SIZE, cz * CHUNK_SIZE, (cx + 1) * CHUNK_SIZE, (cz + 1) * CHUNK_SIZE];
+    const before = { ...counters };
+    // Empty source districts still contain terrain, so there are no blank holes.
+    const chunk = chunkAt(targetBounds[0], targetBounds[1]);
+    drawTerrain();
+    for (const draw of sources.get(key) || []) draw();
+    compileChunk(chunk);
+    chunk.counts = Object.fromEntries(countKeys.map(name => [name, counters[name] - before[name]]));
+    targetKey = targetBounds = null;
+    loads++;
+    peakResidentBytes = Math.max(peakResidentBytes, counters.bufferBytes);
+    counters.chunks = chunks.size;
+  }
+  function evictChunk(key) {
+    const chunk = chunks.get(key);
+    if (!chunk) return;
+    for (const mesh of chunk.group.children) mesh.geometry.dispose();
+    chunk.group.clear(); chunk.group.removeFromParent();
+    for (const name of countKeys) counters[name] -= chunk.counts[name];
+    chunks.delete(key);
+    counters.chunks = chunks.size;
+    evictions++;
+  }
+  function refreshQueue(x, z) {
+    const wanted = [];
+    const cx = Math.floor(x / CHUNK_SIZE), cz = Math.floor(z / CHUNK_SIZE);
+    for (let ix = cx - 3; ix <= cx + 3; ix++) for (let iz = cz - 3; iz <= cz + 3; iz++) {
+      const minX = ix * CHUNK_SIZE, minZ = iz * CHUNK_SIZE;
+      if (minX > bounds.maxX + 245 || minX + CHUNK_SIZE < bounds.minX - 245 || minZ > bounds.maxZ + 245 || minZ + CHUNK_SIZE < bounds.minZ - 245) continue;
+      const dx = Math.max(minX - x, 0, x - minX - CHUNK_SIZE), dz = Math.max(minZ - z, 0, z - minZ - CHUNK_SIZE);
+      if (Math.hypot(dx, dz) <= LOAD_RADIUS) wanted.push({ key: `${ix},${iz}`, distance: Math.hypot(minX + CHUNK_SIZE / 2 - x, minZ + CHUNK_SIZE / 2 - z) });
+    }
+    wanted.sort((a, b) => a.distance - b.distance);
+    queue = wanted.filter(item => !chunks.has(item.key)).map(item => item.key);
+  }
+  const statsSnapshot = () => Object.freeze({ ...counters, streaming, residentBytes: counters.bufferBytes,
+    peakResidentBytes, residentChunks: chunks.size, queuedChunks: queue.length, evictions, loads });
   function update(player) {
+    if (disposed) return;
     const x = player.x ?? player.position?.x ?? 0;
     const z = player.z ?? player.position?.z ?? 0;
+    if (streaming) {
+      // Re-sort only after 80m movement. An idle update allocates no geometry.
+      const cellX = Math.floor(x / CELL_SIZE), cellZ = Math.floor(z / CELL_SIZE);
+      if (cellX !== lastCellX || cellZ !== lastCellZ) {
+        lastCellX = cellX; lastCellZ = cellZ;
+        for (const [key, chunk] of chunks) if (Math.hypot(chunk.x - x, chunk.z - z) > EVICT_RADIUS) evictChunk(key);
+        refreshQueue(x, z);
+      }
+      for (let budget = 0; budget < 2 && queue.length; budget++) {
+        if (chunks.size >= MAX_RESIDENT) {
+          let farthest = null, distance = -1;
+          for (const [key, chunk] of chunks) { const d = Math.hypot(chunk.x - x, chunk.z - z); if (d > distance) { farthest = key; distance = d; } }
+          evictChunk(farthest);
+        }
+        loadChunk(queue.shift());
+      }
+    }
     for (const chunk of chunks.values()) {
       const distance = Math.hypot(chunk.x - x, chunk.z - z);
-      chunk.group.visible = distance < VISIBILITY + CHUNK_SIZE * 0.71;
+      chunk.group.visible = distance < (lowGraphics ? 500 : VISIBILITY) + CHUNK_SIZE * 0.71;
       for (const mesh of chunk.group.children) {
-        const range = mesh.name === 'Canberra detail' ? 280 : mesh.name === 'Canberra shadow' ? 350 : mesh.name === 'Canberra pavement' ? 450 : mesh.name === 'Canberra solid' ? 475 : VISIBILITY;
-        mesh.visible = distance < range + CHUNK_SIZE * 0.71;
+        const range = (mesh.name === 'Canberra detail' || mesh.name === 'Canberra glass') ? 280 : mesh.name === 'Canberra shadow' ? 350 : mesh.name === 'Canberra pavement' ? 450 : mesh.name === 'Canberra solid' ? 475 : VISIBILITY;
+        mesh.visible = distance < (lowGraphics ? Math.min(range, mesh.name === 'Canberra detail' || mesh.name === 'Canberra glass' ? 180 : 500) : range) + CHUNK_SIZE * 0.71;
       }
     }
   }
@@ -759,11 +1032,21 @@ export function createWorldView(scene, map) {
     if (disposed) return;
     disposed = true;
     root.traverse(object => { if (object.isMesh) object.geometry.dispose(); });
+    if (streaming) for (const g of temporaryGeometry) g.dispose();
     for (const material of materials) material.dispose();
     for (const texture of textures) texture.dispose();
-    root.removeFromParent();
-    chunks.clear();
+    root.clear(); root.removeFromParent();
+    chunks.clear(); sources.clear(); queue.length = 0;
+    temporaryGeometry.length = materials.length = textures.length = 0;
+    counters.bufferBytes = counters.meshes = counters.chunks = counters.triangles = 0;
+  }
+  if (streaming) {
+    const spawn = map.spawn || { x: 0, z: 0 };
+    refreshQueue(spawn.x, spawn.z);
+    // Build the opening district and all surrounding districts before first render.
+    while (queue.length) loadChunk(queue.shift());
+    lastCellX = Math.floor(spawn.x / CELL_SIZE); lastCellZ = Math.floor(spawn.z / CELL_SIZE);
   }
   update(map.spawn || { x: 0, z: 0 });
-  return { heightAt, update, dispose, stats };
+  return { heightAt,groundHeightAt,roadHeightAt,vehicleHeightAt, update, dispose, get stats() { return statsSnapshot(); } };
 }

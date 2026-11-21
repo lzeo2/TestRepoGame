@@ -1,4 +1,4 @@
-# Leo's Steal a Basketballer: local preview
+# Leo's Steal a Basketballer: original preview
 
 Owner-ordered original basketball sibling of `Games/StealFootballer`, copied
 from repository revision `31680023af77c580121bc9efc34698b8ed2bb58b`.
@@ -8,11 +8,16 @@ revision `30b0c28`. Its browser adaptation and exported neighborhood layout are
 reused under the owner's direct adaptation order. This is not an open-source
 game ingestion or a claim that the game source is MIT-licensed.
 
-The basketball match, court geometry, ball mark, generic sleeveless block
-athletes, roster and original arcade ratings are authored for this sibling.
+The basketball match, court geometry, ball mark, generic sleeveless athletes,
+roster and original arcade ratings are authored for this sibling. The polish
+continuation adds original deterministic maple grain, smooth tubular rims,
+cross-laced nets and articulated athlete meshes/number badges; all are locally
+generated geometry or canvas graphics, with no new downloaded asset.
 The economy, carry/deposit, NPC rivals, progression, local-save validation and
 cream/ink/yellow/green Bungee/Atkinson interface retain the football sibling's
-structure and explicitly requested style. No original football files are changed.
+structure and explicitly requested style. The subsequent owner-ordered sports
+continuation also adds original visible stadium tiers to the existing football
+game, preserving its field, match and save contracts.
 
 ## Exactly 100 real names, not licensed likenesses
 
@@ -33,11 +38,13 @@ Historical names also make this intentionally different from a current roster.
 The catalog truthfully sets `liveRosterVerified` and `officialRosterSnapshot`
 to false. Name review used existing knowledge, not external source verification.
 
-**Publication HOLD:** local preview authorization does not establish publicity,
-trademark, endorsement or redistribution rights. No photos, face scans, official
-logos, jerseys, league artwork, player assets or official ratings were obtained.
-Do not register, push or publish without a separate owner decision and rights
-review. Real-name approval is not public-distribution clearance.
+**Identity rights remain unreviewed:** no photos, face scans, official logos,
+jerseys, league artwork, player assets or official ratings were obtained. The
+owner subsequently authorized improving and merging existing PR #8 after the
+Canberra continuation. That source-release order does not establish publicity,
+trademark, endorsement or redistribution rights. This iteration retains the
+existing preview, now registered as 246 after the owner reported its missing
+site listing. That registration does not change the source/identity limitations.
 
 ## Rules and local assets
 
@@ -47,7 +54,10 @@ This document was not downloaded or newly verified. Four 90-clock-second quarter
 run at 3x, with overtime until a winner. Simplifications include five one-way
 substitutions with no re-entry, no disqualification, traveling, double-dribble,
 out-of-bounds adjudication, and-one, held-ball or timeout rules. It is not an
-official simulation. Courts retain the source's arcade proportions.
+official simulation. The November sports continuation uses a 94-by-50-foot court,
+10-foot rims and human athlete heights, with the existing compressed arcade clocks.
+Its camera, referee, tier geometry and short breath/noise whistle are original
+authored code and local procedural art/audio.
 
 All runtime dependencies are local, copied from the pinned sibling. Font binaries
 are byte-identical. Local modifications: one whitespace-only indentation fix in
@@ -64,7 +74,8 @@ or JavaScript tokens changed.
   `140e2bd25a7315c8a062508391426b0d8c3297400c947b8d847be28f73a199f0`.
 - `assets/ball.svg`: original geometric basketball mark, no official branding.
 
-No new downloads, packages, remote runtime loads, services or local AI-generated
-3D models. Three.js/font licenses do not license the game or identity rights.
+New visual work is authored procedural geometry and canvas graphics. There are
+no new downloaded meshes/textures, model-generation service, package installs or
+remote runtime loads. Three.js/font licenses do not license game or identity rights.
 See [local QA](../../docs/steal-basketballer-local-qa.md) and
-[maintenance manual](../../docs/maintenance/games/unregistered-stealbasketballer.md).
+[maintenance manual](../../docs/maintenance/games/246-stealbasketballer.md).

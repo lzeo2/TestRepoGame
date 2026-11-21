@@ -44,3 +44,38 @@ Terrain comes from ACT's 2020 LiDAR-derived two-metre contours, interpolated to
 about twelve-metre cells. Street View was used to compare appearance, not to
 derive elevations. See [source record](capital-drive-sources.md) and
 [terrain validation](../Games/Capital%20Drive/data/geodata-validation.json).
+
+
+## Source-bounded street correction, 14 November 2026
+
+All5197road runs and their coordinates remain in the original map snapshot.
+The visual crowding was caused partly by2254service ways receiving full kerbs
+and two-metre pavements: even a4.5m driveway became an8.5m corridor. The cached
+OSM service/access tags now form `data/road-profiles.json`, keyed by every matched
+exported road ID, with2051tagged records and18raw tile hashes.1926ways are excluded
+from ambient traffic by the resulting access/minor-service policy. Driveways use
+up to3.2m and parking aisles up to4.2m conservative presentation widths, without
+invented footpaths/kerbs/markings. These are defaults where no usable width tag
+exists; parallel real carriageways are retained. No exact duplicate undirected
+segments were found in the source audit.
+
+Reproduce from the retained external cache with
+`python3 -B scripts/build_capital_road_profiles.py --help`, then select the cache
+and a temporary output path. The builder checks exact exported IDs and records
+source hashes; it does not regenerate geographic JSON. A repeat build compared
+byte-identical to the tracked96428byte sidecar, SHA256
+`73584fc2014d54ee9beb9137c27f337b13f3aa666f94b7bbec66f734d6b76968`.
+
+The old Manuka appearance circle was centred about91m east of the source retail
+polygon's approximate vertex centre. `districts.js` now classifies the exact
+cached OSM retail way31974923, version11, timestamp2025-02-09T06:25:41Z. The
+polygon covers15commercial/retail footprints; fourteen western blocks receive
+frontage aprons even without a landmark anchor. Cream low parapets, dark awnings,
+glazing and brick paving remain approximate interpretations of the recorded
+Flinders Way observation. Whole-map aprons now cover34footprints,11618triangles
+and7839square metres, within the retained18000triangle apron budget.
+
+Tree spacing and furniture density are reduced, original surface grain is more
+restrained and glazing receives a separate bounded nearby batch. Roads, widths,
+setbacks and street-detail placement share the same profile. No businesses,
+proprietary textures or additional Street View inspections are invented.

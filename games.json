@@ -1431,7 +1431,7 @@
     "title": "Capital Drive: Canberra (Preview)",
     "cat": "arcade",
     "icon": "CD",
-    "desc": "Original Canberra driving preview with OpenStreetMap roads and ACT building outlines, left-hand traffic, walking pedestrians and seven inner-south destinations.",
+    "desc": "Original Canberra Street Life preview: drive or walk, take jobs and evade police. Real OpenStreetMap roads, ACT/Microsoft outlines and ACT contour terrain; Free roam adds local address search and teleporting.",
     "url": "Games/Capital Drive/index.html",
     "featured": false,
     "tags": [
@@ -1440,6 +1440,37 @@
       "3d"
     ],
     "players": "1",
-    "howto": "WASD/arrows drive; Space handbrakes; Shift boosts; drag mouse to orbit. M opens the route map; R recovers; P/Esc pauses. Touch driving controls are available."
+    "howto": "WASD/arrows move or drive; E enters/exits cars; Shift sprints/boosts; Space jumps/handbrakes. 1/2 selects fists/pistol; right mouse aims, left fires, F melees, R reloads. J jobs, G garage, M map, P/Esc pause. Free roam alone enables teleporting and recovery; touch controls are available."
+  },
+  {
+    "id": 246,
+    "title": "Steal a Basketballer (Preview)",
+    "cat": "sports",
+    "icon": "SB",
+    "desc": "Original basketball sibling of lzeo2's Steal a Footballer: recruit 100 text-only identities, build a club and play five-on-five. Generic athletes, original arcade ratings and browser-local saves.",
+    "url": "Games/StealBasketballer/index.html",
+    "featured": false,
+    "tags": [
+      "solo",
+      "3d"
+    ],
+    "players": "1",
+    "howto": "WASD/arrows move; E interacts; Space jumps; P/Escape pauses. Use SHOP to sign an affordable player, then BATTLE for five-on-five. Z/X/C/V/B/N/M call plays, F uses a ready ability. MATCH enables temporary player control; drag or scroll changes the camera. Touch controls are available."
+  },
+  {
+    "id": 247,
+    "title": "Chess Workshop",
+    "cat": "strategy",
+    "icon": "CW",
+    "desc": "Play Lichess Chessground with Stockfish challenges, generated puzzles and game reviews. Build and share If/Then bots, browse the marketplace and track local records. Includes Stockfish 17.1 Lite and chess.js.",
+    "url": "Games/Chess Workshop/index.html",
+    "featured": false,
+    "tags": [
+      "chess",
+      "puzzles",
+      "solo"
+    ],
+    "players": "1",
+    "howto": "Drag a chess piece or select its square and then its destination. Use Puzzles for tactics, Review for Stockfish analysis, or Bot Studio to build opponents with drag-and-drop rules."
   }
 ]

@@ -1,0 +1,277 @@
+// Shared metres/elevation authority. Source contour grids stay immutable.
+const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
+const lerp = (a, b, fraction) => a + (b - a) * fraction;
+
+function validGrid(grid) {
+  return grid?.cols > 1 && grid?.rows > 1 && grid.maxX > grid.minX && grid.maxZ > grid.minZ &&
+    grid.heights?.length === grid.cols * grid.rows;
+}
+
+function inside(grid, x, z) {
+  return x >= grid.minX && x <= grid.maxX && z >= grid.minZ && z <= grid.maxZ;
+}
+
+function sample(grid, x, z) {
+  const tx = clamp((x - grid.minX) / (grid.maxX - grid.minX), 0, 1) * (grid.cols - 1);
+  const tz = clamp((z - grid.minZ) / (grid.maxZ - grid.minZ), 0, 1) * (grid.rows - 1);
+  const ix = Math.min(grid.cols - 2, Math.floor(tx));
+  const iz = Math.min(grid.rows - 2, Math.floor(tz));
+  const fx = tx - ix, fz = tz - iz, offset = iz * grid.cols + ix;
+  return lerp(lerp(grid.heights[offset], grid.heights[offset + 1], fx),
+    lerp(grid.heights[offset + grid.cols], grid.heights[offset + grid.cols + 1], fx), fz);
+}
+
+/** map.terrain is the original grid; terrainTiles are separately sourced grids.
+ * Optional bridgeDecks: [{roadId,heights:[y per source road point]}]. Heights are
+ * authored deck estimates, never source contour samples. Only tagged bridge
+ * roads receive a deck; no water polygon or surrounding land is raised.
+ */
+export function createTerrainSampler(map) {
+  const base = validGrid(map.terrain) ? map.terrain : null;
+  const tiles = (map.terrainTiles || []).filter(validGrid);
+  const blendSources = new Map();
+  for (let i = 0; i < tiles.length; i++) {
+    const metres = tiles[i].blendPreviousMetres;
+    if (Number.isFinite(metres) && metres > 0) {
+      blendSources.set(tiles[i], { metres, grids: [...tiles.slice(0, i), ...(base ? [base] : [])] });
+    }
+  }
+  function tileHeight(grid, x, z) {
+    const value = sample(grid, x, z);
+    if (grid !== base && base && inside(base, x, z) && Number.isFinite(grid.blendSouthZ) && Number.isFinite(grid.blendNorthZ)) {
+      const fraction = clamp((grid.blendSouthZ - z) / (grid.blendSouthZ - grid.blendNorthZ), 0, 1);
+      return lerp(sample(base, x, z), value, fraction * fraction * (3 - 2 * fraction));
+    }
+    return value;
+  }
+  function blendOutside(tile, x, z, { metres, grids }) {
+    // A coarse extension must agree with the previous tile at its edge.
+    // Keep the existing source untouched and blend only on the exterior.
+    if (base && inside(base, x, z)) return sample(base, x, z);
+    let nearest = null, distanceSquared = metres * metres, edgeX = x, edgeZ = z;
+    for (const prior of grids) {
+      const px = clamp(x, prior.minX, prior.maxX), pz = clamp(z, prior.minZ, prior.maxZ);
+      const dx = x - px, dz = z - pz, candidate = dx * dx + dz * dz;
+      if (candidate >= distanceSquared) continue;
+      nearest = prior; distanceSquared = candidate; edgeX = px; edgeZ = pz;
+    }
+    const height = tileHeight(tile, x, z);
+    if (!nearest) return height;
+    const fraction = Math.sqrt(distanceSquared) / metres;
+    const former = blendSources.get(nearest);
+    const edge = former ? blendOutside(nearest, edgeX, edgeZ, former) : tileHeight(nearest, edgeX, edgeZ);
+    return lerp(edge, height, fraction * fraction * (3 - 2 * fraction));
+  }
+  function groundHeightAt(x, z) {
+    const tile = tiles.find(grid => inside(grid, x, z) && !(grid.preserveWestEdge && x === grid.minX));
+    if (!tile) return base ? sample(base, x, z) : 0;
+    const sources = blendSources.get(tile);
+    return sources ? blendOutside(tile, x, z, sources) : tileHeight(tile, x, z);
+  }
+
+  // Fixed normal design level, not a live reading: NCA Scrivener Dam lists
+  // 555.93m AHD. Deck clearance/profile above this level remains authored.
+  const lakeWaterLevel = Number.isFinite(map.lakeWaterLevel) ? map.lakeWaterLevel : 5.93;
+  const minimumLakeDeck = lakeWaterLevel + 2.5;
+  const estimates = new Map((map.bridgeDecks || []).map(deck => [String(deck.roadId), deck.heights]));
+  const tagged = road => {
+    const value = road.sourceTags?.bridge ?? road.tags?.bridge ?? road.bridge;
+    return value && value !== 'no';
+  };
+  const keyOf = point => `${point[0]},${point[1]}`;
+  const roads = (map.roads || []).filter(road => road.points?.length > 1);
+  const bridgeRoads = roads.filter(tagged);
+  const bridgeEnds = new Set(bridgeRoads.flatMap(road => [keyOf(road.points[0]), keyOf(road.points.at(-1))]));
+  // OSM bridge expansion joints can be separate short untagged ways. Include
+  // only a direct connector whose two ends are already bridge abutment nodes.
+  const connectors = roads.filter(road => !tagged(road) && bridgeEnds.has(keyOf(road.points[0])) &&
+    bridgeEnds.has(keyOf(road.points.at(-1))) && road.points.slice(1).reduce((total, p, i) =>
+      total + Math.hypot(p[0] - road.points[i][0], p[1] - road.points[i][1]), 0) <= 50);
+  const deckRoads = [...bridgeRoads, ...connectors];
+  const nodes = new Map();
+  for (const road of deckRoads) for (let i = 0; i < road.points.length; i++) {
+    const p = road.points[i], key = keyOf(p);
+    if (!nodes.has(key)) nodes.set(key, { point: p, neighbours: new Map(), names: new Set() });
+    nodes.get(key).names.add(road.name);
+    if (i) {
+      const previous = road.points[i - 1], other = keyOf(previous), distance = Math.hypot(p[0] - previous[0], p[1] - previous[1]);
+      nodes.get(key).neighbours.set(other, distance);
+      nodes.get(other).neighbours.set(key, distance);
+    }
+  }
+  const nodeHeights = new Map(), nodeProfiles = new Map(), visited = new Set();
+  for (const start of nodes.keys()) {
+    if (visited.has(start)) continue;
+    const component = [], queue = [start];
+    visited.add(start);
+    for (let i = 0; i < queue.length; i++) {
+      const key = queue[i]; component.push(key);
+      for (const next of nodes.get(key).neighbours.keys()) if (!visited.has(next)) { visited.add(next); queue.push(next); }
+    }
+    const ends = component.filter(key => nodes.get(key).neighbours.size === 1);
+    const firstKey = ends[0] || component[0];
+    const distances = new Map([[firstKey, 0]]), pending = new Set(component);
+    // Tiny static bridge graphs; shortest distance preserves shared joint heights.
+    while (pending.size) {
+      let key, best = Infinity;
+      for (const candidate of pending) if ((distances.get(candidate) ?? Infinity) < best) { key = candidate; best = distances.get(candidate); }
+      if (key === undefined) break;
+      pending.delete(key);
+      for (const [next, distance] of nodes.get(key).neighbours) if (best + distance < (distances.get(next) ?? Infinity)) distances.set(next, best + distance);
+    }
+    const lastKey = component.reduce((a, b) => (distances.get(a) || 0) > (distances.get(b) || 0) ? a : b);
+    const length = distances.get(lastKey) || 1;
+    const lakeBridge = length > 200 && component.some(key => [...nodes.get(key).names].some(name => name === 'Kings Avenue' || name === 'Commonwealth Avenue'));
+    const first = groundHeightAt(...nodes.get(firstKey).point), last = groundHeightAt(...nodes.get(lastKey).point);
+    for (const key of component) {
+      const t = (distances.get(key) || 0) / length;
+      // A shallow authored deck estimate, not a claim of surveyed bridge levels.
+      const y = lerp(first, last, t) + (lakeBridge ? 1.2 * 4 * t * (1 - t) : 0);
+      nodeHeights.set(key, lakeBridge ? Math.max(minimumLakeDeck, y) : y);
+      nodeProfiles.set(key, { t, first, last, lakeBridge });
+    }
+  }
+  const bridgeSegments = [];
+  const cells = new Map(), cellSize = 80;
+  for (const road of deckRoads) {
+    const explicit = estimates.get(String(road.id));
+    const heights = road.points.map((point, index) => explicit?.length === road.points.length && Number.isFinite(explicit[index]) ? explicit[index] : nodeHeights.get(keyOf(point)));
+    const radius = (Number(road.width) || 7.5) / 2 + 2;
+    for (let i = 1; i < road.points.length; i++) {
+      const originalA = road.points[i - 1], originalB = road.points[i];
+      const pieces = Math.max(1, Math.ceil(Math.hypot(originalB[0] - originalA[0], originalB[1] - originalA[1]) / 25));
+      const profileA = nodeProfiles.get(keyOf(originalA)), profileB = nodeProfiles.get(keyOf(originalB));
+      const profileHeight = fraction => {
+        if (explicit?.length === road.points.length) return lerp(heights[i - 1], heights[i], fraction);
+        const t = lerp(profileA.t, profileB.t, fraction);
+        const y = lerp(profileA.first, profileA.last, t) + (profileA.lakeBridge ? 1.2 * 4 * t * (1 - t) : 0);
+        return profileA.lakeBridge ? Math.max(minimumLakeDeck, y) : y;
+      };
+      for (let piece = 0; piece < pieces; piece++) {
+        const t0 = piece / pieces, t1 = (piece + 1) / pieces;
+        const a = [lerp(originalA[0], originalB[0], t0), lerp(originalA[1], originalB[1], t0)];
+        const b = [lerp(originalA[0], originalB[0], t1), lerp(originalA[1], originalB[1], t1)];
+        const dx = b[0] - a[0], dz = b[1] - a[1];
+        if (!dx && !dz) continue;
+        const segment = { a, b, dx, dz, lengthSquared: dx * dx + dz * dz, radius, y0: profileHeight(t0), y1: profileHeight(t1), roadId: road.id };
+        bridgeSegments.push(segment);
+        for (let cx = Math.floor((Math.min(a[0], b[0]) - radius) / cellSize); cx <= Math.floor((Math.max(a[0], b[0]) + radius) / cellSize); cx++) {
+          for (let cz = Math.floor((Math.min(a[1], b[1]) - radius) / cellSize); cz <= Math.floor((Math.max(a[1], b[1]) + radius) / cellSize); cz++) {
+            const key = `${cx},${cz}`;
+            if (!cells.has(key)) cells.set(key, []);
+            cells.get(key).push(segment);
+          }
+        }
+      }
+    }
+  }
+
+  // Road surfaces need an owner: a ground road below a bridge must not inherit
+  // the deck merely because its X/Z lies inside the bridge's horizontal mask.
+  const ownedDecks=new Map();
+  for(const segment of bridgeSegments) {
+    if(!ownedDecks.has(segment.roadId))ownedDecks.set(segment.roadId,[]);
+    ownedDecks.get(segment.roadId).push(segment);
+  }
+  const project=(x,z,a,b)=>{
+    const dx=b[0]-a[0],dz=b[1]-a[1],lengthSquared=dx*dx+dz*dz;
+    const t=clamp(((x-a[0])*dx+(z-a[1])*dz)/(lengthSquared||1),0,1);
+    return {t,distance:Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t),dx,dz,lengthSquared};
+  };
+  function ownDeckHeight(road,x,z) {
+    let nearest=Infinity,result=null;
+    for(const segment of ownedDecks.get(road.id)||[]) {
+      const p=project(x,z,segment.a,segment.b);
+      if(p.distance<nearest){nearest=p.distance;result=lerp(segment.y0,segment.y1,p.t);}
+    }
+    return result;
+  }
+  const jointHeights=new Map();
+  for(const segment of bridgeSegments)for(const [point,y]of [[segment.a,segment.y0],[segment.b,segment.y1]]) {
+    const key=keyOf(point);jointHeights.set(key,Math.max(jointHeights.get(key)??-Infinity,y));
+  }
+  const approaches=new Map();
+  for(const road of roads) {
+    if(ownedDecks.has(road.id))continue;
+    for(const point of [road.points[0],road.points.at(-1)]) {
+      const node=nodes.get(keyOf(point));
+      if(node?.neighbours.size!==1)continue;
+      if(!approaches.has(road.id))approaches.set(road.id,[]);
+      approaches.get(road.id).push({point,deck:jointHeights.get(keyOf(point))});
+    }
+  }
+  function roadHeightAt(road,x,z) {
+    const ground=groundHeightAt(x,z);
+    if(!road)return ground;
+    const deck=ownDeckHeight(road,x,z);
+    if(deck!==null)return Math.max(ground,deck);
+    let result=ground;
+    for(const approach of approaches.get(road.id)||[]) {
+      const distance=Math.hypot(x-approach.point[0],z-approach.point[1]);
+      if(distance>=20)continue;
+      const delta=Math.max(0,approach.deck-groundHeightAt(...approach.point));
+      result=Math.max(result,ground+delta*(1-distance/20));
+    }
+    return result;
+  }
+  // Only bridge-neighbourhood road segments are indexed. Ordinary city poses
+  // return ground without scanning roads; explicit traffic road ownership wins.
+  const vehicleCells=new Map(),vehicleInfluenceCells=new Set();
+  for(const key of cells.keys()) {
+    const [cx,cz]=key.split(',').map(Number);
+    for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)vehicleInfluenceCells.add(`${cx+dx},${cz+dz}`);
+  }
+  for(const road of roads) {
+    if(!/^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service)(?:_link)?$/.test(road.type||''))continue;
+    for(let i=1;i<road.points.length;i++) {
+      const a=road.points[i-1],b=road.points[i],padding=(Number(road.width)||8)/2+3;
+      const segment={road,a,b,padding};
+      for(let cx=Math.floor((Math.min(a[0],b[0])-padding)/cellSize);cx<=Math.floor((Math.max(a[0],b[0])+padding)/cellSize);cx++)
+        for(let cz=Math.floor((Math.min(a[1],b[1])-padding)/cellSize);cz<=Math.floor((Math.max(a[1],b[1])+padding)/cellSize);cz++) {
+          const key=`${cx},${cz}`;
+          if(!vehicleInfluenceCells.has(key))continue;
+          if(!vehicleCells.has(key))vehicleCells.set(key,[]);
+          vehicleCells.get(key).push(segment);
+        }
+    }
+  }
+  function vehicleHeightAt(pose,road=null) {
+    if(road)return roadHeightAt(road,pose.x,pose.z);
+    let best=Infinity,owner=null;
+    for(const segment of vehicleCells.get(`${Math.floor(pose.x/cellSize)},${Math.floor(pose.z/cellSize)}`)||[]) {
+      const p=project(pose.x,pose.z,segment.a,segment.b);
+      if(p.distance>segment.padding)continue;
+      const alignment=Number.isFinite(pose.yaw)?Math.abs((-Math.sin(pose.yaw)*p.dx-Math.cos(pose.yaw)*p.dz)/Math.sqrt(p.lengthSquared||1)):1;
+      const score=p.distance+4*(1-alignment);
+      if(score<best){best=score;owner=segment.road;}
+    }
+    return roadHeightAt(owner,pose.x,pose.z);
+  }
+
+  function bridgeHeightAt(x, z) {
+    let nearest = Infinity, result = null;
+    for (const segment of cells.get(`${Math.floor(x / cellSize)},${Math.floor(z / cellSize)}`) || []) {
+      const t = clamp(((x - segment.a[0]) * segment.dx + (z - segment.a[1]) * segment.dz) / segment.lengthSquared, 0, 1);
+      const distance = Math.hypot(x - segment.a[0] - segment.dx * t, z - segment.a[1] - segment.dz * t);
+      if (distance <= segment.radius && distance < nearest) {
+        nearest = distance;
+        result = lerp(segment.y0, segment.y1, t);
+      }
+    }
+    return result;
+  }
+
+  function isOnBridge(x, z, radius = 0) {
+    for (const segment of cells.get(`${Math.floor(x / cellSize)},${Math.floor(z / cellSize)}`) || []) {
+      const t = clamp(((x - segment.a[0]) * segment.dx + (z - segment.a[1]) * segment.dz) / segment.lengthSquared, 0, 1);
+      if (Math.hypot(x - segment.a[0] - segment.dx * t, z - segment.a[1] - segment.dz * t) + Math.max(0, radius) <= segment.radius) return true;
+    }
+    return false;
+  }
+
+  function heightAt(x, z) {
+    const ground = groundHeightAt(x, z), deck = bridgeHeightAt(x, z);
+    return deck === null ? ground : Math.max(ground, deck);
+  }
+  return { groundHeightAt, heightAt, roadHeightAt, vehicleHeightAt, bridgeHeightAt, isOnBridge, bridgeSegments: Object.freeze(bridgeSegments.map(segment => Object.freeze({ roadId: segment.roadId, a: Object.freeze([...segment.a]), b: Object.freeze([...segment.b]), y0: segment.y0, y1: segment.y1, radius: segment.radius }))), stats: Object.freeze({ tiles: tiles.length, bridgeSegments: bridgeSegments.length }) };
+}

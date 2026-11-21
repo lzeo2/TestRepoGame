@@ -5,6 +5,21 @@ data converted for an original driving game. The game has no runtime dependency
 on the source services. Geographic data does not imply endorsement by its
 contributors or public agencies.
 
+The14November2026 continuation adds `canberra-north.json` (OpenStreetMap
+contributors, ODbL1.0), `shopping-precincts.json` (retained OSM geometry, ODbL1.0)
+and `north-terrain.json` (Australian Capital Territory, CC-BY4.0). Source URLs,
+hashes and limitations are retained in each sidecar and in
+`docs/capital-drive-district-sources.md`. The original snapshot is retained.
+New interiors, garden arrangements and facade art are original interpretations;
+source geography does not establish private floorplans or current tenancies.
+
+The city-life continuation also adds `street-assets.json` and
+`highway-barriers.json`, © OpenStreetMap contributors, ODbL 1.0. They retain
+pinned raw-source hashes, source IDs, versions and geometry methods. Stop
+furniture, fuel presentation and rail heights are original estimates; current
+operations and timetables are not certified. See
+`docs/capital-drive-canberra-life-sources.md` for reproduction and limits.
+
 ## OpenStreetMap roads, green areas and supplementary building outlines
 
 © OpenStreetMap contributors. Available under the
@@ -33,6 +48,15 @@ The initial snapshot omitted OSM building outlines when their centre was within
 fifteen metres of an ACT footprint centre. The enriched snapshot instead uses
 the polygon-overlap priority described below. Public accessibility and current
 road restrictions are not certified. This is a game map, not navigation or surveying data.
+
+## Explicit address index
+
+The separate `addresses.json` index also derives from the same OSM snapshot,
+© OpenStreetMap contributors, ODbL 1.0. It retains 3,446 explicit house-number
+and street tags with source object IDs. Tagged nodes retain coordinates; tagged
+ways use approximate representative centroids. Missing numbers are never
+interpolated or invented. The index retains input hashes and import metadata;
+its coverage does not certify current addresses or entrance locations.
 
 ## ACT building footprints
 
@@ -156,3 +180,10 @@ Rebuild enriched sources with `--fetch-details`; this developer import additiona
 requires NumPy, Shapely, SciPy, Pyogrio/OpenFileGDB and Pyproj, installed outside
 the repository. The pinned official Microsoft tile and ACT contour archive stay
 in the external cache. The runtime only reads the resulting local JSON.
+
+
+The19November2026 continuation adds `airport-terrain.json`: an89×122 grid at
+about50m spacing interpolated from the pinned ACT2020 two-metre contour source,
+© Australian Capital Territory and Aerometrex Limited, CC BY4.0. The source URL,
+SHA256, AHD datum and interpolation checks remain in the sidecar. Authored seam
+blending and runway grades do not establish surveyed pavement heights.

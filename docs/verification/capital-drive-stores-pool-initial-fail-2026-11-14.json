@@ -1,0 +1,11 @@
+{
+  "status": "FAIL",
+  "phase": "short drive then exit",
+  "passed": [
+    "Software WebGL available"
+  ],
+  "error": "Timeout 15000ms waiting for foot after one E while driving",
+  "cause": "Harness sent stop command but omitted second E required by gameplay.js54\u201356",
+  "cleanupError": "browser.close called after Playwright manager exited; no results report or screenshot produced",
+  "fix": "Normal first E stops, second E exits; guard disconnected browser close"
+}

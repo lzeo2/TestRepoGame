@@ -1,0 +1,51 @@
+{
+  "rendering": "system Chromium headless software WebGL; no hardware/sandbox acceptance",
+  "flags": [
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--enable-unsafe-swiftshader",
+    "--ignore-gpu-blocklist"
+  ],
+  "checks": [
+    {
+      "name": "desktop PLAY",
+      "pass": true
+    },
+    {
+      "name": "desktop affordable natural conveyor recruit",
+      "pass": false
+    }
+  ],
+  "observations": {},
+  "console": [
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x1fec00c16e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x1fec00c16e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x1fec00c16e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "context": "desktop",
+      "type": "warning",
+      "text": "[.WebGL-0x1fec00c16e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestFailures": [],
+  "httpErrors": [],
+  "externalRequests": [],
+  "status": "FAIL",
+  "error": "desktop affordable natural conveyor recruit",
+  "browserCleanupNotice": "Event loop is closed! Is Playwright already stopped?",
+  "elapsedSeconds": 43.61
+}

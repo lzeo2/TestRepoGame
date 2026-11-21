@@ -1,5 +1,12 @@
 # Capital Drive: Canberra source and implementation record
 
+The 13 November Street Life continuation adds two modes, on-foot/combat and
+police rules, jobs/garage progression, four dedicated inner-south landmarks and
+3,446 explicitly tagged offline addresses. See the [current receipt](verification/capital-drive-street-life-2026-11-13.md),
+[landmark references](capital-drive-landmark-references.md) and
+[address source record](capital-drive-address-sources.md). Earlier milestone
+descriptions below retain their original context where marked.
+
 ## Scope and authority
 
 The operator's 12 November 2026 request explicitly authorizes a new original
@@ -44,9 +51,12 @@ The enriched 13 November snapshot contains 5,197 unchanged road sections,
 12,572 building outlines and 1,464 green/water polygons. Source counts are
 4,663 ACT, 4,886 OSM and 3,023 Microsoft. Polygon-overlap suppression prioritises
 ACT, then OSM, then Microsoft, replacing the original centre-distance heuristic.
-It adds 3,049 source outlines without inventing houses. The renderer skips ten
-nested outlines, drawing 12,562; these are not independently verified current
-real-world buildings. All seven destinations connect to the largest road component.
+It adds 3,049 source outlines without inventing houses. The first enriched
+renderer drew 12,562 after skipping ten nested outlines. Street Life additionally
+replaces twelve exact ACT footprints with four dedicated landmark studies,
+drawing 12,550 ordinary outlines. These are not independently verified current
+real-world buildings. The seven original destinations connect to the largest
+road component; four added runtime anchors have separate public approaches.
 
 The terrain is a contour interpolation, not the native one-metre LiDAR DEM or a
 claim of one-metre accuracy. All grid cells lie inside the source convex hull;
@@ -96,7 +106,9 @@ settings are untouched.
 
 `simulation.js` owns fixed-step driving, indexed footprint and parked-car
 collisions, safe arbitrary-point teleporting, the directed road graph and 26
-seeded nearby traffic cars. Traffic uses the left lane, one-ways and simple
+seeded nearby traffic cars in the initial preview; Street Life raises this to
+40 (cap 56), with bounded anger, evasion and clearance-gated overtaking.
+Traffic uses the left lane, one-ways and simple
 spacing/junction courtesy. Decorative
 signals do not control vehicles; this is not a full road-rule simulation.
 
@@ -123,6 +135,8 @@ local maps, vehicle selection, menus and discovery. The full map supports
 zoom/pan and arbitrary destinations, including clear off-road ground. Buildings,
 water and occupied positions adjust to nearby clear ground; trip distance is
 preserved. Mouse/touch selects, arrows move the point and Enter confirms.
+These travel actions are now Free roam only; Street Life guards the handlers and
+uses map selections for road routes. Sandbox actions never earn career progress.
 `map-projection.js` shares the drawing/input coordinate transform.
 `navigation.js` routes over the simulation's directed graph.
 The local `capital-drive-v1` save contains only
@@ -152,3 +166,19 @@ denied storage; they do not grant gameplay state. Screenshots are real Chromium
 renders, not concept imagery. Software-rendered checks do not prove N100 speed.
 Full-fleet release results are recorded separately; targeted checks are not a
 replacement for the unchanged all-games push gate.
+
+The current gameplay rules are original pure modules. On-foot collisions,
+weapons, health, witnessed offences, building-occluded police sight/search and
+respawn live in `gameplay.js`; ordered jobs, cash, owned cars and validated saves
+live in `progression.js`. `actor-view.js` renders original adult articulation,
+generic patrol vehicles and bounded brief effects. `street-ui.js` adapts menus
+and HUD without owning a clock. Two career/discovery storage keys remain local.
+No school affiliation, real occupants or police endorsement is implied.
+
+Dedicated landmark models are hand-authored interpretations of verified official
+facts and the documented Street View samples. Near/detail and distant skyline
+meshes total about 5,232 triangles; clearings only remove generated trees from
+the modelled Parliament forecourt and oval playing field. Ground source heights
+are unchanged. No reference images are bundled. The reusable local development
+skill and bounded checker are in `.agents/skills/capital-drive-development/` and
+`scripts/check_capital_drive.py`; neither authorizes publication or hides failures.
