@@ -45,14 +45,14 @@ const SKI_DRIVER=[
 ];
 const GLYPHS={B:[14,9,14,9,14],O:[6,9,9,9,6],A:[6,9,15,9,9],T:[15,6,6,6,6],S:[7,8,6,1,14],H:[9,9,15,9,9],E:[15,8,14,8,15],D:[14,9,9,9,14]};
 const SIGN=[part(-1.58,.8,0,.11,1.6,.11,GREY),part(1.58,.8,0,.11,1.6,.11,GREY),
-  part(0,1.62,0,3.48,.524,.085,TEAL),part(0,1.369,-.049,3.48,.032,.028,GOLD)];
+  part(0,1.62,0,3.48,.524,.085,TEAL),part(0,1.369,.049,3.48,.032,.028,GOLD)];
 for (const [letterIndex,letter] of [...'BOAT SHED'].entries()) {
   if (letter===' ') continue;
   GLYPHS[letter].forEach((bits,row)=>{
     const cells=bits.toString(2).padStart(4,'0');
     for (const match of cells.matchAll(/1+/g)) {
       const size=match[0].length;
-      SIGN.push(part(-1.59+.36*letterIndex+.072*(match.index+(size-1)/2),1.777-row*.078,-.057,size*.071,.071,.031,IVORY));
+      SIGN.push(part(-1.59+.36*letterIndex+.072*(match.index+(size-1)/2),1.777-row*.078,.057,size*.071,.071,.031,IVORY));
     }
   });
 }
