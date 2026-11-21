@@ -49,7 +49,7 @@ function travel(target) {
   if(state.carry){toast('Carry your stolen basketballer home on foot, or drop them.');return;}
   if(match&&!match.finished){toast('Use the spectator controls during your match.');return;}
   const base=worldData.bases[0];world.teleport(target==='pitch'?world.courtEntryPoint(0):base.spawn);
-  camera={...camera,mode:'avatar',yaw:0};world.setCamera(camera);toast(target==='pitch'?'Your home court':'Your base');
+  camera={...camera,mode:'avatar',yaw:0,zoom:1};world.setCamera(camera);toast(target==='pitch'?'Your home court':'Your base');
 }
 function playerCard(p,controls='owned',index=0) {
   const def=p.def||game.catalog.get(p.id)||p,stats=p.stats||def.stats||{};
@@ -114,7 +114,14 @@ function openPanel(name) {
   if(name==='kits')draft=clone(state.kit);
   $('hud').inert=true;$('sheet').hidden=false;renderPanel();$('close-sheet').focus();
 }
-function closePanel() {panel='';draft=null;$('sheet').hidden=true;$('hud').inert=paused;canvas.focus();}
+function closePanel() {
+  const leavingMatch = panel==='match' && report && match?.finished;
+  panel='';draft=null;$('sheet').hidden=true;$('hud').inert=paused;canvas.focus();
+  if(leavingMatch){
+    match=null;matchState=null;report=null;
+    travel('home');updateHUD();
+  }
+}
 function renderPanel() {
   if(!panel)return;$('sheet-title').textContent=titles[panel]||'YOUR TEAM';
   const content=$('sheet-content');
@@ -279,7 +286,7 @@ function handleAction(target) {
   if(name==='forfeit'){showConfirm('Abandon this match? You will receive no battle coins.','confirmForfeit');return;}
   if(name==='confirmForfeit'){closePanel();finishBattle(true);return;}
   if(name==='cancelConfirm'){closePanel();return;}
-  if(name==='leaveMatch'){match=null;matchState=null;report=null;closePanel();travel('home');updateHUD();return;}
+  if(name==='leaveMatch'){closePanel();return;}
   if(name==='applyTactics'){act('tactics',{formation:draft.formation,mentality:draft.mentality,selectedUids:draft.selectedUids,captainUid:draft.captainUid});return;}
   if(name==='autoFive'){draft.selectedUids=[];draft.captainUid=null;selectedPosition=null;renderPanel();return;}
   if(name==='captain'){const p=tacticMembers()[selectedPosition];if(p&&!p.borrowed){draft.captainUid=p.uid;renderPanel();}return;}

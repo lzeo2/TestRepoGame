@@ -220,4 +220,28 @@ const beforeSlow=window.basketballerSnapshot().match.elapsed;
 for(let index=0;index<10;index++){frameTime+=200;frames.shift()(frameTime);}
 assert.ok(window.basketballerSnapshot().match.elapsed-beforeSlow>=1.95,'Slow frames retain elapsed match time');
 console.log(`PASS ordinary app UI: installed PLAY -> SHOP/conveyor -> ${recruit.id} (${recruit.cost}/150 coins) -> BATTLE; real Match 5v5 + ten World actors; Q1/score/shot-clock HUD; isolated save; pause/deadline freeze/resume; stable match menu/player-control input; slow-frame elapsed time; ${59+liveWait} bounded RAF callbacks`);
+
+click(document.getElementById('zoom-out'));
+assert.notEqual(window.basketballerSnapshot().world.camera.zoom,1);
+click(staticButtons.find(button=>button.dataset.panel==='match'));
+click(actionButton('forfeit'));
+click(actionButton('confirmForfeit'));
+const finalReport=window.basketballerSnapshot();
+assert.equal(finalReport.match.finished,true);
+assert.equal(finalReport.report.forfeit,true);
+assert.equal(finalReport.world.camera.mode,'pitch');
+click(document.getElementById('close-sheet'));
+frameTime+=50;frames.shift()(frameTime);
+const home=window.basketballerSnapshot();
+const homeWorld=JSON.parse(await readFile(new URL('data/world.json',root),'utf8'));
+const homeBase=homeWorld.bases[0];
+const homeBanner=homeWorld.parts.find(part=>part.name==='DoorStatus' && part.matrix[12]===homeBase.deposit[0] && Math.abs(part.matrix[14]-homeBase.deposit[2])<6);
+assert.equal(home.match,null,'closing a completed report clears the match owner');
+assert.equal(home.report,null);
+assert.equal(home.world.camera.mode,'avatar');
+assert.equal(home.world.camera.zoom,1);
+assert.deepEqual([home.world.avatar.x,home.world.avatar.z],[homeBase.spawn[0],homeBase.spawn[2]]);
+assert(homeBanner && home.world.avatar.z>homeBanner.matrix[14]+homeBanner.size[2]/2,'home avatar spawns in front of the physical gate banner');
+assert.equal(document.getElementById('score-strip').hidden,true);
+console.log('PASS finished report close returns to the clear home spawn, drops match state and restores avatar camera zoom.');
 console.log('LIMIT: restricted DOM/2D/fetch/storage/RAF and WebGLRenderer doubles; AudioContext absent follows production fallback. No browser/GPU/layout/native audio/touch/full-match acceptance.');

@@ -140,6 +140,9 @@ triangles in six draws. Generic athlete heads/torsos and bent elbows/knees use
 six merged meshes plus an optional numbered jersey badge; sampled maximum 1,284
 triangles stays below the existing 1,600 budget. Names do not select likenesses.
 Nearby labels no longer obscure the avatar/court, and match views hide labels.
+Return Home, the report close button and Escape now leave a completed match
+through the same transition, clearing match actors and restoring avatar camera
+zoom. The home spawn sits on the entrance pavement in front of the gate banner.
 
 The responsive shell has separate light/dark panels, a non-overlapping
 scoreboard, a first-signing action, disabled unaffordable signings, and actual
