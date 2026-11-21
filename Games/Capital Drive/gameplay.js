@@ -17,10 +17,11 @@ const freeze = value => {
   return value;
 };
 const MAX_SHOT_TRACES = 16;
+const SWIM_SPEED=1.65, FAST_SWIM_SPEED=2.45;
 
 export function createGameplay(map, simulation, options = {}) {
   const state = { mode: 'vehicle', actor: { x: 0, z: 0, yaw: 0, speed: 0, jumpHeight: 0, aimPitch: 0, crouching: false,
-    impactTime: 0, impactDuration: 0, impactStrength: 0, impactYaw: 0, impactSerial: 0 },
+    swimming: false, swimSurfaceY: null, impactTime: 0, impactDuration: 0, impactStrength: 0, impactYaw: 0, impactSerial: 0 },
     health: 100, vehicleHealth: 100, weapon: 'unarmed', ammo: 0, reserveAmmo: 0,
     aiming: false, aimPitch: 0, combatFeedback: { shotSerial: 0, hitSerial: 0, hits: 0, recoil: 0 }, reloading: 0, attackTimer: 0, wanted: 0, pursuit: 'clear', heat: 0,
     police: [], shots: [], offencePressure: 0, respawnSerial: 0, vehicle: { modelId: 'lantern', color: 0xd4d7d3, stolen: false },
@@ -41,6 +42,21 @@ export function createGameplay(map, simulation, options = {}) {
   function clearVehicleImpact() {
     impactX = 0; impactZ = 0; impactCooldown = 0;
     state.actor.impactTime = 0; state.actor.impactDuration = 0; state.actor.impactStrength = 0; state.actor.impactYaw = 0;
+  }
+  function setSwimSurface(water) {
+    const actor=state.actor;
+    const swimming=Number.isFinite(water?.y);
+    if(swimming && !actor.swimming) {
+      state.reloading=0;state.attackTimer=0;state.combatFeedback.recoil=0;clearVehicleImpact();
+    }
+    actor.swimming=swimming;actor.swimSurfaceY=swimming?water.y:null;
+    if(swimming) {actor.jumpHeight=0;actor.crouching=false;jumpVelocity=0;}
+  }
+  function syncSwimming({underBridge=false}={}) {
+    const {x,z}=state.actor;
+    const water=state.mode==='foot' && !state.passenger && !interiorId() && simulation.waterAt?.(x,z,{underBridge});
+    setSwimSurface(water);
+    return state.actor.swimming;
   }
   const vehicleFallPending = () => state.mode === 'foot' && state.health <= 0 && state.actor.impactTime > 0 && state.actor.impactDuration > .3;
   const needsMedicalRecovery = () => !state.sandbox && state.health <= 0 && !vehicleFallPending();
@@ -86,7 +102,7 @@ export function createGameplay(map, simulation, options = {}) {
     return true;
   }
   function interact() {
-    if (state.recovery || state.carjacking || state.passenger || state.actor.impactTime > 0) return false;
+    if (state.recovery || state.carjacking || state.passenger || state.actor.impactTime > 0 || state.actor.swimming) return false;
     if (state.mode === 'vehicle') {
       if (Math.abs(simulation.player.speed) > 1.2) {
         simulation.player.speed = 0; simulation.player.vx = 0; simulation.player.vz = 0;
@@ -178,7 +194,7 @@ export function createGameplay(map, simulation, options = {}) {
   }
   function reload() {
     const weapon = weaponById(state.weapon);
-    if (options.isPiloting?.() || state.recovery || state.actor.impactTime > 0 || !weapon || !ownsWeapon(weapon.id) || state.ammo >= weapon.magazine || state.reserveAmmo <= 0 || state.reloading > 0) return false;
+    if (options.isPiloting?.() || state.recovery || state.actor.swimming || state.actor.impactTime > 0 || !weapon || !ownsWeapon(weapon.id) || state.ammo >= weapon.magazine || state.reserveAmmo <= 0 || state.reloading > 0) return false;
     state.reloading = weapon.reload * powerFactor('reload'); emit('reload', 'Reloading.'); return true;
   }
   function clippedRange(actor, yaw, requestedRange) {
@@ -190,7 +206,7 @@ export function createGameplay(map, simulation, options = {}) {
     return Math.max(0, lo - 0.05);
   }
   function attack(kind) {
-    if(options.canAttack?.()===false || options.isPiloting?.()) return false;
+    if(state.actor.swimming || options.canAttack?.()===false || options.isPiloting?.()) return false;
     const weapon = weaponById(kind), actor = state.actor;
     if(weapon&&options.canFireWeapon?.()===false)return false;
     if (weapon && (!ownsWeapon(kind) || fireCooldown > 1e-9 || state.reloading > 0)) return false;
@@ -311,6 +327,7 @@ export function createGameplay(map, simulation, options = {}) {
     state.mode = 'vehicle'; state.health = 100; state.vehicleHealth = 100; state.wanted = 0; state.offencePressure = 0;
     state.heat = 0; state.pursuit = 'clear'; state.police.length = 0; state.shots.length = 0;
     state.actor.jumpHeight = 0; state.actor.speed = 0; state.aiming = false; state.reloading = 0;
+    setSwimSurface(null);
     state.attackTimer = 0; state.arrestProgress = 0;
     if (reason === 'arrest' && !state.recovery?.deliverySeizure) {
       state.weapon = 'unarmed';
@@ -509,7 +526,7 @@ export function createGameplay(map, simulation, options = {}) {
     impactCooldown = Math.max(0, impactCooldown - dt);
     state.actor.impactTime = Math.max(0, state.actor.impactTime - dt);
     if (state.actor.impactTime === 0) state.actor.impactStrength = 0;
-    receiveVehicleImpacts(vehicleImpacts);
+    if(!state.actor.swimming) receiveVehicleImpacts(vehicleImpacts);
     if (needsMedicalRecovery()) { beginRecovery('knockout'); return; }
     const takingVehicle = Boolean(state.carjacking);
     updateCarjacking(dt, input);
@@ -530,39 +547,49 @@ export function createGameplay(map, simulation, options = {}) {
     }
     if(state.passenger){
       const pose=passengerPose();Object.assign(state.actor,{x:pose.x,z:pose.z,yaw:finite(pose.yaw),speed:finite(pose.speed),jumpHeight:0});jumpVelocity=0;
-      clearVehicleImpact();
+      clearVehicleImpact();setSwimSurface(null);
     }
     if (state.mode === 'foot' && !takingVehicle && !state.passenger) {
       const x = finite(input.moveX), z = finite(input.moveZ), length = Math.hypot(x, z);
       const before = { x: state.actor.x, z: state.actor.z };
       const struck = state.actor.impactTime > 0;
       const externalFlight = Boolean(input.externalFlight) && !struck;
-      const crouching = state.actor.crouching = Boolean(input.crouch && !struck && !externalFlight && state.actor.jumpHeight === 0);
-      const speed = (crouching ? 1.65 : input.sprint ? 6.8 + clamp(finite(options.fitness?.()), 0, 3) * 0.6 : 3.6) * powerFactor('footSpeed');
+      const swimMove=!externalFlight && !interiorId() ? simulation.moveSwimmingActor : null;
+      if(!swimMove && state.actor.swimming) setSwimSurface(null);
+      const wasSwimming=state.actor.swimming;
+      const crouching = state.actor.crouching = Boolean(input.crouch && !struck && !externalFlight && !wasSwimming && state.actor.jumpHeight === 0);
+      const waterSpeed=input.sprint?FAST_SWIM_SPEED:SWIM_SPEED;
+      const speed = wasSwimming ? waterSpeed :
+        (crouching ? 1.65 : input.sprint ? 6.8 + clamp(finite(options.fitness?.()), 0, 3) * 0.6 : 3.6) * powerFactor('footSpeed');
       if (struck) {
         const result = simulation.moveActor(state.actor, impactX * dt, impactZ * dt, .45);
         // Shared actor sweeps include walls, vehicles and the controller's adults.
         if (result.blocked) { impactX = 0; impactZ = 0; }
         const drag = Math.exp(-(state.actor.jumpHeight > 0 || jumpVelocity > 0 ? .9 : 8) * dt);
         impactX *= drag; impactZ *= drag;
-      } else if (!externalFlight && length > 0) simulation.moveActor(state.actor, x / Math.max(1, length) * speed * dt, z / Math.max(1, length) * speed * dt, 0.45);
-      state.actor.speed = distance(before, state.actor) / dt;
+      } else if (!externalFlight && length > 0) {
+        const move=swimMove || simulation.moveActor, travel=speed*dt/Math.max(1,length);
+        const result=move(state.actor,x*travel,z*travel,.45);
+        if(swimMove) setSwimSurface(result?.water);
+      }
+      const swimming=state.actor.swimming;
+      state.actor.speed = Math.min(swimming?waterSpeed:Infinity,distance(before,state.actor)/dt);
       state.aimPitch = clamp(finite(input.aimPitch),-MAX_AIM_PITCH,MAX_AIM_PITCH);
       state.actor.aimPitch = state.aimPitch;
-      state.aiming = Boolean(!struck && input.aim && weaponById(state.weapon));
-      if (!struck && Number.isFinite(input.aimYaw) && (state.aiming || input.fire || input.melee)) state.actor.yaw = input.aimYaw;
+      state.aiming = Boolean(!struck && !swimming && input.aim && weaponById(state.weapon));
+      if (!struck && !swimming && Number.isFinite(input.aimYaw) && (state.aiming || input.fire || input.melee)) state.actor.yaw = input.aimYaw;
       else if (length > 0 && !struck) state.actor.yaw = yawFor(x, z);
       if (externalFlight) jumpVelocity = 0;
-      if (!struck && !externalFlight && !crouching && input.jump && state.actor.jumpHeight === 0 && jumpVelocity === 0) jumpVelocity = 5 * powerFactor('jump');
+      if (!struck && !externalFlight && !crouching && !swimming && !wasSwimming && input.jump && state.actor.jumpHeight === 0 && jumpVelocity === 0) jumpVelocity = 5 * powerFactor('jump');
       if (!externalFlight && (jumpVelocity !== 0 || state.actor.jumpHeight > 0)) {
         jumpVelocity -= 13 * dt; state.actor.jumpHeight = Math.max(0, state.actor.jumpHeight + jumpVelocity * dt);
         if (state.actor.jumpHeight === 0) jumpVelocity = 0;
       }
-      if (!struck && (input.melee || (input.fire && state.weapon === 'unarmed'))) attack('melee');
-      else if (!struck && input.fire && weaponById(state.weapon)) {
+      if (!struck && !swimming && (input.melee || (input.fire && state.weapon === 'unarmed'))) attack('melee');
+      else if (!struck && !swimming && input.fire && weaponById(state.weapon)) {
         for(let count=0;count<6;count++) { if(!attack(state.weapon)){fireCooldown=Math.max(0,fireCooldown);break;}if(fireCooldown>1e-9)break; }
       } else fireCooldown=Math.max(0,fireCooldown);
-    } else { state.actor.crouching = false; state.aiming = false; fireCooldown=Math.max(0,fireCooldown); triggerHeld=false; }
+    } else { if(state.actor.swimming)setSwimSurface(null);state.actor.crouching = false; state.aiming = false; fireCooldown=Math.max(0,fireCooldown); triggerHeld=false; }
     const crashes = simulation.player.crashes || 0;
     if (state.mode === 'vehicle' && crashes > previousCrashes && crashCooldown <= 0) {
       // Contact count includes low-speed scraping: only impact velocity causes damage.
@@ -613,6 +640,7 @@ export function createGameplay(map, simulation, options = {}) {
     clearVehicleImpact(); simulation.drainVehicleImpacts?.();
     state.mode = 'vehicle'; Object.assign(state.actor, { x: simulation.player.x, z: simulation.player.z, yaw: simulation.player.yaw,
       speed: 0, jumpHeight: 0, crouching: false });
+    setSwimSurface(null);
     if(onFoot&&startPose&&[startPose.x,startPose.z].every(Number.isFinite)){
       const candidate={x:startPose.x,z:startPose.z,yaw:Number.isFinite(startPose.yaw)?startPose.yaw:0};
       if(!simulation.moveActor(candidate,0,0,.45).blocked){Object.assign(state.actor,candidate);state.mode='foot';}
@@ -726,6 +754,7 @@ export function createGameplay(map, simulation, options = {}) {
     if (saved.weapon !== 'unarmed' && !ownsWeapon(saved.weapon)) return {ok:false,reason:'Companion equipment unavailable.'};
     if (!simulation.canOccupy({...person,id:'player-body'},{length:1,width:.8,ignorePersonId:person.id})) return {ok:false,reason:'Companion position is blocked.'};
     Object.assign(state.actor,{x:person.x,z:person.z,yaw:person.yaw,speed:0,jumpHeight:0,crouching:false});
+    setSwimSurface(null);
     state.health=person.health;state.aiming=false;state.reloading=0;state.attackTimer=0;jumpVelocity=0;
     for (const weapon of WEAPONS) { Object.assign(ammunition[weapon.id],saved.ammunition[weapon.id]);if(ownsWeapon(weapon.id))equipped.add(weapon.id); }
     state.weapon=saved.weapon;
@@ -750,7 +779,7 @@ export function createGameplay(map, simulation, options = {}) {
     options.onVehicleExplosion?.(event);
     emit('explosion',event.kind==='drone-strike'?'Drone strike detonated.':event.kind==='rocket'?'Rocket detonated.':'Grenade detonated.',{hits});return true;
   }
-  return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, resolveDeliveryRisk, reportSighting, inventorySnapshot, restoreInventory,
+  return { state, focus, step, syncSwimming, interact, cancelCarjacking, setWeapon, reload, reportOffence, resolveDeliveryRisk, reportSighting, inventorySnapshot, restoreInventory,
     takeInventory:item=>transferInventory(item,false),giveInventory:item=>transferInventory(item,true),reset, restoreProtagonist, missionRecoverySnapshot, restoreMissionCheckpoint, switchToCompanion, applyExplosion, addAmmo, getAmmo, heal, strikePolice, damageVehicle, damagePoliceVehicle, get policeWrecks(){return policeController.wrecks;}, policeSupport:()=>policeController.support(), drainPoliceEvents:()=>policeEvents.splice(0),
     snapshot: () => freeze(JSON.parse(JSON.stringify(state))) };
 }

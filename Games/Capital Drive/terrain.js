@@ -29,18 +29,44 @@ function sample(grid, x, z) {
 export function createTerrainSampler(map) {
   const base = validGrid(map.terrain) ? map.terrain : null;
   const tiles = (map.terrainTiles || []).filter(validGrid);
+  const blendSources = new Map();
+  for (let i = 0; i < tiles.length; i++) {
+    const metres = tiles[i].blendPreviousMetres;
+    if (Number.isFinite(metres) && metres > 0) {
+      blendSources.set(tiles[i], { metres, grids: [...tiles.slice(0, i), ...(base ? [base] : [])] });
+    }
+  }
+  function tileHeight(grid, x, z) {
+    const value = sample(grid, x, z);
+    if (grid !== base && base && inside(base, x, z) && Number.isFinite(grid.blendSouthZ) && Number.isFinite(grid.blendNorthZ)) {
+      const fraction = clamp((grid.blendSouthZ - z) / (grid.blendSouthZ - grid.blendNorthZ), 0, 1);
+      return lerp(sample(base, x, z), value, fraction * fraction * (3 - 2 * fraction));
+    }
+    return value;
+  }
+  function blendOutside(tile, x, z, { metres, grids }) {
+    // A coarse extension must agree with the previous tile at its edge.
+    // Keep the existing source untouched and blend only on the exterior.
+    if (base && inside(base, x, z)) return sample(base, x, z);
+    let nearest = null, distanceSquared = metres * metres, edgeX = x, edgeZ = z;
+    for (const prior of grids) {
+      const px = clamp(x, prior.minX, prior.maxX), pz = clamp(z, prior.minZ, prior.maxZ);
+      const dx = x - px, dz = z - pz, candidate = dx * dx + dz * dz;
+      if (candidate >= distanceSquared) continue;
+      nearest = prior; distanceSquared = candidate; edgeX = px; edgeZ = pz;
+    }
+    const height = tileHeight(tile, x, z);
+    if (!nearest) return height;
+    const fraction = Math.sqrt(distanceSquared) / metres;
+    const former = blendSources.get(nearest);
+    const edge = former ? blendOutside(nearest, edgeX, edgeZ, former) : tileHeight(nearest, edgeX, edgeZ);
+    return lerp(edge, height, fraction * fraction * (3 - 2 * fraction));
+  }
   function groundHeightAt(x, z) {
     const tile = tiles.find(grid => inside(grid, x, z) && !(grid.preserveWestEdge && x === grid.minX));
-    if (tile) {
-      const value = sample(tile, x, z);
-      if (base && inside(base, x, z) && Number.isFinite(tile.blendSouthZ) && Number.isFinite(tile.blendNorthZ)) {
-        const fraction = clamp((tile.blendSouthZ - z) / (tile.blendSouthZ - tile.blendNorthZ), 0, 1);
-        const smooth = fraction * fraction * (3 - 2 * fraction);
-        return lerp(sample(base, x, z), value, smooth);
-      }
-      return value;
-    }
-    return base ? sample(base, x, z) : 0;
+    if (!tile) return base ? sample(base, x, z) : 0;
+    const sources = blendSources.get(tile);
+    return sources ? blendOutside(tile, x, z, sources) : tileHeight(tile, x, z);
   }
 
   // Fixed normal design level, not a live reading: NCA Scrivener Dam lists

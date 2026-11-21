@@ -10,10 +10,15 @@ import { withCurrentRouting } from './capital-collision-baseline.mjs';
 
 const sourceURL = new URL('../Games/Capital Drive/simulation.js', import.meta.url);
 const baselineRevision = '73c8335c';
-let source = execFileSync('git', ['show', `${baselineRevision}:Games/Capital Drive/simulation.js`], { cwd: new URL('../', import.meta.url), encoding: 'utf8', maxBuffer: 1024 * 1024 });
-source = withCurrentRouting(source, await readFile(sourceURL, 'utf8'));
-source = source.replace(/from ['"]([^'"]+)['"]/g, (_, path) => `from ${JSON.stringify(new URL(path, sourceURL).href)}`);
-const baseline = await import(`data:text/javascript;base64,${Buffer.from(`${source}\nexport {polygonContact, insideRing};`).toString('base64')}`);
+const replayRevision = '3b5483d1b639f3e29c8392fc8b6275ee236a9f33';
+async function loadSimulation(revision, legacyStatic = false) {
+  let source = execFileSync('git', ['show', `${revision}:Games/Capital Drive/simulation.js`],
+    { cwd: new URL('../', import.meta.url), encoding: 'utf8', maxBuffer: 1024 * 1024 });
+  if (legacyStatic) source = withCurrentRouting(source, await readFile(sourceURL, 'utf8')) + '\nexport {polygonContact, insideRing};';
+  source = source.replace(/from ['"]([^'"]+)['"]/g, (_, path) => `from ${JSON.stringify(new URL(path, sourceURL).href)}`);
+  return import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+}
+const baseline = await loadSimulation(baselineRevision, true);
 let comparisons = 0;
 function checkRing(points, probes) {
   const ring = prepareWaterRing(points);
@@ -101,14 +106,21 @@ assert(commonwealthSegments.length > 0, 'actual Commonwealth bridge is present')
 const bridge = commonwealthSegments[Math.floor(commonwealthSegments.length / 2)];
 const routePoint = { x: (bridge.a[0] + bridge.b[0]) / 2, z: (bridge.a[1] + bridge.b[1]) / 2, yaw: Math.atan2(-(bridge.b[0] - bridge.a[0]), -(bridge.b[1] - bridge.a[1])) };
 assert.deepEqual(after.teleport(routePoint), before.teleport(routePoint));
+// Keep the historical shoreline oracle, but compare live traffic to the exact
+// preceding gameplay revision so unrelated driver changes are outside this test.
+const replaySimulation = await loadSimulation(replayRevision);
+const referenceReplay = replaySimulation.createSimulation(map, options);
+const replayTraffic = sim => sim.traffic.map(({ edge, ...car }) => ({ ...car, edge: edge?.id ?? null }));
+assert.deepEqual(after.teleport(routePoint), referenceReplay.teleport(routePoint));
+assert.deepEqual(replayTraffic(after), replayTraffic(referenceReplay));
 let baselineReplayMs = 0, preparedReplayMs = 0;
 for (let frame = 0; frame < 360; frame++) {
-  if (frame === 180) assert.deepEqual(after.teleport(routePoint), before.teleport(routePoint), 'repeat the same bridge approach with warm shoreline queries');
+  if (frame === 180) assert.deepEqual(after.teleport(routePoint), referenceReplay.teleport(routePoint), 'repeat the same bridge approach with warm shoreline queries');
   const input = { throttle: .3, steer: Math.sin(frame / 90) * .1 };
-  let start = performance.now(); before.step(1 / 60, input); baselineReplayMs += performance.now() - start;
+  let start = performance.now(); referenceReplay.step(1 / 60, input); baselineReplayMs += performance.now() - start;
   start = performance.now(); after.step(1 / 60, input); preparedReplayMs += performance.now() - start;
-  assert.deepEqual(after.player, before.player, 'same bridge input retains actual player trajectory');
-  assert.deepEqual(traffic(after), traffic(before), 'same bridge input retains all 40 traffic trajectories');
+  assert.deepEqual(after.player, referenceReplay.player, 'same bridge input retains actual player trajectory');
+  assert.deepEqual(replayTraffic(after), replayTraffic(referenceReplay), 'same bridge input retains all 40 traffic trajectories');
 }
 console.log(`PASS water contact: ${comparisons} exact contact/parity probes, ${authorityChecks} actual coastline/island/bridge authority checks, 360-frame 40-car exact repeated Commonwealth bridge replay.`);
-console.log(JSON.stringify({ measurementOnly: true, baselineRevision, referenceEdges, contactEdges, parityEdges, referenceContactMs, preparedContactMs, baselineInitMs, preparedInitMs, baselineReplayMs, preparedReplayMs }));
+console.log(JSON.stringify({ measurementOnly: true, baselineRevision, replayRevision, referenceEdges, contactEdges, parityEdges, referenceContactMs, preparedContactMs, baselineInitMs, preparedInitMs, baselineReplayMs, preparedReplayMs }));

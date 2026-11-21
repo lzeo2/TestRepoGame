@@ -1,7 +1,7 @@
 const LOGICAL_SIZE = 24;
 const RASTER_SIZE = LOGICAL_SIZE * 2;
 const WHITE = '#fff';
-const COLORS = { petrol: '#075d73', rental: '#483781', 'player-drone': '#166756', 'police-drone': '#943a3d', helicopter: '#794237', 'depot-helicopter': '#435874' };
+const COLORS = { petrol: '#075d73', rental: '#483781', 'player-drone': '#166756', 'police-drone': '#943a3d', helicopter: '#794237', 'depot-helicopter': '#435874', 'boat-shop': '#235f83' };
 
 function pump(ctx, background) {
   ctx.fillStyle = WHITE;
@@ -77,7 +77,25 @@ function helicopter(ctx) {
   ctx.fill();
 }
 
-const GLYPHS = { petrol: pump, rental: car, 'player-drone': drone, 'police-drone': drone, helicopter, 'depot-helicopter': helicopter };
+function boat(ctx) {
+  ctx.fillStyle = WHITE;
+  ctx.fillRect(8.5, 7, 6.5, 4.7);
+  ctx.beginPath();
+  ctx.moveTo(5, 11);
+  ctx.lineTo(19, 11);
+  ctx.lineTo(17, 16);
+  ctx.lineTo(8, 16);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(5, 18.5);
+  ctx.quadraticCurveTo(8.5, 16.5, 12, 18.5);
+  ctx.quadraticCurveTo(15.5, 20, 19, 18.5);
+  ctx.lineWidth = 1.1;
+  ctx.stroke();
+}
+
+const GLYPHS = { petrol: pump, rental: car, 'player-drone': drone, 'police-drone': drone, helicopter, 'depot-helicopter': helicopter, 'boat-shop': boat };
 
 export function createServiceMapIcons(document) {
   const rasters = new Map();

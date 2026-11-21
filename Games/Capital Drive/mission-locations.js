@@ -75,7 +75,7 @@ export function createMissionGuide(entries, storyHomes = {}) {
     if(goal.kind==='escape' && active.escapeReached===true)return Object.freeze({
       instruction: context.wanted>0?'Location reached. Lose the police.':'Location reached. Stay clear of the police.',
       location:'Escape the police',point:null,distance:null,indoors:false,entryId:null,stationId:null,escaping:true});
-    if(goal.kind==='escape' && plan && point(plan.exit))return result('Leave the building through the marked exit.',name(plan.name,'the building'),plan.exit,true,plan.id);
+    if((goal.kind==='escape'||goal.kind==='stealth-contract')&&plan&&point(plan.exit))return result('Leave the building through the marked exit.',name(plan.name,'the building'),plan.exit,true,plan.id);
     const fallback = () => result(name(goal.label), name(goal.location, name(goal.label)), goal);
     if (goal.kind === 'recon') {
       const entry = byStore.get(goal.storeId);

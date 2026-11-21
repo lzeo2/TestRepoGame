@@ -36,7 +36,7 @@ function helper(name) {
   throw new Error(`Unclosed helper ${name}`);
 }
 function owner(names, context) {
-  const scope = vm.createContext({ droneActive:false,delivery:null,houseController:null,aircraft:null,policeStations:null,
+  const scope = vm.createContext({ droneActive:false,delivery:null,houseController:null,aircraft:null,watercraft:null,interactWatercraft:()=>false,policeStations:null,
     securityCameras:null,interiors:{active:null},burglaryContext:()=>({}),...context });
   vm.runInContext(names.map(helper).join('\n'), scope);
   return scope;

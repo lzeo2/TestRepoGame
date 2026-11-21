@@ -264,6 +264,13 @@ body.intro-open #recovery-screen{display:none}
 .campaign-chapters { padding-left: 1.5rem; line-height: 1.7; }
 .campaign-chapters [aria-current="step"] { font-weight: 800; color: var(--ink); }
 #campaign-status { font-weight: 700; }
+.contract-list { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,180px),1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+.contract-list button { width: 100%; text-align: left; }
+.contract-plan { margin: 14px 0; padding: 14px; border: 1px solid var(--line); border-radius: 6px; }
+.contract-plan h3 { margin-top: 0; }
+.contract-choices { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,170px),1fr)); gap: 10px; }
+.contract-choices label { display: grid; gap: 5px; }
+.contract-choices select { width: 100%; }
 @media (max-width: 620px) { .mode-options { grid-template-columns: 1fr; } .mode-options button { padding: .65rem .8rem; } }
 
 body.on-foot .driving-hud { display: none; }
@@ -344,6 +351,16 @@ body:not(.on-foot) #touch-crouch{display:none}
 @media(pointer:coarse){#touch-crouch{grid-column:3;grid-row:2}}
 
 body.piloting #driving-hint{display:none}
+.boat-action{display:none}
+body.passenger.boating #touch-controls #touch-move{visibility:visible}
+body.passenger.boating #touch-actions>button#touch-jump{display:block}
+body.boating #touch-jump .car-action,body.boating #touch-jump .foot-action{display:none}
+body.boating #touch-jump .boat-action{display:inline}
+body.swimming #touch-jump,body.swimming #touch-weapon,body.swimming #touch-power,body.swimming #touch-crouch{display:none}
+.watercraft-offers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+.watercraft-offers article{padding:14px;border:1px solid var(--line);border-radius:6px}
+.watercraft-offers h3{margin:0 0 8px}
+.watercraft-offers p{margin:0 0 12px}
 
 /* Combat and observation share supplied-time feedback, with no screen shake. */
 body.reconning #navigation-hud{visibility:hidden}

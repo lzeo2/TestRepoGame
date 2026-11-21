@@ -119,3 +119,16 @@ assert.deepEqual(guide(notArrived,{pose:away,wanted:3}).point,{x:999,z:888},'arr
 const escapeRoom={...plan,exit:{x:43,z:51}};
 assert.deepEqual(guide(notArrived,{pose,plan:escapeRoom,wanted:3}).point,escapeRoom.exit,'escape first guides through actual room exit');
 console.log('PASS escape guides remove return marker after arrival and retain real exterior approach/indoor exit');
+
+const contract = target('stealth-contract', { action:'extract', x:140, z:-20, label:'Press E at the marked rendezvous.', location:'Courier rendezvous' });
+const extraction = guide(contract, { pose });
+assert.deepEqual(extraction.point, { x:140, z:-20 });
+assert.equal(extraction.location, 'Courier rendezvous');
+assert.equal(extraction.instruction, contract.target.label);
+assert.equal(extraction.indoors, false);
+const indoorContract = guide(contract, { pose, plan:escapeRoom });
+assert.deepEqual(indoorContract.point, escapeRoom.exit, 'an exterior contract routes through the actual current interior exit');
+assert.equal(indoorContract.indoors, true);
+assert.equal(indoorContract.entryId, escapeRoom.id);
+assert.deepEqual(guide(contract, { pose, plan:{ ...escapeRoom, exit:null } }).point, extraction.point);
+console.log('PASS contract guidance uses the planned exterior objective and current room exit.');

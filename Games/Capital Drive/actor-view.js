@@ -345,6 +345,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
   const animatedJoints = [body, head, ...legs, ...knees, ...arms, ...elbows];
   const blendedAngles = new Float64Array(animatedJoints.length * 3);
   let poseReady = false, locomotionSpeed = 0, blendedBodyZ = 0, renderedAimOffset = 0, crouchAngle = 0;
+  let swimPhase=0, swimRootY=null;
   let lastShotSerial = 0, flashRemaining = 0;
   const playerMuzzle = new THREE.Vector3();
   const counters = { police: 0, officers: 0, shots: 0, playerVisible: false, objectiveVisible: false, meshes: 0, triangles: 0, drawCalls: 0, activeWeapon: null, weaponMeshes: weaponEntries.length };
@@ -357,6 +358,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
     const step = clamp(dt, 0, .1); clock += step;
     const center = { x: finite(focus?.x), z: finite(focus?.z) };
     const pose = state.actor || {};
+    const swimming=pose.swimming===true && Number.isFinite(pose.swimSurfaceY);
     const shotSerial = finite(state.combatFeedback?.shotSerial, finite(state.shotSerial));
     const recoil = clamp(state.combatFeedback?.recoil ?? state.shotKick, 0, 1);
     const newShot = shotSerial > 0 && shotSerial !== lastShotSerial;
@@ -370,11 +372,11 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
     // Only a supplied shot edge can start a flash; room-filtered empty lists
     // clear it immediately, including when coordinates overlap another room.
     if (newShot && livePlayerShot) flashRemaining = FLASH_DURATION;
-    if (!livePlayerShot || state.mode !== 'foot' || finite(state.reloading) > 0 || finite(pose.impactTime) > 0) flashRemaining = 0;
+    if (!livePlayerShot || state.mode !== 'foot' || swimming || finite(state.reloading) > 0 || finite(pose.impactTime) > 0) flashRemaining = 0;
     actor.visible = state.mode === 'foot' && near(pose, center);
     if (actor.visible) {
       const speed = clamp(Math.abs(finite(pose.speed)), 0, 12);
-      const attack = clamp(state.attackTimer, 0, .3), serial = Number.isFinite(state.attackSerial) ? state.attackSerial : null;
+      const attack = swimming?0:clamp(state.attackTimer, 0, .3), serial = Number.isFinite(state.attackSerial) ? state.attackSerial : null;
       if (state.weapon === 'unarmed' && attack > 0 && ((serial !== null && serial !== lastAttackSerial) || (serial === null && attack > lastAttackTimer + 1e-6))) punchingArm = serial !== null ? (Math.abs(Math.floor(serial)) % 2 ? 1 : 0) : 1-punchingArm;
       lastAttackSerial = serial; lastAttackTimer = attack;
       body.position.set(0,0,0); body.rotation.set(0,0,0); head.rotation.set(0,0,0);
@@ -388,7 +390,8 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       crouchAngle = poseReady ? crouchAngle + (crouch - crouchAngle) * blend : crouch;
       // Pay for the raised heels as the knee bends so the toes stay above ground.
       const crouchDrop = Math.max(0, .8 * (1 - Math.cos(crouchAngle)) - .10 * Math.sin(crouchAngle)) * actor.scale.y;
-      actor.position.set(pose.x, ground(pose.x, pose.z) + .035 + jump - crouchDrop, pose.z); actor.rotation.y = finite(pose.yaw);
+      const ordinaryY=swimming?0:ground(pose.x, pose.z)+.035+jump-crouchDrop;
+      actor.position.set(pose.x,ordinaryY,pose.z); actor.rotation.y = finite(pose.yaw);
       body.rotation.x = -.10 * clamp((locomotionSpeed - 3) / 3, 0, 1) - crouch * .16;
       for (let i = 0; i < 2; i++) {
         const swing = stride * (i ? -1 : 1) * (pose.crouching ? .45 : 1);
@@ -397,8 +400,8 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
         arms[i].rotation.set(-swing * .7, 0, (i ? -1 : 1) * .08);
         elbows[i].rotation.set(-.12, 0, 0);
       }
-      const firearm = weapons[state.weapon];
-      for (const [id, weapon] of weaponEntries) weapon.visible = id === state.weapon;
+      const firearm = swimming?null:weapons[state.weapon];
+      for (const [id, weapon] of weaponEntries) weapon.visible = !swimming && id === state.weapon;
       let aimOffset = 0;
       if (state.weapon === 'sniper' || state.weapon === 'rpg') {
         arms[1].rotation.x = .8; elbows[1].rotation.x = .38;
@@ -431,6 +434,20 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
         body.rotation.y = value(3)*side; body.position.z = value(4); body.rotation.z = -.035*side*Math.sin(elapsed*Math.PI);
         knees[other].rotation.x += .10*Math.sin(elapsed*Math.PI);
       }
+      if(swimming) {
+        const moving=clamp(locomotionSpeed/1.65,0,1);
+        swimPhase=(swimPhase+step*(3.1+moving*2.9))%(Math.PI*2);
+        body.rotation.x=-.14-moving*.84;
+        body.rotation.z=Math.sin(swimPhase)*(.04+moving*.10);
+        head.rotation.x=-body.rotation.x*.8;
+        for(let i=0;i<2;i++) {
+          const side=i===0?1:-1, stroke=Math.sin(swimPhase+i*Math.PI);
+          arms[i].rotation.set(.54+moving*.61+stroke*(.22+moving*.76),0,side*(.86-moving*.32));
+          elbows[i].rotation.x=.53+stroke*.31;
+          legs[i].rotation.x=-.04+stroke*(.19+moving*.20);
+          knees[i].rotation.x=.26+Math.max(0,-stroke)*.43;
+        }
+      }
       // Camera pitch/recoil respond immediately during aim. On release their
       // offset fades with the stance instead of snapping the shoulders down.
       const liveAim = firearm && finite(state.reloading) <= 0 && (state.aiming || attack > 0 || recoil > .001);
@@ -450,10 +467,20 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       }
       blendedBodyZ = poseReady ? blendedBodyZ + (body.position.z - blendedBodyZ) * blend : body.position.z;
       body.position.z = blendedBodyZ;
+      if(swimming) {
+        const tilt=body.rotation.x;
+        const headHeight=(face.y*Math.cos(tilt)-face.z*Math.sin(tilt))*actor.scale.y;
+        swimRootY=pose.swimSurfaceY+.105-headHeight+Math.sin(swimPhase*2)*.035;
+        actor.position.y=swimRootY;
+      } else if(swimRootY!==null) {
+        swimRootY+=(ordinaryY-swimRootY)*(1-Math.exp(-step*14));
+        actor.position.y=swimRootY;
+        if(Math.abs(ordinaryY-swimRootY)<.025) {actor.position.y=ordinaryY;swimRootY=null;}
+      }
       poseReady = true;
-      impactPose.update(pose, step, state.health);
+      if(swimming) impactPose.reset(); else impactPose.update(pose, step, state.health);
     } else {
-      impactPose.reset(); poseReady = false; locomotionSpeed = 0; renderedAimOffset = 0; crouchAngle = 0;
+      impactPose.reset(); poseReady = false; locomotionSpeed = 0; renderedAimOffset = 0; crouchAngle = 0;swimRootY=null;swimPhase=0;
     }
     counters.police = 0; counters.officers = 0;let muzzleCount=0;
     // Officers also render in lazy rooms that have no patrol-car allocation.
@@ -528,7 +555,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
     streaks.instanceMatrix.needsUpdate = impacts.instanceMatrix.needsUpdate = true;
     marker.visible = near(objective, center, 850);
     if (marker.visible) { marker.position.set(objective.x, ground(objective.x, objective.z), objective.z); arrow.position.y = 3.2 + Math.sin(clock * 2) * .15; }
-    counters.activeWeapon = actor.visible && weapons[state.weapon] ? state.weapon : null;
+    counters.activeWeapon = actor.visible && !swimming && weapons[state.weapon] ? state.weapon : null;
     counters.playerVisible = actor.visible; counters.objectiveVisible = marker.visible; counters.drawCalls = 0;
     root.traverseVisible(object => { if (object.isMesh) counters.drawCalls++; });
   }

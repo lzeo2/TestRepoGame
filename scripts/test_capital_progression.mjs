@@ -104,3 +104,47 @@ for(let wanted=0;wanted<=5;wanted++) {
   }
 }
 console.log('PASS wanted jobs: 0–5 stars permit ordered delivery/checkpoint/vehicle jobs with once-only pay; explicit escape objective and other guards remain.');
+
+const legacyWatercraftSave={...p.serialize(),cash:6000};
+const dock={id:'boat-shed',x:map.spawn.x+30,z:map.spawn.z,radius:8};
+const dockCtx=(extra={})=>ctx(dock,{onFoot:true,health:100,...extra});
+let liveDock=dock,clearDock=true;
+const waterOptions={watercraftDock:()=>liveDock,hasLineOfSight:()=>clearDock};
+const skipper=createProgression(map,legacyWatercraftSave,waterOptions);
+assert(!Object.hasOwn(skipper.serialize(),'ownedWatercraft'),'unowned saves retain the legacy v1 shape');
+assert(!skipper.ownsWatercraft('boat')&&!skipper.ownsWatercraft('jet-ski'));
+for(const invalid of [null,'boat',{},['boat','boat'],['boat',null],['boat','speedboat'],new Array(1)]){
+  assert.throws(()=>createProgression(map,{...legacyWatercraftSave,ownedWatercraft:invalid}),/Invalid saved watercraft/);
+}
+const poor=createProgression(map,null,waterOptions);
+assert(!poor.buyWatercraft('jet-ski',dockCtx()).ok);
+assert.equal(poor.state.cash,1000);
+for(const extra of [{pose:map.spawn,nearDock:true},{onFoot:false},{health:0},{passenger:true},{bus:true},{ride:true},
+  {sandbox:true},{recovering:true},{interior:{}},{preview:true},{busy:true},{swimming:true},{watercraft:true},{aircraft:{}}]){
+  assert(!skipper.buyWatercraft('boat',dockCtx(extra)).ok);
+}
+assert(!skipper.buyWatercraft('unknown',dockCtx()).ok);
+liveDock=null;assert(!skipper.buyWatercraft('boat',dockCtx()).ok);liveDock=dock;
+clearDock=false;assert(!skipper.buyWatercraft('boat',dockCtx()).ok);clearDock=true;
+assert(skipper.startJob('crescent-parcel',ctx()).ok);
+assert(!skipper.buyWatercraft('boat',dockCtx()).ok);
+skipper.cancelJob();
+assert.equal(skipper.state.cash,6000);
+const launch=skipper.buyWatercraft('boat',dockCtx());
+assert(launch.ok&&launch.kind==='boat'&&launch.cost===2400);
+assert(skipper.ownsWatercraft('boat'));
+assert(!skipper.buyWatercraft('boat',dockCtx()).ok);
+assert.equal(skipper.state.cash,3600,'one boat purchase debits once');
+const checkpoint=skipper.captureMissionState();
+assert.equal(skipper.buyWatercraft('jet-ski',dockCtx()).cost,1600);
+assert(skipper.ownsWatercraft('jet-ski'));
+assert(skipper.restoreMissionState(checkpoint,1));
+assert.equal(skipper.state.cash,3600);
+assert(skipper.ownsWatercraft('boat')&&!skipper.ownsWatercraft('jet-ski'),'checkpoint restores previous ownership and wallet');
+assert(skipper.buyWatercraft('jet-ski',dockCtx()).ok);
+const craftSave=skipper.serialize(),reloadedSkipper=createProgression(map,craftSave);
+assert.deepEqual(craftSave.ownedWatercraft,['boat','jet-ski']);
+craftSave.ownedWatercraft.length=0;
+assert(reloadedSkipper.ownsWatercraft('boat')&&reloadedSkipper.ownsWatercraft('jet-ski'));
+assert.deepEqual(reloadedSkipper.serialize(),skipper.serialize());
+console.log('PASS watercraft purchases: checked dock, exact debit, duplicate and context guards, legacy saves, durable ownership and rollback.');

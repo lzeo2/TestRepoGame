@@ -237,6 +237,9 @@ export function createSimulation(map, options = {}) {
   }
   registerStaticBarriers(map.barriers||[]);
   const waterEdges=new SpatialGrid(128),waterMask=new WeakMap(),waterRings=new WeakMap();
+  const lake=(map.areas || []).find(area=>area.type==='water' && area.id==='osm-relation-3400115-0' && area.points?.length>2);
+  const lakeSurface=lake && Object.freeze({id:lake.id,y:Number.isFinite(map.lakeWaterLevel)?map.lakeWaterLevel:5.93});
+  const underDeck=Object.freeze({underBridge:true});
   for(const area of map.areas||[]){
     if(area.type!=='water')continue;
     waterRings.set(area,{outer:prepareWaterRing(area.points||[]),holes:(area.innerRings||[]).map(r=>prepareWaterRing(r.points||r))});
@@ -247,6 +250,29 @@ export function createSimulation(map, options = {}) {
         waterEdges.insert({area},Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0]),Math.max(a[1],b[1]));
       }
     }
+  }
+  function waterCell(polygon,x,z){
+    const {outer,holes}=waterRings.get(polygon);
+    const cx=Math.floor(x/128),cz=Math.floor(z/128),key=`${cx},${cz}`;
+    if(!waterMask.has(polygon))waterMask.set(polygon,new Map());
+    const cache=waterMask.get(polygon);
+    let mask=cache.get(key);
+    if(mask===undefined){
+      const px=(cx+.5)*128,pz=(cz+.5)*128;
+      const boundary=[...waterEdges.query(px,pz,96)].some(edge=>edge.area===polygon);
+      mask=boundary?'edge':outer.contains(px,pz)&&!holes.some(r=>r.contains(px,pz))?'water':'land';
+      cache.set(key,mask);
+    }
+    return mask;
+  }
+  function waterAt(x,z,optionsForWater){
+    if(!lake || !Number.isFinite(x) || !Number.isFinite(z)) return null;
+    if(map.bounds&&(x<map.bounds.minX||x>map.bounds.maxX||z<map.bounds.minZ||z>map.bounds.maxZ))return null;
+    const bounds=waterIndex.extents.get(lake);
+    if(x<bounds.minX || x>bounds.maxX || z<bounds.minZ || z>bounds.maxZ) return null;
+    const mask=waterCell(lake,x,z),{outer,holes}=waterRings.get(lake);
+    const wet=mask==='water' || (mask==='edge' && outer.contains(x,z) && !holes.some(r=>r.contains(x,z)));
+    return wet && (optionsForWater?.underBridge || !options.isOnBridge?.(x,z)) ? lakeSurface : null;
   }
   function physicalContact(index,polygon,x,z,radius){
     if(index!==waterIndex){
@@ -267,17 +293,7 @@ export function createSimulation(map, options = {}) {
       return polygonContact(x,z,polygon.points,radius);
     }
     if(options.isOnBridge?.(x,z,radius))return null;
-    const {outer,holes}=waterRings.get(polygon);
-    const cx=Math.floor(x/128),cz=Math.floor(z/128),key=`${cx},${cz}`;
-    if(!waterMask.has(polygon))waterMask.set(polygon,new Map());
-    const cache=waterMask.get(polygon);
-    let mask=cache.get(key);
-    if(mask===undefined){
-      const px=(cx+.5)*128,pz=(cz+.5)*128;
-      const boundary=[...waterEdges.query(px,pz,96)].some(edge=>edge.area===polygon);
-      mask=boundary?'edge':outer.contains(px,pz)&&!holes.some(r=>r.contains(px,pz))?'water':'land';
-      cache.set(key,mask);
-    }
+    const {outer,holes}=waterRings.get(polygon),mask=waterCell(polygon,x,z);
     if(mask==='land')return null;
     if(mask==='water')return {nx:1,nz:0,depth:radius};
     for(const ring of holes)if([[0,0],[radius,0],[-radius,0],[0,radius],[0,-radius]].every(([dx,dz])=>ring.contains(x+dx,z+dz)))return null;
@@ -988,37 +1004,49 @@ export function createSimulation(map, options = {}) {
       speed: 0, vx: 0, vz: 0, steer: 0 });
     return { ok: true, vehicle: { ...nearbyVehicles(player.x, player.z, 0).find(item => item.id === 'player'), health: car.health ?? 100 }, stolen, reason: 'claimed' };
   }
-  function moveActor(actor, dx, dz, radius = 0.45, playerVehicle = player) {
+  function sweepActor(actor, dx, dz, radius, playerVehicle, allowSwimming) {
     if (!actor || ![actor.x, actor.z, dx, dz, radius].every(Number.isFinite) || radius <= 0) return { moved: false, blocked: true, distance: 0 };
     radius = clamp(radius, 0.1, 2);
     const startX = actor.x, startZ = actor.z;
+    let water=allowSwimming ? waterAt(startX,startZ,actor.swimming?underDeck:undefined) : null;
     // A bounded sweep prevents thin-wall tunnelling and never seeks a distant road.
     const length = Math.hypot(dx, dz), scale = length > 8 ? 8 / length : 1;
     dx *= scale; dz *= scale;
     const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / Math.min(radius * 0.5, 0.2)));
-    function clear(x, z) {
+    function moveIfClear(x, z) {
       if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return false;
       for (const index of [buildingIndex, barrierIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
+        if(allowSwimming && index===waterIndex && polygon===lake) continue;
         if (physicalContact(index,polygon,x,z,radius)) return false;
       }
-      return ![playerVehicle, ...traffic, ...parkedIndex.query(x,z,radius+3), ...abandonedCars, ...externalVehicles].some(car => {
-        if (car === actor || (typeof actor.id === 'string' && car.id === actor.id) || car.active === false) return false;
+      const nextWater=allowSwimming ? waterAt(x,z,water?underDeck:undefined) : null;
+      if(water && !nextWater && options.groundHeightAt?.(x,z)>water.y+1.55) return false;
+      const blocked=[playerVehicle, ...traffic, ...parkedIndex.query(x,z,radius+3), ...abandonedCars, ...externalVehicles].some(car => {
+        if (!car || !Number.isFinite(car.x) || !Number.isFinite(car.z) || car === actor ||
+            (typeof actor.id === 'string' && car.id === actor.id) || car.active === false) return false;
         const size = vehicleSize(car);
         const yaw = car.yaw || 0, dx = x - car.x, dz = z - car.z;
         const along = Math.abs(-Math.sin(yaw) * dx - Math.cos(yaw) * dz);
         const across = Math.abs(Math.cos(yaw) * dx - Math.sin(yaw) * dz);
-        return Math.hypot(Math.max(0, along - size.length / 2), Math.max(0, across - size.width / 2)) < radius;
+        if(Math.hypot(Math.max(0,along-size.length/2),Math.max(0,across-size.width/2))>=radius) return false;
+        return !nextWater || !options.vehicleHeightAt || vehicleBase(car)<=nextWater.y+.8;
       });
+      if(blocked) return false;
+      actor.x=x; actor.z=z; water=nextWater;
+      return true;
     }
     let blocked = scale < 1;
     for (let i = 0; i < steps; i++) {
       const x = actor.x + dx / steps, z = actor.z + dz / steps;
-      if (clear(x, z)) { actor.x = x; actor.z = z; }
-      else { blocked = true; if (clear(x, actor.z)) actor.x = x; else if (clear(actor.x, z)) actor.z = z; }
+      if (!moveIfClear(x,z)) { blocked=true; if(!moveIfClear(x,actor.z)) moveIfClear(actor.x,z); }
     }
     const distance = Math.hypot(actor.x - startX, actor.z - startZ);
-    return { moved: distance > 0.00001, blocked, distance, x: actor.x, z: actor.z };
+    const result={ moved: distance > 0.00001, blocked, distance, x: actor.x, z: actor.z };
+    if(allowSwimming) result.water=water;
+    return result;
   }
+  const moveActor=(actor,dx,dz,radius=.45,playerVehicle=player)=>sweepActor(actor,dx,dz,radius,playerVehicle,false);
+  const moveSwimmingActor=(actor,dx,dz,radius=.45,playerVehicle=player)=>sweepActor(actor,dx,dz,radius,playerVehicle,true);
   function hasLineOfSight(a, b) {
     if (!a || !b || ![a.x, a.z, b.x, b.z].every(Number.isFinite)) return false;
     const distance = Math.hypot(b.x - a.x, b.z - a.z);
@@ -1043,5 +1071,5 @@ export function createSimulation(map, options = {}) {
     registerStaticBarriers, unregisterStaticBarriers: barriers => barriers.forEach(part=>barrierIndex.remove(part)),
     setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop, drainVehicleImpacts:()=>vehicleImpacts.splice(0),
     get peopleContacts() { return Object.freeze({ ...peopleStats }); },
-    setPlayerVehicle, nearbyVehicles, claimVehicle, vehicleForDamage, damageVehicle, moveActor, hasLineOfSight, get elapsed() { return elapsed; } };
+    setPlayerVehicle, nearbyVehicles, claimVehicle, vehicleForDamage, damageVehicle, moveActor, moveSwimmingActor, waterAt, hasLineOfSight, get elapsed() { return elapsed; } };
 }
