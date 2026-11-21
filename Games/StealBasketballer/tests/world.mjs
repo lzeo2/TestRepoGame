@@ -61,7 +61,8 @@ for(const p of parts) {
     const front=Math.sign(base.deposit[2]-base.position[2]);
     const moved=groundedMove(start,{x:0,z:front},.05,world.colliders,world.bounds);
     assert((moved.z-start.z)*front>0,`Plot ${i}: deposit route still walkable`);
-    assert(moved.y>2.8&&moved.y<3.1);
+    if(i===0)close(moved.y,spawn[1]+.035,'Home entrance pavement supports the new spawn');
+    else assert(moved.y>2.8&&moved.y<3.1);
   }
   assert(world.hotspots.some(h=>h.id==='practice-base'&&h.rivalIndex===11&&h.name==='Practice five'));
   assert.equal(world.hotspots.filter(h=>h.kind==='pitch').length,12);
