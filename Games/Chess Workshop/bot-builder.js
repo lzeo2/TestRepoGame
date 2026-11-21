@@ -1,5 +1,5 @@
 import {
-  ACTIONS, MAX_BOT_ELO, MAX_BOT_RULES, MIN_BOT_ELO, TRIGGERS,
+  ACTIONS, MAX_BOT_ELO, MAX_BOT_RULES, MAX_BOT_TURN_MOVES, MIN_BOT_ELO, TRIGGERS,
   deleteCustomBot, exportBot, importBot, listCustomBots, normalizeBot, saveCustomBot,
 } from './bots.js';
 
@@ -37,8 +37,12 @@ export function mountBotBuilder(container, { onPlay }) {
         <div class="bot-profile-fields">
           <label>Bot name<input name="name" required maxlength="40" placeholder="e.g. The Fading Knight"></label>
           <label>Starting Elo<input name="elo" type="number" required min="${MIN_BOT_ELO}" max="${MAX_BOT_ELO}" step="1"></label>
+          <label>Starting moves per turn<select name="turnMoves" aria-describedby="bot-turn-help">
+            ${Array.from({ length: MAX_BOT_TURN_MOVES }, (_, index) => `<option>${index + 1}</option>`).join('')}
+          </select></label>
           <label>Your goal<select name="goal"><option value="win">Win the game</option><option value="draw">Draw to win</option></select></label>
         </div>
+        <p class="bot-turn-help" id="bot-turn-help">Move-count rules apply at the start of each bot turn. Giving check ends that turn.</p>
         <div class="bot-builder-workspace">
           <div class="bot-palette">
             <h3>Blocks</h3>
@@ -72,6 +76,7 @@ export function mountBotBuilder(container, { onPlay }) {
   const form = container.querySelector('.bot-profile');
   const nameInput = form.elements.namedItem('name');
   const eloInput = form.elements.namedItem('elo');
+  const turnMovesInput = form.elements.namedItem('turnMoves');
   const goalInput = form.elements.namedItem('goal');
   const rulesList = form.querySelector('.bot-rules');
   const addRule = form.querySelector('.bot-add-rule');
@@ -129,7 +134,7 @@ export function mountBotBuilder(container, { onPlay }) {
     }
   }
 
-  function ruleSlot(rule, index, kind, options) {
+  function ruleSlot(rule, index, kind, options, onPlace) {
     const slot = button(null, `bot-slot bot-slot-${kind}`);
     const title = node('span', 'bot-slot-title');
     const prefix = kind === 'trigger' ? 'If' : 'Then';
@@ -140,11 +145,13 @@ export function mountBotBuilder(container, { onPlay }) {
     };
     const place = block => {
       if (block.kind !== kind) {
-        announce(`Use a ${kind === 'trigger' ? 'trigger' : 'strength change'} block in that slot.`, true);
+        announce(`Use ${kind === 'trigger' ? 'an If' : 'a Then'} block in that slot.`, true);
         return;
       }
+      const previous = rule[kind];
       rule[kind] = block.value;
       showValue();
+      onPlace?.(previous);
       pick(null);
       announce(`${block.title} added to rule ${index + 1}.`);
     };
@@ -179,18 +186,37 @@ export function mountBotBuilder(container, { onPlay }) {
       const card = node('fieldset', 'bot-rule');
       card.append(node('legend', 'bot-rule-label', `Rule ${index + 1}`));
       const slots = node('div', 'bot-rule-slots');
-      slots.append(ruleSlot(rule, index, 'trigger', TRIGGERS), ruleSlot(rule, index, 'action', ACTIONS));
       const change = node('label', 'bot-change', 'By');
       const amount = node('input');
+      const unit = node('span', 'bot-change-unit');
       amount.type = 'number';
-      amount.value = rule.amount;
       amount.min = '1';
-      amount.max = '500';
       amount.step = '1';
       amount.required = true;
-      amount.setAttribute('aria-label', `Rule ${index + 1} Elo change`);
-      amount.addEventListener('input', () => { rule.amount = amount.valueAsNumber; });
-      change.append(amount);
+      const updateUnit = () => {
+        const action = ACTIONS[rule.action];
+        unit.textContent = action?.metric === 'elo' ? 'Elo' : action ? (rule.amount === 1 ? 'move' : 'moves') : '';
+      };
+      const updateAmount = () => {
+        const action = ACTIONS[rule.action];
+        amount.disabled = !action;
+        amount.value = rule.amount;
+        amount.max = action?.max ?? '';
+        const label = action?.metric === 'turnMoves' ? 'move change' : 'Elo change';
+        amount.setAttribute('aria-label', `Rule ${index + 1} ${label}`);
+        updateUnit();
+      };
+      amount.addEventListener('input', () => {
+        rule.amount = amount.valueAsNumber;
+        updateUnit();
+      });
+      change.append(amount, unit);
+      slots.append(ruleSlot(rule, index, 'trigger', TRIGGERS), ruleSlot(rule, index, 'action', ACTIONS, previous => {
+        const action = ACTIONS[rule.action];
+        if (ACTIONS[previous]?.metric !== action.metric) rule.amount = action.initial;
+        updateAmount();
+      }));
+      updateAmount();
       const remove = button('Remove', 'bot-button bot-remove-rule');
       remove.setAttribute('aria-label', `Remove rule ${index + 1}`);
       remove.addEventListener('click', () => {
@@ -211,6 +237,7 @@ export function mountBotBuilder(container, { onPlay }) {
     botId = bot?.id ?? null;
     nameInput.value = bot?.name ?? '';
     eloInput.value = bot?.elo ?? 1800;
+    turnMovesInput.value = bot?.turnMoves ?? 1;
     goalInput.value = bot?.goal ?? 'win';
     rules = bot ? bot.rules.map(rule => ({ ...rule })) : [{ trigger: 'botMove', action: 'drop', amount: 50 }];
     pick(null);
@@ -218,7 +245,10 @@ export function mountBotBuilder(container, { onPlay }) {
   }
 
   function readDraft() {
-    return normalizeBot({ name: nameInput.value, elo: eloInput.valueAsNumber, goal: goalInput.value, rules }, botId);
+    return normalizeBot({
+      name: nameInput.value, elo: eloInput.valueAsNumber, goal: goalInput.value,
+      turnMoves: Number(turnMovesInput.value), rules,
+    }, botId);
   }
 
   function publishSavedList() {
@@ -237,7 +267,8 @@ export function mountBotBuilder(container, { onPlay }) {
       const detail = node('div', 'bot-saved-detail');
       const target = bot.goal === 'draw' ? 'Draw to win' : 'Play to win';
       const ruleCount = `${bot.rules.length} ${bot.rules.length === 1 ? 'rule' : 'rules'}`;
-      detail.append(node('strong', '', bot.name), node('span', '', `${bot.elo} Elo · ${target} · ${ruleCount}`));
+      const turnSize = `${bot.turnMoves} ${bot.turnMoves === 1 ? 'move' : 'moves'}/turn`;
+      detail.append(node('strong', '', bot.name), node('span', '', `${bot.elo} Elo · ${turnSize} · ${target} · ${ruleCount}`));
       const commands = node('div', 'bot-saved-actions');
       const editBot = button('Edit', 'bot-button');
       editBot.addEventListener('click', () => {

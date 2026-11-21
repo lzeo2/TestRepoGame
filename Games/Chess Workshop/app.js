@@ -1,22 +1,28 @@
 import { Chess } from './vendor/chess.js';
 import { createEngine, MIN_ELO } from './engine.js';
-import { BUILTIN_BOTS, MIN_BOT_ELO, botStrength, listCustomBots } from './bots.js';
+import { BUILTIN_BOTS, MIN_BOT_ELO, botStrength, botTurnMoves, listCustomBots } from './bots.js';
 import { mountBotBuilder } from './bot-builder.js';
 import { puzzleReply, puzzleHint } from './puzzles.js';
 import { createPuzzleSource } from './puzzle-source.js';
 import { mountAppearance } from './appearance.js';
 import { parseReview, analyzeReview } from './review.js';
-import { createBoard, uciMove } from './board.js';
+import { createBoard, legalMoveChoices, uciMove } from './board.js';
+import { WorkshopChess, BONUS_VARIANT, passForBonus } from './turns.js';
 
 const $ = id => document.getElementById(id);
 const SIDE = { w: 'White', b: 'Black' };
 const PROMOTE = { q: 'queen', r: 'rook', b: 'bishop', n: 'knight' };
 const opposite = side => side === 'w' ? 'b' : 'w';
 const DRAW_START = '8/5pk1/6p1/8/8/6P1/5PK1/8 w - - 0 1';
+const BOT_SEARCH_NODES = 48_000;
+const BONUS_TURN_NODES = 96_000;
 const BOT_DESCRIPTIONS = {
   stockfish: 'Standard chess against Stockfish at a 1500 Elo target.',
   fading: 'Starts at 2250 and drops 50 Elo after every move the bot plays.',
   draw: 'Start in an even pawn endgame. A genuine draw wins the challenge.',
+  double: 'Stockfish can play two moves in a row.',
+  triple: 'Stockfish can play three moves in a row.',
+  momentum: 'Starts with one move. Each capture adds one move to later turns, up to four.',
 };
 const MODES = {
   play: ['Play chess', 'Pick a bot, choose your side and play at your own pace.'],
@@ -46,8 +52,8 @@ function store(key, value) {
   catch (error) { console.info('Chess progress stays in this tab.', error.name); }
 }
 function status(element, message, tone = '') {
-  element.textContent = message;
-  element.dataset.tone = tone;
+  if (element.textContent !== message) element.textContent = message;
+  if (element.dataset.tone !== tone) element.dataset.tone = tone;
 }
 function dialPlayer(id, name, detail, side) {
   const band = $(id);
@@ -72,7 +78,8 @@ function renderBoard() {
   const state = mode === 'play' ? play : mode === 'puzzles' ? puzzle : review;
   const game = mode === 'review' ? review.position : state?.game ?? emptyBoard;
   const analysis = mode === 'review' ? review.analysis?.positions[review.index] : null;
-  const last = mode === 'review' ? review.game?.moves[review.index - 1] : state?.last;
+  const previous = mode === 'review' ? review.game?.moves[review.index - 1] : state?.last;
+  const last = previous?.from && previous?.to ? previous : undefined;
   const hint = mode === 'review' && analysis?.bestMove ? uciMove(analysis.bestMove) : state?.hint;
   board.show({
     game, side: orientation, last, hint, ...appearance.getPrefs(),
@@ -98,10 +105,14 @@ function listBots() {
   return bots;
 }
 function selectedBot() { return listBots().find(bot => bot.id === $('opponent').value) ?? BUILTIN_BOTS[0]; }
+function hasBonusTurns(bot) { return bot.turnMoves > 1 || bot.rules.some(rule => rule.action === 'raiseMoves'); }
 function showBotChoice() {
   const bot = selectedBot();
-  $('play-format').textContent = bot.goal === 'draw' ? 'Draw challenge' : 'Standard';
-  $('bot-description').textContent = BOT_DESCRIPTIONS[bot.id] ?? `${bot.elo} starting Elo · ${bot.rules.length} ${bot.rules.length === 1 ? 'rule' : 'rules'}`;
+  const bonus = hasBonusTurns(bot);
+  $('play-format').textContent = bonus ? 'Bonus turns' : bot.goal === 'draw' ? 'Draw challenge' : 'Standard';
+  const allowance = bonus ? ` · Starts with ${bot.turnMoves} per turn` : '';
+  const description = BOT_DESCRIPTIONS[bot.id] ?? `${bot.elo} starting Elo${allowance} · ${bot.rules.length} ${bot.rules.length === 1 ? 'rule' : 'rules'}`;
+  $('bot-description').textContent = description + (bonus ? ' If the bot gives check, you move next.' : '');
 }
 function loadBotChoices(id = $('opponent').value) {
   const select = $('opponent'), bots = listBots();
@@ -120,17 +131,22 @@ function startMatch(bot = selectedBot()) {
   stopBot();
   const choice = $('play-color').value;
   const side = choice === 'random' ? Math.random() < .5 ? 'w' : 'b' : choice;
-  const game = bot.id === 'draw' ? new Chess(DRAW_START) : new Chess();
+  const bonus = hasBonusTurns(bot), Game = bonus ? WorkshopChess : Chess;
+  const game = new Game(bot.id === 'draw' ? DRAW_START : undefined);
+  if (bonus) {
+    game.setHeader('Variant', BONUS_VARIANT);
+    game.setHeader('WorkshopBot', SIDE[opposite(side)]);
+  }
   game.setHeader('White', side === 'w' ? 'You' : safeHeader(bot.name));
   game.setHeader('Black', side === 'b' ? 'You' : safeHeader(bot.name));
   play = {
     game, bot, side, moves: [], counters: { botMoves: 0, playerMoves: 0, botCaptures: 0, botChecks: 0 },
-    last: null, ended: null, thinking: null, error: '', historyFen: game.fen(), historyMoves: [],
+    last: null, ended: null, thinking: null, burst: null, error: '', historyFen: game.fen(), historyMoves: [],
   };
   orientation = side;
   playNotation.reset();
-  render();
-  void runBot();
+  if (mode === 'play' && game.turn() !== side) void runBot();
+  else render();
 }
 function stopBot() {
   if (!play?.thinking) return;
@@ -143,6 +159,14 @@ function finishMatch(match, result, message) {
   match.game.setHeader('Result', result === 'draw' ? '1/2-1/2' : whiteWon ? '1-0' : '0-1');
   match.ended = { success, message: message + (match.bot.goal === 'draw' ? success ? ' Draw challenge complete.' : ' This challenge requires a draw.' : '') };
   setLastPgn();
+}
+function finishDraw(match) {
+  const game = match.game;
+  const reason = game.isThreefoldRepetition() ? 'threefold repetition' :
+    game.isInsufficientMaterial() ? 'insufficient material' :
+    game.isDrawByFiftyMoves() ? 'the fifty-move rule' :
+    game.isStalemate() ? 'stalemate' : null;
+  if (reason) finishMatch(match, 'draw', `Draw by ${reason}.`);
 }
 function recordMove(match, move, bot) {
   match.last = move;
@@ -164,11 +188,32 @@ function recordMove(match, move, bot) {
     finishMatch(match, lost ? 'loss' : 'win', lost ? 'Checkmate. The bot wins.' : 'Checkmate. You win.');
     return;
   }
-  const reason = game.isThreefoldRepetition() ? 'threefold repetition' :
-    game.isInsufficientMaterial() ? 'insufficient material' :
-    game.isDrawByFiftyMoves() ? 'the fifty-move rule' :
-    game.isStalemate() ? 'stalemate' : null;
-  if (reason) finishMatch(match, 'draw', `Draw by ${reason}.`);
+  finishDraw(match);
+}
+function continueBonusTurn(match) {
+  const pass = passForBonus(match.game);
+  if (!pass) return false;
+  match.moves.push({ san: 'Pass', color: pass.color, number: Number(pass.before.split(' ').at(-1)) });
+  // UCI accepts real alternating moves. Start a fresh engine history after a skip.
+  match.historyFen = pass.after;
+  match.historyMoves.length = 0;
+  finishDraw(match);
+  return !match.ended;
+}
+
+async function botMove(match, nodes, signal) {
+  const elo = botStrength(match.bot, match.counters);
+  // Below Stockfish's calibrated range, mix in uniformly sampled legal moves.
+  const weak = Math.max(0, (MIN_ELO - elo) / (MIN_ELO - MIN_BOT_ELO));
+  if (weak > 0 && Math.random() < weak) {
+    const legal = legalMoveChoices(match.game);
+    return legal[Math.floor(Math.random() * legal.length)];
+  }
+  const history = match.historyMoves.length ? { fen: match.historyFen, moves: match.historyMoves } : undefined;
+  const answer = await engine.search(match.game.fen(), {
+    elo: Math.max(elo, MIN_ELO), nodes, signal, history,
+  });
+  return answer.move ? uciMove(answer.move) : null;
 }
 
 async function runBot() {
@@ -177,25 +222,21 @@ async function runBot() {
   const request = new AbortController();
   match.thinking = request;
   match.error = '';
+  // Rules change the next turn's allowance. Finish a paused turn at its original limit.
+  const burst = match.burst ??= { limit: botTurnMoves(match.bot, match.counters), done: 0 };
+  const nodes = Math.min(BOT_SEARCH_NODES, Math.floor(BONUS_TURN_NODES / burst.limit));
   render();
   try {
-    const elo = botStrength(match.bot, match.counters);
-    // Below Stockfish's calibrated range, mix in uniformly sampled legal moves.
-    const weak = Math.max(0, (MIN_ELO - elo) / (MIN_ELO - MIN_BOT_ELO));
-    let move;
-    if (weak > 0 && Math.random() < weak) {
-      const legal = match.game.moves({ verbose: true });
-      move = legal[Math.floor(Math.random() * legal.length)];
-    } else {
-      const history = match.historyMoves.length ? { fen: match.historyFen, moves: match.historyMoves } : undefined;
-      const answer = await engine.search(match.game.fen(), {
-        elo: Math.max(elo, MIN_ELO), nodes: 48_000, signal: request.signal, history,
-      });
-      if (answer.move) move = uciMove(answer.move);
+    while (burst.done < burst.limit) {
+      const move = await botMove(match, nodes, request.signal);
+      if (play !== match || request.signal.aborted) return;
+      if (!move) throw new Error('The bot could not find a legal move.');
+      recordMove(match, match.game.move(move), true);
+      burst.done++;
+      if (match.ended || burst.done === burst.limit || !continueBonusTurn(match)) break;
+      render();
     }
-    if (play !== match || request.signal.aborted) return;
-    if (!move) throw new Error('The bot could not find a legal move.');
-    recordMove(match, match.game.move(move), true);
+    match.burst = null;
   } catch (error) {
     if (!request.signal.aborted) match.error = error.message || 'The engine could not move.';
   } finally {
@@ -256,8 +297,8 @@ function applyMove(move) {
   if (mode === 'puzzles') return applyPuzzleMove(move);
   if (mode !== 'play' || !canPlay()) return;
   recordMove(play, play.game.move(move), false);
-  render();
-  void runBot();
+  if (play.ended) render();
+  else void runBot();
 }
 function chooseMove(choices) {
   if (choices.length === 1) return applyMove(choices[0]);
@@ -316,7 +357,9 @@ function renderPlay() {
   if (play.ended) status($('play-status'), play.ended.message, play.ended.success ? 'good' : '');
   else if (play.error) status($('play-status'), play.error, 'error');
   else {
-    const action = play.game.turn() === play.side ? 'Your move.' : `${play.bot.name} is thinking…`;
+    const burst = play.burst;
+    const action = play.game.turn() === play.side ? 'Your move.' : burst?.limit > 1
+      ? `${play.bot.name} is thinking · Move ${burst.done + 1} of ${burst.limit}…` : `${play.bot.name} is thinking…`;
     const objective = play.bot.goal === 'draw' ? 'Make a draw to win the challenge. ' : '';
     status($('play-status'), objective + action + (play.game.isCheck() ? ' Check.' : ''));
   }
@@ -334,6 +377,7 @@ function renderReview() {
   $('stop-review').hidden = !controller;
   $('review-count').textContent = game ? `${analysis?.moves.length ?? 0} / ${game.moves.length} plies` : 'No game loaded';
   $('review-position').hidden = !game;
+  $('review-bonus-note').hidden = !game?.bonusTurns;
   for (const button of document.querySelectorAll('[data-step]')) {
     button.disabled = ['first', 'previous'].includes(button.dataset.step) ? index === 0 : !game || index === game.moves.length;
   }
@@ -428,8 +472,8 @@ function selectMode(next) {
   $('table').hidden = $('board-tools').hidden = mode === 'studio';
   for (const id of ['play', 'puzzles', 'review']) $(id + '-panel').hidden = mode !== id;
   if (mode === 'puzzles' && puzzle?.difficulty !== $('difficulty').value) void nextPuzzle();
+  else if (mode === 'play' && !play.ended && play.game.turn() !== play.side) void runBot();
   else render();
-  if (mode === 'play') void runBot();
 }
 
 for (const element of document.querySelectorAll('[data-mode]')) element.addEventListener('click', () => selectMode(element.dataset.mode));

@@ -1,4 +1,5 @@
 import { Chessground } from './vendor/chessground/chessground.min.js';
+import { SQUARES } from './vendor/chess.js';
 
 const FILES = 'abcdefgh';
 const NAMES = { k: 'king', q: 'queen', r: 'rook', b: 'bishop', n: 'knight', p: 'pawn' };
@@ -12,9 +13,30 @@ function squareAt(index, side) {
   return side === 'w' ? FILES[file] + (8 - rank) : FILES[7 - file] + (rank + 1);
 }
 
+const SAN_TARGET = /(?:([a-h][1-8])(?:=([QRBN]))?|^(O-O(?:-O)?))[+#]?$/;
+
+export function legalMoveChoices(game) {
+  const color = game.turn();
+  const moves = [];
+  // Each origin is known, so the public SAN list only needs to supply destinations.
+  // Verbose moves also build before/after FEN and repeat legality work for every choice.
+  for (const from of SQUARES) {
+    if (game.get(from)?.color !== color) continue;
+    for (const notation of game.moves({ square: from })) {
+      const target = SAN_TARGET.exec(notation);
+      if (!target) return game.moves({ verbose: true });
+      const [, square, promoted, castle] = target;
+      const to = castle ? (castle === 'O-O' ? 'g' : 'c') + from[1] : square;
+      const promotion = promoted?.toLowerCase();
+      moves.push({ from, to, promotion, lan: from + to + (promotion ?? '') });
+    }
+  }
+  return moves;
+}
+
 function legalMoves(game) {
   const destinations = new Map(), choices = new Map();
-  for (const move of game.moves({ verbose: true })) {
+  for (const move of legalMoveChoices(game)) {
     const id = move.from + move.to;
     if (choices.has(id)) choices.get(id).push(move);
     else {

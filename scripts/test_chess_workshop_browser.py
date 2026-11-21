@@ -100,6 +100,8 @@ def wait_for_reply(page):
 
 def capture(page, output, name):
     if output:
+        if page.locator("#board").is_visible():
+            expect(page.locator("#board cg-board piece:is(.anim, .fading)")).to_have_count(0)
         page.screenshot(path=output / (name + ".png"), full_page=True)
 
 
@@ -163,6 +165,60 @@ def play_and_review(page, output):
     expect(page.locator("#play-status")).to_have_text("You resigned. This challenge requires a draw.")
 
 
+def move_cells(page, panel="play"):
+    return page.locator(f"#{panel}-moves .move-cell strong")
+
+
+def start_match(page, bot, side="w"):
+    page.get_by_role("button", name="Play", exact=True).click()
+    page.locator("#opponent").select_option(bot)
+    page.locator("#play-color").select_option(side)
+    page.locator("#new-game").click()
+
+
+def check_burst(page, expected):
+    expect(page.locator("#play-status")).to_contain_text("Your move.", timeout=25_000)
+    expect(move_cells(page)).to_have_count(len(expected))
+    for cell, san in zip(move_cells(page).all_text_contents(), expected):
+        assert cell and (cell == san if san else cell != "Pass"), (cell, expected)
+    verify_rendered_board(page)
+
+
+def bonus_turns(page, output):
+    start_match(page, "double")
+    expect(page.locator("#play-format")).to_have_text("Bonus turns")
+    play_move(page, "e2", "e4")
+    check_burst(page, ["e4", None, "Pass", None])
+    final = board_snapshot(page)
+    capture(page, output, "desktop-double-turn")
+
+    page.locator("#review-match").click()
+    expect(page.locator("#review-status")).to_contain_text("Review complete", timeout=25_000)
+    expect(page.locator("#review-count")).to_have_text("4 / 4 plies")
+    expect(page.locator("#review-bonus-note")).to_be_visible()
+    assert '[Variant "Workshop Bonus Turns"]' in page.locator("#review-pgn").input_value()
+    page.get_by_role("button", name="Pass Turn skipped", exact=True).click()
+    expect(page.locator("#position-title")).to_contain_text("Pass · Turn skipped")
+    before = board_snapshot(page)
+    page.get_by_role("button", name="Previous move", exact=True).click()
+    assert board_snapshot(page) == before, "Review pass changed piece placement"
+    page.get_by_role("button", name="Final position", exact=True).click()
+    assert board_snapshot(page) == final, "Bonus review did not reach the played position"
+    verify_rendered_board(page)
+
+    start_match(page, "triple", "b")
+    expect(page.locator("#board")).to_have_class(re.compile(r"\borientation-black\b"))
+    check_burst(page, [None, "Pass", None, "Pass", None])
+
+    start_match(page, "stockfish")
+    expect(page.locator("#play-format")).to_have_text("Standard")
+    play_move(page, "d2", "d4")
+    check_burst(page, ["d4", None])
+    page.locator("#review-match").click()
+    expect(page.locator("#review-status")).to_contain_text("Review complete", timeout=25_000)
+    expect(page.locator("#review-bonus-note")).to_be_hidden()
+
+
 def build_bot(page, output, downloads):
     page.get_by_role("button", name="Bot Studio", exact=True).click()
     page.get_by_role("button", name="Remove rule 1", exact=True).click()
@@ -202,6 +258,91 @@ def build_bot(page, output, downloads):
     page.locator('#studio input[type="file"]').set_input_files(exported)
     expect(page.get_by_label("Bot name")).to_have_value("Clock Burner")
     expect(page.get_by_role("button", name="Rule 1, Then: Drop Elo", exact=True)).to_be_visible()
+
+
+def build_bonus_bot(page, output):
+    # At 100 Elo the app chooses a legal random move. Select the first candidate
+    # for each reply so the four-move cap can be checked without an early check.
+    page.add_init_script("Math.random = () => 0;")
+    page.reload(wait_until="load")
+    page.get_by_role("button", name="Bot Studio", exact=True).click()
+    page.get_by_label("Bot name").fill("Four-Move Test")
+    page.get_by_label("Starting Elo").fill("100")
+    page.get_by_label("Starting moves per turn").select_option("2")
+    page.get_by_role("button", name="Player moves", exact=True).drag_to(
+        page.get_by_role("button", name="Rule 1, If: Bot plays a move", exact=True),
+    )
+    page.get_by_role("button", name="Add moves per turn", exact=True).drag_to(
+        page.get_by_role("button", name="Rule 1, Then: Drop Elo", exact=True),
+    )
+    expect(page.get_by_role("button", name="Rule 1, Then: Add moves per turn", exact=True)).to_be_visible()
+    change = page.get_by_label("Rule 1 move change", exact=True)
+    expect(change).to_have_value("1")
+    change.fill("3")
+    capture(page, output, "desktop-bonus-bot-studio")
+    page.get_by_role("button", name="Play draft", exact=True).click()
+    for _ in range(2):
+        expect(page.locator("#opponent option:checked")).to_have_text("Four-Move Test (draft)")
+        expect(page.locator("#bot-description")).to_contain_text("Starts with 2 per turn")
+        play_move(page, "e2", "e4")
+        check_burst(page, ["e4", None, "Pass", None, "Pass", None, "Pass", None])
+        page.locator("#new-game").click()
+    page.get_by_role("button", name="Bot Studio", exact=True).click()
+    page.get_by_role("button", name="Save bot", exact=True).click()
+    expect(page.locator(".bot-builder-status")).to_have_text("Saved Four-Move Test.")
+    page.reload(wait_until="load")
+    page.get_by_role("button", name="Bot Studio", exact=True).click()
+    page.get_by_role("button", name="Edit Four-Move Test", exact=True).click()
+    expect(page.get_by_label("Starting moves per turn")).to_have_value("2")
+    expect(page.get_by_label("Rule 1 move change", exact=True)).to_have_value("3")
+    expect(page.get_by_role("button", name="Rule 1, If: Player moves", exact=True)).to_be_visible()
+    expect(page.get_by_role("button", name="Rule 1, Then: Add moves per turn", exact=True)).to_be_visible()
+
+
+def check_interrupted_turn(context, url):
+    page = context.new_page()
+    # Keep one search pending until Stop, then answer subsequent searches with
+    # legal moves that guarantee a later bonus turn gives check on move one.
+    page.add_init_script("""
+        const NativeWorker = window.Worker;
+        const moves = ['e2e4', 'd1h5', 'c2c3', 'h5f7'];
+        let played = 0, held = false;
+        class FixtureEngine extends EventTarget {
+            reply(data) {
+                queueMicrotask(() => this.dispatchEvent(new MessageEvent('message', { data })));
+            }
+            postMessage(command) {
+                if (command === 'uci') this.reply('uciok');
+                if (command === 'isready') this.reply('readyok');
+                if (command === 'stop') {
+                    held = true;
+                    this.reply('bestmove ' + moves[played]);
+                }
+                if (!command.startsWith('go ')) return;
+                if (!held && played === 1) return;
+                const move = moves[played++];
+                this.reply('info depth 1 score cp 0 pv ' + move + '\\nbestmove ' + move);
+            }
+            terminate() {}
+        }
+        window.Worker = function(url, ...args) {
+            return /stockfish.*\\.js$/.test(String(url)) ? new FixtureEngine() : new NativeWorker(url, ...args);
+        };
+    """)
+    try:
+        page.goto(url, wait_until="load")
+        start_match(page, "triple", "b")
+        expect(move_cells(page)).to_have_text(["e4", "Pass"])
+        expect(page.locator("#play-status")).to_contain_text("Move 2 of 3")
+        page.get_by_role("button", name="Puzzles", exact=True).click()
+        page.get_by_role("button", name="Play", exact=True).click()
+        check_burst(page, ["e4", "Pass", "Qh5", "Pass", "c3"])
+        play_move(page, "a7", "a6")
+        check_burst(page, ["e4", "Pass", "Qh5", "Pass", "c3", "a6", "Qxf7+"])
+        expect(page.locator("#play-status")).to_contain_text("Check.")
+        expect(square(page, "f7")).to_have_attribute("aria-label", "f7 White queen")
+    finally:
+        page.close()
 
 
 def no_overflow(page):
@@ -373,16 +514,23 @@ def main():
                                 route.abort()
 
                         context.route("**/*", local_only)
+
+                        def detect_errors(page):
+                            page.on("pageerror", lambda error: problems.append(str(error)))
+                            page.on("console", lambda message: problems.append(message.text) if message.type == "error" else None)
+
+                        context.on("page", detect_errors)
                         page = context.new_page()
-                        page.on("pageerror", lambda error: problems.append(str(error)))
-                        page.on("console", lambda message: problems.append(message.text) if message.type == "error" else None)
                         page.goto(origin + GAME, wait_until="load")
                         if touch:
                             phone_flows(page, args.output)
                         else:
                             play_and_review(page, args.output)
+                            bonus_turns(page, args.output)
                             build_bot(page, args.output, Path(temp))
+                            build_bonus_bot(page, args.output)
                             appearance_flows(page, args.output)
+                            check_interrupted_turn(context, origin + GAME)
                         no_overflow(page)
                         context.close()
                 finally:
@@ -393,7 +541,8 @@ def main():
     assert not problems, "\n".join(problems)
     print(
         "PASS Chess Workshop native pointer and keyboard moves, local Stockfish, PGN, "
-        "puzzle rollback and promotion, bot drag and restart, appearance persistence, local requests."
+        "puzzle rollback and promotion, bot drag and restart, capped bonus turns and replay, "
+        "check and resume guards, appearance persistence, local requests."
     )
 
 

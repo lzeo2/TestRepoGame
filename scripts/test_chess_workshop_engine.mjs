@@ -48,6 +48,7 @@ try {
   await assert.rejects(engine.search('8/8/8/8/8/8/4k3/4K3 w - - 0 1'), /Invalid position/);
   await assert.rejects(engine.search('4k3/8/8/8/8/8/8/4K3 w - - 0 11111111111'), /Invalid position/);
   await assert.rejects(engine.search(fen, { searchMoves: ['e2e4\nquit'] }), /Invalid analysis moves/);
+  await assert.rejects(engine.search(fen, { history: { moves: [] } }), /Game history does not match/);
   await assert.rejects(engine.search(fen, { history: { fen, moves: ['e2e4'] } }), /Game history does not match/);
   await assert.rejects(engine.search(fen, { history: { fen, moves: ['e2e5'] } }), /Game history does not match/);
   await assert.rejects(engine.search(fen, { history: { fen, moves: ['e2e4\nquit'] } }), /Game history does not match/);
@@ -69,6 +70,15 @@ try {
   assert(commands.includes(`setoption name UCI_Elo value ${MIN_ELO}`));
   assert(commands.includes('setoption name UCI_LimitStrength value false'));
   assert.equal(MAX_ELO, 3190);
+
+  const firstOption = commands.length;
+  for (const elo of [1800, 1800, 1800, 1800, 1750, undefined, undefined]) {
+    await engine.search(fen, { nodes: 1_000, elo, searchMoves: ['e2e4'] });
+  }
+  assert.deepEqual(commands.slice(firstOption).filter(command => command.startsWith('setoption')), [
+    'setoption name UCI_LimitStrength value true', 'setoption name UCI_Elo value 1800',
+    'setoption name UCI_Elo value 1750', 'setoption name UCI_LimitStrength value false',
+  ]);
 
   const cancelQueued = new AbortController();
   const keepSearch = engine.search(fen, { nodes: 20_000, searchMoves: ['d2d4'] });
@@ -104,6 +114,21 @@ try {
   assert(withHistory.score.type === 'cp' && Math.abs(withHistory.score.value) <= 2,
     'Stockfish should see the imminent draw when supplied the legal history.');
 
+  // Check an extension and a changed trail after a verified prefix was held.
+  // The UCI stream receives the full trail, never the validation checkpoint.
+  const extension = [...trail, 'f6g8'];
+  await assert.rejects(engine.search(repeatPosition, { history: { fen: repeatStart, moves: extension } }), /Game history does not match/);
+  await assert.rejects(engine.search(repeating.fen(), { history: { fen: repeatStart, moves: [...trail, null] } }), /Game history does not match/);
+  await engine.search(repeating.fen(), { nodes: 1_000, searchMoves: ['g1f3'], history: { fen: repeatStart, moves: extension } });
+  assert(commands.includes(`position fen ${repeatStart} moves ${extension.join(' ')}`));
+  const branch = trail.slice(0, -1).concat('f3h4');
+  const branched = new Chess(repeatStart);
+  for (const move of branch) branched.move(move);
+  assert.equal((await engine.search(branched.fen(), {
+    nodes: 1_000, searchMoves: ['f6g8'], history: { fen: repeatStart, moves: branch },
+  })).move, 'f6g8');
+  assert(commands.includes(`position fen ${repeatStart} moves ${branch.join(' ')}`));
+
   const mate = await engine.search('7k/6Q1/5K2/8/8/8/8/8 b - - 0 1');
   assert.equal(mate.move, null);
   assert.deepEqual(mate.score, { type: 'mate', value: 0 });
@@ -111,4 +136,4 @@ try {
   engine.dispose();
 }
 await assert.rejects(engine.search(fen), { name: 'AbortError' });
-console.log('PASS Stockfish WASM legality, Elo, forced lines, warm cancellation, history-dependent draw, and terminal scores');
+console.log('PASS Stockfish WASM legality, retained Elo, forced lines, warm cancellation, validated history, and terminal scores');

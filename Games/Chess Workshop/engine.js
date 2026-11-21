@@ -7,52 +7,42 @@ const MAX_NODES = 450_000;
 const BOOT_TIMEOUT = 20_000;
 const SEARCH_TIMEOUT = 12_000;
 const STOP_TIMEOUT = 4_000;
+const MAX_HISTORY_PLIES = 20_000;
+const CACHED_HISTORY_PLIES = 512;
 const UCI_MOVE = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
 const workerUrl = new URL('./vendor/stockfish-17.1-lite-single-03e3232.js', import.meta.url);
 const CASTLING_ROOKS = { K: 'h1', Q: 'a1', k: 'h8', q: 'a8' };
 
-export function isEnginePosition(fen) {
-  if (typeof fen !== 'string' || fen.length > 160 || !/^[a-zA-Z0-9 /-]+$/.test(fen) || !validateFen(fen).ok) return false;
+function parsePosition(fen) {
+  if (typeof fen !== 'string' || fen.length > 160 || !/^[a-zA-Z0-9 /-]+$/.test(fen) || !validateFen(fen).ok) return null;
   const [ranks, turn, rights, , halfmoves, fullmoves] = fen.split(/ +/);
-  if (!/^\d+$/.test(halfmoves) || !/^\d+$/.test(fullmoves) || Number(halfmoves) > 0x7fffffff || Number(fullmoves) > 0x3fffffff) return false;
+  if (!/^\d+$/.test(halfmoves) || !/^\d+$/.test(fullmoves) || Number(halfmoves) > 0x7fffffff || Number(fullmoves) > 0x3fffffff) return null;
   if ((ranks.match(/[A-Z]/g)?.length ?? 0) > 16 || (ranks.match(/[a-z]/g)?.length ?? 0) > 16 ||
-      (ranks.match(/P/g)?.length ?? 0) > 8 || (ranks.match(/p/g)?.length ?? 0) > 8) return false;
-  const board = new Chess(fen);
+      (ranks.match(/P/g)?.length ?? 0) > 8 || (ranks.match(/p/g)?.length ?? 0) > 8) return null;
+  const board = new Chess(fen, { skipValidation: true });
   const defendingKing = board.findPiece({ type: 'k', color: turn === 'w' ? 'b' : 'w' })[0];
-  if (board.isAttacked(defendingKing, turn)) return false;
+  if (board.isAttacked(defendingKing, turn)) return null;
   // A FEN from an imported PGN can claim castling without a corresponding
   // rook. Require real home pieces before handing the string to the UCI parser.
   if (rights !== '-') {
     for (const right of rights) {
       const square = CASTLING_ROOKS[right];
-      if (!square) return false;
+      if (!square) return null;
       const rook = board.get(square);
       const king = board.get(`e${square[1]}`);
       const color = square[1] === '1' ? 'w' : 'b';
-      if (rook?.type !== 'r' || rook.color !== color || king?.type !== 'k' || king.color !== color) return false;
+      if (rook?.type !== 'r' || rook.color !== color || king?.type !== 'k' || king.color !== color) return null;
     }
   }
-  return true;
+  return board;
+}
+
+export function isEnginePosition(fen) {
+  return parsePosition(fen) !== null;
 }
 
 function validMove(move) {
   return typeof move === 'string' && UCI_MOVE.test(move);
-}
-
-function positionCommand(fen, history) {
-  if (history === undefined) return `position fen ${fen}`;
-  if (!history || !isEnginePosition(history.fen) || !Array.isArray(history.moves) ||
-      history.moves.length > 20_000 || !history.moves.every(validMove)) return null;
-  const board = new Chess(history.fen);
-  try {
-    for (const move of history.moves) {
-      board.move({ from: move.slice(0, 2), to: move.slice(2, 4), promotion: move[4] });
-    }
-  } catch {
-    return null;
-  }
-  if (board.fen() !== new Chess(fen).fen()) return null;
-  return `position fen ${history.fen}${history.moves.length ? ` moves ${history.moves.join(' ')}` : ''}`;
 }
 
 function abortError() {
@@ -64,14 +54,48 @@ function abortError() {
 export function createEngine({ makeWorker = () => new Worker(workerUrl) } = {}) {
   const pending = [];
   let worker = null;
+  let configuredElo;
+  let verifiedHistory = null;
   let phase = 'idle';
   let active = null;
   let timer;
   let disposed = false;
 
+  function positionCommand(fen, current, history) {
+    if (history === undefined) return `position fen ${fen}`;
+    if (!history || !Array.isArray(history.moves) || history.moves.length > MAX_HISTORY_PLIES) return null;
+    const { fen: start, moves } = history;
+    const prefix = verifiedHistory && verifiedHistory.start === start && verifiedHistory.moves.length <= moves.length &&
+      verifiedHistory.moves.every((move, index) => moves[index] === move) ? verifiedHistory : null;
+    const length = prefix ? prefix.moves.length : 0;
+    let reached = prefix?.end;
+    if (!prefix || length < moves.length) {
+      // Legal move validation can start at the end of the checked prefix.
+      // Preserve the full history in the UCI command for repetition analysis.
+      const board = prefix ? new Chess(prefix.end, { skipValidation: true }) : parsePosition(start);
+      if (!board) return null;
+      try {
+        for (let i = length; i < moves.length; i++) {
+          const move = moves[i];
+          if (!validMove(move)) return null;
+          board.move({ from: move.slice(0, 2), to: move.slice(2, 4), promotion: move[4] });
+        }
+      } catch {
+        return null;
+      }
+      reached = board.fen();
+    }
+    if (reached !== current.fen()) return null;
+    if (!prefix || length !== moves.length) {
+      verifiedHistory = moves.length <= CACHED_HISTORY_PLIES ? { start, moves: moves.slice(), end: reached } : null;
+    }
+    return `position fen ${start}${moves.length ? ` moves ${moves.join(' ')}` : ''}`;
+  }
+
   function retireWorker() {
     const retired = worker;
     worker = null;
+    configuredElo = undefined;
     if (retired) retired.terminate();
   }
 
@@ -102,8 +126,13 @@ export function createEngine({ makeWorker = () => new Worker(workerUrl) } = {}) 
     timer = setTimeout(() => fail(new Error('Stockfish search timed out.')), SEARCH_TIMEOUT);
     const { position, elo, moves, nodes } = active;
     try {
-      worker.postMessage(`setoption name UCI_LimitStrength value ${elo !== null}`);
-      if (elo !== null) worker.postMessage(`setoption name UCI_Elo value ${elo}`);
+      if (configuredElo !== elo) {
+        if (configuredElo === undefined || (configuredElo === null) !== (elo === null)) {
+          worker.postMessage(`setoption name UCI_LimitStrength value ${elo !== null}`);
+        }
+        if (elo !== null) worker.postMessage(`setoption name UCI_Elo value ${elo}`);
+        configuredElo = elo;
+      }
       worker.postMessage(position);
       worker.postMessage(`go nodes ${nodes}${moves.length ? ` searchmoves ${moves.join(' ')}` : ''}`);
     } catch (error) {
@@ -209,13 +238,14 @@ export function createEngine({ makeWorker = () => new Worker(workerUrl) } = {}) 
   // the requested FEN, allowing Stockfish to see previous repetitions.
   function search(fen, { nodes = DEFAULT_NODES, elo, searchMoves = [], history, signal } = {}) {
     if (disposed || signal?.aborted) return Promise.reject(abortError());
-    if (!isEnginePosition(fen)) {
+    const current = parsePosition(fen);
+    if (!current) {
       return Promise.reject(new Error('Invalid position for Stockfish.'));
     }
     if (!Array.isArray(searchMoves) || searchMoves.length > 256 || searchMoves.some(move => !validMove(move))) {
       return Promise.reject(new Error('Invalid analysis moves.'));
     }
-    const position = positionCommand(fen, history);
+    const position = positionCommand(fen, current, history);
     if (!position) return Promise.reject(new Error('Game history does not match the position.'));
     return new Promise((resolve, reject) => {
       const job = {
@@ -239,6 +269,7 @@ export function createEngine({ makeWorker = () => new Worker(workerUrl) } = {}) 
   function dispose() {
     if (disposed) return;
     disposed = true;
+    verifiedHistory = null;
     retireWorker();
     for (const job of pending.splice(0)) job.cancel();
     finish(abortError());
