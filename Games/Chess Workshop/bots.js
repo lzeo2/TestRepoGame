@@ -2,12 +2,16 @@ export const MIN_BOT_ELO = 100;
 export const MAX_BOT_ELO = 3190;
 export const MAX_BOT_RULES = 6;
 export const MAX_BOT_TURN_MOVES = 4;
+export const MAX_BOT_RULE_EVERY = 99;
+export const MAX_BOT_CODE_LENGTH = 512;
 
 export const TRIGGERS = Object.freeze({
-  botMove: Object.freeze({ title: 'Bot plays a move', counter: 'botMoves' }),
-  playerMove: Object.freeze({ title: 'Player moves', counter: 'playerMoves' }),
-  botCapture: Object.freeze({ title: 'Bot captures a piece', counter: 'botCaptures' }),
-  botCheck: Object.freeze({ title: 'Bot gives check', counter: 'botChecks' }),
+  botMove: Object.freeze({ title: 'Bot plays a move', counter: 'botMoves', event: 'bot move' }),
+  playerMove: Object.freeze({ title: 'Player moves', counter: 'playerMoves', event: 'player move' }),
+  botCapture: Object.freeze({ title: 'Bot captures a piece', counter: 'botCaptures', event: 'bot capture' }),
+  botCheck: Object.freeze({ title: 'Bot gives check', counter: 'botChecks', event: 'bot check' }),
+  playerCapture: Object.freeze({ title: 'Player captures a piece', counter: 'playerCaptures', event: 'player capture' }),
+  playerCheck: Object.freeze({ title: 'Player gives check', counter: 'playerChecks', event: 'player check' }),
 });
 
 export const ACTIONS = Object.freeze({
@@ -60,9 +64,27 @@ export function normalizeBot(value, id = null) {
       const unit = action.metric === 'elo' ? 'an Elo' : 'a move';
       throw new Error(`Use ${unit} change from 1 to ${action.max} in rule ${index + 1}.`);
     }
-    return { trigger: rule.trigger, action: rule.action, amount: rule.amount };
+    const every = rule.every === undefined ? 1 : rule.every;
+    if (!integerInRange(every, 1, MAX_BOT_RULE_EVERY)) {
+      throw new Error(`Set rule ${index + 1} to run every 1 to ${MAX_BOT_RULE_EVERY} events.`);
+    }
+    const clean = { trigger: rule.trigger, action: rule.action, amount: rule.amount };
+    if (every > 1) clean.every = every;
+    return clean;
   });
   return profile({ id, name, elo: value.elo, goal: value.goal, turnMoves, rules });
+}
+
+export function describeBotRule(rule) {
+  const trigger = TRIGGERS[rule.trigger];
+  const action = ACTIONS[rule.action];
+  const every = rule.every ?? 1;
+  if (!trigger || !action || !integerInRange(rule.amount, 1, action.max) ||
+      !integerInRange(every, 1, MAX_BOT_RULE_EVERY)) return '';
+  const cadence = every === 1 ? `each ${trigger.event}` : `every ${every} ${trigger.event}s`;
+  const delta = action.direction > 0 ? 'add' : 'subtract';
+  const unit = action.metric === 'elo' ? 'Elo' : (rule.amount === 1 ? 'move per turn' : 'moves per turn');
+  return `After ${cadence}, ${delta} ${rule.amount} ${unit}.`;
 }
 
 function ruleChanges(bot, counters, metric) {
@@ -72,7 +94,7 @@ function ruleChanges(bot, counters, metric) {
     if (action.metric !== metric) continue;
     const count = counters[TRIGGERS[rule.trigger].counter];
     if (Number.isSafeInteger(count) && count > 0) {
-      change += count * rule.amount * action.direction;
+      change += Math.floor(count / (rule.every ?? 1)) * rule.amount * action.direction;
     }
   }
   return change;
@@ -105,6 +127,48 @@ export function importBot(text) {
     throw new Error('Choose a Chess Workshop bot file.');
   }
   return normalizeBot(data.bot);
+}
+
+// Keep the wire order fixed for CW1 as new Studio blocks are introduced.
+const codeTriggers = ['botMove', 'playerMove', 'botCapture', 'botCheck', 'playerCapture', 'playerCheck'];
+const codeActions = ['drop', 'raise', 'raiseMoves', 'dropMoves'];
+const botCodeError = 'Enter a valid Chess Workshop bot code.';
+
+export function encodeBotCode(bot) {
+  const { name, elo, goal, turnMoves, rules } = normalizeBot(bot);
+  const wireRules = rules.map(({ trigger, action, amount, every = 1 }) =>
+    [codeTriggers.indexOf(trigger), codeActions.indexOf(action), amount, every]);
+  const json = JSON.stringify([name, elo, Number(goal === 'draw'), turnMoves, wireRules]);
+  const binary = String.fromCharCode(...new TextEncoder().encode(json));
+  return 'CW1.' + btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
+}
+
+export function decodeBotCode(input) {
+  if (typeof input !== 'string' || input.length > MAX_BOT_CODE_LENGTH + 32) throw new Error(botCodeError);
+  const code = input.trim();
+  if (code.length > MAX_BOT_CODE_LENGTH || !/^CW1\.[A-Za-z0-9_-]+$/.test(code)) throw new Error(botCodeError);
+  try {
+    const binary = atob(code.slice(4).replaceAll('-', '+').replaceAll('_', '/'));
+    const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+    const wire = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    if (!Array.isArray(wire) || wire.length !== 5) throw new Error(botCodeError);
+    const [name, elo, goal, turnMoves, wireRules] = wire;
+    if ((goal !== 0 && goal !== 1) || !Array.isArray(wireRules) || wireRules.length > MAX_BOT_RULES) {
+      throw new Error(botCodeError);
+    }
+    const rules = wireRules.map(rule => {
+      if (!Array.isArray(rule) || rule.length !== 4) throw new Error(botCodeError);
+      const [trigger, action, amount, every] = rule;
+      if (!integerInRange(trigger, 0, codeTriggers.length - 1) ||
+          !integerInRange(action, 0, codeActions.length - 1)) throw new Error(botCodeError);
+      return { trigger: codeTriggers[trigger], action: codeActions[action], amount, every };
+    });
+    const bot = normalizeBot({ name, elo, goal: goal ? 'draw' : 'win', turnMoves, rules });
+    if (encodeBotCode(bot) !== code) throw new Error(botCodeError);
+    return bot;
+  } catch {
+    throw new Error(botCodeError);
+  }
 }
 
 export function createBotStore(storage) {

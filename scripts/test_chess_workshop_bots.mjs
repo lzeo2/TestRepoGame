@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {
-  BUILTIN_BOTS, MAX_BOT_ELO, MAX_BOT_RULES, MAX_BOT_TURN_MOVES, MIN_BOT_ELO,
-  botStrength, botTurnMoves, createBotStore, exportBot, importBot, normalizeBot,
+  BUILTIN_BOTS, MAX_BOT_CODE_LENGTH, MAX_BOT_ELO, MAX_BOT_RULES, MAX_BOT_RULE_EVERY,
+  MAX_BOT_TURN_MOVES, MIN_BOT_ELO, botStrength, botTurnMoves, createBotStore,
+  decodeBotCode, describeBotRule, encodeBotCode, exportBot, importBot, normalizeBot,
 } from '../Games/Chess Workshop/bots.js';
 
 const fading = BUILTIN_BOTS.find(bot => bot.id === 'fading');
@@ -55,6 +56,55 @@ assert.throws(() => normalizeBot({ ...draft, turnMoves: null }), /starting moves
 assert.throws(() => normalizeBot({ ...draft, rules: [{ ...draft.rules[0], action: 'raiseMoves', amount: 4 }] }), /move change/);
 assert.throws(() => normalizeBot({ ...draft, rules: [{ ...draft.rules[0], action: 'dropMoves', amount: 0 }] }), /move change/);
 
+const cadenceBot = normalizeBot({
+  name: '♞ Échecs 前進', elo: 2000, goal: 'draw', turnMoves: 2,
+  rules: [
+    { trigger: 'playerMove', action: 'drop', amount: 80, every: 3 },
+    { trigger: 'playerCapture', action: 'raise', amount: 10, every: 2 },
+    { trigger: 'playerCheck', action: 'raiseMoves', amount: 1, every: 2 },
+  ],
+}, 'custom-identity');
+assert.equal(botStrength(cadenceBot, { playerMoves: 2, playerCaptures: 1, playerChecks: 3 }), 2000);
+assert.equal(botStrength(cadenceBot, { playerMoves: 3, playerCaptures: 3, playerChecks: 3 }), 1930);
+assert.equal(botStrength(cadenceBot, { playerMoves: 7, playerCaptures: 4, playerChecks: 3 }), 1860);
+assert.equal(botTurnMoves(cadenceBot, { playerChecks: 1, botChecks: 7 }), 2);
+assert.equal(botTurnMoves(cadenceBot, { playerChecks: 3 }), 3);
+assert.equal(describeBotRule(cadenceBot.rules[0]), 'After every 3 player moves, subtract 80 Elo.');
+assert.equal(describeBotRule({ trigger: 'playerCheck', action: '', amount: 1 }), '');
+assert.throws(() => normalizeBot({
+  ...draft, rules: [{ ...draft.rules[0], every: MAX_BOT_RULE_EVERY + 1 }],
+}), /run every/);
+for (const every of [0, -1, 1.5, null, '3']) {
+  assert.throws(() => normalizeBot({ ...draft, rules: [{ ...draft.rules[0], every }] }), /run every/);
+}
+assert.deepEqual(importBot(exportBot(cadenceBot)), { ...cadenceBot, id: null });
+
+const code = encodeBotCode(cadenceBot);
+assert.match(code, /^CW1\.[A-Za-z0-9_-]+$/);
+assert.equal(code, encodeBotCode({ ...cadenceBot, id: 'custom-other-identity' }));
+assert.deepEqual(decodeBotCode(` \n${code}\r\n`), { ...cadenceBot, id: null });
+assert.equal(encodeBotCode(decodeBotCode(code)), code);
+assert.deepEqual(decodeBotCode(encodeBotCode(fading)), { ...fading, id: null });
+assert.equal(
+  encodeBotCode({ ...fading, rules: [{ ...fading.rules[0], every: 1 }] }),
+  encodeBotCode(fading),
+);
+const rawCode = wire => 'CW1.' + Buffer.from(wire).toString('base64url');
+for (const invalid of [
+  null, '', code + '=', 'CW2.' + code.slice(4), 'CW1.' + 'A'.repeat(MAX_BOT_CODE_LENGTH),
+  rawCode(Uint8Array.of(0xC0, 0x80)), rawCode('{}'), rawCode('["X",1500,2,1,[]]'),
+  rawCode('["X",1500,0,1,[[9,0,50,1]]]'), rawCode('["X",1500,0,1,[[0,0,50,0]]]'),
+  rawCode('[ "X",1500,0,1,[]]'),
+]) {
+  assert.throws(() => decodeBotCode(invalid), /valid Chess Workshop bot code/);
+}
+const longestCode = encodeBotCode({
+  name: '\ud800'.repeat(40), elo: MAX_BOT_ELO, goal: 'draw', turnMoves: MAX_BOT_TURN_MOVES,
+  rules: Array(MAX_BOT_RULES).fill({ trigger: 'playerCapture', action: 'raise', amount: 500, every: MAX_BOT_RULE_EVERY }),
+});
+assert(longestCode.length <= MAX_BOT_CODE_LENGTH);
+assert.equal(encodeBotCode(decodeBotCode(longestCode)), longestCode);
+
 const legacy = { id: 'custom-legacy', name: 'Classic', elo: 1500, goal: 'win', rules: [{ trigger: 'botMove', action: 'drop', amount: 50 }] };
 const legacyFile = JSON.stringify({ format: 'chess-workshop-bot', version: 1, bot: legacy });
 const restoredLegacy = importBot(legacyFile);
@@ -84,4 +134,4 @@ assert.equal(unavailable.list().length, 1);
 const corrupt = createBotStore({ getItem: () => 'This was never JSON.' });
 assert.deepEqual(corrupt.list(), []);
 
-console.log('PASS Chess Workshop bot Elo and turn-size rules, bounded presets, legacy imports, and local library');
+console.log('PASS Chess Workshop rule cadence, bot codes, bounded presets, legacy imports, and local library');

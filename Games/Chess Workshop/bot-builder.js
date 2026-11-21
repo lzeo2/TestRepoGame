@@ -1,6 +1,7 @@
 import {
-  ACTIONS, MAX_BOT_ELO, MAX_BOT_RULES, MAX_BOT_TURN_MOVES, MIN_BOT_ELO, TRIGGERS,
-  deleteCustomBot, exportBot, importBot, listCustomBots, normalizeBot, saveCustomBot,
+  ACTIONS, MAX_BOT_CODE_LENGTH, MAX_BOT_ELO, MAX_BOT_RULES, MAX_BOT_RULE_EVERY,
+  MAX_BOT_TURN_MOVES, MIN_BOT_ELO, TRIGGERS, decodeBotCode, deleteCustomBot,
+  describeBotRule, encodeBotCode, exportBot, importBot, listCustomBots, normalizeBot, saveCustomBot,
 } from './bots.js';
 
 const blockType = 'application/x-chess-workshop-block';
@@ -63,6 +64,19 @@ export function mountBotBuilder(container, { onPlay }) {
           <button type="button" class="bot-button bot-new">New bot</button>
         </div>
       </form>
+      <details class="bot-code">
+        <summary>Bot codes</summary>
+        <div class="bot-code-body">
+          <label>Bot code<textarea class="bot-code-input" rows="3" maxlength="${MAX_BOT_CODE_LENGTH}"
+            spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Paste a CW1. code"></textarea></label>
+          <div class="bot-code-actions">
+            <button type="button" class="bot-button bot-generate-code">Get draft code</button>
+            <button type="button" class="bot-button bot-copy-code">Copy code</button>
+            <button type="button" class="bot-button bot-load-code">Load as draft</button>
+          </div>
+          <p class="bot-code-status" role="status"></p>
+        </div>
+      </details>
       <section class="bot-library">
         <div class="bot-library-heading">
           <h3>Saved bots</h3>
@@ -83,6 +97,9 @@ export function mountBotBuilder(container, { onPlay }) {
   const status = form.querySelector('.bot-builder-status');
   const savedList = container.querySelector('.bot-saved-list');
   const importInput = container.querySelector('input[type="file"]');
+  const codePanel = container.querySelector('.bot-code');
+  const codeInput = container.querySelector('.bot-code-input');
+  const codeStatus = container.querySelector('.bot-code-status');
   const paletteButtons = [];
   let botId = null;
   let rules = [];
@@ -92,6 +109,19 @@ export function mountBotBuilder(container, { onPlay }) {
   function announce(text, error = false) {
     status.textContent = text;
     status.classList.toggle('bot-builder-error', error);
+  }
+
+  function showCode(bot) {
+    codePanel.open = true;
+    codeInput.value = encodeBotCode(bot);
+    codeInput.focus();
+    codeInput.select();
+    announceCode(`Code ready for ${bot.name}.`);
+  }
+
+  function announceCode(text, error = false) {
+    codeStatus.textContent = text;
+    codeStatus.classList.toggle('bot-builder-error', error);
   }
 
   function pick(block) {
@@ -186,6 +216,24 @@ export function mountBotBuilder(container, { onPlay }) {
       const card = node('fieldset', 'bot-rule');
       card.append(node('legend', 'bot-rule-label', `Rule ${index + 1}`));
       const slots = node('div', 'bot-rule-slots');
+      const preview = node('p', 'bot-rule-preview');
+      const updatePreview = () => { preview.textContent = describeBotRule(rule); };
+      const cadence = node('label', 'bot-cadence', 'Every');
+      const frequency = node('input');
+      const eventUnit = node('span', 'bot-change-unit', (rule.every ?? 1) === 1 ? 'event' : 'events');
+      frequency.type = 'number';
+      frequency.value = rule.every ?? 1;
+      frequency.min = '1';
+      frequency.max = MAX_BOT_RULE_EVERY;
+      frequency.step = '1';
+      frequency.required = true;
+      frequency.setAttribute('aria-label', `Rule ${index + 1} event frequency`);
+      frequency.addEventListener('input', () => {
+        rule.every = frequency.valueAsNumber;
+        eventUnit.textContent = rule.every === 1 ? 'event' : 'events';
+        updatePreview();
+      });
+      cadence.append(frequency, eventUnit);
       const change = node('label', 'bot-change', 'By');
       const amount = node('input');
       const unit = node('span', 'bot-change-unit');
@@ -209,14 +257,21 @@ export function mountBotBuilder(container, { onPlay }) {
       amount.addEventListener('input', () => {
         rule.amount = amount.valueAsNumber;
         updateUnit();
+        updatePreview();
       });
       change.append(amount, unit);
-      slots.append(ruleSlot(rule, index, 'trigger', TRIGGERS), ruleSlot(rule, index, 'action', ACTIONS, previous => {
-        const action = ACTIONS[rule.action];
-        if (ACTIONS[previous]?.metric !== action.metric) rule.amount = action.initial;
-        updateAmount();
-      }));
+      slots.append(
+        ruleSlot(rule, index, 'trigger', TRIGGERS, updatePreview),
+        ruleSlot(rule, index, 'action', ACTIONS, previous => {
+          const action = ACTIONS[rule.action];
+          if (ACTIONS[previous]?.metric !== action.metric) rule.amount = action.initial;
+          updateAmount();
+          updatePreview();
+        }),
+        cadence, change,
+      );
       updateAmount();
+      updatePreview();
       const remove = button('Remove', 'bot-button bot-remove-rule');
       remove.setAttribute('aria-label', `Remove rule ${index + 1}`);
       remove.addEventListener('click', () => {
@@ -225,8 +280,9 @@ export function mountBotBuilder(container, { onPlay }) {
         addRule.focus();
         announce(`Removed rule ${index + 1}.`);
       });
-      slots.append(change, remove);
-      card.append(slots);
+      const footer = node('div', 'bot-rule-footer');
+      footer.append(preview, remove);
+      card.append(slots, footer);
       return card;
     });
     rulesList.replaceChildren(...cards);
@@ -280,6 +336,8 @@ export function mountBotBuilder(container, { onPlay }) {
       play.addEventListener('click', () => onPlay(bot));
       const download = button('Export', 'bot-button');
       download.addEventListener('click', () => downloadBot(bot));
+      const share = button('Share code', 'bot-button');
+      share.addEventListener('click', () => showCode(bot));
       const remove = button('Delete', 'bot-button');
       remove.addEventListener('click', () => {
         const persisted = deleteCustomBot(bot.id);
@@ -288,7 +346,7 @@ export function mountBotBuilder(container, { onPlay }) {
         container.querySelector('.bot-import').focus();
         announce(persisted ? `Deleted ${bot.name}.` : `Deleted ${bot.name} for this session.`);
       });
-      for (const command of [editBot, play, download, remove]) {
+      for (const command of [editBot, play, download, share, remove]) {
         command.setAttribute('aria-label', `${command.textContent} ${bot.name}`);
         commands.append(command);
       }
@@ -327,6 +385,42 @@ export function mountBotBuilder(container, { onPlay }) {
     announce('New bot draft.');
     nameInput.focus();
   });
+  codePanel.querySelector('.bot-generate-code').addEventListener('click', () => {
+    if (!form.reportValidity()) return;
+    try {
+      showCode(readDraft());
+    } catch (error) {
+      announceCode(error.message, true);
+    }
+  });
+  codePanel.querySelector('.bot-copy-code').addEventListener('click', async () => {
+    const code = codeInput.value.trim();
+    try {
+      decodeBotCode(code);
+    } catch (error) {
+      announceCode(error.message, true);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(code);
+      announceCode('Bot code copied.');
+    } catch {
+      codeInput.focus();
+      codeInput.select();
+      announceCode('Bot code selected. Use your device’s copy command.');
+    }
+  });
+  codePanel.querySelector('.bot-load-code').addEventListener('click', () => {
+    try {
+      edit(decodeBotCode(codeInput.value));
+      announceCode('');
+      announce('Loaded as a new draft. Save bot to add it to your library.');
+      nameInput.focus();
+    } catch (error) {
+      announceCode(error.message, true);
+    }
+  });
+  codeInput.addEventListener('input', () => announceCode(''));
   container.querySelector('.bot-import').addEventListener('click', () => importInput.click());
   importInput.addEventListener('change', async () => {
     const file = importInput.files[0];
@@ -344,4 +438,5 @@ export function mountBotBuilder(container, { onPlay }) {
 
   edit(null);
   renderLibrary();
+  return { refresh: renderLibrary };
 }

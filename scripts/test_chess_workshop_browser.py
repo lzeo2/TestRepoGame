@@ -232,6 +232,9 @@ def build_bot(page, output, downloads):
     page.get_by_label("Bot name").fill("Clock Burner")
     page.get_by_label("Starting Elo").fill("1800")
     page.get_by_label("Rule 1 Elo change").fill("50")
+    page.get_by_label("Rule 1 event frequency").fill("2")
+    expect(page.locator(".bot-rule-preview")).to_contain_text("every 2")
+    code = share_studio_draft(page)
     page.get_by_role("button", name="Play draft", exact=True).click()
     expect(page.locator("#top-player strong")).to_have_text("Clock Burner")
     expect(page.locator("#opponent option:checked")).to_contain_text("Clock Burner")
@@ -246,18 +249,103 @@ def build_bot(page, output, downloads):
     exported = downloads / delivery.value.suggested_filename
     delivery.value.save_as(exported)
     profile = json.loads(exported.read_text(encoding="utf-8"))
-    assert profile["bot"]["rules"] == [{"trigger": "botMove", "action": "drop", "amount": 50}], profile
+    assert profile["bot"]["rules"] == [{"trigger": "botMove", "action": "drop", "amount": 50, "every": 2}], profile
     page.get_by_role("button", name="Play Clock Burner", exact=True).click()
     expect(page.locator("#top-player")).to_contain_text("1800 Elo target")
     play_move(page, "e2", "e4")
     wait_for_reply(page)
+    expect(page.locator("#top-player")).to_contain_text("1800 Elo target")
+    play_move(page, "g1", "f3")
+    expect(move_cells(page)).to_have_count(4, timeout=25_000)
     expect(page.locator("#top-player")).to_contain_text("1750 Elo target")
     page.reload(wait_until="load")
     page.locator("#opponent").select_option(label="Clock Burner")
     page.get_by_role("button", name="Bot Studio", exact=True).click()
     page.locator('#studio input[type="file"]').set_input_files(exported)
     expect(page.get_by_label("Bot name")).to_have_value("Clock Burner")
+    expect(page.get_by_label("Rule 1 event frequency")).to_have_value("2")
     expect(page.get_by_role("button", name="Rule 1, Then: Drop Elo", exact=True)).to_be_visible()
+    return code
+
+
+def share_studio_draft(page):
+    page.locator(".bot-code summary").click()
+    page.get_by_role("button", name="Get draft code", exact=True).click()
+    field = page.get_by_label("Bot code", exact=True)
+    code = field.input_value()
+    assert re.fullmatch(r"CW1\.[A-Za-z0-9_-]+", code), "Missing reusable bot code"
+    page.evaluate("""Object.defineProperty(navigator, 'clipboard', {
+        configurable: true, value: { writeText: () => Promise.reject(new Error('Clipboard unavailable')) },
+    })""")
+    try:
+        page.get_by_role("button", name="Copy code", exact=True).click()
+        expect(page.locator(".bot-code-status")).to_contain_text("Bot code selected")
+        assert field.evaluate("field => field.selectionStart === 0 && field.selectionEnd === field.value.length")
+    finally:
+        page.evaluate("delete navigator.clipboard")
+    field.fill("CW1.invalid")
+    page.get_by_role("button", name="Load as draft", exact=True).click()
+    expect(page.locator(".bot-code-status")).to_contain_text("valid Chess Workshop bot code")
+    field.fill(code)
+    page.get_by_role("button", name="Load as draft", exact=True).click()
+    expect(page.get_by_label("Bot name")).to_have_value("Clock Burner")
+    expect(page.get_by_label("Rule 1 event frequency")).to_have_value("2")
+    expect(page.locator(".bot-builder-status")).to_contain_text("Loaded as a new draft")
+    return code
+
+
+def open_community(page, panel, touch=False):
+    for name in ("Community", panel):
+        button = page.get_by_role("button", name=name, exact=True)
+        if touch:
+            button.tap()
+        else:
+            button.click()
+
+
+def marketplace_flow(page, output, code):
+    open_community(page, "Marketplace")
+    expect(page.locator(".market-grid article")).to_have_count(6)
+    page.get_by_label("Bot style").select_option("bonus")
+    expect(page.locator(".market-grid article")).to_have_count(3)
+    page.get_by_label("Search bots").fill("rush")
+    curated = page.locator(".market-grid article")
+    expect(curated).to_have_count(1)
+    expect(curated.get_by_role("heading")).to_have_text("Opening Rush")
+    curated.get_by_role("button", name="Save Opening Rush", exact=True).click()
+    expect(page.locator(".market-message")).to_have_text("Saved Opening Rush to Bot Studio.")
+    curated.get_by_role("button", name="Save Opening Rush", exact=True).click()
+    expect(page.locator(".market-message")).to_contain_text("already in your collection")
+    curated.get_by_role("button", name="Play Opening Rush", exact=True).click()
+    expect(page.locator("#top-player strong")).to_have_text("Opening Rush")
+    expect(page.locator("#play-format")).to_have_text("Bonus turns")
+    play_move(page, "e2", "e4")
+    check_burst(page, ["e4", None, "Pass", None, "Pass", None])
+
+    open_community(page, "Marketplace")
+    field = page.get_by_label("Reusable code or share link")
+    field.fill("CW1.invalid")
+    page.get_by_role("button", name="Preview bot", exact=True).click()
+    expect(page.locator(".market-message")).to_contain_text("valid Chess Workshop bot code")
+    field.fill(code)
+    page.get_by_role("button", name="Preview bot", exact=True).click()
+    preview = page.locator(".market-preview article")
+    expect(preview.get_by_role("heading")).to_have_text("Clock Burner")
+    capture(page, output, "desktop-marketplace")
+    preview.get_by_role("button", name="Share Clock Burner", exact=True).click()
+    share = page.get_by_role("dialog", name="Share Clock Burner")
+    expect(share.get_by_label("Reusable bot code")).to_have_value(code)
+    link = share.get_by_label("Share link", exact=True).input_value()
+    assert link == page.url.split("#")[0] + "#bot=" + code
+    shared = page.context.new_page()
+    try:
+        shared.goto(link, wait_until="load")
+        expect(shared.locator(".market-preview h3")).to_have_text("Clock Burner")
+        expect(shared.locator("#table")).to_be_hidden()
+        expect(shared.get_by_role("button", name="Community", exact=True)).to_have_attribute("aria-current", "page")
+    finally:
+        shared.close()
+    share.get_by_role("button", name="Close", exact=True).click()
 
 
 def build_bonus_bot(page, output):
@@ -299,13 +387,9 @@ def build_bonus_bot(page, output):
     expect(page.get_by_role("button", name="Rule 1, Then: Add moves per turn", exact=True)).to_be_visible()
 
 
-def check_interrupted_turn(context, url):
-    page = context.new_page()
-    # Keep one search pending until Stop, then answer subsequent searches with
-    # legal moves that guarantee a later bonus turn gives check on move one.
-    page.add_init_script("""
+def script_engine(page, moves, hold_at=None):
+    fixture = """((moves, holdAt) => {
         const NativeWorker = window.Worker;
-        const moves = ['e2e4', 'd1h5', 'c2c3', 'h5f7'];
         let played = 0, held = false;
         class FixtureEngine extends EventTarget {
             reply(data) {
@@ -319,7 +403,7 @@ def check_interrupted_turn(context, url):
                     this.reply('bestmove ' + moves[played]);
                 }
                 if (!command.startsWith('go ')) return;
-                if (!held && played === 1) return;
+                if (!held && played === holdAt) return;
                 const move = moves[played++];
                 this.reply('info depth 1 score cp 0 pv ' + move + '\\nbestmove ' + move);
             }
@@ -328,7 +412,14 @@ def check_interrupted_turn(context, url):
         window.Worker = function(url, ...args) {
             return /stockfish.*\\.js$/.test(String(url)) ? new FixtureEngine() : new NativeWorker(url, ...args);
         };
-    """)
+    })"""
+    page.add_init_script(f"{fixture}({json.dumps(moves)}, {json.dumps(hold_at)});")
+
+
+def check_interrupted_turn(context, url):
+    page = context.new_page()
+    # Keep the second search pending until Stop. The next burst begins with check.
+    script_engine(page, ["e2e4", "d1h5", "c2c3", "h5f7"], hold_at=1)
     try:
         page.goto(url, wait_until="load")
         start_match(page, "triple", "b")
@@ -341,6 +432,48 @@ def check_interrupted_turn(context, url):
         check_burst(page, ["e4", "Pass", "Qh5", "Pass", "c3", "a6", "Qxf7+"])
         expect(page.locator("#play-status")).to_contain_text("Check.")
         expect(square(page, "f7")).to_have_attribute("aria-label", "f7 White queen")
+    finally:
+        page.close()
+
+
+def assert_record(page, board, alias, table, moves=None):
+    page.get_by_label("Leaderboard", exact=True).select_option(board)
+    rows = page.get_by_role("table", name=table, exact=True).locator("tbody tr")
+    expect(rows).to_have_count(1)
+    cells = rows.locator("td").all_text_contents()
+    expected = ["1", alias] if moves is None else ["1", alias, str(moves)]
+    assert cells[:-1] == expected and re.fullmatch(r"\d+\.\d s", cells[-1]), cells
+
+
+def save_alias(page, alias, touch=False):
+    page.get_by_label("Player name").fill(alias)
+    save = page.get_by_role("button", name="Save name", exact=True)
+    save.tap() if touch else save.click()
+    expect(page.locator(".cw-rankings-notice")).to_contain_text(alias)
+
+
+def record_bot_match(context, url, output):
+    page = context.new_page()
+    # Script White into Fool's Mate. Black's two legal moves and the real
+    # checkmate result must reach the ranking store from the board controller.
+    script_engine(page, ["f2f3", "g2g4"])
+    try:
+        page.goto(url, wait_until="load")
+        open_community(page, "Leaderboards")
+        expect(page.locator(".cw-rankings-scope")).to_contain_text("saved in this browser")
+        expect(page.locator(".cw-rankings-empty")).to_contain_text("Beat Stockfish")
+        save_alias(page, "Test Knight")
+        start_match(page, "stockfish", "b")
+        check_burst(page, ["f3"])
+        play_move(page, "e7", "e5")
+        check_burst(page, ["f3", "e5", "g4"])
+        play_move(page, "d8", "h4")
+        expect(page.locator("#play-status")).to_have_text("Checkmate. You win.")
+        expect(move_cells(page).last).to_have_text("Qh4#")
+        page.reload(wait_until="load")
+        open_community(page, "Leaderboards")
+        assert_record(page, "stockfish", "Test Knight", "Stockfish leaderboard", moves=2)
+        capture(page, output, "desktop-leaderboard")
     finally:
         page.close()
 
@@ -412,6 +545,13 @@ def puzzle_hint_coordinates(page):
 
 def phone_flows(page, output):
     check_square_sizing(page)
+    open_community(page, "Marketplace", touch=True)
+    no_overflow(page)
+    capture(page, output, "mobile-marketplace")
+    open_community(page, "Leaderboards", touch=True)
+    no_overflow(page)
+    save_alias(page, "Phone Solver", touch=True)
+    page.get_by_role("button", name="Play", exact=True).tap()
     play_move(page, "e2", "e4", touch=True, drag=True)
     wait_for_reply(page)
     expect(page.locator("#play-moves .move-cell").first).to_have_text("e4")
@@ -479,6 +619,11 @@ def phone_flows(page, output):
     page.get_by_role("button", name="Rule 1, Then: Choose block", exact=True).tap()
     expect(page.get_by_role("button", name="Rule 1, If: Player moves", exact=True)).to_be_visible()
     expect(page.get_by_role("button", name="Rule 1, Then: Raise Elo", exact=True)).to_be_visible()
+    page.reload(wait_until="load")
+    open_community(page, "Leaderboards", touch=True)
+    assert_record(page, "mate1", "Phone Solver", "Mate in one leaderboard")
+    no_overflow(page)
+    capture(page, output, "mobile-leaderboard")
 
 
 def main():
@@ -527,10 +672,12 @@ def main():
                         else:
                             play_and_review(page, args.output)
                             bonus_turns(page, args.output)
-                            build_bot(page, args.output, Path(temp))
+                            code = build_bot(page, args.output, Path(temp))
                             build_bonus_bot(page, args.output)
                             appearance_flows(page, args.output)
+                            marketplace_flow(page, args.output, code)
                             check_interrupted_turn(context, origin + GAME)
+                            record_bot_match(context, origin + GAME, args.output)
                         no_overflow(page)
                         context.close()
                 finally:
@@ -542,7 +689,8 @@ def main():
     print(
         "PASS Chess Workshop native pointer and keyboard moves, local Stockfish, PGN, "
         "puzzle rollback and promotion, bot drag and restart, capped bonus turns and replay, "
-        "check and resume guards, appearance persistence, local requests."
+        "check and resume guards, appearance persistence, bot sharing and Marketplace, "
+        "match and puzzle rankings, local requests."
     )
 
 

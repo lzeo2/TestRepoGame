@@ -3,14 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#121c28">
-  <meta name="description" content="Play chess against Stockfish, solve generated tactics, review your games, and build your own opponents with visual rules.">
+  <meta name="theme-color" content="#15191c">
+  <meta name="description" content="Play Stockfish, solve tactics, review games, and share opponents built with visual rules.">
   <title>Chess Workshop</title>
   <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./chessground.css">
   <link rel="stylesheet" href="./appearance.css">
   <link rel="stylesheet" href="./bot-builder.css">
+  <link rel="stylesheet" href="./market.css">
+  <link rel="stylesheet" href="./rankings.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body>
@@ -23,13 +25,14 @@
         <button type="button" data-mode="puzzles">Puzzles</button>
         <button type="button" data-mode="review">Review</button>
         <button type="button" data-mode="studio">Bot Studio</button>
+        <button type="button" data-mode="community">Community</button>
       </nav>
       <a class="arcade" href="../../index.html">Arcade</a>
     </div>
   </header>
-  <main id="main" class="workshop">
+  <main id="main" class="workshop" tabindex="-1">
     <div class="heading">
-      <div><h1 id="mode-title">Play chess</h1><p id="mode-description">Pick a bot, choose your side and play at your own pace.</p></div>
+      <div><h1 id="mode-title">Play chess</h1><p id="mode-description">Choose an opponent and a side to start a match.</p></div>
       <div id="board-tools" class="board-tools">
         <button type="button" id="appearance-open" class="secondary" aria-haspopup="dialog">Appearance</button>
         <button type="button" id="flip-board" class="secondary"><span aria-hidden="true">⇅</span> Flip board</button>
@@ -93,6 +96,14 @@
       </aside>
     </div>
     <section id="studio" aria-label="Bot Studio" hidden></section>
+    <section id="community" aria-labelledby="mode-title" hidden>
+      <div class="community-nav" role="group" aria-label="Community views">
+        <button type="button" data-community="marketplace" aria-controls="marketplace" aria-pressed="true">Marketplace</button>
+        <button type="button" data-community="rankings" aria-controls="rankings" aria-pressed="false">Leaderboards</button>
+      </div>
+      <div id="marketplace"></div>
+      <div id="rankings" hidden></div>
+    </section>
     <footer><a href="./credits.html">Credits &amp; engine source</a></footer>
   </main>
   <dialog id="appearance" aria-labelledby="appearance-title"></dialog>

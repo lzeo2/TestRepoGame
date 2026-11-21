@@ -1462,7 +1462,7 @@
     "title": "Chess Workshop",
     "cat": "strategy",
     "icon": "CW",
-    "desc": "Play Stockfish, generate chess puzzles and review games on demand. Build your own opponents by dragging If/Then rules into Bot Studio. Uses Stockfish 17.1 Lite and chess.js by Jeff Hlywa and contributors.",
+    "desc": "Play Lichess Chessground with Stockfish challenges, generated puzzles and game reviews. Build and share If/Then bots, browse the marketplace and track local records. Includes Stockfish 17.1 Lite and chess.js.",
     "url": "Games/Chess Workshop/index.html",
     "featured": false,
     "tags": [
