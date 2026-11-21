@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#121c28">
+  <meta name="description" content="Play chess against Stockfish, solve generated tactics, review your games, and build your own opponents with visual rules.">
+  <title>Chess Workshop</title>
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./bot-builder.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to game</a>
+  <header class="masthead">
+    <div class="header-content">
+      <a class="brand" href="./index.html" aria-label="Chess Workshop home"><span class="brand-mark" aria-hidden="true">♞</span><span>Chess Workshop</span></a>
+      <nav class="mode-nav" aria-label="Game modes">
+        <button type="button" data-mode="play" aria-current="page">Play</button>
+        <button type="button" data-mode="puzzles">Puzzles</button>
+        <button type="button" data-mode="review">Review</button>
+        <button type="button" data-mode="studio">Bot Studio</button>
+      </nav>
+      <a class="arcade" href="../../index.html">Arcade</a>
+    </div>
+  </header>
+  <main id="main" class="workshop">
+    <div class="heading">
+      <div><h1 id="mode-title">Play chess</h1><p id="mode-description">Pick a bot, choose your side and play at your own pace.</p></div>
+      <button type="button" id="flip-board" class="secondary"><span aria-hidden="true">⇅</span> Flip board</button>
+    </div>
+    <div id="table" class="table">
+      <section class="board-column" aria-label="Chess game">
+        <div class="player-band" id="top-player"><span class="player-token" aria-hidden="true"></span><strong></strong><small></small></div>
+        <div class="board-area">
+          <div id="evaluation" class="evaluation" role="img" aria-label="Evaluation unavailable" hidden><div id="evaluation-fill"></div></div>
+          <div id="board" class="board" role="group" aria-label="Chessboard"></div>
+        </div>
+        <div class="player-band" id="bottom-player"><span class="player-token" aria-hidden="true"></span><strong></strong><small></small></div>
+      </section>
+      <aside class="sidebar" aria-label="Game controls">
+        <section id="play-panel" class="panel">
+          <div class="panel-top"><h2>Match setup</h2><span id="play-format" class="panel-note">Standard</span></div>
+          <div class="panel-body">
+            <label for="opponent">Opponent</label>
+            <select id="opponent"></select>
+            <p id="bot-description" class="field-note"></p>
+            <div class="form-row">
+              <label for="play-color">Your side<select id="play-color"><option value="w">White</option><option value="b">Black</option><option value="random">Random</option></select></label>
+              <button type="button" id="new-game" class="primary">New game</button>
+            </div>
+          </div>
+          <div class="match-status" id="play-status" role="status">White to move.</div>
+          <div class="notation" id="play-moves" aria-label="Moves"></div>
+          <div class="panel-actions"><button type="button" id="review-match" class="secondary" disabled>Review game</button><button type="button" id="resign" class="quiet">Resign</button></div>
+        </section>
+        <section id="puzzles-panel" class="panel" hidden>
+          <div class="panel-top"><h2 id="puzzle-title">Tactics</h2><span id="puzzle-count" class="panel-note">0 solved</span></div>
+          <div class="panel-body">
+            <label for="difficulty">Puzzle type</label>
+            <select id="difficulty"><option value="mixed">Mixed mates</option><option value="mate1">Mate in one</option><option value="mate2">Mate in two</option></select>
+          </div>
+          <div id="puzzle-status" class="match-status" role="status"></div>
+          <div class="panel-actions"><button type="button" id="puzzle-next" class="primary">Next puzzle</button><button type="button" id="puzzle-hint" class="secondary">Hint</button></div>
+        </section>
+        <section id="review-panel" class="panel" hidden>
+          <div class="panel-top"><h2>Game review</h2><span id="review-count" class="panel-note">No game loaded</span></div>
+          <div class="panel-body">
+            <label for="review-pgn">Paste a game in PGN format</label>
+            <textarea id="review-pgn" spellcheck="false" rows="4" placeholder="1. e4 e5 2. Nf3 Nc6 …"></textarea>
+            <div class="review-actions"><button type="button" id="start-review" class="primary">Analyse game</button><button type="button" id="use-last" class="secondary" disabled>Use last game</button><button type="button" id="stop-review" class="quiet" hidden>Stop</button></div>
+          </div>
+          <div id="review-status" class="match-status" role="status"></div>
+          <div id="review-position" class="review-position" hidden>
+            <strong id="position-title"></strong>
+            <p id="position-line"></p>
+          </div>
+          <div id="review-moves" class="notation" aria-label="Review moves"></div>
+          <div class="step-controls" aria-label="Review navigation">
+            <button type="button" data-step="first" aria-label="Starting position">«</button>
+            <button type="button" data-step="previous" aria-label="Previous move">←</button>
+            <button type="button" data-step="next" aria-label="Next move">→</button>
+            <button type="button" data-step="last" aria-label="Final position">»</button>
+          </div>
+        </section>
+      </aside>
+    </div>
+    <section id="studio" aria-label="Bot Studio" hidden></section>
+    <footer><a href="./credits.html">Credits &amp; engine source</a></footer>
+  </main>
+  <dialog id="promotion" aria-labelledby="promotion-title">
+    <form method="dialog">
+      <h2 id="promotion-title">Promote pawn</h2>
+      <div class="promotion-options">
+        <button type="submit" value="q" aria-label="Queen">♛</button><button type="submit" value="r" aria-label="Rook">♜</button><button type="submit" value="b" aria-label="Bishop">♝</button><button type="submit" value="n" aria-label="Knight">♞</button>
+      </div>
+      <button type="submit" class="quiet" value="">Cancel</button>
+    </form>
+  </dialog>
+  <dialog id="resignation" aria-labelledby="resignation-title">
+    <form method="dialog">
+      <h2 id="resignation-title">Resign this game?</h2>
+      <div class="panel-actions"><button type="submit" class="primary" value="confirm">Resign</button><button type="submit" class="secondary" value="" autofocus>Keep playing</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

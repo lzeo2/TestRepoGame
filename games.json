@@ -1456,5 +1456,21 @@
     ],
     "players": "1",
     "howto": "WASD/arrows move; E interacts; Space jumps; P/Escape pauses. Use SHOP to sign an affordable player, then BATTLE for five-on-five. Z/X/C/V/B/N/M call plays, F uses a ready ability. MATCH enables temporary player control; drag or scroll changes the camera. Touch controls are available."
+  },
+  {
+    "id": 247,
+    "title": "Chess Workshop",
+    "cat": "strategy",
+    "icon": "CW",
+    "desc": "Play Stockfish, generate chess puzzles and review games on demand. Build your own opponents by dragging If/Then rules into Bot Studio. Uses Stockfish 17.1 Lite and chess.js by Jeff Hlywa and contributors.",
+    "url": "Games/Chess Workshop/index.html",
+    "featured": false,
+    "tags": [
+      "chess",
+      "puzzles",
+      "solo"
+    ],
+    "players": "1",
+    "howto": "Drag a chess piece or select its square and then its destination. Use Puzzles for tactics, Review for Stockfish analysis, or Bot Studio to build opponents with drag-and-drop rules."
   }
 ]
