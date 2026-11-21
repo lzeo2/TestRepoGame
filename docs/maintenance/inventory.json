@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 134,
+  "catalog_entries": 135,
   "games": [
     {
       "directory": "Games/2048",
@@ -336,6 +336,18 @@
       "files": 24,
       "bytes": 365188,
       "document": "docs/maintenance/games/084-chess.md"
+    },
+    {
+      "directory": "Games/Chess Workshop",
+      "id": 247,
+      "title": "Chess Workshop",
+      "registered": true,
+      "entry": "Games/Chess Workshop/index.html",
+      "entry_blob": "8c28aa76612495603065f0e39284f0bdb0deb16e",
+      "tree": "8063a299f3070b860d45878fe22440d018cf6621",
+      "files": 21,
+      "bytes": 13303270,
+      "document": "docs/maintenance/games/247-chess-workshop.md"
     },
     {
       "directory": "Games/ChromeDino",

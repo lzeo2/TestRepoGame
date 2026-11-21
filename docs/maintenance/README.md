@@ -301,6 +301,7 @@ reserved by appearing here.
 | 244 | [Courtyard Cast](games/244-schoolyardcourtyardcast.md) | `Games/SchoolyardCourtyardCast/index.html` |
 | 245 | [Capital Drive: Canberra (Preview)](games/245-capital-drive.md) | `Games/Capital Drive/index.html` |
 | 246 | [Steal a Basketballer (Preview)](games/246-stealbasketballer.md) | `Games/StealBasketballer/index.html` |
+| 247 | [Chess Workshop](games/247-chess-workshop.md) | `Games/Chess Workshop/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
 | Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
 | Unregistered | [Hextris](games/unregistered-hextris.md) | `Games/Hextris/index.html` |
