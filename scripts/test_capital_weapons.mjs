@@ -133,14 +133,15 @@ for (const weapon of WEAPONS) assert.deepEqual(free.getAmmo(weapon.id), { ammo: 
 assert.equal(free.setWeapon('carbine'), false);
 assert.equal(free.addAmmo(0), false); assert.equal(free.addAmmo(NaN), false);
 assert.equal(free.addAmmo(Infinity), false); assert.equal(free.addAmmo(2, 'laser'), false);
-// Career ammunition does not survive reset or a delayed recovery transfer.
+// A medical transfer cancels reload and preserves each career ammunition pool.
 const recovering = fixture().game;
 for (const weapon of WEAPONS) recovering.addAmmo(weapon.magazine * 2, weapon.id);
 recovering.setWeapon('carbine'); recovering.step(.001, { fire: true }); assert(recovering.reload());
+const beforeRecovery = Object.fromEntries(WEAPONS.map(weapon => [weapon.id, recovering.getAmmo(weapon.id)]));
 recovering.state.health = 0; recovering.step(.01);
 assert.equal(recovering.state.reloading, 0, 'recovery cancels an in-flight reload');
 assert.equal(recovering.setWeapon('pistol'), false); assert.equal(recovering.addAmmo(20), false);
 advance(recovering, 3.5);
-assert.equal(recovering.state.weapon, 'unarmed');
-for (const weapon of WEAPONS) assert.deepEqual(recovering.getAmmo(weapon.id), { ammo: 0, reserveAmmo: 0 });
+assert.equal(recovering.state.weapon, 'carbine');
+for (const weapon of WEAPONS) assert.deepEqual(recovering.getAmmo(weapon.id), beforeRecovery[weapon.id]);
 console.log('Capital weapons: four profiles, ownership, isolated capped pools, switching/reload/pause, deterministic spread, per-pellet polygon clipping, trigger offences, bounded traces, sandbox and recovery PASS');

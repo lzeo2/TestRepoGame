@@ -248,9 +248,9 @@ for (const descriptor of chapters) {
     assert(retryCampaign.start(recovered).ok);
     for (let attempt = 0; attempt < 2; attempt++) {
       retryCampaign.update(.1, { ...recovered, recovering: true });
-      assert(retryCampaign.retryPending);
+      assert.equal(retryCampaign.state.active, null);
       recovered.respawnSerial++;
-      assert(retryCampaign.retry(recovered).ok);
+      assert(retryCampaign.start(recovered).ok);
       assert.equal(retryCampaign.state.active.baselines.schoolAlarm, receipts.schoolAlarm.serial);
       for (let frame = 0; frame < 20; frame++) retryCampaign.update(.1, { ...recovered,
         interior: { roomId: receipts.schoolAlarm.roomId }, onFoot: true });

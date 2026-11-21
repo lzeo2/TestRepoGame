@@ -58,13 +58,15 @@ game.step(1 / 60); assert.equal(game.state.health, 95);
 events.push({ type: 'retaliation', kind: 'melee', x: 11, z: 0, damage: 5 });
 game.step(1 / 60); assert.equal(game.state.health, 95);
 // A stationary driver can be arrested by visible officers after a real hold period.
-game.reset(); game.reportOffence('fixture arrest', 1, { witnessed: true });
+game.reset(); game.addAmmo(24); game.setWeapon('pistol');
+game.reportOffence('fixture arrest', 1, { witnessed: true });
 game.state.police.splice(0, game.state.police.length, ...Array.from({ length: 4 }, (_, i) => ({ id: `arrest${i}`,
   x: simulation.player.x + 3, z: simulation.player.z, yaw: 0, speed: 0, health: 100, mode: 'foot', searchTime: 0 })));
 const serial = game.state.respawnSerial; tick(3.6);
 assert(game.state.recovery); assert.equal(game.state.respawnSerial, serial); tick(3.5);
 assert.equal(game.state.respawnSerial, serial + 1); assert.equal(respawns.at(-1), 'arrest');
 assert.equal(game.state.wanted, 0); assert.equal(game.state.arrestProgress, 0);
+assert.deepEqual(game.getAmmo('pistol'), { ammo: 0, reserveAmmo: 0 }, 'arrest inventory rules stay independent of medical recovery');
 respawns.length = 0;
 // Explicitly unwitnessed and sandbox offences do not raise police.
 game.reset(); assert.equal(game.reportOffence('theft', 1, { witnessed: false }), false);
@@ -317,6 +319,74 @@ assert.equal(restoreGame.getAmmo('pistol').ammo, 1, 'restoration clears the prev
 assert.equal(restoreGame.state.actor.jumpHeight, 0, 'restoration clears jump velocity');
 assert.equal(restoreGame.state.reloading, 0);
 console.log('Capital gameplay: protagonist body/car state, exact independent ammunition, safe bounded placement/rollback, ownership and activity guards PASS');
+
+// Mission restoration preflights both bodies and only commits an in-progress
+// failure after a trusted owner accepts the progression rollback.
+let pistolOwned = true, recoveries = 0, missionCommits = 0, playerSeat = null;
+const missionSimulation = createSimulation(map, { trafficCount: 0 });
+const missionGame = createGameplay(map, missionSimulation, {
+  hasWeapon: id => id !== 'pistol' || pistolOwned,
+  onRespawn: () => { recoveries++; },
+  passengerPose: () => playerSeat,
+});
+missionGame.addAmmo(24, 'pistol'); missionGame.setWeapon('pistol'); missionGame.state.ammo = 0;
+missionGame.addAmmo(12, 'shotgun');
+missionGame.reportOffence('prelaunch witness', 2, { witnessed: true });
+const missionContext = missionGame.missionRecoverySnapshot();
+const missionBody = { ...studentCheckpoint, ammunition: missionGame.inventorySnapshot(), ...missionContext };
+missionGame.state.health = 0;
+missionGame.step(1 / 60);
+assert(missionGame.state.recovery);
+playerSeat = { x: 0, z: 3 };
+missionGame.state.carjacking = { id: 'fixture' };
+missionSimulation.driving.driftHold = .5;
+missionSimulation.driving.nitroFuel = .37;
+pistolOwned = false;
+const missionLive = () => ({
+  body: missionGame.snapshot(), context: missionGame.missionRecoverySnapshot(),
+  player: { ...missionSimulation.player }, driving: { ...missionSimulation.driving },
+});
+const beforeReturn = missionLive();
+assert.equal(missionGame.restoreProtagonist(studentCheckpoint).reason, 'busy');
+assert.equal(missionGame.restoreMissionCheckpoint(missionBody).reason, 'unowned-weapon');
+assert.equal(missionGame.restoreMissionCheckpoint({ ...missionBody, heat: NaN }).reason, 'invalid-checkpoint');
+assert.equal(missionGame.restoreMissionCheckpoint({ ...missionBody, equipped: ['pistol', 'pistol'] }).reason, 'invalid-checkpoint');
+assert.equal(missionGame.restoreMissionCheckpoint(missionBody, {
+  canRestoreWeapon: () => true,
+  commit: () => { missionCommits++; return false; },
+}).reason, 'commit-rejected');
+assert.deepEqual(missionLive(), beforeReturn, 'rejected commit does not alter car, driving, police, inventory or live death state');
+const missionMoveActor = missionSimulation.moveActor;
+missionSimulation.moveActor = () => ({ blocked: true });
+assert.equal(missionGame.restoreMissionCheckpoint(missionBody, {
+  canRestoreWeapon: () => true,
+  commit: () => { missionCommits++; return true; },
+}).reason, 'actor-blocked');
+assert.equal(missionCommits, 1, 'blocked actor placement never commits');
+assert.deepEqual(missionLive(), beforeReturn);
+missionSimulation.moveActor = missionMoveActor;
+const preview = missionSimulation.previewTeleport({ x: 16, z: 0, yaw: .7 });
+assert(preview.ok && preview.adjusted, 'pure preview resolves a known building overlap');
+assert.deepEqual(missionLive(), beforeReturn);
+assert.deepEqual(missionGame.restoreMissionCheckpoint(missionBody, {
+  canRestoreWeapon: id => id === 'pistol',
+  commit: () => { missionCommits++; pistolOwned = true; playerSeat = null; return true; },
+}), { ok: true, adjusted: false });
+assert.equal(missionCommits, 2);
+assert.equal(missionGame.state.respawnSerial, beforeReturn.body.respawnSerial);
+assert.equal(missionGame.state.recovery, null);
+assert.equal(missionGame.state.carjacking, null);
+assert.equal(missionGame.state.health, studentCheckpoint.health);
+assert.equal(missionGame.state.vehicleHealth, studentCheckpoint.vehicle.health);
+assert.equal(missionGame.state.actor.x, studentCheckpoint.actor.x);
+assert.equal(missionSimulation.player.x, studentCheckpoint.vehicle.x);
+assert.deepEqual(missionGame.inventorySnapshot(), missionBody.ammunition);
+assert.deepEqual(missionGame.missionRecoverySnapshot(), missionContext);
+missionGame.setWeapon('shotgun');
+assert.deepEqual(missionGame.getAmmo('shotgun'), { ammo: 6, reserveAmmo: 6 }, 'mission returns exact prelaunch first-equip state');
+for (let frame = 0; frame < 240; frame++) missionGame.step(1 / 60);
+assert.equal(recoveries, 0, 'a successful mission rollback cancels the pending medical transfer');
+console.log('Capital gameplay: mission rollback preflights placement and commit, restores prelaunch ammo/health/wanted and cancels pending recovery PASS');
 
 // The room adapter may share x/z with exterior geometry; police damage and
 // presentation still require the exact gameplay space, independent of LOS.

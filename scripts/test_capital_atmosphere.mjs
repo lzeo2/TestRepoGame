@@ -4,6 +4,15 @@ import { createAtmosphere } from '../Games/Capital Drive/atmosphere.js';
 import { createAtmosphereView } from '../Games/Capital Drive/atmosphere-view.js';
 const clock = createAtmosphere(), first = clock.snapshot();
 assert.equal(first.hour, 15); assert.equal(first.weather, 'clear'); assert.equal(first.rain, 0); assert.equal(first.wetness, 0);
+// The horizon is paler than the overhead sky without adding a sky mesh.
+const rgb = hex => [(hex >> 16) & 255, (hex >> 8) & 255, hex & 255];
+const [skyRed, , skyBlue] = rgb(first.skyColor), [fogRed] = rgb(first.fogColor);
+assert(skyBlue > skyRed, 'clear afternoon keeps a blue sky');
+assert(fogRed > skyRed && rgb(first.fogColor).reduce((sum, value) => sum + value, 0) > rgb(first.skyColor).reduce((sum, value) => sum + value, 0), 'clear distance fades into a paler horizon');
+const duskClock = createAtmosphere(); duskClock.step(360);
+const dusk = duskClock.snapshot();
+assert(rgb(dusk.sunColor)[0] > rgb(dusk.sunColor)[2], 'dusk direct light remains warm');
+assert(dusk.hemisphereIntensity >= .6, 'dusk retains the playable ambient floor');
 assert(Object.isFrozen(first)); clock.step(0); assert.deepEqual(clock.snapshot(), first);
 for (const dt of [-1, Infinity, NaN]) assert.throws(() => clock.step(dt), /dt/);
 assert.deepEqual(clock.snapshot(), first);

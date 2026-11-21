@@ -22,7 +22,7 @@ const counters={mesh:0,population:0,save:0};
 const progression=createProgression(map);progression.state.cash=5432;progression.state.equipment.pistol=true;
 const env={aircraft:null,resetDelivery(){},gameplay,simulation,campaign,interiors,protagonists:createProtagonistState(null,{bounds:map.bounds}),PROTAGONIST_IDS,WEAPONS,weaponById,recallDrone(){},prepareCharacterStart,CIVIC_INTERIOR_ENTRIES:[],
   heroPowers:{cancelActive(){}},ordnance:{reset(){}},campaignScenes:{people:[],canExchangeLeader:()=>false},
-  developerReturn:null,started:true,gameMode:'campaign',progression,isSandbox:()=>false,
+  developerReturn:null,missionCheckpoint:null,started:true,gameMode:'campaign',progression,isSandbox:()=>false,
   activities:{snapshot:()=>({active:null})},micromobility:{snapshot:()=>({active:null}),reset(){}},buses:{reset(){}},rideService:{reset(){}},equipment:{reset(){}},
   cutscenes:{snapshot:()=>({active:false})},streetChallenge:()=>null,careerContext:()=>({}),
   selectVehicle(){counters.mesh++;},selectedPaint:'#e7e6df',followYoober:true,destination:{},route:[1],lastJobTarget:'old',mapSelection:{},dialogueId:'old',cameraReady:true,
@@ -53,6 +53,7 @@ for(const [set,clear,reason] of [
   [()=>gameplay.state.health=0,()=>gameplay.state.health=61,'Recover'],
   [()=>gameplay.state.actor.impactTime=1,()=>gameplay.state.actor.impactTime=0,'Recover'],
   [()=>campaign.state.active={},()=>campaign.state.active=null,'mission'],
+  [()=>env.missionCheckpoint={failure:'blocked'},()=>env.missionCheckpoint=null,'mission start'],
   [()=>env.progression.state.activeJob={},()=>env.progression.state.activeJob=null,'work'],
   [()=>env.progression.state.activity={},()=>env.progression.state.activity=null,'activity'],
   [()=>gameplay.state.carjacking={},()=>gameplay.state.carjacking=null,'challenge'],

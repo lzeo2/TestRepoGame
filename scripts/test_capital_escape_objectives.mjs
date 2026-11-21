@@ -108,8 +108,10 @@ for (const id of escapeIds) {
   failed.update(.1, { ...reached, wanted: 2 });
   failed.update(.1, { ...far, recovering: true });
   assert.equal(failed.state.active, null);
-  assert(failed.retry({ ...base, respawnSerial: 1 }).ok);
-  assert.equal(failed.snapshot().active.escapeReached, false, 'fresh retry discards old arrival');
+  tick(failed, { ...base, respawnSerial: 1 });
+  assert.equal(failed.state.active, null, 'failure leaves the mission inactive until an explicit start');
+  assert(failed.start({ ...base, respawnSerial: 1 }).ok);
+  assert.equal(failed.snapshot().active.escapeReached, false, 'fresh attempt discards old arrival');
   assert.equal(failed.state.active.stage, 0);
   assert.equal(failed.drainEvents().some(event => event.type === 'complete'), false, 'failed attempt pays nothing');
 }

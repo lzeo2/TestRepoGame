@@ -269,16 +269,29 @@ export function createGameplay(map, simulation, options = {}) {
       const road = simulation.nearestRoad(-600, 160);
       const target = road || map.spawn || simulation.player;
       simulation.teleport({ x: target.x, z: target.z, yaw: target.yaw || 0 });
-    } else placeMedicalRecovery(state.recovery?.origin || recoveryOrigin());
+    } else {
+      const origin = state.recovery?.origin || recoveryOrigin();
+      const recoverySite = options.getMedicalRecoveryOrigin?.(origin);
+      const hasAnchor = Number.isFinite(recoverySite?.x) && Number.isFinite(recoverySite?.z);
+      placeMedicalRecovery(hasAnchor ? recoverySite : origin);
+    }
     state.mode = 'vehicle'; state.health = 100; state.vehicleHealth = 100; state.wanted = 0; state.offencePressure = 0;
     state.heat = 0; state.pursuit = 'clear'; state.police.length = 0; state.shots.length = 0;
     state.actor.jumpHeight = 0; state.actor.speed = 0; state.aiming = false; state.reloading = 0;
-    state.attackTimer = 0; state.arrestProgress = 0; state.weapon = 'unarmed'; clearAmmo(state.sandbox);
+    state.attackTimer = 0; state.arrestProgress = 0;
+    if (reason === 'arrest') {
+      state.weapon = 'unarmed';
+      clearAmmo(state.sandbox);
+    }
     fireCooldown = 0; meleeCooldown = 0; retaliationCooldown = 0; crashCooldown = 0; recklessCooldown = 0;
     jumpVelocity = 0; witnessCooldown = 0; state.respawnSerial++;
     previousCrashes = simulation.player.crashes || 0;
-    emit('respawn', reason === 'arrest' ? 'Released near the station.' : 'Recovered on a nearby public road.', { reason });
-    if (!state.sandbox) options.onRespawn?.(reason);
+    const placement = state.sandbox ? null : options.onRespawn?.(reason);
+    const safehouse = reason !== 'arrest' && typeof placement?.safehouse === 'string' ? placement.safehouse.trim() : '';
+    if (safehouse && state.recovery) state.recovery.safehouse = safehouse;
+    const message = reason === 'arrest' ? 'Released near the station.' :
+      safehouse ? `Recovered at ${safehouse}.` : 'Recovered on a nearby public road.';
+    emit('respawn', message, safehouse ? { reason, safehouse } : { reason });
   }
   function beginRecovery(reason) {
     if (state.recovery) return;
@@ -573,20 +586,40 @@ export function createGameplay(map, simulation, options = {}) {
   }
   function restoreProtagonist(checkpoint) {
     if (state.wanted || state.recovery || state.carjacking || state.passenger) return { ok: false, reason: 'busy' };
+    return restoreBody(checkpoint);
+  }
+  function missionRecoverySnapshot() {
+    const { wanted, offencePressure, heat, pursuit } = state;
+    return freeze({ wanted, offencePressure, heat, pursuit, equipped: [...equipped] });
+  }
+  function restoreMissionCheckpoint(checkpoint, { canRestoreWeapon = ownsWeapon, commit } = {}) {
+    if (!checkpoint || typeof checkpoint !== 'object' || Array.isArray(checkpoint) || typeof canRestoreWeapon !== 'function' ||
+      (commit !== undefined && typeof commit !== 'function')) return { ok: false, reason: 'invalid-checkpoint' };
+    const { wanted = 0, offencePressure = 0, heat = 0, pursuit = 'clear', equipped: savedEquipped, ...body } = checkpoint;
+    if (!Number.isInteger(wanted) || wanted < 0 || wanted > 5 ||
+      !Number.isInteger(offencePressure) || offencePressure < 0 || offencePressure > 25 ||
+      !Number.isFinite(heat) || heat < 0 || heat > 73 ||
+      !['clear', 'search', 'pursuit'].includes(pursuit) ||
+      (savedEquipped !== undefined && (!Array.isArray(savedEquipped) || savedEquipped.length > WEAPONS.length ||
+        savedEquipped.some(id => !weaponById(id)) || new Set(savedEquipped).size !== savedEquipped.length))) {
+      return { ok: false, reason: 'invalid-checkpoint' };
+    }
+    const restored = restoreBody(body, canRestoreWeapon, commit, savedEquipped);
+    if (restored.ok) {
+      Object.assign(state, { wanted, offencePressure, heat, pursuit });
+      if (wanted > 0 && !options.getInterior?.()) policeController.report(state.mode === 'foot' ? state.actor : simulation.player);
+    }
+    return restored;
+  }
+  function restoreBody(checkpoint, canRestoreWeapon = ownsWeapon, commit, savedEquipped) {
     let saved;
     try { saved = createProtagonistState(null, { bounds: map.bounds }).capture('student', checkpoint); }
     catch { return { ok: false, reason: 'invalid-checkpoint' }; }
     if (saved.health <= 0) return { ok: false, reason: 'unconscious-checkpoint' };
-    if (saved.weapon !== 'unarmed' && !ownsWeapon(saved.weapon)) return { ok: false, reason: 'unowned-weapon' };
+    if (saved.weapon !== 'unarmed' && !canRestoreWeapon(saved.weapon)) return { ok: false, reason: 'unowned-weapon' };
 
-    // Placement may adjust a stale pose, but never seeks a distant road. Nothing
-    // in Gameplay changes until both live bodies have a checked resting place.
-    const previous = { ...simulation.player };
-    const rollback = reason => {
-      for (const key of Object.keys(simulation.player)) if (!Object.hasOwn(previous, key)) delete simulation.player[key];
-      Object.assign(simulation.player, previous);
-      return { ok: false, reason };
-    };
+    // Preflight both bodies before resetting Gameplay, driving or the stunt flight.
+    // A stale position can adjust locally, with bounded searches for both bodies.
     const candidates = function* (origin, radii) {
       yield { x: origin.x, z: origin.z, yaw: origin.yaw };
       for (const radius of radii) for (let i = 0; i < 16; i++) {
@@ -594,36 +627,43 @@ export function createGameplay(map, simulation, options = {}) {
         yield { x: origin.x + Math.cos(angle) * radius, z: origin.z + Math.sin(angle) * radius, yaw: origin.yaw };
       }
     };
-    let actor, adjusted = false;
+    let vehicle, actor, adjusted = false;
     try {
-      simulation.setPlayerVehicle({ modelId: saved.vehicle.modelId, color: Number.parseInt(saved.vehicle.color.slice(1), 16) });
-      let placed = false;
       for (const candidate of candidates(saved.vehicle, [2, 4, 8, 12])) {
-        const result = simulation.teleport(candidate);
-        if (result.ok && distance(simulation.player, saved.vehicle) <= 12.000001 &&
-          simulation.canOccupy(simulation.player, { ignoreId: 'player' })) { placed = true; break; }
+        const result = simulation.previewTeleport(candidate);
+        if (!result.ok || distance(result, saved.vehicle) > 12.000001) continue;
+        const { id, length, width } = simulation.player;
+        const checked = { id, length, width, x: result.x, z: result.z, yaw: result.yaw, modelId: saved.vehicle.modelId };
+        if (simulation.canOccupy(checked, { ignoreId: 'player' })) { vehicle = checked; break; }
       }
-      if (!placed) return rollback('vehicle-blocked');
-      adjusted = distance(simulation.player, saved.vehicle) > .000001;
+      if (!vehicle) return { ok: false, reason: 'vehicle-blocked' };
+      adjusted = distance(vehicle, saved.vehicle) > .000001;
       actor = { ...saved.actor, speed: 0, jumpHeight: 0 };
       if (saved.mode === 'foot') {
         let clear = false;
         for (const candidate of candidates(saved.actor, [1, 2, 4, 6])) {
           const checked = { ...candidate, speed: 0, jumpHeight: 0 };
-          if (!simulation.moveActor(checked, 0, 0, .45).blocked) { actor = checked; clear = true; break; }
+          if (!simulation.moveActor(checked, 0, 0, .45, vehicle).blocked) { actor = checked; clear = true; break; }
         }
-        if (!clear) return rollback('actor-blocked');
+        if (!clear) return { ok: false, reason: 'actor-blocked' };
         adjusted ||= distance(actor, saved.actor) > .000001;
       }
-    } catch { return rollback('placement-unavailable'); }
+    } catch { return { ok: false, reason: 'placement-unavailable' }; }
+    if (commit) {
+      try { if (commit() !== true) return { ok: false, reason: 'commit-rejected' }; }
+      catch { return { ok: false, reason: 'commit-rejected' }; }
+    }
+    simulation.setPlayerVehicle({ modelId: saved.vehicle.modelId, color: Number.parseInt(saved.vehicle.color.slice(1), 16) });
+    simulation.teleport(vehicle);
     reset();
     state.mode = saved.mode; Object.assign(state.actor, actor);
     state.health = saved.health; state.vehicleHealth = saved.vehicle.health;
     state.vehicle = { modelId: saved.vehicle.modelId, color: saved.vehicle.color, stolen: saved.vehicle.stolen };
     for (const weapon of WEAPONS) {
       Object.assign(ammunition[weapon.id], saved.ammunition[weapon.id]);
-      // Resuming an empty magazine must not trigger first-equip auto-loading.
-      if (ownsWeapon(weapon.id)) equipped.add(weapon.id);
+      // Mission rollback preserves the exact first-equip flags. Career saves
+      // predate those flags and resume owned weapons with their saved magazines.
+      if (savedEquipped?.includes(weapon.id) ?? ownsWeapon(weapon.id)) equipped.add(weapon.id);
     }
     state.weapon = saved.weapon;
     return { ok: true, adjusted };
@@ -667,6 +707,6 @@ export function createGameplay(map, simulation, options = {}) {
     emit('explosion','Grenade detonated.',{hits});return true;
   }
   return { state, focus, step, interact, cancelCarjacking, setWeapon, reload, reportOffence, reportSighting, inventorySnapshot, restoreInventory,
-    takeInventory:item=>transferInventory(item,false),giveInventory:item=>transferInventory(item,true),reset, restoreProtagonist, switchToCompanion, applyExplosion, addAmmo, getAmmo, heal, strikePolice, damageVehicle, damagePoliceVehicle, get policeWrecks(){return policeController.wrecks;}, policeSupport:()=>policeController.support(), drainPoliceEvents:()=>policeEvents.splice(0),
+    takeInventory:item=>transferInventory(item,false),giveInventory:item=>transferInventory(item,true),reset, restoreProtagonist, missionRecoverySnapshot, restoreMissionCheckpoint, switchToCompanion, applyExplosion, addAmmo, getAmmo, heal, strikePolice, damageVehicle, damagePoliceVehicle, get policeWrecks(){return policeController.wrecks;}, policeSupport:()=>policeController.support(), drainPoliceEvents:()=>policeEvents.splice(0),
     snapshot: () => freeze(JSON.parse(JSON.stringify(state))) };
 }

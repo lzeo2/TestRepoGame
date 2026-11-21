@@ -15,6 +15,24 @@ artwork or branded vehicle assets are used.
 
 ## Implementation map
 
+The 21 November recovery update routes an ordinary medical transfer to the
+nearest usable owned safehouse. Milo's mapped home provides a fallback.
+The player enters through the actual room descriptor after clearance checks.
+Medical recovery keeps the equipped weapon and each firearm’s magazine and reserve counts. A blocked house approach
+tries the next safehouse before using checked road placement.
+
+Campaign attempts capture a prelaunch checkpoint of the player, vehicle,
+inventory, economy, selected protagonist, room and guidance. Failure or
+cancellation restores that state and leaves the mission ready to launch
+manually. Placement can adjust around a live obstruction. The career save
+keeps the prelaunch state while an attempt is active. Mission success commits
+its changes and reward through the normal career writer.
+
+Daylight now separates blue sky from pale horizon haze. Cooler sky fill,
+earthier ground lighting and warmer twilight change the scene through the
+existing atmosphere resources. Browser captures compared the same spawn in
+Performance graphics. The palette update adds no render passes or textures.
+
 The [19 November streets/deliveries receipt](../../verification/capital-drive-streets-deliveries-2026-11-19.md)
 records the next controlled collision comparison, multi-cache house searches,
 physical courier orders, cargo jobs, extra safehouses, smoothed player poses,
@@ -867,12 +885,25 @@ imports with retained source hashes; never turn rendering estimates into data.
 
 ```sh
 python3 -B scripts/check_capital_drive.py
+timeout 360s python3 -B scripts/test_capital_recovery_checkpoint_browser.py --scenario city --capture --output <fresh-external-output>
+timeout 360s python3 -B scripts/test_capital_recovery_checkpoint_browser.py --scenario city --capture --mission-failure --output <fresh-external-output>
+timeout 360s python3 -B scripts/test_capital_recovery_checkpoint_browser.py --scenario city --capture --owned-safehouse --output <fresh-external-output>
 timeout 600s python3 -B scripts/test_capital_combat_recon_browser.py --capture --output <external-output>
 python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
 ```
 
-The reusable runner checks 120 game JavaScript files, 183 pure Node
+The 21 November Chromium runs exercised mission launch and cancellation,
+ordinary knockout to Milo's safehouse, knockout to an actual purchased home,
+and a lethal mission failure with exact prelaunch career and pose comparison.
+Each uses an explicit initial injured career fixture. The player reaches the
+outcome through keyboard and menu actions. The failure remains inactive until
+the player starts the mission again. The three runs passed 17, 19 and 16
+assertions with unchanged source hashes and no console or external request
+errors. The 498-command source plan passed across a resumed run after
+updating a controller fixture for the mission checkpoint guard.
+
+The reusable runner checks 121 game JavaScript files, 184 pure Node
 suites, 5 support scripts, the flamegraph parser, cache closure and
 whitespace. The 20 November motion update passed 13 targeted Node suites,
 including shared foot/camera interpolation, actual pedestrian instance poses,

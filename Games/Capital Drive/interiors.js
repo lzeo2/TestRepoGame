@@ -194,8 +194,8 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
   }
   Object.freeze(entries);
   let active = null, collider = null, outside = null, generatedPlans = 0;
-  function findEntry(pose) {
-    if (active || !validPoint(pose)) return null;
+  function findEntry(pose, { exteriorPreview = false } = {}) {
+    if ((active && !exteriorPreview) || !validPoint(pose)) return null;
     let best = null, bestDistance = ENTRY_RANGE;
     for (let x = -1; x <= 1; x++) for (let z = -1; z <= 1; z++) {
       for (const entry of index.get(cellKey(pose.x + x * CELL, pose.z + z * CELL)) || []) {

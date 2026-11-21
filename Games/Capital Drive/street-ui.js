@@ -158,8 +158,9 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
     const recovery=state.recovery,screen=byId('recovery-screen');
     if(screen){screen.hidden=!recovery;if(recovery){
       screen.style.backgroundColor=`rgba(10,15,18,${recovery.phase==='out'?Math.min(.96,recovery.elapsed/1.8):Math.max(.12,.96-(recovery.elapsed-1.8)*.5)})`;
-      text('recovery-title',recovery.reason==='arrest'?'BUSTED':'HOSPITAL');
-      text('recovery-status',recovery.phase==='out'?'Transferring…':'Recovering. Completed jobs kept.');
+      const safehouse=recovery.phase==='in'&&recovery.safehouse;
+      text('recovery-title',recovery.reason==='arrest'?'BUSTED':safehouse?'SAFEHOUSE':'HOSPITAL');
+      text('recovery-status',recovery.phase==='out'?'Transferring…':safehouse?`Returned to ${safehouse}. Ammo kept.`:'Recovering. Completed jobs kept.');
     }}
   }
   function renderServices(){

@@ -23,7 +23,7 @@ const calls = [];
 const env = { campaign, gameMode: 'campaign', missionLocations: createMissionGuide([]),
   focus: () => context.pose, interiors: { active: null }, roomPeople: { snapshot: () => [] },
   gameplay: { state: { wanted: 2 }, reportOffence() {} }, progression: { state: { activeJob: null, garage: { x: 7, z: 8 } }, drainEvents: () => [] },
-  rideService: { drainEvents: () => [] }, notify() {}, finishDeveloperPreview() {}, retryCampaignMission() {},
+  rideService: { drainEvents: () => [] }, notify() {}, finishDeveloperPreview() {}, restoreFailedMission() {}, acceptMissionCheckpoint() {}, missionCheckpoint: null,
   isSandbox: () => false, lastJobTarget: '', destination: null, route: [],
   routeTo(target) { calls.push(target); env.destination = target; env.route = [[0, 0], [target.x, target.z]]; } };
 vm.createContext(env);
