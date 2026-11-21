@@ -129,6 +129,7 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
     source_paths = ['index.html','style.css','script.js','cache-client.js','cache-launcher.js','service-worker.js','cache-manifest.js']
+    source_paths = sorted(set(source_paths + [str(path.relative_to(GAME)) for path in GAME.rglob('*') if path.is_file() and path.suffix in ('.js','.json','.html','.css')]))
     def source_hashes():
         return {name:hashlib.sha256((GAME/name).read_bytes()).hexdigest() for name in source_paths}
     source_before = source_hashes()
