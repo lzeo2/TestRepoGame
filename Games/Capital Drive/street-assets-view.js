@@ -28,9 +28,9 @@ export function createStreetAssetsView(scene,heightAt,{nitroStations=[],petrolFo
   const stats={stops:0,fuelStations:0,petrolCanopies:0,petrolPylons:0,instances:0,drawCalls:0,maxDrawCalls:1,sourceStops:BUS_STOPS.length,sourceFuelStations:FUEL_STATIONS.length,geometries:1,materials:1,textures:0,disposed:false};
   let disposed=false,lastX=Infinity,lastZ=Infinity;
   function ground(x,z) { const y=heightAt(x,z);return Number.isFinite(y)?y:null; }
-  function box(x,y,z,w,h,d,yaw,shade) {
+  function box(x,y,z,w,h,d,yaw,shade,pitch=0,roll=0) {
     if(stats.instances>=STREET_ASSET_VIEW_LIMITS.maxInstances || ![x,y,z,w,h,d,yaw].every(Number.isFinite) || h<=0)return;
-    pose.position.set(x,y,z);pose.rotation.set(0,-yaw,0);pose.scale.set(w,h,d);pose.updateMatrix();
+    pose.position.set(x,y,z);pose.rotation.set(pitch,-yaw,roll,'YXZ');pose.scale.set(w,h,d);pose.updateMatrix();
     mesh.setMatrixAt(stats.instances,pose.matrix);mesh.setColorAt(stats.instances,color.setHex(shade));stats.instances++;
   }
   function local(site,dx,dz) {
@@ -77,10 +77,20 @@ export function createStreetAssetsView(scene,heightAt,{nitroStations=[],petrolFo
       for(const end of [-1,1]) {
         const rail=local(site,side*1.57,end*1.31),corner=local(site,side*1.25,end*2.59);
         const railY=ground(rail.x,rail.z),cornerY=ground(corner.x,corner.z);
-        if(railY!==null)box(rail.x,railY+.06,rail.z,.24,.035,2.55,site.yaw,NITRO_CYAN);
-        if(cornerY!==null)box(corner.x,cornerY+.06,corner.z,.88,.035,.26,site.yaw,NITRO_CYAN);
+        if(railY!==null)box(rail.x,railY+.10,rail.z,.24,.035,2.55,site.yaw,NITRO_CYAN);
+        if(cornerY!==null)box(corner.x,cornerY+.10,corner.z,.88,.035,.26,site.yaw,NITRO_CYAN);
       }
     }
+  }
+  function pave(tile) {
+    const {x,z,yaw,width,depth}=tile;
+    const sample=(u,v)=>{const p=local(tile,u,v);return ground(p.x,p.z);};
+    const heights=[sample(0,0),sample(-width/2,0),sample(width/2,0),sample(0,-depth/2),sample(0,depth/2)];
+    if(heights.includes(null))return;
+    const [center,left,right,front,back]=heights;
+    // Independent ground sampling lets the small slabs follow the paved bay's grade.
+    box(x,center+.035,z,width+.013,.045,depth+.013,yaw,0x65615c,
+      Math.atan2(front-back,depth),Math.atan2(right-left,width));
   }
   function canopyView(canopy) {
     const {x,z,yaw,width,depth,feet}=canopy;
@@ -141,6 +151,7 @@ export function createStreetAssetsView(scene,heightAt,{nitroStations=[],petrolFo
         if(part.role==='fuel-sign'&&forecourt?.sign||part.role==='pump'&&forecourt?.pumps.length)return;
         furniture(part);
       });
+      forecourt?.paving?.forEach(pave);
       if(forecourt?.canopy)canopyView(forecourt.canopy);
       if(forecourt)forecourt.pumps.forEach(pumpIsland);
       if(forecourt?.sign)fuelPylon(forecourt.sign);

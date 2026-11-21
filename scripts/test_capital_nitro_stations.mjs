@@ -88,6 +88,7 @@ assert.equal(marked.stats.drawCalls, 1, 'nitro paint reuses the street furniture
 const {sites: petrolForecourts, barriers} = buildPetrolForecourts(nitroStations, FUEL_STATIONS, simulation, () => 0, map.buildings);
 assert.equal(petrolForecourts.length, nitroStations.length);
 assert(petrolForecourts.every(site => site.canopy && site.sign && site.pumps.length > 0));
+assert(petrolForecourts.every(site => site.paving.length <= 25), 'checked paving remains a small forecourt surface');
 assert.equal(petrolForecourts.filter(site=>site.canopy.existing).length,5,'five mapped roofs retain their source geometry');
 const bodyProbe={length:1,width:.5,ignoreId:'player'};
 const solidProbes=barriers.map(({points})=>({
@@ -103,6 +104,7 @@ for (const bay of nitroStations) {
 }
 const sampleCourt = petrolForecourts.find(site => site.id === kingston.id);
 assert(sampleCourt && !sampleCourt.canopy.existing, 'Kingston needs an original canopy beside the retained solid building');
+assert(sampleCourt.paving.some(tile => tile.x === kingston.x && tile.z === kingston.z));
 const courtScene = new THREE.Scene();
 const courts = createStreetAssetsView(courtScene, () => 0, { nitroStations, petrolForecourts });
 for (const bay of nitroStations) {
@@ -118,7 +120,7 @@ courts.update(kingston);
 const [courtMesh] = courtScene.children;
 assert.equal(courtScene.children.length, 1);
 const meshPose = new THREE.Matrix4(), position = new THREE.Vector3(), scale = new THREE.Vector3();
-let roof = false, column = false, signFace = false;
+let roof = false, column = false, signFace = false, pavement = false;
 for (let i = 0; i < courtMesh.count; i++) {
   courtMesh.getMatrixAt(i, meshPose);
   position.setFromMatrixPosition(meshPose);
@@ -129,8 +131,10 @@ for (let i = 0; i < courtMesh.count; i++) {
   if (Math.hypot(position.x - foot.x, position.z - foot.z) < .01 && scale.y > 3.8) column = true;
   if (Math.hypot(position.x - sampleCourt.sign.x, position.z - sampleCourt.sign.z) < .01 &&
       scale.x > 2.5 && position.y > 3) signFace = true;
+  if (Math.hypot(position.x - kingston.x, position.z - kingston.z) < .01 &&
+      position.y > 0 && scale.x > 1 && scale.y < .05) pavement = true;
 }
-assert(roof && column && signFace, 'actual instance transforms include a raised roof, grounded column and readable pylon board');
+assert(roof && column && signFace && pavement, 'actual instance transforms include the canopy, support, pylon board and slab beneath the car');
 courts.update(null);
 assert.equal(courts.stats.petrolCanopies + courts.stats.petrolPylons, 0);
 courts.dispose();

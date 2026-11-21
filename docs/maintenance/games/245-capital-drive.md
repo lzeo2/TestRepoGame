@@ -53,8 +53,9 @@ twin-tank shell and instanced exhaust use at most two draws.
 The map has a Petrol stations shortcut and cyan fuel-pump markers. All twelve
 nitro bays have canopies, pumps and roadside fuel signs by mapped stations.
 Five use retained mapped roofs and seven have original fitted structures.
-Columns and fixtures use shared simulation collision while leaving the refill
-bay and approach open. Drive onto the cyan bay, stop and press E or USE. A
+Paving follows the terrain and leaves public lanes clear. Columns and fixtures
+use shared simulation collision while leaving the refill bay and approach open.
+Drive onto the cyan bay, stop and press E or USE. A
 career refill costs $45. Free roam refills are free. The active boost effect
 draws two animated cyan and orange exhaust plumes in one pooled draw.
 

@@ -89,7 +89,17 @@ function planSite(bay, source, simulation, heightAt, retainedRoofs) {
   const signPoints = [-2.6,-1.5,0,1.5,2.8].flatMap(dz => [-3.8,3.8,-3,3,-4.6,4.6].map(dx=>localPoint(origin,dx,dz)));
   const sign = [Math.PI/3,-Math.PI/3,0].flatMap(angle=>signPoints.map(p=>({...p,yaw:yaw+angle})))
     .find(p=>checkProp(p,.42,.42) && corners(p,2.55,.42).every(c=>roadClear(c,0)&&Number.isFinite(heightAt(c.x,c.z))));
-  return { id:bay.id, canopy, pumps, sign:sign?{...sign,width:.42,depth:.42}:null };
+
+  // Keep the compact pad around the checked parking pose, clipping complete
+  // tiles at roads and buildings so the paving never competes with their faces.
+  const paving = [], tileSize = 1.42;
+  for (let x = -2; x <= 2; x++) for (let z = -2; z <= 2; z++) {
+    const tile = {...localPoint(bay,x*tileSize,z*tileSize),yaw:bay.yaw,width:tileSize,depth:tileSize};
+    const outline = corners(tile,tileSize,tileSize);
+    if ([tile,...outline].every(p=>roadClear(p,.12) && groundClear(p,.18)) &&
+        outline.every((p,i)=>simulation.hasLineOfSight(p,outline[(i+1)%outline.length]))) paving.push(tile);
+  }
+  return { id:bay.id, canopy, pumps, paving, sign:sign?{...sign,width:.42,depth:.42}:null };
 }
 
 export function buildPetrolForecourts(nitroStations, sources, simulation, heightAt, buildings = []) {
