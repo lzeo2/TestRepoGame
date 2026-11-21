@@ -22,15 +22,75 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
 
 
 def square(page, coordinate):
-    return page.locator(f'#board [data-square="{coordinate}"]')
+    return page.locator(f'#board .board-key[data-square="{coordinate}"]')
 
 
-def play_move(page, origin, destination, drag=False):
+def square_center(page, coordinate):
+    frame = page.locator("#board cg-board").bounding_box()
+    column = ord(coordinate[0]) - ord("a")
+    row = 8 - int(coordinate[1])
+    if page.locator("#board.orientation-black").count():
+        column, row = 7 - column, 7 - row
+    return (
+        frame["x"] + frame["width"] * (column + .5) / 8,
+        frame["y"] + frame["height"] * (row + .5) / 8,
+    )
+
+
+def play_move(page, origin, destination, drag=False, touch=False):
+    page.locator("#board cg-board").scroll_into_view_if_needed()
+    start, end = (square_center(page, key) for key in (origin, destination))
+    if touch and drag:
+        session = page.context.new_cdp_session(page)
+        try:
+            def dispatch(event, points):
+                session.send("Input.dispatchTouchEvent", {
+                    "type": event,
+                    "touchPoints": [{"x": x, "y": y} for x, y in points],
+                })
+
+            dispatch("touchStart", [start])
+            for step in range(1, 9):
+                page.wait_for_timeout(20)
+                dispatch("touchMove", [tuple(a + (b - a) * step / 8 for a, b in zip(start, end))])
+            dispatch("touchEnd", [])
+        finally:
+            session.detach()
+        return
     if drag:
-        square(page, origin).locator(".piece").drag_to(square(page, destination))
+        page.mouse.move(*start)
+        page.mouse.down()
+        page.mouse.move(*end, steps=12)
+        page.wait_for_timeout(50)
+        page.mouse.up()
+    elif touch:
+        page.touchscreen.tap(*start)
+        page.touchscreen.tap(*end)
     else:
-        square(page, origin).click()
-        square(page, destination).click()
+        page.mouse.click(*start)
+        page.mouse.click(*end)
+
+
+def board_snapshot(page):
+    return page.locator("#board .board-key").evaluate_all("""
+        cells => Object.fromEntries(cells.map(cell => [cell.dataset.square, cell.ariaLabel]))
+    """)
+
+
+def verify_rendered_board(page):
+    page.wait_for_function("""
+        () => {
+            const visuals = new Map(
+                Array.from(document.querySelectorAll('#board cg-board piece'), piece => [piece.cgKey, piece])
+                    .filter(([key, piece]) => key && !piece.classList.contains('ghost') && !piece.classList.contains('fading')),
+            );
+            return Array.from(document.querySelectorAll('#board .board-key')).every(cell => {
+                const [key, side, role] = cell.ariaLabel.split(' ');
+                const piece = visuals.get(key);
+                return role ? piece?.classList.contains(role) && piece.classList.contains(side.toLowerCase()) : !piece;
+            });
+        }
+    """, timeout=5_000)
 
 
 def wait_for_reply(page):
@@ -44,13 +104,20 @@ def capture(page, output, name):
 
 
 def play_and_review(page, output):
-    expect(page.locator("#board .square")).to_have_count(64)
+    expect(page.locator("#board .board-key")).to_have_count(64)
     check_square_sizing(page)
     capture(page, output, "desktop-play")
+    play_move(page, "e2", "e5", drag=True)
+    expect(page.locator("#play-moves .move-cell")).to_have_count(0)
+    expect(square(page, "e2")).to_have_attribute("aria-label", "e2 White pawn")
+    verify_rendered_board(page)
+    page.locator("#flip-board").click()
+    expect(page.locator("#board")).to_have_class(re.compile(r"\borientation-black\b"))
     play_move(page, "e2", "e4", drag=True)
     expect(square(page, "e4")).to_have_attribute("aria-label", "e4 White pawn")
     wait_for_reply(page)
     expect(page.locator("#play-moves .move-cell").first).to_have_text("e4")
+    verify_rendered_board(page)
     page.locator("#review-match").click()
     expect(page.locator("#review-status")).to_contain_text("Review complete", timeout=25_000)
     expect(page.locator("#review-count")).to_have_text("2 / 2 plies")
@@ -63,7 +130,7 @@ def play_and_review(page, output):
 
     page.locator("#review-pgn").fill("1. InvalidMove")
     page.locator("#start-review").click()
-    expect(page.locator("#review-status")).to_have_text("Paste the PGN for one legal chess game.")
+    expect(page.locator("#review-status")).to_contain_text('Illegal move "InvalidMove" in the PGN.')
     page.locator("#review-pgn").fill("1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 *")
     page.locator("#start-review").click()
     expect(page.locator("#review-status")).to_contain_text("Review complete", timeout=25_000)
@@ -75,9 +142,17 @@ def play_and_review(page, output):
     page.locator("#opponent").select_option("fading")
     page.locator("#new-game").click()
     expect(page.locator("#top-player")).to_contain_text("2250 Elo target")
-    play_move(page, "d2", "d4")
+    square(page, "d2").press("Enter")
+    square(page, "d2").press("ArrowUp")
+    square(page, "d3").press("ArrowUp")
+    expect(square(page, "d4")).to_be_focused()
+    page.keyboard.press("Enter")
     wait_for_reply(page)
     expect(page.locator("#top-player")).to_contain_text("2200 Elo target")
+    first_move = page.locator("#play-moves .move-cell").first.element_handle()
+    play_move(page, "g1", "f3")
+    expect(page.locator("#play-moves .move-cell")).to_have_count(4, timeout=25_000)
+    assert first_move.evaluate("move => move.isConnected"), "Adding moves rebuilt the prior notation"
 
     page.locator("#opponent").select_option("draw")
     page.locator("#new-game").click()
@@ -101,6 +176,12 @@ def build_bot(page, output, downloads):
     page.get_by_label("Bot name").fill("Clock Burner")
     page.get_by_label("Starting Elo").fill("1800")
     page.get_by_label("Rule 1 Elo change").fill("50")
+    page.get_by_role("button", name="Play draft", exact=True).click()
+    expect(page.locator("#top-player strong")).to_have_text("Clock Burner")
+    expect(page.locator("#opponent option:checked")).to_contain_text("Clock Burner")
+    page.locator("#new-game").click()
+    expect(page.locator("#top-player strong")).to_have_text("Clock Burner")
+    page.get_by_role("button", name="Bot Studio", exact=True).click()
     page.get_by_role("button", name="Save bot", exact=True).click()
     expect(page.locator(".bot-builder-status")).to_have_text("Saved Clock Burner.")
     capture(page, output, "desktop-bot-studio")
@@ -128,7 +209,7 @@ def no_overflow(page):
 
 
 def check_square_sizing(page):
-    assert page.locator("#board .square").evaluate_all("""
+    assert page.locator("#board .board-key").evaluate_all("""
         squares => {
             const sizes = squares.map(square => square.getBoundingClientRect());
             return sizes.length === 64 && sizes.every(
@@ -139,26 +220,110 @@ def check_square_sizing(page):
     """), "Chessboard squares are not all square and equal-sized"
 
 
-def phone_flows(page, output):
-    page.get_by_role("button", name="Puzzles", exact=True).tap()
-    page.locator("#difficulty").select_option("mate1")
-    expect(page.locator("#puzzle-count")).to_have_text("0 solved")
+def appearance_flows(page, output):
+    page.get_by_role("button", name="Play", exact=True).click()
+    page.locator("#appearance-open").press("Enter")
+    dialog = page.get_by_role("dialog", name="Appearance")
+    expect(dialog).to_be_visible()
+    expect(page.locator("#appearance-theme")).to_have_value("workshop")
+    page.locator("#appearance-theme").press("ArrowDown")
+    expect(page.locator("#appearance-theme")).to_have_value("walnut")
+    page.locator("#appearance-pieces").select_option("merida")
+    page.locator("#appearance-coordinates").uncheck()
+    page.locator("#appearance-dots").uncheck()
+    page.locator("#appearance-animation").uncheck()
+    expect(page.locator("html")).to_have_attribute("data-chess-pieces", "merida")
+    expect(page.locator("#board")).to_have_attribute("data-coordinates", "false")
+    capture(page, output, "desktop-appearance")
+    page.locator("#appearance-dark").fill("#405060")
+    expect(page.locator("#appearance-theme")).to_have_value("custom")
+    dialog.get_by_role("button", name="Done", exact=True).press("Enter")
+    expect(dialog).not_to_be_visible()
+    page.reload(wait_until="load")
+    expect(page.locator("html")).to_have_attribute("data-chess-pieces", "merida")
+    expect(page.locator("#board")).to_have_attribute("data-coordinates", "false")
+    assert page.locator("html").evaluate("root => root.style.getPropertyValue('--board-dark')") == "#405060"
+    piece = page.locator("#board cg-board piece.white.king")
+    assert "/merida/wK.svg" in piece.evaluate("el => getComputedStyle(el).backgroundImage")
+    page.mouse.click(*square_center(page, "e2"))
+    expect(page.locator("#board cg-board square.move-dest")).to_have_count(0)
+    page.mouse.click(*square_center(page, "e2"))
+    page.locator("#appearance-open").click()
+    expect(page.locator("#appearance-animation")).not_to_be_checked()
+    page.locator("#appearance-reset").click()
+    dialog.get_by_role("button", name="Done", exact=True).click()
+    expect(page.locator("html")).to_have_attribute("data-chess-pieces", "cburnett")
+    expect(page.locator("#board")).to_have_attribute("data-coordinates", "true")
+    page.mouse.click(*square_center(page, "e2"))
+    expect(page.locator("#board cg-board square.move-dest")).to_have_count(2)
     no_overflow(page)
-    check_square_sizing(page)
-    capture(page, output, "mobile-puzzle")
+
+
+def puzzle_hint_coordinates(page):
     page.locator("#puzzle-hint").tap()
     hint = re.fullmatch(
         r"Try ([a-h][1-8]) to ([a-h][1-8])\.(?: Promote to a (queen|rook|bishop|knight)\.)?",
         page.locator("#puzzle-status").inner_text(),
     )
     assert hint, "Missing puzzle hint"
-    square(page, hint[1]).tap()
-    square(page, hint[2]).tap()
+    return hint.groups()
+
+
+def phone_flows(page, output):
+    check_square_sizing(page)
+    play_move(page, "e2", "e4", touch=True, drag=True)
+    wait_for_reply(page)
+    expect(page.locator("#play-moves .move-cell").first).to_have_text("e4")
+    verify_rendered_board(page)
+    page.get_by_role("button", name="Puzzles", exact=True).tap()
+    page.locator("#difficulty").select_option("mate1")
+    expect(page.locator("#puzzle-hint")).to_be_enabled()
+    expect(page.locator("#puzzle-count")).to_have_text("0 solved")
+    no_overflow(page)
+    check_square_sizing(page)
+    capture(page, output, "mobile-puzzle")
+    for _ in range(24):
+        if page.locator("#puzzle-title").inner_text() == "Promotion finish":
+            break
+        page.locator("#puzzle-next").tap()
+        expect(page.locator("#puzzle-hint")).to_be_enabled()
+    expect(page.locator("#puzzle-title")).to_have_text("Promotion finish")
+    before = board_snapshot(page)
+    wrong = page.evaluate("""async position => {
+        const { Chess } = await import('./vendor/chess.js');
+        const setup = new Chess();
+        setup.clear();
+        const types = { king: 'k', queen: 'q', rook: 'r', bishop: 'b', knight: 'n', pawn: 'p' };
+        for (const label of Object.values(position)) {
+            const [square, color, piece] = label.split(' ');
+            if (piece) setup.put({ type: types[piece], color: color === 'White' ? 'w' : 'b' }, square);
+        }
+        const turn = document.querySelector('#puzzle-status').textContent.startsWith('Black') ? 'b' : 'w';
+        const game = new Chess(setup.fen().replace(' w ', ' ' + turn + ' '));
+        const candidate = game.moves({ verbose: true }).find(move => !move.promotion && !move.san.endsWith('#'));
+        return candidate ? [candidate.from, candidate.to] : null;
+    }""", before)
+    assert wrong, "Promotion puzzle needs a legal nonmating move for rollback coverage"
+    play_move(page, *wrong, touch=True, drag=True)
+    expect(page.locator("#puzzle-status")).to_contain_text("lets the defender escape")
+    assert board_snapshot(page) == before
+    verify_rendered_board(page)
+
+    origin, destination, promote = puzzle_hint_coordinates(page)
+    assert promote, "Promotion hint must identify the piece"
     promotion = page.get_by_role("dialog", name="Promote pawn")
-    if hint[3]:
-        promotion.get_by_role("button", name=hint[3].title(), exact=True).tap()
+    play_move(page, origin, destination, touch=True, drag=True)
+    expect(promotion).to_be_visible()
+    promotion.get_by_role("button", name="Cancel", exact=True).tap()
+    expect(promotion).not_to_be_visible()
+    assert board_snapshot(page) == before
+    verify_rendered_board(page)
+    play_move(page, origin, destination, touch=True)
+    expect(promotion).to_be_visible()
+    promotion.get_by_role("button", name=promote.title(), exact=True).tap()
     expect(page.locator("#puzzle-status")).to_have_text("Checkmate. Puzzle solved!")
     expect(page.locator("#puzzle-count")).to_have_text("1 solved")
+    verify_rendered_board(page)
     page.locator("#puzzle-next").tap()
     expect(page.locator("#puzzle-hint")).to_be_enabled()
     expect(page.locator("#puzzle-status")).to_contain_text("to move")
@@ -197,6 +362,8 @@ def main():
                 try:
                     for viewport, touch in [({"width": 1360, "height": 1040}, False), ({"width": 390, "height": 844}, True)]:
                         context = browser.new_context(viewport=viewport, has_touch=touch, is_mobile=touch)
+                        if touch:
+                            context.add_init_script("Math.random = () => 4 / 2 ** 32;")
 
                         def local_only(route):
                             if route.request.url.startswith(origin + "/"):
@@ -215,6 +382,7 @@ def main():
                         else:
                             play_and_review(page, args.output)
                             build_bot(page, args.output, Path(temp))
+                            appearance_flows(page, args.output)
                         no_overflow(page)
                         context.close()
                 finally:
@@ -223,7 +391,10 @@ def main():
             server.shutdown()
             server_thread.join()
     assert not problems, "\n".join(problems)
-    print("PASS Chess Workshop native desktop and mobile input, local Stockfish, PGN, tactics, bot drag and touch controls, persistence, export/import and local requests.")
+    print(
+        "PASS Chess Workshop native pointer and keyboard moves, local Stockfish, PGN, "
+        "puzzle rollback and promotion, bot drag and restart, appearance persistence, local requests."
+    )
 
 
 if __name__ == "__main__":

@@ -11,24 +11,35 @@ entries and assets.
 
 ## Implementation map
 
-- `index.html`, `style.css` and `board.js` provide four responsive views, an
-  interactive board, accessible labels, promotion selection and move notation.
+- `index.html`, `style.css` and `board.js` provide four responsive views. The
+  board adapter uses Lichess Chessground for input and rendering, with legal
+  destinations and promotion choices supplied by chess.js. Keyboard square
+  buttons remain available.
+- `appearance.js` and `appearance.css` supply board themes, custom colours,
+  piece sets, display controls and browser-local settings.
+- `app.js` appends new notation cells without rebuilding the existing list.
 - `app.js` owns view state, move application, goals, opponent turns and review
   navigation.
 - `bots.js` validates profiles and evaluates event-count rules. `bot-builder.js`
   and `bot-builder.css` provide the visual editor and local bot library.
 - `puzzles.js` generates original position variations and verifies every legal
-  defence against a forced mate.
+  defence against a forced mate. `puzzle-source.js` owns the reusable
+  `puzzle-worker.js` and a bounded local fallback.
 - `review.js` rebuilds PGN positions and evaluates each ply with Stockfish.
   Reviews report suggested lines and centipawn changes from White's perspective.
-- `engine.js` owns a lazy single-threaded worker, sequential searches,
-  cancellation and timeout handling. All runtime dependencies are local.
+  A 320-position in-memory cache uses repetition-relevant histories.
+- `engine.js` owns a lazy single-threaded worker and sequential searches.
+  Cancellation issues a UCI stop and drains the response before reusing the
+  worker. Reversible legal move history is passed to Stockfish for repetition.
+  All runtime dependencies are local.
 
 ## Gameplay and controls
 
 Drag a piece, or select its square and destination. The keyboard moves focus
 with the arrow keys and selects with Space or Enter. Promotion opens a four-piece
-chooser. Flip board changes orientation.
+chooser. Flip board changes orientation. Appearance offers Workshop, Walnut,
+Moss and Slate colours, fully custom square colours, Cburnett, Merida and
+Unicode pieces, and toggles for coordinates, legal dots and move animations.
 
 Play offers Stockfish, Fading Stockfish and Draw Trial. Fading Stockfish starts
 at 2250 Elo and subtracts 50 after each of its moves until the 100 target floor.
@@ -48,12 +59,13 @@ Bot Studio supports drag-and-drop and select-then-place. The rule input lists
 bot moves, player moves, bot captures and bot checks. The output raises or drops
 the Elo target by a chosen integer. A profile chooses its name, starting target,
 rules, and whether the player should win or draw. Save, edit, delete, play, and
-import/export are available in the studio.
+import/export are available in the studio. Playing an unsaved draft keeps it
+selectable for new matches in the current tab.
 
 ## State and persistence
 
-Local storage retains up to 24 custom profiles, the puzzle-solved count, and the
-most recent reviewed or completed match as PGN. Profiles can be exported as
+Local storage retains board appearance, up to 24 custom profiles, the
+puzzle-solved count, and the most recent reviewed or completed match as PGN. Profiles can be exported as
 portable JSON. The current match, search and puzzle remain bounded by the page
 session. Storage denial leaves play and the in-tab profile library available.
 
@@ -64,7 +76,12 @@ The engine is Stockfish 17.1 Lite plus the Stockfish.js browser port by Nathan
 Rugg and Chess.com (GPLv3) and the Lite network by Linmiao Xu. The game credits
 link directly to the matching source archive, including the NNUE file. See the
 [vendor provenance and pinned hashes](../../../Games/Chess%20Workshop/vendor/README.md).
-The UI uses the repo's Atkinson Hyperlegible fonts and Unicode chess glyphs.
+The board uses [Lichess Chessground 9.2.1](../../../Games/Chess%20Workshop/vendor/chessground/README.md).
+The optional [Lichess piece sets](../../../Games/Chess%20Workshop/vendor/lichess-pieces/README.md)
+retain their artist credits and licences. The authored Chess Workshop
+application is available under GPLv3 or later. Credits provide matching
+Chessground source, the application source, and separate vendor notices.
+The UI uses the repo's Atkinson Hyperlegible fonts.
 
 ## Audit findings
 
@@ -88,6 +105,7 @@ source and SHA-256 evidence when replacing vendor files.
 node scripts/test_chess_workshop_bots.mjs
 node scripts/test_chess_workshop_engine.mjs
 node scripts/test_chess_workshop_puzzles.mjs
+node scripts/test_chess_workshop_puzzle_source.mjs
 node scripts/test_chess_workshop_review.mjs
 timeout 120s python3 -B scripts/test_chess_workshop_browser.py
 python3 -B scripts/check_maintenance_docs.py
@@ -101,6 +119,17 @@ Native Chromium checks cover piece and rule dragging, actual engine replies,
 rating changes, PGN review and replay, draw challenge setup, local profile
 persistence, touch tactics and rule placement, square sizing, and local-only
 requests at desktop and 390px phone viewports.
+
+The Lichess board update added regressions for native phone drag, draft-bot
+restarts, promotion cancellation, keyboard manoeuvres, appearance persistence,
+and stale puzzle requests. On the tested initial-board selection in Chromium,
+board DOM mutation records dropped from 565 to 10. In one local Node/WASM
+comparison, eight active
+cancellations followed by searches used one engine boot instead of nine
+(0.71 s versus 3.16 s). Repeating one 20-ply PGN in the same warmed session
+used zero new searches instead of 21. In a 1,280-puzzle mate-in-two generation
+sample, p95 fallback time dropped from 64.9 ms to 11.3 ms. Normal browser
+generation runs on the worker. The extended puzzle suite covers 738 cases.
 
 ## Future outlook
 

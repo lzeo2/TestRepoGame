@@ -2,7 +2,7 @@ import { Chess } from './vendor/chess.js';
 
 const FILES = 'abcdefgh';
 const QUIET_SQUARES = ['a3', 'a4', 'a5', 'b3', 'b4', 'b5', 'c2', 'c3', 'c5', 'd3', 'd4', 'e2', 'e3'];
-const RECENT_LIMIT = 96;
+export const RECENT_LIMIT = 96;
 const ATTEMPTS = 16;
 
 // Each recipe describes an original tactical idea. Its piece squares and
@@ -60,31 +60,42 @@ const queues = {
   mate2: RECIPES.filter(recipe => recipe.moves === 2),
 };
 
-function uci(move) {
-  return move.from + move.to + (move.promotion || '');
+function matingMoves(chess) {
+  // Verbose move descriptors serialize a before/after FEN for every legal move.
+  // A SAN scan gives all the checkmates without building those descriptors.
+  return chess.moves().filter(san => san.endsWith('#'));
 }
 
-function mateMoves(chess) {
-  return chess.moves({ verbose: true }).filter(move => move.san.endsWith('#'));
+function applyUci(chess, move) {
+  try {
+    return chess.move({ from: move.slice(0, 2), to: move.slice(2, 4), promotion: move[4] });
+  } catch {
+    return null;
+  }
 }
 
-function forcedLine(chess, move) {
-  chess.move(move);
+function readUci(chess, san) {
+  const move = chess.move(san, { strict: true }).lan;
+  chess.undo();
+  return move;
+}
+
+function forcedReply(chess) {
   let hardest = null;
   for (const reply of chess.moves({ verbose: true })) {
     chess.move(reply);
-    const mates = mateMoves(chess);
+    const mates = matingMoves(chess);
     chess.undo();
-    if (!mates.length) {
-      chess.undo();
-      return null;
-    }
+    if (!mates.length) return null;
     if (!hardest || mates.length < hardest.choices) {
-      hardest = { reply: uci(reply), mate: uci(mates[0]), choices: mates.length };
+      hardest = { reply, mate: mates[0], choices: mates.length };
     }
   }
+  if (!hardest) return null;
+  chess.move(hardest.reply);
+  const mate = readUci(chess, hardest.mate);
   chess.undo();
-  return hardest && [uci(move), hardest.reply, hardest.mate];
+  return [hardest.reply.lan, mate];
 }
 
 function squareFor(square, side, mirror) {
@@ -117,24 +128,25 @@ function position(layout, side, mirror) {
   return ranks.join('/') + ' ' + side + ' - - 0 1';
 }
 
-function certify(recipe, layout, side, mirror, opener) {
+function certify(recipe, layout, side, mirror, seen) {
   const fen = position(layout, side, mirror);
+  if (seen.has(fen)) return null;
   const chess = new Chess(fen);
   const enemyKing = squareFor(Object.keys(layout).find(square => layout[square] === 'k'), side, mirror);
   if (chess.isCheck() || chess.isAttacked(enemyKing, side)) return null;
 
-  const legal = chess.moves({ verbose: true });
-  const mates = legal.filter(move => move.san.endsWith('#'));
+  const mates = matingMoves(chess);
   let solution;
   if (recipe.moves === 1) {
     if (!mates.length) return null;
-    solution = [uci(mates[0])];
+    solution = [readUci(chess, mates[0])];
   } else {
     if (mates.length) return null;
+    const opener = recipe.opener(layout);
     const first = squareFor(opener.slice(0, 2), side, mirror) + squareFor(opener.slice(2, 4), side, mirror);
-    const move = legal.find(candidate => uci(candidate) === first);
-    solution = move && forcedLine(chess, move);
-    if (!solution) return null;
+    const continuation = applyUci(chess, first) && forcedReply(chess);
+    if (!continuation) return null;
+    solution = [first, ...continuation];
   }
   return {
     fen, title: recipe.title, side, moves: recipe.moves, plies: solution.length, solution,
@@ -142,7 +154,29 @@ function certify(recipe, layout, side, mirror, opener) {
   };
 }
 
-export function createPuzzles({ seed = Math.floor(Math.random() * 2 ** 32) } = {}) {
+// A bounded reserve of 324 legal layouts per depth. The spare pawns are
+// outside both the mating line and the defender's escape squares.
+function reserve(moves, seen, offset) {
+  const recipe = moves === 1 ? RECIPES[0] : RECIPES[5];
+  const pawns = [['a3', 'a4', 'a5'], ['b3', 'b4', 'b5'], ['c2', 'c3', 'c5'], ['e2', 'e3', 'e4']];
+  const combinations = 4 * 3 ** pawns.length;
+  for (let trial = 0; trial <= RECENT_LIMIT; trial++) {
+    const variant = (offset + trial) % combinations;
+    const layout = recipe.layout(choices => choices[0]);
+    let digits = Math.floor(variant / 4);
+    for (const squares of pawns) {
+      layout[squares[digits % 3]] = 'P';
+      digits = Math.floor(digits / 3);
+    }
+    const puzzle = certify(recipe, layout, variant % 2 ? 'b' : 'w', variant % 4 >= 2, seen);
+    if (puzzle) return puzzle;
+  }
+  throw new Error('Could not find a fresh puzzle.');
+}
+
+export function createPuzzles({
+  seed = Math.floor(Math.random() * 2 ** 32), recent = [], previousTitle = '',
+} = {}) {
   // Mulberry32 permits a reproducible session without dependence on network or time.
   let state = seed >>> 0;
   function random() {
@@ -152,8 +186,7 @@ export function createPuzzles({ seed = Math.floor(Math.random() * 2 ** 32) } = {
     return ((value ^ (value >>> 14)) >>> 0) / 2 ** 32;
   }
   const pick = options => options[Math.floor(random() * options.length)];
-  const seen = new Set();
-  let previousTitle = '';
+  const seen = new Set(recent.slice(-RECENT_LIMIT));
   function remember(puzzle) {
     if (seen.size === RECENT_LIMIT) seen.delete(seen.values().next().value);
     seen.add(puzzle.fen);
@@ -167,7 +200,6 @@ export function createPuzzles({ seed = Math.floor(Math.random() * 2 ** 32) } = {
     const mirror = random() < 0.5;
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       const layout = recipe.layout(pick);
-      const opener = recipe.opener?.(layout);
       let choices = QUIET_SQUARES.filter(square => !layout[square]);
       const pawns = 1 + Math.floor(random() * 4);
       for (let i = 0; i < pawns; i++) {
@@ -175,40 +207,46 @@ export function createPuzzles({ seed = Math.floor(Math.random() * 2 ** 32) } = {
         layout[square] = pick(['P', 'p']);
         choices = choices.filter(choice => choice[0] !== square[0]);
       }
-      const puzzle = certify(recipe, layout, side, mirror, opener);
-      if (puzzle && !seen.has(puzzle.fen)) return remember(puzzle);
+      const puzzle = certify(recipe, layout, side, mirror, seen);
+      if (puzzle) return remember(puzzle);
     }
-    const layout = recipe.layout(options => options[0]);
-    return remember(certify(recipe, layout, side, mirror, recipe.opener?.(layout)));
+    return remember(reserve(recipe.moves, seen, Math.floor(random() * 324)));
   }
   return { next };
 }
 
-function stage(puzzle, chess) {
-  if (chess.turn() !== puzzle.side) return 0;
-  if (chess.fen() === puzzle.fen) return 1;
-  return puzzle.moves === 2 && chess.moveNumber() === 2 ? 2 : 0;
+function playedLine(puzzle, chess) {
+  if (puzzle.moves !== 2 || chess.turn() !== puzzle.side || chess.moveNumber() !== 2) return null;
+  const history = chess.history({ verbose: true });
+  return history.length === 2 && history[0].before === puzzle.fen ? history : null;
 }
 
 export function puzzleHint(puzzle, chess) {
-  const step = stage(puzzle, chess);
-  if (step === 1) return puzzle.solution[0];
-  const mate = step === 2 && mateMoves(chess)[0];
-  return mate ? uci(mate) : null;
+  if (chess.fen() === puzzle.fen) return puzzle.solution[0];
+  const branch = playedLine(puzzle, chess);
+  if (!branch) return null;
+  if (branch[0].lan === puzzle.solution[0] && branch[1].lan === puzzle.solution[1]) return puzzle.solution[2];
+  const position = new Chess(chess.fen());
+  const mate = matingMoves(position)[0];
+  return mate ? readUci(position, mate) : null;
 }
 
 // Probe the move before the caller applies it. The selected defence leaves the
 // fewest winning continuations among all legal replies, including captures.
 export function puzzleReply(puzzle, chess, candidate) {
   const incorrect = { correct: false, solved: false, reply: null };
-  const step = stage(puzzle, chess);
-  if (!step) return incorrect;
-  const position = new Chess(chess.fen());
-  const move = position.moves({ verbose: true }).find(legal => uci(legal) === candidate);
-  if (!move) return incorrect;
-  if (puzzle.moves === 1 || step === 2) {
-    return move.san.endsWith('#') ? { correct: true, solved: true, reply: null } : incorrect;
+  const fen = chess.fen();
+  const start = fen === puzzle.fen;
+  if (!start && !playedLine(puzzle, chess)) return incorrect;
+  if (start && candidate === puzzle.solution[0]) {
+    return { correct: true, solved: puzzle.moves === 1, reply: puzzle.solution[1] ?? null };
   }
-  const line = forcedLine(position, move);
-  return line ? { correct: true, solved: false, reply: line[1] } : incorrect;
+  if (!/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(candidate)) return incorrect;
+  const position = new Chess(fen);
+  if (!applyUci(position, candidate)) return incorrect;
+  if (puzzle.moves === 1 || !start) {
+    return position.isCheckmate() ? { correct: true, solved: true, reply: null } : incorrect;
+  }
+  const reply = forcedReply(position);
+  return reply ? { correct: true, solved: false, reply: reply[0] } : incorrect;
 }

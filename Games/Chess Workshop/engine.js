@@ -6,11 +6,12 @@ const DEFAULT_NODES = 32_000;
 const MAX_NODES = 450_000;
 const BOOT_TIMEOUT = 20_000;
 const SEARCH_TIMEOUT = 12_000;
+const STOP_TIMEOUT = 4_000;
 const UCI_MOVE = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
 const workerUrl = new URL('./vendor/stockfish-17.1-lite-single-03e3232.js', import.meta.url);
 const CASTLING_ROOKS = { K: 'h1', Q: 'a1', k: 'h8', q: 'a8' };
 
-function validPosition(fen) {
+export function isEnginePosition(fen) {
   if (typeof fen !== 'string' || fen.length > 160 || !/^[a-zA-Z0-9 /-]+$/.test(fen) || !validateFen(fen).ok) return false;
   const [ranks, turn, rights, , halfmoves, fullmoves] = fen.split(/ +/);
   if (!/^\d+$/.test(halfmoves) || !/^\d+$/.test(fullmoves) || Number(halfmoves) > 0x7fffffff || Number(fullmoves) > 0x3fffffff) return false;
@@ -34,16 +35,36 @@ function validPosition(fen) {
   return true;
 }
 
+function validMove(move) {
+  return typeof move === 'string' && UCI_MOVE.test(move);
+}
+
+function positionCommand(fen, history) {
+  if (history === undefined) return `position fen ${fen}`;
+  if (!history || !isEnginePosition(history.fen) || !Array.isArray(history.moves) ||
+      history.moves.length > 20_000 || !history.moves.every(validMove)) return null;
+  const board = new Chess(history.fen);
+  try {
+    for (const move of history.moves) {
+      board.move({ from: move.slice(0, 2), to: move.slice(2, 4), promotion: move[4] });
+    }
+  } catch {
+    return null;
+  }
+  if (board.fen() !== new Chess(fen).fen()) return null;
+  return `position fen ${history.fen}${history.moves.length ? ` moves ${history.moves.join(' ')}` : ''}`;
+}
+
 function abortError() {
   return new DOMException('Chess search cancelled.', 'AbortError');
 }
 
-// A single classic worker serves all analysis and opponent searches. A cancelled
-// search retires its worker so a stale bestmove cannot complete a later request.
+// A single classic worker serves all analysis and opponent searches. The next
+// search waits for the current search's bestmove even if its caller has left.
 export function createEngine({ makeWorker = () => new Worker(workerUrl) } = {}) {
   const pending = [];
   let worker = null;
-  let ready = false;
+  let phase = 'idle';
   let active = null;
   let timer;
   let disposed = false;
@@ -51,19 +72,22 @@ export function createEngine({ makeWorker = () => new Worker(workerUrl) } = {}) 
   function retireWorker() {
     const retired = worker;
     worker = null;
-    ready = false;
     if (retired) retired.terminate();
+  }
+
+  function settle(job, error, result) {
+    if (!job) return;
+    job.signal?.removeEventListener('abort', job.cancel);
+    if (error) job.reject(error);
+    else job.resolve(result);
   }
 
   function finish(error, result) {
     clearTimeout(timer);
+    phase = 'idle';
     const job = active;
     active = null;
-    if (job) {
-      job.signal?.removeEventListener('abort', job.cancel);
-      if (error) job.reject(error);
-      else job.resolve(result);
-    }
+    settle(job, error, result);
     advance();
   }
 
@@ -74,12 +98,13 @@ export function createEngine({ makeWorker = () => new Worker(workerUrl) } = {}) 
 
   function startSearch() {
     clearTimeout(timer);
+    phase = 'searching';
     timer = setTimeout(() => fail(new Error('Stockfish search timed out.')), SEARCH_TIMEOUT);
-    const { fen, elo, moves, nodes } = active;
+    const { position, elo, moves, nodes } = active;
     try {
       worker.postMessage(`setoption name UCI_LimitStrength value ${elo !== null}`);
       if (elo !== null) worker.postMessage(`setoption name UCI_Elo value ${elo}`);
-      worker.postMessage(`position fen ${fen}`);
+      worker.postMessage(position);
       worker.postMessage(`go nodes ${nodes}${moves.length ? ` searchmoves ${moves.join(' ')}` : ''}`);
     } catch (error) {
       fail(error);
@@ -87,29 +112,32 @@ export function createEngine({ makeWorker = () => new Worker(workerUrl) } = {}) 
   }
 
   function receive(line) {
-    if (line === 'uciok' && !ready) {
-      worker.postMessage('isready');
+    if (phase === 'booting') {
+      if (line === 'uciok') worker.postMessage('isready');
+      if (line === 'readyok') {
+        if (active) startSearch();
+        else finish();
+      }
       return;
     }
-    if (line === 'readyok' && !ready) {
-      ready = true;
-      startSearch();
+    if (phase === 'draining') {
+      if (line.startsWith('bestmove ')) finish();
       return;
     }
-    if (!ready || !active) return;
+    if (phase !== 'searching') return;
     if (line.startsWith('info ') && !line.startsWith('info string ')) {
       const rank = line.match(/\bmultipv (\d+)/)?.[1];
       const score = line.match(/\bscore (cp|mate) (-?\d+)/);
       if (score && (rank === undefined || rank === '1')) {
         active.score = { type: score[1], value: Number(score[2]) };
         const pv = line.match(/\bpv (.+)$/)?.[1];
-        active.pv = pv ? pv.split(/\s+/).filter(move => UCI_MOVE.test(move)) : [];
+        active.pv = pv ? pv.split(/\s+/).filter(validMove) : [];
       }
       return;
     }
     if (!line.startsWith('bestmove ')) return;
     const reply = line.split(/\s+/)[1];
-    const move = UCI_MOVE.test(reply) ? reply : null;
+    const move = validMove(reply) ? reply : null;
     if (!move && !['(none)', '0000'].includes(reply)) {
       fail(new Error('Stockfish returned an invalid move.'));
       return;
@@ -122,12 +150,15 @@ export function createEngine({ makeWorker = () => new Worker(workerUrl) } = {}) 
   }
 
   function advance() {
-    if (disposed || active || !pending.length) return;
+    if (disposed || phase !== 'idle') return;
+    while (pending[0]?.signal?.aborted) settle(pending.shift(), abortError());
+    if (!pending.length) return;
     active = pending.shift();
-    if (ready) {
+    if (worker) {
       startSearch();
       return;
     }
+    phase = 'booting';
     timer = setTimeout(() => fail(new Error('Stockfish could not start.')), BOOT_TIMEOUT);
     try {
       const instance = makeWorker();
@@ -152,17 +183,43 @@ export function createEngine({ makeWorker = () => new Worker(workerUrl) } = {}) 
     }
   }
 
-  function search(fen, { nodes = DEFAULT_NODES, elo, searchMoves = [], signal } = {}) {
+  function cancel(job) {
+    if (job !== active) {
+      const index = pending.indexOf(job);
+      if (index !== -1) pending.splice(index, 1);
+      settle(job, abortError());
+      return;
+    }
+    active = null;
+    settle(job, abortError());
+    if (phase !== 'searching') return;
+    // Flush the cancelled search's output instead of sending a new position
+    // to a busy worker. Restart only if the worker cannot acknowledge stop.
+    phase = 'draining';
+    clearTimeout(timer);
+    timer = setTimeout(() => fail(new Error('Stockfish could not stop.')), STOP_TIMEOUT);
+    try {
+      worker.postMessage('stop');
+    } catch (error) {
+      fail(error);
+    }
+  }
+
+  // Optional history supplies the starting FEN and legal UCI moves through
+  // the requested FEN, allowing Stockfish to see previous repetitions.
+  function search(fen, { nodes = DEFAULT_NODES, elo, searchMoves = [], history, signal } = {}) {
     if (disposed || signal?.aborted) return Promise.reject(abortError());
-    if (!validPosition(fen)) {
+    if (!isEnginePosition(fen)) {
       return Promise.reject(new Error('Invalid position for Stockfish.'));
     }
-    if (!Array.isArray(searchMoves) || searchMoves.length > 256 || searchMoves.some(move => !UCI_MOVE.test(move))) {
+    if (!Array.isArray(searchMoves) || searchMoves.length > 256 || searchMoves.some(move => !validMove(move))) {
       return Promise.reject(new Error('Invalid analysis moves.'));
     }
+    const position = positionCommand(fen, history);
+    if (!position) return Promise.reject(new Error('Game history does not match the position.'));
     return new Promise((resolve, reject) => {
       const job = {
-        fen,
+        position,
         nodes: Number.isFinite(nodes) ? Math.max(1_000, Math.min(MAX_NODES, Math.round(nodes))) : DEFAULT_NODES,
         elo: Number.isFinite(elo) ? Math.max(MIN_ELO, Math.min(MAX_ELO, Math.round(elo))) : null,
         moves: [...searchMoves],
@@ -171,16 +228,7 @@ export function createEngine({ makeWorker = () => new Worker(workerUrl) } = {}) 
         signal,
         resolve,
         reject,
-        cancel: () => {
-          if (job === active) {
-            fail(abortError());
-            return;
-          }
-          const index = pending.indexOf(job);
-          if (index !== -1) pending.splice(index, 1);
-          job.signal?.removeEventListener('abort', job.cancel);
-          reject(abortError());
-        },
+        cancel: () => cancel(job),
       };
       pending.push(job);
       signal?.addEventListener('abort', job.cancel, { once: true });

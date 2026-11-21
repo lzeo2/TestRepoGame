@@ -69,7 +69,11 @@ for (const seed of [7, 12345, 0xffffffff]) {
         chess.undo();
       }
       apply(chess, response.reply);
-      apply(chess, puzzleHint(puzzle, chess));
+      const terminal = puzzleHint(puzzle, chess);
+      const detached = new Chess(chess.fen());
+      assert.equal(puzzleHint(puzzle, detached), null, 'a matching turn number without puzzle history is not a branch');
+      assert.equal(puzzleReply(puzzle, detached, terminal).correct, false);
+      apply(chess, terminal);
     }
     assert.equal(chess.isCheckmate(), true, 'certified solution reaches real checkmate');
     assert.equal(puzzleHint(puzzle, chess), null);
@@ -80,4 +84,28 @@ assert.deepEqual(colors, new Set(['w', 'b']));
 assert.deepEqual(depths, new Set([1, 2]));
 assert(branched, 'at least one position exercised several legal defences');
 assert(alternatePromotion, 'multiple legal mating promotions were accepted');
-console.log(`PASS ${puzzlesChecked} seeded offline puzzles, seven tactical themes, both colors, all legal defences and alternate mating promotions`);
+for (const level of ['mate1', 'mate2']) {
+  const saved = [];
+  for (let index = 0; index < 97; index++) {
+    // Resetting a fixed seed while excluding each emitted diagram eventually
+    // exhausts the ordinary candidates and exercises the saturated reserve.
+    const puzzle = createPuzzles({ seed: 31, recent: saved }).next(level);
+    assert(!saved.includes(puzzle.fen), 'reserve avoids every active exclusion');
+    assert.equal(puzzle.moves, Number(level.at(-1)));
+    saved.push(puzzle.fen);
+  }
+}
+for (let seed = 0; seed < 32; seed++) {
+  const simulation = createPuzzles({ seed: Math.imul(seed, 0x85ebca6b) });
+  for (let index = 0; index < 8; index++) {
+    const puzzle = simulation.next('mate2');
+    const chess = new Chess(puzzle.fen);
+    assert(!chess.isCheck());
+    const defender = puzzle.side === 'b' ? 'w' : 'b';
+    const king = chess.board().flat().find(piece => piece?.type === 'k' && piece.color === defender);
+    assert(!chess.isAttacked(king.square, puzzle.side), 'reflections and side flips leave a legal start');
+    for (const move of puzzle.solution) assert(apply(chess, move));
+    assert(chess.isCheckmate());
+  }
+}
+console.log(`PASS ${puzzlesChecked} seeded puzzle proofs, 194 reserve and 256 mirrored mate-in-two cases`);

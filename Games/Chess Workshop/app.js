@@ -1,8 +1,10 @@
 import { Chess } from './vendor/chess.js';
 import { createEngine, MIN_ELO } from './engine.js';
-import { BUILTIN_BOTS, botStrength, listCustomBots } from './bots.js';
+import { BUILTIN_BOTS, MIN_BOT_ELO, botStrength, listCustomBots } from './bots.js';
 import { mountBotBuilder } from './bot-builder.js';
-import { createPuzzles, puzzleReply, puzzleHint } from './puzzles.js';
+import { puzzleReply, puzzleHint } from './puzzles.js';
+import { createPuzzleSource } from './puzzle-source.js';
+import { mountAppearance } from './appearance.js';
 import { parseReview, analyzeReview } from './review.js';
 import { createBoard, uciMove } from './board.js';
 
@@ -22,14 +24,19 @@ const MODES = {
   review: ['Review a game', 'See what Stockfish would play and where the game changed.'],
   studio: ['Bot Studio', 'Drag If and Then blocks into a rule to build your own opponent.'],
 };
-const engine = createEngine(), puzzles = createPuzzles();
+const engine = createEngine(), puzzles = createPuzzleSource();
 const emptyBoard = new Chess();
 const board = createBoard($('board'), chooseMove);
+const appearance = mountAppearance($('appearance'), { onChange: renderBoard });
+$('appearance-open').addEventListener('click', () => appearance.open());
+const playNotation = createNotation($('play-moves'));
+const reviewNotation = createNotation($('review-moves'), setReviewIndex);
 const review = { game: null, position: emptyBoard, analysis: null, index: 0, controller: null, cells: [] };
-let mode = 'play', orientation = 'w', play, puzzle, promotion, shownPlayPly = -1;
+let mode = 'play', orientation = 'w', play, puzzle, promotion, puzzleRequest, draftBot;
 let solvedCount = 0, lastPgn = '';
 try {
-  solvedCount = Math.max(0, Number(localStorage.getItem('chess-workshop:solved')) || 0);
+  const savedCount = Number(localStorage.getItem('chess-workshop:solved'));
+  if (Number.isSafeInteger(savedCount) && savedCount >= 0) solvedCount = savedCount;
   lastPgn = localStorage.getItem('chess-workshop:last-pgn') || '';
 } catch (error) {
   console.info('Chess progress stays in this tab.', error.name);
@@ -68,8 +75,9 @@ function renderBoard() {
   const last = mode === 'review' ? review.game?.moves[review.index - 1] : state?.last;
   const hint = mode === 'review' && analysis?.bestMove ? uciMove(analysis.bestMove) : state?.hint;
   board.show({
-    game, side: orientation, last, hint,
-    interactive: mode === 'play' ? canPlay() : mode === 'puzzles' && !!puzzle?.definition && !puzzle.solved,
+    game, side: orientation, last, hint, ...appearance.getPrefs(),
+    interactive: !promotion && (mode === 'play' ? canPlay() :
+      mode === 'puzzles' && !!puzzle && !puzzle.solved && !puzzleRequest),
   });
   dialPlayer('top-player', ...pieceBand(opposite(orientation)), opposite(orientation));
   dialPlayer('bottom-player', ...pieceBand(orientation), orientation);
@@ -84,7 +92,11 @@ function renderBoard() {
   }
 }
 
-function listBots() { return [...BUILTIN_BOTS, ...listCustomBots()]; }
+function listBots() {
+  const bots = [...BUILTIN_BOTS, ...listCustomBots()];
+  if (draftBot) bots.push(draftBot);
+  return bots;
+}
 function selectedBot() { return listBots().find(bot => bot.id === $('opponent').value) ?? BUILTIN_BOTS[0]; }
 function showBotChoice() {
   const bot = selectedBot();
@@ -93,7 +105,7 @@ function showBotChoice() {
 }
 function loadBotChoices(id = $('opponent').value) {
   const select = $('opponent'), bots = listBots();
-  select.replaceChildren(...bots.map(bot => new Option(bot.name, bot.id)));
+  select.replaceChildren(...bots.map(bot => new Option(bot === draftBot ? bot.name + ' (draft)' : bot.name, bot.id)));
   if (bots.some(bot => bot.id === id)) select.value = id;
   showBotChoice();
 }
@@ -103,7 +115,7 @@ function setLastPgn() {
   store('last-pgn', lastPgn);
   $('use-last').disabled = false;
 }
-function safeHeader(name) { return name.replace(/[\n\r"\\]/g, '').trim(); }
+function safeHeader(name) { return name.replace(/[\n\r"\\]/g, '').trim() || 'Custom bot'; }
 function startMatch(bot = selectedBot()) {
   stopBot();
   const choice = $('play-color').value;
@@ -113,10 +125,10 @@ function startMatch(bot = selectedBot()) {
   game.setHeader('Black', side === 'b' ? 'You' : safeHeader(bot.name));
   play = {
     game, bot, side, moves: [], counters: { botMoves: 0, playerMoves: 0, botCaptures: 0, botChecks: 0 },
-    last: null, ended: null, thinking: null, error: '',
+    last: null, ended: null, thinking: null, error: '', historyFen: game.fen(), historyMoves: [],
   };
   orientation = side;
-  shownPlayPly = -1;
+  playNotation.reset();
   render();
   void runBot();
 }
@@ -135,20 +147,28 @@ function finishMatch(match, result, message) {
 function recordMove(match, move, bot) {
   match.last = move;
   match.moves.push({ ...move, number: Number(move.before.split(' ').at(-1)) });
+  // A pawn move, capture, or lost castling right ends the reversible history.
+  const beforeRights = move.before.split(' ')[2], afterRights = move.after.split(' ')[2];
+  if (move.piece === 'p' || move.captured || beforeRights !== afterRights) {
+    match.historyFen = move.after;
+    match.historyMoves.length = 0;
+  } else match.historyMoves.push(move.lan);
   if (bot) {
     match.counters.botMoves++;
     if (move.captured) match.counters.botCaptures++;
     if (match.game.isCheck()) match.counters.botChecks++;
   } else match.counters.playerMoves++;
-  if (match.game.isCheckmate()) {
-    const lost = match.game.turn() === match.side;
+  const game = match.game;
+  if (move.san.endsWith('#')) {
+    const lost = game.turn() === match.side;
     finishMatch(match, lost ? 'loss' : 'win', lost ? 'Checkmate. The bot wins.' : 'Checkmate. You win.');
-  } else if (match.game.isDraw()) {
-    const game = match.game;
-    const reason = game.isStalemate() ? 'stalemate' : game.isThreefoldRepetition() ? 'threefold repetition' :
-      game.isInsufficientMaterial() ? 'insufficient material' : 'the fifty-move rule';
-    finishMatch(match, 'draw', `Draw by ${reason}.`);
+    return;
   }
+  const reason = game.isThreefoldRepetition() ? 'threefold repetition' :
+    game.isInsufficientMaterial() ? 'insufficient material' :
+    game.isDrawByFiftyMoves() ? 'the fifty-move rule' :
+    game.isStalemate() ? 'stalemate' : null;
+  if (reason) finishMatch(match, 'draw', `Draw by ${reason}.`);
 }
 
 async function runBot() {
@@ -161,13 +181,16 @@ async function runBot() {
   try {
     const elo = botStrength(match.bot, match.counters);
     // Below Stockfish's calibrated range, mix in uniformly sampled legal moves.
-    const weak = Math.max(0, (MIN_ELO - elo) / (MIN_ELO - 100));
+    const weak = Math.max(0, (MIN_ELO - elo) / (MIN_ELO - MIN_BOT_ELO));
     let move;
     if (weak > 0 && Math.random() < weak) {
       const legal = match.game.moves({ verbose: true });
       move = legal[Math.floor(Math.random() * legal.length)];
     } else {
-      const answer = await engine.search(match.game.fen(), { elo: Math.max(elo, MIN_ELO), nodes: 48_000, signal: request.signal });
+      const history = match.historyMoves.length ? { fen: match.historyFen, moves: match.historyMoves } : undefined;
+      const answer = await engine.search(match.game.fen(), {
+        elo: Math.max(elo, MIN_ELO), nodes: 48_000, signal: request.signal, history,
+      });
       if (answer.move) move = uciMove(answer.move);
     }
     if (play !== match || request.signal.aborted) return;
@@ -181,20 +204,37 @@ async function runBot() {
   }
 }
 
-function nextPuzzle() {
+function stopPuzzle() {
+  if (!puzzleRequest) return;
+  puzzleRequest.abort();
+  puzzleRequest = null;
   puzzle = null;
+}
+
+async function nextPuzzle() {
+  stopPuzzle();
+  const request = new AbortController();
+  puzzleRequest = request;
+  const difficulty = $('difficulty').value;
+  status($('puzzle-status'), 'Generating a puzzle…');
+  render();
   try {
-    const definition = puzzles.next($('difficulty').value);
-    puzzle = { definition, game: new Chess(definition.fen), last: null, hint: null, solved: false };
+    const definition = await puzzles.next(difficulty, { signal: request.signal });
+    if (puzzleRequest !== request) return;
+    puzzle = { definition, difficulty, game: new Chess(definition.fen), last: null, hint: null, solved: false };
     orientation = definition.side;
     status($('puzzle-status'), definition.description);
   } catch (error) {
-    status($('puzzle-status'), error.message || 'Could not generate a puzzle. Try again.', 'error');
+    if (puzzleRequest === request) status($('puzzle-status'), error.message || 'Could not generate a puzzle. Try again.', 'error');
+  } finally {
+    if (puzzleRequest === request) {
+      puzzleRequest = null;
+      render();
+    }
   }
-  render();
 }
 function applyPuzzleMove(move) {
-  if (!puzzle || puzzle.solved) return;
+  if (!puzzle || puzzle.solved || puzzleRequest) return;
   const guess = puzzleReply(puzzle.definition, puzzle.game, move.lan);
   puzzle.hint = null;
   if (!guess.correct) {
@@ -222,51 +262,59 @@ function applyMove(move) {
 function chooseMove(choices) {
   if (choices.length === 1) return applyMove(choices[0]);
   promotion = choices;
+  renderBoard();
   $('promotion').returnValue = '';
   $('promotion').showModal();
 }
 
-function notation(container, moves, onMove) {
-  const fragment = document.createDocumentFragment(), cells = [];
+function createNotation(container, onMove) {
+  const cells = [];
   let row = null, number = null;
-  for (const [index, move] of moves.entries()) {
-    if (move.number !== number || !row) {
-      row = document.createElement('div');
-      row.className = 'move-row';
-      number = move.number;
-      const count = document.createElement('span');
-      count.textContent = number + '.';
-      row.append(count);
-      if (move.color === 'b') row.append(document.createElement('span'));
-      fragment.append(row);
+  function append(moves) {
+    if (cells.length === moves.length) return false;
+    const fragment = document.createDocumentFragment();
+    for (let index = cells.length; index < moves.length; index++) {
+      const move = moves[index];
+      if (move.number !== number || !row) {
+        row = document.createElement('div');
+        row.className = 'move-row';
+        number = move.number;
+        const count = document.createElement('span');
+        count.textContent = number + '.';
+        row.append(count);
+        if (move.color === 'b') row.append(document.createElement('span'));
+        fragment.append(row);
+      }
+      const cell = document.createElement(onMove ? 'button' : 'div');
+      cell.className = 'move-cell';
+      const name = document.createElement('strong');
+      name.textContent = move.san;
+      cell.append(name);
+      if (onMove) {
+        cell.type = 'button';
+        cell.append(document.createElement('small'));
+        cell.addEventListener('click', () => onMove(index + 1));
+      }
+      cells.push(cell);
+      row.append(cell);
     }
-    const cell = document.createElement(onMove ? 'button' : 'div');
-    cell.className = 'move-cell';
-    const name = document.createElement('strong');
-    name.textContent = move.san;
-    cell.append(name);
-    if (onMove) {
-      const label = document.createElement('small');
-      cell.type = 'button';
-      cell.append(label);
-      cell.addEventListener('click', () => onMove(index + 1));
-    }
-    cells.push(cell);
-    row.append(cell);
+    container.append(fragment);
+    return true;
   }
-  container.replaceChildren(fragment);
-  return cells;
+  function reset() {
+    cells.length = 0;
+    row = number = null;
+    container.replaceChildren();
+  }
+  return { cells, append, reset };
 }
 function renderPlay() {
-  if (shownPlayPly !== play.moves.length) {
-    shownPlayPly = play.moves.length;
-    notation($('play-moves'), play.moves);
-    $('play-moves').scrollTop = $('play-moves').scrollHeight;
-  }
+  if (playNotation.append(play.moves)) $('play-moves').scrollTop = $('play-moves').scrollHeight;
+  $('retry-bot').hidden = !play.error || !!play.ended;
   $('review-match').disabled = !play.moves.length;
   $('resign').disabled = !!play.ended;
   if (play.ended) status($('play-status'), play.ended.message, play.ended.success ? 'good' : '');
-  else if (play.error) status($('play-status'), play.error + ' Start a new game to retry.', 'error');
+  else if (play.error) status($('play-status'), play.error, 'error');
   else {
     const action = play.game.turn() === play.side ? 'Your move.' : `${play.bot.name} is thinking…`;
     const objective = play.bot.goal === 'draw' ? 'Make a draw to win the challenge. ' : '';
@@ -321,7 +369,9 @@ async function startReview() {
   catch (error) { status($('review-status'), error.message, 'error'); render(); return; }
   review.game = game;
   review.analysis = null;
-  review.cells = notation($('review-moves'), game.moves, setReviewIndex);
+  reviewNotation.reset();
+  reviewNotation.append(game.moves);
+  review.cells = reviewNotation.cells;
   const controller = new AbortController();
   review.controller = controller;
   setReviewIndex(0);
@@ -334,7 +384,7 @@ async function startReview() {
         review.analysis = analysis;
         if (moveIndex >= 0) review.cells[moveIndex].lastElementChild.textContent = analysis.moves[moveIndex].label;
         renderReview();
-        if (positionIndex === review.index || moveIndex + 1 === review.index) renderBoard();
+        if (positionIndex === review.index) renderBoard();
       },
     });
     if (review.controller === controller) status($('review-status'), 'Review complete. Select a move to see its evaluation.', 'good');
@@ -357,7 +407,7 @@ function render() {
   if (mode === 'puzzles') {
     $('puzzle-count').textContent = `${solvedCount} solved`;
     $('puzzle-title').textContent = puzzle?.definition?.title ?? 'Tactics';
-    $('puzzle-hint').disabled = !puzzle || puzzle.solved;
+    $('puzzle-hint').disabled = !puzzle || puzzle.solved || !!puzzleRequest;
   }
   if (mode === 'review') renderReview();
   renderBoard();
@@ -365,6 +415,7 @@ function render() {
 function selectMode(next) {
   if (next === mode) return;
   if (mode === 'play') stopBot();
+  if (mode === 'puzzles') stopPuzzle();
   if (mode === 'review') stopReview();
   mode = next;
   orientation = next === 'play' ? play.side : next === 'puzzles' ? puzzle?.definition?.side ?? 'w' : 'w';
@@ -374,9 +425,9 @@ function selectMode(next) {
     else element.removeAttribute('aria-current');
   }
   $('studio').hidden = mode !== 'studio';
-  $('table').hidden = $('flip-board').hidden = mode === 'studio';
+  $('table').hidden = $('board-tools').hidden = mode === 'studio';
   for (const id of ['play', 'puzzles', 'review']) $(id + '-panel').hidden = mode !== id;
-  if (mode === 'puzzles' && !puzzle) nextPuzzle();
+  if (mode === 'puzzles' && puzzle?.difficulty !== $('difficulty').value) void nextPuzzle();
   else render();
   if (mode === 'play') void runBot();
 }
@@ -385,6 +436,7 @@ for (const element of document.querySelectorAll('[data-mode]')) element.addEvent
 $('flip-board').addEventListener('click', () => { orientation = opposite(orientation); renderBoard(); });
 $('opponent').addEventListener('change', showBotChoice);
 $('new-game').addEventListener('click', () => startMatch());
+$('retry-bot').addEventListener('click', () => void runBot());
 $('review-match').addEventListener('click', reviewMatch);
 $('resign').addEventListener('click', () => { $('resignation').returnValue = ''; $('resignation').showModal(); });
 $('resignation').addEventListener('close', () => {
@@ -397,10 +449,12 @@ $('promotion').addEventListener('close', () => {
   const choice = promotion?.find(move => move.promotion === $('promotion').returnValue);
   promotion = null;
   if (choice) applyMove(choice);
+  else renderBoard();
 });
 $('difficulty').addEventListener('change', nextPuzzle);
 $('puzzle-next').addEventListener('click', nextPuzzle);
 $('puzzle-hint').addEventListener('click', () => {
+  if (!puzzle || puzzle.solved || puzzleRequest) return;
   const hint = puzzleHint(puzzle.definition, puzzle.game);
   if (hint) {
     puzzle.hint = uciMove(hint);
@@ -421,6 +475,7 @@ for (const button of document.querySelectorAll('[data-step]')) {
 $('studio').addEventListener('chess-workshop:bots-changed', () => loadBotChoices());
 mountBotBuilder($('studio'), {
   onPlay(bot) {
+    if (!bot.id) bot = draftBot = { ...bot, id: 'draft' };
     loadBotChoices(bot.id);
     startMatch(bot);
     selectMode('play');
@@ -428,10 +483,19 @@ mountBotBuilder($('studio'), {
 });
 window.addEventListener('pagehide', event => {
   stopBot();
+  stopPuzzle();
   stopReview();
-  if (!event.persisted) engine.dispose();
+  if (!event.persisted) {
+    engine.dispose();
+    puzzles.dispose();
+  }
 });
-window.addEventListener('pageshow', event => { if (event.persisted) void runBot(); });
+window.addEventListener('pageshow', event => {
+  if (!event.persisted) return;
+  if (mode === 'puzzles' && puzzle?.difficulty !== $('difficulty').value) void nextPuzzle();
+  else render();
+  void runBot();
+});
 loadBotChoices();
 $('use-last').disabled = !lastPgn;
 startMatch();

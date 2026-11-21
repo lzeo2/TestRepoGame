@@ -1,37 +1,34 @@
 import { Chess } from './vendor/chess.js';
+import { isEnginePosition } from './engine.js';
 
 const REVIEW_NODES = 48_000;
 const LINE_LENGTH = 12;
-const CASTLING = [
-  ['K', 'w', 'e1', 'h1'], ['Q', 'w', 'e1', 'a1'],
-  ['k', 'b', 'e8', 'h8'], ['q', 'b', 'e8', 'a8'],
-];
-
-function validSetup(fen) {
-  const board = new Chess(fen);
-  const opponent = board.turn() === 'w' ? 'b' : 'w';
-  const [king] = board.findPiece({ type: 'k', color: opponent });
-  if (board.isAttacked(king, board.turn())) return false;
-  const rights = fen.split(' ')[2];
-  for (const [flag, color, origin, corner] of CASTLING) {
-    if (!rights.includes(flag)) continue;
-    const king = board.get(origin), rook = board.get(corner);
-    if (king?.type !== 'k' || king.color !== color || rook?.type !== 'r' || rook.color !== color) return false;
-  }
-  return true;
-}
+const CACHE_SIZE = 320;
+const CACHE_BATCH = 16;
+const CACHE_TAIL_LIMIT = 150;
+const caches = new WeakMap();
+const FEN_PREFIX = /^[prnbqk1-8]+(?:\/[prnbqk1-8]+){7}\s+[wb](?:\s|$)/i;
+const STANDARD_VARIANTS = new Set(['standard', 'chess', 'from position']);
 
 export function parseReview(pgn) {
+  const text = String(pgn ?? '').trim();
+  if (FEN_PREFIX.test(text)) throw new Error('This is a FEN position. Paste a PGN that includes moves.');
   const board = new Chess();
+  let history;
   try {
-    board.loadPgn(String(pgn ?? '').trim());
+    board.loadPgn(text);
+    history = board.history({ verbose: true });
   } catch (error) {
+    if (error.message.startsWith('Invalid FEN:')) throw new Error('The PGN starting position is invalid.', { cause: error });
+    const move = error.message.match(/^Invalid move in PGN: ([^\s]{1,24})$/)?.[1];
+    if (move) throw new Error(`Illegal move "${move}" in the PGN. Check the move list and try again.`, { cause: error });
     throw new Error('Paste the PGN for one legal chess game.', { cause: error });
   }
-  const history = board.history({ verbose: true });
-  if (!history.length) throw new Error('The PGN needs at least one move.');
-  if (!validSetup(history[0].before)) throw new Error('The PGN starting position is invalid.');
   const headers = board.getHeaders();
+  const variant = Object.entries(headers).find(([key]) => key.toLowerCase() === 'variant')?.[1].trim().toLowerCase();
+  if (variant && !STANDARD_VARIANTS.has(variant)) throw new Error('Review supports standard chess PGN.');
+  if (!history.length) throw new Error('The PGN needs at least one move.');
+  if (!isEnginePosition(history[0].before)) throw new Error('The PGN starting position is invalid.');
   const name = (text, fallback) => text && text !== '?' ? text : fallback;
   return {
     positions: [history[0].before, ...history.map(move => move.after)],
@@ -58,7 +55,7 @@ function uciMove(uci) {
 function engineLine(fen, result, turn) {
   const score = whiteScore(result.score, turn);
   const board = new Chess(fen);
-  const candidates = result.pv?.[0] === result.move ? result.pv : [result.move];
+  const candidates = result.pv?.length && result.pv[0] === result.move ? result.pv : [result.move];
   const pv = [], line = [];
   for (const uci of candidates.slice(0, LINE_LENGTH)) {
     // Only display the legal portion of the engine's line.
@@ -71,7 +68,9 @@ function engineLine(fen, result, turn) {
       break;
     }
   }
-  return { score, bestMove: pv[0] ?? null, pv, line };
+  return Object.freeze({
+    score: Object.freeze(score), bestMove: pv[0] ?? null, pv: Object.freeze(pv), line: Object.freeze(line),
+  });
 }
 
 function terminal(board, last) {
@@ -88,7 +87,7 @@ function terminal(board, last) {
 function classify(move, before, after) {
   const color = move.color === 'w' ? 1 : -1;
   const evaluation = before.score, played = after.score;
-  const best = move.uci === before.bestMove;
+  const best = move.uci === before.bestMove || (after.terminal === 'checkmate' && color * played.value > 0);
   const comparable = evaluation.type === 'cp' && played.type === 'cp';
   const loss = comparable ? best ? 0 : Math.max(0, color * (evaluation.value - played.value)) : null;
   let label = 'Good';
@@ -117,27 +116,59 @@ function classify(move, before, after) {
 }
 
 export async function analyzeReview(game, engine, { signal, onUpdate } = {}) {
+  signal?.throwIfAborted();
   const analysis = { positions: [], moves: [], complete: false };
-  const board = new Chess(game.positions[0]);
+  let cache = caches.get(engine);
+  if (!cache) caches.set(engine, cache = new Map());
+  let baseFen = game.positions[0], trail = '', batch = 0;
+  const board = new Chess(baseFen);
+  const moves = [];
   for (let index = 0; index < game.positions.length; index++) {
     signal?.throwIfAborted();
     const last = index === game.positions.length - 1;
     const move = game.moves[index - 1];
-    if (move) board.move(uciMove(move.uci));
-    const fen = board.fen();
+    const replayed = move ? board.move(uciMove(move.uci)) : null;
+    const fen = replayed?.after ?? baseFen;
+    if (replayed?.piece === 'p' || replayed?.captured) {
+      // A pawn move or capture makes every preceding position unreachable.
+      baseFen = fen;
+      trail = '';
+      moves.length = 0;
+    } else if (move) {
+      moves.push(move.uci);
+      if (moves.length <= CACHE_TAIL_LIMIT) trail += '|' + move.uci;
+    }
     const ending = terminal(board, last);
+    const key = moves.length <= CACHE_TAIL_LIMIT ? baseFen + trail : null;
     let position;
     if (ending) {
       position = { ...ending, bestMove: null, pv: [], line: [] };
+    } else if (cache.has(key)) {
+      position = cache.get(key);
+      cache.delete(key);
+      cache.set(key, position);
     } else {
-      const result = await engine.search(fen, { nodes: REVIEW_NODES, signal });
+      const result = await engine.search(fen, {
+        nodes: REVIEW_NODES, signal,
+        history: moves.length ? { fen: baseFen, moves: moves.slice() } : undefined,
+      });
       signal?.throwIfAborted();
       position = engineLine(fen, result, board.turn());
+      if (key !== null) {
+        cache.set(key, position);
+        if (cache.size > CACHE_SIZE) cache.delete(cache.keys().next().value);
+      }
+      batch = 0;
     }
     analysis.positions.push(position);
     if (move) analysis.moves.push(classify(move, analysis.positions[index - 1], position));
     analysis.complete = last;
     onUpdate?.({ analysis, positionIndex: index, moveIndex: index - 1 });
+    if (!last && ++batch >= CACHE_BATCH) {
+      // A warm review can otherwise finish before the browser dispatches Stop.
+      await new Promise(resolve => setTimeout(resolve, 0));
+      batch = 0;
+    }
   }
   return analysis;
 }

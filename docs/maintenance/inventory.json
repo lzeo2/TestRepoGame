@@ -343,10 +343,10 @@
       "title": "Chess Workshop",
       "registered": true,
       "entry": "Games/Chess Workshop/index.html",
-      "entry_blob": "8c28aa76612495603065f0e39284f0bdb0deb16e",
-      "tree": "8063a299f3070b860d45878fe22440d018cf6621",
-      "files": 21,
-      "bytes": 13303270,
+      "entry_blob": "7b46ec54b3296eba4c2cd1f9f3ae3f2ee0dd51d9",
+      "tree": "9aea7803821289a14767ef0bdfa2b99eb417e41c",
+      "files": 59,
+      "bytes": 14799002,
       "document": "docs/maintenance/games/247-chess-workshop.md"
     },
     {

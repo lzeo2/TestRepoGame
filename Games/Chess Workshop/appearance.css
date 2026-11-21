@@ -1,0 +1,168 @@
+#board cg-board {
+  background-color: var(--board-light, #ece2ce);
+  background-image: repeating-conic-gradient(from -90deg, var(--board-light, #ece2ce) 0 25%, var(--board-dark, #5c8395) 0 50%);
+  background-size: 25% 25%;
+}
+
+#appearance {
+  width: min(92vw, 480px);
+  max-height: min(90vh, 650px);
+  overflow: auto;
+}
+.appearance-form {
+  display: grid;
+  gap: 14px;
+}
+.appearance-form h2 {
+  margin: 0;
+}
+.appearance-preview {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.appearance-square {
+  display: grid;
+  aspect-ratio: 1;
+  background: var(--board-light, #ece2ce);
+}
+.appearance-square.dark {
+  background: var(--board-dark, #5c8395);
+}
+.appearance-piece {
+  display: grid;
+  place-items: center;
+}
+.appearance-selects, .appearance-colors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.appearance-selects label {
+  display: grid;
+  gap: 5px;
+  font-weight: 700;
+}
+.appearance-colors label, .appearance-toggles label {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  gap: 9px;
+}
+.appearance-colors label {
+  padding: 4px 6px 4px 9px;
+  justify-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface-2);
+}
+.appearance-colors input[type=color] {
+  display: block;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px;
+  cursor: pointer;
+}
+.appearance-toggles {
+  min-width: 0;
+  margin: 0;
+  padding: 0 10px 4px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+.appearance-toggles legend {
+  padding: 0 5px;
+  color: var(--muted);
+  font-weight: 700;
+}
+.appearance-toggles label + label {
+  border-top: 1px solid var(--line);
+}
+.appearance-toggles input {
+  width: 19px;
+  height: 19px;
+  min-height: 0;
+  accent-color: var(--accent);
+}
+.appearance-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.appearance-status {
+  color: var(--muted);
+}
+
+:is(#board piece, .appearance-piece) {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 96%;
+}
+
+:root[data-chess-pieces="cburnett"] {
+  --piece-wK: url("./vendor/lichess-pieces/cburnett/wK.svg");
+  --piece-wQ: url("./vendor/lichess-pieces/cburnett/wQ.svg");
+  --piece-wR: url("./vendor/lichess-pieces/cburnett/wR.svg");
+  --piece-wB: url("./vendor/lichess-pieces/cburnett/wB.svg");
+  --piece-wN: url("./vendor/lichess-pieces/cburnett/wN.svg");
+  --piece-wP: url("./vendor/lichess-pieces/cburnett/wP.svg");
+  --piece-bK: url("./vendor/lichess-pieces/cburnett/bK.svg");
+  --piece-bQ: url("./vendor/lichess-pieces/cburnett/bQ.svg");
+  --piece-bR: url("./vendor/lichess-pieces/cburnett/bR.svg");
+  --piece-bB: url("./vendor/lichess-pieces/cburnett/bB.svg");
+  --piece-bN: url("./vendor/lichess-pieces/cburnett/bN.svg");
+  --piece-bP: url("./vendor/lichess-pieces/cburnett/bP.svg");
+}
+
+:root[data-chess-pieces="merida"] {
+  --piece-wK: url("./vendor/lichess-pieces/merida/wK.svg");
+  --piece-wQ: url("./vendor/lichess-pieces/merida/wQ.svg");
+  --piece-wR: url("./vendor/lichess-pieces/merida/wR.svg");
+  --piece-wB: url("./vendor/lichess-pieces/merida/wB.svg");
+  --piece-wN: url("./vendor/lichess-pieces/merida/wN.svg");
+  --piece-wP: url("./vendor/lichess-pieces/merida/wP.svg");
+  --piece-bK: url("./vendor/lichess-pieces/merida/bK.svg");
+  --piece-bQ: url("./vendor/lichess-pieces/merida/bQ.svg");
+  --piece-bR: url("./vendor/lichess-pieces/merida/bR.svg");
+  --piece-bB: url("./vendor/lichess-pieces/merida/bB.svg");
+  --piece-bN: url("./vendor/lichess-pieces/merida/bN.svg");
+  --piece-bP: url("./vendor/lichess-pieces/merida/bP.svg");
+}
+:is(#board piece, .appearance-piece).white.king { background-image: var(--piece-wK, none); }
+:is(#board piece, .appearance-piece).white.queen { background-image: var(--piece-wQ, none); }
+:is(#board piece, .appearance-piece).white.rook { background-image: var(--piece-wR, none); }
+:is(#board piece, .appearance-piece).white.bishop { background-image: var(--piece-wB, none); }
+:is(#board piece, .appearance-piece).white.knight { background-image: var(--piece-wN, none); }
+:is(#board piece, .appearance-piece).white.pawn { background-image: var(--piece-wP, none); }
+:is(#board piece, .appearance-piece).black.king { background-image: var(--piece-bK, none); }
+:is(#board piece, .appearance-piece).black.queen { background-image: var(--piece-bQ, none); }
+:is(#board piece, .appearance-piece).black.rook { background-image: var(--piece-bR, none); }
+:is(#board piece, .appearance-piece).black.bishop { background-image: var(--piece-bB, none); }
+:is(#board piece, .appearance-piece).black.knight { background-image: var(--piece-bN, none); }
+:is(#board piece, .appearance-piece).black.pawn { background-image: var(--piece-bP, none); }
+
+:root[data-chess-pieces="unicode"] :is(#board piece, .appearance-piece)::before {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #25364a;
+  text-shadow: 0 1px 0 #161c29, 0 0 1px #fff6e4;
+  font: clamp(1.2rem, 7vw, 3.9rem)/1 "DejaVu Sans", "Segoe UI Symbol", "Apple Symbols", serif;
+}
+:root[data-chess-pieces="unicode"] #appearance .appearance-piece::before {
+  font-size: clamp(1.2rem, 6vw, 2.05rem);
+}
+:root[data-chess-pieces="unicode"] :is(#board piece, .appearance-piece).white::before {
+  color: #fff6e4;
+  text-shadow: 0 1px 0 #192a40, 1px 0 0 #192a40, -1px 0 0 #192a40, 0 -1px 0 #192a40;
+}
+:root[data-chess-pieces="unicode"] :is(#board piece, .appearance-piece).king::before { content: "♚"; }
+:root[data-chess-pieces="unicode"] :is(#board piece, .appearance-piece).queen::before { content: "♛"; }
+:root[data-chess-pieces="unicode"] :is(#board piece, .appearance-piece).rook::before { content: "♜"; }
+:root[data-chess-pieces="unicode"] :is(#board piece, .appearance-piece).bishop::before { content: "♝"; }
+:root[data-chess-pieces="unicode"] :is(#board piece, .appearance-piece).knight::before { content: "♞"; }
+:root[data-chess-pieces="unicode"] :is(#board piece, .appearance-piece).pawn::before { content: "♟"; }
