@@ -58,7 +58,7 @@ export function createWatercraft(map,simulation,{owns=()=>false,heightAt=()=>0,c
           if(!positions.every((pose,i)=>gap(pose,dry)<=8&&floats(pose,WATERCRAFT_OFFERS[i].length,WATERCRAFT_OFFERS[i].width)))continue;
           const y=water(centre.x,centre.z)?.y??map.lakeWaterLevel??5.93;
           dock={id:'boat-shed',name:'Boat Shed',x:dry.x,z:dry.z,radius:8,yaw,shore:{...dry,y:heightAt(dry.x,dry.z)},
-            water:{x:centre.x,z:centre.z,y},sign:{x:dry.x,z:dry.z,y:heightAt(dry.x,dry.z),yaw},
+            water:{x:centre.x,z:centre.z,y},sign:{x:dry.x,z:dry.z,y:heightAt(dry.x,dry.z),yaw:yaw+Math.PI},
             approach:{...land},sourceId:lake.sourceId||String(lake.id),roadId:road.id,roadName:road.name};
           positions.forEach((pose,i)=>crafts.push({...WATERCRAFT_OFFERS[i],...pose,id:`watercraft:${WATERCRAFT_OFFERS[i].kind}`,y,speed:0,active:true,occupied:false}));
           break;
