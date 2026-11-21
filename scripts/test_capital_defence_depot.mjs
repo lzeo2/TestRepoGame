@@ -33,7 +33,17 @@ const scene=new THREE.Scene(),view=createDefenceDepotView(scene,map,terrain.heig
 assert.equal(view.stats.residentBytes,0,'distant base has no GPU buffers');view.update(depot.landmark);
 assert.equal(view.stats.draws,1);assert(view.stats.triangles<1500);assert(view.stats.residentBytes<125000);
 const expected={...view.stats};let geometryDigest;
-scene.traverse(mesh=>{if(!mesh.isMesh)return;assert.equal(mesh.material.map,null);for(const attribute of Object.values(mesh.geometry.attributes))for(const n of attribute.array)assert(Number.isFinite(n));geometryDigest=Array.from(mesh.geometry.attributes.position.array);});
+scene.traverse(mesh=>{if(!mesh.isMesh)return;assert.equal(mesh.material.map,null);for(const attribute of Object.values(mesh.geometry.attributes))for(const n of attribute.array)assert(Number.isFinite(n));geometryDigest=Array.from(mesh.geometry.attributes.position.array);
+  const p=mesh.geometry.attributes.position;
+  let apronTriangles=0;
+  for(let i=0;i<p.count;i+=3){
+    const vertices=[0,1,2].map(j=>[p.getX(i+j),p.getY(i+j),p.getZ(i+j)]);
+    if(!vertices.every(([x,y,z])=>Math.abs(y-terrain.heightAt(x,z)-.18)<.002))continue;
+    apronTriangles++;
+    const us=vertices.map(([x,,z])=>(x-depot.connection[0])*depot.tx+(z-depot.connection[1])*depot.tz);
+    assert(Math.max(...us)<=-9.99||Math.min(...us)>=9.99,'apron stays clear of central asphalt and shoulders');
+  }
+  assert.equal(apronTriangles,48,'only the side apron tiles are rendered');});
 for(let i=0;i<20;i++)view.update(depot.landmark);assert.equal(view.stats.loads,1,'idle view reuses the existing batch');
 view.update({x:0,z:0});assert.equal(view.stats.residentBytes,0);view.update(depot.landmark);assert.equal(view.stats.loads,2);
 scene.traverse(mesh=>{if(mesh.isMesh)assert.deepEqual(Array.from(mesh.geometry.attributes.position.array),geometryDigest,'eviction/revisit regenerates identical original props');});

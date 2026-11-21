@@ -19,7 +19,12 @@ export function createDefenceDepotView(scene,map,heightAt) {
     };
     // Small terrain-draped apron tiles retain the mapped ground instead of a
     // large floating flat slab. The real approach remains an ordinary road.
-    for(let u=-40;u<40;u+=10)for(let v=5;v<45;v+=10)quad(vertex(u,v,.08),vertex(u+10,v,.08),vertex(u+10,v+10,.08),vertex(u,v+10,.08),0x77796e);
+    // Leave a twenty-metre central corridor for the road and its shoulders.
+    // Independent draped meshes must never compete for the same asphalt area.
+    for(let u=-40;u<40;u+=10)for(let v=5;v<45;v+=10){
+      if(u>=-10&&u<10)continue;
+      quad(vertex(u,v,.18),vertex(u+10,v,.18),vertex(u+10,v+10,.18),vertex(u,v+10,.18),0x77796e);
+    }
     for(const u of [-25,25]){
       box(u,68,28,7,40,0x737b65);
       const a=vertex(u-14,48,7),b=vertex(u+14,48,7),c=vertex(u,48,9),aa=vertex(u-14,88,7),bb=vertex(u+14,88,7),cc=vertex(u,88,9);

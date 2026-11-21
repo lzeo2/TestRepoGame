@@ -69,8 +69,8 @@ through recall and relaunch. The upgrade is optional validated career gear.
 
 The fictional Capital Defence Depot sits on an airport-area service spur.
 Search for military base to route to its open vehicle gateway. The yard has
-hangars, a guardhouse, an apron and physical fencing. The exterior takes one
-streamed draw with 368 triangles and releases its geometry when distant.
+hangars, a guardhouse, side aprons and physical fencing. The exterior takes
+one streamed draw with 352 triangles and releases its geometry when distant.
 
 The 21 November recovery update routes an ordinary medical transfer to the
 nearest usable owned safehouse. Milo's mapped home provides a fallback.
@@ -964,6 +964,13 @@ the player starts the mission again. The three runs passed 17, 19 and 16
 assertions with unchanged source hashes and no console or external request
 errors. The 498-command source plan passed across a resumed run after
 updating a controller fixture for the mission checkpoint guard.
+
+The material and equipment release used a 22-assertion legacy-to-current
+worker migration test in Chromium. The test covers current code execution
+after offline reopening, old game cache retirement, an uninterrupted started
+tab and a separate local save. Native gear and nitro cases passed 17 and 13
+assertions. They use explicit initial funded checkpoints by Canalside and
+Kingston to exercise real purchase, flight, landing, reload and paid refill.
 
 The reusable runner checks 127 game JavaScript files, 188 pure Node
 suites, 5 support scripts, the flamegraph parser, cache closure and
