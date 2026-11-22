@@ -126,6 +126,8 @@ body.piloting .foot-action,body.piloting .car-action{display:none;}
 #wanted-level{font-size:20px;color:#edc16f;margin-top:4px;letter-spacing:1px;font-family:Arial,sans-serif;line-height:1.2;white-space:nowrap;}
 #career-hud p{font-size:11px;margin:4px 0 7px;color:var(--muted);line-height:1.3;}
 #career-hud #weapon-label{margin-bottom:0;color:var(--ink);}
+#drone-night-vision{width:100%;min-height:44px;margin-top:6px;padding:6px 8px;font-size:11px;touch-action:manipulation;}
+#drone-night-vision[aria-pressed=true]{border-color:var(--accent);outline:1px solid var(--accent);}
 body[data-mode=free] #cash-value,body[data-mode=free] #wanted-level{display:none;}
 #job-hud{position:absolute;top:calc(var(--hud-top) + 82px);left:20px;width:min(310px,calc(100% - 260px));padding:10px 12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;font-size:12px;}
 #job-hud p{color:var(--muted);font-size:12px;line-height:1.4;margin:6px 0;}
@@ -331,6 +333,12 @@ h3{font-size:15px;line-height:1.35;}
 #control-menu:popover-open{display:grid;gap:4px;}
 #control-menu button{width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;}
 #cache-status{font-size:12px;line-height:1.4;}
+.startup-graphics{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0;}
+.startup-graphics label{flex:none;font-size:12px;}
+.startup-graphics select{flex:1 1 118px;min-width:118px;max-width:100%;padding:8px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;font-size:12px;}
+.startup-graphics button{flex:1 0 auto;font-size:12px;white-space:nowrap;}
+#graphics-test-status{margin:8px 0;font-size:12px;line-height:1.4;}
+#graphics-test-apply{margin-bottom:8px;font-size:12px;}
 .intro-options{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;}
 #career-hud p:empty{display:none;}
 .intro .character-options{grid-template-columns:1fr;}

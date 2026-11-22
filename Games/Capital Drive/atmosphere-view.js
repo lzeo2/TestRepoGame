@@ -13,13 +13,25 @@ export function createAtmosphereView(scene, { hemisphere, sun, heightAt = () => 
   const material = new THREE.LineBasicMaterial({ color: 0xbdceda, transparent: true, opacity: .42, depthWrite: false });
   const lines = new THREE.LineSegments(geometry, material);
   lines.name = 'Local rain'; lines.frustumCulled = false; lines.visible = false; scene.add(lines);
-  let disposed = false, count = 0, lastElapsed = null, lastX = null, lastZ = null, lastGround = null, lastCount = null;
-  function update(state, focus, { interior = false, quality: currentQuality = quality } = {}) {
+  let disposed = false, nightVisionActive = false, count = 0, lastElapsed = null, lastX = null, lastZ = null, lastGround = null, lastCount = null;
+  function update(state, focus, { interior = false, quality: currentQuality = quality, nightVision = false } = {}) {
     if (disposed || !state || !Number.isFinite(state.elapsed) || !Number.isFinite(state.rain)) return;
     if (scene.background?.isColor) scene.background.setHex(state.skyColor);
     if (scene.fog?.color) { scene.fog.color.setHex(state.fogColor); scene.fog.near = state.fogNear; scene.fog.far = state.fogFar; }
     if (hemisphere) { hemisphere.color.setHex(state.hemisphereSkyColor); hemisphere.groundColor.setHex(state.hemisphereGroundColor); hemisphere.intensity = state.hemisphereIntensity; }
     if (sun) { sun.color.setHex(state.sunColor); sun.intensity = state.sunIntensity; sun.position.set(state.sunX, state.sunY, state.sunZ); }
+    // Reapply the supplied normal palette above every frame, then borrow those
+    // same sky/fog/light objects for the drone's optional green viewing mode.
+    nightVisionActive = nightVision === true && !interior && validPoint(focus);
+    if (nightVisionActive) {
+      if (scene.background?.isColor) scene.background.setHex(0x59764b);
+      if (scene.fog?.color) scene.fog.color.setHex(0x779362);
+      if (hemisphere) {
+        hemisphere.color.setHex(0xc4ffc0); hemisphere.groundColor.setHex(0x4f7142);
+        hemisphere.intensity = Math.max(state.hemisphereIntensity, 1.8);
+      }
+      if (sun) { sun.color.setHex(0xc8ffd0); sun.intensity = Math.max(state.sunIntensity, .9); }
+    }
     const ground = validPoint(focus) ? (Number.isFinite(focus.y) ? focus.y : heightAt(focus.x, focus.z)) : NaN;
     count = !interior && validPoint(focus) && Number.isFinite(ground) ? Math.floor((currentQuality === 'performance' ? 160 : CAPACITY) * Math.max(0, Math.min(1, state.rain))) : 0;
     geometry.setDrawRange(0, count * 2); lines.visible = count > 0;
@@ -36,7 +48,7 @@ export function createAtmosphereView(scene, { hemisphere, sun, heightAt = () => 
     }
     attribute.needsUpdate = true;
   }
-  return { update, get stats() { return Object.freeze({ capacity: CAPACITY, rainLines: count, drawCalls: count > 0 ? 1 : 0,
+  return { update, get stats() { return Object.freeze({ capacity: CAPACITY, nightVision:nightVisionActive, rainLines: count, drawCalls: count > 0 ? 1 : 0,
     geometryCount: disposed ? 0 : 1, materialCount: disposed ? 0 : 1, bufferBytes: disposed ? 0 : positions.byteLength, lightsCreated: 0, disposed }); },
-  dispose() { if (disposed) return; disposed = true; scene.remove(lines); geometry.dispose(); material.dispose(); count = 0; } };
+  dispose() { if (disposed) return; disposed = true; scene.remove(lines); geometry.dispose(); material.dispose(); count = 0; nightVisionActive = false; } };
 }

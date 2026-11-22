@@ -109,7 +109,7 @@ assert(calls.some(call => call[0] === 'dispose-leave'));
 assert.equal(rooms.indoorCampaignScenesView, null);
 assert(source.includes('onVehicleShot:hitWorldVehicle,onVehicleExplosion:damageExplosionVehicles'));
 assert(source.includes("if(event.code==='KeyL'&&!paused()){activatePower();return;}"));
-assert(source.includes("if(event.code==='KeyN'&&!paused()){toggleHeadlights();return;}"));
+assert.match(source,/event\.code==='KeyN'&&!paused\(\)\)\{\s*if\(droneActive\)toggleDroneNightVision\(\);\s*else toggleHeadlights\(\);/);
 assert(source.includes('attacksAllowed:canCrewAttack()'));
 assert(source.includes('if(!person.seated&&!person.interiorId)add(person,.32)'));
 console.log('PASS city controller helpers: numeric/identity shot separation, indoor exclusion, pose-aware bridge pitch, night/manual headlights, actual room hooks/disposal and preserved power key');
@@ -122,8 +122,9 @@ const game=createGameplay(tinyMap,physical,{hasWeapon:id=>commerce.state.equipme
 game.state.mode='foot';game.state.health=60;game.state.actor.x=0;game.state.actor.z=10;
 commerce.state.equipment.pistol=true;game.addAmmo(24,'pistol');
 let writes=0,menuPaused=true;
-const control=owner(['cityAction','currentGear','recallDrone','stepDrone','canCrewAttack','canPlayerAttack','walkingInput','input','interact'],{
-  jetpack:null,
+const visionButton={hidden:true,setAttribute(name,value){this[name]=value;}};
+const control=owner(['cityAction','currentGear','recallDrone','refreshDroneNightVision','toggleDroneNightVision','stepDrone','canCrewAttack','canPlayerAttack','walkingInput','input','interact'],{
+  jetpack:null,compatibility:false,$:()=>visionButton,
   developerReturn:null,progression:commerce,gameplay:game,interiors:{active:null},campaignScenes:{people:[]},
   careerContext:()=>({pose:{x:game.state.actor.x,z:game.state.actor.z},onFoot:true,health:game.state.health,vehicleHealth:100,wanted:0,respawnSerial:0,interior:control.interiors.active?{roomId:home.id}:null}),
   saveCareer:()=>writes++,clearInput:()=>{},notify:()=>{},cityUI:{render:()=>{}},
@@ -192,6 +193,11 @@ commerce.state.gear.drone=true;
 assert(control.cityAction('launch-drone').ok);
 assert.equal(menuPaused,false,'launch closes phone before the module checks paused context');
 assert.equal(writes,afterWeaponWrite,'transient flight never writes the career');
+assert.equal(visionButton.hidden,false);
+control.toggleDroneNightVision();
+assert.equal(control.drone.snapshot().nightVision,true);
+assert.equal(visionButton['aria-pressed'],'true');
+assert.equal(writes,afterWeaponWrite,'night vision remains a transient camera setting');
 const bodyBefore={...game.state.actor};
 assert.equal(control.canPlayerAttack(),false);
 assert.equal(control.canCrewAttack(),true,'guards can defend the vulnerable drone operator');
@@ -203,6 +209,8 @@ assert(control.drone.snapshot().z<game.state.actor.z);
 assert.deepEqual(game.state.actor,bodyBefore,'flight moves the drone while the authoritative body stays behind');
 game.state.health=0;control.stepDrone(.1);
 assert.equal(control.droneActive,false,'body death recalls rather than shielding or healing the player');
+assert.equal(visionButton.hidden,true);
+assert.equal(visionButton['aria-pressed'],'false');
 assert.equal(game.state.health,0);
 game.state.health=60;control.cityAction('launch-drone');
 const pausedFlight=control.drone.snapshot();control.drone.step(1,{paused:true});

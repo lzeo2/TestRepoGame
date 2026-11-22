@@ -48,6 +48,23 @@ where the verified update loads. Career saves and settings are
 stored separately. An FPS counter beside the build number measures rendered
 frames during play. The Realism preset targets 45 FPS, caps the render size
 at 1600 × 900 and softens exposure using the existing render pass.
+The start screen offers a Graphics selector and an optional graphics test.
+It samples rendered FPS under all four presets in the visible title scene.
+The test suggests the highest preset that stays near its target cadence,
+or shows the fastest measured preset if every mode misses its target.
+Your previous choice is restored when the test ends. Use the suggestion
+to save it. The preview measures graphics on this device and has no gameplay
+simulation workload.
+
+Ordinary driving adds small camera-space motion. Surface and speed affect
+the motion, recent bumps fade, and the cockpit uses a smaller offset.
+Reduced motion disables this effect. During drone flight, N or Night vision
+brightens and tints the outside view using the existing lights and fog.
+Recalling the drone restores the ordinary view.
+
+Tactical officers dispatch at five wanted stars. Downed officers release
+their unit slots after six simulation seconds, allowing reinforcements while
+the search continues. Wrecks and station losses still limit dispatch capacity.
 
 Canalside Supplies sells a reusable jetpack for $1,200 in Street Life and
 Campaign. Ownership is validated as optional gear when loading older saves.
@@ -219,6 +236,13 @@ appears. Ordinary combat also works. Exposed weapons, suspicious movement,
 nearby gunfire and a body the guard discovers can raise an alert.
 Reach the pickup on foot. If police are searching, lose them on foot or in a
 vehicle. A clear exit requires no police chase. The campaign pays $2,600 once.
+
+Campaign missions launch at the protagonist's current position. Failed
+objectives retry from the beginning of the previous step, with step one
+returning to the launch. The game restores the recorded body, room, mission
+state, economy and supported aircraft state in memory. Cancelling a mission
+returns to the prelaunch checkpoint, which is also the last saved state
+until the mission completes.
 
 During play the toolbar keeps Map, Jobs, Phone and Pause visible. More holds
 Shops, Garage, Sound and Help. Dialogs retain their controls, purchase prices
@@ -1131,8 +1155,8 @@ The 21 November Chromium runs exercised mission launch and cancellation,
 ordinary knockout to Milo's safehouse, knockout to an actual purchased home,
 and a lethal mission failure with exact prelaunch career and pose comparison.
 Each uses an explicit initial injured career fixture. The player reaches the
-outcome through keyboard and menu actions. The failure remains inactive until
-the player starts the mission again. The three runs passed 17, 19 and 16
+outcome through keyboard and menu actions. Those builds held the failed
+mission inactive at the launch position. The three runs passed 17, 19 and 16
 assertions with unchanged source hashes and no console or external request
 errors. The 498-command source plan passed across a resumed run after
 updating a controller fixture for the mission checkpoint guard.

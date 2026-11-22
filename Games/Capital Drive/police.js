@@ -6,11 +6,12 @@ const gap = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
 const angle = a => Math.atan2(Math.sin(a),Math.cos(a));
 const DRONE_SCAN_INTERVAL = .2, DRONE_RANGE = 48, DRONE_SCAN_LIMIT = 6;
 const PATROL_DISTANCE = 180, PATROL_REFRESH = .75, PATROL_CAP = 2;
+const DOWNED_GRACE_SECONDS = 6;
 const standardSearchDuration = wanted => 28 + wanted * 9;
 export function createPolice(simulation, options = {}) {
   const planner = createRoutePlanner(simulation.graph);
   const support=createPoliceSupport(simulation,options);
-  const routes = new Map(), tactics = new Map(), approaches = new Map(), events = [];
+  const routes = new Map(), tactics = new Map(), approaches = new Map(), downedTimers = new Map(), events = [];
   const crouchedSight = new WeakMap();
   const observesDrone = typeof options.getDrone === 'function' && typeof options.droneLineOfSight === 'function';
   const hasPatrolStations = typeof options.getPatrolStations === 'function';
@@ -160,7 +161,7 @@ export function createPolice(simulation, options = {}) {
   let checkpointDelay=0;
   function reset({ clearWrecks = false } = {}) {
     if (clearWrecks) wrecks.length = 0;
-    support.reset(); checkpointDelay=0; approaches.clear(); routes.clear(); tactics.clear(); events.length=0; knownRooms.clear(); arrest = 0; spawnDelay = 0;
+    support.reset(); checkpointDelay=0; approaches.clear(); routes.clear(); tactics.clear(); downedTimers.clear(); events.length=0; knownRooms.clear(); arrest = 0; spawnDelay = 0;
     awarenessClock=0;droneNoticed=false;blast=null;remember(simulation.player);
     ambientActive=false;patrolRefresh=0;previousLoss=0;
   }
@@ -409,6 +410,17 @@ export function createPolice(simulation, options = {}) {
     const entry=room && (room.known || knownRooms.has(room.id)) ? room : null;
     const outsideTarget=entry?.outside || lastSeen;
     if(!ambient) {
+      // Retain visible downed bodies briefly, then release their unit slots.
+      // Destroyed cars remain in the separate wreck budget and still consume
+      // that physical capacity; retiring an officer cannot erase a wreck.
+      for(let i=state.police.length-1;i>=0;i--){
+        const unit=state.police[i];
+        if(!(unit.health<=0)){downedTimers.delete(unit.id);continue;}
+        const elapsed=(downedTimers.get(unit.id)||0)+dt;downedTimers.set(unit.id,elapsed);
+        if(elapsed<DOWNED_GRACE_SECONDS)continue;
+        state.police.splice(i,1);routes.delete(unit.id);tactics.delete(unit.id);approaches.delete(unit.id);crouchedSight.delete(unit);downedTimers.delete(unit.id);
+      }
+      for(const id of downedTimers.keys())if(!state.police.some(unit=>unit.id===id))downedTimers.delete(id);
       const reportedLoss=options.getResponseLoss?.();
       const loss=Number.isInteger(reportedLoss)?clamp(reportedLoss,0,3):0;
       spawnDelay=Math.max(0,spawnDelay-dt+Math.max(0,loss-previousLoss)*1.25);

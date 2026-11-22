@@ -73,7 +73,7 @@ for (const chapter of stealthContracts.chapters) {
   const first = stealthContracts.resolve(campaign.state.active, { ...context, pose:originalTarget, crouching:true });
   assert(first.ok);
   assert(campaign.cancel());
-  assert.deepEqual(campaign.drainEvents().at(-1), { type:'failed', message:'Mission cancelled.' });
+  assert.deepEqual(campaign.drainEvents().at(-1), { type:'failed', id, stage:0, message:'Mission cancelled.' });
   assert.deepEqual(campaign.serialize(), before, 'cancellation preserves core and optional completion');
 
   const plan = { approachId:plans.approaches[1].id, exitId:plans.exits[1].id };

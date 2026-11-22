@@ -28,7 +28,7 @@ for (const { changeContext, message, expire } of cause) {
   campaign.update(.1, { ...context, ...receipts(8), ...changeContext });
   assert.equal(campaign.state.active, null);
   assert(campaign.state.failed);
-  assert.deepEqual(campaign.drainEvents(), [{ type: 'failed', message }]);
+  assert.deepEqual(campaign.drainEvents(), [{ type: 'failed', id:first.id, stage:first.stage, message }]);
   assert.deepEqual(campaign.serialize(), saved, 'failure leaves saved progress unchanged');
   for (let frame = 0; frame < 20; frame++) campaign.update(.1, context);
   assert.equal(campaign.state.active, null, 'failure never starts another attempt by itself');

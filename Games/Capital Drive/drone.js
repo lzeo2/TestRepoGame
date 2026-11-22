@@ -8,7 +8,7 @@ const axis = n => Number.isFinite(n) ? clamp(n, -1, 1) : 0;
 // economy, camera, weapons and mission authority throughout a flight.
 export function createDrone({ heightAt = () => 0, canOccupy = () => true } = {}) {
   let pose = { x: 0, y: 3, z: 0, yaw: 0 }, origin = { x: 0, z: 0 };
-  let active = false, disposed = false, battery = 90, reason = null, strikeSerial = 0;
+  let active = false, disposed = false, battery = 90, reason = null, strikeSerial = 0, nightVision = false;
   const ground = (x, z) => heightAt(x, z);
   function bodyReady(body, ctx = {}) {
     return finite(body?.actor || body) && body?.mode === 'foot' && Number.isFinite(body.health) && body.health > 0 &&
@@ -18,6 +18,7 @@ export function createDrone({ heightAt = () => 0, canOccupy = () => true } = {})
     return Number.isFinite(next.y) && canOccupy(next, { from: { ...from }, radius: .45, height: .3, ignoreVehicles: true }) !== false;
   }
   function recall(why = 'recalled') {
+    nightVision = false;
     if (!active) return false;
     active = false; reason = why; return true;
   }
@@ -27,7 +28,7 @@ export function createDrone({ heightAt = () => 0, canOccupy = () => true } = {})
     const next = { x: p.x - Math.sin(yaw), z: p.z - Math.cos(yaw), yaw };
     next.y = ground(next.x, next.z) + 3;
     if (!clear(next, { ...p, y: ground(p.x,p.z) + 1.5 })) return false;
-    pose = next; origin = { x: p.x, z: p.z }; battery = 90; active = true; reason = null; return true;
+    pose = next; origin = { x: p.x, z: p.z }; battery = 90; active = true; reason = null; nightVision = false; return true;
   }
   function step(dt, input = {}) {
     if (disposed || !active || input.paused || !Number.isFinite(dt) || dt <= 0) return;
@@ -56,6 +57,11 @@ export function createDrone({ heightAt = () => 0, canOccupy = () => true } = {})
     }
     if (!battery) recall('battery-empty');
   }
+  function setNightVision(enabled) {
+    if (typeof enabled !== 'boolean' || disposed || !active || battery <= 0 ||
+        ![pose.x,pose.y,pose.z,pose.yaw,battery,ground(pose.x,pose.z)].every(Number.isFinite)) return false;
+    nightVision = enabled; return true;
+  }
   function strike(body, ctx = {}) {
     if (disposed || !active || ctx.paused || body?.passenger || body?.actor?.impactTime > 0 || !ctx.owned || !ctx.upgraded || !bodyReady(body, ctx))
       return {ok:false,message:'Fly your upgraded drone outside to use a strike.'};
@@ -73,8 +79,8 @@ export function createDrone({ heightAt = () => 0, canOccupy = () => true } = {})
   }
   function snapshot() {
     const g=ground(pose.x,pose.z);
-    return Object.freeze({ ...pose, active, battery, range:Math.hypot(pose.x-origin.x,pose.z-origin.z),
+    return Object.freeze({ ...pose, active, battery, nightVision:active&&!disposed&&nightVision, range:Math.hypot(pose.x-origin.x,pose.z-origin.z),
       altitude:Number.isFinite(g)?pose.y-g:0, reason, disposed });
   }
-  return { deploy, step, recall, strike, snapshot, dispose() { if(disposed)return; recall('disposed'); disposed=true; } };
+  return { deploy, step, recall, strike, setNightVision, snapshot, dispose() { if(disposed)return; recall('disposed'); disposed=true; } };
 }

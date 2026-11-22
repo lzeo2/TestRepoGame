@@ -120,4 +120,62 @@ assert.equal(previewReturn(true),true,'explicit retry uses actual checked Gamepl
 assert.equal(worldResets,1,'a restored body returns to the current mode world once');
 assert.equal(env.developerReturn,null);assert.equal(returnControls.get('mission-dev-return').hidden,true);
 assert.deepEqual(controller.protagonistCheckpoint(),originalBody,'successful retry restores original mode, body, car, health and ammo');
+
+// Execute the real preview click handler with actual Gameplay restoration.
+const previewCallbacks=new Map(),previewNodes=new Map(),launches=[];
+Object.assign(env,controller,{
+  missionToolsUnlocked:true,missionCheckpoint:null,developerReturn:null,clearInterior(){interiors.active=null;},
+  saveCareer(){counters.save++;},endCampaignAttempt(){campaign.state.active=null;return true;},
+  notify(){},closeDialogs(){},campaignNavigationTarget:()=>({x:300,z:60}),routeTo(point){env.destination=point;},
+  prepareCharacterStart(){throw new Error('Mission launches must not use a character opening.');},
+  isSandbox:()=>env.gameMode==='free',
+  $:id=>{if(!previewNodes.has(id))previewNodes.set(id,{value:id==='mission-dev-select'?'location-fixture':'',addEventListener(type,callback){previewCallbacks.set(`${id}:${type}`,callback);}});return previewNodes.get(id);},
+});
+campaign.developerChapters=()=>[{id:'location-fixture',character:'student'}];
+campaign.startDeveloper=(id,context)=>{launches.push({id,context});campaign.state.active={id,character:'student'};return {ok:true};};
+campaign.cancel=()=>{campaign.state.active=null;};
+const previewController=Function('env',`with(env){${source.slice(source.indexOf('function finishDeveloperPreview('),source.indexOf("$('mission-dev-return').addEventListener"))};return finishDeveloperPreview;}`)(env);
+env.finishDeveloperPreview=previewController;
+Function('env',`with(env){${source.slice(source.indexOf("$('mission-dev-play').addEventListener"),source.indexOf("$('resume-button').addEventListener"))}}`)(env);
+const launchPreview=previewCallbacks.get('mission-dev-play:click');
+for(const [mode,onFoot,weapon] of [['campaign',true,'pistol'],['street',false,'pistol'],['free',true,'carbine']]) {
+  env.gameMode=mode;env.selectedGameMode=mode;campaign.state.active=null;
+  Object.assign(simulation.player,{x:210,z:14,yaw:-.4});
+  gameplay.reset({sandbox:mode==='free',startPose:{x:-120,z:40,yaw:1.2},onFoot});
+  gameplay.state.health=63;gameplay.state.vehicleHealth=71;
+  gameplay.addAmmo(47,'pistol');gameplay.setWeapon(weapon);
+  const before=controller.protagonistCheckpoint(),saved=campaign.serialize(),count=launches.length;
+  launchPreview();assert.equal(launches.length,count+1);assert.equal(env.gameMode,'campaign');assert.equal(gameplay.state.sandbox,false);
+  const after=controller.protagonistCheckpoint();
+  assert.equal(after.mode,before.mode);assert.deepEqual(after.actor,before.actor);assert.deepEqual(after.vehicle,before.vehicle);
+  assert.equal(after.health,before.health);assert.deepEqual(env.developerReturn.body,before);assert.deepEqual(env.developerReturn.campaign,saved);
+  if(mode==='free'){assert.equal(after.weapon,'unarmed');assert.deepEqual(after.ammunition.carbine,{ammo:0,reserveAmmo:0});}
+  else {assert.equal(after.weapon,before.weapon);assert.deepEqual(after.ammunition.pistol,before.ammunition.pistol);}
+  assert(!progression.state.equipment.carbine,'a preview cannot grant career equipment');
+  Object.assign(gameplay.state.actor,{x:250,z:40});gameplay.state.health=44;
+  campaign.cancel();assert(previewController(true));assert.equal(env.gameMode,mode);assert.equal(gameplay.state.sandbox,mode==='free');
+  assert.deepEqual(controller.protagonistCheckpoint(),before,'return restores the exact prelaunch location and gear');
+}
+interiors.active={id:'test-room'};const deniedCount=launches.length,deniedBody=controller.protagonistCheckpoint();
+launchPreview();assert.equal(launches.length,deniedCount);assert.equal(env.developerReturn,null);assert.deepEqual(controller.protagonistCheckpoint(),deniedBody);
+interiors.active=null;
+
+// The normal Campaign and optional start controller also keeps a travelled pose.
+campaign.state.character='student';env.gameMode='campaign';env.missionCheckpoint=null;
+Object.assign(env,{missionLaunchReason:()=>'',clearRecon(){},inquiryHarm:false,contractTarget:{clear(){}},stealthOutcome:null,stealthPreview:null,
+  playerCarKey:'location-car',mapSelection:null,footLookPitch:.15,cockpitCamera:false});
+campaign.start=()=>{campaign.state.active={id:'normal',combat:true};return {ok:true};};
+campaign.startOptional=id=>{campaign.state.active={id,combat:true};return {ok:true};};
+campaign.drainEvents=()=>[];
+campaign.captureRetry=()=>Object.freeze({id:campaign.state.active.id,stage:0});
+Object.assign(env,{watercraft:null,depotTank:null,jetpack:null,micromobility:null,heists:null});
+const startHere=Function('env',`with(env){${source.slice(source.indexOf('function startCampaignMission('),source.indexOf('function contractPlanSelection('))};return startCampaignMission;}`)(env);
+for(const optionalId of [null,'optional-location-fixture']) {
+  env.missionCheckpoint=null;campaign.state.active=null;
+  const before=controller.protagonistCheckpoint();startHere(optionalId);
+  assert(campaign.state.active);assert.deepEqual(controller.protagonistCheckpoint(),before,'main and optional starts only change mission state and routing');
+  assert.deepEqual(env.missionCheckpoint.body.actor,before.actor,'retry anchor uses the actual travelled location');
+  assert(progression.commitMissionState(env.missionCheckpoint.economy));
+}
+console.log('Capital mission launch: real preview/main/optional controllers preserve travelled foot/car poses, owned gear, sandbox ownership gate and exact isolated return; indoor preview fails before mutation.');
 console.log('Capital character controller: actual controller + Simulation/Gameplay/checkpoint integration passed.');
