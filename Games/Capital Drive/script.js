@@ -1574,16 +1574,19 @@ function endCampaignAttempt(){
   missionCheckpoint.failure||='Mission cancelled.';
   return restoreFailedMission(0,true);
 }
-function playCampaignIntro(){
+function campaignIntroChapter(optionalId){
+  return optionalId?campaign.optionalChapters.find(item=>item.id===optionalId&&!campaign.isCompleted(item.id)):campaign.current();
+}
+function playCampaignIntro(optionalId=null){
   if(missionCheckpoint?.failure){restoreFailedMission(0,true);openCampaign();return;}
-  const chapter=campaign.current();
+  const chapter=campaignIntroChapter(optionalId);
   if(gameMode!=='campaign'||campaign.state.active||!chapter)return;
   const blocked=missionLaunchReason();
   if(blocked){notify(blocked);return;}
   syncPlayerAppearance();
-  if(!chapter.cutscene||!cutscenes.play(chapter.cutscene,{character:campaign.state.character,missionId:chapter.id})){startCampaignMission();return;}
+  if(!chapter.cutscene||!cutscenes.play(chapter.cutscene,{character:campaign.state.character,missionId:chapter.id})){startCampaignMission(optionalId);return;}
   const state=cutscenes.snapshot();
-  pendingCutscene={runId:state.runId,character:state.character,missionId:state.missionId};
+  pendingCutscene={runId:state.runId,character:state.character,missionId:state.missionId,optionalId};
   cutsceneAnchor={...focus()};
   renderCutscene(0);
   closeDialogs();setCutsceneVisible(true);clearInput();
@@ -1602,7 +1605,8 @@ function renderCutscene(dt){
     if(!pendingCutscene||event.runId!==pendingCutscene.runId)continue;
     const captured=pendingCutscene;pendingCutscene=null;cutsceneAnchor=null;setCutsceneVisible(false);
     clearInput();cameraReady=false;
-    if(event.type==='completed'&&started&&gameMode==='campaign'&&campaign.state.character===captured.character&&campaign.current()?.id===captured.missionId&&!campaign.state.active)startCampaignMission();
+    if(event.type==='completed'&&started&&gameMode==='campaign'&&campaign.state.character===captured.character&&
+      campaignIntroChapter(captured.optionalId)?.id===captured.missionId&&!campaign.state.active)startCampaignMission(captured.optionalId);
     else if(started&&gameMode==='campaign'&&!document.hidden)openCampaign();
   }
 }
@@ -1636,7 +1640,7 @@ function openCampaign(){
     button.type='button';button.id=`campaign-optional-${item.id}`;
     button.textContent=campaign.isCompleted(item.id)?`${item.name} · Complete`:`${item.name} · $${item.reward.toLocaleString()}`;
     button.disabled=!!active||!campaign.state.character||campaign.isCompleted(item.id)||gameMode!=='campaign'||!!developerReturn?.blocked;
-    button.addEventListener('click',()=>item.stealth?openContractPlan(item.id):startCampaignMission(item.id));li.append(button);
+    button.addEventListener('click',()=>item.stealth?openContractPlan(item.id):playCampaignIntro(item.id));li.append(button);
     if(item.stealth)$('campaign-contracts').append(li);
     else{
       const description=document.createElement('p');description.textContent=item.briefing;li.append(description);

@@ -67,7 +67,7 @@ export function createAssassinationChapter(map, { canStand = () => false, hasLin
         { ...approach, kind: 'foot', radius: 3, hold: .5, clear: true, label: 'Reach the open front of the fictional Blackthorn yard on foot' },
         { ...target, kind: 'assassination', targetId: ASSASSINATION_TARGET_ID, targetName: 'Adrian Voss', appearanceId: 'contract:blackthorn-voss',
           radius: 90, hold: 0, label: 'Take out Adrian Voss with a weapon or unarmed combat' },
-        { ...exit, kind: 'escape', foot: true, radius: 4, hold: 1, clear: true, requireWanted: false,
+        { ...exit, kind: 'escape', pickupOnFoot: true, radius: 4, hold: 1, clear: true, requireWanted: false,
           label: `Leave the yard on foot: reach the ${candidate.road} pickup, then lose the police anywhere` },
       ] });
   }

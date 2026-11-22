@@ -204,11 +204,12 @@ fascia next to its parapets. The connected approaches match the full road and
 footpath cross-section at the join. Vehicle paths and underpasses keep their
 source road ownership. Deck heights are authored estimates above the mapped lake.
 
-The Blackthorn account is an optional Campaign mission. The intro sets up a
-fictional target at a fictional collection yard beside a mapped Kingston street.
+The Blackthorn account is an optional Campaign mission. Opening it plays a
+skippable intro. Cancel the scene to return to the Campaign menu. The story
+follows a fictional target at a fictional collection yard beside a mapped Kingston street.
 Reach the front on foot and fight Adrian Voss with ordinary combat controls.
 The target can move and react to hits. At zero health the escape objective opens.
-Reach the pickup, then shake the police anywhere. The campaign pays $2,600 once
+Reach the pickup on foot, then shake the police on foot or in a vehicle. The campaign pays $2,600 once
 and stores completion alongside other optional chapters.
 
 Nearby drivers now anticipate a fast player cut-in and brake before the

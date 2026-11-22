@@ -14,12 +14,12 @@ for (const entry of catalog.developerChapters()) {
   catalog.cancel();
 }
 assert.equal(catalog.developerChapters().length, 22, 'audit all actual campaign definitions');
-assert.deepEqual(escapeIds, ['student-paper-chase', 'corporate-lunch-breakpoint', 'under-the-awning', 'quiet-streets', 'across-the-water', 'home-by-the-lake', 'shelf-life', 'two-till-problem', 'sealed-account', 'earmuffs-rematch', 'closing-time']);
+assert.deepEqual(escapeIds, ['student-paper-chase', 'corporate-lunch-breakpoint', 'late-parcel', 'under-the-awning', 'borrowed-wheels', 'quiet-streets', 'across-the-water', 'home-by-the-lake', 'shelf-life', 'two-till-problem', 'sealed-account', 'earmuffs-rematch', 'closing-time']);
 let serial = 0;
 function contextFor(campaign) {
   const target = campaign.state.active.target;
   const context = { ...base, pose: { ...target, speed: 0 }, onFoot: true };
-  if (target.kind === 'drive' || target.drive) context.onFoot = false;
+  if (target.kind === 'drive' || target.kind === 'stolen' || target.drive) context.onFoot = false;
   if (target.kind === 'interior') context.interior = { storeId: target.storeId, roomId: 'fixture-room', atCounter: true };
   if (target.kind === 'work') { context.interior = { storeId: target.storeId, roomId: 'fixture-room' }; context.workCompletion = { storeId: target.storeId, serial: ++serial }; }
   if (target.kind === 'home-action') { context.interior = { roomId: target.roomId }; context.homeAction = { roomId: target.roomId, outcome: 'packed', serial: ++serial }; }
@@ -70,6 +70,10 @@ for (const id of escapeIds) {
       assert.equal(campaign.snapshot().active.escapeReached, false, 'drive arrival requires healthy stopped car');
     }
   }
+  if (campaign.state.active.target.stolen) {
+    campaign.update(.1, { ...arrival, wanted: 2, vehicle: { stolen: false } });
+    assert.equal(campaign.snapshot().active.escapeReached, false, 'a stolen-car handover requires the stolen car');
+  }
   campaign.update(0, { ...arrival, wanted: 2 });
   assert.equal(campaign.snapshot().active.escapeReached, false, 'zero dt cannot record arrival');
   campaign.update(.1, { ...arrival, wanted: 2 });
@@ -115,7 +119,7 @@ for (const id of escapeIds) {
   assert.equal(failed.state.active.stage, 0);
   assert.equal(failed.drainEvents().some(event => event.type === 'complete'), false, 'failed attempt pays nothing');
 }
-for (const id of ['late-parcel', 'borrowed-wheels', 'carbon-copy', 'terminal-transfer']) {
+for (const id of ['carbon-copy', 'terminal-transfer']) {
   const probe = createCampaign(map);
   assert(probe.startDeveloper(id, { ...base, developer: true }).ok);
   const deliveries = probe.current().stages.filter(stage => stage.clear);

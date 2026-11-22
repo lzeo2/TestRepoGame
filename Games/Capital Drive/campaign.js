@@ -410,7 +410,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     else if (goal.kind === 'escape') {
       // Arrival belongs to this attempt and stage. Clearing the search must not
       // send the player back to a waypoint already reached during the chase.
-      if (eligible && !ctx.interior && (!goal.foot || ctx.onFoot) &&
+      if (eligible && !ctx.interior && (!(goal.foot || goal.pickupOnFoot) || ctx.onFoot) &&
           (!goal.drive || (!ctx.onFoot && !ctx.passenger && !ctx.aircraft && ctx.vehicleHealth > 0)) &&
           (!goal.stolen || ctx.vehicle?.stolen === true) && parked) active.escapeReached = true;
       // Departure objectives may already be clear; authored pursuits still need a real search.
