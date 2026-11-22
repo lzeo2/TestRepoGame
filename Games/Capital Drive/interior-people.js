@@ -36,17 +36,17 @@ export function createInteriorPeople() {
     if (footprintBoundary ? !footprintBoundary.canOccupy(p,BODY_RADIUS+.15) : Math.abs(q.x)>plan.width/2-BODY_RADIUS-.15 || q.z < .6 || q.z>plan.depth-.5) return false;
     return ![...(plan.walls || []), ...(plan.furniture || [])].some(b => b !== seat && touches(p,b,seat ? .21 : BODY_RADIUS+.08));
   }
-  function add(role, position, {seat = null, target = null, yaw = plan.origin.yaw, gesture = 'idle', character = null, staff = false} = {}) {
+  function add(role, position, {seat = null, target = null, yaw = plan.origin.yaw, gesture = 'idle', character = null, staff = false, id = null} = {}) {
     if (people.length >= LIMIT || !clearPoint(position,seat,staff && employee({role})) || people.some(p=>Math.hypot(p.x-position.x,p.z-position.z)<.8)) return false;
     if (target) {
       for (let i=0;i<=8;i++) if (!clearPoint({x:position.x+(target.x-position.x)*i/8,z:position.z+(target.z-position.z)*i/8})) return false;
     }
     const index = people.length;
-    people.push({id:`${plan.id}-adult-${index}`, role, adult:true, x:position.x,z:position.z,y:plan.floorY,
+    people.push({id:id || `${plan.id}-adult-${index}`, role, adult:true, x:position.x,z:position.z,y:plan.floorY,
       yaw, radius:BODY_RADIUS, seated:Boolean(seat), seatHeight:seat ? (seat.kind === 'stool' ? .69 : seat.kind === 'banquette' ? .55 : .45) : 0,
-      character, earmuffs:character==='booth-guest', palette:index%6, hair:character==='booth-guest'?3:index%4, apron:role==='cook'||role==='cashier'||role==='shopkeeper',
+      character, earmuffs:character==='booth-guest', palette:index%6, hair:character==='booth-guest'?3:index%4, apron:character!=='heist-employee'&&(role==='cook'||role==='cashier'||role==='shopkeeper'),
       noodleThrow:null, fightPhase:null, fightTime:0, health:100, reaction:'calm', fear:0, anger:0, angerOffender:null, retaliationCooldown:0, attackTimer:0, attackSerial:0, stun:0, knockdown:0, reactionTimer:0, hitCooldown:0, playerHitTimer:0, crimePhase:null,
-      roomId:plan.id, storeId:plan.storeId || null,
+      roomId:plan.id, storeId:plan.storeId || null, serviceId:plan.serviceId || null,
       gesture, phase:index*1.73, speed:0, home:{x:position.x,z:position.z},target,progress:0,direction:1});
     return true;
   }
@@ -70,7 +70,10 @@ export function createInteriorPeople() {
     plan = value;
     footprintBoundary=plan.footprint?createInteriorCollider({...plan,walls:[],furniture:[]}):null;
     const furniture = plan.furniture || [];
-    if (plan.variant === 'noodles') {
+    if (plan.heist && point(plan.heist.employee)) {
+      const clerk = plan.heist.employee;
+      add('shopkeeper',clerk,{id:clerk.id,character:clerk.character,yaw:clerk.yaw,gesture:'serve',staff:true});
+    } else if (plan.variant === 'noodles') {
       const booth = furniture.find(f=>f.kind==='banquette');
       if (booth && point(plan.boothGuest)) add('diner',plan.boothGuest,{seat:booth,yaw:plan.boothGuest.yaw,gesture:'eat',character:'booth-guest'});
       for (const chair of furniture.filter(f=>f.kind==='padded-chair'||f.kind==='stool')) add('diner',chair,{seat:chair,yaw:chair.yaw,gesture:'eat'});
@@ -330,7 +333,7 @@ export function createInteriorPeople() {
     return {dx:dx*fraction,dz:dz*fraction,blocked:fraction<1};
   }
   function crimeDescriptor(p) {
-    return Object.freeze({ id:p.id, kind:'employee', roomId:p.roomId, storeId:p.storeId,
+    return Object.freeze({ id:p.id, kind:'employee', roomId:p.roomId, storeId:p.storeId, serviceId:p.serviceId, character:p.character,
       x:p.x, z:p.z, health:p.health, threatened:p.playerHitTimer>0, lastPlayerHit:p.playerHitTimer>0 });
   }
   function getCrimeTarget(id) {

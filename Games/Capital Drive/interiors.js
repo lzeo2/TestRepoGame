@@ -144,7 +144,7 @@ function mallDimensions(entry, building) {
   return { width, depth, sourceExtent: extent };
 }
 
-export function createInteriors(map, { heightAt = () => 0, stores = [], publicEntries = [] } = {}) {
+export function createInteriors(map, { heightAt = () => 0, stores = [], publicEntries = [], heistSites = [] } = {}) {
   const buildings = new Map((map.buildings || []).map(b => [String(b.id), b]));
   const entries = [], index = new Map(), identities = new Set();
   const occupiedBuildings = new Set([...stores, ...publicEntries.filter(e => ['gym', 'mall', 'school'].includes(e.type))].map(s => String(s.buildingId)));
@@ -192,6 +192,18 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       ...(entry.type === 'gym' ? { serviceId: entry.serviceId } : entry.type === 'school' ? { schoolId: 'telopea-school' } : {}),
       x: entry.x, z: entry.z, yaw: entry.yaw, ...(entry.type === 'mall' ? mallDimensions(entry, building) : { width: entry.type === 'school' ? 12 : 14, depth: 16 }) });
   }
+  // These two original storefronts already own their exterior geometry and collision.
+  // Use that exact front door rather than treating the approach pin as a facade.
+  for (const site of heistSites) {
+    if (!site || !['bank', 'jeweller'].includes(site.kind) || typeof site.id !== 'string' ||
+        typeof site.point !== 'function' || ![site.yaw, site.width, site.depth, site.floor].every(Number.isFinite) ||
+        site.width < 8 || site.depth < 6) continue;
+    const front = site.point(0, 0);
+    if (!validPoint(front)) continue;
+    add({ id: `interior-${site.id}`, buildingId: `${site.id}-walls`, storeId: site.id,
+      serviceId: site.id, heistSiteId: site.id, type: 'shop', variant: site.kind, name: site.name,
+      ...front, yaw: site.yaw + Math.PI, width: site.width, depth: site.depth, floorY: site.floor + .14 });
+  }
   Object.freeze(entries);
   let active = null, collider = null, outside = null, generatedPlans = 0;
   function findEntry(pose, { exteriorPreview = false } = {}) {
@@ -210,7 +222,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
   }
   function build(entry) {
     let { width, depth } = entry;
-    const floorY = entry.y + 0.14;
+    const floorY = entry.floorY ?? entry.y + 0.14;
     // Story homes are bound after exterior descriptors exist. Read the binding
     // only on entry, so ordinary houses keep their original lazy room plans.
     const home = map.storyHomes?.basement;
@@ -248,7 +260,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       const point = { ...worldPoint(origin, x, z), yaw: origin.yaw, y: floorY, kind, width };
       doors.push(point); return point;
     };
-    const gap = entry.variant === 'noodles' ? 2 : 1.5, sideWidth = (width - gap) / 2;
+    const gap = entry.heistSiteId ? (entry.variant === 'bank' ? 2.34 : 1.74) : entry.variant === 'noodles' ? 2 : 1.5, sideWidth = (width - gap) / 2;
     if (footprint) {
       // The imported outline is the physical shell; the interior layout remains original.
       let nearest = 0, best = Infinity, projection = null;
@@ -280,7 +292,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
     }
     const exit = door('exit', 0, 0.9, gap);
     const spawn = { ...worldPoint(origin, 0, 1.65), y: floorY, yaw: origin.yaw + Math.PI };
-    let counter = null, exercise = null, noodleCook = null, boothGuest = null;
+    let counter = null, exercise = null, noodleCook = null, boothGuest = null, heist = null;
     if (entry.type === 'house' && !templateFits) {
       buildFittedHouse();
     } else if (entry.type === 'house') {
@@ -323,6 +335,29 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
         furnish('ledger-case', 0, depth - .7, .65, .5, .68, 0x5c7067);
         station('stash', 'stock', 'Pack the ledger case', 0, depth - 1.75, 0, 1.2);
       }
+    } else if (entry.heistSiteId) {
+      const bank = entry.variant === 'bank';
+      rooms.push({ kind: bank ? 'bank-lobby' : 'jeweller-showroom', ...worldPoint(origin, 0, depth / 2), width, depth });
+      const employeeX = bank ? -2.8 : -1.8, employeeZ = bank ? 5.65 : 5.6;
+      if (bank) {
+        box(furniture, 'teller-counter', -2.8, 4.6, 4.2, .8, 1.05, 0x8d7860);
+        for (const side of [-1, 1]) box(furniture, 'bench', side * 5.15, 2.6, .8, 1.9, .65, 0x52667a);
+        box(furniture, 'writing-table', 2.4, 2.7, 1.6, .8, 1.02, 0xa38d6e);
+        box(furniture, 'cash-safe', 4.8, 5.65, 1.2, 1.4, 1.9, 0x67727a);
+        box(furniture, 'document-cabinet', -5.5, 6.25, .65, 1.5, 1.75, 0xa4a597);
+        counter = { ...worldPoint(origin, -2.8, 3.5), y: floorY, yaw: origin.yaw, radius: 1.4 };
+      } else {
+        box(furniture, 'jeweller-counter', -2.3, 4.65, 3.1, .7, 1.03, 0x65505e);
+        for (const side of [-1, 1]) box(furniture, 'jewellery-case', side * 3.65, 3.1, 1.25, 2.5, 1.12, 0x79636c);
+        box(furniture, 'jewellery-case', 3.65, 5.05, 1.25, .9, 1.12, 0x79636c);
+        box(furniture, 'jewel-safe', -4.55, 5.3, .75, .85, 1.45, 0x665861);
+        counter = { ...worldPoint(origin, -1.8, 3.6), y: floorY, yaw: origin.yaw, radius: 1.4 };
+      }
+      const loot = { id: `${entry.id}-loot`, ...worldPoint(origin, bank ? 3.45 : 2.05, bank ? 5.65 : 5.05), y: floorY,
+        yaw: origin.yaw + Math.PI / 2, radius: 1.4 };
+      heist = { siteId: entry.heistSiteId, kind: entry.variant,
+        employee: { id: `${entry.id}-employee`, character: 'heist-employee', ...worldPoint(origin, employeeX, employeeZ),
+          y: floorY, yaw: origin.yaw + Math.PI }, loot };
     } else if (entry.type === 'mall') {
       const hall = 10, unitWidth = (width - hall) / 2, unitDepth = (depth - 6) / 2, unitGap = 5;
       const centres = [3 + unitDepth / 2, 3 + unitDepth * 1.5];
@@ -537,7 +572,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       attachSearch('-lounge','Search beside the television','television','tv');
     }
     return freeze({ id: entry.id, buildingId: entry.buildingId, ...(['mall', 'gym', 'school'].includes(entry.type) ? {} : { storeId: entry.storeId || null }),
-      ...(entry.serviceId ? { serviceId: entry.serviceId } : {}), ...(entry.schoolId ? { schoolId: entry.schoolId } : {}),
+      ...(entry.serviceId ? { serviceId: entry.serviceId } : {}), ...(entry.heistSiteId ? { heistSiteId: entry.heistSiteId, heist } : {}), ...(entry.schoolId ? { schoolId: entry.schoolId } : {}),
       type: entry.type, ...(entry.variant ? { variant: entry.variant } : {}), ...(footprint ? { footprint, bounds } : {}), name: typeof storyHome?.name === 'string' && storyHome.name.trim() ? storyHome.name : entry.name, origin, width, depth, floorY, spawn, exit, counter,
       walls, doors, furniture, rooms, activities, ...(noodleCook ? { noodleCook, boothGuest } : {}),
       ...(entry.type === 'mall' ? { levels: [{ y: floorY, label: 'Ground floor' }], sourceExtent: entry.sourceExtent, reference: 'Monaro Mall 1963 materials; original partial ground-floor wing. Tenancies and corridors are interpreted.' } : {}), ...(exercise ? { exercise } : {}), ...(details.length ? { details } : {}), layoutNote: footprint ? 'Source exterior footprint at original scale; original procedural rooms, not a surveyed interior.' : 'Original plausible layout; not a surveyed interior.' });

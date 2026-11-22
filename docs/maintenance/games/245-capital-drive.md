@@ -41,9 +41,10 @@ similar medians. The samples measure these viewpoints on the cloud device.
 The build ID in the lower-right corner identifies the loaded page. The offline
 cache builder stamps the same content-derived ID into the service worker and
 binds it to the file manifest. The browser verifies a replacement set before
-activating it and retiring older Capital Drive file generations. A launch
-screen can reload into the ready version. An active session stays open and
-adopts the release on a subsequent visit. Career saves and settings are
+activating it and retiring older Capital Drive file generations. A visible tab
+checks periodically and when refocused or reconnected. A ready-update badge
+appears during play. Pause → Change mode saves and returns to the start menu,
+where the verified update loads. Career saves and settings are
 stored separately. An FPS counter beside the build number measures rendered
 frames during play. The Realism preset targets 45 FPS, caps the render size
 at 1600 × 900 and softens exposure using the existing render pass.
@@ -177,12 +178,22 @@ progress keys. Settings stay available after reload.
 Capital Line serves five mapped light rail stops from Civic to Dickson.
 The service follows pinned OpenStreetMap rails and platforms, with original
 trams and game timings. Press E to call a tram, board on an open platform,
-or request an exit at the next stop. Search for Civic Mutual Bank, Manuka
-Facets or Capital Line parcel job to start a fictional robbery activity.
-Each offers a different in-game symbol sequence and getaway. The parcel job
-starts away from the passenger platform, uses a real ride to the pickup stop
-and requires disembarking before payout. The two shopfronts use original
-fictional architecture by mapped public streets.
+or request an exit at the next stop. Civic Mutual Bank and Manuka Facets
+have distinct original interiors accessed through their front doors. Approach
+the live employee, point an equipped weapon or land a punch, then press E.
+Take the marked cash or jewellery and leave. Career payment follows escape
+and clearing wanted stars. The Capital Line parcel job keeps its symbol
+sequence and requires riding to the pickup stop and disembarking before payout.
+The shopfronts are fictional and placed by mapped public streets.
+
+Street verges, park groves and mapped woodland use deterministic foliage recipes
+with chunk budgets. The game bakes bent gum trees, broader street canopies and
+low shrubs into existing opaque world batches on district load. Placement keeps
+building footprints, streets, pavements, landmark clearings, sports grounds,
+water and tram corridors clear. The added locations are authored vegetation.
+Run `node scripts/profile_capital_foliage.mjs --root . --output <fresh-external-json>`
+against each checkout to reproduce the scoped Telopea and Commonwealth Avenue
+world-buffer and culling comparison.
 
 Nearby drivers now anticipate a fast player cut-in and brake before the
 vehicle bodies meet. They use a shared per-driver horn cooldown for close
@@ -329,8 +340,9 @@ deform and terminal interiors/airline services are absent. Two original stealabl
   a bounded eleven-joint ragdoll, with loose limbs, grounded fall and get-up.
 - `world-view.js`, `neighbourhood.js`: bilinear terrain, road/footpath ribbons,
   streamed nearby architecture/vegetation/frontage geometry with real disposal,
-  9,000 tree recipes, 4,200 door descriptors and clipped retail paving. Full
-  source/collision/navigation metadata remains loaded.
+  up to 28,000 tree and 16,000 shrub recipes across the source map, 4,200 door
+  descriptors and clipped retail paving. Source, collision and navigation
+  metadata remains loaded.
 - `landmarks.js`, `landmarks-view.js`: real anchors and dedicated Parliament
   House, Old Parliament House, Manuka Oval, Kingston Powerhouse and Manuka Pool; exact source
   replacement IDs, near/distant LOD and local procedural architecture.

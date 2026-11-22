@@ -5,12 +5,20 @@ import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUt
 export function createInteriorView(scene) {
   const root = new THREE.Group(); root.name = 'Active original interior'; scene.add(root);
   const material = new THREE.MeshLambertMaterial({ vertexColors: true });
-  let disposed = false, current = null;
+  const lootMaterial = new THREE.MeshLambertMaterial({ color: 0xeec964 });
+  let disposed = false, current = null, lootMarker = null, roomTriangles = 0;
   const stats = { active: 0, meshes: 0, draws: 0, triangles: 0, furniture: 0 };
   function clear() {
     for (const mesh of [...root.children]) { root.remove(mesh); mesh.geometry.dispose(); }
-    current = null;
+    current = null; lootMarker = null; roomTriangles = 0;
     Object.assign(stats, { active: 0, meshes: 0, draws: 0, triangles: 0, furniture: 0 });
+  }
+  function setHeistLootActive(active) {
+    if (!lootMarker) return false;
+    lootMarker.visible = active === true;
+    stats.draws = 1 + Number(lootMarker.visible);
+    stats.triangles = roomTriangles + (lootMarker.visible ? 8 : 0);
+    return true;
   }
   function load(plan) {
     if (disposed) return false;
@@ -50,7 +58,7 @@ export function createInteriorView(scene) {
       plan.width, 0.16, plan.depth, o.yaw, plan.type === 'house' ? 0xa88e70 : 0xb3b1a0);
     for (const room of plan.rooms || []) {
       const color = { living: 0xaa9c84, kitchen: 0xb8b6a4, bedroom: 0x9b9e90, bathroom: 0xb2c1bb,
-        shop: 0xb3b1a0, grocery: 0xc1c4b1, 'fast-food-dining': 0xbda78c, 'cafe-dining': 0xc4b49a, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e,
+        'bank-lobby': 0xc8c4b9, 'jeweller-showroom': 0xb7a9b2, shop: 0xb3b1a0, grocery: 0xc1c4b1, 'fast-food-dining': 0xbda78c, 'cafe-dining': 0xc4b49a, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e,
         'noodle-dining': 0xc9baa0, 'noodle-kitchen': 0xb3bbb0, 'gym-floor': 0x777e79, 'school-corridor': 0xaeb9ab, classroom: 0xc1baa4, 'staff-area': 0xb6b6a5 }[room.kind];
       box(room.x, plan.floorY + 0.006, room.z, room.width - 0.12, 0.012, room.depth - 0.12, o.yaw, color);
     }
@@ -61,7 +69,26 @@ export function createInteriorView(scene) {
     }
     for (const item of plan.furniture) {
       const { width: w, depth: d, height: h, color } = item;
-      if (item.kind === 'banquette') {
+      if (item.kind === 'jewellery-case') {
+        detail(item, 0, .32, 0, w, .64, d, color);
+        detail(item, 0, .69, 0, w * .88, .07, d * .9, 0x34313d);
+        for (const x of [-1, 1]) for (const z of [-1, 1]) detail(item, x * (w / 2 - .035), .91,
+          z * (d / 2 - .035), .07, .42, .07, 0xd4b577);
+        detail(item, 0, h, 0, w, .055, d, 0x98adb3);
+        for (const z of [-d * .26, d * .26]) {
+          detail(item, 0, .76, z, w * .68, .06, d * .22, 0x6b5268);
+          detail(item, -.22, .84, z, .15, .12, .15, 0xe0cc88);
+          detail(item, .21, .85, z, .13, .15, .13, 0xd4dbe7);
+        }
+      } else if (item.kind === 'teller-counter' || item.kind === 'jeweller-counter') {
+        detail(item, 0, h / 2, 0, w, h, d, color);
+        detail(item, 0, h + .05, 0, w + .08, .1, d + .08, 0x3d4653);
+        for (let x = -w / 2 + .18; x < w / 2; x += .38) detail(item, x, h * .46, -d / 2 - .012, .025, h * .7, .02, 0xc2b58d);
+        for (const x of [-w * .28, w * .28]) {
+          detail(item, x, h + .14, .1, .4, .16, .3, 0x333a48);
+          detail(item, x, h + .35, .2, .46, .3, .08, 0x52717c);
+        }
+      } else if (item.kind === 'banquette') {
         detail(item, 0, 0.2, 0, w, 0.4, d, 0xa7834f);
         detail(item, 0, 0.47, 0, w, 0.16, d, color);
         detail(item, -w / 2 + 0.075, 0.82, 0, 0.15, 0.7, d, color);
@@ -141,6 +168,16 @@ export function createInteriorView(scene) {
         detail(item, 0, h + 0.48, 0.25, 1.05, 0.65, 0.08, 0x354440);
         detail(item, 0, h + 0.48, 0.2, 0.9, 0.5, 0.025, 0xaec4b2);
         detail(item, 0, h + 0.035, -0.24, 0.65, 0.05, 0.24, 0x4e5a57);
+      } else if (item.kind === 'cash-safe' || item.kind === 'jewel-safe') {
+        detail(item, 0, h / 2, -d / 2 - .025, w * .84, h * .85, .05, 0x394550);
+        detail(item, 0, h * .55, -d / 2 - .075, w * .27, .06, .06, 0xbaa97a);
+        detail(item, 0, h * .55, -d / 2 - .08, .06, h * .22, .06, 0xbaa97a);
+        for (const y of [.25, h - .25]) detail(item, -w * .34, y, -d / 2 - .06, .06, .16, .08, 0xadb7b6);
+      } else if (item.kind === 'document-cabinet') {
+        for (const y of [.35, .85, 1.35]) {
+          detail(item, 0, y, -d / 2 - .015, w * .85, .4, .03, 0xbec0b0);
+          detail(item, 0, y, -d / 2 - .04, w * .25, .045, .04, 0x686f69);
+        }
       } else if (item.kind === 'lockers') {
         for (let x = -w / 2 + 0.3; x < w / 2; x += 0.62) {
           detail(item, x, h / 2, -d / 2 - 0.01, 0.012, h - 0.12, 0.02, 0x717d75);
@@ -278,8 +315,15 @@ export function createInteriorView(scene) {
     Object.assign(stats, { active: 1, meshes: 1, draws: 1,
       triangles: merged.index ? merged.index.count / 3 : merged.attributes.position.count / 3,
       furniture: plan.furniture.length });
+    roomTriangles = stats.triangles;
+    if (plan.heist?.loot) {
+      lootMarker = new THREE.Mesh(new THREE.OctahedronGeometry(.23), lootMaterial);
+      lootMarker.name = 'Available heist pickup';
+      lootMarker.position.set(plan.heist.loot.x, plan.floorY + .38, plan.heist.loot.z);
+      lootMarker.visible = false; root.add(lootMarker); stats.meshes++;
+    }
     current = plan; return true;
   }
-  return { load, clear, stats,
-    dispose() { if (disposed) return; clear(); material.dispose(); scene.remove(root); disposed = true; } };
+  return { load, clear, setHeistLootActive, stats,
+    dispose() { if (disposed) return; clear(); material.dispose(); lootMaterial.dispose(); scene.remove(root); disposed = true; } };
 }

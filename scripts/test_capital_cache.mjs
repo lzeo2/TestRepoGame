@@ -252,25 +252,38 @@ function controller(build, release = send => send()) {
 }
 function client({ pageBuild = data.manifest.build, active = null, canReload = () => true,
   storage = new Map([['unrelated-session', 'keep']]), blockStorage = false,
-  early = false, loadGame = async () => {}, blockWorkers = false } = {}) {
+  early = false, loadGame = async () => {}, blockWorkers = false, discoverExisting = false, onUpdate = async () => {} } = {}) {
   const workers = new EventTarget(), registration = new EventTarget(), status = { hidden: true, textContent: '' };
-  const startPanel = { hidden: false }, start = new EventTarget();
+  const startPanel = { hidden: false }, start = new EventTarget(), updateButton = Object.assign(new EventTarget(), {hidden:true,disabled:false});
+  const window = new EventTarget(), documentEvents = new EventTarget(), timers = new Map();
   const loading = { setAttribute(name, value) { this[name] = value; } };
-  let reloads = 0, updates = 0, registrations = 0, launches = 0;
-  Object.assign(registration, { active, installing: active ? null : new EventTarget(), update: async () => { updates++; } });
+  let reloads = 0, updates = 0, registrations = 0, launches = 0, now = 0, timerId = 0, poll, observer;
+  let visibilityState = 'visible', onLine = true;
+  Object.assign(registration, { scope:first.scope, active, installing: active ? null : new EventTarget(),
+    update: async () => { updates++; return onUpdate(); } });
   Object.assign(workers, { controller: active, register: async (url, options) => {
     registrations++;
     assert.equal(url.href, workerURL);
     assert.deepEqual(structuredClone(options), { scope: './', updateViaCache: 'none' });
     return registration;
   } });
-  const elements = { 'cache-status': status, 'build-version': { textContent: pageBuild }, 'start-button': start, loading };
+  if (discoverExisting) workers.getRegistration = async scope => {
+    assert.equal(scope.href, first.scope);
+    return active ? registration : undefined;
+  };
+  const elements = { 'cache-status': status, 'cache-update':updateButton, 'build-version': { textContent: pageBuild }, 'start-button': start, loading };
   if (early) Object.assign(elements, { 'start-panel': startPanel, 'capital-drive-launcher': {} });
   const context = vm.createContext({
     URL, MessageChannel: MemoryChannel, isSecureContext: true,
-    navigator: { get serviceWorker() { if (blockWorkers) throw new Error('Denied'); return workers; } },
-    document: { getElementById: id => elements[id] },
-    setTimeout, clearTimeout, location: { reload: () => { reloads++; } },
+    navigator: { get serviceWorker() { if (blockWorkers) throw new Error('Denied'); return workers; }, get onLine(){return onLine;} },
+    document: { getElementById: id => elements[id], get visibilityState() {return visibilityState;},
+      addEventListener: documentEvents.addEventListener.bind(documentEvents) },
+    Date: {now:()=>now}, setInterval(callback,delay) {assert.equal(delay,60000);poll=callback;},
+    setTimeout(callback) {timers.set(++timerId,callback);return timerId;}, clearTimeout(id) {timers.delete(id);},
+    addEventListener:window.addEventListener.bind(window), location: { reload: () => { reloads++; } },
+    MutationObserver: class { constructor(callback){observer=callback;} observe(target, options){
+      assert.equal(target,startPanel);assert.deepEqual(structuredClone(options),{attributes:true,attributeFilter:['hidden']});
+    } },
     loadGame: () => { launches++; return loadGame(); },
     console: { error() {} },
     sessionStorage: {
@@ -283,7 +296,12 @@ function client({ pageBuild = data.manifest.build, active = null, canReload = ()
   const finishBoot = () => context.setupGameCache({ canReload });
   if (!early) finishBoot();
   return {
-    status, storage, start, startPanel, loading, finishBoot,
+    status, storage, start, startPanel, loading, finishBoot, updateButton,
+    elapse: dt=>{now+=dt;}, poll:()=>poll?.(),
+    setVisible(shown){visibilityState=shown?'visible':'hidden';documentEvents.dispatchEvent(new Event('visibilitychange'));},
+    setOnline(online){onLine=online;window.dispatchEvent(new Event(online?'online':'offline'));},
+    windowEvent: type=>window.dispatchEvent(new Event(type)), menuChanged:()=>observer?.(),
+    expireHandshake(){for (const callback of [...timers.values()]) callback();},
     reloads: () => reloads, updates: () => updates, registrations: () => registrations, launches: () => launches,
     claim(worker) {
       registration.installing = null; registration.active = workers.controller = worker;
@@ -322,13 +340,19 @@ sendHandoff();
 await tick();
 assert.equal(handoff.registrations(), 1, 'successful boot registers once');
 assert.equal(handoff.reloads(), 0, 'a pending controller check uses the live guard after handoff');
-assert.match(handoff.status.textContent, /Reopen after this session/);
+assert.match(handoff.status.textContent, /Return to the start menu/);
 
 const legacyActive = client({ early: true, active: controller(oldBuild) });
 legacyActive.startPanel.hidden = true;
 legacyActive.claim(controller(newBuild));
 await tick();
 assert.equal(legacyActive.reloads(), 0, 'the early guard respects games started by an older module');
+assert.equal(legacyActive.updateButton.hidden,false);
+assert(legacyActive.updateButton.disabled,'ready badge remains visible during active play');
+legacyActive.updateButton.dispatchEvent(new Event('click'));
+assert.equal(legacyActive.reloads(),0,'manual actions also respect a running session');
+legacyActive.startPanel.hidden=false;legacyActive.menuChanged();
+assert.equal(legacyActive.reloads(),1,'returning to title applies the ready update immediately');
 
 const bootstrap = client();
 await tick();
@@ -346,8 +370,30 @@ live.claim(controller(newBuild, send => { replyLater = send; }));
 started = true; replyLater();
 await tick();
 assert.equal(live.reloads(), 0, 'controller activation never reloads a game that is already running');
-assert.match(live.status.textContent, /Reopen after this session/);
+assert.match(live.status.textContent, /Return to the start menu/);
 assert.deepEqual([...live.storage], [['unrelated-session', 'keep']], 'gameplay adoption never mutates other session state');
+
+live.setVisible(false);live.elapse(60000);live.poll();live.windowEvent('focus');
+await tick();assert.equal(live.updates(),1,'a hidden tab does not poll or request on focus');
+live.setVisible(true);live.windowEvent('focus');live.windowEvent('pageshow');
+await tick();assert.equal(live.updates(),2,'visibility wake checks once across duplicate events');
+live.setOnline(false);live.elapse(60000);live.poll();
+await tick();assert.equal(live.updates(),2,'offline polling leaves the verified build active');
+live.setOnline(true);await tick();assert.equal(live.updates(),3,'reconnection checks immediately');
+
+let releaseUpdate;
+const longUpdate=client({active:controller(oldBuild),onUpdate:()=>new Promise(resolve=>{releaseUpdate=resolve;})});
+await tick();longUpdate.elapse(60000);longUpdate.poll();longUpdate.windowEvent('focus');
+await tick();assert.equal(longUpdate.updates(),1,'a slow update request never overlaps another one');
+releaseUpdate();await tick();
+
+const bootRecovery=client({early:true, active:controller(oldBuild), discoverExisting:true,
+  loadGame:async()=>{throw new Error('Game import failed');}, onUpdate:async()=>{throw new Error('Network unavailable');}});
+await tick();assert.equal(bootRecovery.registrations(),0,'an import failure does not trigger a fresh install');
+assert.equal(bootRecovery.updates(),1,'an already installed worker checks while game import fails');
+bootRecovery.elapse(60000);bootRecovery.poll();await tick();
+assert.equal(bootRecovery.updates(),2,'a transient network failure stays retryable');
+assert.equal(bootRecovery.reloads(),0,'a check alone is not proof of an installed revision');
 
 const choose = client({ active: controller(newBuild) });
 await tick();
@@ -366,6 +412,17 @@ assert.deepEqual([...healthy.storage], [['unrelated-session', 'keep']], 'a match
 const deniedReload = client({ active: controller(newBuild), blockStorage: true });
 await tick();
 assert.equal(deniedReload.reloads(), 0, 'denied storage cannot provoke a reload loop');
+assert.equal(deniedReload.updateButton.disabled,false);
+deniedReload.updateButton.dispatchEvent(new Event('click'));
+assert.equal(deniedReload.reloads(),1,'an explicit title-screen action can apply the update when session storage is denied');
+
+let attempts=0;
+const timeout=client({active:controller(newBuild, send=>{if(++attempts===2)send();})});
+await tick();timeout.expireHandshake();await tick();
+assert.equal(timeout.reloads(),0);
+timeout.elapse(60000);timeout.poll();await tick();
+assert.equal(attempts,2,'a timed-out handshake is retried for the same controller');
+assert.equal(timeout.reloads(),1);
 
 let lateReply;
 const superseded = client({ active: controller(newBuild, send => { lateReply = send; }) });
@@ -374,4 +431,4 @@ lateReply();
 await tick();
 assert.equal(superseded.reloads(), 0, 'late answers from superseded controllers cannot reload the current document');
 
-console.log('Capital Drive response-cache regression passed: verified installation and automatic activation, versioned repair and scope, isolated cleanup, safe startup reload and uninterrupted live play.');
+console.log('Capital Drive response-cache regression passed: verified installation, foreground update checks, retryable worker replies, safe menu reload and uninterrupted live play.');

@@ -1,6 +1,8 @@
 import { coveredCentrePassage } from './covered-passage.js';
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { createTerrainSampler } from './terrain.js';
+import { placeFoliage } from './foliage-placement.js';
+import { prepareWaterRing } from './water-contact.js';
 import { roadProfile, roadMarkingOffsets } from './road-network.js';
 import { retailDistrict } from './districts.js';
 import { suburbCharacter } from './suburb-character.js';
@@ -25,7 +27,8 @@ function compactAttribute(values, itemSize, signed = false) {
   return new THREE.BufferAttribute(output, itemSize, true);
 }
 
-export function createWorldView(scene, map, { lowGraphics = false, streaming = false } = {}) {
+export function createWorldView(scene, map, { lowGraphics = false, streaming = false,
+  terrainSampler = createTerrainSampler(map), rail = null } = {}) {
   const root = new THREE.Group();
   root.name = 'Canberra streets';
   scene.add(root);
@@ -39,7 +42,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   const temporaryGeometry = [];
   const textures = [];
   const materials = [];
-  const counters = { lowGraphics, bufferBytes: 0, buildings: 0, trees: 0, treesNearSpawn: 0, windows: 0, roofFacets: 0, texturedBuildings: 0, balconies: 0, signs: 0, roadSegments: 0, triangles: 0, chunks: 0, meshes: 0 };
+  const counters = { lowGraphics, bufferBytes: 0, buildings: 0, trees: 0, treesNearSpawn: 0, shrubs: 0, foliageTriangles: 0, windows: 0, roofFacets: 0, texturedBuildings: 0, balconies: 0, signs: 0, roadSegments: 0, triangles: 0, chunks: 0, meshes: 0 };
   const color = new THREE.Color();
   const matrix = new THREE.Matrix4();
   const normalMatrix = new THREE.Matrix3();
@@ -109,7 +112,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   const shadowMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false });
   materials.push(shadowMaterial);
 
-  const {heightAt,groundHeightAt,roadHeightAt,vehicleHeightAt}=createTerrainSampler(map);
+  const {heightAt,groundHeightAt,roadHeightAt,vehicleHeightAt}=terrainSampler;
 
   const keyAt = (x, z) => `${Math.floor(x / CHUNK_SIZE)},${Math.floor(z / CHUNK_SIZE)}`;
   function deferSource(x, z, draw, extent) {
@@ -175,10 +178,10 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     triangle(batch, a, b, c, tint, uv || [a[0] / 3, a[2] / 3, b[0] / 3, b[2] / 3, c[0] / 3, c[2] / 3]);
     batch.kinds.push(kind, kind, kind);
   }
-  function softShadow(x, z, rx, rz, strength = 0.12) {
+  function softShadow(x, z, rx, rz, strength = 0.12, anchor) {
     if (lowGraphics) return;
     if (preparing) { deferSource(x, z, () => softShadow(x, z, rx, rz, strength)); return; }
-    const batch = batchAt(x, z, 'shadow');
+    const batch = batchAt(anchor?.x ?? x, anchor?.z ?? z, 'shadow');
     if (!batch) return;
     for (let i = 0; i < 10; i++) {
       const points = [[x, z], [x + Math.cos(i / 10 * Math.PI * 2) * rx, z + Math.sin(i / 10 * Math.PI * 2) * rz],
@@ -191,9 +194,9 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     }
   }
 
-  function primitive(geometry, x, y, z, sx, sy, sz, tint, yaw = 0) {
+  function primitive(geometry, x, y, z, sx, sy, sz, tint, yaw = 0, anchor) {
     if (preparing) { deferSource(x, z, () => primitive(geometry, x, y, z, sx, sy, sz, tint, yaw)); return; }
-    const batch = batchAt(x, z);
+    const batch = batchAt(anchor?.x ?? x, anchor?.z ?? z);
     if (!batch) return;
     position.set(x, y, z);
     scale.set(sx, sy, sz);
@@ -219,17 +222,56 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     temporaryGeometry.push(result);
     return result;
   }
+  function smoothGeometry(vertices, indices) {
+    const shape = new THREE.BufferGeometry();
+    shape.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    shape.setIndex(indices);
+    shape.computeVertexNormals();
+    return geometry(shape);
+  }
+  function bentTrunk() {
+    const sides = 4, vertices = [], indices = [];
+    for (const [height, radius, bend, sweep] of [[-.5, .54, 0, 0], [-.055, .34, .16, -.06], [.5, .12, .87, .13]]) {
+      for (let side = 0; side < sides; side++) {
+        const angle = (side + .45) * Math.PI * 2 / sides;
+        vertices.push(bend + Math.cos(angle) * radius, height, sweep + Math.sin(angle) * radius);
+      }
+    }
+    for (let ring = 0; ring < 2; ring++) for (let side = 0; side < sides; side++) {
+      const a = ring * sides + side, b = ring * sides + (side + 1) % sides;
+      indices.push(a, a + sides, b, b, a + sides, b + sides);
+    }
+    return smoothGeometry(vertices, indices);
+  }
+  function patchyCrown(lobes) {
+    const vertices = [], indices = [];
+    const irregularity = [1.05, .8, .98, 1.16, .86, 1.02, .85, 1.14, .96, .81];
+    const rimHeights = [.08, -.16, .04, .21, -.08, .14, -.11, .06, .18, -.14];
+    for (const { x, y, z, width, height, depth, sides, yaw } of lobes) {
+      const first = vertices.length / 3;
+      for (let i = 0; i < sides; i++) {
+        const angle = yaw + i * Math.PI * 2 / sides, radius = irregularity[i];
+        vertices.push(x + Math.cos(angle) * width * radius, y + height * rimHeights[i], z + Math.sin(angle) * depth * radius);
+      }
+      const top = first + sides, bottom = top + 1;
+      vertices.push(x + width * .19, y + height * .99, z - depth * .12, x - width * .14, y - height * .79, z + depth * .13);
+      for (let i = 0; i < sides; i++) {
+        const a = first + i, b = first + (i + 1) % sides;
+        indices.push(top, b, a, bottom, a, b);
+      }
+    }
+    return smoothGeometry(vertices, indices);
+  }
   const box = geometry(new THREE.BoxGeometry(1, 1, 1));
   const trunk = geometry(new THREE.CylinderGeometry(0.65, 1, 1, 5));
   const crown = geometry(new THREE.IcosahedronGeometry(1, 0));
-  const leafCrown = geometry(new THREE.IcosahedronGeometry(1, 1));
-  // Radial normals smooth the existing low-poly crowns without extra vertices.
-  for (const foliage of [crown, leafCrown]) {
-    const p = foliage.attributes.position, n = foliage.attributes.normal;
-    for (let i = 0; i < p.count; i++) {
-      normal.fromBufferAttribute(p, i).normalize(); n.setXYZ(i, normal.x, normal.y, normal.z);
-    }
-  }
+  const treeTrunk = bentTrunk();
+  const gumCrown = patchyCrown([
+    { x: -.25, y: -.13, z: .08, width: .81, height: .86, depth: .91, sides: 5, yaw: .25 },
+    { x: .52, y: .28, z: -.19, width: .61, height: .78, depth: .66, sides: 5, yaw: .65 },
+  ]);
+  const avenueCrown = patchyCrown([{ x: 0, y: 0, z: 0, width: 1, height: 1, depth: 1, sides: 10, yaw: .25 }]);
+  const shrubCrown = patchyCrown([{ x: 0, y: 0, z: 0, width: 1, height: 1, depth: 1, sides: 6, yaw: .14 }]);
 
   function hash(n) {
     const a = Math.sin(n * 127.1 + 311.7) * 43758.5453;
@@ -752,72 +794,113 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     return Math.hypot(x - school.x, z - school.z) < (school.radius || 140);
   });
 
-  // Each canopy is a small faceted crown, avoiding thousands of transparent leaves.
-  const treeChunks = new Map(), treeCells = new Map();
-  function tree(x, z, seed, park = false) {
-    if ((map.landmarkTreeExclusions || []).some(points => inside(x, z, points))) return;
-    const chunkKey = `${Math.floor(x / CHUNK_SIZE)},${Math.floor(z / CHUNK_SIZE)}`;
-    if (counters.trees >= 9000 || (treeChunks.get(chunkKey) || 0) >= 90) return;
-    const treeKey = `${Math.floor(x / 12)},${Math.floor(z / 12)}`;
-    if (treeCells.has(treeKey)) return;
-    const roadCollision = nearby(roadCells, x, z).some(s => segmentDistance(x, z, s.a, s.b) < s.width / 2 + 2.6);
-    if (roadCollision || nearby(buildingCells, x, z).some(b => inside(x, z, b.points))) return;
-    const avenue = school && Math.hypot(x - school.x, z - school.z) < 250;
-    const y = heightAt(x, z), h = (avenue ? 12.5 : 7) + hash(seed) * (avenue ? 5 : 5);
-    const eucalyptus = !avenue && seed % 3 !== 0, angle = hash(seed + 3) * Math.PI * 2;
-    const leanX = Math.cos(angle) * h * 0.1, leanZ = Math.sin(angle) * h * 0.1;
-    primitive(trunk, x, y + h * 0.31, z, 0.24 + h * 0.008, h * 0.62, 0.25, eucalyptus ? 0x8b8672 : 0x756b59);
-    if (!lowGraphics) primitive(trunk, x + leanX * 0.4, y + h * 0.58, z + leanZ * 0.4, 0.15, h * 0.3, 0.15, 0x8b8370, angle);
-    const foliage = eucalyptus ? [0x657d61, 0x71876b, 0x6a805f][seed % 3] : [0x647d48, 0x7c8b51, 0x70834c][seed % 3];
-    primitive(avenue && !lowGraphics ? leafCrown : crown, x + leanX, y + h * 0.8, z + leanZ, h * (park ? 0.38 : 0.32), h * (eucalyptus ? 0.29 : 0.32), h * 0.3, foliage, angle);
-    for (let i = 0; i < (lowGraphics ? 0 : 2); i++) {
-      const a = angle + i * 2.6, r = h * 0.19;
-      primitive(crown, x + leanX + Math.cos(a) * r, y + h * (0.67 + i * 0.15), z + leanZ + Math.sin(a) * r,
-        h * 0.23, h * 0.22, h * 0.24, new THREE.Color(foliage).multiplyScalar(0.94 + i * 0.07), a);
+  // Pale bent gums break up the silhouette of rounded deciduous street trees.
+  // Each close silhouette is 36 solid triangles in low graphics.
+  const gumLeaves = [0x607d64, 0x6b8362, 0x78917a, 0x687c56, 0x747f63];
+  const avenueLeaves = [0x526d3f, 0x697d45, 0x73884e, 0x6b804c, 0x7e8652];
+  const gumBark = [0xa8a18e, 0x999b87, 0xc0b6a6, 0xb4ab95];
+  const avenueBark = [0x716752, 0x84705a, 0x745e4d];
+  const scrubLeaves = [0x5f7251, 0x748463, 0x697850, 0x88885d];
+  const vergeLeaves = [0x738755, 0x7d8e5e, 0x75835a, 0x818d63];
+  const pick = (palette, seed) => palette[Math.floor(hash(seed) * palette.length)];
+  function emitTree(plant, y, h, avenue) {
+    const {x, z, seed, habitat} = plant;
+    const park = habitat !== 'street';
+    const eucalyptus = !avenue && (park || hash(seed + 19) > .32);
+    const angle = hash(seed + 3) * Math.PI * 2, lean = h * (eucalyptus ? .105 : .028);
+    const leanX = Math.cos(angle) * lean, leanZ = -Math.sin(angle) * lean;
+    const stem = .24 + h * .018;
+    const bark = pick(eucalyptus ? gumBark : avenueBark, seed + 29);
+    const leaves = pick(eucalyptus ? gumLeaves : avenueLeaves, seed + 51);
+    primitive(treeTrunk, x, y + h * .323, z, stem, h * .66, stem * .88, bark, angle);
+    primitive(eucalyptus ? gumCrown : avenueCrown, x + leanX, y + h * .766, z + leanZ,
+      h * (eucalyptus ? .315 : .372), h * (eucalyptus ? .245 : .257), h * .33, leaves, angle, plant);
+    if (!lowGraphics) {
+      const variation = angle + 1.9;
+      primitive(treeTrunk, x + leanX * .88, y + h * .62, z + leanZ * .88, stem * .52, h * .30, stem * .52, bark, variation, plant);
+      primitive(gumCrown, x - leanX * .8, y + h * .672, z - leanZ * .8, h * .19, h * .16, h * .20,
+        pick(eucalyptus ? gumLeaves : avenueLeaves, seed + 41), variation, plant);
     }
-    softShadow(x + leanX * 0.5, z + leanZ * 0.5, h * 0.4, h * 0.34, 0.13);
-    if (preparing) deferSource(x, z, () => {
+    softShadow(x + leanX * .36, z + leanZ * .36, h * .38, h * .32, .14, plant);
+  }
+  function emitShrub(x, z, seed, y, habitat) {
+    const wood = habitat === 'wood', scale = .25 + hash(seed + 7) * (.48 + Number(wood) * .37);
+    primitive(shrubCrown, x, y + scale * .37, z, scale * 1.48, scale * .69, scale,
+      pick(wood ? scrubLeaves : vergeLeaves, seed + 63), hash(seed + 4) * Math.PI * 2);
+  }
+
+  // Test foliage positions once at recipe creation. Each district retains one
+  // recipe list and bakes it into the existing opaque batch when streamed in.
+  const foliageChunks = new Map();
+  {
+    const exclusions = new Map(), railCells = new Map();
+    function indexArea(points, contains) {
+      if (!points || points.length < 3) return;
+      const xs = points.map(p => p[0]), zs = points.map(p => p[1]);
+      indexBounds(exclusions, contains, Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs));
+    }
+    for (const points of [...(map.landmarkTreeExclusions || []), ...(map.barriers || []).map(barrier => barrier.points)]) {
+      indexArea(points, (x, z) => inside(x, z, points));
+    }
+    for (const area of map.areas || []) {
+      if (!/water|lake|basin/.test(area.type) || !area.points?.length) continue;
+      const outer = prepareWaterRing(area.points);
+      const holes = (area.innerRings || []).map(ring => prepareWaterRing(ring.points || ring));
+      indexArea(area.points, (x, z) => outer.contains(x, z) && !holes.some(hole => hole.contains(x, z)));
+    }
+    function indexRail(a, b, gap) {
+      const clearance = gap + 1.25;
+      indexBounds(railCells, { a, b, gap }, Math.min(a[0], b[0]) - clearance, Math.min(a[1], b[1]) - clearance,
+        Math.max(a[0], b[0]) + clearance, Math.max(a[1], b[1]) + clearance);
+    }
+    for (const route of rail?.routes || []) {
+      for (let i = 1; i < route.points.length; i++) indexRail(route.points[i - 1], route.points[i], 1.8);
+    }
+    for (const stop of rail?.stops || []) {
+      const dx = Math.sin(stop.yaw) * 13, dz = Math.cos(stop.yaw) * 13;
+      indexRail([stop.x - dx, stop.z - dz], [stop.x + dx, stop.z + dz], stop.trackGap / 2 + 1.8);
+    }
+    function isClear(x, z, kind) {
+      const gap = kind === 'tree' ? 1.25 : 0.65;
+      return !nearby(roadCells, x, z).some(s => segmentDistance(x, z, s.a, s.b) < s.width / 2 + s.profile.pavementWidth + gap) &&
+        !nearby(buildingCells, x, z).some(b => inside(x, z, b.points)) &&
+        !nearby(exclusions, x, z).some(contains => contains(x, z)) &&
+        !nearby(railCells, x, z).some(s => segmentDistance(x, z, s.a, s.b) < s.gap + gap);
+    }
+    for (const plant of placeFoliage(map, { isClear, chunkSize: CHUNK_SIZE })) {
+      const key = keyAt(plant.x, plant.z);
+      if (!foliageChunks.has(key)) foliageChunks.set(key, []);
+      foliageChunks.get(key).push(plant);
+    }
+  }
+  let totalTrees = 0, totalShrubs = 0;
+  function drawFoliage(plants) {
+    const before = counters.triangles;
+    for (const plant of plants) {
+      const {x, z, seed, kind, habitat} = plant;
+      const y = groundHeightAt(x, z);
+      if (kind === 'shrub') {
+        emitShrub(x, z, seed, y, habitat);
+        counters.shrubs++;
+        continue;
+      }
+      const avenue = school && Math.hypot(x - school.x, z - school.z) < 250;
+      const h = avenue ? 10.5 + hash(seed) * 6 :
+        habitat === 'wood' ? 7 + hash(seed) * 9 : 5.8 + hash(seed) * 6.6;
+      emitTree(plant, y, h, avenue);
       counters.trees++;
       if (map.spawn && Math.hypot(x - map.spawn.x, z - map.spawn.z) < 250) counters.treesNearSpawn++;
-    });
-    counters.trees++;
-    if (map.spawn && Math.hypot(x - map.spawn.x, z - map.spawn.z) < 250) counters.treesNearSpawn++;
-    treeCells.set(treeKey, true);
-    treeChunks.set(chunkKey, (treeChunks.get(chunkKey) || 0) + 1);
-  }
-  let seed = 0;
-  const streetRoads = [...(map.roads || [])].filter(r => !/service|footway|path|track|motorway|trunk/.test(r.type));
-  const anchorDistance = road => Math.min(...(map.landmarks || [map.spawn]).filter(Boolean).map(l => Math.hypot(road.points[0][0] - l.x, road.points[0][1] - l.z)));
-  streetRoads.sort((a, b) => anchorDistance(a) - anchorDistance(b));
-  for (const road of streetRoads) {
-    const profile = roadProfile(road);
-    let untilNext = 8 + hash(seed++) * 18;
-    for (let i = 1; i < road.points.length; i++) {
-      const a = road.points[i - 1], b = road.points[i];
-      const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
-      if (length < 0.1) continue;
-      const dx = (b[0] - a[0]) / length, dz = (b[1] - a[1]) / length;
-      while (untilNext < length) {
-        for (const side of [-1, 1]) {
-          const offset = side * (profile.driveWidth / 2 + profile.pavementWidth + 3.5 + hash(seed) * 1.5);
-          tree(a[0] + dx * untilNext - dz * offset, a[1] + dz * untilNext + dx * offset, seed++);
-        }
-        untilNext += 33 + hash(seed + 17) * 11;
-      }
-      untilNext -= length;
     }
+    counters.foliageTriangles += counters.triangles - before;
   }
-  // Reserve groves in the larger public parks as well as street avenues.
-  for (const area of map.areas || []) {
-    if (!/park|wood|forest|grass/.test(area.type)) continue;
-    const p = area.points;
-    if (!p?.length) continue;
-    const minX = Math.min(...p.map(v => v[0])), maxX = Math.max(...p.map(v => v[0]));
-    const minZ = Math.min(...p.map(v => v[1])), maxZ = Math.max(...p.map(v => v[1]));
-    for (let x = minX + 13; x < maxX; x += 37) for (let z = minZ + 11; z < maxZ; z += 39) {
-      if (inside(x, z, p) && hash(seed++) > 0.45) tree(x + hash(seed) * 10, z, seed, true);
+  for (const plants of foliageChunks.values()) {
+    for (const plant of plants) {
+      if (plant.kind === 'tree') totalTrees++;
+      else totalShrubs++;
     }
+    deferSource(plants[0].x, plants[0].z, () => drawFoliage(plants));
   }
+  foliageChunks.clear();
 
   // One atlas and one sign mesh per neighbourhood keep readable names inexpensive.
   const labels = [];
@@ -950,8 +1033,6 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   } else {
     preparing = false;
     for (const key of Object.keys(counters)) if (key !== 'lowGraphics') counters[key] = 0;
-    // The acceptance grids are construction-only. Rebuilds use the stable source recipes.
-    treeCells.clear(); treeChunks.clear();
   }
   counters.chunks = chunks.size;
   let peakResidentBytes = counters.bufferBytes, loads = 0, evictions = 0;
@@ -997,7 +1078,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     queue = wanted.filter(item => !chunks.has(item.key)).map(item => item.key);
   }
   const statsSnapshot = () => Object.freeze({ ...counters, streaming, residentBytes: counters.bufferBytes,
-    peakResidentBytes, residentChunks: chunks.size, queuedChunks: queue.length, evictions, loads });
+    peakResidentBytes, residentChunks: chunks.size, queuedChunks: queue.length, evictions, loads, totalTrees, totalShrubs });
   function update(player) {
     if (disposed) return;
     const x = player.x ?? player.position?.x ?? 0;
@@ -1038,7 +1119,8 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     root.clear(); root.removeFromParent();
     chunks.clear(); sources.clear(); queue.length = 0;
     temporaryGeometry.length = materials.length = textures.length = 0;
-    counters.bufferBytes = counters.meshes = counters.chunks = counters.triangles = 0;
+    for (const name of Object.keys(counters)) if (name !== 'lowGraphics') counters[name] = 0;
+    totalTrees = totalShrubs = 0;
   }
   if (streaming) {
     const spawn = map.spawn || { x: 0, z: 0 };
