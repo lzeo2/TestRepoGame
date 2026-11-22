@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createAircraft } from '../Games/Capital Drive/aircraft.js';
+import { createCampaignWorld } from '../Games/Capital Drive/campaign-world.js';
 import { createGameplay } from '../Games/Capital Drive/gameplay.js';
 import { createSimulation } from '../Games/Capital Drive/simulation.js';
 import { createProgression } from '../Games/Capital Drive/progression.js';
@@ -25,6 +26,7 @@ const gameplay = createGameplay(map, simulation, { passengerPose: () => aircraft
   playerAltitude: () => aircraft.active ? aircraft.active.y - 10 : 0, hasWeapon: () => true });
 gameplay.reset({ onFoot: true, startPose: { x: 700, z: 700, yaw: 0 } });
 const notifications = [], crimes = [], originalReport = gameplay.reportOffence;
+let saves=0;
 gameplay.reportOffence = (...args) => { crimes.push(args); return originalReport(...args); };
 const env = { burglary:{snapshot:()=>({active:false})},droneActive: false, aircraft, simulation, gameplay, started: true, focus: () => gameplay.focus(), world: { heightAt: () => 10 },
   keys: new Set(), touch: new Set(), miniKeys: new Set(), moveStick: { snapshot: () => ({ x: 0, y: 0 }) },
@@ -32,11 +34,13 @@ const env = { burglary:{snapshot:()=>({active:false})},droneActive: false, aircr
   isSandbox: () => false, interiors: { active: null }, campaign: { state: { active: null } }, progression: { state: { activeJob: null, activity: null } },
   activities: { snapshot: () => ({ active: false }) }, rentalHack: { snapshot: () => ({ active: false }) },
   micromobility: { snapshot: () => ({ active: false }) }, rideService: null, buses: null, cutscenes: { snapshot: () => ({ active: false }) },
-  developerReturn: null, jetpack:null, watercraft:null, aircraftRescueHealth:null, cameraReady: true, footCameraYaw: 0, heroPowers: { cancelActive() {} },
+  developerReturn: null, gameMode:'campaign', campaignWorld:createCampaignWorld(), streetWorld:null, saveCareer:()=>saves++, heists:null,
+  depotTank:null, lightRail:null,
+  jetpack:null, watercraft:null, aircraftRescueHealth:null, cameraReady: true, footCameraYaw: 0, heroPowers: { cancelActive() {} },
   clearInput() { env.keys.clear(); env.miniKeys.clear(); env.touch.clear(); }, notify: text => notifications.push(text) };
 const controls = new Map(); env.$ = id => { if (!controls.has(id)) controls.set(id, {}); return controls.get(id); };
 env.closeDialogs = () => {};
-const names = ['aircraftContext', 'aircraftInput', 'aircraftAltitude', 'aircraftObstacles', 'handleAircraftEvents', 'updateAircraft', 'interactAircraft', 'streetChallenge', 'input', 'miniInput', 'refreshAircraftRescue', 'recover'];
+const names = ['aircraftContext', 'aircraftInput', 'aircraftAltitude', 'aircraftObstacles', 'activeWorldRecord', 'handleAircraftEvents', 'updateAircraft', 'interactAircraft', 'streetChallenge', 'input', 'miniInput', 'refreshAircraftRescue', 'recover'];
 const api = Function('env', `with(env){${names.map(extract).join('\n')};return {${names.join(',')}};}`)(env);
 const jet = aircraft.snapshot().planes[0]; assert(jet);
 Object.assign(gameplay.state.actor, { x: jet.x + Math.cos(jet.yaw) * 2.1 - Math.sin(jet.yaw) * 1.3,
@@ -60,6 +64,7 @@ for (let cue = 0; cue < 8; cue++) {
 }
 assert(aircraft.active); assert(gameplay.state.passenger); assert.equal(gameplay.state.mode, 'foot');
 assert.equal(crimes.length, 1); assert.equal(crimes[0][1], 3); assert.equal(gameplay.state.wanted, 3);
+assert.deepEqual(env.campaignWorld.snapshot().absentAircraft,[jet.id]);assert.equal(saves,1,'controller records the completed Campaign theft once');
 assert.equal(gameplay.focus().y, aircraft.active.y + 1.55, 'focus carries the absolute live pilot seat height');
 const parkedCar = { ...simulation.player }, health = gameplay.state.health;
 assert.equal(gameplay.setWeapon('pistol'), false); assert.equal(gameplay.reload(), false);
@@ -99,7 +104,8 @@ const progress = createProgression(map), context = { pose: { x: 0, z: 0 }, onFoo
   vehicleHealth: 100, wanted: 3, respawnSerial: 0, sandbox: false, recovering: false, passenger: true };
 assert.equal(progress.startJob(progress.jobs[0].id, context).ok, false, 'a passenger cannot start a paid job through another handler');
 assert.equal(progress.startJob(progress.jobs[0].id, { ...context, passenger: false }).ok, true, 'ordinary wanted jobs remain permitted');
-assert(source.includes("if(!aircraft?.active||campaign.state.active?.aviation===true)campaign.update(1/60,careerContext())"));
+assert(source.includes("if(!aircraft?.active||campaign.state.active?.aviation===true||campaign.state.active?.target?.kind==='escape')campaign.update(1/60,careerContext())"),
+  'aviation and escape targets progress during flight');
 assert(source.includes("if (!isSandbox()&&!aircraft?.active) progression.update(1 / 60, careerContext())"));
 assert(source.includes('desiredCamera.set(p.x+Math.sin(angle)*distance,p.y+7+orbitHeight'));
 assert(source.includes("document.body.classList.toggle('piloting',!!aircraft?.active)"));

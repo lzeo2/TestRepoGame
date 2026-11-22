@@ -53,12 +53,42 @@ const sites = Object.freeze([
           ['disarm',5,'Hold X and press E to reset the alternate stunt dummy','stagehand']]},
     ],
   },
+  {
+    id:'glasshouse-double', name:'Glasshouse Double', district:'kingston', location:'Kingston film set',
+    targetName:'Double Seven',
+    briefing:'Take Double Seven, a fictional screen antagonist played by a stunt rig, out of the scene. Use a quiet takedown cue or score an upright tag with a crew badge.',
+    outro:'Double Seven is out of the scene. The film crew can reset the take.', reward:1950,
+    approaches:[
+      {id:'quiet-take',name:'Quiet take',description:'Check the scene from a crouch, run the prop cue, and score the close takedown while crouched.',
+        actions:[['scout',0,'Hold X and press E to check the set'],['divert',2,'Press E to run the prop cue'],
+          ['drop-target',4,'Hold X and press E to score the Double Seven takedown']]},
+      {id:'crew-mark',name:'Crew mark',description:'Pick up a crew badge, check the scene board, and score a standing target tag at the alternate mark.',
+        actions:[['cover',1,'Press E to take the crew badge','crew-mark'],['evidence',3,'Press E to check the rehearsal board','crew-mark'],
+          ['tag-target',5,'Stand and press E at the Double Seven tag marker','crew-mark']]},
+    ],
+  },
+  {
+    id:'false-courier', name:'The False Courier', district:'griffith', location:'Griffith stunt course',
+    targetName:'The False Courier',
+    briefing:'A costumed dummy on a closed stunt course carries the prize prop. Score a target action first, collect the case, and leave through your chosen pickup.',
+    outro:'The courier scene is complete and the prize case is back with the crew.', reward:2150,
+    approaches:[
+      {id:'spotter',name:'Spotter route',description:'Identify the marked prop from a crouch, stand to score the courier tag, then collect its case.',
+        actions:[['scout',0,'Hold X and press E to identify the marked courier'],['tag-target',2,'Stand and press E to score the courier tag'],
+          ['handoff',4,'Press E to collect the prize case']]},
+      {id:'costume-pass',name:'Costume pass',description:'Pick up a wardrobe pass, reach the alternate dummy for a crouched takedown, then collect the marked wardrobe case.',
+        actions:[['cover',1,'Press E to take the wardrobe pass','wardrobe'],['drop-target',3,'Hold X and press E to score the courier takedown','wardrobe'],
+          ['handoff',5,'Press E to collect the wardrobe case','wardrobe']]},
+    ],
+  },
 ]);
 
 export const STEALTH_CONTRACT_IDS = Object.freeze(sites.map(site=>site.id));
-const VISUALS = Object.freeze({scout:'scope',cover:'credential',evidence:'ledger',divert:'relay',handoff:'case',disarm:'dummy',extract:'exit'});
+const VISUALS = Object.freeze({scout:'scope',cover:'credential',evidence:'ledger',divert:'relay',handoff:'case',disarm:'dummy',
+  'drop-target':'dummy','tag-target':'dummy',extract:'exit'});
 const FEEDBACK = Object.freeze({scout:'Location checked.',cover:'Pass collected.',evidence:'Evidence secured.',
-  divert:'Rehearsal signal changed.',handoff:'Exchange confirmed.',disarm:'Stunt dummy reset.',extract:'Extraction confirmed.'});
+  divert:'Rehearsal signal changed.',handoff:'Exchange confirmed.',disarm:'Stunt dummy reset.',
+  'drop-target':'Stunt takedown scored.', 'tag-target':'Target tagged.',extract:'Extraction confirmed.'});
 const STREET = new Set(['residential','living_street','unclassified','secondary','tertiary','service','pedestrian']);
 const finite = p => p && Number.isFinite(p.x) && Number.isFinite(p.z);
 const distance = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
@@ -100,8 +130,10 @@ function findPoints(map,anchor,canStand,hasLineOfSight,nearestRoad) {
 }
 
 function stage(id,site,p,action,label,credential) {
+  const target = action==='drop-target'||action==='tag-target';
   return Object.freeze({id,kind:'stealth-contract',action,label,location:site.location,x:p.x,z:p.z,yaw:p.yaw,
-    radius:action==='extract'?3.5:2.7,hold:0,visual:VISUALS[action],crouch:action==='scout'||action==='disarm',
+    radius:action==='extract'?3.5:2.7,hold:0,visual:VISUALS[action],crouch:action==='scout'||action==='disarm'||action==='drop-target',
+    ...(target?{targetName:site.targetName,stand:action==='tag-target'}:{}),
     ...(credential?{cover:credential}:{})});
 }
 
@@ -144,6 +176,7 @@ export function createStealthContracts(map,{canStand=()=>false,hasLineOfSight=()
       (typeof context.visible==='function'&&!context.visible(pose,objective))||!hasLineOfSight(pose,objective))
       return deny('Move into clear reach of the marked objective.');
     if(objective.crouch&&!crouching)return deny('Hold X to crouch, then press E.');
+    if(objective.stand&&crouching)return deny('Stand up, then press E at the target marker.');
     const progress=attempts.get(active)||{next:0,cover:null};
     if(progress.next!==active.stage)return deny('This contract step is already processed or out of order.');
     if(objective.cover&&objective.action!=='cover'&&progress.cover!==objective.cover)return deny('Collect your planned cover pass first.');

@@ -1,7 +1,7 @@
 const LOGICAL_SIZE = 24;
 const RASTER_SIZE = LOGICAL_SIZE * 2;
 const WHITE = '#fff';
-const COLORS = { petrol: '#075d73', rental: '#483781', 'player-drone': '#166756', 'police-drone': '#943a3d', helicopter: '#794237', 'depot-helicopter': '#435874', 'boat-shop': '#235f83' };
+const COLORS = { petrol: '#075d73', rental: '#483781', 'player-drone': '#166756', 'police-drone': '#943a3d', helicopter: '#794237', 'depot-helicopter': '#435874', 'boat-shop': '#235f83', rail: '#943a3d', heist: '#805122' };
 
 function pump(ctx, background) {
   ctx.fillStyle = WHITE;
@@ -95,7 +95,30 @@ function boat(ctx) {
   ctx.stroke();
 }
 
-const GLYPHS = { petrol: pump, rental: car, 'player-drone': drone, 'police-drone': drone, helicopter, 'depot-helicopter': helicopter, 'boat-shop': boat };
+function rail(ctx, background) {
+  ctx.fillStyle = WHITE;
+  ctx.beginPath();
+  ctx.roundRect(6, 5.5, 12, 11, 2);
+  ctx.fill();
+  ctx.fillRect(8, 17, 8, 1.5);
+  ctx.fillStyle = background;
+  ctx.fillRect(8, 7.5, 8, 4);
+  ctx.fillRect(8, 13.6, 2, 1.1);
+  ctx.fillRect(14, 13.6, 2, 1.1);
+}
+
+function heist(ctx, background) {
+  ctx.fillStyle = WHITE;
+  ctx.beginPath();
+  ctx.roundRect(5.5, 8.5, 13, 9, 1.4);
+  ctx.fill();
+  ctx.fillRect(9, 5.9, 6, 2.9);
+  ctx.fillStyle = background;
+  ctx.fillRect(6.4, 12, 11.2, 1.3);
+  ctx.fillRect(11, 11.5, 2, 2.7);
+}
+
+const GLYPHS = { petrol: pump, rental: car, 'player-drone': drone, 'police-drone': drone, helicopter, 'depot-helicopter': helicopter, 'boat-shop': boat, rail, heist };
 
 export function createServiceMapIcons(document) {
   const rasters = new Map();

@@ -6,7 +6,9 @@ const BLUEPRINTS = [
   { area: 'canberra-centre', id: 'civic-district-police-post', name: 'Civic District Police Post' },
   { area: 'canberra-airport', id: 'east-district-police-post', name: 'East District Police Post' },
 ];
-const WIDTH = 11.4, DEPTH = 8.2, HEIGHT = 4.8, HEALTH = 120;
+export const POLICE_POST_IDS = Object.freeze(BLUEPRINTS.map(site=>site.id));
+export const POLICE_POST_MAX_HEALTH = 120;
+const WIDTH = 11.4, DEPTH = 8.2, HEIGHT = 4.8;
 const along = (a,b,x,z) => projectSegment(x,z,a,b).distance;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -43,7 +45,7 @@ function planStation(blueprint, anchor, segments, simulation, heightAt) {
       const place={id:blueprint.id,name:blueprint.name,aliases:['police station','police post',`${anchor.name} police`],
         x:ax,z:az,radius:15,description:`Fictional police post near ${road.road.name||anchor.name}`};
       return {id:blueprint.id,place,approach,barrier,x,y,z,foundation,tx,tz,nx,nz,point,ground:(u,v)=>heightAt(...point(u,v)),
-        width:WIDTH,depth:DEPTH,height:HEIGHT,health:HEALTH,destroyed:false};
+        width:WIDTH,depth:DEPTH,height:HEIGHT,health:POLICE_POST_MAX_HEALTH,destroyed:false};
     }
   }
   return null;
@@ -59,6 +61,24 @@ export function createPoliceStations(map, simulation, heightAt) {
   }
   const handled=new WeakSet();
   let destroyedCount=0;
+  function setHealth(site,health) {
+    const destroyed=health===0;
+    site.health=health;
+    if(destroyed===site.destroyed)return false;
+    site.destroyed=destroyed;
+    if(destroyed){destroyedCount++;simulation.unregisterStaticBarriers([site.barrier]);}
+    else{destroyedCount--;simulation.registerStaticBarriers([site.barrier]);}
+    return true;
+  }
+  function restoreHealth(healthById={}) {
+    const changed=[];
+    for(const site of sites){
+      const health=healthById[site.id]??POLICE_POST_MAX_HEALTH;
+      if(!Number.isFinite(health)||health<0||health>POLICE_POST_MAX_HEALTH)continue;
+      if(setHealth(site,health))changed.push({id:site.id,destroyed:site.destroyed});
+    }
+    return changed;
+  }
   function damageExplosion(event, trace = ray=>ray.range) {
     if(event?.type!=='explosion'||event.interiorId||handled.has(event)||![event.x,event.y,event.z,event.radius,event.maxDamage].every(Number.isFinite)||
       event.radius<=0||event.radius>40||event.maxDamage<=0||event.maxDamage>1000)return [];
@@ -73,15 +93,12 @@ export function createPoliceStations(map, simulation, heightAt) {
       const vx=x-event.x,vy=y-event.y,vz=z-event.z,distance=Math.hypot(vx,vy,vz);
       if(distance>=event.radius)continue;
       if(distance>.06 && trace({x:event.x,y:event.y,z:event.z,dx:vx/distance,dy:vy/distance,dz:vz/distance,range:distance,interiorId:null})<distance-.06)continue;
-      site.health=Math.max(0,site.health-event.maxDamage*(1-distance/event.radius));
-      if(site.health>0)continue;
-      site.destroyed=true;destroyedCount++;
-      simulation.unregisterStaticBarriers([site.barrier]);
-      destroyed.push(site);
+      const health=Math.max(0,site.health-event.maxDamage*(1-distance/event.radius));
+      if(setHealth(site,health))destroyed.push(site);
     }
     return destroyed;
   }
-  return {sites,barriers:sites.map(s=>s.barrier),damageExplosion,responseLoss:()=>destroyedCount,
+  return {sites,barriers:sites.map(s=>s.barrier),damageExplosion,restoreHealth,responseLoss:()=>destroyedCount,
     patrolStations:()=>sites.filter(s=>!s.destroyed).map(s=>s.approach),
     snapshot:()=>sites.map(s=>({id:s.id,name:s.place.name,x:s.x,z:s.z,health:s.health,destroyed:s.destroyed}))};
 }

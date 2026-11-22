@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""Extract Canberra light rail from the existing verified OSM snapshots."""
+import argparse
+from collections import defaultdict
+import hashlib
+import heapq
+import math
+import json
+from pathlib import Path
+
+from build_capital_north import xy
+
+ROOT = Path(__file__).resolve().parents[1]
+# Station and direction-specific tagged stop_position nodes, south to north.
+STATIONS = (
+    ('rail-alinga', 6355817336, 6355817317, 6355817318),
+    ('rail-elouera', 6355817340, 6355817320, 6355817319),
+    ('rail-ipima', 6355817332, 6355817322, 6355817321),
+    ('rail-macarthur', 6355817331, 6355817324, 6355817323),
+    ('rail-dickson', 6355817338, 6355817325, 6355817326),
+)
+
+
+def extract(caches):
+    objects, origins, pins = {}, {}, {}
+    for cache in caches:
+        manifest = json.loads((cache / 'manifest.json').read_text())
+        for source in manifest['files']:
+            raw = (cache / source['file']).read_bytes()
+            digest = hashlib.sha256(raw).hexdigest()
+            if digest != source['sha256']:
+                raise ValueError(f"OSM snapshot hash mismatch for {source['file']}")
+            filename = f"{cache.name}/{source['file']}"
+            pins[filename] = {'file': filename, 'sha256': digest}
+            for item in json.loads(raw)['elements']:
+                key = (item['type'], item['id'])
+                if item.get('version', 0) >= objects.get(key, {}).get('version', 0):
+                    objects[key], origins[key] = item, filename
+    nodes = {ident: node for (kind, ident), node in objects.items() if kind == 'node'}
+    directed, connected = defaultdict(list), defaultdict(list)
+    for (kind, ident), obj in sorted(objects.items()):
+        tags = obj.get('tags', {})
+        if kind != 'way' or tags.get('railway') != 'tram':
+            continue
+        main = tags.get('usage') == 'main'
+        if not main and tags.get('service') != 'crossover':
+            continue
+        for left, right in zip(obj['nodes'], obj['nodes'][1:]):
+            if left not in nodes or right not in nodes:
+                continue
+            a, b = xy(nodes[left]), xy(nodes[right])
+            distance = math.dist(a, b)
+            connected[left].append((right, distance, ident))
+            connected[right].append((left, distance, ident))
+            if main:
+                directed[left].append((right, distance, ident))
+                if tags.get('oneway') == 'alternating':
+                    directed[right].append((left, distance, ident))
+
+    def route(graph, first, last):
+        queue, seen = [(0, first, [], [])], set()
+        while queue:
+            metres, node, path, ways = heapq.heappop(queue)
+            if node in seen:
+                continue
+            path = path + [node]
+            if node == last:
+                return path, ways
+            seen.add(node)
+            for neighbour, distance, way in graph[node]:
+                if neighbour not in seen:
+                    heapq.heappush(queue, (metres+distance, neighbour, path, ways+[way]))
+        raise ValueError(f'No joined mapped tram path from {first} to {last}')
+
+    start, end = STATIONS[0], STATIONS[-1]
+    used = {origins['node', ident] for _, *refs in STATIONS for ident in refs}
+    result = {'stops': [], 'lines': []}
+    for key, station, north, south in STATIONS:
+        item = nodes[station]
+        result['stops'].append(dict(id=key, name=item['tags']['name'], station=station,
+                                   coordinates=xy(item), north=north, south=south))
+    for ident, graph, first, last, direction in (
+        ('northbound', directed, start[2], end[2], 1),
+        ('dickson-turn', connected, end[2], end[3], 0),
+        ('southbound', directed, end[3], start[3], -1),
+        ('alinga-turn', connected, start[3], start[2], 0),
+    ):
+        path, ways = route(graph, first, last)
+        used.update(origins['node', node] for node in path)
+        used.update(origins['way', way] for way in ways)
+        result['lines'].append(dict(id=ident, direction=direction, nodes=path,
+                                    ways=list(dict.fromkeys(ways)), points=[xy(nodes[node]) for node in path]))
+    result['source'] = dict(authority='OpenStreetMap contributors', license='ODbL-1.0',
+                            attributionUrl='https://www.openstreetmap.org/copyright',
+                            inputs=[pins[file] for file in sorted(used)])
+    return result
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--cache', action='append', required=True, type=Path,
+                        help='Verified raw OSM cache directory. Pass Civic and north/west directories.')
+    parser.add_argument('--output', type=Path,
+                        default=ROOT / 'Games/Capital Drive/light-rail-source.js')
+    args = parser.parse_args()
+    data = extract(args.cache)
+    rows = ['// Generated by scripts/build_capital_light_rail.py from pinned OSM snapshots.',
+            'export const LIGHT_RAIL_SOURCE = {',
+            '  stops: ' + json.dumps(data['stops'], separators=(',', ':')) + ',',
+            '  lines: [']
+    rows.extend('    ' + json.dumps(line, separators=(',', ':')) + ',' for line in data['lines'])
+    rows.extend(['  ],', '  source: ' + json.dumps(data['source'], separators=(',', ':')), '};', ''])
+    args.output.write_text('\n'.join(rows))
+    print(f"{len(data['stops'])} stations, {len(data['lines'])} connected track sections, "
+          f"{sum(len(line['points']) for line in data['lines'])} track nodes, "
+          f"{len(data['source']['inputs'])} verified OSM inputs.")
+
+
+if __name__ == '__main__':
+    main()

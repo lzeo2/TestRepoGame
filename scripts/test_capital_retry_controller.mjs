@@ -47,7 +47,9 @@ progression.state.cash = 760;
 const write = [], notices = [], initialDestination = { id: 'private-route', x: 70, z: 80 };
 let obstructed = true, placementChecks = 0, hadWeapon = false;
 const env = {
-  started: true, gameMode: 'campaign', careerError: '', missionCheckpoint: null, developerReturn: null,
+  started: true, clearingProgress:false, gameMode: 'campaign', careerError: '', missionCheckpoint: null, developerReturn: null,
+  campaignWorld:null,streetWorld:null,campaignAftermath:null,heists:null,depotTank:null,lightRail:null,
+  inquiryOfficer:null,inquiryHarm:false,policeStations:null,shotObstacles:null,
   campaign, progression, simulation, interiors, map, PROTAGONIST_IDS,
   createProtagonistState: (saved, { bounds }) => createProtagonistState(saved, { bounds }),
   protagonists: createProtagonistState(null, { bounds: map.bounds }),
@@ -56,7 +58,7 @@ const env = {
   destination: initialDestination, route: [], accumulator: 3, footCameraYaw: .5, footLookPitch: 0,
   orbit: .2, orbitHeight: 0, orbitHold: 0, lookPitch: 0, cockpitCamera: false, cameraReady: true,
   previousActorMode: 'foot', aircraftRescueHealth: null, followYoober: false, fireWarningKey: null,
-  aircraft: { active: null, reset() {} }, delivery: { busy: true },
+  aircraft: { active: null, reset() {}, snapshot: () => ({planes:[]}) }, delivery: { busy: true },
   jetpack: null, buses: null, micromobility: null, equipment: null, ordnance: null,
   gameplay: {
     state, setWeapon(id) { state.weapon = id; },
@@ -101,7 +103,7 @@ const env = {
 };
 vm.createContext(env);
 vm.runInContext([
-  'missionLaunchReason', 'startCampaignMission', 'acceptMissionCheckpoint', 'prepareFailedMissionReturn',
+  'missionLaunchReason', 'startCampaignMission', 'activeWorldRecord', 'resetCampaignWorld', 'acceptMissionCheckpoint', 'prepareFailedMissionReturn',
   'restoreMissionRoom', 'restoreFailedMission', 'endCampaignAttempt', 'saveCareer', 'updateCareer',
 ].map(controller).join('\n'), env);
 
@@ -180,4 +182,8 @@ assert.equal(env.missionCheckpoint, null);
 assert.equal(progression.state.cash, 1119);
 assert.equal(write.at(-1).cash, 1119);
 assert.equal(placementChecks, 3);
+const completedWrites = write.length;
+env.clearingProgress = true;
+env.saveCareer();
+assert.equal(write.length, completedWrites, 'autosave cannot recreate progress while the clear action reloads');
 console.log('PASS actual mission checkpoint controller: prelaunch save, precise room/vehicle/hero/ammo/economy/route return, blocked retry, cancellation and completion');

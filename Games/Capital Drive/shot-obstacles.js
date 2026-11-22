@@ -152,10 +152,11 @@ export function createShotObstacles(map,{heightAt=()=>0,groundHeightAt=heightAt,
     return {distance:nearest===ray.range?nearest:Math.max(0,nearest-.005),vehicleId};
   }
   const trace=(ray,room=null,vehicles=[])=>traceHit(ray,room,vehicles).distance;
-  function removeBarrier(id) {
+  function setBarrierDestroyed(id,destroyed) {
     const solid=removable.get(id);
-    if(!solid)return false;
-    solid.removed=true;removable.delete(id);return true;
+    if(!solid||typeof destroyed!=='boolean'||Boolean(solid.removed)===destroyed)return false;
+    solid.removed=destroyed;
+    return true;
   }
-  return {trace,traceHit,removeBarrier};
+  return {trace,traceHit,setBarrierDestroyed,removeBarrier:id=>setBarrierDestroyed(id,true)};
 }

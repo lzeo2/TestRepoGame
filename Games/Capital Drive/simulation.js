@@ -747,8 +747,36 @@ export function createSimulation(map, options = {}) {
     const pool = onward.length ? onward : choices;
     return pool.length ? pool[Math.floor(random() * pool.length)] : null;
   }
+  function trafficHorn(car, reason) {
+    if (car.honkCooldown > 0) return;
+    car.honks++;
+    car.honkCooldown = 5 + car.slot % 4;
+    options.onTrafficHorn?.({ id: car.id, x: car.x, z: car.z, reason });
+  }
+  function cutInSpeed(car, edge, body, playerBody, px, pz, ahead) {
+    if (car.speed < 6.5 || ahead <= 0 || ahead >= 25 || px * px + pz * pz > 28 ** 2) return Infinity;
+    const side = px * edge.dz - pz * edge.dx;
+    const sideways = player.vx * edge.dz - player.vz * edge.dx;
+    if (Math.abs(sideways) < 1.35 || Math.abs(side - sideways * .25) <= Math.abs(side) + .15) return Infinity;
+    const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
+    const alignment = Math.abs(fx * edge.dx + fz * edge.dz), across = Math.abs(fx * edge.dz - fz * edge.dx);
+    const projectedSide = (playerBody.length * across + playerBody.width * alignment) / 2;
+    const laneReach = body.width / 2 + projectedSide + .15;
+    const entry = Math.max(0, (Math.abs(side) - laneReach) / Math.abs(sideways));
+    if (entry > .65) return Infinity;
+    const playerAlong = player.vx * edge.dx + player.vz * edge.dz;
+    const closing = car.speed - playerAlong;
+    const projectedLength = (playerBody.length * alignment + playerBody.width * across) / 2;
+    const gap = ahead - closing * entry - body.length / 2 - projectedLength;
+    // A parallel pass has no lateral entry. An entering body must come within
+    // short headway as well, even when its longitudinal speed is higher.
+    if (gap < -body.length || gap > 1.5 + car.speed * .55 + Math.max(0, closing) * .65 ||
+      !sameVehicleLevel(car, player)) return Infinity;
+    return Math.max(0, Math.min(car.speed - 1.5, playerAlong + (gap - 4) * 1.6));
+  }
   function updateTraffic(dt) {
     refreshTrafficArea();
+    const playerBody = player.active !== false && player.vx * player.vx + player.vz * player.vz >= 8 ** 2 ? vehicleSize(player) : null;
     for (const car of traffic) {
       if (!car.active || car.health === 0) continue;
       car.honkCooldown = Math.max(0, car.honkCooldown - dt);
@@ -780,6 +808,14 @@ export function createSimulation(map, options = {}) {
       const px = player.x - car.x, pz = player.z - car.z;
       const ahead = px * edge.dx + pz * edge.dz;
       if (ahead > 0 && ahead < 22 && Math.abs(px * edge.dz - pz * edge.dx) < 2.8 && sameVehicleLevel(car,player)) target = Math.min(target, Math.max(0, (ahead - 7) * 0.75));
+      const emergencySpeed = playerBody && !signalLimited && stopTime <= 0 ? cutInSpeed(car, edge, body, playerBody, px, pz, ahead) : Infinity;
+      const cutIn = Number.isFinite(emergencySpeed);
+      if (cutIn) {
+        target = Math.min(target, emergencySpeed);
+        car.overtake = 0;
+        car.overtakeCooldown = Math.max(car.overtakeCooldown, 1);
+        trafficHorn(car, 'cut-in');
+      }
       for (const obstacle of [...parkedIndex.query(car.x,car.z,28), ...abandonedCars, ...traffic, ...externalVehicles]) {
         if (obstacle === car || obstacle.active === false) continue;
         const dx = obstacle.x - car.x, dz = obstacle.z - car.z, obstacleSize = vehicleSize(obstacle);
@@ -814,7 +850,7 @@ export function createSimulation(map, options = {}) {
       }
       if (target < cruise * 0.65 && !signalLimited) blocked = true;
       car.anger = clamp(car.anger + (blocked ? dt * 0.3 : -dt * 0.2), 0, 1);
-      if (car.anger > 0.45 && car.honkCooldown === 0) { car.honks++; car.honkCooldown = 5 + car.slot % 4; }
+      if (car.anger > 0.45 && car.honkCooldown === 0) trafficHorn(car, 'queue');
       // Passing stays on wide one-way carriageways, with a clear return corridor.
       const passOffset = -Math.min(3.2, edge.laneOffset * 1.5);
       const lanePose = pointOnLane(edge, car.position);
@@ -831,7 +867,7 @@ export function createSimulation(map, options = {}) {
       } else if (car.aggressive && blocked && car.anger > 0.4 && car.overtakeCooldown === 0 && stopTime <= 0 && !signalLimited && passClear) {
         car.overtake = 2; car.overtakeCooldown = 9;
       }
-      car.speed += clamp(target - car.speed, -9 * dt, 3.5 * dt);
+      car.speed += clamp(target - car.speed, -(cutIn ? 14 : 9) * dt, 3.5 * dt);
       // A hard displacement cap keeps fast cars behind the front-bumper stop line.
       if (signalLimited) car.speed = Math.min(car.speed, Math.max(0, signalDistance) / dt);
       if (Number.isFinite(junctionDistance)) car.speed = Math.min(car.speed, junctionDistance / dt);

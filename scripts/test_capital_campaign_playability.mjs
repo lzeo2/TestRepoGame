@@ -26,6 +26,13 @@ const handoffStart = source.indexOf('for(const event of activities.drainEvents()
 const handoffEnd = source.indexOf('  let previous=activities.snapshot();', handoffStart);
 assert(handoffStart >= 0 && handoffEnd > handoffStart);
 const handoff = source.slice(handoffStart, handoffEnd);
+const incidentStart = source.indexOf("if(event.type==='started'&&event.incident){", source.indexOf('function updateCareer('));
+const incidentEnd = source.indexOf("    if(event.type==='complete'){", incidentStart);
+assert(incidentStart >= 0 && incidentEnd > incidentStart, 'actual controller campaign incident handoff');
+const incident = source.slice(incidentStart, incidentEnd);
+function reportIncident(event, gameplay, campaignAftermath = null, developerReturn = null) {
+  runInNewContext(incident, { event, gameplay, campaignAftermath, developerReturn });
+}
 const fixture = await createCampaignFixture();
 const { map, interiors, guide } = fixture;
 const catalogue = createCampaign(map, null, fixture.campaignOptions), chapters = catalogue.developerChapters();
@@ -47,6 +54,19 @@ try { crimeModule = await import('./capital-crime-playability.mjs'); } catch (er
 }
 const baseContext = () => ({ pose: { ...map.spawn, speed: 0 }, onFoot: true, health: 100, vehicleHealth: 100,
   wanted: 0, respawnSerial: 0, campaign: true, sandbox: false });
+{
+  const reports = [];
+  const gameplay = { reportOffence: (label, severity, { witnessed }) => reports.push({ label, severity, witnessed }) };
+  const started = { type: 'started', incident: true, wantedLevel: 3 };
+  const aftermath = { scrutiny: () => 2 };
+  reportIncident(started, gameplay, aftermath);
+  reportIncident(started, gameplay, aftermath, {});
+  reportIncident({ ...started, incident: false }, gameplay, aftermath);
+  assert.deepEqual(reports, [
+    { label: 'suspect vehicle · linked witness report', severity: 4, witnessed: true },
+    { label: 'suspect vehicle', severity: 3, witnessed: true },
+  ], 'retained witness scrutiny affects the next real incident, excludes previews, and caps the boost');
+}
 for (const descriptor of chapters) {
   const priorSave = prefixFor(descriptor), campaign = createCampaign(map, priorSave, fixture.campaignOptions), ctx = baseContext();
   assert.equal(campaign.current().id, descriptor.id);
@@ -55,9 +75,7 @@ for (const descriptor of chapters) {
   assert(campaign.start(ctx).ok);
   const started = campaign.drainEvents().find(event => event.type === 'started');
   if (started.incident) {
-    const incident = source.match(/if\(event.type==='started'&&event.incident\)gameplay.reportOffence\([^;]+;/)?.[0];
-    assert(incident, 'actual controller campaign incident handoff');
-    runInNewContext(incident, { event: started, gameplay });
+    reportIncident(started, gameplay);
     ctx.wanted = gameplay.state.wanted;
   }
   const receipts = {}, reconOwner = createRecon();
@@ -130,7 +148,7 @@ for (const descriptor of chapters) {
         const [receipt] = recon.drainEvents(); assert(receipt, recon.snapshot().reason);
         assert.equal(receipt.missionId, chapter.id); assert.equal(receipt.stage, index);
         stage.simulatedSeconds += 1.6; stage.inputEdges = 1; stage.domainReceipt = receipt;
-        stage.gates.push('1.1s steady view', 'actual exterior solid LOS', 'fresh scan edge', 'real recon owner receipt');
+        stage.gates.push(`${subject.hold}s steady view`, 'actual exterior solid LOS', 'fresh scan edge', 'real recon owner receipt');
         stage.status = 'DOMAIN_PASS'; receipts.recon = receipt; holds.add(`stage ${index}: exterior scanning pose is a fixture placement; full boot sight obstacles absent`);
         finishStage(stage); continue;
       }

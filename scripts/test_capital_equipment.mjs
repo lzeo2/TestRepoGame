@@ -115,7 +115,7 @@ for (const [item, cash] of [['scanner', 499], ['flares', 119]]) {
   assert.equal(p.utilityAvailability('medkit',actor).heal,30);
   assert.deepEqual(p.serialize(),beforeUse,'reading availability never consumes stock');
   for (const extra of [{health:100},{health:0},{onFoot:false},{recovering:true},{paused:true},
-    {sandbox:true},{preview:true},{passenger:true},{bus:true},{ride:true}])
+    {preview:true},{passenger:true},{bus:true},{ride:true}])
     unchanged(p,()=>p.useUtility('medkit',ctx(dealer,extra)));
   const treated=p.useUtility('medkit',ctx(dealer,{health:58,interior:{roomId:'room'}}));
   assert(treated.ok);assert.equal(treated.heal,35);assert.equal(treated.remaining,2);
@@ -141,7 +141,7 @@ for (const [item, cash] of [['scanner', 499], ['flares', 119]]) {
 }
 {
   const p = fresh({ ...legacy, gear: { scanner: true, flares: 3 } });
-  for (const extra of [{ onFoot: false }, { sandbox: true }, { recovering: true }, { interior: {} }, { passenger: true },
+  for (const extra of [{ onFoot: false }, { recovering: true }, { interior: {} }, { passenger: true },
     { ride: true }, { bus: true }, { pose: null }, { wanted: NaN }]) unchanged(p, () => p.consumeFlare(ctx(map.spawn, extra)));
   assert(p.consumeFlare(ctx()).ok); assert.equal(p.state.gear.flares, 2); assert.equal(p.state.cash, legacy.cash);
   assert.equal(fresh(p.serialize()).state.gear.flares, 2, 'used inventory persists');

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createCampaign } from '../Games/Capital Drive/campaign.js';
 import { createStealthContracts, STEALTH_CONTRACT_IDS } from '../Games/Capital Drive/stealth-contracts.js';
 
-const districts = ['manuka', 'foreshore', 'canberra-centre', 'redhill'].map((id, index) => ({ id, x:index*470, z:0 }));
+const districts = ['manuka', 'foreshore', 'canberra-centre', 'redhill', 'kingston', 'griffith'].map((id, index) => ({ id, x:index*470, z:0 }));
 const map = { spawn:{x:0,z:0}, landmarks:[{id:'coals',name:'Coals',store:true,x:20,z:10}, ...districts],
   roads: districts.flatMap(({id,x,z}) => [-60,0,60].map((offset, index) => ({ id:`${id}:${index}`, name:`Test Street ${index+1}`,
     points:[[x-120,z+offset],[x+120,z+offset]], width:8, type:'residential' }))) };
@@ -53,7 +53,7 @@ for (const chapter of stealthContracts.chapters) {
 
   for (let stage = 0; stage < active.stageCount; stage++) {
     const { target } = active;
-    const here = { ...context, pose:target, crouching:true };
+    const here = { ...context, pose:target, crouching:!target.stand };
     const action = stealthContracts.resolve(active, here);
     assert(action.ok, `${id} stage ${stage}: ${action.message}`);
     assert.equal(stealthContracts.resolve(active, here).ok, false, 'a step receipt is issued only once');
@@ -85,4 +85,4 @@ for (const change of [{ recovering:true }, { respawnSerial:1 }]) {
   assert.equal(failed.drainEvents().at(-1).type, 'failed');
   assert.deepEqual(failed.serialize(), original);
 }
-console.log('PASS four optional contract campaigns with working alternate plans, receipt guards, extraction, cancellation and single rewards.');
+console.log('PASS six optional contract campaigns with working alternate plans, receipt guards, extraction, cancellation and single rewards.');

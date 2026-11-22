@@ -323,6 +323,51 @@ assert.deepEqual(oldPlay.state.completed, ['late-parcel']);
 assert.equal(oldPlay.start(ctx).ok, true);
 assert.equal(createCampaign(map, oldPlay.serialize()).state.active, null, 'interrupted mission is transient');
 
+const depotPacing = createCampaign(map, { version: 1, completed: [] });
+assert.equal(depotPacing.policeSearchDuration(2), undefined, 'an inactive campaign gets normal search timing');
+assert(depotPacing.start(ctx).ok);
+assert.equal(depotPacing.drainEvents()[0].wantedLevel, 2);
+assert.deepEqual([1, 2, 3, 4, 5].map(depotPacing.policeSearchDuration), [26, 32, 38, undefined, undefined]);
+tick(depotPacing, { ...ctx, vehicle: { stolen: true }, passenger: true });
+assert.equal(depotPacing.state.active.stage, 0, 'passenger rides do not count as a getaway vehicle');
+tick(depotPacing, { ...ctx, vehicle: { stolen: true } });
+assert.equal(depotPacing.state.active.stage, 1);
+const drop = { ...ctx, wanted: 2, pose: { ...depotPacing.state.active.target, speed: 0 } };
+tick(depotPacing, drop);
+assert.equal(depotPacing.state.active.escapeReached, false, 'an unstolen car cannot register the drop');
+tick(depotPacing, { ...drop, vehicle: { stolen: true }, pose: { ...drop.pose, speed: 10 } });
+assert.equal(depotPacing.state.active.escapeReached, false, 'a drive-by cannot register the drop');
+tick(depotPacing, { ...drop, vehicle: { stolen: true } });
+assert.equal(depotPacing.state.active.escapeReached, true, 'the drop is retained while the police are searching');
+const gone = { ...ctx, onFoot: true, pose: { x: -400, z: -400, speed: 2 } };
+tick(depotPacing, { ...gone, wanted: 1 });
+assert.equal(depotPacing.isCompleted('late-parcel'), false);
+tick(depotPacing, gone);
+assert.equal(depotPacing.isCompleted('late-parcel'), true, 'losing the police away from the drop works after changing vehicles or leaving on foot');
+assert.equal(depotPacing.policeSearchDuration(2), undefined);
+assert.equal(depotPacing.isStoryRobbery('coals'), false);
+assert(depotPacing.start(ctx).ok);
+assert.equal(depotPacing.isStoryRobbery('coals'), true);
+assert.equal(depotPacing.isStoryRobbery('different-till'), false);
+depotPacing.cancel();
+assert.equal(depotPacing.isStoryRobbery('coals'), false);
+
+const pendingAftermath = createCampaign(map, { version: 1, completed: [...legacyIds, ...continuationIds.slice(0, 6)] });
+assert.equal(pendingAftermath.current().id, 'earmuffs-rematch');
+assert(pendingAftermath.start(ctx).ok);
+const fightGoal = pendingAftermath.state.active.target;
+const fightRoom = { storeId: fightGoal.storeId, roomId: 'pink-room' };
+tick(pendingAftermath, { ...ctx, onFoot: true, interior: fightRoom, encounter: {
+  ...fightRoom, serial: 1, missionId: 'earmuffs-rematch', character: 'booth-guest',
+  phase: 'complete', outcome: 'noodle-victory', victory: true,
+} });
+assert.equal(pendingAftermath.state.active.stage, 1);
+tick(pendingAftermath, { ...ctx, onFoot: true, pose: pendingAftermath.state.active.target, aftermathResolved: false }, 40);
+assert.equal(pendingAftermath.state.active.escapeReached, true, 'arrival can latch before the response choice');
+assert.equal(pendingAftermath.isCompleted('earmuffs-rematch'), false);
+tick(pendingAftermath, { ...gone, aftermathResolved: true }, 20);
+assert.equal(pendingAftermath.isCompleted('earmuffs-rematch'), true);
+
 const schoolEntry = { x: 12, z: 34, roomId: 'interior-telopea-school' };
 const schoolCampaign = createCampaign({ ...map, schoolEntry });
 schoolCampaign.selectCharacter('student', ctx);

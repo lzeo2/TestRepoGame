@@ -7,6 +7,7 @@ import {isVehicleStopped} from './driving-dynamics.js';
 import {CAR_RENTAL_OFFERS} from './car-rental.js';
 import {deliveryMethod} from './delivery-service.js';
 import {WATERCRAFT_OFFERS} from './watercraft.js';
+import {gearForMode} from './free-roam-gear.js';
 // Fictional job markers beside the mapped roads; these are not real businesses.
 const CARS = [
   { id: 'lantern', name: 'Neighbourhood saloon', price: 0 },
@@ -495,11 +496,12 @@ export function createProgression(map, saved = null, options = {}) {
     if(!threatened(target,ctx))return 'Equip an owned firearm or confront this pedestrian first.';
     return '';
   }
+  const storyRobbery = (id, ctx) => ctx.campaign === true && options.isStoryRobbery?.(id) === true;
   function robberyEligibility(id,ctx){
     const reason=crimePlayerReason(ctx);if(reason)return reason;
     const site=serviceSite(services.find(s=>s.id===id));
     if(!site?.robbery)return 'This shop has no till.';
-    if(state.robberyCooldowns[id]>0)return 'The till is empty.';
+    if(state.robberyCooldowns[id]>0&&!storyRobbery(id,ctx))return 'The till is empty.';
     if(!options.interactiveRobbery){
       if(!near(ctx.pose,site,site.radius)||!clearApproach(site,ctx)||!serviceAllowed(site,ctx))return 'Visit this storefront first.';
       return equippedFirearm(ctx)?'':'Equip an owned firearm first.';
@@ -654,19 +656,19 @@ export function createProgression(map, saved = null, options = {}) {
       const reason=robberyEligibility(id,ctx);if(reason)return result(false,reason);
       const source=options.robberyTarget(id),target=source&&liveCrimeTarget(source.id,'employee');
       const blocked=employeeReason(serviceSite(services.find(s=>s.id===id)),target,ctx);if(blocked)return result(false,blocked);
-      state.activity={type:'robbery',interactive:true,serviceId:id,targetId:target.id,roomId:target.roomId,name:'Holding up employee',phase:'intimidation',elapsed:0,duration:5,progress:0,respawnSerial:ctx.respawnSerial};
+      state.activity={type:'robbery',interactive:true,serviceId:id,targetId:target.id,roomId:target.roomId,name:'Holding up employee',phase:'intimidation',elapsed:0,duration:storyRobbery(id,ctx)?3:5,progress:0,respawnSerial:ctx.respawnSerial};
       return result(true,'Stay close while the employee empties the till.',{serviceId:id,targetId:target.id,point:{x:target.x,z:target.z}},'robbery-started');
     }
     const site=serviceGuard(id,ctx,{allowWanted:type==='robbery'});if(!site.id)return site;
     if(state.activeJob)return result(false,'Finish or cancel the job first.');
     if(type==='robbery'){
       if(!site.robbery||!equippedFirearm(ctx))return result(false,'Equip an owned firearm to threaten the till.');
-      if(state.robberyCooldowns[id]>0)return result(false,'The till is empty.');
+      if(state.robberyCooldowns[id]>0&&!storyRobbery(id,ctx))return result(false,'The till is empty.');
     }else if(type==='workout'){
       if(site.type!=='gym'||state.fitnessLevel>=3)return result(false,'Training complete.');
       if(state.cash<site.price*(state.fitnessLevel+1))return result(false,'Not enough cash.');
     }else return result(false,'Unknown activity.');
-    state.activity={type,serviceId:id,name:type==='robbery'?'Taking the till':'Training',elapsed:0,duration:type==='robbery'?4:8,progress:0,
+    state.activity={type,serviceId:id,name:type==='robbery'?(storyRobbery(id,ctx)?3:4):8,elapsed:0,progress:0,
       cost:type==='workout'?site.price*(state.fitnessLevel+1):0,respawnSerial:ctx.respawnSerial};
     return result(true,type==='robbery'?'Stay near the till.':'Training started.',{serviceId:id,point:{x:site.x,z:site.z}},type+'-started');
   }
@@ -837,29 +839,31 @@ export function createProgression(map, saved = null, options = {}) {
     const kit=Object.hasOwn(UTILITY_GEAR,item)&&item!=='armour'?UTILITY_GEAR[item]:null;
     const deny=message=>({ok:false,message});
     if(!kit)return deny('Unknown utility item.');
-    if(!validContext(ctx)||ctx.sandbox||ctx.preview||ctx.paused||ctx.recovering||!ctx.onFoot||
+    if(!validContext(ctx)||ctx.preview||ctx.paused||ctx.recovering||!ctx.onFoot||
       ctx.passenger||ctx.bus||ctx.ride||!Number.isFinite(ctx.health)||ctx.health<=0||ctx.health>100)
       return deny('Use a kit on foot after recovering.');
-    const remaining=state.gear[kit.field]??0;
+    const remaining=gearForMode(state.gear,ctx.sandbox)[kit.field]??0;
     if(!remaining)return deny(`Buy a ${kit.name.toLowerCase()} first.`);
+    const supply=ctx.sandbox?{remaining,practice:true}:{remaining};
     if(item==='medkit'){
       if(ctx.health>=100)return deny('Health is already full.');
-      return {ok:true,heal:Math.min(kit.amount,100-ctx.health),remaining};
+      return {ok:true,heal:Math.min(kit.amount,100-ctx.health),...supply};
     }
     if(item==='jammer'){
       if(!Number.isFinite(ctx.jammerTargets)||ctx.jammerTargets<=0)return deny('No active camera is close enough to jam.');
-      return {ok:true,remaining};
+      return {ok:true,...supply};
     }
     if(ctx.interior||!ctx.vehiclePose||!near(ctx.pose,ctx.vehiclePose,5)||!isVehicleStopped(ctx.vehiclePose,.6)||
       (options.hasLineOfSight&&!options.hasLineOfSight(ctx.pose,ctx.vehiclePose)))
       return deny('Stand next to your stopped car outside.');
     if(ctx.vehicleHealth<0||ctx.vehicleHealth>=100)return deny('The car does not need repairs.');
-    return {ok:true,vehicleHealth:Math.min(100,ctx.vehicleHealth+kit.amount),remaining};
+    return {ok:true,vehicleHealth:Math.min(100,ctx.vehicleHealth+kit.amount),...supply};
   }
   function useUtility(item,ctx) {
     const {ok,message,remaining,...effect}=utilityAvailability(item,ctx);
-    if(!ok)return result(false,message);
+    if(!ok)return ctx?.sandbox?{ok,message}:result(false,message);
     const kit=UTILITY_GEAR[item];
+    if(ctx.sandbox)return {ok:true,message:`${kit.name} used.`,kind:item,remaining,...effect};
     state.gear[kit.field]=remaining-1;
     return result(true,`${kit.name} used.`,{kind:item,remaining:remaining-1,...effect},'utility-used');
   }
@@ -873,7 +877,13 @@ export function createProgression(map, saved = null, options = {}) {
     return result(true,`${item.name} thrown.`,{kind,remaining:state.gear[item.field]},'throwable-used');
   }
   function consumeFlare(ctx) {
-    if(!validContext(ctx)||ctx.sandbox||ctx.recovering||!ctx.onFoot||ctx.interior||ctx.passenger||ctx.bus||ctx.ride||state.activity||state.activeJob?.type==='ride')return result(false,'Throw flares outside on foot.');
+    const practice=!!ctx?.sandbox;
+    if(!validContext(ctx)||ctx.recovering||!ctx.onFoot||ctx.interior||ctx.passenger||ctx.bus||ctx.ride||
+      (!practice&&(state.activity||state.activeJob?.type==='ride'))){
+      const message='Throw flares outside on foot.';
+      return practice?{ok:false,message}:result(false,message);
+    }
+    if(practice)return {ok:true,message:'Flare thrown.',flares:gearForMode(state.gear,true).flares,practice:true};
     if(state.gear.flares<1)return result(false,'Buy a flare pack first.');
     state.gear.flares--;
     return result(true,'Flare thrown.',{flares:state.gear.flares},'flare-used');

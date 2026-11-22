@@ -38,6 +38,7 @@ console.log('PASS combat controller: terrain-resolved deliberate scans, neutral/
 
 let traced,query;
 const coverEnv={interiors:{active:null},simulation:{nearbyVehicles(x,z,radius){query={x,z,radius};return [{id:'player',x:0,z:0}];}},
+ lightRail:null,depotTank:null,
  buses:{vehicles:[{id:'bus:1'}],passenger:false},delivery:{vehicles:[{id:'courier'}]},rideService:{vehicles:[{id:'yoober'}],passenger:false},
  aircraft:{active:null,snapshot:()=>({planes:[{id:'jet:1',y:15}]})},campaignScenes:{people:[{id:'ally',seated:true,vehicleId:'player'}]},
  gameplay:{state:{mode:'foot',police:[{health:100,car:{id:'patrol'}},{health:0,car:{id:'dead'}}]}},
@@ -51,6 +52,15 @@ coverEnv.gameplay.state.mode='vehicle';coverAPI.policeShotClear({x:0,y:1.35,z:0}
 assert.deepEqual(traced.ray.ignoreVehicleIds,['player'],'only the actual occupied target body is exempt');
 coverEnv.aircraft.active={id:'jet:1'};coverAPI.policeShotClear({x:0,y:1.35,z:0},{id:'player',x:0,y:17,z:-20});
 assert.deepEqual(traced.ray.ignoreVehicleIds,['jet:1']);assert(traced.ray.dy>0,'police retain absolute airborne target height');
+coverEnv.aircraft.active=null;coverEnv.gameplay.state.mode='foot';
+coverEnv.lightRail={vehicles:[{id:'rail:one'},{id:'rail:two'}],seatPose:{id:'rail:two'}};
+coverEnv.depotTank={vehicle:{id:'tank:depot'},seatPose:null};
+coverAPI.policeShotClear({x:0,y:1.35,z:0},{id:'player',x:0,y:2,z:-20});
+assert.deepEqual(traced.ray.ignoreVehicleIds,['rail:two'],'only the passenger’s occupied carriage is exempt');
+assert.deepEqual(traced.cars.slice(1,4).map(car=>car.id),['rail:one','rail:two','tank:depot']);
+coverEnv.lightRail.seatPose=null;coverEnv.depotTank.seatPose={id:'tank:depot'};
+coverAPI.policeShotClear({x:0,y:1.35,z:0},{id:'player',x:0,y:2,z:-20});
+assert.deepEqual(traced.ray.ignoreVehicleIds,['tank:depot'],'a live tank gunner keeps the correct occupied target identity');
 coverAPI.policeShotClear({x:0,y:1.35,z:0},{id:'ally',x:0,y:1.2,z:-20});assert.deepEqual(traced.ray.ignoreVehicleIds,['player']);
 const room={id:'active-room'};coverAPI.policeShotClear({x:0,y:5,z:0},{id:'player',x:0,y:5,z:-10},{room,interiorId:room.id});
 assert.equal(traced.room,room);assert.equal(traced.ray.interiorId,room.id);assert.deepEqual(traced.cars,[],'exterior vehicle bodies never leak into an interior');

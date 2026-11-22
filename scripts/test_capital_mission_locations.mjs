@@ -118,6 +118,15 @@ const notArrived={...escaped,escapeReached:false};
 assert.deepEqual(guide(notArrived,{pose:away,wanted:3}).point,{x:999,z:888},'arrival still needs its original destination');
 const escapeRoom={...plan,exit:{x:43,z:51}};
 assert.deepEqual(guide(notArrived,{pose,plan:escapeRoom,wanted:3}).point,escapeRoom.exit,'escape first guides through actual room exit');
+const pending = { ...escaped, target: { ...escaped.target, aftermath: true } };
+assert.match(guide(pending, { aftermathResolved: false }).instruction, /Speak to the officer/);
+const nearbyTheft = target('stolen', { anywhere: true, label: 'Steal a nearby street vehicle.' });
+assert.equal(guide(nearbyTheft, { pose }).roaming, true);
+assert.equal(guide(nearbyTheft, { pose }).point, null, 'anywhere theft no longer directs players to the old spawn');
+assert.deepEqual(guide(nearbyTheft, { pose, plan: escapeRoom }).point, escapeRoom.exit);
+const plannedScan = target('recon', { targetId: 'notice', settleSeconds: .65 });
+assert.equal(guide(plannedScan, { pose }).recon.hold, .65);
+assert.equal(guide(target('recon', { targetId: 'ordinary' }), { pose }).recon.hold, 1.1);
 console.log('PASS escape guides remove return marker after arrival and retain real exterior approach/indoor exit');
 
 const contract = target('stealth-contract', { action:'extract', x:140, z:-20, label:'Press E at the marked rendezvous.', location:'Courier rendezvous' });

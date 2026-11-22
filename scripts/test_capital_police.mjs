@@ -80,6 +80,18 @@ const hidden={police:[{id:'hidden',x:20,z:0,yaw:0,speed:0,health:100,mode:'foot'
 const search=createPolice(wallSim);search.report({x:0,z:0});search.step(0.05,hidden,{x:0,z:0,speed:0});
 assert.equal(hidden.police[0].seesPlayer,false);assert.equal(hidden.pursuit,'search');
 for(let i=0;i<10;i++)search.step(0.05,hidden,{x:0,z:0,speed:0});assert.equal(hidden.wanted,0);
+const shorterSearch=createPolice(wallSim,{getSearchDuration:wanted=>wanted===2?32:26});
+assert.equal(shorterSearch.searchDuration(4),64,'serious escalation keeps the ordinary search timer');
+const shorterState={police:[],wanted:2,mode:'foot',heat:46};
+shorterSearch.report({x:0,z:0});
+for(let i=0;i<639;i++)shorterSearch.step(.05,shorterState,{x:0,z:0,speed:0});
+assert.equal(shorterState.wanted,2,'a shorter search still requires breaking line of sight and cooling');
+shorterSearch.step(.05,shorterState,{x:0,z:0,speed:0});
+shorterSearch.step(.05,shorterState,{x:0,z:0,speed:0});
+assert.equal(shorterState.wanted,0);
+const storyGameplay=createGameplay(map,simulation,{getSearchDuration:wanted=>wanted===2?32:undefined});
+assert(storyGameplay.reportOffence('suspect vehicle',2,{witnessed:true}));
+assert.equal(storyGameplay.state.heat,32);
 // Equipment, recovery actions and occupied taking use public gameplay interfaces.
 const game=createGameplay(map,simulation);assert.equal(game.setWeapon('pistol'),false);assert.equal(game.state.ammo,0);
 let owns=false, exits=[],penalties=[];
