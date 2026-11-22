@@ -223,7 +223,7 @@ for (const query of [{ hasLineOfSight: (a, b) => b.z > -2 }, { canOccupy: p => p
   scanner.listeners.click(); assert.equal(p.state.gear.scanner, true); assert.equal(saves, 1);
   article = list.children.find(entry => entry.dataset.serviceId === dealer.id); scanner = all(article).find(node => node.dataset.serviceItem === 'scanner');
   assert.equal(scanner.disabled, true); assert.equal(scanner.dataset.reason, 'Owned');
-  const flares = all(article).find(node => node.dataset.serviceItem === 'flares'); assert.equal(flares.textContent, '3 flares $120'); flares.listeners.click();
+  const flares = all(article).find(node => node.dataset.serviceItem === 'flares'); assert.equal(flares.textContent, '3 flares $120 · 0/12'); flares.listeners.click();
   assert.equal(p.state.gear.flares, 3); assert.equal(saves, 2);
   for (const [key,kit] of Object.entries(UTILITY_GEAR)) {
     article=list.children.find(entry=>entry.dataset.serviceId===dealer.id);

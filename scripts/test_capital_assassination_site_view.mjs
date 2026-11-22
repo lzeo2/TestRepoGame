@@ -1,20 +1,18 @@
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import * as THREE from '../assets/car-arcade/vendor/three.module.js';
 import {createAssassinationSiteView} from '../Games/Capital Drive/assassination-site-view.js';
 import {createSimulation} from '../Games/Capital Drive/simulation.js';
 import {createShotObstacles} from '../Games/Capital Drive/shot-obstacles.js';
+import {createAssassinationCompound,createAssassinationChapter} from '../Games/Capital Drive/assassination-mission.js';
+import {createContractTarget} from '../Games/Capital Drive/contract-target.js';
 
 for(const yaw of [0,.7,-1.9]) {
   const origin={x:80,z:-30,yaw},c=Math.cos(yaw),s=Math.sin(yaw);
   const point=(u,v)=>({x:origin.x+c*u+s*v,z:origin.z-s*u+c*v,yaw});
-  const props=[{id:'left-crate',kind:'crate',...point(-3.8,2.5),width:1.4,depth:1.4,height:1.1,color:0x7b735d},
-    {id:'right-crate',kind:'crate',...point(3.8,5.5),width:1.4,depth:1.4,height:.85,color:0x6c776e},
-    {id:'left-screen',kind:'screen',...point(-4.8,4),width:.18,depth:8,height:1.9,color:0x69746c},
-    {id:'right-screen',kind:'screen',...point(4.8,4),width:.18,depth:8,height:1.9,color:0x69746c},
-    {id:'back-screen',kind:'screen',...point(0,7.8),width:9.6,depth:.18,height:1.9,color:0x69746c}];
-  const compound={id:'yard',origin,width:10,depth:8,props},before=JSON.stringify(compound),heightAt=(x,z)=>4+x*.003+z*.005;
+  const compound=createAssassinationCompound(origin,point(35,-1.5)),props=compound.props,before=JSON.stringify(compound),heightAt=(x,z)=>4+x*.003+z*.005;
   const scene=new THREE.Scene(),view=createAssassinationSiteView(scene,compound,heightAt),mesh=scene.children[0];
-  assert.equal(JSON.stringify(compound),before);assert.equal(view.stats.props,5);assert.equal(view.stats.triangles,60);
+  assert.equal(JSON.stringify(compound),before);assert.equal(view.stats.props,10);assert.equal(view.stats.triangles,252);
   assert.equal(view.stats.drawCalls,0);view.update(origin);assert.equal(view.stats.drawCalls,1);
   assert(Object.isFrozen(view.barriers)&&view.barriers.every(p=>Object.isFrozen(p)&&Object.isFrozen(p.points)&&p.points.every(Object.isFrozen)));
   assert.equal(view.treeExclusion.length,4);assert.equal(view.footprint.length,4);
@@ -33,6 +31,31 @@ for(const yaw of [0,.7,-1.9]) {
   for(let v=-2;v<=6;v+=.25) {
     const p=point(0,v);assert(!simulation.moveActor(p,0,0,.45).blocked,'open front and central target aisle remain accessible');
   }
+  const sweep=path=>{
+    for(let i=1;i<path.length;i++) {
+      const from=path[i-1],to=path[i],body={...from},steps=Math.max(1,Math.ceil(Math.hypot(to.x-from.x,to.z-from.z)/4));
+      for(let step=0;step<steps;step++) {
+        const result=simulation.moveActor(body,(to.x-from.x)/steps,(to.z-from.z)/steps,.45);
+        assert(!result.blocked,`authored route clears its own props (${i})`);
+      }
+      assert(Math.hypot(body.x-to.x,body.z-to.z)<1e-5);
+    }
+  };
+  sweep(compound.approaches.front.path);sweep(compound.approaches.service.path);
+  sweep([...compound.stealth.patrol,compound.stealth.patrol[0]]);
+  sweep([compound.stealth.guardPost,compound.stealth.investigate]);
+  sweep([compound.approaches.service.path[2],compound.stealth.diversionApproach]);
+  const rearStop=compound.stealth.patrol.at(-1),rearApproach=compound.stealth.diversionApproach;
+  const rearDot=(rearApproach.x-rearStop.x)*-Math.sin(rearStop.yaw)+(rearApproach.z-rearStop.z)*-Math.cos(rearStop.yaw);
+  assert(rearDot<-.9,'radio diversion presents a reachable quiet approach behind the target');
+  sweep([point(-7.2,-2),compound.approaches.front,compound.extraction]);
+  for(const landmark of Object.values(compound.landmarks))assert(!simulation.moveActor({...landmark},0,0,.45).blocked);
+  sweep([point(-7.2,.1),compound.landmarks.uniform]);
+  sweep([point(-7.2,3),point(-7.2,4.8),compound.landmarks.distraction]);
+  const rearFrom=point(0,6.5),rearTo=point(0,8.5);
+  assert(simulation.moveActor({...rearFrom},rearTo.x-rearFrom.x,rearTo.z-rearFrom.z,.45).blocked,'rear wall encloses the yard');
+  const sideFrom=point(-6.5,.8),sideTo=point(-3.5,.8);
+  assert(simulation.moveActor({...sideFrom},sideTo.x-sideFrom.x,sideTo.z-sideFrom.z,.45).blocked,'west wall cannot substitute for the service opening');
   for(const barrier of view.barriers)assert(simulation.moveActor({...barrier},0,0,.3).blocked,'each visible prop is physical');
   const from=point(0,5),to=point(0,9),dx=to.x-from.x,dz=to.z-from.z,length=Math.hypot(dx,dz);
   const ray={...from,y:heightAt(from.x,from.z)+1,dx:dx/length,dy:0,dz:dz/length,range:length,interiorId:null};
@@ -45,4 +68,43 @@ for(const yaw of [0,.7,-1.9]) {
 }
 const emptyScene=new THREE.Scene(),empty=createAssassinationSiteView(emptyScene,null);empty.update({x:0,z:0});
 assert.equal(emptyScene.children.length,0);assert.equal(empty.stats.geometryCount,0);empty.dispose();
-console.log('PASS rotated assassination compound boxes, identical render/physical/shot bounds, ground conformance, open entry/target aisle, cover, immutable descriptors, one draw/60 triangles, culling and disposal');
+const source=JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra.json',import.meta.url)));
+const simulation=createSimulation(source,{trafficCount:0,parkedCount:0});
+let traversals=0;
+const chapter=createAssassinationChapter(source,{
+  canStand:p=>!simulation.moveActor({...p},0,0,.45).blocked,
+  hasLineOfSight:simulation.hasLineOfSight,nearestRoad:simulation.nearestRoad,
+  canTraverse:(from,to,radius)=>{traversals++;return !simulation.moveActor({...from},to.x-from.x,to.z-from.z,radius).blocked;},
+});
+assert(chapter&&traversals>15,'actual source site requires swept external approach/patrol/extraction clearance');
+assert(!chapter.stealth,'dedicated assassination mission cannot enter the generic prop-puzzle dispatcher');
+const actual=createAssassinationSiteView(null,chapter.compound);simulation.registerStaticBarriers(actual.barriers);
+for(const path of [chapter.compound.approaches.front.path,chapter.compound.approaches.service.path,
+  chapter.compound.stealth.patrol.concat(chapter.compound.stealth.patrol[0]),
+  [chapter.compound.stealth.guardPost,chapter.compound.stealth.investigate],
+  [chapter.compound.approaches.service.path[2],chapter.compound.stealth.diversionApproach]]) {
+  for(let i=1;i<path.length;i++) {
+    const a=path[i-1],b=path[i],body={...a};
+    assert(!simulation.moveActor(body,b.x-a.x,b.z-a.z,.45).blocked,'actual map plus compound preserves both entries and actor routes');
+    assert(Math.hypot(body.x-b.x,body.z-b.z)<1e-5);
+  }
+}
+for(const landmark of Object.values(chapter.compound.landmarks))assert(!simulation.moveActor({...landmark},0,0,.45).blocked);
+const setup=chapter.compound.stealth,goal=chapter.stages[1];
+const target=createContractTarget({hasLineOfSight:simulation.hasLineOfSight,clipMovement:(body,dx,dz,radius)=>{
+  const result=simulation.moveActor({...body},dx,dz,radius);
+  return {dx:result.x-body.x,dz:result.z-body.z};
+}});
+assert(target.load({missionId:chapter.id,targetId:goal.targetId,pose:goal,stealth:setup}));
+const context=player=>({player,activeMissionId:chapter.id,onFoot:true,health:100,crouching:false});
+assert(target.interact(setup.uniform.id,context(setup.uniform)).ok);
+assert(target.interact(setup.distraction.id,context(setup.distraction)).ok);
+for(let i=0;i<120;i++)target.step(.1,context(setup.distraction));
+const end=setup.patrol.at(-1),start=setup.diversionApproach;
+const behind={...context({...start,yaw:Math.atan2(start.x-end.x,start.z-end.z)}),crouching:true};
+assert.equal(target.availableAction(behind)?.id,'takedown','actual yard geometry lets the player take down the distracted target');
+assert(target.interact('takedown',behind).ok);
+assert.equal(target.drainEvents().find(event=>event.type==='defeated')?.stealthOutcome,'clean');
+target.dispose();
+actual.dispose();
+console.log('PASS rotated Blackthorn yard, identical render/physical/shot bounds, two swept approaches, uniform/radio access, clear guard/patrol/extraction routes, enclosed rear/sides, cover and one draw/252 triangles');

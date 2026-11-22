@@ -12,7 +12,7 @@ function rectangle({x,z,yaw,width,depth},front=-depth/2,back=depth/2) {
 // The controller registers these same boxes before building collision and shot
 // indices. Visibility never changes their physical authority or allocates props.
 export function createAssassinationSiteView(scene,compound,heightAt=()=>0) {
-  let mesh=null,geometry=null,material=null,disposed=false;
+  let mesh=null,geometry=null,material=null,disposed=false,instanceCount=0;
   const barriers=[],empty=Object.freeze([]);
   let footprint=empty,treeExclusion=empty;
   if(compound) {
@@ -21,7 +21,7 @@ export function createAssassinationSiteView(scene,compound,heightAt=()=>0) {
       !Array.isArray(compound.props)||compound.props.length>MAX_PROPS)throw new Error('Invalid assassination compound geometry.');
     const box={...compound.origin,width:compound.width,depth:compound.depth};
     footprint=rectangle(box,0,compound.depth);
-    treeExclusion=rectangle({...box,width:compound.width+4},-2,compound.depth+2);
+    treeExclusion=rectangle({...box,width:compound.width+6},-3,compound.depth+2);
     for(const [index,prop] of compound.props.entries()) {
       if(!point(prop)||![prop.yaw,prop.width,prop.depth,prop.height].every(Number.isFinite)||
         prop.width<=0||prop.depth<=0||prop.height<=0||Math.max(prop.width,prop.depth)>30||prop.height>6)
@@ -36,22 +36,42 @@ export function createAssassinationSiteView(scene,compound,heightAt=()=>0) {
     }
     if(scene&&barriers.length) {
       geometry=new THREE.BoxGeometry(1,1,1);material=new THREE.MeshLambertMaterial({color:0xffffff});
-      mesh=new THREE.InstancedMesh(geometry,material,barriers.length);
-      mesh.name='Fictional Blackthorn collection yard';mesh.visible=false;mesh.count=barriers.length;
+      mesh=new THREE.InstancedMesh(geometry,material,barriers.length*6);
+      mesh.name='Fictional Blackthorn collection yard';mesh.visible=false;mesh.count=0;
       const transform=new THREE.Object3D(),color=new THREE.Color();
-      for(const [index,prop] of barriers.entries()) {
-        transform.position.set(prop.x,prop.y+prop.height/2,prop.z);transform.rotation.set(0,prop.yaw,0);
-        transform.scale.set(prop.width,prop.height,prop.depth);transform.updateMatrix();
-        mesh.setMatrixAt(index,transform.matrix);mesh.setColorAt(index,color.setHex(prop.color));
+      const add=(prop,u,v,y,width,depth,height,tint)=>{
+        const c=Math.cos(prop.yaw),s=Math.sin(prop.yaw);
+        transform.position.set(prop.x+c*u+s*v,prop.y+y+height/2,prop.z-s*u+c*v);transform.rotation.set(0,prop.yaw,0);
+        transform.scale.set(width,height,depth);transform.updateMatrix();
+        mesh.setMatrixAt(mesh.count,transform.matrix);mesh.setColorAt(mesh.count++,color.setHex(tint));
+      };
+      for(const prop of barriers)add(prop,0,0,0,prop.width,prop.depth,prop.height,prop.color);
+      // Thin painted faces stay on the authored solid box, never adding cover.
+      for(const prop of barriers) {
+        const face=-prop.depth/2-.002;
+        if(prop.kind==='guard-booth') {
+          add(prop,0,face,1.2,1.6,.004,.75,0x405b66);
+          add(prop,0,face-.002,1.15,.07,.004,.85,0xc6c4af);
+          add(prop,.62,face-.002,.15,.58,.004,.8,0x4a514b);
+        } else if(prop.kind==='uniform-rack') {
+          add(prop,0,face,.82,.3,.004,.52,0xe7dec8);
+          for(const side of [-1,1])add(prop,side*.22,face,1.12,.22,.004,.19,0xe7dec8);
+          add(prop,0,face-.002,1.31,.12,.004,.05,0x405e7b);
+        } else if(prop.kind==='distraction-radio') {
+          add(prop,0,face,.45,.75,.004,.45,0x303d43);
+          for(const side of [-1,1])add(prop,side*.23,face-.002,.53,.2,.004,.25,0xc8bca0);
+          add(prop,0,face-.002,.79,.62,.004,.05,0xc8bca0);
+        }
       }
+      instanceCount=mesh.count;
       mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;mesh.computeBoundingSphere();scene.add(mesh);
     }
   }
   const bodies=Object.freeze(barriers);
   return Object.freeze({barriers:bodies,footprint,treeExclusion,
     update(focus){if(mesh&&!disposed)mesh.visible=!!point(focus)&&Math.hypot(focus.x-compound.origin.x,focus.z-compound.origin.z)<RANGE;},
-    get stats(){return Object.freeze({props:bodies.length,instances:disposed?0:bodies.length,visible:!!mesh?.visible,
-      drawCalls:Number(!disposed&&!!mesh?.visible),triangles:disposed?0:bodies.length*12,
+    get stats(){return Object.freeze({props:bodies.length,instances:disposed?0:instanceCount,visible:!!mesh?.visible,
+      drawCalls:Number(!disposed&&!!mesh?.visible),triangles:disposed?0:instanceCount*12,
       geometryCount:Number(!disposed&&!!geometry),materialCount:Number(!disposed&&!!material),disposed});},
     dispose(){if(disposed)return;disposed=true;if(mesh){mesh.visible=false;scene.remove(mesh);mesh.dispose();geometry.dispose();material.dispose();}}
   });

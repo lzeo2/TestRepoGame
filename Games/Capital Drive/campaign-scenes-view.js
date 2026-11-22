@@ -58,7 +58,7 @@ export function createCampaignScenesView(scene,heightAt) {
     for(const person of Array.isArray(people)?people:[]) {
       if(stats.people>=4)break;
       if(typeof person?.id==='string'&&seen.has(person.id))continue;
-      const contract=person?.role==='contract-target';
+      const contract=person?.role==='contract-target'||person?.role==='contract-guard';
       const appearance=contract?person.appearance:appearances.get(person?.appearanceId);
       if(!appearance||(person.interiorId||null)!==interiorId||person.active===false||![person.x,person.z,person.yaw].every(Number.isFinite))continue;
       if(focus&&(!Number.isFinite(focus.x)||!Number.isFinite(focus.z)||Math.hypot(person.x-focus.x,person.z-focus.z)>140))continue;

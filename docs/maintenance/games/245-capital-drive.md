@@ -204,13 +204,25 @@ fascia next to its parapets. The connected approaches match the full road and
 footpath cross-section at the join. Vehicle paths and underpasses keep their
 source road ownership. Deck heights are authored estimates above the mapped lake.
 
-The Blackthorn account is an optional Campaign mission. Opening it plays a
-skippable intro. Cancel the scene to return to the Campaign menu. The story
-follows a fictional target at a fictional collection yard beside a mapped Kingston street.
-Reach the front on foot and fight Adrian Voss with ordinary combat controls.
-The target can move and react to hits. At zero health the escape objective opens.
-Reach the pickup on foot, then shake the police on foot or in a vehicle. The campaign pays $2,600 once
-and stores completion alongside other optional chapters.
+Optional Campaign missions unlock after all three introductions, the meeting
+and the shared story. Legacy saves unlock them after the shared story.
+The Campaign menu keeps the main story journal in a disclosure and shows one
+lock message until the optional missions are available.
+
+The Blackthorn account opens with a skippable briefing. Adrian Voss patrols a
+fictional collection yard beside a mapped Kingston street. Approach on foot
+through the front gate or service passage. The service route has workwear and
+a radio diversion that makes Voss pause in the rear aisle. Stow your weapon
+and watch the booth guard. To take down
+Voss quietly, crouch, stop behind him and press E when the takedown prompt
+appears. Ordinary combat also works. Exposed weapons, suspicious movement,
+nearby gunfire and a body the guard discovers can raise an alert.
+Reach the pickup on foot. If police are searching, lose them on foot or in a
+vehicle. A clear exit requires no police chase. The campaign pays $2,600 once.
+
+During play the toolbar keeps Map, Jobs, Phone and Pause visible. More holds
+Shops, Garage, Sound and Help. Dialogs retain their controls, purchase prices
+and eligibility messages while using shorter labels.
 
 Nearby drivers now anticipate a fast player cut-in and brake before the
 vehicle bodies meet. They use a shared per-driver horn cooldown for close

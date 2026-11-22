@@ -173,7 +173,7 @@ let trafficView,storefrontsView,shoppingView,campusView,civicView,noodleShopView
 let interiors,interiorScene,interiorView,indoorActorView,campaign,terrainSampler,gymEntry;
 let missionCheckpoint=null;
 let stealthContracts,stealthContractView,stealthOutcome=null,stealthPreview=null,planningContractId=null;
-let contractTarget,assassinationSiteView,assassinationOutcome=null;
+let contractTarget,assassinationSiteView,assassinationMarkers=[],assassinationOutcome=null;
 let lightRail,lightRailView,heists,heistSitesView,railHeistMarker,campaignAftermath,campaignWorld,streetWorld,inquiryOfficer=null;
 let depotTank,depotTankView;
 let inquiryHarm=false;
@@ -684,8 +684,10 @@ function trackYoober(){
 function updateNavigation(){
   if(guidanceRoute!==route){guidance.setRoute(route,destination);guidanceRoute=route;}
   guideState=guidance.update(focus());
-  $('navigation-hud').hidden=!guideState||!destination||!!interiors.active||!started;
-  if(guideState){
+  const atObjective=destination?.campaignObjective&&guideState?.kind==='arrive'&&guideState.distance<35&&gameplay.state.mode==='foot';
+  const navigation=$('navigation-hud');
+  navigation.hidden=!guideState||!destination||!!interiors.active||!started||atObjective;
+  if(!navigation.hidden){
     const distance=guideState.distance>=1000?`${(guideState.distance/1000).toFixed(1)} km`:`${Math.max(0,Math.round(guideState.distance/5)*5)} m`;
     $('navigation-distance').textContent=distance;
     $('navigation-instruction').textContent=guideState.offRoute?'Rejoin the route':({left:'Turn left',right:'Turn right',uturn:'Make a U-turn',straight:'Continue',arrive:'Destination'}[guideState.kind]);
@@ -1339,6 +1341,8 @@ function interiorHint(){
     return offer.ok?`E refill nitro${offer.cost?' · $'+offer.cost:''}`:`${offer.reason} E exits the car.`;
   }
   const pose=focus(),plan=interiors?.active;
+  const contractAction=availableContractAction();
+  if(contractAction)return `E / USE · ${contractAction.label}`;
   if(!plan&&depotTank?.nearest(pose))return 'E / USE · Take depot tank';
   if(!plan&&!tutorialRunning&&!campaign.state.active){
     const site=!heists?.active&&heists?.nearby(pose);
@@ -1575,7 +1579,8 @@ function endCampaignAttempt(){
   return restoreFailedMission(0,true);
 }
 function campaignIntroChapter(optionalId){
-  return optionalId?campaign.optionalChapters.find(item=>item.id===optionalId&&!campaign.isCompleted(item.id)):campaign.current();
+  if(!optionalId)return campaign.current();
+  return campaign.optionalUnlocked()?campaign.optionalChapters.find(item=>item.id===optionalId&&!campaign.isCompleted(item.id)):null;
 }
 function playCampaignIntro(optionalId=null){
   if(missionCheckpoint?.failure){restoreFailedMission(0,true);openCampaign();return;}
@@ -1615,12 +1620,15 @@ $('cutscene-cancel').addEventListener('click',()=>cutscenes.cancel());
 
 function openCampaign(){
   const chapter=campaign.current(),active=campaign.state.active,required=campaign.nextRequiredCharacter();
-  const complete=!chapter&&!required&&campaign.journal().shared.every(item=>item.complete);
+  const unlocked=campaign.optionalUnlocked(),journal=campaign.journal();
+  const story=campaign.state.legacy?journal.shared:[...journal.introductions.flatMap(item=>item.chapters),{complete:journal.meeting},...journal.shared];
   renderCharacterChoices();
-  $('campaign-title').textContent=chapter?.name||(required?`Switch to ${required.name}`:complete?'Campaign complete':campaign.state.character?'Choose the next character':'Three ways in');
-  $('campaign-contact').textContent=chapter?.contact||(required?'NEXT CHARACTER':'THE LATE SHIFT');
-  $('campaign-briefing').textContent=chapter?.briefing||(required?`${required.name} leads the next mission. Choose them above to continue.`:complete?'The shared story is complete. Keep exploring or switch to Street Life for jobs.':'Choose a character to follow their opening missions. The three stories meet in Kingston.');
-  $('campaign-status').textContent=active?`Step ${active.stage+1}/${active.stageCount} · ${active.target.label} · ${Math.ceil(active.remaining)}s`:campaign.state.failed?campaign.state.message:'';
+  $('campaign-title').textContent=active?.name??chapter?.name??(required?`Switch to ${required.name}`:unlocked?'Story complete':'Campaign');
+  $('campaign-contact').textContent=`${story.filter(item=>item.complete).length}/${story.length} story missions`;
+  const briefing=$('campaign-briefing');
+  briefing.textContent=active||unlocked?'':chapter?.briefing||(required?`${required.name} leads the next mission.`:'Choose a character to continue.');
+  briefing.hidden=!briefing.textContent;
+  $('campaign-status').textContent=active?active.target.label:campaign.state.failed?campaign.state.message:'';
   $('campaign-status').hidden=!$('campaign-status').textContent;
   $('campaign-chapters').replaceChildren();
   const files=Object.entries(campaignAftermath?.serialize()||{});
@@ -1628,30 +1636,30 @@ function openCampaign(){
   history.hidden=files.length===0;
   history.textContent=files.map(([id,file])=>`${id==='earmuffs-rematch'?'Rematch':'Lunch Breakpoint'} · ${file.decision} · ${file.civilianHarm?'civilian injured':'civilians spared'}`).join(' • ');
   $('campaign-contracts').replaceChildren();
-  $('campaign-contracts-group').hidden=!campaign.optionalChapters.some(item=>item.stealth);
+  $('campaign-contracts-group').hidden=!campaign.optionalChapters.length;
+  $('campaign-optionals-lock').hidden=unlocked;
   $('contract-plan').hidden=true;
   for(const item of campaign.chapters){
     const li=document.createElement('li');li.textContent=item.name.replace(/^\d+\. /,'')+(campaign.isCompleted(item.id)?' · Complete':'');
     if(item.id===chapter?.id)li.setAttribute('aria-current','step');
     $('campaign-chapters').append(li);
   }
-  for(const item of campaign.optionalChapters){
+  for(const item of unlocked?campaign.optionalChapters:[]){
     const li=document.createElement('li'),button=document.createElement('button');
     button.type='button';button.id=`campaign-optional-${item.id}`;
-    button.textContent=campaign.isCompleted(item.id)?`${item.name} · Complete`:`${item.name} · $${item.reward.toLocaleString()}`;
+    const name=item.name.replace(/^Optional: /,'');
+    button.textContent=campaign.isCompleted(item.id)?`${name} · Complete`:`${name} · $${item.reward.toLocaleString()}`;
     button.disabled=!!active||!campaign.state.character||campaign.isCompleted(item.id)||gameMode!=='campaign'||!!developerReturn?.blocked;
-    button.addEventListener('click',()=>item.stealth?openContractPlan(item.id):playCampaignIntro(item.id));li.append(button);
-    if(item.stealth)$('campaign-contracts').append(li);
-    else{
-      const description=document.createElement('p');description.textContent=item.briefing;li.append(description);
-      $('campaign-chapters').append(li);
-    }
+    button.addEventListener('click',()=>item.stealth&&!item.assassination?openContractPlan(item.id):playCampaignIntro(item.id));li.append(button);
+    $('campaign-contracts').append(li);
   }
-  $('campaign-start').disabled=!!active||!chapter||gameMode!=='campaign'||!!developerReturn?.blocked;
-  $('campaign-start').textContent=campaign.state.failed?'Retry mission':'Start mission';
-  $('campaign-cancel').disabled=!active;
+  const startButton=$('campaign-start'),cancelButton=$('campaign-cancel');
+  startButton.disabled=!!active||!chapter||gameMode!=='campaign'||!!developerReturn?.blocked;
+  startButton.hidden=!!active||unlocked&&!chapter;
+  startButton.textContent=campaign.state.failed?'Retry mission':'Start mission';
+  cancelButton.disabled=cancelButton.hidden=!active;
   openDialog('campaign-dialog');
-  if(!active&&planningContractId)openContractPlan(planningContractId);
+  if(unlocked&&!active&&planningContractId)openContractPlan(planningContractId);
 }
 function openNpcDialogue(person){
   const lunch=gameMode==='campaign'&&currentHero()?.id==='corporate'&&campaign.state.active?.id==='corporate-lunch-breakpoint';
@@ -1679,7 +1687,8 @@ function openNpcDialogue(person){
 function syncPlayerAppearance(){
   const hero=currentHero();
   playerAppearanceId=hero?`player:${hero.appearance}`:'player';
-  actorView?.setPlayerAppearance?.(playerAppearanceId);indoorActorView?.setPlayerAppearance?.(playerAppearanceId);
+  const workwear=!!(campaign?.state.active?.assassination&&contractTarget?.snapshot()?.stealth?.disguised);
+  actorView?.setPlayerAppearance?.(playerAppearanceId,{workwear});indoorActorView?.setPlayerAppearance?.(playerAppearanceId,{workwear});
   rideView?.setPlayerAppearance?.(playerAppearanceId);busView?.setPlayerAppearance?.(playerAppearanceId);
   roomPeopleView?.setPlayerAppearance?.(playerAppearanceId);
   refreshModeLabel();
@@ -1696,15 +1705,17 @@ function refreshModeLabel(){
 function campaignNavigationTarget(){
   const active=campaign.state.active,guide=missionLocations?.guide(active,{pose:focus(),plan:interiors.active,people:roomPeople.snapshot(),wanted:gameplay.state.wanted});
   if(guide?.escaping||guide?.roaming)return null;
-  return guide?{...guide.point,label:guide.instruction,name:guide.location}:active?.target;
+  if(guide)return {...guide.point,label:guide.instruction,name:guide.location,campaignObjective:true};
+  return active?{...active.target,campaignObjective:true}:null;
 }
 function renderMissionGuide(){
   const active=campaign.state.active,aftermathResolved=!campaignAftermath?.isCase(active?.id)||campaignAftermath.recorded(active.id)||!!developerReturn;
   missionGuideState=gameMode==='campaign'?missionLocations?.guide(active,{pose:focus(),plan:interiors.active,people:roomPeople.snapshot(),wanted:gameplay.state.wanted,aftermathResolved})||null:null;
   if(missionGuideState){
     const metres=Number.isFinite(missionGuideState.distance)?` · ${Math.round(missionGuideState.distance)} m`:'';
-    const active=campaign.state.active;
-    $('job-description').textContent=`Step ${active.stage+1}/${active.stageCount} · ${missionGuideState.instruction}${metres}`;
+    const stealth=active?.assassination?contractTarget?.snapshot()?.stealth:null;
+    const status=stealth?.alerted?' · Alerted':stealth?.guard?.suspicion>.25||stealth?.suspicion>.25?' · Suspicious':stealth?.disguised?' · Disguised':'';
+    $('job-description').textContent=`${missionGuideState.instruction}${metres}${status}`;
   }
   if(indoorObjective){
     indoorObjective.visible=!!(interiors.active&&missionGuideState?.indoors);
@@ -1729,23 +1740,48 @@ function interactStealthObjective(){
   return true;
 }
 function clearRecon(){reconnaissance.clear();reconGuideKey='';scanHeld=false;}
+function contractContext(){
+  const state=gameplay.state;
+  const armed=state.weapon!=='unarmed';
+  const aiming=armed&&(state.aiming||mouseAim||keys.has('KeyZ')||actionTouch.has('aim'));
+  return {activeMissionId:campaign.state.active?.id,player:{...focus(),interiorId:interiors.active?.id||null},
+    onFoot:state.mode==='foot'&&!state.passenger&&!state.actor.swimming&&!jetpack?.active,
+    health:state.health,crouching:state.actor.crouching||keys.has('KeyX')||actionTouch.has('crouch'),
+    sprinting:keys.has('ShiftLeft')||keys.has('ShiftRight')||touch.has('boost'),armed,aiming,
+    paused:paused(),recovering:!!state.recovery};
+}
+function availableContractAction(){
+  if(!contractTarget?.body||campaign.state.active?.target.kind!=='assassination')return null;
+  return contractTarget.availableAction(contractContext());
+}
+function interactContractTarget(){
+  const action=availableContractAction();
+  if(!action)return false;
+  const result=contractTarget.interact(action.id,contractContext());
+  if(result?.message)notify(result.message);
+  syncPlayerAppearance();
+  return true;
+}
 function updateContractTarget(dt){
   const active=campaign.state.active;
-  if(!active?.assassination){if(contractTarget.body)contractTarget.clear();return;}
+  if(!active?.assassination){if(contractTarget.body){contractTarget.clear();syncPlayerAppearance();}return;}
   const goal=active.target;
   if(goal.kind==='assassination'&&!contractTarget.body){
-    contractTarget.load({missionId:active.id,targetId:goal.targetId,pose:goal,appearanceId:goal.appearanceId,label:goal.targetName,space:null});
+    contractTarget.load({missionId:active.id,targetId:goal.targetId,pose:goal,appearanceId:goal.appearanceId,label:goal.targetName,space:null,stealth:active.assassinationSite});
   }
-  if(contractTarget.body){
-    contractTarget.step(dt,{activeMissionId:active.id,player:{...focus(),interiorId:interiors.active?.id||null},paused:false});
-  }
+  if(contractTarget.body)contractTarget.step(dt,contractContext());
 }
 function reportContractOutcome(){
   for(const event of contractTarget.drainEvents()){
     const active=campaign.state.active;
-    if(event.type!=='defeated'||active?.id!==event.missionId||active.target.targetId!==event.targetId)continue;
+    if(!active?.assassination||active.id!==event.missionId)continue;
+    if(event.type==='alerted'){
+      if(gameplay.state.wanted<2)gameplay.reportOffence('yard alert',2,{witnessed:true,point:event.point||contractTarget.body});
+      continue;
+    }
+    if(event.type!=='defeated'||active.target.targetId!==event.targetId)continue;
     assassinationOutcome=event;
-    gameplay.reportOffence('contract killing',3,{witnessed:true,point:contractTarget.body});
+    if(event.stealthOutcome==='clean')notify('Undetected. Reach the pickup.');
   }
 }
 function shotTargets(){
@@ -2059,6 +2095,7 @@ function refreshModeUI() {
 function openDialog(id) {
   if (!simulation || !started || cutscenes.snapshot().active) return;
   if((aircraft?.active||jetpack?.active)&&['services-dialog','garage-dialog','jobs-dialog','campaign-dialog','phone-dialog'].includes(id)){notify('Land before opening this menu.');return;}
+  const controls=$('control-menu');if(controls?.hidePopover&&controls.matches(':popover-open'))controls.hidePopover();
   clearInput();
   for (const d of dialogs) if (d.open) d.close();
   if(id==='pause-dialog'){resetDevEntry();refreshAircraftRescue();}
@@ -2440,7 +2477,7 @@ function interact() {
   if (!gameplay || paused() || droneActive) return;
   if(jetpack?.active){notify('Press U to land before interacting.');return;}
   if(gameplay.state.recovery||gameplay.state.actor.impactTime>0)return;
-  if(openInquiry()||interactHeist()||interactLightRail()||interactDepotTank())return;
+  if(interactContractTarget()||openInquiry()||interactHeist()||interactLightRail()||interactDepotTank())return;
   if(interactStealthObjective())return;
   if(interactWatercraft())return;
   if(gameplay.state.mode==='vehicle'&&simulation.player.stuntActive){notify('Land and stop before getting out.');return;}
@@ -3024,8 +3061,9 @@ function updateHud() {
   const stance=$('stance-status');stance.hidden=!crouching;
   if(crouching)stance.textContent=nearbyCrouchCover(gameplay.state.actor)?'Crouched · cover nearby':'Crouched';
   $('driving-hint').textContent = aircraft?.active?aircraft.snapshot().prompt:buses?.passenger?'E request stop / leave bus':rideService?.passenger?'T phone · E exits when stopped':jetpack.active?'SPACE rise · SHIFT descend · U land':gameplay.state.mode==='foot'?'SHIFT sprint · SPACE jump · U jetpack':'SPACE drift · SHIFT nitro · F camera';
-  $('destination-line').hidden=!destination;
-  $('destination-line').textContent = destination ? `${destination.name} · ${(Math.hypot(destination.x - p.x, destination.z - p.z) / 1000).toFixed(1)} km away` : '';
+  const destinationLine=$('destination-line');
+  destinationLine.hidden=!destination||!!destination.campaignObjective;
+  if(!destinationLine.hidden)destinationLine.textContent=`${destination.name} · ${(Math.hypot(destination.x - p.x, destination.z - p.z) / 1000).toFixed(1)} km away`;
   if (started && !paused()) for (const place of map.landmarks) {
     if (!discovered.has(place.id) && Math.hypot(place.x - p.x, place.z - p.z) < place.radius) {
       discovered.add(place.id); saveProgress(); updatePlaces();
@@ -3140,6 +3178,7 @@ function syncExternalPeople(){
   for(const person of rideService?.people||[])if(person.active)add(person,.38);
   for(const person of campaignScenes?.people||[])if(!person.seated&&!person.interiorId)add(person,.32);
   if(contractTarget?.body?.health>0)add(contractTarget.body,.34);
+  if(contractTarget?.guardBody?.health>0)add(contractTarget.guardBody,.34);
   for(const officer of gameplay.state.police)if(officer.health>0&&officer.mode==='foot'&&!officer.interiorId)add(officer,.35);
   const job=progression.state.activeJob;
   if(job?.type==='ride'&&job.stage===0&&!job.passenger){
@@ -3277,7 +3316,8 @@ function animate(time) {
   jetpackView?.update(drawnActor,jetpack);
   if(!interiors.active){
   airportView?.update(p);defenceDepotView?.update(p);policeStationView?.update(p);
-  stealthContractView?.update(campaign.state.active?.stealth?[campaign.state.active.target]:railHeistMarker?[railHeistMarker]:null,p);
+  const activeMission=campaign.state.active;
+  stealthContractView?.update(activeMission?.stealth?[activeMission.target]:activeMission?.target.kind==='assassination'?assassinationMarkers:railHeistMarker?[railHeistMarker]:null,p);
   watercraftView?.update(watercraftViewState,p);
   pedestrianFocus.x=p.x;pedestrianFocus.z=p.z;pedestrianFocus.yaw=p.yaw;pedestrianFocus.speed=gameplay.state.mode==='vehicle'?p.speed:0;
   pedestrians?.update(pedestrianFocus, activeDt, simulation.traffic,simulation.hasLineOfSight);
@@ -3332,7 +3372,7 @@ function animate(time) {
   deliveryView?.update(deliveryViewState,{focus:p,dt:activeDt});
   rideView?.update({car:rideService.vehicles[0],passenger:rideService.passenger,driver:rideService.people[0]},{focus:p,playerCar:{...simulation.player,modelId:gameplay.state.vehicle.modelId},job:progression.state.activeJob,dt:activeDt});
   const targetPerson=contractTarget.body;
-  const cast=targetPerson?[targetPerson,...campaignScenes.people]:campaignScenes.people;
+  const cast=targetPerson?[targetPerson,contractTarget.guardBody,...campaignScenes.people]:campaignScenes.people;
   campaignScenesView?.update(cast,p,{interiorId:null,dt:activeDt});
   if(interiors.active){
     if(!indoorCampaignScenesView&&!compatibility&&campaignScenes.people.some(person=>person.interiorId===interiors.active.id))indoorCampaignScenesView=createCampaignScenesView(interiorScene,()=>interiors.active?.floorY||0);
@@ -3527,7 +3567,10 @@ async function boot() {
   heistSitesView=compatibility?emptyView():createHeistSitesView(scene,heistSites.sites);
   const assassinationMission=createAssassinationChapter(map,{
     canStand:pose=>standClear(pose),hasLineOfSight:simulation.hasLineOfSight,nearestRoad:simulation.nearestRoad,
+    canTraverse:(from,to,radius)=>!simulation.moveActor({...from},to.x-from.x,to.z-from.z,radius).blocked,
   });
+  const setup=assassinationMission?.compound.stealth;
+  if(setup)assassinationMarkers=[{...setup.uniform,visual:'credential'},{...setup.distraction,visual:'relay'}];
   assassinationSiteView=createAssassinationSiteView(compatibility?null:scene,assassinationMission?.compound,surfaceAt);
   map.barriers.push(...assassinationSiteView.barriers);
   simulation.registerStaticBarriers(assassinationSiteView.barriers);
@@ -3727,6 +3770,7 @@ async function boot() {
     onEvent: event => {
       combatFeedback(event);
       recordCameraGameplayEvent(event);
+      if(event.kind==='attack'&&event.weapon&&contractTarget?.body)contractTarget.heardShot({...focus(),interiorId:interiors.active?.id||null});
       if (!['attack','dry-fire','reload','reload-complete'].includes(event.kind)) notify(event.message);
       if (event.kind === 'respawn') cameraReady = false;
     } });
