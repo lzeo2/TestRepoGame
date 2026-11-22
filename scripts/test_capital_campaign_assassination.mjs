@@ -60,8 +60,9 @@ for (const denied of [{ paused: true }, { sandbox: true }, { onFoot: false }, { 
   tick({ pose: target, assassinationOutcome: killed, ...denied }); assert.equal(campaign.state.active.stage, 1);
 }
 tick({ pose: target, wanted: 2, assassinationOutcome: killed }); assert.equal(campaign.state.active.stage, 2, 'witness heat does not invalidate actual target death');
+tick({ pose: exit, wanted: 2, onFoot: false, assassinationOutcome: killed }); assert(!campaign.state.active.escapeReached, 'the pickup requires arrival on foot');
 tick({ pose: exit, wanted: 2, assassinationOutcome: killed }); assert(campaign.state.active.escapeReached); assert.equal(campaign.state.active.stage, 2);
-tick({ pose: { x: exit.x + 30, z: exit.z }, wanted: 0, assassinationOutcome: killed }); assert.equal(campaign.state.active, null, 'after reaching pickup the search can be lost anywhere');
+tick({ pose: { x: exit.x + 30, z: exit.z }, wanted: 0, onFoot: false, assassinationOutcome: killed }); assert.equal(campaign.state.active, null, 'the getaway may finish anywhere while still in the car');
 assert.equal(campaign.current().id, story); assert.deepEqual(campaign.serialize().optionalCompleted, [chapter.id]);
 assert.deepEqual(campaign.drainEvents().filter(e => e.type === 'complete').map(e => [e.id, e.reward]), [[chapter.id, 2600]]);
 assert(!campaign.startOptional(chapter.id, context).ok, 'completed assassination cannot reward twice');
