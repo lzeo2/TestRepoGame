@@ -3197,9 +3197,13 @@ function updateHud() {
   const carLabel=vehicles.find(v=>v.id===selectedCar)?.label||selectedCar.toUpperCase();
   $('car-label').textContent = aircraft?.active?(aircraft.active.kind==='helicopter'?'HELICOPTER':'JET'):buses?.passenger?'BUS':rideService?.passenger?'YOOBER':gameplay?.state.mode==='foot'?'ON FOOT':gameplay.state.vehicle.rented?`RENTAL · ${carLabel}`:carLabel;
   $('street').textContent = interiors?.active?.name||nearby?.road.name || 'Canberra backstreets';
-  const districtPlaces=map.landmarks.filter(place=>['telopea','manuka','kingston','foreshore','redhill','griffith','narrabundah','canberra-centre','canberra-airport','capital-defence-depot'].includes(place.id));
+  const districtPlaces=map.landmarks.filter(place=>place.sourceTags?.place==='suburb'||[
+    'telopea','manuka','kingston','foreshore','redhill','griffith','narrabundah','canberra-centre','canberra-airport',
+    'capital-defence-depot','black-mountain-tower','giant-spray',
+  ].includes(place.id));
   const nearestPlace = districtPlaces.reduce((a, b) => Math.hypot(a.x - p.x, a.z - p.z) < Math.hypot(b.x - p.x, b.z - p.z) ? a : b);
-  $('district').textContent = nearestPlace.id === 'telopea' ? 'BARTON' : nearestPlace.id==='canberra-centre'?'CIVIC':nearestPlace.name.replace(/ shops$/i,'').toUpperCase();
+  const namedDistricts={'telopea':'Barton','canberra-centre':'Civic','black-mountain-tower':'Black Mountain','giant-spray':'Macquarie'};
+  $('district').textContent=(namedDistricts[nearestPlace.id]||nearestPlace.name.replace(/ shops$/i,'')).toUpperCase();
   const boost=simulation.driving;
   const roadLimit=$('road-limit');
   roadLimit.hidden=!started||!manual||!nearby||nearby.distance>roadProfile(nearby.road).driveWidth/2+2;

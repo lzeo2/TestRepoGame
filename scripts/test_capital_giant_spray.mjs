@@ -65,6 +65,15 @@ const merged = applyNorthWest(prior,data('north-west'),terrain,overlay);
 assert.equal(merged.giantSpray,site);
 const sampler=createTerrainSampler(merged);
 assert(sampler.groundHeightAt(site.x,site.z)>0,'the original park location has ACT contour ground');
+const script=await readFile(new URL('../Games/Capital Drive/script.js',import.meta.url),'utf8');
+const districtSource=script.slice(script.indexOf('const districtPlaces='),script.indexOf('const boost=simulation.driving;'));
+const updateDistrict=Function('map','p','$',districtSource);
+const district={textContent:''};
+for(const [id,name] of [['dickson-library','DICKSON'],['black-mountain-tower','BLACK MOUNTAIN'],['giant-spray','MACQUARIE']]){
+  const point=merged.landmarks.find(place=>place.id===id);
+  updateDistrict(merged,point,()=>district);
+  assert.equal(district.textContent,name);
+}
 const graph = buildRoadGraph(merged.roads), planner = createRoutePlanner(graph);
 const approach = graph.nodes.get(site.approach.sourceId.slice(5));
 assert(approach && Math.hypot(approach.x-site.x, approach.z-site.z) < 80, 'public road arrival near actual perimeter');
