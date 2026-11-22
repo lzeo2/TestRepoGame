@@ -26,12 +26,12 @@ const handoffStart = source.indexOf('for(const event of activities.drainEvents()
 const handoffEnd = source.indexOf('  let previous=activities.snapshot();', handoffStart);
 assert(handoffStart >= 0 && handoffEnd > handoffStart);
 const handoff = source.slice(handoffStart, handoffEnd);
-const incidentStart = source.indexOf("if(event.type==='started'&&event.incident){", source.indexOf('function updateCareer('));
-const incidentEnd = source.indexOf("    if(event.type==='complete'){", incidentStart);
-assert(incidentStart >= 0 && incidentEnd > incidentStart, 'actual controller campaign incident handoff');
-const incident = source.slice(incidentStart, incidentEnd);
+const incident = extract('reportCampaignIncident');
+for (const caller of ['startCampaignMission','updateCareer']) {
+  assert(extract(caller).includes("if(event.type==='started')reportCampaignIncident(event)"), 'actual controller campaign incident handoff');
+}
 function reportIncident(event, gameplay, campaignAftermath = null, developerReturn = null) {
-  runInNewContext(incident, { event, gameplay, campaignAftermath, developerReturn });
+  runInNewContext(`${incident};reportCampaignIncident(event);`, { event, gameplay, campaignAftermath, developerReturn });
 }
 const fixture = await createCampaignFixture();
 const { map, interiors, guide } = fixture;

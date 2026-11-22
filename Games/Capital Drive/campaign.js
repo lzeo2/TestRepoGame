@@ -247,6 +247,11 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     }
   }
   const events = [];
+  const retrySnapshots = new WeakMap(), retryTokens = new Map();
+  let attemptGeneration = 0, failedGeneration = null, failedRespawn = 0;
+  const retryProgress = () => JSON.stringify([state.intros,state.meeting,state.legacy,state.completed,state.optionalCompleted]);
+  function retireRetries() { attemptGeneration++; failedGeneration = null; retryTokens.clear(); }
+
   const allIntroduced = () => ids.every(id => state.intros[id].length === intros[id].length);
   const optionalUnlocked = () => state.completed.length === shared.length && (state.legacy || (allIntroduced() && state.meeting));
   const current = () => {
@@ -289,6 +294,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.campaign) return { ok: false, message: 'Campaign unavailable here.' };
     if (!ids.includes(id)) return { ok: false, message: 'Choose an available character.' };
     if (!canSelectCharacter(id)) return { ok: false, message: 'Finish or cancel the active mission before switching characters.' };
+    retireRetries();
     state.character = id; state.failed = false; state.message = `${characters.find(c => c.id === id).name}: ${current()?.briefing || requiredMessage() || (allIntroduced() && state.meeting ? 'Campaign complete.' : 'Choose another character to bring the three stories together.')}`;
     return { ok: true, message: state.message };
   }
@@ -326,6 +332,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     return begin(chapter, ctx);
   }
   function begin(chapter, ctx, developer = false) {
+    retireRetries();
     state.active = { id: chapter.id, name: chapter.name, reward: developer ? 0 : chapter.reward, combat: chapter.combat !== false, companions: clone(chapter.companions || []), cutscene: chapter.cutscene ? clone(chapter.cutscene) : null, stage: 0, target: clone(chapter.stages[0]), remaining: chapter.time, elapsed: 0, held: 0, escapeReached: false, serial: ctx.respawnSerial, sawWanted: ctx.wanted > 0, baselines: baselines(ctx), ...(developer ? { developer: true, character: chapter.character } : { startCharacter: state.character }) };
     state.failed = false; state.message = chapter.briefing;
     state.active.stageCount = chapter.stages.length;
@@ -371,17 +378,46 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     developerChapter = freeze({ ...entry.chapter, character: entry.character });
     return begin(developerChapter, ctx, true);
   }
-  function fail(message) {
+  function captureRetry() {
+    const active = state.active, chapter = current();
+    if (!active || active.developer || !chapter || isCompleted(active.id)) return null;
+    const token = Object.freeze({ id: active.id, stage: active.stage });
+    retrySnapshots.set(token, { generation: attemptGeneration, progress: retryProgress(),
+      chapter: freeze(clone(chapter)), active: clone(active), hero: state.character });
+    retryTokens.set(active.stage, token);
+    return token;
+  }
+  function resumeRetry(token, ctx) {
+    const snapshot = token && typeof token === 'object' ? retrySnapshots.get(token) : null;
+    if (!snapshot || snapshot.generation !== attemptGeneration || failedGeneration !== attemptGeneration ||
+        retryTokens.get(token.stage) !== token || state.active || !state.failed || isCompleted(token.id) ||
+        snapshot.progress !== retryProgress() || !validContext(ctx) || ctx.respawnSerial < failedRespawn ||
+        ctx.sandbox || ctx.recovering || !ctx.campaign) return { ok: false, message: 'Mission retry unavailable.' };
+    const active = clone(snapshot.active);
+    active.serial = ctx.respawnSerial; active.held = 0; active.escapeReached = false;
+    active.baselines = baselines(ctx, active.baselines);
+    if (active.stealth) active.stealthSerial = Math.max(active.stealthSerial,serial(ctx.stealthOutcome));
+    state.character = snapshot.hero; state.active = active; state.failed = false;
+    state.message = active.target.label; failedGeneration = null;
+    optionalChapter = active.optional ? snapshot.chapter : null;
+    developerChapter = null;
+    for (const stage of retryTokens.keys()) if (stage > active.stage) retryTokens.delete(stage);
+    return { ok: true, message: active.target.label };
+  }
+  function fail(message, respawnSerial = state.active?.serial) {
     if (!state.active) return false;
+    const { id, stage, serial: activeSerial } = state.active;
+    failedGeneration = state.active.developer ? null : attemptGeneration;
+    failedRespawn = Math.max(activeSerial,Number.isSafeInteger(respawnSerial) ? respawnSerial : activeSerial);
     if (!state.active.developer) state.character = state.active.startCharacter;
     state.active = null; developerChapter = null; optionalChapter = null; state.failed = true; state.message = message;
-    events.push({ type: 'failed', message }); return true;
+    events.push({ type: 'failed', id, stage, message }); return true;
   }
   function update(dt, ctx) {
     if (!Number.isFinite(dt) || dt < 0) throw new Error('Campaign dt must be finite and nonnegative.');
     const active = state.active;
     if (!active || !validContext(ctx) || ctx.sandbox || !ctx.campaign || ctx.paused || dt === 0) return;
-    if (ctx.respawnSerial !== active.serial || ctx.recovering) { fail(active.developer ? 'Mission preview failed.' : 'Mission failed.'); return; }
+    if (ctx.respawnSerial !== active.serial || ctx.recovering) { fail(active.developer ? 'Mission preview failed.' : 'Mission failed.',ctx.respawnSerial); return; }
     if (ctx.health !== undefined && (!Number.isFinite(ctx.health) || ctx.health <= 0)) return;
     const step = Math.min(dt, .1), chapter = current(), goal = active.target;
     active.remaining = Math.max(0, active.remaining - step); active.elapsed += step; active.sawWanted ||= ctx.wanted > 0;
@@ -438,6 +474,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
       events.push({ type: 'stage', message: active.target.label });
     } else {
       if (developerChapter) {
+        retireRetries();
         state.active = null; developerChapter = null; state.message = chapter.outro; state.failed = false;
         events.push({ type: 'developer-complete', id: chapter.id, reward: 0, message: chapter.outro });
         return;
@@ -446,11 +483,12 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
       else if (chapter.id === meeting.id) state.meeting = true;
       else if(chapter.optional)state.optionalCompleted.push(chapter.id);
       else state.completed.push(chapter.id);
+      retireRetries();
       state.active = null; optionalChapter = null; state.message = chapter.outro; state.failed = false;
       events.push({ type: 'complete', id: chapter.id, reward: chapter.reward, message: chapter.outro });
     }
   }
-  return { state, characters, get chapters() { return chapters(); }, optionalChapters: optional, optionalUnlocked, contractPlans: id=>optionalUnlocked()?(contractOptions.get(id)??null):null, current, nextRequiredCharacter, start, startOptional, startDeveloper, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, companionSwitchReason, canSwitchCompanion, switchCompanion, isCompleted, policeSearchDuration, isStoryRobbery,
+  return { state, characters, get chapters() { return chapters(); }, optionalChapters: optional, optionalUnlocked, contractPlans: id=>optionalUnlocked()?(contractOptions.get(id)??null):null, current, nextRequiredCharacter, start, startOptional, startDeveloper, captureRetry, resumeRetry, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, companionSwitchReason, canSwitchCompanion, switchCompanion, isCompleted, policeSearchDuration, isStoryRobbery,
     cancel: () => fail('Mission cancelled.'),
     serialize: () => clone({ version: 2, character: state.character, intros: state.intros, meeting: state.meeting, legacy: state.legacy, completed: state.completed, ...(state.optionalCompleted.length?{optionalCompleted:state.optionalCompleted}:{}) }),
     journal: () => freeze(clone({ character: state.character, introductions: ids.map(id => ({ character: id, chapters: intros[id].map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })), meeting: state.meeting, shared: shared.map(item => ({ id: item.id, character: item.character, name: item.name, complete: isCompleted(item.id) })) })),

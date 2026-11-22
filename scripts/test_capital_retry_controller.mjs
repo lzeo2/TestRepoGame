@@ -20,7 +20,8 @@ const map = { bounds: { minX: -1000, maxX: 1000, minZ: -1000, maxZ: 1000 }, spaw
   { id: 'canberra-centre', x: 200, z: -400 },
   { id: 'store-5656111023', name: 'Lambzhou 1919', x: 300, z: -420 },
 ] };
-const campaign = createCampaign(map), progression = createProgression(map);
+let campaign = createCampaign(map);
+const progression = createProgression(map);
 const initialContext = { pose: { x: 0, z: 0, speed: 0 }, onFoot: true, wanted: 0,
   respawnSerial: 0, campaign: true, sandbox: false, health: 71, vehicleHealth: 63 };
 assert(campaign.selectCharacter('student', initialContext).ok);
@@ -66,7 +67,7 @@ const env = {
     restoreMissionCheckpoint(body, { canRestoreWeapon, commit }) {
       placementChecks++;
       assert.deepEqual(simulation.abandonedCars.map(car => car.id), ['old-car']);
-      hadWeapon = canRestoreWeapon(body.weapon);
+      hadWeapon = canRestoreWeapon('pistol');
       assert(hadWeapon, 'owned prelaunch weapon remains recoverable after storing it during the mission');
       if (obstructed) return { ok: false, reason: 'vehicle-blocked' };
       assert.equal(commit(), true);
@@ -103,7 +104,8 @@ const env = {
 };
 vm.createContext(env);
 vm.runInContext([
-  'missionLaunchReason', 'startCampaignMission', 'activeWorldRecord', 'resetCampaignWorld', 'acceptMissionCheckpoint', 'prepareFailedMissionReturn',
+  'missionLaunchReason', 'startCampaignMission', 'reportCampaignIncident', 'captureMissionPosition', 'rememberMissionStep', 'advanceCampaign',
+  'activeWorldRecord', 'resetCampaignWorld', 'acceptMissionCheckpoint', 'prepareFailedMissionReturn',
   'restoreMissionRoom', 'restoreFailedMission', 'endCampaignAttempt', 'saveCareer', 'updateCareer',
 ].map(controller).join('\n'), env);
 
@@ -145,10 +147,10 @@ env.updateCareer(.25); assert.equal(placementChecks, 1, 'retry cadence is bounde
 obstructed = false;
 env.updateCareer(.25);
 assert.equal(placementChecks, 2);
-assert.equal(campaign.state.active, null, 'successful return leaves the mission stopped');
-assert.equal(env.missionCheckpoint, null);
+assert.equal(campaign.state.active?.stage, 0, 'step 1 automatically starts again at the original launch');
+assert(env.missionCheckpoint, 'retry retains the prelaunch transaction');
 assert.equal(state.recovery, null, 'mission recovery preempts penalty and safehouse transfer');
-assert.equal(state.health, 71); assert.equal(state.weapon, 'pistol'); assert.equal(state.wanted, 2);
+assert.equal(state.health, 71); assert.equal(state.weapon, 'unarmed'); assert.equal(state.wanted, 2);
 assert.equal(state.vehicleHealth, 63);
 assert.deepEqual(ammoPools, startAmmo);
 assert.deepEqual(state.actor, actorInside);
@@ -156,19 +158,20 @@ assert.deepEqual(simulation.player, { x: 4, z: 12, yaw: .3 });
 assert.equal(simulation.abandonedCars.length, 1);
 assert.equal(simulation.driving.nitroFuel, 22); assert.equal(env.playerCarKey, 9); assert.equal(env.footCameraYaw, .5);
 assert.equal(interiors.active, initialRoom);
-assert.deepEqual(copy(env.destination), initialDestination);
+assert.deepEqual(copy(env.destination), copy(campaign.state.active.target), 'retry routes to the restored step');
 assert.equal(env.protagonists.get('corporate'), null, 'shared ally changes do not alter other protagonist checkpoints');
-assert.equal(write.length, 2); assert.deepEqual(write.at(-1), before);
-assert.match(notices.at(-1), /Returned to your mission start/);
+assert.equal(write.length, 1, 'a retry does not persist partial progress');
+assert.match(notices.at(-1), /Retrying step 1/);
 assert.equal(env.restoreFailedMission(20), true); assert.equal(placementChecks, 2);
 
-env.startCampaignMission();
 assert(campaign.state.active);
 progression.state.cash = 999;
 assert(env.endCampaignAttempt());
 assert.equal(progression.state.cash, before.cash, 'manual abandon returns the checkpoint as well');
 assert.equal(campaign.state.active, null);
 assert.equal(env.missionCheckpoint, null);
+assert.deepEqual(copy(env.destination), initialDestination);
+assert.equal(write.length, 2); assert.deepEqual(write.at(-1), before);
 // Completion commits transaction effects, then publishes reward and career together.
 env.startCampaignMission();
 assert(campaign.state.active);
@@ -186,4 +189,51 @@ const completedWrites = write.length;
 env.clearingProgress = true;
 env.saveCareer();
 assert.equal(write.length, completedWrites, 'autosave cannot recreate progress while the clear action reloads');
-console.log('PASS actual mission checkpoint controller: prelaunch save, precise room/vehicle/hero/ammo/economy/route return, blocked retry, cancellation and completion');
+
+// Drive an authored four-step optional flight through the same controller.
+env.clearingProgress = false;
+const story = campaign.journal().shared.map(chapter => chapter.id);
+campaign = createCampaign(map, { version: 1, completed: story });
+env.campaign = campaign;
+env.clearInterior();
+const helicopter={id:'test-heli',kind:'helicopter',x:22,z:40,altitude:2,airborne:false,wrecked:false};
+const jet={id:'test-jet',kind:'jet',x:50,z:70,altitude:0,airborne:false,wrecked:false};
+Object.assign(env.aircraft,{
+  snapshot:()=>({planes:[helicopter,jet]}),
+  captureCheckpoint(){return {active:this.active&&copy(this.active)};},
+  restoreCheckpoint(token){this.active=token.active&&copy(token.active);return {ok:true};},
+  reset(){this.active=null;state.passenger=false;},
+});
+env.careerContext=()=>({...initialContext,pose:env.aircraft.active||state.actor,aircraft:env.aircraft.active,
+  health:state.health,onFoot:!env.aircraft.active,wanted:state.wanted,respawnSerial:state.respawnSerial,recovering:Boolean(state.recovery)});
+state.wanted=0;
+const beforeFlight=progression.state.cash,groundActor={x:state.actor.x,z:state.actor.z,yaw:state.actor.yaw};
+env.startCampaignMission('above-the-paperwork');
+const flightWrites=write.length;
+env.aircraft.active={...helicopter};
+state.passenger=true;
+for(let i=0;i<18;i++)env.advanceCampaign(.1);
+assert.equal(campaign.state.active.stage,1);
+assert.equal(env.missionCheckpoint.steps.at(-1).inFlight,true,'seated aircraft gets a retry checkpoint');
+assert.deepEqual(copy(env.missionCheckpoint.steps.at(-1).body.actor),groundActor,'flight checkpoint keeps a clear ground body anchor');
+progression.state.cash+=200;
+env.aircraft.active={...helicopter,altitude:17,airborne:true};
+for(let i=0;i<18;i++)env.advanceCampaign(.1);
+assert.equal(campaign.state.active.stage,2);
+const failFlight=()=>{
+  state.recovery={phase:'out'};state.health=0;
+  env.advanceCampaign(.1);
+  env.updateCareer(.016);
+};
+failFlight();
+assert.equal(campaign.state.active.stage,1,'failure at step 3 retries step 2');
+assert.equal(env.aircraft.active.altitude,2,'retry recovers the prior stage aircraft');
+assert.equal(progression.state.cash,beforeFlight,'retry reverses spending and gains after the selected step');
+assert.equal(write.length,flightWrites,'retry keeps the disk prelaunch snapshot');
+state.passenger=true;
+failFlight();
+assert.equal(campaign.state.active.stage,0,'repeated failure at step 2 can still retry step 1');
+assert.equal(env.aircraft.active,null,'step 1 restores the starting foot state');
+assert(env.endCampaignAttempt(),'the same attempt can still cancel back to its original state');
+assert.equal(progression.state.cash,beforeFlight);
+console.log('PASS actual mission checkpoint controller: precise launch/step rewind, blocked retry, exact aircraft and economy restore, cancellation and completion.');

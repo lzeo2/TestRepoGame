@@ -104,7 +104,7 @@ const progress = createProgression(map), context = { pose: { x: 0, z: 0 }, onFoo
   vehicleHealth: 100, wanted: 3, respawnSerial: 0, sandbox: false, recovering: false, passenger: true };
 assert.equal(progress.startJob(progress.jobs[0].id, context).ok, false, 'a passenger cannot start a paid job through another handler');
 assert.equal(progress.startJob(progress.jobs[0].id, { ...context, passenger: false }).ok, true, 'ordinary wanted jobs remain permitted');
-assert(source.includes("if(!aircraft?.active||campaign.state.active?.aviation===true||campaign.state.active?.target?.kind==='escape')campaign.update(1/60,careerContext())"),
+assert(source.includes("if(!aircraft?.active||campaign.state.active?.aviation===true||campaign.state.active?.target?.kind==='escape')advanceCampaign(1/60)"),
   'aviation and escape targets progress during flight');
 assert(source.includes("if (!isSandbox()&&!aircraft?.active) progression.update(1 / 60, careerContext())"));
 assert(source.includes('desiredCamera.set(p.x+Math.sin(angle)*distance,p.y+7+orbitHeight'));

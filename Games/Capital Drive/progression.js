@@ -177,6 +177,7 @@ export function createProgression(map, saved = null, options = {}) {
   const events = [];
   let context = null, serial = null, shiftPlan = null, workoutPlan = null, lastHouseLootSerial = 0, lastRestSerial = 0, deliveryEscrow = null, lastDeliveryOrderId = null;
   let missionState = null;
+  const missionSteps = new WeakMap();
   function result(ok, message, extra = {}, type = ok ? 'change' : 'error') {
     state.message = message;
     events.push({ type, message, ...extra });
@@ -673,18 +674,31 @@ export function createProgression(map, saved = null, options = {}) {
     return result(true,type==='robbery'?'Stay near the till.':'Training started.',{serviceId:id,point:{x:site.x,z:site.z}},type+'-started');
   }
   const crewRenewals=Object.fromEntries(crewOffers.map(item=>[item.id,0]));
+  function missionRecord(){
+    const saved=copy(state),token=Object.freeze({weaponOwned:id=>saved.equipment[id]===true});
+    return {token,saved,context:context&&copy(context),serial,crewRenewals:{...crewRenewals}};
+  }
   function captureMissionState(){
     if(missionState||state.activity||deliveryEscrow)return null;
-    const saved=copy(state),token=Object.freeze({weaponOwned:id=>saved.equipment[id]===true});
-    missionState={token,saved,context:context&&copy(context),serial,crewRenewals:{...crewRenewals}};
-    return token;
+    missionState=missionRecord();return missionState.token;
   }
-  function restoreMissionState(token,respawnSerial){
-    if(!missionState||missionState.token!==token||!Number.isSafeInteger(respawnSerial)||respawnSerial<0)return false;
-    Object.assign(state,copy(missionState.saved));
-    context=missionState.context;serial=state.activeJob?respawnSerial:missionState.serial;
-    Object.assign(crewRenewals,missionState.crewRenewals);
-    shiftPlan=null;workoutPlan=null;deliveryEscrow=null;events.length=0;missionState=null;
+  function captureMissionStep(rootToken){
+    if(!missionState||missionState.token!==rootToken||state.activity||deliveryEscrow)return null;
+    const captured=missionRecord();
+    // Only retained opaque tokens keep their snapshots alive. Root identity
+    // invalidates every child when the attempt commits, cancels or is replaced.
+    missionSteps.set(captured.token,{...captured,root:rootToken});
+    return captured.token;
+  }
+  function restoreMissionState(token,respawnSerial,{keep=false}={}){
+    if(!missionState||!Number.isSafeInteger(respawnSerial)||respawnSerial<0||typeof keep!=='boolean')return false;
+    const child=missionSteps.get(token);
+    const captured=missionState.token===token?missionState:child?.root===missionState.token?child:null;
+    if(!captured)return false;
+    Object.assign(state,copy(captured.saved));
+    context=captured.context&&copy(captured.context);serial=state.activeJob?respawnSerial:captured.serial;
+    Object.assign(crewRenewals,captured.crewRenewals);
+    shiftPlan=null;workoutPlan=null;deliveryEscrow=null;events.length=0;if(!keep)missionState=null;
     return true;
   }
   function commitMissionState(token){
@@ -997,7 +1011,7 @@ export function createProgression(map, saved = null, options = {}) {
     if(state.fitnessLevel>=3||!spend(active.cost))return result(false,'Training is unavailable.',{},'activity-ended');
     state.fitnessLevel++;return result(true,`Set complete. Fitness ${state.fitnessLevel}/3.`,{serviceId:active.serviceId,cost:active.cost,kind:active.station.kind},'workout-complete');
   }
-  return { state, jobs, garage,captureMissionState,restoreMissionState,commitMissionState,saveInventory,getInventory,saveCrewHealth,getCrewHealth,propertyOffers,crewOffers,buyProperty,restSafehouse,isSafehouse,hireCrew,rehireCrew,dismissCrew,buyDrone,claimHouseLoot,stash,get ownedProperties(){return [...state.ownedProperties];},crewRenewalSerial(id){return crewRenewals[id]??0;},get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, upgradeVehicle, upgradeEligibility, vehicleMods, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,quoteDelivery,reserveDelivery,completeDelivery,startActivity,startMugging,robberyEligibility,workoutEligibility,finishWorkout,payRental,payRide,consumeFlare,consumeThrowable,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
+  return { state, jobs, garage,captureMissionState,captureMissionStep,restoreMissionState,commitMissionState,saveInventory,getInventory,saveCrewHealth,getCrewHealth,propertyOffers,crewOffers,buyProperty,restSafehouse,isSafehouse,hireCrew,rehireCrew,dismissCrew,buyDrone,claimHouseLoot,stash,get ownedProperties(){return [...state.ownedProperties];},crewRenewalSerial(id){return crewRenewals[id]??0;},get services(){return services.map(serviceSite);},canUseService:serviceAllowed, startJob, update, buyVehicle, upgradeVehicle, upgradeEligibility, vehicleMods, repairVehicle, paintVehicle, storeVehicle, retrieveVehicle, penalize,purchaseService,quoteDelivery,reserveDelivery,completeDelivery,startActivity,startMugging,robberyEligibility,workoutEligibility,finishWorkout,payRental,payRide,consumeFlare,consumeThrowable,rideEligibility,prepareStarterVehicle,redeemDevCode,startShift,finishShift,
     nitroOffer, refillNitro, buyDroneStrike, payCarRental, ownsWatercraft, buyWatercraft, absorbArmour, utilityAvailability, useUtility,
     cancelActivity(){if(!state.activity)return false;state.activity=null;shiftPlan=null;workoutPlan=null;return true;},
     cancelJob() { if (!state.activeJob) return result(false, 'No active job.'); state.activeJob = null; return result(true, 'Job cancelled.', {}, 'job-cancelled'); },

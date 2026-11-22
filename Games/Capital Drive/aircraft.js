@@ -152,6 +152,57 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
   }
   const initial = planes.map(p => ({ ...p }));
   let loanRotor=null;
+  const checkpoints=new WeakMap(),checkpointIds=new Set([...initial.map(p=>p.id),'loan:jet','loan:helicopter']);
+  function checkpointPlane(plane) {
+    const ground=heightAt(plane.x,plane.z);
+    if(!checkpointIds.has(plane.id)||!['jet','helicopter'].includes(plane.kind)||
+      ![plane.x,plane.y,plane.z,plane.yaw,plane.speed,plane.verticalSpeed,plane.pitch,plane.bank,plane.throttle,ground].every(Number.isFinite)||
+      !['airborne','stolen','wrecked','active'].every(key=>typeof plane[key]==='boolean')||
+      plane.x<bounds.minX||plane.x>bounds.maxX||plane.z<bounds.minZ||plane.z>bounds.maxZ||
+      plane.y<ground-.25||plane.y>ground+420.25)return null;
+    const saved={...plane,speed:clamp(plane.speed,plane.kind==='helicopter'?-24:0,plane.kind==='helicopter'?24:MAX_SPEED),
+      verticalSpeed:clamp(plane.verticalSpeed,-120,120),pitch:clamp(plane.pitch,-Math.PI,Math.PI),
+      bank:clamp(plane.bank,-Math.PI,Math.PI),throttle:clamp(plane.throttle,0,1)};
+    if(plane.kind==='helicopter'){
+      if(!Number.isFinite(plane.rotor))return null;
+      saved.rotor=clamp(plane.rotor,0,1);
+    }else {
+      if(!Number.isFinite(plane.takeoffRoll))return null;
+      saved.takeoffRoll=clamp(plane.takeoffRoll,0,1000000);
+    }
+    return Object.freeze(saved);
+  }
+  function captureCheckpoint() {
+    if(challenge.snapshot().active||planes.length>CAMPAIGN_AIRCRAFT_IDS.length+2)return null;
+    try {
+      const records=planes.map(ref=>({ref,saved:checkpointPlane(ref)}));
+      if(records.some(record=>!record.saved)||new Set(records.map(record=>record.saved.id)).size!==records.length||
+        (activeId!==null&&!records.some(record=>record.saved.id===activeId&&record.saved.active&&!record.saved.wrecked)))return null;
+      const token=Object.freeze(Object.create(null));
+      checkpoints.set(token,{activeId,records});return token;
+    }catch{return null;}
+  }
+  function checkpointReason(token) {
+    const saved=token&&typeof token==='object'?checkpoints.get(token):null;
+    if(!saved)return 'invalid-checkpoint';
+    try {
+      for(const {saved:plane} of saved.records) {
+        if(!checkpointPlane(plane))return 'invalid-aircraft';
+        if(plane.airborne ? !airClear(plane) : !groundClear(plane))return 'aircraft-blocked';
+      }
+    }catch{return 'placement-unavailable';}
+    return null;
+  }
+  function canRestoreCheckpoint(token) {return checkpointReason(token)===null;}
+  function restoreCheckpoint(token) {
+    const reason=checkpointReason(token);if(reason)return {ok:false,reason};
+    const saved=checkpoints.get(token);
+    // Preflight every retained aircraft before changing any live object or event.
+    for(const {ref,saved:plane} of saved.records)Object.assign(ref,plane);
+    planes.splice(0,planes.length,...saved.records.map(record=>record.ref));activeId=saved.activeId;
+    challenge.clear();challenge.drainEvents();challengeId=null;challengeSandbox=false;events.length=0;
+    return {ok:true,activeId};
+  }
   function runwayAligned(plane) {
     if(runwayEdges.some(({a,b,heading,halfWidth})=>segmentDistance(plane.x,plane.z,a,b)<=halfWidth-4.5&&
       Math.abs(Math.cos(plane.yaw-heading))>=.97))return true;
@@ -344,7 +395,7 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
           'W/S throttle · A/D turn · Space climb · Shift descend':plane.depot?
           'Follow the marked strip · Hold W and Space to take off':'Align with runway · Hold W to 101 km/h · Space lift') : '' });
   }
-  return { nearest, interact, step, snapshot,
+  return { nearest, interact, step, snapshot, captureCheckpoint, canRestoreCheckpoint, restoreCheckpoint,
     get active() { return flightCopy(activePlane()); },
     get challenge() { return challengeView(); },
     get seatPose() { const p = activePlane(); return p ? { ...offset(p, 0, 2), y: p.y + 1.55, yaw: p.yaw, speed: p.speed } : null; },
