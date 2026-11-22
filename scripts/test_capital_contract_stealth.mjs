@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {createContractTarget} from '../Games/Capital Drive/contract-target.js';
 import {createContractStealth} from '../Games/Capital Drive/contract-stealth.js';
 const config={guardPost:{x:3,z:3,yaw:0},investigate:{x:-3,z:3,yaw:Math.PI/2},patrol:[{x:0,z:6,yaw:0,wait:2},{x:1,z:6,yaw:0,wait:2}],
@@ -7,6 +8,16 @@ const missionId='blackthorn-account',targetId='blackthorn-voss',spec={missionId,
 let visible=true,blocked=false,probes=0;
 const adapters={heightAt:()=>2,hasLineOfSight:()=>visible,clipMovement:(body,dx,dz)=>{probes++;assert(Object.isFrozen(body));return {dx:blocked?0:dx,dz:blocked?0:dz};}};
 const context=(x,z,extra={})=>({activeMissionId:missionId,onFoot:true,health:100,crouching:false,sprinting:false,armed:false,aiming:false,player:{x,z,yaw:0,speed:0,interiorId:null},...extra});
+const runtime=readFileSync(new URL('../Games/Capital Drive/script.js',import.meta.url),'utf8');
+const contextSource=runtime.slice(runtime.indexOf('function contractContext(){'),runtime.indexOf('function availableContractAction(){'));
+const playerState={mode:'foot',health:100,weapon:'unarmed',actor:{}};
+const liveContext=Function('env',`with(env){${contextSource}return contractContext;}`)({
+ gameplay:{state:playerState},campaign:{state:{active:{id:missionId}}},keys:new Set(['KeyZ']),mouseAim:false,
+ actionTouch:new Set(),touch:new Set(),interiors:{active:null},jetpack:null,paused:()=>false,focus:()=>context(3,1).player,
+});
+assert.equal(liveContext().aiming,false,'camera movement with no weapon does not look armed to the guard');
+playerState.weapon='pistol';
+assert.equal(liveContext().aiming,true,'aiming with a drawn weapon remains suspicious');
 const tick=(actor,seconds,ctx)=>{for(let i=0;i<Math.round(seconds*10);i++)actor.step(.1,ctx);};
 const target=createContractTarget(adapters);assert(target.load(spec));
 assert(Object.isFrozen(target.guardBody));assert.equal(target.guardBody.role,'contract-guard');assert.equal(target.guardBody.health,100);

@@ -1742,11 +1742,12 @@ function interactStealthObjective(){
 function clearRecon(){reconnaissance.clear();reconGuideKey='';scanHeld=false;}
 function contractContext(){
   const state=gameplay.state;
-  const aiming=state.aiming||mouseAim||keys.has('KeyZ')||actionTouch.has('aim');
+  const armed=state.weapon!=='unarmed';
+  const aiming=armed&&(state.aiming||mouseAim||keys.has('KeyZ')||actionTouch.has('aim'));
   return {activeMissionId:campaign.state.active?.id,player:{...focus(),interiorId:interiors.active?.id||null},
     onFoot:state.mode==='foot'&&!state.passenger&&!state.actor.swimming&&!jetpack?.active,
     health:state.health,crouching:state.actor.crouching||keys.has('KeyX')||actionTouch.has('crouch'),
-    sprinting:keys.has('ShiftLeft')||keys.has('ShiftRight')||touch.has('boost'),armed:state.weapon!=='unarmed',aiming,
+    sprinting:keys.has('ShiftLeft')||keys.has('ShiftRight')||touch.has('boost'),armed,aiming,
     paused:paused(),recovering:!!state.recovery};
 }
 function availableContractAction(){
