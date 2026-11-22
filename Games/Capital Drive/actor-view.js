@@ -300,9 +300,10 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
   });
   const heroAppearances = new Map(['player','player:student','player:corporate','player:basement'].map(id => [id, appearanceForPerson(id)]));
   actor.userData.appearance = playerAppearance;
-  function setPlayerAppearance(personId) {
+  function setPlayerAppearance(personId, { workwear = false } = {}) {
     if (disposed || !heroAppearances.has(personId)) return false;
-    const next = heroAppearances.get(personId);
+    const base = heroAppearances.get(personId);
+    const next = workwear ? { ...base, id:`${base.id}:yard-worker`, shirt:0xc39b39, trousers:0x363d32 } : base;
     if (actor.userData.appearance.id === next.id) return true;
     for (const [slot, field] of Object.entries(playerSlots)) palette[slot].color.setHex(next[field]);
     for (const { colors, slots } of playerPaint) {

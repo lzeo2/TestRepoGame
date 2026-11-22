@@ -52,7 +52,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
     for (const job of progression.jobs) {
       const entry = document.createElement('article'); entry.className = 'job-option';
       const title = document.createElement('h3'); title.textContent = job.name;
-      const detail = document.createElement('p'); detail.textContent = `${job.type} · ${money(job.reward)} · ${job.time} seconds`;
+      const detail = document.createElement('p'); detail.textContent = `${money(job.reward)} · ${job.time}s${progression.state.completedJobs.includes(job.id)?' · Completed':''}`;
       const unmet = job.requires.filter(id => !progression.state.completedJobs.includes(id));
       const active = progression.state.activeJob;
       const button = actionButton(active?.id === job.id ? 'Job active' : 'Start job', () => {
@@ -66,10 +66,8 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       if(job.description){const instruction=document.createElement('p');instruction.textContent=job.description;entry.append(instruction);}
       if (unmet.length) {
         const locked = document.createElement('p');
-        locked.textContent = `Unlock by completing: ${unmet.map(id => progression.jobs.find(item => item.id === id)?.name || id).join(', ')}.`;
+        locked.textContent = `Requires ${unmet.map(id => progression.jobs.find(item => item.id === id)?.name || id).join(', ')}.`;
         entry.append(locked);
-      } else if (progression.state.completedJobs.includes(job.id)) {
-        const completed = document.createElement('p'); completed.textContent = 'Completed in your career.'; entry.append(completed);
       }
       entry.append(button); container.append(entry);
     }
@@ -86,9 +84,8 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       button.dataset.car = vehicle.id;
       button.setAttribute('aria-pressed', String(gameplay.state.vehicle.modelId === vehicle.id));
       const title = document.createElement('strong'); title.textContent = vehicle.name;
-      const note = document.createElement('span'); note.textContent = vehicle.note || vehicle.label || '';
-      const status = document.createElement('span'); status.textContent = sandbox() ? 'Drive free' : owned ? 'Retrieve owned vehicle' : `Buy · ${money(offer.price)}`;
-      button.append(title, note, status);
+      const status = document.createElement('span'); status.textContent = sandbox() ? 'Drive' : owned ? 'Retrieve' : `Buy · ${money(offer.price)}`;
+      button.append(title, status);
       button.addEventListener('click', () => {
         const blocked = garageGuard(); if (blocked) { feedback(blocked); return; }
         if (sandbox()) {
@@ -111,23 +108,25 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       });
       const entry=document.createElement('article');entry.className='job-option';entry.append(button);
       if(owned&&!sandbox()){
-        const heading=document.createElement('h4');heading.textContent='Vehicle upgrades';entry.append(heading);
+        const upgrades=document.createElement('details'),heading=document.createElement('summary');heading.textContent='Vehicle upgrades';upgrades.append(heading);entry.append(upgrades);
+        const reasons=new Set();
         for(const mod of GARAGE_MODS){
           const tier=owned.mods?.[mod.id]||0,cost=mod.costs[tier];
-          const detail=document.createElement('p');detail.textContent=`${mod.name} ${tier}/2 · ${mod.description}.`;
+          const detail=document.createElement('p');detail.textContent=`${mod.name} ${tier}/2 · ${mod.description}`;
           const reason=progression.upgradeEligibility(vehicle.id,mod.id,context());
-          const upgrade=actionButton(cost===undefined?'Maximum tier':`Fit ${mod.name.toLowerCase()} ${tier+1} · ${money(cost)}`,()=>{
+          const upgrade=actionButton(cost===undefined?`${mod.name} maxed`:`Fit ${mod.name.toLowerCase()} ${tier+1} · ${money(cost)}`,()=>{
             const result=progression.upgradeVehicle(vehicle.id,mod.id,context());feedback(result,true);renderGarage();
           });
           upgrade.disabled=Boolean(reason);upgrade.title=reason||mod.description;
-          entry.append(detail,upgrade);
-          if(reason){const status=document.createElement('p');status.textContent=reason;entry.append(status);}
+          upgrades.append(detail,upgrade);
+          if(reason&&cost!==undefined)reasons.add(reason);
         }
+        for(const reason of reasons){const status=document.createElement('p');status.textContent=reason;upgrades.append(status);}
       }
       container.append(entry);
     }
     syncPaint();
-    text('garage-description', sandbox() ? 'Choose any original fictional vehicle and paint.' : `Visit ${progression.garage.name} to buy, retrieve, repair, store, paint or upgrade a vehicle.`);
+    text('garage-description', sandbox() ? 'All cars and paint are free.' : `Buy and service vehicles at ${progression.garage.name}.`);
   }
   function refresh() {
     const state = gameplay.state, mission=isCampaign()?campaign?.state.active:null,active = mission||progression.state.activeJob,activity=progression.state.activity;
@@ -176,8 +175,8 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       const row=document.createElement('div');row.className='button-row service-actions';
       const route=actionButton('Route',()=>{onRoute(site);closeDialogs();});route.dataset.serviceRoute=site.id;row.append(route);
       const available=!sandbox()&&ctx.onFoot&&!ctx.recovering&&Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)<=site.radius&&!progression.state.activity&&progression.canUseService(site,ctx);
-      const reason=sandbox()?'Purchases are available in Street Life and Campaign.':ctx.recovering?'Recover before trading.':!ctx.onFoot?'Step out of your vehicle to trade.':progression.state.activity?'Finish your current activity first.':Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)>site.radius?'Follow the route and move closer to this location.':!progression.canUseService(site,ctx)?(site.dealer?'This contact is not trading right now.':'Enter the shop and approach its counter.') :'';
-      const status=document.createElement('p');status.className='service-state';status.textContent=reason||`Ready to trade · Cash ${money(progression.state.cash)}`;
+      const reason=sandbox()?'Buy in Street Life or Campaign.':ctx.recovering?'Recover before trading.':!ctx.onFoot?'Step out to trade.':progression.state.activity?'Finish your current activity.':Math.hypot(ctx.pose.x-site.x,ctx.pose.z-site.z)>site.radius?'Follow the route to this location.':!progression.canUseService(site,ctx)?(site.dealer?'Contact unavailable.':'Enter and approach the counter.') :'';
+      const status=document.createElement('p');status.className='service-state';status.textContent=reason;status.hidden=!reason;
       const purchase=(label,item,cost,blocked='',destination=row)=>{
         const why=reason||blocked||(progression.state.cash<cost?'Not enough cash.':'');
         const b=actionButton(label,()=>{
@@ -200,7 +199,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
       }else if(site.type==='gym'){
         const price=site.price*(progression.state.fitnessLevel+1);
         detail.textContent+=` · Fitness ${progression.state.fitnessLevel}/3`;
-        const train=actionButton('Use the bench',()=>onWorkout?.());train.disabled=sandbox()||!available||ctx.wanted>0;row.append(train);
+        const train=actionButton(`Use the bench · ${money(price)}`,()=>onWorkout?.());train.disabled=sandbox()||!available||ctx.wanted>0;row.append(train);
       }else{
         row.classList.add('weapon-stock');
         for(const weapon of WEAPONS.filter(w=>!site.weaponIds||site.weaponIds.includes(w.id))){
@@ -210,28 +209,29 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
           purchase(`${weapon.ammoPack} ${weapon.name} rounds ${money(Math.ceil(weapon.ammoPrice*multiplier))}`,`ammo:${weapon.id}`,Math.ceil(weapon.ammoPrice*multiplier),!owned?'Buy this weapon first':reserve>cap-weapon.ammoPack?'No room for this ammo pack':'');
         }
       }
-      if(site.dealer){const tag=document.createElement('span');tag.className='eyebrow';tag.textContent='Street contact';entry.append(tag);}
       if(site.type==='arms'){
-        const navigation=document.createElement('div');navigation.className='button-row';navigation.append(route);entry.append(title,detail,status,navigation,row);
+        const navigation=document.createElement('div');navigation.className='button-row';navigation.append(route);
+        const stock=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Weapons & gear';stock.open=available;stock.append(summary,row);
+        entry.append(title,detail,status,navigation,stock);
         const heading=document.createElement('h4');heading.textContent='Equipment';
-        const description=document.createElement('p');description.textContent=`Police scanner shows nearby faint patrols on the map, even without wanted stars. Flares ${progression.state.gear?.flares||0}/12 · B throw flare on foot. Grenades ${progression.state.gear?.grenades||0}/6 · Smoke grenades ${progression.state.gear?.smokeGrenades||0}/6 · V grenade · C smoke on foot.`;
+        const description=document.createElement('p');description.textContent='Scanner: nearby patrols on map. B throw flare on foot · V grenade · C smoke.';
         const gearRow=document.createElement('div');gearRow.className='button-row service-actions';
         purchase('Police scanner $500','scanner',500,progression.state.gear?.scanner?'Owned':'',gearRow);
-        purchase('3 flares $120','flares',120,progression.state.gear?.flares>9?'No room for a full three-flare pack':'',gearRow);
+        purchase(`3 flares $120 · ${progression.state.gear?.flares||0}/12`,'flares',120,progression.state.gear?.flares>9?'No room for a full three-flare pack':'',gearRow);
         const throwableReason=ctx.passenger||!Number.isFinite(ctx.health)||ctx.health<=0||ctx.health>100?'Recover before trading.':'';
         if(site.id===JETPACK_OFFER.siteId){
           const jetpackReason=progression.state.gear.jetpack?'Owned':throwableReason||(progression.state.activeJob?'Finish your current job first.':'');
           purchase(`Jetpack ${money(JETPACK_OFFER.price)}`,'jetpack',JETPACK_OFFER.price,jetpackReason,gearRow);
         }
-        purchase('Grenade $120','grenade',120,throwableReason||(progression.state.gear?.grenades>=6?'Throwable inventory is full.':''),gearRow);
-        purchase('Smoke grenade $80','smoke',80,throwableReason||(progression.state.gear?.smokeGrenades>=6?'Throwable inventory is full.':''),gearRow);
+        purchase(`Grenade $120 · ${progression.state.gear?.grenades||0}/6`,'grenade',120,throwableReason||(progression.state.gear?.grenades>=6?'Throwable inventory is full.':''),gearRow);
+        purchase(`Smoke grenade $80 · ${progression.state.gear?.smokeGrenades||0}/6`,'smoke',80,throwableReason||(progression.state.gear?.smokeGrenades>=6?'Throwable inventory is full.':''),gearRow);
         for(const [item,kit] of Object.entries(UTILITY_GEAR)){
           const stock=progression.state.gear[kit.field]??0;
           const amount=item==='armour'?Math.round(stock):stock;
           const full=stock>=kit.capacity?(item==='armour'?'Armour is full.':'Kit inventory is full.'):'';
           purchase(`${kit.name} ${money(kit.price)} · ${amount}/${kit.capacity}`,item,kit.price,throwableReason||full,gearRow);
         }
-        entry.append(heading,description,gearRow);
+        stock.append(heading,description,gearRow);
       }
       else entry.append(title,detail,status,row);
       container.append(entry);

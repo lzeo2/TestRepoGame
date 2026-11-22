@@ -248,6 +248,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
   }
   const events = [];
   const allIntroduced = () => ids.every(id => state.intros[id].length === intros[id].length);
+  const optionalUnlocked = () => state.completed.length === shared.length && (state.legacy || (allIntroduced() && state.meeting));
   const current = () => {
     if (optionalChapter) return optionalChapter;
     if (developerChapter) return developerChapter;
@@ -276,7 +277,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     return hero ? `Switch to ${hero.name} for ${shared[state.completed.length].name}.` : null;
   };
   const isCompleted = id => state.completed.includes(id) || state.optionalCompleted.includes(id) || (id === meeting.id && state.meeting) || ids.some(hero => state.intros[hero].includes(id));
-  const policeSearchDuration = wanted => sharedIds.has(state.active?.id) && wanted >= 1 ? SHARED_SEARCH_DURATION[wanted] : undefined;
+  const policeSearchDuration = wanted => (sharedIds.has(state.active?.id) || state.active?.assassination) && wanted >= 1 ? SHARED_SEARCH_DURATION[wanted] : undefined;
   const isStoryRobbery = id => sharedIds.has(state.active?.id) && state.active.target.kind === 'robbery' && state.active.target.storeId === id;
   function validContext(ctx) {
     return ctx && finitePoint(ctx.pose) && typeof ctx.onFoot === 'boolean' && Number.isSafeInteger(ctx.respawnSerial) && Number.isFinite(ctx.wanted) && ctx.wanted >= 0 && ctx.wanted <= 5;
@@ -330,8 +331,11 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     state.active.stageCount = chapter.stages.length;
     if(chapter.optional)state.active.optional=true;
     if(chapter.aviation)state.active.aviation=true;
-    if(chapter.assassination)state.active.assassination=true;
-    if(chapter.stealth){
+    if(chapter.assassination){
+      state.active.assassination=true;
+      state.active.assassinationSite=chapter.compound?.stealth??null;
+    }
+    if(chapter.stealth&&!chapter.assassination){
       state.active.stealth=true;state.active.stealthPlan=clone(chapter.stealthPlan);
       state.active.stealthSerial=serial(ctx.stealthOutcome);
     }
@@ -340,15 +344,16 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
   }
   function startOptional(id, ctx, plan) {
     if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.campaign || !state.character || state.active || ctx.aircraft || ctx.passenger) return { ok: false, message: 'Choose a character and finish the current action before this optional chapter.' };
+    if (!optionalUnlocked()) return { ok: false, message: 'Finish the main story to unlock optional missions.' };
     const chapter = optional.find(chapter=>chapter.id===id);
     if(!chapter||isCompleted(id))return {ok:false,message:'This optional chapter is unavailable or already complete.'};
+    if (chapter.assassination) { optionalChapter = chapter; return begin(chapter, ctx); }
     if(chapter.stealth){
       const planned=planStealthChapter(chapter,plan);
       if(!planned)return {ok:false,message:'Choose an available approach and exit.'};
       optionalChapter=planned;
       return begin(planned,ctx);
     }
-    if (chapter.assassination) { optionalChapter = chapter; return begin(chapter, ctx); }
     const locations=(Array.isArray(ctx.aircraftLocations)?ctx.aircraftLocations:[]).filter(point=>finitePoint(point)&&typeof point.id==='string'&&point.id&&!point.wrecked);
     const helicopter=locations.find(point=>point.kind==='helicopter');
     const jet=locations.filter(point=>point.kind==='jet').sort((a,b)=>distance(a,helicopter||airport)-distance(b,helicopter||airport))[0];
@@ -382,6 +387,9 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     active.remaining = Math.max(0, active.remaining - step); active.elapsed += step; active.sawWanted ||= ctx.wanted > 0;
     if (!active.remaining) { fail(active.developer ? 'Mission preview time expired.' : 'Mission time expired.'); return; }
     let eligible = goal.anywhere || distance(ctx.pose, goal) <= goal.radius;
+    if (active.assassination && goal.kind === 'foot' && goal.approaches) {
+      eligible ||= Object.values(goal.approaches).some(entry => distance(ctx.pose, entry) <= goal.radius);
+    }
     const parked = !goal.stop || (!ctx.passenger && !ctx.interior && isVehicleStopped(ctx.pose, PARKING_MAX_SPEED));
     if (goal.kind === 'aviation') eligible = !ctx.interior && ctx.aircraft?.id===goal.aircraftId && ctx.aircraft?.kind===goal.aircraftKind && ctx.aircraft.wrecked===false && (!goal.airborne||ctx.aircraft.airborne===true) && Number.isFinite(ctx.aircraft.altitude) && ctx.aircraft.altitude >= (goal.minimumAltitude||0);
     else if (goal.kind === 'stealth-contract') {
@@ -442,7 +450,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
       events.push({ type: 'complete', id: chapter.id, reward: chapter.reward, message: chapter.outro });
     }
   }
-  return { state, characters, get chapters() { return chapters(); }, optionalChapters: optional, contractPlans: id=>contractOptions.get(id)??null, current, nextRequiredCharacter, start, startOptional, startDeveloper, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, companionSwitchReason, canSwitchCompanion, switchCompanion, isCompleted, policeSearchDuration, isStoryRobbery,
+  return { state, characters, get chapters() { return chapters(); }, optionalChapters: optional, optionalUnlocked, contractPlans: id=>optionalUnlocked()?(contractOptions.get(id)??null):null, current, nextRequiredCharacter, start, startOptional, startDeveloper, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, companionSwitchReason, canSwitchCompanion, switchCompanion, isCompleted, policeSearchDuration, isStoryRobbery,
     cancel: () => fail('Mission cancelled.'),
     serialize: () => clone({ version: 2, character: state.character, intros: state.intros, meeting: state.meeting, legacy: state.legacy, completed: state.completed, ...(state.optionalCompleted.length?{optionalCompleted:state.optionalCompleted}:{}) }),
     journal: () => freeze(clone({ character: state.character, introductions: ids.map(id => ({ character: id, chapters: intros[id].map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })), meeting: state.meeting, shared: shared.map(item => ({ id: item.id, character: item.character, name: item.name, complete: isCompleted(item.id) })) })),

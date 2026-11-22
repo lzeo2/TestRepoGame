@@ -9,7 +9,7 @@ const map = { spawn:{x:0,z:0}, landmarks:[{id:'coals',name:'Coals',store:true,x:
 const stealthContracts = createStealthContracts(map, { canStand:()=>true, hasLineOfSight:()=>true });
 const options = { stealthContracts };
 const context = { pose:map.spawn, onFoot:true, health:100, vehicleHealth:100, wanted:0, respawnSerial:0, campaign:true };
-const campaign = createCampaign(map, null, options);
+let campaign = createCampaign(map, null, options);
 const tick = (change, count = 8) => {
   for (let index = 0; index < count; index++) campaign.update(.1, { ...context, ...change });
 };
@@ -18,7 +18,42 @@ assert.equal(campaign.optionalChapters.length, STEALTH_CONTRACT_IDS.length + 1, 
 assert.equal(campaign.contractPlans('above-the-paperwork'), null);
 assert.equal(campaign.startOptional(STEALTH_CONTRACT_IDS[0], context).ok, false);
 assert(campaign.selectCharacter('student', context).ok);
-const original = campaign.serialize(), story = campaign.current().id;
+// Detached complete-story fixtures exercise the unlock boundary, not naturally earned play.
+const journal = campaign.journal();
+const completeV1 = { version:1, completed:journal.shared.map(chapter=>chapter.id) };
+const completeV2 = { version:2, character:'student', legacy:false, meeting:true,
+  intros:Object.fromEntries(journal.introductions.map(hero=>[hero.character,hero.chapters.map(chapter=>chapter.id)])),
+  completed:[...completeV1.completed] };
+assert.equal(campaign.optionalUnlocked(), false, 'character selection alone does not unlock optional missions');
+for (const saved of [campaign.serialize(),
+  ...completeV1.completed.map((_,end)=>({ ...completeV1, completed:completeV1.completed.slice(0,end) })),
+  ...completeV2.completed.map((_,end)=>({ ...completeV2, completed:completeV2.completed.slice(0,end) }))]) {
+  const locked = createCampaign(map, saved, options);
+  const beforeLocked = locked.serialize();
+  assert.equal(locked.optionalUnlocked(), false);
+  for (const optionalId of STEALTH_CONTRACT_IDS) assert.equal(locked.startOptional(optionalId, context).ok, false, 'unfinished story locks every optional');
+  assert.equal(locked.state.active, null);
+  assert.deepEqual(locked.serialize(), beforeLocked, 'locked attempts preserve progress');
+  assert.deepEqual(locked.drainEvents(), [], 'locked attempts emit no start or reward');
+}
+for (const missing of ['student','corporate','basement','meeting']) {
+  const locked = createCampaign(map, completeV2, options);
+  if (missing==='meeting') locked.state.meeting=false;
+  else locked.state.intros[missing]=[];
+  assert.equal(locked.optionalUnlocked(), false, 'full shared story cannot bypass v2 '+missing);
+  const beforeLocked=locked.serialize();
+  for (const optionalId of STEALTH_CONTRACT_IDS) assert.equal(locked.startOptional(optionalId, context).ok, false);
+  assert.deepEqual(locked.serialize(), beforeLocked);
+}
+const legacy = createCampaign(map, completeV1, options);
+assert.equal(legacy.optionalUnlocked(), true, 'completed v1 story remains compatible');
+for (const optionalId of STEALTH_CONTRACT_IDS) {
+  assert(legacy.startOptional(optionalId, context).ok, 'complete legacy story unlocks optional');
+  assert(legacy.cancel());
+}
+campaign = createCampaign(map, completeV2, options);
+assert.equal(campaign.optionalUnlocked(), true, 'v2 needs all introductions, meeting and shared story');
+const original = campaign.serialize(), story = campaign.current()?.id ?? null;
 
 for (const chapter of stealthContracts.chapters) {
   const { id } = chapter;
@@ -70,9 +105,19 @@ for (const chapter of stealthContracts.chapters) {
   }
   assert.equal(campaign.state.active, null);
   assert.deepEqual(campaign.drainEvents().filter(event => event.type==='complete').map(event=>[event.id,event.reward]), [[id,chapter.reward]]);
-  assert.equal(campaign.current().id, story, 'optional play restores current story chapter');
+  assert.equal(campaign.current()?.id ?? null, story, 'optional play restores current story chapter');
   assert.equal(campaign.startOptional(id, context, plan).ok, false, 'completed contracts cannot pay again');
 }
+
+// A retained optional receipt is not erased or paid again when story progress is locked.
+const lockedSaved={ ...campaign.serialize(), completed:completeV2.completed.slice(0,-1) };
+const lockedRestored=createCampaign(map, lockedSaved, options);
+assert.equal(lockedRestored.optionalUnlocked(),false);
+assert.deepEqual(lockedRestored.serialize(),lockedSaved);
+for (const optionalId of STEALTH_CONTRACT_IDS) assert.equal(lockedRestored.startOptional(optionalId,context).ok,false);
+assert.deepEqual(lockedRestored.serialize().optionalCompleted,campaign.serialize().optionalCompleted);
+assert.deepEqual(lockedRestored.drainEvents(),[]);
+
 const saved = campaign.serialize();
 assert.deepEqual(saved, { ...original, optionalCompleted:STEALTH_CONTRACT_IDS });
 assert.deepEqual(createCampaign(map, saved, options).serialize(), saved);
@@ -85,4 +130,4 @@ for (const change of [{ recovering:true }, { respawnSerial:1 }]) {
   assert.equal(failed.drainEvents().at(-1).type, 'failed');
   assert.deepEqual(failed.serialize(), original);
 }
-console.log('PASS six optional contract campaigns with working alternate plans, receipt guards, extraction, cancellation and single rewards.');
+console.log('PASS story-gated six optional contract campaigns with working alternate plans, receipt guards, extraction, cancellation and single rewards.');
