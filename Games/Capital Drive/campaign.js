@@ -2,6 +2,7 @@ import { expansionPlaces } from './map-expansion.js';
 import { roadProfile } from './road-network.js';
 import { isVehicleStopped } from './driving-dynamics.js';
 import { planStealthChapter, STEALTH_CONTRACT_IDS } from './stealth-contracts.js';
+import { ASSASSINATION_MISSION_ID } from './assassination-mission.js';
 
 // Original fiction. Mission rooms and encounters are authored, not surveyed private spaces.
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -15,7 +16,7 @@ const freeze = value => {
   return value;
 };
 
-export function createCampaign(map, saved = null, { meetingPoint, stealthContracts } = {}) {
+export function createCampaign(map, saved = null, { meetingPoint, stealthContracts, assassinationMission } = {}) {
   if (meetingPoint !== undefined && !finitePoint(meetingPoint)) throw new Error('Campaign meeting point must be finite.');
   const place = (id, fallback) => map.landmarks.find(p => p.id === id) || fallback;
   const shop = map.landmarks.find(p => p.store && /coals/i.test(p.name));
@@ -205,8 +206,10 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     outro: 'Jules: Two flight records, one paper trail. The evidence is safely copied.',
     stages: [target(airport, 'Reach the marked helicopter; E bypasses its lock', 'aviation', { aircraftKind: 'helicopter', anywhere: true }), target(airport, 'Helicopter: hold Space and climb above 15 m', 'aviation', { aircraftKind: 'helicopter', minimumAltitude: 15, airborne: true, anywhere: true }), target(airport, 'Land near the marked jet; stop and press E to step out', 'foot', { radius: 120, hold: 1 }), target(airport, 'Take the marked jet; W builds runway speed, then Space climbs above 20 m', 'aviation', { aircraftKind: 'jet', minimumAltitude: 20, airborne: true, anywhere: true })] };
   const contracts = stealthContracts?.chapters ?? [];
-  const optional = freeze([aviation, ...contracts]);
-  const optionalIds = new Set([aviation.id, ...STEALTH_CONTRACT_IDS]);
+  const assassination = assassinationMission?.id === ASSASSINATION_MISSION_ID && assassinationMission.assassination === true &&
+    Array.isArray(assassinationMission.stages) && assassinationMission.stages.length === 3 ? assassinationMission : null;
+  const optional = freeze([aviation, ...contracts, ...(assassination ? [assassination] : [])]);
+  const optionalIds = new Set([aviation.id, ...STEALTH_CONTRACT_IDS, ASSASSINATION_MISSION_ID]);
   const planChoices = choices => choices.map(({ id, name, description }) => ({ id, name, description }));
   const contractOptions = new Map(contracts.map(chapter => [chapter.id, freeze({
     approaches: planChoices(chapter.approaches), exits: planChoices(chapter.exits),
@@ -313,7 +316,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     return { ok: true, message: `Now controlling ${characters.find(hero => hero.id === id).name}.` };
   }
   const serial = value => Number.isSafeInteger(value?.serial) && value.serial >= 0 ? value.serial : 0;
-  const baselines = (ctx, previous = {}) => Object.fromEntries(Object.entries({ recon: serial(ctx.recon), evidence: serial(ctx.evidence), presentation: serial(ctx.presentation), encounter: serial(ctx.encounter), work: serial(ctx.workCompletion), schoolAlarm: serial(ctx.schoolAlarm), heist: serial(ctx.heist), homeAction: serial(ctx.homeAction) }).map(([kind, value]) => [kind, Math.max(value, previous[kind] || 0)]));
+  const baselines = (ctx, previous = {}) => Object.fromEntries(Object.entries({ recon: serial(ctx.recon), evidence: serial(ctx.evidence), presentation: serial(ctx.presentation), encounter: serial(ctx.encounter), work: serial(ctx.workCompletion), schoolAlarm: serial(ctx.schoolAlarm), heist: serial(ctx.heist), homeAction: serial(ctx.homeAction), assassination: serial(ctx.assassinationOutcome) }).map(([kind, value]) => [kind, Math.max(value, previous[kind] || 0)]));
   function start(ctx) {
     if (!validContext(ctx) || ctx.sandbox || ctx.recovering || !ctx.campaign) return { ok: false, message: 'Campaign unavailable here.' };
     if (state.active) return { ok: false, message: 'Mission already active.' };
@@ -327,6 +330,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     state.active.stageCount = chapter.stages.length;
     if(chapter.optional)state.active.optional=true;
     if(chapter.aviation)state.active.aviation=true;
+    if(chapter.assassination)state.active.assassination=true;
     if(chapter.stealth){
       state.active.stealth=true;state.active.stealthPlan=clone(chapter.stealthPlan);
       state.active.stealthSerial=serial(ctx.stealthOutcome);
@@ -344,6 +348,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
       optionalChapter=planned;
       return begin(planned,ctx);
     }
+    if (chapter.assassination) { optionalChapter = chapter; return begin(chapter, ctx); }
     const locations=(Array.isArray(ctx.aircraftLocations)?ctx.aircraftLocations:[]).filter(point=>finitePoint(point)&&typeof point.id==='string'&&point.id&&!point.wrecked);
     const helicopter=locations.find(point=>point.kind==='helicopter');
     const jet=locations.filter(point=>point.kind==='jet').sort((a,b)=>distance(a,helicopter||airport)-distance(b,helicopter||airport))[0];
@@ -383,6 +388,12 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
       const receipt = ctx.stealthOutcome;
       eligible &&= active.stealth && ctx.onFoot && !ctx.interior && !ctx.passenger && !ctx.aircraft && ctx.wanted===0 &&
         receipt?.id===active.id && receipt.stage===active.stage && serial(receipt)>active.stealthSerial;
+    }
+    else if (goal.kind === 'assassination') {
+      const receipt = ctx.assassinationOutcome;
+      eligible &&= active.assassination === true && ctx.onFoot === true && !ctx.interior && !ctx.passenger && !ctx.aircraft &&
+        receipt?.missionId === active.id && receipt.targetId === goal.targetId && receipt.outcome === 'killed' &&
+        serial(receipt) > active.baselines.assassination;
     }
     else if (goal.kind === 'interior') eligible = ctx.onFoot && ctx.interior?.storeId === goal.storeId && ctx.interior?.atCounter === true;
     else if (goal.kind === 'home-action') eligible = ctx.onFoot && ctx.interior?.roomId === goal.roomId && ctx.homeAction?.roomId === goal.roomId && ctx.homeAction?.outcome === 'packed' && serial(ctx.homeAction) > active.baselines.homeAction;

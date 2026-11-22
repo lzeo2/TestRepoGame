@@ -43,7 +43,8 @@ function measure(scene, view, poses) {
   const fixed = createHash('sha256');
   scene.traverse(object => {
     if (!object.isMesh) return;
-    meshes++; triangles += object.geometry.attributes.position.count / 3;
+    meshes++; triangles += (object.geometry.index?.count ?? object.geometry.attributes.position.count) / 3;
+    bytes += object.geometry.index?.array.byteLength ?? 0;
     for (const attribute of Object.values(object.geometry.attributes)) {
       bytes += attribute.array.byteLength;
       // Every terrain/road/pavement/water vertex must survive quality changes.
@@ -71,7 +72,7 @@ function measure(scene, view, poses) {
   const visible = poses.map(pose => {
     view.update(pose);
     let draws = 0, triangles = 0;
-    scene.traverseVisible(object => { if (object.isMesh) { draws++; triangles += object.geometry.attributes.position.count / 3; } });
+    scene.traverseVisible(object => { if (object.isMesh) { draws++; triangles += (object.geometry.index?.count ?? object.geometry.attributes.position.count) / 3; } });
     return { draws, triangles };
   });
   view.update({ x: 1e6, z: 1e6 });

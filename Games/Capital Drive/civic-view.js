@@ -30,7 +30,7 @@ function distance(x,z,a,b) {
   return Math.hypot(x-a[0]-t*dx,z-a[1]-t*dz);
 }
 
-export function createCivicView(scene,map,heightAt) {
+export function createCivicView(scene,map,heightAt,{roadHeightAt=(road,x,z)=>heightAt(x,z)}={}) {
   const root=new THREE.Group();root.name='Civic centre and source bridge exteriors';scene.add(root);
   const body={positions:[],colors:[]},glass={positions:[],colors:[]},bridges={positions:[],colors:[]},signs={positions:[],uvs:[]};
   const color=new THREE.Color(),ownedGeometry=[],ownedMaterials=[],ownedTextures=[],barriers=[];
@@ -38,6 +38,7 @@ export function createCivicView(scene,map,heightAt) {
   const bridgeRoads=(map.roads||[]).filter(r=>BRIDGE_IDS.has(r.sourceId)&&r.sourceTags?.bridge==='yes');
   const segments=bridgeRoads.flatMap(r=>r.points.slice(1).map((b,i)=>({road:r,a:r.points[i],b,width:roadProfile(r).driveWidth})));
   const finiteHeight=(x,z)=>{const y=heightAt(x,z);if(!Number.isFinite(y))throw new Error('Civic view requires finite supplied terrain/deck height');return y;};
+  const deckHeight=(road,p)=>{const y=roadHeightAt(road,...p);if(!Number.isFinite(y))throw new Error('Civic view requires finite supplied road height');return y;};
   function tri(batch,a,b,c,tint){color.set(tint);for(const p of [a,b,c]){batch.positions.push(...p);batch.colors.push(color.r,color.g,color.b);}}
   function quad(batch,a,b,c,d,tint){tri(batch,a,b,c,tint);tri(batch,a,c,d,tint);}
   function wall(batch,a,b,lowA,lowB,highA,highB,tint){quad(batch,[a[0],lowA,a[1]],[b[0],lowB,b[1]],[b[0],highB,b[1]],[a[0],highA,a[1]],tint);}
@@ -110,9 +111,19 @@ export function createCivicView(scene,map,heightAt) {
       // Adjacent mapped carriageways must not have a parapet through their lanes.
       const middle=[(aa[0]+bb[0])/2,(aa[1]+bb[1])/2];
       if(segments.some(other=>other!==segment&&distance(...middle,other.a,other.b)<other.width/2+1.8))continue;
-      const ya=finiteHeight(...u)+.14,yb=finiteHeight(...v)+.14,d=.18;
+      const ya=deckHeight(segment.road,u)+.14,yb=deckHeight(segment.road,v)+.14,d=.18;
       const q=[[aa[0]+nx*d,aa[1]+nz*d],[bb[0]+nx*d,bb[1]+nz*d],[bb[0]-nx*d,bb[1]-nz*d],[aa[0]-nx*d,aa[1]-nz*d]];
       if(q.some(p=>segments.some(other=>distance(...p,other.a,other.b)<other.width/2+.3)))continue;
+      const profile=roadProfile(segment.road),sidewalk=side<0?profile.sidewalkLeft:profile.sidewalkRight;
+      // Source "no sidewalk" still needs a solid shoulder under its outer rail.
+      if(!sidewalk) {
+        const inner=width/2+(profile.hasKerb ? .18 : 0),outer=off-d;
+        const shoulder=[[u,inner],[v,inner],[v,outer],[u,outer]].map(([p,offset])=>[p[0]+nx*offset*side,p[1]+nz*offset*side]);
+        quad(bridges,...shoulder.map(p=>[p[0],deckHeight(segment.road,p)+.045,p[1]]),0xb7b3a5);
+      }
+      const edgeA=side>0?q[0]:q[3],edgeB=side>0?q[1]:q[2];
+      const edgeY0=deckHeight(segment.road,edgeA),edgeY1=deckHeight(segment.road,edgeB);
+      wall(bridges,edgeA,edgeB,edgeY0-.35,edgeY1-.35,edgeY0+.14,edgeY1+.14,0x98998f);
       wall(bridges,q[0],q[1],ya,yb,ya+1.05,yb+1.05,0xb9b5a7);wall(bridges,q[3],q[2],ya,yb,ya+1.05,yb+1.05,0xb9b5a7);
       quad(bridges,[q[0][0],ya+1.05,q[0][1]],[q[1][0],yb+1.05,q[1][1]],[q[2][0],yb+1.05,q[2][1]],[q[3][0],ya+1.05,q[3][1]],0xd7d0bb);
       barriers.push(Object.freeze({id:`civic-parapet-${barriers.length}`,sourceId:segment.road.sourceId,kind:'bridge-parapet',height:1.05,points:Object.freeze(q.map(p=>Object.freeze(p)))}));

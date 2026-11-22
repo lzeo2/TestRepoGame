@@ -187,13 +187,29 @@ sequence and requires riding to the pickup stop and disembarking before payout.
 The shopfronts are fictional and placed by mapped public streets.
 
 Street verges, park groves and mapped woodland use deterministic foliage recipes
-with chunk budgets. The game bakes bent gum trees, broader street canopies and
-low shrubs into existing opaque world batches on district load. Placement keeps
-building footprints, streets, pavements, landmark clearings, sports grounds,
-water and tram corridors clear. The added locations are authored vegetation.
+with chunk budgets. Gum trees and broadleaf trees use forked branches and an
+original four-tile leaf atlas with layered cutout canopies. Branches and shrubs
+share opaque world batches. Leaves use one depth-writing mesh per populated
+district with indexed geometry and compact UVs. Placement preserves roads,
+pavements, building footprints, landmark clearings, sports grounds, water and
+tram corridors. The tree positions are authored from the mapped landscape.
+Rebuild the original atlas using `python3 -B scripts/build_capital_canopy_atlas.py`.
 Run `node scripts/profile_capital_foliage.mjs --root . --output <fresh-external-json>`
 against each checkout to reproduce the scoped Telopea and Commonwealth Avenue
 world-buffer and culling comparison.
+
+Commonwealth Avenue's overlapping source carriageways share a lake-deck height
+profile and draw adjoining road bands. Kings Avenue has a filled shoulder and
+fascia next to its parapets. The connected approaches match the full road and
+footpath cross-section at the join. Vehicle paths and underpasses keep their
+source road ownership. Deck heights are authored estimates above the mapped lake.
+
+The Blackthorn account is an optional Campaign mission. The intro sets up a
+fictional target at a fictional collection yard beside a mapped Kingston street.
+Reach the front on foot and fight Adrian Voss with ordinary combat controls.
+The target can move and react to hits. At zero health the escape objective opens.
+Reach the pickup, then shake the police anywhere. The campaign pays $2,600 once
+and stores completion alongside other optional chapters.
 
 Nearby drivers now anticipate a fast player cut-in and brake before the
 vehicle bodies meet. They use a shared per-driver horn cooldown for close

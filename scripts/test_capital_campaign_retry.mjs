@@ -8,7 +8,7 @@ const map = { spawn: { x: 0, z: 0 }, landmarks: [
 ] };
 const context = { pose: { x: 0, z: 0, speed: 0 }, onFoot: true, vehicleHealth: 83,
   wanted: 0, respawnSerial: 0, campaign: true, sandbox: false, health: 71 };
-const receipts = serial => Object.fromEntries(['recon', 'evidence', 'presentation', 'encounter', 'workCompletion', 'schoolAlarm', 'heist', 'homeAction'].map(kind => [kind, { serial }]));
+const receipts = serial => Object.fromEntries(['recon', 'evidence', 'presentation', 'encounter', 'workCompletion', 'schoolAlarm', 'heist', 'homeAction', 'assassinationOutcome'].map(kind => [kind, { serial }]));
 function opening() {
   const campaign = createCampaign(map);
   assert.equal(campaign.selectCharacter('student', context).ok, true);

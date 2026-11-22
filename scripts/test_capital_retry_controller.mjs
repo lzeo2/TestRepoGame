@@ -88,7 +88,7 @@ const env = {
   },
   careerContext: () => ({ ...initialContext, pose: state.actor, health: state.health, wanted: state.wanted,
     respawnSerial: state.respawnSerial, recovering: Boolean(state.recovery) }),
-  activities: { snapshot: () => ({ active: false }) }, campaignScenes: { people: [], clear() {} },
+  activities: { snapshot: () => ({ active: false }) }, campaignScenes: { people: [], clear() {} }, contractTarget: null,
   rideService: { drainEvents: () => [], reset() {} }, heroPowers: { cancelActive() {} }, vehicleDamage: { reset() {} }, watercraft: null,
   clearRecon() {}, closeDialogs() {}, clearInput() {}, resetDelivery() {}, syncExternalVehicles() {}, syncExternalPeople() {},
   clearInterior() { interiors.active = null; interiors.exteriorPose = null; },

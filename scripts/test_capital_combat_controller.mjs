@@ -31,8 +31,11 @@ assert(api.recordEvidence(event));assert.equal(env.evidenceOutcome.serial,1);ass
 assert(!api.recordEvidence(event),'one terminal session cannot grant two receipts');
 assert.equal(env.evidenceOutcome.roomId,'coals-room');
 let call;env.interiors.active=null;env.pedestrians={shotTargets:()=>[{id:5,x:0,z:-4,health:100}],hitByShot(...args){call=args;return {hits:1};}};
-env.streetDealers={shotTargets:()=>[]};env.rideService={shotTargets:()=>[]};const targets=api.shotTargets();
+env.streetDealers={shotTargets:()=>[]};env.rideService={shotTargets:()=>[]};
+env.contractTarget={shotTargets:()=>[{id:'voss',x:2,z:-4,health:100}],hitByShot(...args){call=args;return {hits:1};}};
+const targets=api.shotTargets();
 assert.equal(targets[0].id,'ped:5');assert.equal(targets[0].damage(30,{pitch:.2}).hits,1);assert.deepEqual(call,[5,30,{pitch:.2,targetId:5}]);
+assert.equal(targets[1].id,'contract:voss');assert.equal(targets[1].damage(34,{interiorId:null}).hits,1);assert.deepEqual(call,['voss',34,{interiorId:null,targetId:'voss'}]);
 assert(source.includes('aimPitch:footLookPitch'),'actual walking input supplies pitch');
 console.log('PASS combat controller: terrain-resolved deliberate scans, neutral/pause/retry/hold authority, exact case-session/mission binding and native adult damage IDs');
 

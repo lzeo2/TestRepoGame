@@ -58,7 +58,8 @@ export function createCampaignScenesView(scene,heightAt) {
     for(const person of Array.isArray(people)?people:[]) {
       if(stats.people>=4)break;
       if(typeof person?.id==='string'&&seen.has(person.id))continue;
-      const appearance=appearances.get(person?.appearanceId);
+      const contract=person?.role==='contract-target';
+      const appearance=contract?person.appearance:appearances.get(person?.appearanceId);
       if(!appearance||(person.interiorId||null)!==interiorId||person.active===false||![person.x,person.z,person.yaw].every(Number.isFinite))continue;
       if(focus&&(!Number.isFinite(focus.x)||!Number.isFinite(focus.z)||Math.hypot(person.x-focus.x,person.z-focus.z)>140))continue;
       const y=person.interiorId?person.floorY:heightAt(person.x,person.z);if(!Number.isFinite(y))continue;
@@ -86,18 +87,24 @@ export function createCampaignScenesView(scene,heightAt) {
         if(typeof person.id==='string')seen.add(person.id);
         stats.people++;continue;
       }
-      if(!Number.isFinite(person.gesturePhase))continue;
+      const phase=contract?person.phase:person.gesturePhase;
+      if(!Number.isFinite(phase))continue;
       if(typeof person.id==='string')seen.add(person.id);
-      world.position.set(person.x,y+.035,person.z);world.rotation.set(person.hitPhase>0?-.10:0,person.yaw,0);world.scale.setScalar(appearance.height);world.updateMatrix();
+      const fall=contract&&person.health<=0?Math.min(1,person.deathTime*4):0;
+      world.position.set(person.x,y+.035+fall*.23,person.z);
+      world.rotation.set(fall?-Math.PI/2*fall:person.hitPhase>0?-.10:0,person.yaw,0,contract?'YXZ':'XYZ');
+      world.scale.setScalar(appearance.height);world.updateMatrix();
       const combat=person.mode==='combat',armed=person.armed===true;
       // Only local limb transforms ease; checked world and vehicle poses stay immediate.
       jointIndex=0;
       jointPose=poses.get(person.id);
       if(!jointPose){jointPose=[];if(typeof person.id==='string')poses.set(person.id,jointPose);}
-      let arm=0,hand=0;const gesture=Math.sin(person.gesturePhase*2.7+stats.people)*.12;
-      emitPersonParts(appearance,{kind:'standing',stride:person.mode==='following'?Math.sin(person.gesturePhase*9)*Math.min(.6,(person.speed||0)*.16):0},(name,x,py,z,sx,sy,sz,tint,rx=0)=>{
-        if(name==='arms'&&arm++===1){rx=combat?-1.45:armed?-.35:-.85+gesture;z=combat?-.23:-.10;}
-        if(name==='hands'&&hand++===1){py=combat?1.19:armed?.84:1.12+gesture*.1;z=combat?-.48:armed?-.22:-.32;}
+      let arm=0,hand=0;const gesture=Math.sin(phase*2.7+stats.people)*.12;
+      const stride=(contract&&!fall||person.mode==='following')
+        ? Math.sin(phase*(contract?3:9))*Math.min(.6,(person.speed||0)*(contract ? .19 : .16)) : 0;
+      emitPersonParts(appearance,{kind:'standing',stride},(name,x,py,z,sx,sy,sz,tint,rx=0)=>{
+        if(!contract&&name==='arms'&&arm++===1){rx=combat?-1.45:armed?-.35:-.85+gesture;z=combat?-.23:-.10;}
+        if(!contract&&name==='hands'&&hand++===1){py=combat?1.19:armed?.84:1.12+gesture*.1;z=combat?-.48:armed?-.22:-.32;}
         part(name,x,py,z,sx,sy,sz,tint,rx);
       });
       if(armed) {
@@ -105,7 +112,7 @@ export function createCampaignScenesView(scene,heightAt) {
         part('shoes',.30,gunY,gunZ,.09,.10,.26,0x292d32);
         part('shoes',.30,gunY-.09,gunZ+.07,.07,.17,.08,0x43454a,-.2);
         part('shoes',.30,gunY+.015,gunZ-.18,.045,.045,.14,0x14181c);
-      } else part('shoes',.30,1.10+gesture*.1,-.37,.18,.12,.018,0xe7dfc9,-.2);
+      } else if(!contract)part('shoes',.30,1.10+gesture*.1,-.37,.18,.12,.018,0xe7dfc9,-.2);
       jointPose=null;
       shotTrace(person.shot,y+1.22,person.interiorId?y:null);
       stats.people++;
