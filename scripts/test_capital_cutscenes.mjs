@@ -109,3 +109,36 @@ assert.equal(defaults.step(4).progress, 1);
 assert.equal(defaults.drainEvents().length, 2);
 
 console.log('Capital cutscenes: timeline, pause, immutable inputs, exactly-once terminal events and bounds PASS');
+
+const runtime = await readFile(new URL('../Games/Capital Drive/script.js', import.meta.url), 'utf8');
+const controllerSources = ['campaignIntroChapter', 'playCampaignIntro', 'renderCutscene'].map(name => {
+  const start = runtime.indexOf(`function ${name}(`);
+  assert(start >= 0);
+  return runtime.slice(start, runtime.indexOf('\n}', start) + 2);
+});
+const optional = { id: 'blackthorn-account', cutscene: { ...scene(), id: 'blackthorn-account', title: 'The Blackthorn account' } };
+const completed = new Set(), launched = [], screens = [];
+const env = {
+  pendingCutscene: null, cutsceneAnchor: null, cameraReady: true,
+  missionCheckpoint: null, gameMode: 'campaign', started: true, windowFocused: true, document: { hidden: false },
+  campaign: { current: () => ({ id: context.missionId, cutscene: scene() }), state: { character: 'student', active: null },
+    optionalChapters: [optional], isCompleted: id => completed.has(id) },
+  cutscenes: createCutscenes(), missionLaunchReason: () => '', focus: () => ({ x: 1, z: 2 }),
+  startCampaignMission: id => launched.push(id), setCutsceneVisible: visible => screens.push(visible),
+  syncPlayerAppearance() {}, clearInput() {}, closeDialogs() {}, openCampaign() {}, $: () => ({}),
+};
+const intro = Function('env', `with (env) { ${controllerSources.join('\n')}; return {playCampaignIntro,renderCutscene}; }`)(env);
+assert.match(runtime, /openContractPlan\(item\.id\):playCampaignIntro\(item\.id\)/);
+intro.playCampaignIntro(optional.id);
+assert.equal(env.cutscenes.snapshot().missionId, optional.id);
+assert.deepEqual(launched, [], 'the optional story plays before the mission starts');
+env.cutscenes.cancel(); intro.renderCutscene(0);
+assert.deepEqual(launched, [], 'cancel leaves the optional chapter unstarted');
+intro.playCampaignIntro(optional.id); env.cutscenes.skip(); intro.renderCutscene(0); intro.renderCutscene(0);
+assert.deepEqual(launched, [optional.id], 'the optional introduction launches exactly its captured chapter once');
+intro.playCampaignIntro(optional.id); completed.add(optional.id); env.cutscenes.skip(); intro.renderCutscene(0);
+assert.deepEqual(launched, [optional.id], 'a chapter completed during the scene cannot start again');
+intro.playCampaignIntro(); env.cutscenes.skip(); intro.renderCutscene(0);
+assert.deepEqual(launched, [optional.id, null], 'the primary campaign introduction still launches its own story');
+assert.equal(screens.at(-1), false);
+console.log('Capital intro controller: exact optional identity, skip, cancel, completion guard and main story PASS');
