@@ -1,6 +1,12 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
 
+const SHOP_GLYPHS={
+  A:'010 101 111 101 101',C:'011 100 100 100 011',D:'110 101 101 101 110',E:'111 100 110 100 111',
+  F:'111 100 110 100 100',G:'011 100 101 101 011',I:'111 010 010 010 111',L:'100 100 100 100 111',
+  O:'010 101 101 101 010',P:'110 101 110 100 100',R:'110 101 110 101 101',S:'011 100 010 001 110',
+};
+
 // One active room set, one opaque vertex-colour batch, no retained per-building meshes.
 export function createInteriorView(scene) {
   const root = new THREE.Group(); root.name = 'Active original interior'; scene.add(root);
@@ -58,7 +64,7 @@ export function createInteriorView(scene) {
       plan.width, 0.16, plan.depth, o.yaw, plan.type === 'house' ? 0xa88e70 : 0xb3b1a0);
     for (const room of plan.rooms || []) {
       const color = { living: 0xaa9c84, kitchen: 0xb8b6a4, bedroom: 0x9b9e90, bathroom: 0xb2c1bb,
-        'bank-lobby': 0xc8c4b9, 'tower-archive': 0xb3bdad, 'jeweller-showroom': 0xb7a9b2, shop: 0xb3b1a0, grocery: 0xc1c4b1, 'fast-food-dining': 0xbda78c, 'cafe-dining': 0xc4b49a, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e,
+        'bank-lobby': 0xc8c4b9, 'tower-archive': 0xb3bdad, 'exhibit-workshop':0xbeb69f, 'jeweller-showroom': 0xb7a9b2, shop: 0xb3b1a0, grocery: 0xc1c4b1, 'fast-food-dining': 0xbda78c, 'cafe-dining': 0xc4b49a, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e,
         'noodle-dining': 0xc9baa0, 'noodle-kitchen': 0xb3bbb0, 'gym-floor': 0x777e79, 'school-corridor': 0xaeb9ab, classroom: 0xc1baa4, 'staff-area': 0xb6b6a5 }[room.kind];
       box(room.x, plan.floorY + 0.006, room.z, room.width - 0.12, 0.012, room.depth - 0.12, o.yaw, color);
     }
@@ -69,17 +75,31 @@ export function createInteriorView(scene) {
     }
     for (const item of plan.furniture) {
       const { width: w, depth: d, height: h, color } = item;
-      if (item.kind === 'jewellery-case') {
+      if (item.kind === 'jewellery-case' || item.kind==='replica-case') {
         detail(item, 0, .32, 0, w, .64, d, color);
         detail(item, 0, .69, 0, w * .88, .07, d * .9, 0x34313d);
         for (const x of [-1, 1]) for (const z of [-1, 1]) detail(item, x * (w / 2 - .035), .91,
           z * (d / 2 - .035), .07, .42, .07, 0xd4b577);
         detail(item, 0, h, 0, w, .055, d, 0x98adb3);
-        for (const z of [-d * .26, d * .26]) {
+        for (const z of item.kind==='replica-case'?[]:[-d * .26, d * .26]) {
           detail(item, 0, .76, z, w * .68, .06, d * .22, 0x6b5268);
           detail(item, -.22, .84, z, .15, .12, .15, 0xe0cc88);
           detail(item, .21, .85, z, .13, .15, .13, 0xd4dbe7);
         }
+        if(item.kind==='replica-case') {
+          detail(item,0,.8,0,.88,.16,.4,0xb9a371);
+          detail(item,.08,.96,0,.4,.16,.3,0xcac2a7);
+          for(const x of [-.3,.3])for(const z of [-.23,.23])detail(item,x,.77,z,.2,.2,.075,0x44514d);
+        }
+      } else if(item.kind==='shipping-crate') {
+        detail(item,0,h/2,0,w,h,d,color);
+        for(const y of [.12,h-.12])detail(item,0,y,-d/2-.01,w,.065,.025,0x6f6551);
+        for(const x of [-w*.35,w*.35])detail(item,x,h/2,-d/2-.025,.07,h,.035,0xc3b18b);
+      } else if(item.kind==='coffee-machine') {
+        detail(item,0,h*.22,0,w,h*.44,d,0x6d6d60);
+        detail(item,0,h*.73,d*.14,w*.9,h*.48,d*.58,0x586b6a);
+        detail(item,0,h*.46,-d*.2,w*.9,.07,d*.5,0xbfc4b9);
+        for(const z of [-d*.2,d*.17])detail(item,w*.34,h*.62,z,.08,.19,.08,0x333e3c);
       } else if (item.kind === 'teller-counter' || item.kind === 'jeweller-counter') {
         detail(item, 0, h / 2, 0, w, h, d, color);
         detail(item, 0, h + .05, 0, w + .08, .1, d + .08, 0x3d4653);
@@ -150,7 +170,7 @@ export function createInteriorView(scene) {
       } else if (item.kind === 'bench') {
         detail(item, 0, h - 0.09, 0, w, 0.18, d, color);
         for (const end of [-1, 1]) detail(item, 0, (h - 0.18) / 2, end * (d / 2 - 0.3), w * 0.65, h - 0.18, 0.15, 0x5e6458);
-      } else if (/table/.test(item.kind) || item.kind === 'office-desk' || item.kind === 'school-desk') {
+      } else if (/table/.test(item.kind) || ['office-desk','school-desk','workshop-bench','registrar-desk'].includes(item.kind)) {
         detail(item, 0, h - 0.05, 0, w, 0.1, d, color);
         for (const x of [-1, 1]) for (const z of [-1, 1]) detail(item, x * (w / 2 - 0.09), h / 2,
           z * (d / 2 - 0.09), 0.09, h - 0.1, 0.09, color);
@@ -178,6 +198,15 @@ export function createInteriorView(scene) {
           detail(item, 0, y, -d / 2 - .015, w * .85, .4, .03, 0xbec0b0);
           detail(item, 0, y, -d / 2 - .04, w * .25, .045, .04, 0x686f69);
         }
+      } else if(item.kind==='workshop-bench') {
+        detail(item,0,h+.015,0,w*.75,.03,d*.7,0x61766a);
+        for(const z of [-d*.25,d*.25]) {
+          detail(item,0,h+.1,z,.38,.16,.48,0xd5c49e);
+          detail(item,.28,h+.06,z,.08,.08,.5,0x596463);
+        }
+      } else if(item.kind==='registrar-desk') {
+        detail(item,-.25,h+.035,-.1,.5,.05,.35,0xe0d4b8);
+        detail(item,.48,h+.11,.1,.35,.22,.28,0x5d756a);
       } else if (item.kind === 'lockers') {
         for (let x = -w / 2 + 0.3; x < w / 2; x += 0.62) {
           detail(item, x, h / 2, -d / 2 - 0.01, 0.012, h - 0.12, 0.02, 0x717d75);
@@ -202,12 +231,19 @@ export function createInteriorView(scene) {
         for (let tier = 0; tier < 3; tier++) {
           const y = 0.3 + tier * 0.48;
           detail(item, 0, y, 0, w + 0.05, 0.055, d, 0xc1b596);
-          for (let row = 0; row < 5; row++) detail(item, 0, y + 0.16, -d / 2 + (row + 0.5) * d / 5,
-            w + 0.06, 0.25, d / 7, [0x976955, 0xc8b678, 0x779080][(row + tier) % 3]);
+          for (let row = 0; row < 5; row++) {
+            const z=-d/2+(row+.5)*d/5;
+            detail(item,0,y+.16,z,w-.04,.25,d/7,[0x976955,0xc8b678,0x779080][(row+tier)%3]);
+            if(plan.variant==='retail')detail(item,w/2-.018,y+.18,z,.025,.2,.028,0xe0d4b8);
+          }
         }
       } else if (item.kind === 'counter' || item.kind === 'kitchen-pass') {
         detail(item, 0, h + 0.045, 0, w + 0.12, 0.09, d + 0.12, 0x44514a);
         detail(item, item.kind === 'kitchen-pass' ? 0 : 0.35, h + 0.16, item.kind === 'kitchen-pass' ? -d / 2 + 1.9 : 0.1, 0.35, 0.25, 0.3, 0x303936);
+        if(plan.variant==='grocery') {
+          detail(item,0,h+.1,-d*.2,w*.8,.08,d*.4,0x394943);
+          detail(item,0,h+.28,d*.28,w*.7,.3,.12,0xa8b6a8);
+        }
       } else if (item.kind === 'noodle-station' || item.kind === 'prep-bench') {
         detail(item, 0, h + 0.04, 0, w + 0.05, 0.08, d + 0.05, 0xc2cbc5);
         if (item.kind === 'noodle-station') {
@@ -227,7 +263,35 @@ export function createInteriorView(scene) {
       }
     }
     for (const item of plan.details || []) {
-      if (item.kind === 'television') {
+      if(item.kind==='shop-window') {
+        const {width:w,height:h}=item;
+        detail(item,0,h/2,-.025,w,h,.035,0x536b6b);
+        detail(item,0,h/2,.035,w-.12,h-.12,.035,item.color);
+        for(const side of [-1,1])detail(item,side*(w/2-.025),h/2,.09,.055,h,.16,0x8c816a);
+        for(const y of [.025,h-.025])detail(item,0,y,.09,w,.055,.16,0x8c816a);
+        detail(item,0,h*.48,.07,.045,h-.09,.06,0xe0d7bd);
+        detail(item,-w*.22,h*.72,.059,w*.25,.045,.01,0xcbd6c9);
+      } else if(item.kind==='shop-sign') {
+        detail(item,0,item.height/2,0,item.width,item.height,item.depth,item.color);
+        const text=item.label||'',pixel=Math.min(.075,(item.width-.2)/Math.max(1,text.length*4-1));
+        for(const [column,letter]of [...text].entries()) {
+          const rows=SHOP_GLYPHS[letter]?.split(' ');if(!rows)continue;
+          rows.forEach((row,y)=>{for(const run of row.matchAll(/1+/g)) {
+            const x=((text.length*4-1)/2-column*4-run.index-(run[0].length-1)/2)*pixel;
+            detail(item,x,item.height/2+(2-y)*pixel,-item.depth/2-.008,run[0].length*pixel*.88,pixel*.82,.014,0xeee2bf);
+          }});
+        }
+      } else if(item.kind==='shop-light') {
+        detail(item,0,item.height/2,0,item.width+.12,item.height,item.depth+.12,0x6a766e);
+        detail(item,0,-.008,0,item.width,.025,item.depth,item.color);
+      } else if(item.kind==='window-daylight'||item.kind==='shop-aisle') {
+        detail(item,0,item.height/2,0,item.width,item.height,item.depth,item.color);
+      } else if(item.kind==='cafe-setting') {
+        detail(item,0,.015,0,.3,.03,.3,0xd8cdb2);
+        addGeometry(new THREE.CylinderGeometry(.075,.062,.14,8).translate(item.x,item.y+.1,item.z),0xe8ddc7);
+        addGeometry(new THREE.CircleGeometry(.062,8).rotateX(-Math.PI/2).translate(item.x,item.y+.172,item.z),0x624836);
+        detail(item,.083,.1,0,.055,.07,.045,0xe8ddc7);
+      } else if (item.kind === 'television') {
         detail(item, 0, item.height / 2, 0, item.width, item.height, item.depth, item.color);
         detail(item, 0, item.height / 2, item.depth / 2 + .008, item.width * .86, item.height * .78, .012, 0x6f8580);
         detail(item, 0, -.17, -.025, .1, .34, .08, 0x656c67);

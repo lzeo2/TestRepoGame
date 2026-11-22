@@ -1,5 +1,5 @@
 import { coveredCentrePassage } from './covered-passage.js';
-import { BY_ID } from '../../assets/car-arcade/fleet.js';
+import { CAPITAL_BY_ID as BY_ID } from '../../assets/car-arcade/fleet.js';
 // One immutable broad phase for world solids. Rooms remain lazy, owned by interiors.
 const EPS = 1e-8;
 function inside(x,z,points) {

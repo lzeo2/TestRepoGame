@@ -1,7 +1,7 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
 import { createCar } from '../../assets/car-arcade/models.js';
-import { BY_ID } from '../../assets/car-arcade/fleet.js';
+import { CAPITAL_BY_ID as BY_ID } from '../../assets/car-arcade/fleet.js';
 import { PERSON_MODEL, appearanceForPerson, createPersonGeometries, emitPersonParts } from './person-model.js';
 
 const CULL_DISTANCE = 260, SEATED_LIMIT = 2, CAR_LIFT = .18;

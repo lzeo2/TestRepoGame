@@ -195,7 +195,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
   // These original heist exteriors own their geometry and collision; rooms are fictional.
   // Use that exact front door rather than treating the approach pin as a facade.
   for (const site of heistSites) {
-    if (!site || !['bank', 'jeweller', 'tower'].includes(site.kind) || typeof site.id !== 'string' ||
+    if (!site || !['bank', 'jeweller', 'tower', 'memorial'].includes(site.kind) || typeof site.id !== 'string' ||
         typeof site.point !== 'function' || ![site.yaw, site.width, site.depth, site.floor].every(Number.isFinite) ||
         site.width < 8 || site.depth < (site.kind === 'tower' ? 7 : 6)) continue;
     const front = site.point(0, 0);
@@ -261,6 +261,13 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       doors.push(point); return point;
     };
     const gap = entry.heistSiteId ? (entry.variant === 'bank' ? 2.34 : 1.74) : entry.variant === 'noodles' ? 2 : 1.5, sideWidth = (width - gap) / 2;
+    const commonShop=entry.type==='shop'&&!entry.heistSiteId&&['cafe','grocery','retail'].includes(entry.variant);
+    const frontWindow=centre=>{
+      box(walls,'window-sill',centre,0,sideWidth,.16,.85,0xd6ccba);
+      box(walls,'window-lintel',centre,0,sideWidth,.16,.4,0xd6ccba,2.25);
+      for(const side of [-1,1])box(walls,'window-post',centre+side*(sideWidth/2-.06),0,.12,.16,1.4,0xd6ccba,.85);
+      box(details,'shop-window',centre,.06,sideWidth-.16,.08,1.32,0x9bb5b0,.89);
+    };
     if (footprint) {
       // The imported outline is the physical shell; the interior layout remains original.
       let nearest = 0, best = Infinity, projection = null;
@@ -283,9 +290,10 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       box(walls, 'window-lintel', centre, 0, sideWidth, 0.16, 0.4, 0xd6ccba, 2.25);
       for (const side of [-1, 1]) box(walls, 'window-post', centre + side * (sideWidth / 2 - 0.07), 0,
         0.14, 0.16, 1.4, 0xd6ccba, 0.85);
-    } else wall(-(width + gap) / 4, 0, sideWidth, 0.16);
+    } else if(commonShop)frontWindow(-(width+gap)/4);
+    else wall(-(width + gap) / 4, 0, sideWidth, 0.16);
     if (!footprint) {
-      wall((width + gap) / 4, 0, sideWidth, 0.16);
+      if(commonShop)frontWindow((width+gap)/4);else wall((width + gap) / 4, 0, sideWidth, 0.16);
       wall(-width / 2, depth / 2, 0.16, depth);
       wall(width / 2, depth / 2, 0.16, depth);
       wall(0, depth, width, 0.16);
@@ -336,9 +344,9 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
         station('stash', 'stock', 'Pack the ledger case', 0, depth - 1.75, 0, 1.2);
       }
     } else if (entry.heistSiteId) {
-      const bank = entry.variant === 'bank', tower = entry.variant === 'tower';
-      rooms.push({ kind: bank ? 'bank-lobby' : tower ? 'tower-archive' : 'jeweller-showroom', ...worldPoint(origin, 0, depth / 2), width, depth });
-      const employeeX = bank ? -2.8 : -1.8, employeeZ = bank ? 5.65 : 5.6;
+      const bank = entry.variant === 'bank', tower = entry.variant === 'tower',memorial=entry.variant==='memorial';
+      rooms.push({ kind: bank ? 'bank-lobby' : tower ? 'tower-archive' : memorial?'exhibit-workshop':'jeweller-showroom', ...worldPoint(origin, 0, depth / 2), width, depth });
+      const employeeX = bank ? -2.8 : memorial?-3.2:-1.8, employeeZ = bank ? 5.65 : memorial?depth-.75:5.6;
       if (bank) {
         box(furniture, 'teller-counter', -2.8, 4.6, 4.2, .8, 1.05, 0x8d7860);
         for (const side of [-1, 1]) box(furniture, 'bench', side * 5.15, 2.6, .8, 1.9, .65, 0x52667a);
@@ -352,6 +360,16 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
         box(furniture, 'document-cabinet', -width / 2 + .55, depth - 1, .65, 1.1, 1.75, 0x929b8d);
         box(furniture, 'ledger-case', 2.05, depth - .7, .7, .45, .68, 0x66523e);
         counter = { ...worldPoint(origin, -1.8, 3.6), y: floorY, yaw: origin.yaw, radius: 1.4 };
+      } else if(memorial) {
+        // Original exhibit-prop workshop, not an interpretation of real rooms.
+        for(const side of [-1,1])box(furniture,'workshop-bench',side*(width/2-1.5),3.4,1.4,2.6,.85,0x9a8664);
+        box(furniture,'replica-case',0,5.2,1.8,1,1.2,0x687d75);
+        box(furniture,'registrar-desk',-3.2,depth-2,2,.8,.9,0x82765c);
+        box(furniture,'shipping-crate',width/2-1.7,depth-1.5,1.5,1,.8,0xa18b68);
+        box(furniture,'document-cabinet',1.6,depth-.7,1.6,.6,1.7,0x89938a);
+        counter={...worldPoint(origin,-3.2,depth-3.2),y:floorY,yaw:origin.yaw,radius:1.3};
+        const sign=box(details,'shop-sign',0,depth-.11,3.9,.05,.55,0x354b4b,1.95);sign.label='REPLICAS';
+        for(const z of [2.2,5.5])box(details,'shop-light',0,z,1.5,.65,.08,0xf0e4b9,2.5);
       } else {
         box(furniture, 'jeweller-counter', -2.3, 4.65, 3.1, .7, 1.03, 0x65505e);
         for (const side of [-1, 1]) box(furniture, 'jewellery-case', side * 3.65, 3.1, 1.25, 2.5, 1.12, 0x79636c);
@@ -359,11 +377,12 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
         box(furniture, 'jewel-safe', -4.55, 5.3, .75, .85, 1.45, 0x665861);
         counter = { ...worldPoint(origin, -1.8, 3.6), y: floorY, yaw: origin.yaw, radius: 1.4 };
       }
-      const loot = { id: `${entry.id}-loot`, ...worldPoint(origin, bank ? 3.45 : 2.05, bank ? 5.65 : 5.05), y: floorY,
+      const loot = { id: `${entry.id}-loot`, ...worldPoint(origin, bank ? 3.45 : memorial?0:2.05, bank ? 5.65 : memorial?3.9:5.05), y: floorY,
         yaw: origin.yaw + Math.PI / 2, radius: 1.4 };
+      if(memorial){loot.label='Replica display case';loot.variant='replica';}
       heist = { siteId: entry.heistSiteId, kind: entry.variant,
         employee: { id: `${entry.id}-employee`, character: 'heist-employee', ...worldPoint(origin, employeeX, employeeZ),
-          y: floorY, yaw: origin.yaw + Math.PI }, loot };
+          y: floorY, yaw: origin.yaw + Math.PI,...(memorial?{label:'Fictional exhibit registrar'}:{}) }, loot };
     } else if (entry.type === 'mall') {
       const hall = 10, unitWidth = (width - hall) / 2, unitDepth = (depth - 6) / 2, unitGap = 5;
       const centres = [3 + unitDepth / 2, 3 + unitDepth * 1.5];
@@ -471,8 +490,9 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       station('stock', 'stock', fast ? 'Prepare the pickup orders' : 'Prepare the cafe orders', -width / 2 + 1.75, 3.7, -Math.PI / 2);
       for (const z of [3.4, 7.4]) {
         const x = width / 2 - 0.75;
-        box(furniture, fast ? 'booth' : 'chair', x, z, 0.8, 1.4, 0.85, fast ? 0x9b503e : 0x677360);
-        box(furniture, 'dining-table', x - 1.05, z, 0.7, 0.9, 0.76, 0xb49c78);
+        box(furniture, fast ? 'booth' : 'padded-chair', x, z, 0.8, 1.4, 0.85, fast ? 0x9b503e : 0x677360);
+        const table=box(furniture, 'dining-table', x - 1.05, z, 0.7, 0.9, 0.76, 0xb49c78);
+        if(!fast)box(details,'cafe-setting',x-1.05,z,.45,.65,.2,0xe8ddc7,table.height);
       }
     } else if (entry.variant === 'grocery') {
       rooms.push({ kind: 'grocery', ...worldPoint(origin, 0, depth / 2), width, depth });
@@ -489,6 +509,15 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       if (width > 7) box(furniture, 'shelves', -0.7, depth / 2, 0.85, 2.8, 1.4, 0x8e8d73);
       rooms.push({ kind: 'shop', ...worldPoint(origin, 0, depth / 2), width, depth });
       station('stock', 'stock', 'Sort the shelf stock', width / 2 - 1.55, 3.8, Math.PI / 2);
+    }
+    if(commonShop) {
+      const label={cafe:'CAFE',grocery:'GROCER',retail:'GOODS'}[entry.variant];
+      const sign=box(details,'shop-sign',0,depth-.11,Math.min(3,width-1),.05,.5,0x354b4b,2.02);sign.label=label;
+      for(const z of [2.2,5.3,8.4])box(details,'shop-light',0,z,1.25,.65,.08,0xf0e4b9,2.5);
+      for(const side of [-1,1])box(details,'window-daylight',side*(width+gap)/4,1.15,sideWidth-.25,1.45,.006,0xd2c8ab,.013);
+      const shopCollider=createInteriorCollider({origin,width,depth,floorY,walls,furniture});
+      const aisleX=[0,.6,-.6,1.2,-1.2].find(x=>shopCollider.canTraverse(worldPoint(origin,x,1.1),worldPoint(origin,x,depth-1.1)));
+      if(aisleX!==undefined)box(details,'shop-aisle',aisleX,depth/2,.075,depth-2.2,.006,entry.variant==='cafe'?0xa38f70:0x8c9b89,.014);
     }
     if (entry.storeId === 'store-358293199') {
       // Original fictional ledger case, with a clear rear-aisle standing pose.

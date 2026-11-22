@@ -1,5 +1,5 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
-import { BY_ID } from '../../assets/car-arcade/fleet.js';
+import { CAPITAL_BY_ID as BY_ID } from '../../assets/car-arcade/fleet.js';
 
 // Matches the authored belt heights and round front lamps in models.js.
 const BELT = { bricklet: .56, pip: .52, parcel: .49, finch: .56, lantern: .54, comet: .55, orchard: .52, pebble: .53, dockside: .48, horizon: .56, morrow: .61, gravel: .53, relay: .55, tempest: .58, atlas: .52, sunray: .57 };

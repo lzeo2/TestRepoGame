@@ -11,6 +11,7 @@ const GLYPHS = {
   I: ['111', '010', '010', '010', '111'],
   L: ['100', '100', '100', '100', '111'],
   M: ['101', '111', '111', '101', '101'],
+  P: ['110', '101', '110', '100', '100'],
   R: ['110', '101', '110', '101', '101'],
   S: ['111', '100', '111', '001', '111'],
   T: ['111', '010', '010', '010', '010'],
@@ -35,8 +36,9 @@ function facade(add, site) {
   const { width, depth, height, floor, foundation } = site;
   const bank = site.kind === 'bank';
   const tower = site.kind === 'tower';
-  const siding = tower ? 0x9c9f92 : bank ? 0xc8b6a5 : 0x74635f;
-  const trim = tower ? 0x30464a : bank ? 0x293d57 : 0x4d3347;
+  const workshop = site.kind === 'memorial';
+  const siding = workshop ? 0xb3a593 : tower ? 0x9c9f92 : bank ? 0xc8b6a5 : 0x74635f;
+  const trim = workshop || tower ? 0x30464a : bank ? 0x293d57 : 0x4d3347;
   const glass = bank ? 0x557682 : 0x577178;
   const brass = bank ? 0xe3c080 : 0xdcae73;
   const doorWidth = bank ? 2.34 : 1.74;
@@ -62,7 +64,7 @@ function facade(add, site) {
       add(column, -.15, floor + .17, .52, .36, 3.3, 0x9e8c81);
       add(column, -.16, floor + .11, .67, .42, .19, 0xd6c8b6);
       add(column, -.17, floor + 3.37, .67, .43, .17, 0xd6c8b6);
-    } else if (!tower) {
+    } else if (site.kind === 'jeweller') {
       for (const display of [-.79, .63]) {
         add(x + display, -.197, floor + .81, .74, .054, .28, 0x45373f);
         add(x + display, -.228, floor + 1.09, .11, .049, .34, brass);
@@ -70,7 +72,8 @@ function facade(add, site) {
       }
     }
   }
-  title(add, site, tower ? 'ARCHIVE' : bank ? 'CIVIC MUTUAL' : 'FACETS', bank ? .186 : .278, floor + height - .665, 0xfff3dd);
+  const sign = workshop ? 'REPLICA' : tower ? 'ARCHIVE' : bank ? 'CIVIC MUTUAL' : 'FACETS';
+  title(add, site, sign, bank ? .186 : .278, floor + height - .665, 0xfff3dd);
 }
 
 export function createHeistSitesView(scene, sites) {

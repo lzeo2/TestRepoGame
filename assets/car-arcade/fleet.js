@@ -20,3 +20,13 @@ export const CARS = Object.freeze([
   Object.freeze({id, name, price, speed, acceleration, handling, toughness, style, color, length, width, height})));
 
 export const BY_ID = Object.freeze(Object.assign(Object.create(null), Object.fromEntries(CARS.map(car => [car.id, car]))));
+
+// Capital Drive additions are isolated from the two original arcade catalogs.
+const capitalAdditions = [
+  ['flux', 'Flux Borough EV', 12500, 36, 8.1, 4.1, 102, 'compact', '#769b98', 3.88, 1.81, 1.53],
+  ['rill', 'Rill Workmate', 17500, 34, 6.4, 3.2, 138, 'utility', '#bcbba3', 4.38, 1.88, 1.66],
+  ['gather', 'Gather Shuttle', 24000, 33, 6.1, 2.8, 144, 'utility', '#a48d70', 4.98, 1.98, 2.03],
+].map(([id,name,price,speed,acceleration,handling,toughness,style,color,length,width,height])=>Object.freeze({id,name,price,speed,acceleration,handling,toughness,style,color,length,width,height}));
+export const CAPITAL_CARS=Object.freeze([...CARS,...capitalAdditions]);
+export const CAPITAL_BY_ID=Object.freeze(Object.assign(Object.create(null),Object.fromEntries(CAPITAL_CARS.map(car=>[car.id,car]))));
+export const TRAFFIC_CAR_IDS=Object.freeze(['lantern','flux','orchard','rill','gravel','gather','relay','atlas','finch']);
