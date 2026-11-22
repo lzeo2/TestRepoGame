@@ -124,7 +124,13 @@ assert(actualBoard, 'at least one actual source bus has a safe front-left boardi
 const actualStart = { x: actualBoard.x, z: actualBoard.z };
 advance(5, actual); assert.equal(actual.seatPose, actualBoard); assert(actualBoard.playerAboard);
 assert(Math.hypot(actualBoard.x - actualStart.x, actualBoard.z - actualStart.z) > .1, 'actual passenger travels physically');
-assert(actual.interact({ onFoot: true }).stopping); advance(4, actual);
+assert(actual.interact({ onFoot: true }).stopping);
+const requestedStopId = actual.tracking().requestedStopId;
+assert(requestedStopId, 'actual-source route requests its mapped platform');
+for(let tick=0;tick<9000&&!actualBoard.currentStop;tick++) {
+  actualSim.trafficLights.step(.1); actual.step(.1);
+}
+assert.equal(actualBoard.currentStop?.id,requestedStopId,'passenger reaches the requested source stop through ordinary signal cycles');
 const actualExit = actual.interact({ onFoot: true });
 assert(actualExit.exited); assert(actualSim.canOccupy(actualExit.exitPose, { length: 1, width: .8 }));
 

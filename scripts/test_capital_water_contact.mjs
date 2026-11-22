@@ -6,15 +6,17 @@ import { createSimulation } from '../Games/Capital Drive/simulation.js';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { applyRoadProfiles } from '../Games/Capital Drive/road-network.js';
 import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
-import { withCurrentRouting } from './capital-collision-baseline.mjs';
+import { withCurrentRouting,withCurrentFleet } from './capital-collision-baseline.mjs';
 
 const sourceURL = new URL('../Games/Capital Drive/simulation.js', import.meta.url);
+const currentSource=await readFile(sourceURL,'utf8');
 const baselineRevision = '73c8335c';
 const replayRevision = '3b5483d1b639f3e29c8392fc8b6275ee236a9f33';
 async function loadSimulation(revision, legacyStatic = false) {
   let source = execFileSync('git', ['show', `${revision}:Games/Capital Drive/simulation.js`],
     { cwd: new URL('../', import.meta.url), encoding: 'utf8', maxBuffer: 1024 * 1024 });
-  if (legacyStatic) source = withCurrentRouting(source, await readFile(sourceURL, 'utf8')) + '\nexport {polygonContact, insideRing};';
+  source=withCurrentFleet(source,currentSource);
+  if (legacyStatic) source = withCurrentRouting(source,currentSource) + '\nexport {polygonContact, insideRing};';
   source = source.replace(/from ['"]([^'"]+)['"]/g, (_, path) => `from ${JSON.stringify(new URL(path, sourceURL).href)}`);
   return import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 }

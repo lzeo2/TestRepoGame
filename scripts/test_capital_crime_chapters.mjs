@@ -15,7 +15,7 @@ map.landmarks.push(...MAPPED_STORES.map(store => ({ ...store, store: true })));
 const journal = createCampaign(map).journal();
 const old = ['late-parcel', 'under-the-awning', 'borrowed-wheels', 'quiet-streets', 'across-the-water', 'home-by-the-lake', 'shelf-life', 'two-till-problem', 'carbon-copy', 'paper-trail-survey', 'exit-interview', 'sealed-account', 'earmuffs-rematch'];
 assert.deepEqual(journal.shared.slice(0, 13).map(c => c.id), old);
-assert.deepEqual(journal.shared.slice(13).map(c => c.id), ['closing-time', 'terminal-transfer']);
+assert.deepEqual(journal.shared.slice(13, 15).map(c => c.id), ['closing-time', 'terminal-transfer']);
 const intros = Object.fromEntries(journal.introductions.map(item => [item.character, item.chapters.map(c => c.id)]));
 const save = { version: 2, character: 'student', intros, meeting: true, legacy: false, completed: old };
 const context = { pose: { ...map.spawn, speed: 0 }, onFoot: true, health: 100, vehicleHealth: 100, wanted: 0, respawnSerial: 0, campaign: true, sandbox: false,
@@ -23,7 +23,7 @@ const context = { pose: { ...map.spawn, speed: 0 }, onFoot: true, health: 100, v
 let campaign = createCampaign(map, save);
 assert.deepEqual(campaign.serialize(), save, 'old strict v2 prefix is unchanged on load');
 assert.deepEqual(campaign.drainEvents(), []);
-assert.equal(campaign.developerChapters().length, 22);
+assert.equal(campaign.developerChapters().length, 24);
 for (let index = 0; index < 2; index++) {
   const hero = index ? 'corporate' : 'student';
   assert(campaign.selectCharacter(hero, context).ok);
@@ -34,7 +34,7 @@ for (let index = 0; index < 2; index++) {
   assert.deepEqual(chapter.stages.map(g => g.kind), index ? ['stolen', 'drive', 'drive', 'foot'] : ['robbery', 'evidence', 'drive', 'robbery', 'escape']);
   assert(campaign.start(context).ok);
   const start = campaign.drainEvents().find(e => e.type === 'started');
-  if (index) { assert(start.incident); assert.equal(start.wantedLevel, 3); }
+  if (index) { assert(start.incident); assert.equal(start.wantedLevel, 2); }
   const advance = live => { const stage = campaign.state.active.stage; for (let n = 0; n < 100 && campaign.state.active?.stage === stage; n++) campaign.update(.1, live); };
   while (campaign.state.active) {
     const { target: goal, stage } = campaign.state.active;
@@ -65,7 +65,8 @@ for (let index = 0; index < 2; index++) {
   campaign = createCampaign(map, campaign.serialize());
   assert.deepEqual(campaign.state.completed, [...old, ...['closing-time', 'terminal-transfer'].slice(0, index + 1)]);
 }
-assert.equal(campaign.current(), null);
+assert.equal(campaign.current().id, 'conflict-of-interest', 'completed crime prefix continues into the appended resolution');
+assert.equal(campaign.optionalUnlocked(), false, 'later optional chapters wait for the new resolution');
 const terminal = createCampaign(map, { ...save, character: 'corporate', completed: [...old, 'closing-time'] }).current();
 const approach = terminal.stages[2];
 assert.deepEqual([approach.x, approach.z], [terminal.stages[3].x, terminal.stages[3].z]);

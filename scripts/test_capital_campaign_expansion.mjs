@@ -24,7 +24,7 @@ const ctx = { pose: { x: 0, z: 0, speed: 0 }, onFoot: false, vehicle: { stolen: 
 let campaign = createCampaign(map, save);
 assert.equal(campaign.current().id, additions[0], 'completed six-chapter saves continue directly without replay');
 assert.deepEqual(campaign.serialize(), save, 'loading the continuation earns and rewrites nothing');
-assert.equal(campaign.developerChapters().length, 22);
+assert.equal(campaign.developerChapters().length, 24);
 assert.deepEqual(campaign.journal().shared.slice(0, 6).map(chapter => chapter.id), original);
 assert.deepEqual(campaign.journal().shared.slice(6, 9).map(chapter => chapter.id), additions);
 const legacy = createCampaign(map, { version: 1, completed: original });

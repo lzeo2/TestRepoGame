@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {applyMapExpansion} from '../Games/Capital Drive/map-expansion.js';
+import {applyNorthWest} from '../Games/Capital Drive/north-west.js';
+import {createInteriors} from '../Games/Capital Drive/interiors.js';
+import {createInteriorPeople} from '../Games/Capital Drive/interior-people.js';
 import {createSimulation} from '../Games/Capital Drive/simulation.js';
 import {createProgression} from '../Games/Capital Drive/progression.js';
 import {createAddressSearch} from '../Games/Capital Drive/address-search.js';
@@ -9,7 +12,9 @@ import {POOL_BARRIERS,POOL_GATE_APPROACHES,MANUKA_POOL_BASIN} from '../Games/Cap
 const source=await readFile(new URL('../Games/Capital Drive/data/canberra.json',import.meta.url),'utf8'),map=JSON.parse(source);
 const before=JSON.stringify(map);
 const north=JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra-north.json',import.meta.url),'utf8'));
-const expanded=applyMapExpansion(map,north);
+const northwest=JSON.parse(await readFile(new URL('../Games/Capital Drive/data/north-west.json',import.meta.url),'utf8'));
+const northwestTerrain=JSON.parse(await readFile(new URL('../Games/Capital Drive/data/north-west-terrain.json',import.meta.url),'utf8'));
+const expanded=applyNorthWest(applyMapExpansion(map,north),northwest,northwestTerrain);
 const runtime={...expanded,barriers:POOL_BARRIERS,collisionReplacedBuildingIds:['act-75267-0'],areas:[...expanded.areas,{type:'water',points:MANUKA_POOL_BASIN}]};
 const simulation=createSimulation(runtime,{trafficCount:0}),gate=POOL_GATE_APPROACHES[0];
 const actor={x:gate.outside[0],z:gate.outside[1]};assert(!simulation.moveActor(actor,0,0,.45).blocked);
@@ -26,16 +31,36 @@ let coldReads=0;for(const c of fast.parkedCars)Object.defineProperty(c,'active',
 assert(fast.canOccupy({x:20,z:20,yaw:0}));const foot={x:20,z:20};assert(!fast.moveActor(foot,1,0).blocked);
 assert.equal(coldReads,0,'local vehicle/foot sweeps do not scan two thousand distant parked cars');
 const ctx=(s,extra={})=>({pose:{x:s.x,z:s.z},onFoot:true,vehicle:{modelId:'lantern',stolen:false},vehicleHealth:100,health:50,wanted:0,respawnSerial:0,weapon:'pistol',reserveAmmo:12,...extra});
+const interiors=createInteriors(runtime,{stores:MAPPED_STORES});
 for(const store of MAPPED_STORES){
  assert(!simulation.moveActor({x:store.x,z:store.z},0,0,.45).blocked,store.name+' clear physical approach');
- const p=createProgression(runtime,null,{hasLineOfSight:simulation.hasLineOfSight});p.state.equipment.pistol=true;
- assert(p.startActivity(store.id,'robbery',ctx(store)).ok,store.name+' mapped till starts');
- for(let i=0;i<81;i++)p.update(.05,ctx(store));assert.equal(p.state.cash,1000+store.robbery);
- assert(!p.startActivity(store.id,'robbery',ctx(store)).ok,'each actual mapped till has a saved cooldown');
- const denied=createProgression(runtime,null,{hasLineOfSight:()=>false});denied.state.equipment.pistol=true;
- assert(!denied.startActivity(store.id,'robbery',ctx(store)).ok,'occluded till cannot start remotely');assert.equal(denied.state.cash,1000);
+ const entry=interiors.entries.find(e=>e.storeId===store.id);assert(entry,store.name+' has its source-backed doorway');
+ const actor={x:entry.x,z:entry.z,yaw:entry.yaw},plan=interiors.enter(entry,actor);assert(plan);
+ const people=createInteriorPeople();people.load(plan);
+ const employee=people.snapshot().find(person=>['cashier','shopkeeper','cook'].includes(person.role));assert(employee);
+ let pose;
+ for(let i=0;i<32;i++){
+  const candidate={x:employee.x+Math.cos(i*Math.PI/16)*1.8,z:employee.z+Math.sin(i*Math.PI/16)*1.8};
+  if(!interiors.moveActor({...candidate},0,0,.45).blocked&&interiors.hasLineOfSight(candidate,employee)&&Math.hypot(candidate.x-plan.counter.x,candidate.z-plan.counter.z)<=4)pose??=candidate;
+ }
+ assert(pose,store.name+' has a physical employee approach');
+ const options={interactiveRobbery:true,crimeTarget:id=>people.getCrimeTarget(id),robberyTarget:()=>people.getCrimeTarget(employee.id),
+  servicePosition:s=>s.id===store.id?plan.counter:null,canUseService:s=>interiors.active?.storeId===s.id,hasLineOfSight:interiors.hasLineOfSight};
+ const p=createProgression(runtime,null,options);p.state.equipment.pistol=true;
+ const outside=p.serialize();assert(!p.startActivity(store.id,'robbery',ctx(store)).ok,'exterior timer cannot bypass the live room');assert.deepEqual(p.serialize(),outside);
+ const inside=ctx(pose,{interior:{storeId:store.id,roomId:plan.id}});
+ assert(p.startActivity(store.id,'robbery',inside).ok,store.name+' live employee till starts');
+ p.update(0,inside);assert.equal(p.state.activity.progress,0);
+ for(let i=0;i<99;i++)p.update(.05,inside);assert.equal(p.state.cash,1000,'no pay before employee handover');
+ p.update(.05,inside);assert.equal(p.state.cash,1000+store.robbery);
+ p.update(.05,inside);assert.equal(p.state.cash,1000+store.robbery,'one handover pays once');
+ assert(!p.startActivity(store.id,'robbery',inside).ok,'each actual mapped till has a saved cooldown');
+ const loaded=createProgression(runtime,p.serialize(),options);assert(!loaded.startActivity(store.id,'robbery',inside).ok,'reload retains each till cooldown');
+ const denied=createProgression(runtime,null,{...options,hasLineOfSight:()=>false});denied.state.equipment.pistol=true;
+ const blocked=denied.serialize();assert(!denied.startActivity(store.id,'robbery',inside).ok,'occluded employee cannot start remotely');assert.deepEqual(denied.serialize(),blocked);
+ interiors.reset();
 }
 const storeMap={...map,landmarks:MAPPED_STORES.map(s=>({...s,store:true,aliases:[...s.aliases,s.sourceName]}))},search=createAddressSearch(storeMap);
 for(const query of ['Coals','Coles']){const hit=search.search(query)[0];assert.equal(hit.label,'Coals');assert.equal(hit.kind,'store');}
 assert(JSON.stringify(map)===before,'runtime site additions leave source database unchanged');
-console.log('PASS sites: actual source pool gate/water, foot/car fences, local parked broad phase, twenty-one physical mapped approaches/tills/occlusion/cooldowns, parody search aliases and source preservation.');
+console.log(`PASS sites: actual source pool gate/water, foot/car fences, local parked broad phase, ${MAPPED_STORES.length} physical mapped approaches and live employee tills/occlusion/payout/cooldown reloads, parody search aliases and source preservation.`);

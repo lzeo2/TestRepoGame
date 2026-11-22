@@ -36,7 +36,7 @@ for(const [name,pool] of [['pedestrian',pedestrians],['dealer',dealers],['ride',
   assert.equal(target.feetY,4.05);assert.equal(target.interiorId,null);assert.equal(target.radius,.36);
   assert(target.height>1.6&&target.height<2.1);assert(!Object.values(target).some(v=>typeof v==='function'));
   const before=pool.snapshot();
-  for(const ray of [null,{}, {...level,y:NaN},{...level,dx:Infinity},{...level,range:0},{...level,range:101},{...level,range:5},
+  for(const ray of [null,{}, {...level,y:NaN},{...level,dx:Infinity},{...level,range:0},{...level,range:201},{...level,range:5},
     {...level,dx:0,dy:0,dz:0},{...level,dx:2},{...level,interiorId:'other-room'},
     {...level,y:30},{...level,dy:.9,dx:Math.sqrt(.19)},{...level,dz:.3,dx:Math.sqrt(.91)}]) {
     assert.equal(pool.hitByShot(target.id,10,ray).hits,0,`${name}: malformed, sky, lateral or room miss`);
@@ -44,6 +44,15 @@ for(const [name,pool] of [['pedestrian',pedestrians],['dealer',dealers],['ride',
   for(const damage of [NaN,Infinity,0,-1])assert.equal(pool.hitByShot(target.id,damage,level).hits,0);
   assert.equal(pool.hitByShot('old-missing-id',10,level).hits,0);
   assert.deepEqual(pool.snapshot(),before,`${name}: rejected shots preserve health and reactions`);
+  // Scoped weapons extend beyond 100m; the shared hitscan limit is 200m.
+  for(const range of [101,200]) {
+    pool.fixture();const body=pool.shotTargets()[0];
+    assert.equal(pool.hitByShot(body.id,10,{...level,range}).hits,1,`${name}: valid extended ray range ${range}`);
+  }
+  pool.fixture({x:150});const distant=pool.shotTargets()[0],distantBefore=pool.snapshot();
+  assert.equal(pool.hitByShot(distant.id,10,{...level,range:101}).hits,0,`${name}: distant body beyond ray endpoint`);
+  assert.deepEqual(pool.snapshot(),distantBefore,`${name}: short ray preserves distant body and reactions`);
+  assert.equal(pool.hitByShot(distant.id,10,{...level,range:190}).hits,1,`${name}: scoped ray reaches distant live body`);
   for(const height of [.1,target.height-.1]) {
     pool.fixture();const body=pool.shotTargets()[0];
     assert.equal(pool.hitByShot(body.id,10,aimed(body,height)).hits,1,`${name}: aimed feet/shoulder ray`);

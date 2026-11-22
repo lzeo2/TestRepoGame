@@ -26,6 +26,7 @@ MODULES = (
     'covered-passage.js',
     'water-contact.js', 'watercraft.js', 'watercraft-view.js',
     'light-rail.js', 'light-rail-source.js', 'light-rail-view.js', 'heist-sites.js', 'heist-sites-view.js', 'heist-activities.js',
+    'war-memorial.js', 'war-memorial-data.js', 'war-memorial-view.js', 'birds-view.js',
     'campaign-world.js', 'campaign-aftermath.js', 'career-reset.js', 'free-roam-gear.js', 'depot-tank.js',
     'ballistics.js', 'shot-obstacles.js', 'recon.js', 'camera-control.js', 'foot-motion.js', 'safehouse-recovery.js',
     'aircraft.js', 'aircraft-view.js', 'stealth-contracts.js', 'stealth-contracts-view.js',
@@ -42,6 +43,9 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','north-west.js', 'north-places-view.js', 'drive-audio.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
+    'test_capital_war_memorial.mjs', 'test_capital_birds_view.mjs', 'test_capital_bus_passenger_service.mjs',
+    'test_capital_campaign_resolution.mjs', 'test_capital_interior_styles.mjs', 'test_capital_stealth_retry.mjs',
+    'test_capital_vehicle_variety.mjs',
     'test_capital_driving_dynamics.mjs', 'test_capital_car_camera.mjs', 'test_capital_driving_shake.mjs', 'test_capital_foot_motion.mjs', 'test_capital_jetpack.mjs', 'test_capital_nitro_stations.mjs', 'test_capital_defence_depot.mjs',
     'test_capital_nitro_view.mjs', 'test_capital_car_rental.mjs', 'test_capital_rental_storefronts.mjs', 'test_capital_service_map_icons.mjs',
     'test_capital_delivery_actual.mjs', 'test_capital_job_cargo.mjs', 'test_capital_burglary_session.mjs', 'test_capital_jobs_rest.mjs', 'test_capital_delivery_service.mjs', 'test_capital_delivery_transactions.mjs', 'test_capital_house_stations.mjs', 'test_capital_house_controller.mjs', 'test_capital_static_occupancy.mjs', 'test_capital_airport_terrain.mjs', 'test_capital_stunt_ramps.mjs', 'test_capital_airport_details.mjs', 'test_capital_vehicle_flight.mjs',

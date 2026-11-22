@@ -3,12 +3,13 @@ import {readFileSync} from 'node:fs';
 import {applyMapExpansion} from '../Games/Capital Drive/map-expansion.js';
 import {applyAirport} from '../Games/Capital Drive/airport.js';
 import {applyRoadProfiles,roadProfile} from '../Games/Capital Drive/road-network.js';
+import {prepareWarMemorial} from '../Games/Capital Drive/war-memorial.js';
 import {createSimulation} from '../Games/Capital Drive/simulation.js';
 import {createStealthContracts,planStealthChapter,STEALTH_CONTRACT_IDS} from '../Games/Capital Drive/stealth-contracts.js';
 
 const reader=name=>JSON.parse(readFileSync(new URL(`../Games/Capital Drive/data/${name}.json`,import.meta.url)));
-const map=applyAirport(applyMapExpansion(applyRoadProfiles(reader('canberra'),reader('road-profiles')),reader('canberra-north')),
-  reader('airport'),reader('airport-terrain'));
+const map=prepareWarMemorial(applyAirport(applyMapExpansion(applyRoadProfiles(reader('canberra'),reader('road-profiles')),reader('canberra-north')),
+  reader('airport'),reader('airport-terrain')));
 const simulation=createSimulation(map,{trafficCount:0});
 const canStand=point=>!simulation.moveActor({...point},0,0,.45).blocked;
 const contracts=createStealthContracts(map,{canStand,hasLineOfSight:simulation.hasLineOfSight,nearestRoad:simulation.nearestRoad});
@@ -66,7 +67,7 @@ for(const chapter of contracts.chapters){
     playablePlans++;
   }
 }
-assert.equal(playablePlans,24);
+assert.equal(playablePlans,28);
 assert.equal(targetPlans,8,'each new target plan includes a scored target action');
 assert.deepEqual([...actions].sort(),['cover','disarm','divert','drop-target','evidence','extract','handoff','scout','tag-target']);
-console.log(`PASS six checked stealth contracts, ${playablePlans} plans, all stage/extraction receipts, sight/stance/wanted, replay denial and immutable plans`);
+console.log(`PASS seven checked stealth contracts, ${playablePlans} plans, all stage/extraction receipts, sight/stance/wanted, replay denial and immutable plans`);

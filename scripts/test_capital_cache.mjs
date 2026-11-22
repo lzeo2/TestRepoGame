@@ -36,7 +36,7 @@ class MemoryCaches {
 }
 
 function worker(data, { scope = 'https://arcade.test/Games/Capital%20Drive/', storage = new MemoryCaches(), network,
-  build = data.manifest.build } = {}) {
+  build = data.manifest.build, verificationCrypto = webcrypto } = {}) {
   const listeners = new Map(), requests = [];
   let claims = 0, skips = 0;
   const bodyByURL = new Map(Object.entries(data.bodies).map(([url, body]) => [new URL(url, scope).href, body]));
@@ -50,12 +50,12 @@ function worker(data, { scope = 'https://arcade.test/Games/Capital%20Drive/', st
   };
   const self = {
     registration: { scope }, location: new URL('service-worker.js', scope),
-    CAPITAL_CACHE_MANIFEST: structuredClone(data.manifest), crypto: webcrypto,
+    CAPITAL_CACHE_MANIFEST: structuredClone(data.manifest), crypto: verificationCrypto,
     clients: { claim: async () => { claims++; } },
     skipWaiting: async () => { skips++; },
     addEventListener: (name, callback) => { listeners.set(name, callback); },
   };
-  const context = vm.createContext({ self, caches: storage, fetch, crypto: webcrypto,
+  const context = vm.createContext({ self, caches: storage, fetch, crypto: verificationCrypto,
     URL, Request, Response, Headers, TextEncoder, TextDecoder, Uint8Array, ArrayBuffer,
     console, setTimeout, clearTimeout,
     importScripts: name => { assert.equal(name, `./cache-manifest.js?capital-build=${build}`); },
@@ -208,9 +208,15 @@ assert.equal(await (await repair.get('script.js')).response.text(), data.bodies[
 await repair.get('script.js');
 assert.equal(repair.requests.length, 1, 'verified cache miss repairs the current revision');
 const mismatch = worker(data, { network: async () => new Response('new server revision') });
-await mismatch.get('script.js');
-await mismatch.get('script.js');
-assert.equal(mismatch.requests.length, 4, 'unverified network fallbacks never repair the revision');
+for (let i = 0; i < 2; i++) {
+  const failed = (await mismatch.get('script.js')).response;
+  assert.equal(failed.status, 503, 'listed network assets fail closed after the digest retry mismatches');
+  assert.equal(failed.headers.get('Cache-Control'), 'no-store');
+  assert(!((await failed.text()).includes('new server revision')), 'mismatched response bytes are never returned');
+}
+assert.equal(mismatch.requests.length, 4, 'failed verification cannot populate the revision cache');
+const wrongDigest = worker(data, { network: async () => new Response(data.bodies['script.js'].replace('true', 'nope')) });
+assert.equal((await wrongDigest.get('script.js')).response.status, 503, 'matching byte counts do not authorize a different content digest');
 const hashedRepair = worker(data, { network: async (request, bodies) =>
   new Response(request.cache === 'reload' ? bodies.get(withoutQuery(request.url)) : 'stale') });
 assert.equal(await (await hashedRepair.get('script.js')).response.text(), data.bodies['script.js'], 'hash URL repairs a stale online response');
@@ -220,6 +226,59 @@ const deniedStorage = new MemoryCaches();
 deniedStorage.denied = true;
 const denied = worker(data, { storage: deniedStorage });
 assert.equal(await (await denied.get('script.js')).response.text(), data.bodies['script.js'], 'storage denial preserves online play');
+
+// Verification is independent of optional persistent storage, including navigation.
+for (const path of ['script.js', 'data/map.json']) {
+  const unavailable = worker(data, { storage: deniedStorage, network: async () => new Response('unverified revision') });
+  assert.equal((await unavailable.get(path)).response.status, 503, 'storage denial cannot bypass content verification');
+  assert.equal(unavailable.requests.length, 2, 'storage denial still permits one digest-URL retry');
+  const repaired = worker(data, { storage: deniedStorage, network: async (request, bodies) =>
+    new Response(request.cache === 'reload' ? bodies.get(withoutQuery(request.url)) : 'stale') });
+  assert.equal(await (await repaired.get(path)).response.text(), data.bodies[path], 'verified digest retry works without CacheStorage');
+}
+const deniedNavigation = worker(data, { storage: deniedStorage });
+const navigationRequest = { url: new URL('./?campaign=1', deniedNavigation.scope).href, method: 'GET', mode: 'navigate' };
+// The ordinary navigation endpoint can differ from the canonical shell URL.
+const navigationRepair = worker(data, { storage: deniedStorage, network: async (request, bodies) =>
+  new Response(bodies.get(withoutQuery(request.url)) ?? 'stale navigation shell') });
+const verifiedNavigation = await navigationRepair.dispatch('fetch', { request: navigationRequest });
+assert.equal(await verifiedNavigation.response.text(), data.bodies['index.html']);
+assert.equal(navigationRepair.requests[1].url, `${new URL('index.html', navigationRepair.scope).href}?capital-file=${data.manifest.files.find(file => file.url === 'index.html').sha256}`,
+  'navigation retry retains the canonical manifest shell and digest');
+const failedNavigation = worker(data, { storage: deniedStorage, network: async () => new Response('stale navigation shell') });
+assert.equal((await failedNavigation.dispatch('fetch', { request: navigationRequest })).response.status, 503);
+
+class FaultCaches extends MemoryCaches {
+  constructor(operation) { super(); this.operation = operation; }
+  async open(name) {
+    const cache = await super.open(name);
+    if (this.operation === 'match') cache.match = async () => { throw new Error('Cache read denied'); };
+    if (this.operation === 'put') cache.put = async () => { throw new Error('Cache write denied'); };
+    if (this.operation === 'sync-put') cache.put = () => { throw new Error('Cache write denied'); };
+    return cache;
+  }
+}
+for (const operation of ['match', 'put', 'sync-put']) {
+  const fault = worker(data, { storage: new FaultCaches(operation) });
+  assert.equal(await (await fault.get('script.js')).response.text(), data.bodies['script.js'], `${operation} failure cannot block verified network bytes`);
+}
+const digestFailure = worker(data, { verificationCrypto: { subtle: { digest: async () => { throw new Error('Digest unavailable'); } } } });
+assert.equal((await digestFailure.get('script.js')).response.status, 503, 'verification exceptions never release unchecked network bytes');
+const retryAfterTransferFailure = worker(data, { network: async (request, bodies) => {
+  if (request.cache !== 'reload') throw new Error('Transient transfer failure');
+  return new Response(bodies.get(withoutQuery(request.url)));
+} });
+assert.equal(await (await retryAfterTransferFailure.get('script.js')).response.text(), data.bodies['script.js']);
+const noTransfer = worker(data, { network: async () => { throw new Error('Offline'); } });
+assert.equal((await noTransfer.get('script.js')).response.status, 503, 'unavailable bytes produce a deterministic closed response');
+
+let digests = 0;
+const warm = worker(data, { verificationCrypto: { subtle: { digest: (...args) => { digests++; return webcrypto.subtle.digest(...args); } } } });
+await warm.dispatch('install');
+const installedDigests = digests, installedRequests = warm.requests.length;
+await warm.get('script.js'); await warm.get('data/map.json');
+assert.equal(digests, installedDigests, 'warm immutable revision cache hits do not rehash assets');
+assert.equal(warm.requests.length, installedRequests, 'warm revision hits create no network traffic');
 
 const nested = worker(data, { scope: 'https://arcade.test/preview/Games/Capital%20Drive/' });
 await nested.dispatch('install');
@@ -431,4 +490,4 @@ lateReply();
 await tick();
 assert.equal(superseded.reloads(), 0, 'late answers from superseded controllers cannot reload the current document');
 
-console.log('Capital Drive response-cache regression passed: verified installation, foreground update checks, retryable worker replies, safe menu reload and uninterrupted live play.');
+console.log('Capital Drive response-cache regression passed: verified installation, fail-closed network repair independent of storage, canonical navigation, unchanged warm-cache hashing/traffic, foreground updates and safe menu reload.');
