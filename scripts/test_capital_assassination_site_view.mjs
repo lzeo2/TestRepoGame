@@ -5,6 +5,7 @@ import {createAssassinationSiteView} from '../Games/Capital Drive/assassination-
 import {createSimulation} from '../Games/Capital Drive/simulation.js';
 import {createShotObstacles} from '../Games/Capital Drive/shot-obstacles.js';
 import {createAssassinationCompound,createAssassinationChapter} from '../Games/Capital Drive/assassination-mission.js';
+import {createContractTarget} from '../Games/Capital Drive/contract-target.js';
 
 for(const yaw of [0,.7,-1.9]) {
   const origin={x:80,z:-30,yaw},c=Math.cos(yaw),s=Math.sin(yaw);
@@ -43,6 +44,10 @@ for(const yaw of [0,.7,-1.9]) {
   sweep(compound.approaches.front.path);sweep(compound.approaches.service.path);
   sweep([...compound.stealth.patrol,compound.stealth.patrol[0]]);
   sweep([compound.stealth.guardPost,compound.stealth.investigate]);
+  sweep([compound.approaches.service.path[2],compound.stealth.diversionApproach]);
+  const rearStop=compound.stealth.patrol.at(-1),rearApproach=compound.stealth.diversionApproach;
+  const rearDot=(rearApproach.x-rearStop.x)*-Math.sin(rearStop.yaw)+(rearApproach.z-rearStop.z)*-Math.cos(rearStop.yaw);
+  assert(rearDot<-.9,'radio diversion presents a reachable quiet approach behind the target');
   sweep([point(-7.2,-2),compound.approaches.front,compound.extraction]);
   for(const landmark of Object.values(compound.landmarks))assert(!simulation.moveActor({...landmark},0,0,.45).blocked);
   sweep([point(-7.2,.1),compound.landmarks.uniform]);
@@ -76,7 +81,8 @@ assert(!chapter.stealth,'dedicated assassination mission cannot enter the generi
 const actual=createAssassinationSiteView(null,chapter.compound);simulation.registerStaticBarriers(actual.barriers);
 for(const path of [chapter.compound.approaches.front.path,chapter.compound.approaches.service.path,
   chapter.compound.stealth.patrol.concat(chapter.compound.stealth.patrol[0]),
-  [chapter.compound.stealth.guardPost,chapter.compound.stealth.investigate]]) {
+  [chapter.compound.stealth.guardPost,chapter.compound.stealth.investigate],
+  [chapter.compound.approaches.service.path[2],chapter.compound.stealth.diversionApproach]]) {
   for(let i=1;i<path.length;i++) {
     const a=path[i-1],b=path[i],body={...a};
     assert(!simulation.moveActor(body,b.x-a.x,b.z-a.z,.45).blocked,'actual map plus compound preserves both entries and actor routes');
@@ -84,5 +90,21 @@ for(const path of [chapter.compound.approaches.front.path,chapter.compound.appro
   }
 }
 for(const landmark of Object.values(chapter.compound.landmarks))assert(!simulation.moveActor({...landmark},0,0,.45).blocked);
+const setup=chapter.compound.stealth,goal=chapter.stages[1];
+const target=createContractTarget({hasLineOfSight:simulation.hasLineOfSight,clipMovement:(body,dx,dz,radius)=>{
+  const result=simulation.moveActor({...body},dx,dz,radius);
+  return {dx:result.x-body.x,dz:result.z-body.z};
+}});
+assert(target.load({missionId:chapter.id,targetId:goal.targetId,pose:goal,stealth:setup}));
+const context=player=>({player,activeMissionId:chapter.id,onFoot:true,health:100,crouching:false});
+assert(target.interact(setup.uniform.id,context(setup.uniform)).ok);
+assert(target.interact(setup.distraction.id,context(setup.distraction)).ok);
+for(let i=0;i<120;i++)target.step(.1,context(setup.distraction));
+const end=setup.patrol.at(-1),start=setup.diversionApproach;
+const behind={...context({...start,yaw:Math.atan2(start.x-end.x,start.z-end.z)}),crouching:true};
+assert.equal(target.availableAction(behind)?.id,'takedown','actual yard geometry lets the player take down the distracted target');
+assert(target.interact('takedown',behind).ok);
+assert.equal(target.drainEvents().find(event=>event.type==='defeated')?.stealthOutcome,'clean');
+target.dispose();
 actual.dispose();
 console.log('PASS rotated Blackthorn yard, identical render/physical/shot bounds, two swept approaches, uniform/radio access, clear guard/patrol/extraction routes, enclosed rear/sides, cover and one draw/252 triangles');

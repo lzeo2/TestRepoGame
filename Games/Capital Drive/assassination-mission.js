@@ -19,8 +19,10 @@ export function createAssassinationCompound(origin,extraction,{road='',sourceRoa
     path:[point(-7.2,-2),point(-7.2,3),point(-3.5,3),point(-1.6,5.5)]};
   const uniform={id:'blackthorn-uniform',kind:'uniform',label:'Collection crew uniform',...point(-6.1,.1),radius:1.4};
   const distraction={id:'blackthorn-distraction',kind:'distraction',label:'Generator radio distraction',...point(-6.1,4.8),radius:1.4};
-  const stealth={guardPost:point(2.4,3),patrol:[point(-1.6,5.5),point(1.6,5.5),point(1.6,6.6),point(-1.6,6.6)],
-    uniform,distraction,investigate:point(-3.5,3),restrictedPolygon:[[-4.8,0],[4.8,0],[4.8,7.8],[-4.8,7.8]].map(([x,z])=>{const p=point(x,z);return [p.x,p.z];})};
+  const rearStop={...point(-1.6,6.6),yaw:origin.yaw-Math.PI/2};
+  const stealth={guardPost:point(2.4,3),patrol:[point(-1.6,5.5),point(1.6,5.5),point(1.6,6.6),rearStop],
+    uniform,distraction,investigate:point(-3.5,3),diversionApproach:point(-2.55,6.6),
+    restrictedPolygon:[[-4.8,0],[4.8,0],[4.8,7.8],[-4.8,7.8]].map(([x,z])=>{const p=point(x,z);return [p.x,p.z];})};
   return freeze({id:'blackthorn-yard',name:'Blackthorn collection yard',origin:{...origin},width:10,depth:8,
     sourceRoad,road,fictional:true,approaches:{front,service},landmarks:{uniform,distraction},stealth,
     extraction:{...extraction,id:'blackthorn-extraction',label:'Separate verge pickup',radius:4},
@@ -68,7 +70,8 @@ export function createAssassinationChapter(map, { canStand = () => false, hasLin
     const approach = point(0, -1.5), target = point(0, 5.6);
     const compound=createAssassinationCompound(origin,exit,candidate);
     const paths=[compound.approaches.front.path,compound.approaches.service.path,
-      [point(-7.2,-2),approach,exit],compound.stealth.patrol.concat(compound.stealth.patrol[0])];
+      [point(-7.2,-2),approach,exit],compound.stealth.patrol.concat(compound.stealth.patrol[0]),
+      [compound.approaches.service.path[2],compound.stealth.diversionApproach]];
     const probes = [-7.7,-5,0,5].flatMap(x => [0,4,8].map(z => point(x,z)));
     probes.push(approach, exit, ...[-1, 1].map(x => point(x, 4.8)));
     for (let i = 1; i < 12; i++) probes.push({ x: approach.x + (exit.x - approach.x) * i / 12, z: approach.z + (exit.z - approach.z) * i / 12 });

@@ -212,7 +212,8 @@ lock message until the optional missions are available.
 The Blackthorn account opens with a skippable briefing. Adrian Voss patrols a
 fictional collection yard beside a mapped Kingston street. Approach on foot
 through the front gate or service passage. The service route has workwear and
-a radio diversion. Stow your weapon and watch the booth guard. To take down
+a radio diversion that makes Voss pause in the rear aisle. Stow your weapon
+and watch the booth guard. To take down
 Voss quietly, crouch, stop behind him and press E when the takedown prompt
 appears. Ordinary combat also works. Exposed weapons, suspicious movement,
 nearby gunfire and a body the guard discovers can raise an alert.

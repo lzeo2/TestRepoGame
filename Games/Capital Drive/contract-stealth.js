@@ -44,7 +44,7 @@ export function createContractStealth({clipMovement,hasLineOfSight=()=>false,hei
  function interact(id,ctx={}){
   const action=availableAction(ctx);if(!action||action.id!==id)return {ok:false,message:'Move beside the marked equipment on foot.'};
   if(config.uniform?.id===id){if(ctx.armed||ctx.aiming)return {ok:false,message:'Put your weapon away before changing.'};state.disguised=true;return {ok:true,message:'Worker coveralls on. Walk normally and keep your weapon hidden.',kind:'uniform'};}
-  state.diversionUsed=true;state.diversion=10;return {ok:true,message:'The guard is checking the generator.',kind:'diversion'};
+  state.diversionUsed=true;state.diversion=18;return {ok:true,message:'The guard is checking the generator.',kind:'diversion'};
  }
  function moveGuard(goal,dt){
   const g=state.guard,dx=goal.x-g.x,dz=goal.z-g.z,length=Math.hypot(dx,dz);g.speed=0;
