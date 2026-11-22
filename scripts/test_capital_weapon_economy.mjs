@@ -124,7 +124,7 @@ for(const profile of WEAPONS){
   p.update(.05,armed);assert.equal(p.state.cash,cash+food.robbery,'pays once');
 }
 for(const interrupt of ['unarmed','unowned','ownership','sandbox']){
-  const {p,inside}=holdUpFixture({...legacy,equipment:{pistol:false,shotgun:true}});
+  const {p,food,inside}=holdUpFixture({...legacy,equipment:{pistol:false,shotgun:true}});
   assert(p.startActivity(food.id,'robbery',{...inside,weapon:'shotgun'}).ok);
   const cash=p.state.cash;
   if(interrupt==='ownership')p.state.equipment.shotgun=false;
