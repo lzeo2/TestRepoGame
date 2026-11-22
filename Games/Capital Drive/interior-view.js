@@ -58,7 +58,7 @@ export function createInteriorView(scene) {
       plan.width, 0.16, plan.depth, o.yaw, plan.type === 'house' ? 0xa88e70 : 0xb3b1a0);
     for (const room of plan.rooms || []) {
       const color = { living: 0xaa9c84, kitchen: 0xb8b6a4, bedroom: 0x9b9e90, bathroom: 0xb2c1bb,
-        'bank-lobby': 0xc8c4b9, 'jeweller-showroom': 0xb7a9b2, shop: 0xb3b1a0, grocery: 0xc1c4b1, 'fast-food-dining': 0xbda78c, 'cafe-dining': 0xc4b49a, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e,
+        'bank-lobby': 0xc8c4b9, 'tower-archive': 0xb3bdad, 'jeweller-showroom': 0xb7a9b2, shop: 0xb3b1a0, grocery: 0xc1c4b1, 'fast-food-dining': 0xbda78c, 'cafe-dining': 0xc4b49a, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e,
         'noodle-dining': 0xc9baa0, 'noodle-kitchen': 0xb3bbb0, 'gym-floor': 0x777e79, 'school-corridor': 0xaeb9ab, classroom: 0xc1baa4, 'staff-area': 0xb6b6a5 }[room.kind];
       box(room.x, plan.floorY + 0.006, room.z, room.width - 0.12, 0.012, room.depth - 0.12, o.yaw, color);
     }

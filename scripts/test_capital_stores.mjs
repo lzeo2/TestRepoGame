@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { createInteriors } from '../Games/Capital Drive/interiors.js';
+import { createSimulation } from '../Games/Capital Drive/simulation.js';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const game = join(root, 'Games/Capital Drive');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -33,13 +35,27 @@ const mapBytes = await readFile(join(game, 'data/canberra.json'));
 const addressBytes = await readFile(join(game, 'data/addresses.json'));
 const profileBytes = await readFile(join(game, 'data/road-profiles.json'));
 const northBytes = await readFile(join(game, 'data/canberra-north.json'));
-const north = JSON.parse(northBytes), baseMap = JSON.parse(mapBytes);
-const map = {...baseMap,buildings:[...baseMap.buildings,...north.buildings],roads:[...baseMap.roads,...north.roads]};
-const profiles = {...JSON.parse(profileBytes).roads,...Object.fromEntries(north.roads.map(r=>[r.id,r.sourceTags||{}]))};
+const northWestBytes = await readFile(join(game, 'data/north-west.json'));
+const north = JSON.parse(northBytes),northWest=JSON.parse(northWestBytes),baseMap = JSON.parse(mapBytes);
+const bounds=Object.fromEntries(['minX','minZ','maxX','maxZ'].map(key=>[key,(key.startsWith('min')?Math.min:Math.max)(baseMap.bounds[key],north.bounds[key],northWest.bounds[key])]));
+const map = {...baseMap,bounds,buildings:[...baseMap.buildings,...north.buildings,...northWest.buildings],roads:[...baseMap.roads,...north.roads,...northWest.roads]};
+const profiles = {...JSON.parse(profileBytes).roads,...Object.fromEntries([...north.roads,...northWest.roads].map(r=>[r.id,r.sourceTags||{}]))};
 assert.equal(hash(northBytes),payload.meta.northMapSha256);
+assert.equal(hash(northWestBytes),payload.meta.northWestMapSha256);
 const noodles=MAPPED_STORES.find(s=>s.id==='store-5656111023');
 assert(noodles);
-assert.equal(MAPPED_STORES.length,21);
+assert.equal(MAPPED_STORES.length,29);
+const northernCarriers=new Map([[11337142525,1222397180],[522278284,37413373],[5286460796,72857408],
+  [670169665,52869378],[978074861,52869377],[654588066,52869381],[34495141,809149688],[7148866337,50637169]]);
+for(const [node,way]of northernCarriers) {
+  const store=MAPPED_STORES.find(s=>s.id===`store-${node}`);
+  assert(store&&store.buildingId===`osm-${way}`&&store.type==='food');
+  assert.equal(store.buildingMatch.method,'containing footprint');assert.equal(store.buildingMatch.distance,0);
+  assert(store.aliases.includes(store.sourceName),'source-name search locates the in-game parody premises');
+}
+assert.equal(MAPPED_STORES.find(s=>s.id==='store-11337142525').name,'Coals Dickson');
+assert.equal(MAPPED_STORES.find(s=>s.id==='store-358293199').name,'Coals','original Manuka identity stays unchanged');
+assert.deepEqual([...new Set(MAPPED_STORES.filter(s=>northernCarriers.has(s.source.id)).map(s=>s.district))],['Dickson','Lyneham',"O'Connor",'Braddon']);
 assert.equal(noodles.name,'Lambzhou 1919');
 assert.equal(noodles.interiorType,'noodle-shop');
 assert.equal(noodles.buildingId,'osm-584970594');
@@ -67,7 +83,7 @@ function closest(p,a,b) {
 assert.deepEqual(MAPPED_STORES,payload.stores);
 assert.deepEqual(LEGACY_SHOP_IDS,['crescent-kiosk','manuka-store']);
 assert(Object.isFrozen(MAPPED_STORES) && Object.isFrozen(LEGACY_SHOP_IDS));
-assert(MAPPED_STORES.length>=15 && MAPPED_STORES.length<=25);
+assert(MAPPED_STORES.length>=15 && MAPPED_STORES.length<=30);
 assert.equal(new Set(MAPPED_STORES.map(s=>s.id)).size,MAPPED_STORES.length);
 assert.equal(hash(mapBytes),payload.meta.mapSha256);
 assert.equal(hash(profileBytes),payload.meta.roadProfilesSha256);
@@ -118,13 +134,27 @@ for (const path of SHOPPING_PRECINCTS[0].paths) {
     for(let i=0;i<=12;i++) assert(!map.buildings.some(building=>inside([a[0]+(b[0]-a[0])*i/12,a[1]+(b[1]-a[1])*i/12],building.points)),`${path.id}: exterior path avoids source building`);
   }
 }
+const interiors=createInteriors(map,{stores:MAPPED_STORES}),simulation=createSimulation(map,{trafficCount:0,parkedCount:0});
+for(const store of MAPPED_STORES.filter(s=>northernCarriers.has(s.source.id))) {
+  const entry=interiors.entries.find(e=>e.storeId===store.id);assert(entry,'each northern premise uses the existing lazy shop owner');
+  const actor={x:entry.x-Math.sin(entry.yaw)*1.8,z:entry.z-Math.cos(entry.yaw)*1.8,yaw:entry.yaw};
+  assert(!simulation.moveActor({...actor},0,0,.45).blocked,`${store.name}: full adult body fits the estimated public doorway approach`);
+  const plan=interiors.enter(entry,actor);assert(plan&&plan.storeId===store.id);
+  assert(plan.activities.some(a=>a.kind==='stock'),'new premises reuse the authored stock task');
+  assert(!interiors.moveActor({...actor},0,0,.45).blocked,'generated doorway spawn stays clear');
+  assert(plan.counter&&Number.isFinite(plan.counter.x)&&Number.isFinite(plan.counter.z));
+  assert(interiors.leave(actor));assert.equal(interiors.active,null);
+}
 // Cache verification is explicit: CI can run geometry checks without developer downloads.
 const cacheIndex=process.argv.indexOf('--cache');
 const cache=cacheIndex>=0 ? process.argv[cacheIndex+1] : process.env.CAPITAL_STORES_CACHE;
 const northCacheIndex=process.argv.indexOf('--north-cache');
 const northCache=northCacheIndex>=0 ? process.argv[northCacheIndex+1] : process.env.CAPITAL_STORES_NORTH_CACHE;
+const northWestCacheIndex=process.argv.indexOf('--north-west-cache');
+const northWestCache=northWestCacheIndex>=0 ? process.argv[northWestCacheIndex+1] : process.env.CAPITAL_STORES_NORTH_WEST_CACHE;
 if (cache) {
   assert(northCache,'--cache requires --north-cache for complete Civic source regeneration');
+  assert(northWestCache,'--cache requires --north-west-cache for complete northern source regeneration');
   const sources=new Map();
   for (const source of payload.meta.sourceFiles) {
     const raw=await readFile(join(cache,source.file));
@@ -135,6 +165,10 @@ if (cache) {
     const raw=await readFile(join(northCache,source.file));
     assert.equal(hash(raw),source.sha256);
     for(const e of JSON.parse(raw).elements) sources.set(`${e.type}/${e.id}`,e);
+  }
+  for (const source of payload.meta.northWestSourceFiles) {
+    const raw=await readFile(join(northWestCache,source.file));assert.equal(hash(raw),source.sha256);
+    for(const e of JSON.parse(raw).elements)sources.set(`${e.type}/${e.id}`,e);
   }
   for (const store of MAPPED_STORES) {
     const source=sources.get(`${store.source.type}/${store.source.id}`);
@@ -155,7 +189,7 @@ if (cache) {
   const output=await mkdtemp(join(tmpdir(),'capital-stores-'));
   try {
     for (let run=0;run<2;run++) {
-      const result=spawnSync('python3',['-B','scripts/build_capital_stores.py','--cache',cache,'--north-cache',northCache,'--output',join(output,'stores.json'),'--module-output',join(output,'stores.js'),'--precinct-output',join(output,'shopping-precincts.json'),'--precinct-module-output',join(output,'shopping-precincts.js')],{cwd:root,encoding:'utf8',timeout:30000});
+      const result=spawnSync('python3',['-B','scripts/build_capital_stores.py','--cache',cache,'--north-cache',northCache,'--north-west-cache',northWestCache,'--output',join(output,'stores.json'),'--module-output',join(output,'stores.js'),'--precinct-output',join(output,'shopping-precincts.json'),'--precinct-module-output',join(output,'shopping-precincts.js')],{cwd:root,encoding:'utf8',timeout:30000});
       assert.equal(result.status,0,result.stderr);
       assert.deepEqual(await readFile(join(output,'stores.json')),bytes,'JSON regeneration is byte-identical');
       assert.deepEqual(await readFile(join(output,'stores.js')),moduleBytes,'module regeneration is byte-identical');
@@ -164,6 +198,7 @@ if (cache) {
     }
   } finally { await rm(output,{recursive:true,force:true}); }
   assert.deepEqual(await readFile(join(game,'data/canberra-north.json')),northBytes,'northern source map preserved');
+  assert.deepEqual(await readFile(join(game,'data/north-west.json')),northWestBytes,'northern carrier map preserved');
   assert.deepEqual(await readFile(join(game,'data/canberra.json')),mapBytes,'map preserved');
   assert.deepEqual(await readFile(join(game,'data/addresses.json')),addressBytes,'address source preserved');
   assert.deepEqual(await readFile(join(game,'data/road-profiles.json')),profileBytes,'road source preserved');

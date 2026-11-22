@@ -17,11 +17,18 @@ const before=structuredClone(MAPPED_STORES),view=createStorefrontsView(scene,hei
 assert.equal(root.children.length,2,'one merged solid batch and one text batch');
 assert.equal(view.stats.sites,MAPPED_STORES.length);
 assert.equal(view.stats.drawCalls,0);assert.equal(view.stats.cullDistance,180);
-assert(view.stats.triangles<=MAPPED_STORES.length*190,'bounded shallow facade geometry');
+assert(view.stats.triangles<=MAPPED_STORES.length*340,'bounded shallow facade geometry');
 assert(!source.includes('requestAnimationFrame'),'controller owns clock');
 const [solidMesh,textMesh]=root.children;
+assert.equal(solidMesh.material.transparent,false,'glass remains in the opaque solid batch');
+const glassColors=solidMesh.geometry.attributes.color;
+for(const tint of [0x526f79,0x94acb2,0x3a505c,0x303e45,0xc4d0c9]){
+  const expected=new THREE.Color(tint);let found=false;
+  for(let i=0;i<glassColors.count;i++)if(Math.abs(glassColors.getX(i)-expected.r)<1e-6&&Math.abs(glassColors.getY(i)-expected.g)<1e-6&&Math.abs(glassColors.getZ(i)-expected.b)<1e-6){found=true;break;}
+  assert(found,'authored pane, sky, interior, frame and reflection colors are present');
+}
 const verticesPerStore=solidMesh.geometry.attributes.position.count/MAPPED_STORES.length;
-assert.equal(verticesPerStore,360,'fifteen small boxes per store');
+assert.equal(verticesPerStore,672,'twenty-eight shallow frame, transom and reflection boxes per store');
 for(let i=0;i<MAPPED_STORES.length;i++) {
   const store=MAPPED_STORES[i],f=store.frontage;
   view.update(store);assert(view.stats.visible>=1);assert.equal(view.stats.drawCalls,2);

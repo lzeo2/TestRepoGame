@@ -237,6 +237,22 @@ nearby gunfire and a body the guard discovers can raise an alert.
 Reach the pickup on foot. If police are searching, lose them on foot or in a
 vehicle. A clear exit requires no police chase. The campaign pays $2,600 once.
 
+Dickson and nearby northern suburbs include 33 selected mapped premises and
+eight sourced shop locations with original storefront names. Black Mountain
+Tower uses its mapped footprint and tagged height. The Mountain Drive
+archive heist lets the player collect a case and clear the search for $2,200.
+Giant Spray is an original abandoned waterpark based on the mapped Big Splash
+perimeter, pool outlines and slide routes. Both park approaches use mapped
+roads and the expanded ACT contour grid.
+
+The bank, jeweller and tower archive support a brief hostage standoff after
+the employee surrenders. Press Y or the HUD button to hold or release.
+The stand-off expires after 12 seconds. During that time officers outside
+hold at the matching room entrance, and existing officers inside still act.
+Storefront windows use opaque layered panes and frames in the existing
+instanced batches. The sound toggle enables the layered engine, gearshift
+and tyre sounds in the same audio context as the other effects.
+
 Campaign missions launch at the protagonist's current position. Failed
 objectives retry from the beginning of the previous step, with step one
 returning to the launch. The game restores the recorded body, room, mission

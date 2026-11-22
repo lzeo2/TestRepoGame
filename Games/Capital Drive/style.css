@@ -126,7 +126,7 @@ body.piloting .foot-action,body.piloting .car-action{display:none;}
 #wanted-level{font-size:20px;color:#edc16f;margin-top:4px;letter-spacing:1px;font-family:Arial,sans-serif;line-height:1.2;white-space:nowrap;}
 #career-hud p{font-size:11px;margin:4px 0 7px;color:var(--muted);line-height:1.3;}
 #career-hud #weapon-label{margin-bottom:0;color:var(--ink);}
-#drone-night-vision{width:100%;min-height:44px;margin-top:6px;padding:6px 8px;font-size:11px;touch-action:manipulation;}
+#drone-night-vision,#heist-hostage{width:100%;min-height:44px;margin-top:6px;padding:6px 8px;font-size:11px;touch-action:manipulation;}
 #drone-night-vision[aria-pressed=true]{border-color:var(--accent);outline:1px solid var(--accent);}
 body[data-mode=free] #cash-value,body[data-mode=free] #wanted-level{display:none;}
 #job-hud{position:absolute;top:calc(var(--hud-top) + 82px);left:20px;width:min(310px,calc(100% - 260px));padding:10px 12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;font-size:12px;}

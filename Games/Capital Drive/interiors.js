@@ -192,12 +192,12 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       ...(entry.type === 'gym' ? { serviceId: entry.serviceId } : entry.type === 'school' ? { schoolId: 'telopea-school' } : {}),
       x: entry.x, z: entry.z, yaw: entry.yaw, ...(entry.type === 'mall' ? mallDimensions(entry, building) : { width: entry.type === 'school' ? 12 : 14, depth: 16 }) });
   }
-  // These two original storefronts already own their exterior geometry and collision.
+  // These original heist exteriors own their geometry and collision; rooms are fictional.
   // Use that exact front door rather than treating the approach pin as a facade.
   for (const site of heistSites) {
-    if (!site || !['bank', 'jeweller'].includes(site.kind) || typeof site.id !== 'string' ||
+    if (!site || !['bank', 'jeweller', 'tower'].includes(site.kind) || typeof site.id !== 'string' ||
         typeof site.point !== 'function' || ![site.yaw, site.width, site.depth, site.floor].every(Number.isFinite) ||
-        site.width < 8 || site.depth < 6) continue;
+        site.width < 8 || site.depth < (site.kind === 'tower' ? 7 : 6)) continue;
     const front = site.point(0, 0);
     if (!validPoint(front)) continue;
     add({ id: `interior-${site.id}`, buildingId: `${site.id}-walls`, storeId: site.id,
@@ -336,8 +336,8 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
         station('stash', 'stock', 'Pack the ledger case', 0, depth - 1.75, 0, 1.2);
       }
     } else if (entry.heistSiteId) {
-      const bank = entry.variant === 'bank';
-      rooms.push({ kind: bank ? 'bank-lobby' : 'jeweller-showroom', ...worldPoint(origin, 0, depth / 2), width, depth });
+      const bank = entry.variant === 'bank', tower = entry.variant === 'tower';
+      rooms.push({ kind: bank ? 'bank-lobby' : tower ? 'tower-archive' : 'jeweller-showroom', ...worldPoint(origin, 0, depth / 2), width, depth });
       const employeeX = bank ? -2.8 : -1.8, employeeZ = bank ? 5.65 : 5.6;
       if (bank) {
         box(furniture, 'teller-counter', -2.8, 4.6, 4.2, .8, 1.05, 0x8d7860);
@@ -346,6 +346,12 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
         box(furniture, 'cash-safe', 4.8, 5.65, 1.2, 1.4, 1.9, 0x67727a);
         box(furniture, 'document-cabinet', -5.5, 6.25, .65, 1.5, 1.75, 0xa4a597);
         counter = { ...worldPoint(origin, -2.8, 3.5), y: floorY, yaw: origin.yaw, radius: 1.4 };
+      } else if (tower) {
+        // Original archive props, not a real tower floorplan or security layout.
+        box(furniture, 'archive-desk', -2.3, 4.65, 3.1, .7, 1.03, 0x687469);
+        box(furniture, 'document-cabinet', -width / 2 + .55, depth - 1, .65, 1.1, 1.75, 0x929b8d);
+        box(furniture, 'ledger-case', 2.05, depth - .7, .7, .45, .68, 0x66523e);
+        counter = { ...worldPoint(origin, -1.8, 3.6), y: floorY, yaw: origin.yaw, radius: 1.4 };
       } else {
         box(furniture, 'jeweller-counter', -2.3, 4.65, 3.1, .7, 1.03, 0x65505e);
         for (const side of [-1, 1]) box(furniture, 'jewellery-case', side * 3.65, 3.1, 1.25, 2.5, 1.12, 0x79636c);

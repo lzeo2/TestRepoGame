@@ -34,7 +34,31 @@ const map = applyNorthWest(prior, overlay, elevation);
 assert.equal(map.mapExpansion, prior.mapExpansion);
 assert.deepEqual(map.terrainTiles.slice(0, -1), prior.terrainTiles);
 assert.deepEqual(map.terrainTiles.at(-1).heights, elevation.terrain.heights);
-assert.equal(map.buildings.length, prior.buildings.length);
+assert.equal(overlay.buildings.length,33,'bounded selected northern premises, not a full raw-cache building import');
+assert.equal(map.buildings.length,prior.buildings.length+overlay.buildings.length);
+assert.equal(map.northWestExpansion.addedBuildings,33);
+assert.equal(overlay.meta.selectedFootprints.exported,33);
+assert.deepEqual(overlay.meta.selectedFootprints.missing,[]);assert.deepEqual(overlay.meta.selectedFootprints.skipped,[]);
+assert.equal(overlay.areas.length,0,'no unrelated park, water or Belconnen import');
+const expectedCarriers=[1222397180,37413372,37413371,37413373,72857408,52869378,52869377,52869381,809149688,1084336287,50637169];
+for(const id of expectedCarriers)assert(overlay.buildings.some(b=>b.id===`osm-${id}`),`exact northern store carrier ${id}`);
+const priorBuildingIds=new Set(prior.buildings.map(b=>b.id));
+for(const building of overlay.buildings){
+ assert(!priorBuildingIds.has(building.id));assert.match(building.sourceId,/^way\/\d+$/);
+ assert.equal(building.source,'osm');assert.equal(building.points.length,building.nodes.length);
+ assert.deepEqual(building.points[0],building.points.at(-1));assert.equal(building.nodes[0],building.nodes.at(-1));
+ assert(building.points.length>=4&&building.points.flat().every(Number.isFinite));
+ assert(Number.isFinite(building.height)&&building.height>=1&&building.height<=250);assert(building.heightSource);
+ assert(!['email','phone','contact:email','website'].some(key=>key in building.sourceTags),'contact metadata stays outside bundled source data');
+}
+for(const id of ['dickson-library','dickson-village','daramalan-college','dickson-college','lyneham-high-school','st-ninians-church','abc-canberra','black-mountain-tower']){
+ const place=overlay.landmarks.find(p=>p.id===id);assert(place&&/^way\/\d+$/.test(place.sourceId));
+ assert(place.sourceBuildingIds.length>0);for(const buildingId of place.sourceBuildingIds)assert(map.buildings.some(b=>b.id===buildingId));
+ assert.equal(place.buildingId,place.sourceBuildingId);assert(/not a verified/.test(place.anchorType));
+}
+const tower=overlay.buildings.find(b=>b.id==='osm-37693613');assert.equal(tower.height,195.2);assert.equal(tower.sourceTags.man_made,'communications_tower');
+assert.equal(overlay.landmarks.find(p=>p.id==='black-mountain-tower').sourceBuildingId,tower.id);
+const repeated=applyNorthWest(map,overlay,elevation);assert.equal(repeated.buildings.length,map.buildings.length,'repeated composition cannot duplicate source building bodies');
 assert(map.bounds.minX < prior.bounds.minX && map.bounds.minZ < prior.bounds.minZ);
 
 const sourcePair = (a, b) => a < b ? `${a}:${b}` : `${b}:${a}`;
@@ -171,5 +195,5 @@ for (const target of [approaches.get('Dickson').node, west]) {
 }
 console.log(`Capital north/west PASS: ${addedPairs.size} unique source segments, ${seamNodes.size} exact seam nodes, ` +
   `${priorSim.graph.nodes.size}→${simulation.graph.nodes.size} nodes, ${priorSim.graph.edges.length}→${simulation.graph.edges.length} edges, ` +
-  `six return routes and far-west Lady Denman Drive ${westRoute.join('/')} edges, untwisted lake map and fixed ${cars.length}-car fleet.`);
+  `six return routes and far-west Lady Denman Drive ${westRoute.join('/')} edges, ${overlay.buildings.length} exact premises/nine named site pins, untwisted lake map and fixed ${cars.length}-car fleet.`);
 console.log(`Road snapshot SHA-256 ${inputs.get('north-west').sha256}, terrain SHA-256 ${inputs.get('north-west-terrain').sha256}`);

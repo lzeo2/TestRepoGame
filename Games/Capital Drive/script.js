@@ -69,6 +69,8 @@ import { createStreetUI } from './street-ui.js';
 import { createAddressSearch } from './address-search.js';
 import { LANDMARKS, LANDMARK_CLEARINGS, replacedBuildingIds,POOL_BARRIERS,POOL_GATE_APPROACHES,MANUKA_POOL_BASIN } from './landmarks.js';
 import { createLandmarksView } from './landmarks-view.js';
+import {createNorthPlacesView} from './north-places-view.js';
+import {createDriveAudio} from './drive-audio.js';
 import {applyRoadProfiles,roadProfile,roadSpeed} from './road-network.js';
 import {createBuses} from './buses.js';
 import {createLightRail} from './light-rail.js';
@@ -463,7 +465,7 @@ let cameraReady = false, raf = 0, frameCount = 0;
 let compatibility = false;
 const parkedResources = [];
 let pedestrians, neighbourhood;
-let gameplay, progression, actorView, landmarkView, streetUI, addressSearch;
+let gameplay, progression, actorView, landmarkView, northPlacesView, streetUI, addressSearch;
 let buses,busView,occupantsView,servicesView,previousActorMode='vehicle';
 let gameMode = 'street', selectedGameMode = 'street', careerError = '', footCameraYaw = 0, careerNitro = 1;
 let mouseAim = false, mouseFire = false, lastJobTarget = '';
@@ -635,6 +637,18 @@ function heistContext(){
     busy:!!(tutorialRunning||developerReturn||campaign.state.active||progression.state.activeJob||progression.state.activity||state.carjacking||activities.active||
       micromobility.active||burglary.active||aircraft?.active||aircraft?.challenge.active||rentalHack.active||watercraft?.isActive||rideService?.activeFare||buses?.passenger)};
 }
+function toggleHeistHostage(){
+  if(!heists?.active)return false;
+  const context=heistContext();
+  if(!heists.hostageAction(context))return false;
+  const result=heists.toggleHostage(context);
+  if(result?.message)notify(result.message);
+  return !!result;
+}
+$('heist-hostage').addEventListener('click',()=>{
+  toggleHeistHostage();
+  renderer?.domElement.focus();
+});
 function interactLightRail(){
   if(!lightRail)return false;
   const context=railContext();
@@ -1372,7 +1386,7 @@ function interiorHint(){
     if(plan.heist){
       if(interiors.nearExit(pose))return 'E / USE · Leave building';
       const current=heists?.snapshot();
-      if(current?.phase==='surrender')return `E / USE · Take ${plan.heist.kind==='bank'?'cash':'jewellery'} at the marked spot`;
+      if(current?.phase==='surrender')return `E / USE · Take ${({bank:'cash',jeweller:'jewellery',tower:'the archive case'})[plan.heist.kind]} at the marked spot`;
       if(current?.phase==='escape')return 'Get out through the front door';
       return 'Aim at the employee or land a punch, then press E / USE';
     }
@@ -2466,16 +2480,20 @@ function applyPlayerVehicle(vehicle, {newVehicle=true}={}) {
 
 function toggleSound() {
   if (!audio) {
+    let context;
     try {
       const Audio = window.AudioContext || window.webkitAudioContext;
-      const context = new Audio(), oscillator = context.createOscillator(), filter = context.createBiquadFilter(), gain = context.createGain();
-      oscillator.type = 'sawtooth'; oscillator.frequency.value = 36; filter.type = 'lowpass'; filter.frequency.value = 190; gain.gain.value = 0;
-      oscillator.connect(filter).connect(gain).connect(context.destination); oscillator.start();
-      audio = { context, oscillator, gain, enabled: false };
-    } catch (error) { notify(`Audio unavailable: ${error.message}`); return; }
+      context = new Audio();
+      audio = {context, engine:createDriveAudio(context), input:{}, enabled:false};
+    } catch (error) {
+      context?.close().catch(()=>{});
+      notify(`Audio unavailable: ${error.message}`);
+      return;
+    }
   }
   audio.enabled = !audio.enabled;
   if (audio.enabled) audio.context.resume().catch(() => notify('Your browser could not start audio.'));
+  else audio.engine.update({active:false});
   $('sound-button').textContent = audio.enabled ? 'Sound on' : 'Sound off';
   $('sound-button').setAttribute('aria-pressed', String(audio.enabled));
   $('pause-sound-button').textContent = audio.enabled ? 'Sound on' : 'Sound off';
@@ -2556,6 +2574,7 @@ window.addEventListener('keydown', event => {
     event.preventDefault();if(!event.repeat)toggleCockpit();return;
   }
   if (!event.repeat && started) {
+    if(event.code==='KeyY'&&!paused()&&toggleHeistHostage()){event.preventDefault();return;}
     if(event.code==='KeyL'&&!paused()){activatePower();return;}
     if(event.code==='KeyN'&&!paused()){
       if(droneActive)toggleDroneNightVision();
@@ -3160,7 +3179,13 @@ function updateHud() {
   if(armour)armour.textContent=String(Math.floor(gear.armour??0));
   const heistNotice=$('heist-notice'),robbery=heists?.active?heists.snapshot():null;
   heistNotice.hidden=!robbery;
-  if(robbery)heistNotice.textContent=`${robbery.site.name} · ${robbery.guidance}`;
+  const hostage=$('heist-hostage'),hostageAction=robbery?heists.hostageAction(heistContext()):null;
+  hostage.hidden=!hostageAction;
+  if(hostageAction)hostage.textContent=hostageAction==='release'?'Release hostage · Y':'Hold hostage · Y';
+  if(robbery){
+    const hold=robbery.hostage?` · Standoff ${Math.ceil(robbery.hostage.remaining)}s`:'';
+    heistNotice.textContent=`${robbery.site.name}${hold} · ${robbery.guidance}`;
+  }
   updateCameraAlert(p);
   const manual=gameplay.state.mode==='vehicle'&&!aircraft?.active&&!gameplay.state.passenger;
   const car=simulation.player,speed=manual?Math.hypot(car.vx,car.vz):Math.abs(p.speed);
@@ -3172,9 +3197,13 @@ function updateHud() {
   const carLabel=vehicles.find(v=>v.id===selectedCar)?.label||selectedCar.toUpperCase();
   $('car-label').textContent = aircraft?.active?(aircraft.active.kind==='helicopter'?'HELICOPTER':'JET'):buses?.passenger?'BUS':rideService?.passenger?'YOOBER':gameplay?.state.mode==='foot'?'ON FOOT':gameplay.state.vehicle.rented?`RENTAL · ${carLabel}`:carLabel;
   $('street').textContent = interiors?.active?.name||nearby?.road.name || 'Canberra backstreets';
-  const districtPlaces=map.landmarks.filter(place=>['telopea','manuka','kingston','foreshore','redhill','griffith','narrabundah','canberra-centre','canberra-airport','capital-defence-depot'].includes(place.id));
+  const districtPlaces=map.landmarks.filter(place=>place.sourceTags?.place==='suburb'||[
+    'telopea','manuka','kingston','foreshore','redhill','griffith','narrabundah','canberra-centre','canberra-airport',
+    'capital-defence-depot','black-mountain-tower','giant-spray',
+  ].includes(place.id));
   const nearestPlace = districtPlaces.reduce((a, b) => Math.hypot(a.x - p.x, a.z - p.z) < Math.hypot(b.x - p.x, b.z - p.z) ? a : b);
-  $('district').textContent = nearestPlace.id === 'telopea' ? 'BARTON' : nearestPlace.id==='canberra-centre'?'CIVIC':nearestPlace.name.replace(/ shops$/i,'').toUpperCase();
+  const namedDistricts={'telopea':'Barton','canberra-centre':'Civic','black-mountain-tower':'Black Mountain','giant-spray':'Macquarie'};
+  $('district').textContent=(namedDistricts[nearestPlace.id]||nearestPlace.name.replace(/ shops$/i,'')).toUpperCase();
   const boost=simulation.driving;
   const roadLimit=$('road-limit');
   roadLimit.hidden=!started||!manual||!nearby||nearby.distance>roadProfile(nearby.road).driveWidth/2+2;
@@ -3432,9 +3461,13 @@ function animate(time) {
   if(tutorialRunning||tutorialVisible){if(tutorialRunning)tutorial.observe(tutorialContext(),dt);syncTutorial();}
   updateMini();updateCareer(dt);
   if (audio) {
-    const active = audio.enabled && !paused() && gameplay.state.mode === 'vehicle';
-    audio.gain.gain.setTargetAtTime(active ? .022 : 0, audio.context.currentTime, .08);
-    audio.oscillator.frequency.setTargetAtTime(35 + Math.abs(simulation.player.speed) * 3.4, audio.context.currentTime, .08);
+    const active=audio.enabled&&!paused()&&gameplay.state.mode==='vehicle'&&!gameplay.state.passenger&&gameplay.state.vehicleHealth>0;
+    const car=simulation.player,driving=simulation.driving;
+    const sound=audio.input;
+    sound.active=active;sound.speed=Math.hypot(car.vx,car.vz);sound.throttle=active?input().throttle:0;
+    sound.slip=driving.driftActive?Math.min(1,Math.abs(driving.slipAngle)/.55):0;
+    sound.boost=driving.nitroActive;
+    audio.engine.update(sound,dt);
   }
   if (graphicsTest.active) {
     if (dialogs.some(dialog => dialog.open)) finishGraphicsTest();
@@ -3481,6 +3514,7 @@ function animate(time) {
   lightRailView?.update(lightRail.vehicles,p);
   depotTankView?.update(depotTank.vehicle,p);
   heistSitesView?.update(p);
+  northPlacesView?.update(p);
   assassinationSiteView?.update(p);
   equipmentView?.update(equipment.snapshot(),p);
   wildlifeView?.update(p,activeDt);noodleShopView?.update(p,activeDt);
@@ -3624,12 +3658,12 @@ function animate(time) {
   if (hudTime > .18) { renderBurglaryHUD();updateHud(); streetUI.refresh();renderMissionGuide(); hudTime = 0; }
 }
 async function boot() {
-  const [response, addressResponse,profileResponse,northResponse,terrainResponse,signalResponse,airportResponse,airportTerrainResponse,northWestResponse,northWestTerrainResponse] = await loadGameData(['./data/canberra.json','./data/addresses.json','./data/road-profiles.json','./data/canberra-north.json','./data/north-terrain.json','./data/traffic-signals.json','./data/airport.json','./data/airport-terrain.json','./data/north-west.json','./data/north-west-terrain.json']);
-  if (!response.ok || !addressResponse.ok||!profileResponse.ok||!northResponse.ok||!terrainResponse.ok||!signalResponse.ok||!airportResponse.ok||!airportTerrainResponse.ok||!northWestResponse.ok||!northWestTerrainResponse.ok) throw new Error('Local map or address data could not be loaded.');
+  const [response, addressResponse,profileResponse,northResponse,terrainResponse,signalResponse,airportResponse,airportTerrainResponse,northWestResponse,northWestTerrainResponse,giantSprayResponse] = await loadGameData(['./data/canberra.json','./data/addresses.json','./data/road-profiles.json','./data/canberra-north.json','./data/north-terrain.json','./data/traffic-signals.json','./data/airport.json','./data/airport-terrain.json','./data/north-west.json','./data/north-west-terrain.json','./data/giant-spray.json']);
+  if (!response.ok || !addressResponse.ok||!profileResponse.ok||!northResponse.ok||!terrainResponse.ok||!signalResponse.ok||!airportResponse.ok||!airportTerrainResponse.ok||!northWestResponse.ok||!northWestTerrainResponse.ok||!giantSprayResponse.ok) throw new Error('Local map or address data could not be loaded.');
   map = applyStreetAssetRoofs(applyMapExpansion(applyRoadProfiles(await response.json(),await profileResponse.json()),await northResponse.json()));
   map.terrainTiles=[(await terrainResponse.json()).terrain];
   map=applyDefenceDepot(applyAirport(map,await airportResponse.json(),await airportTerrainResponse.json()));
-  map=applyNorthWest(map,await northWestResponse.json(),await northWestTerrainResponse.json());
+  map=applyNorthWest(map,await northWestResponse.json(),await northWestTerrainResponse.json(),await giantSprayResponse.json());
   map.trafficSignals=await signalResponse.json();
   map.lakeWaterLevel=5.93;
   terrainSampler=createTerrainSampler(map);
@@ -3641,8 +3675,9 @@ async function boot() {
   map.buildings=map.buildings.map(b=>b.id===SKATE_BUILDING_OPENING.buildingId?{...b,innerRings:[{points:SKATE_BUILDING_OPENING.polygon}]}:b);
   map.shoppingManagedBuildingIds=SHOPPING_BUILDING_IDS;map.campusBuildingIds=CAMPUS_BUILDING_IDS;
   map.areas=[...map.areas,{id:'manuka-pool-water',type:'water',points:MANUKA_POOL_BASIN}];
-  map.landmarkBuildingIds = [...replacedBuildingIds(map),...SHOPPING_BUILDING_IDS,...CIVIC_BUILDING_IDS,map.airport.terminalBuildingId,...(map.defenceDepot?.buildings||[]).map(b=>b.id)];
-  map.landmarkTreeExclusions = [...LANDMARK_CLEARINGS,...SHOPPING_CLEARINGS,map.airport.aerodrome.points,...(map.defenceDepot?[map.defenceDepot.outline]:[])];
+  const tower=map.landmarks.find(place=>place.id==='black-mountain-tower');
+  map.landmarkBuildingIds = [...replacedBuildingIds(map),...SHOPPING_BUILDING_IDS,...CIVIC_BUILDING_IDS,map.airport.terminalBuildingId,...(map.defenceDepot?.buildings||[]).map(b=>b.id),...(tower?.buildingId?[tower.buildingId]:[])];
+  map.landmarkTreeExclusions = [...LANDMARK_CLEARINGS,...SHOPPING_CLEARINGS,map.airport.aerodrome.points,...(map.defenceDepot?[map.defenceDepot.outline]:[]),...(map.giantSpray?[map.giantSpray.points]:[])];
   if(map.defenceDepot)map.searchPlaces.push(map.defenceDepot.landmark);
   stunts=createStuntRamps(map,terrainSampler);
   for(const ramp of stunts.ramps){map.searchPlaces.push({id:ramp.id,name:'Stunt ramp '+ramp.id.split('-').at(-1),aliases:['ramp','stunt jump'],x:ramp.x,z:ramp.z-25,radius:10,description:'Fictional park stunt ramp'});map.landmarkTreeExclusions.push([[ramp.x-15,ramp.z-45],[ramp.x+15,ramp.z-45],[ramp.x+15,ramp.z+75],[ramp.x-15,ramp.z+75]]);}
@@ -3720,6 +3755,7 @@ async function boot() {
   simulation.registerStaticBarriers(heistSites.barriers);
   map.landmarkTreeExclusions.push(...heistSites.sites.map(site=>site.apron));
   heistSitesView=compatibility?emptyView():createHeistSitesView(scene,heistSites.sites);
+  northPlacesView=compatibility?null:createNorthPlacesView(scene,{tower,waterpark:map.giantSpray,heightAt:surfaceAt});
   const assassinationMission=createAssassinationChapter(map,{
     canStand:pose=>standClear(pose),hasLineOfSight:simulation.hasLineOfSight,nearestRoad:simulation.nearestRoad,
     canTraverse:(from,to,radius)=>!simulation.moveActor({...from},to.x-from.x,to.z-from.z,radius).blocked,
@@ -3749,7 +3785,7 @@ async function boot() {
   }
   heists=createHeistActivities({sites:robberyLocations,canSee:visible,
     onHeat:({kind,point,severity})=>{
-      const offence=kind==='rail'?'light rail robbery':kind==='jeweller'?'jewellery robbery':'bank robbery';
+      const offence=({rail:'light rail robbery',jeweller:'jewellery robbery',tower:'tower archive robbery',bank:'bank robbery'})[kind];
       const reported=gameplay.reportOffence(offence,severity,{witnessed:true,point});
       recordCameraCrime(offence,point,reported);
     },
@@ -3880,7 +3916,7 @@ async function boot() {
     getDrone:()=>droneActive?drone.snapshot():null,droneLineOfSight:policeDroneSight,
     onAwareness:event=>{if(event.kind==='drone-spotted')notify('Police spotted your drone.');},
     powerModifiers:()=>heroPowers.modifiers(powerContext()),onVehicleImpacts:(events,dt)=>pedestrians.applyVehicleImpacts(events,dt),hasBlastLineOfSight:(a,b)=>visible(a,b,true),
-    getInterior:()=>policeRooms.current,resolveInterior:id=>policeRooms.resolve(id),
+    getInterior:()=>policeRooms.current,getHostageRoomId:()=>heists?.hostageRoomId,resolveInterior:id=>policeRooms.resolve(id),
     canAttack:canPlayerAttack,canFireWeapon:()=>campaign.state.active?.target.victory!==true,getShotTargets:shotTargets,traceShot:tracePlayerShot,
     launchRocket:ray=>ordnance?.launchRocket(ray),onVehicleShot:hitWorldVehicle,onVehicleExplosion:damageExplosionVehicles,policeShotClear,getAllies:()=>campaignScenes?.people||[],
     getSearchDuration:campaign.policeSearchDuration,
@@ -4024,7 +4060,7 @@ async function boot() {
     assassination:freezeCopy({approach:assassinationMission?.stages[0],target:contractTarget.snapshot(),site:assassinationSiteView.stats}),
     watercraft:freezeCopy({...watercraft.snapshot(),view:watercraftView.stats}),
     lightRail:freezeCopy({...lightRail.snapshot(),view:lightRailView.stats}),depotTank:freezeCopy(depotTank.snapshot()),
-    heists:freezeCopy(heists.snapshot()),campaignWorld:campaignWorld.snapshot(),streetWorld:streetWorld.snapshot(),
+    heists:freezeCopy(heists.snapshot()),northPlaces:freezeCopy(northPlacesView?.stats()||null),campaignWorld:campaignWorld.snapshot(),streetWorld:streetWorld.snapshot(),
     aftermath:freezeCopy({case:campaignAftermath.current(),history:campaignAftermath.serialize()}),
     trafficSample: freezeCopy(simulation.traffic.slice(0, 8).map(({ id, x, z, speed, active, behaviour, honkCount }) => ({ id, x, z, speed, active, behaviour, honkCount }))) });
   raf = requestAnimationFrame(animate);
@@ -4036,9 +4072,9 @@ window.addEventListener('pagehide', () => {
   moveStick.dispose(); lookStick.dispose();
   stealthContractView?.dispose();
   watercraft?.dispose();watercraftView?.dispose();
-  lightRailView?.dispose();heistSitesView?.dispose();depotTankView?.dispose();
+  lightRailView?.dispose();heistSitesView?.dispose();northPlacesView?.dispose();depotTankView?.dispose();
   aircraft?.reset();aircraftView?.dispose();jetpack?.reset(gameplay?.state);jetpackView?.dispose();ordnance?.reset();ordnanceView?.dispose();indoorOrdnanceView?.dispose();atmosphereView?.dispose();airportView?.dispose();defenceDepotView?.dispose();policeStationView?.dispose();vehicleDamageView?.dispose();
-  if (audio) audio.context.close().catch(error => console.warn('Could not release audio:', error.message));
+  if (audio) { audio.engine.dispose(); audio.context.close().catch(error => console.warn('Could not release audio:', error.message)); }
   for (const resource of parkedResources) resource.dispose();
   activityUI.dispose();streetUI?.dispose(); actorView?.dispose(); landmarkView?.dispose();busView?.dispose();occupantsView?.dispose();servicesView?.dispose();trafficView?.dispose();storefrontsView?.dispose();
   dealerView?.dispose();rideView?.dispose();resetDelivery();rideService?.reset();signalsView?.dispose();roadGuidanceView?.dispose();equipmentView?.dispose();equipment?.reset();

@@ -403,6 +403,14 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     const a = point(x, z), b = point(x, z + dz), c = point(x + dx, z + dz), d = point(x + dx, z);
     surfaceTriangle(x, z, a, b, c, shade, 3); surfaceTriangle(x, z, a, c, d, shade, 3);
   }
+  // Coarse extension cells need the same bilinear-to-triangle error control as
+  // the base grid. Keep fine source tiles byte-identical and cap mountain work.
+  function extensionTerrainTile(x,z,dx,dz) {
+    if(Math.max(dx,dz)<=28){terrainTile(x,z,dx,dz);return;}
+    const mixed=Math.abs(groundHeightAt(x,z)+groundHeightAt(x+dx,z+dz)-groundHeightAt(x+dx,z)-groundHeightAt(x,z+dz));
+    const divisions=Math.min(8,Math.max(2,Math.ceil(Math.sqrt(mixed/.28))));
+    for(let j=0;j<divisions;j++)for(let i=0;i<divisions;i++)terrainTile(x+i*dx/divisions,z+j*dz/divisions,dx/divisions,dz/divisions);
+  }
   function drawTerrain() {
     if (terrain?.cols > 1 && terrain?.rows > 1) {
       const dx = (terrain.maxX - terrain.minX) / (terrain.cols - 1);
@@ -426,20 +434,20 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       const [iz0, iz1] = gridRange(tile.minZ, dz, tile.rows - 1, 1);
       for(let iz=iz0;iz<iz1;iz++)for(let ix=ix0;ix<ix1;ix++){
         const x=tile.minX+ix*dx,z=tile.minZ+iz*dz;
-        if(!terrain){terrainTile(x,z,dx,dz);continue;}
+        if(!terrain){extensionTerrainTile(x,z,dx,dz);continue;}
         // Draw the cell outside the complete base rectangle. Left/right bands
         // own the corners; north/south strips use only the overlapping x span.
         // This retains the original north cells and also supports east tiles.
         const endX=x+dx,endZ=z+dz;
         const left=Math.min(endX,terrain.minX),right=Math.max(x,terrain.maxX);
-        if(left-x>1e-8)terrainTile(x,z,left-x,dz);
-        if(endX-right>1e-8)terrainTile(right,z,endX-right,dz);
+        if(left-x>1e-8)extensionTerrainTile(x,z,left-x,dz);
+        if(endX-right>1e-8)extensionTerrainTile(right,z,endX-right,dz);
         const middleX=Math.max(x,terrain.minX),middleEnd=Math.min(endX,terrain.maxX);
         if(middleEnd-middleX<=1e-8)continue;
         const middleWidth=middleX===x&&middleEnd===endX?dx:middleEnd-middleX;
         const northEnd=Math.min(endZ,terrain.minZ),southStart=Math.max(z,terrain.maxZ);
-        if(northEnd-z>1e-8)terrainTile(middleX,z,middleWidth,northEnd-z);
-        if(endZ-southStart>1e-8)terrainTile(middleX,southStart,middleWidth,endZ-southStart);
+        if(northEnd-z>1e-8)extensionTerrainTile(middleX,z,middleWidth,northEnd-z);
+        if(endZ-southStart>1e-8)extensionTerrainTile(middleX,southStart,middleWidth,endZ-southStart);
       }
     }
     const [outerX0, outerX1] = gridRange(bounds.minX - 245, 35, Math.ceil((bounds.maxX - bounds.minX + 490) / 35), 0);

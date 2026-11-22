@@ -39,7 +39,7 @@ MODULES = (
     'buses.js', 'bus-view.js', 'vehicle-occupants-view.js', 'districts.js',
     'services.js', 'services-view.js', 'stores.js', 'storefronts-view.js', 'traffic-view.js', 'vehicle-contact-shadow.js',
     'shopping-precincts.js','shopping-view.js','suburb-character.js','campus.js','campus-view.js',
-    'interiors.js','interior-view.js','campaign.js','map-expansion.js','north-west.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
+    'interiors.js','interior-view.js','campaign.js','map-expansion.js','north-west.js', 'north-places-view.js', 'drive-audio.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
     'test_capital_driving_dynamics.mjs', 'test_capital_car_camera.mjs', 'test_capital_driving_shake.mjs', 'test_capital_foot_motion.mjs', 'test_capital_jetpack.mjs', 'test_capital_nitro_stations.mjs', 'test_capital_defence_depot.mjs',
@@ -59,7 +59,7 @@ SUITES = (
     'test_capital_shop_staff.mjs', 'test_capital_campaign_playability.mjs', 'test_capital_campaign_aviation.mjs',
     'test_capital_campaign_stealth.mjs', 'test_capital_campaign_assassination.mjs', 'test_capital_contract_target.mjs', 'test_capital_contract_stealth.mjs', 'test_capital_assassination_site_view.mjs', 'test_capital_stealth_contracts.mjs', 'test_capital_stealth_contracts_view.mjs',
     'test_capital_campaign_world.mjs', 'test_capital_campaign_aftermath.mjs', 'test_capital_career_reset.mjs', 'test_capital_free_roam_gear.mjs',
-    'test_capital_light_rail.mjs', 'test_capital_light_rail_view.mjs', 'test_capital_heist_sites.mjs', 'test_capital_heist_activities.mjs', 'test_capital_heist_interiors.mjs', 'test_capital_depot_aircraft.mjs', 'test_capital_traffic_cut_in.mjs',
+    'test_capital_light_rail.mjs', 'test_capital_light_rail_view.mjs', 'test_capital_heist_sites.mjs', 'test_capital_heist_activities.mjs', 'test_capital_hostage_activities.mjs', 'test_capital_tower_heist.mjs', 'test_capital_heist_interiors.mjs', 'test_capital_depot_aircraft.mjs', 'test_capital_traffic_cut_in.mjs',
     'test_capital_local_recovery.mjs', 'test_capital_safehouse_recovery.mjs', 'test_capital_campaign_retry.mjs', 'test_capital_campaign_retry_checkpoints.mjs', 'test_capital_mission_steps.mjs', 'test_capital_retry_controller.mjs', 'test_capital_water_contact.mjs',
     'test_capital_collision_cache.mjs', 'test_capital_ballistics.mjs', 'test_capital_recon.mjs', 'test_capital_recon_heists.mjs',
     'test_capital_pink_victory.mjs', 'test_capital_adult_shot_targets.mjs', 'test_capital_combat_presentation.mjs',
@@ -69,7 +69,7 @@ SUITES = (
     'test_capital_touch_joystick.mjs', 'test_capital_touch_controller.mjs',
     'test_capital_tutorial.mjs', 'test_capital_tutorial_controller.mjs', 'test_capital_activity_ui.mjs',
     'test_capital_vehicle_impacts.mjs', 'test_capital_ragdoll.mjs',
-    'test_capital_mission_hud.mjs', 'test_capital_north_west.mjs', 'test_capital_swimming.mjs', 'test_capital_watercraft.mjs', 'test_capital_watercraft_actual.mjs', 'test_capital_watercraft_view.mjs',
+    'test_capital_mission_hud.mjs', 'test_capital_north_west.mjs', 'test_capital_giant_spray.mjs', 'test_capital_north_places_view.mjs', 'test_capital_drive_audio.mjs', 'test_capital_swimming.mjs', 'test_capital_watercraft.mjs', 'test_capital_watercraft_actual.mjs', 'test_capital_watercraft_view.mjs',
     'test_capital_game_data.mjs', 'test_capital_dev_missions.mjs',
     'test_capital_interior_navigation.mjs', 'test_capital_police_rooms.mjs',
     'test_capital_cache.mjs', 'test_capital_protagonist_state.mjs', 'test_capital_character_switching.mjs', 'test_capital_collision_performance.mjs', 'test_capital_render_gate.mjs', 'test_capital_graphics_diagnostics.mjs',

@@ -6,7 +6,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from build_capital_north_west import build
+from build_capital_north_west import build, footprint_overlap
+from build_capital_north import xy
 
 
 class SourceImport(unittest.TestCase):
@@ -39,6 +40,45 @@ class SourceImport(unittest.TestCase):
             source.write_bytes(raw+b' ')
             with self.assertRaisesRegex(AssertionError, 'Changed source'):
                 build(cache, [existing])
+
+
+    def test_selected_exact_footprints_duplicates_overlap_and_source_heights(self):
+        with tempfile.TemporaryDirectory() as directory:
+            cache = Path(directory)
+            elements = [dict(type='node', id=1, lon=149.12, lat=-35.25, tags=dict(place='suburb', name='Lyneham')),
+                        dict(type='node', id=2, lon=149.13, lat=-35.26, tags=dict(place='suburb', name='Dickson')),
+                        dict(type='way', id=99, nodes=[1, 2], tags=dict(highway='primary'))]
+            def rectangle(ident, west, east, south=-35.251, north=-35.25, **tags):
+                refs=[]
+                for index, (lon, lat) in enumerate([(west,south),(east,south),(east,north),(west,north)]):
+                    ref=ident*10+index;refs.append(ref);elements.append(dict(type='node',id=ref,lon=lon,lat=lat))
+                elements.append(dict(type='way',id=ident,nodes=refs+[refs[0]],tags={'building':'retail',**tags}))
+                return [xy(dict(lon=lon,lat=lat)) for lon,lat in [(west,south),(east,south),(east,north),(west,north),(west,south)]]
+            first=rectangle(901,149.135,149.136,name='Exact shop',**{'building:levels':'2','email':'excluded@example.invalid'})
+            rectangle(902,149.135,149.136)
+            rectangle(903,149.1355,149.1365)
+            rectangle(904,149.136,149.137)
+            rectangle(905,149.14,149.141,height='195.2',man_made='communications_tower')
+            prior=rectangle(906,149.145,149.146)
+            raw=json.dumps(dict(elements=elements)).encode();(cache/'source.json').write_bytes(raw)
+            (cache/'manifest.json').write_text(json.dumps(dict(files=[dict(file='source.json',sha256=hashlib.sha256(raw).hexdigest())])))
+            existing=cache/'existing.json';existing.write_text(json.dumps(dict(roads=[],buildings=[dict(id='act-prior',points=prior)])))
+            result=build(cache,[existing],selected_ways=(901,902,903,904,905,906))
+            self.assertEqual(result,build(cache,[existing],selected_ways=(901,902,903,904,905,906)))
+            self.assertEqual([b['id']for b in result['buildings']],['osm-901','osm-904','osm-905'])
+            shop=result['buildings'][0];self.assertEqual(shop['points'],first);self.assertEqual(shop['height'],6.4)
+            self.assertEqual(shop['nodes'],[9010,9011,9012,9013,9010]);self.assertNotIn('email',shop['sourceTags'])
+            self.assertEqual(result['buildings'][-1]['height'],195.2,'tall explicit source height is never clamped to an ordinary roof limit')
+            self.assertEqual(result['meta']['selectedFootprints']['missing'],[])
+            self.assertEqual(len(result['meta']['selectedFootprints']['skipped']),3)
+            self.assertEqual(result['areas'],[],'footprint import cannot add unrelated water or parks')
+            missing=build(cache,[existing],selected_ways=(999,));self.assertEqual(missing['meta']['selectedFootprints']['missing'],[999])
+
+    def test_overlap_guard_allows_touching_but_rejects_interior_overlap(self):
+        square=[[0,0],[2,0],[2,2],[0,2],[0,0]]
+        self.assertFalse(footprint_overlap(square,[[2,0],[3,0],[3,2],[2,2],[2,0]]))
+        self.assertTrue(footprint_overlap(square,[[1,0],[3,0],[3,2],[1,2],[1,0]]))
+        self.assertTrue(footprint_overlap(square,[[0,0],[1,0],[1,2],[0,2],[0,0]]))
 
 
 if __name__ == '__main__':

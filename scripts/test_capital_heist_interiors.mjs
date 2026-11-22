@@ -7,13 +7,13 @@ import { createInteriorCollider, createInteriorNavigation } from '../Games/Capit
 
 const fixture = (id, kind, x, z, yaw, width, depth) => {
   const inward = yaw + Math.PI, c = Math.cos(inward), s = Math.sin(inward);
-  return { id, kind, name: kind === 'bank' ? 'Civic Mutual Bank' : 'Manuka Facets',
+  return { id, kind, name: kind === 'bank' ? 'Civic Mutual Bank' : kind === 'tower' ? 'Black Mountain Tower archive' : 'Manuka Facets',
     yaw, width, depth, floor: 14.3,
     point: (across, forward) => ({ x: x + c * across + s * forward, z: z - s * across + c * forward }) };
 };
-const sites = [fixture('civic-bank', 'bank', 30, 25, .73, 12.8, 7.6), fixture('manuka-jewels', 'jeweller', -30, -25, -1.2, 10.4, 6.4)];
+const sites = [fixture('civic-bank', 'bank', 30, 25, .73, 12.8, 7.6), fixture('manuka-jewels', 'jeweller', -30, -25, -1.2, 10.4, 6.4), fixture('black-mountain-archive', 'tower', 90, 90, .4, 10.4, 7.6)];
 const rooms = createInteriors({ buildings: [] }, { heightAt: () => 13.8, heistSites: sites });
-assert.equal(rooms.entries.length, 2);
+assert.equal(rooms.entries.length, 3);
 assert.equal(rooms.stats.generatedPlans, 0, 'exterior descriptors allocate no room plans');
 const scene = new THREE.Scene(), view = createInteriorView(scene), people = createInteriorPeople();
 assert.equal(view.stats.meshes, 0);
@@ -76,5 +76,5 @@ for (const site of sites) {
   assert.equal(rooms.stats.activePlans, 0); assert.equal(view.stats.meshes, 0); assert.equal(people.snapshot().length, 0);
   console.log(`PASS ${site.name}: distinct ${triangles}-triangle lazy room; exact exterior door, live employee, counter/loot reachability, surrender/combat and exit cleanup`);
 }
-assert.equal(totalDisposed, 2); view.dispose(); assert.equal(scene.children.length, 0);
+assert.equal(totalDisposed, 3); view.dispose(); assert.equal(scene.children.length, 0);
 assert.equal(createInteriors({ buildings: [] }, { heistSites: [{ ...sites[0], point: () => ({ x: NaN, z: 0 }) }] }).entries.length, 0);

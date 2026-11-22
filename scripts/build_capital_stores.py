@@ -31,6 +31,16 @@ SELECTION = [
     (4926066423, 'Patisseriously', 'food', 'Manuka'),
     (9470234894, 'Sombreroll', 'food', 'Manuka'),
 ]
+NORTH_WEST_SELECTION = [
+    (11337142525, 1222397180, 'Coals Dickson', 'Dickson'),
+    (522278284, 37413373, 'Dickson Oodle House', 'Dickson'),
+    (5286460796, 72857408, 'Prawn Asian Grocery', 'Dickson'),
+    (670169665, 52869378, 'Supper Express', 'Lyneham'),
+    (978074861, 52869377, 'Bake Pause', 'Lyneham'),
+    (654588066, 52869381, 'Till We Meet Cafe', 'Lyneham'),
+    (34495141, 809149688, "Iggy's O'Connor", "O'Connor"),
+    (7148866337, 50637169, 'Braddon Suppermarket', 'Braddon'),
+]
 
 
 def digest(raw):
@@ -182,6 +192,52 @@ def add_north_store(payload, cache):
     payload['meta']['northSourceFiles'] = [{'file':filename,'sha256':expected}]
 
 
+def add_north_west_stores(payload, cache):
+    """Match selected shop nodes to their retained exact northern carrier ways."""
+    map_bytes = (GAME/'data/north-west.json').read_bytes()
+    north_west = json.loads(map_bytes)
+    wanted = {item[0] for item in NORTH_WEST_SELECTION}
+    elements, files = {}, []
+    for pinned in north_west['meta']['source']['files']:
+        # These four pinned northern tiles contain the chosen public premises.
+        if pinned['file'] not in ('north-0-0.json', 'north-0-1.json', 'north-1-0.json', 'north-1-1.json'):
+            continue
+        raw = (cache/pinned['file']).read_bytes()
+        if digest(raw) != pinned['sha256']:
+            raise ValueError('Unpinned northern commerce tile: '+pinned['file'])
+        files.append({'file':pinned['file'],'sha256':pinned['sha256']})
+        for item in json.loads(raw)['elements']:
+            if item['type'] == 'node' and item['id'] in wanted:
+                key = (item['type'],item['id'])
+                if key in elements and elements[key] != item:
+                    raise ValueError('Conflicting northern shop node: '+str(key))
+                elements[key] = item
+    base = json.loads((GAME/'data/canberra.json').read_bytes())
+    north = json.loads((GAME/'data/canberra-north.json').read_bytes())
+    world = {**base, 'buildings': [*base['buildings'],*north['buildings'],*north_west['buildings']],
+             'roads': [*base['roads'],*north['roads'],*north_west['roads']]}
+    profiles = {**json.loads((GAME/'data/road-profiles.json').read_bytes())['roads'],
+                **{r['id']:r.get('sourceTags',{}) for r in [*north['roads'],*north_west['roads']]}}
+    allocated = [((s['frontage']['x'],s['frontage']['z']),s['frontage']['width']) for s in payload['stores']]
+    dates = set(payload['meta']['sourceDates'])
+    for index,(osm_id,building_id,name,district) in enumerate(NORTH_WEST_SELECTION):
+        source = elements[('node',osm_id)]
+        tags = source.get('tags',{})
+        if not tags.get('shop') and tags.get('amenity') not in ('cafe','restaurant','fast_food'):
+            raise ValueError('Northern source is not a retail/food POI: '+str(osm_id))
+        building, location = locate(source,world,profiles,allocated)
+        if building['id'] != 'osm-'+str(building_id) or location['buildingMatch']['method'] != 'containing footprint':
+            raise ValueError('Northern shop must match its exact retained carrier: '+str(osm_id))
+        dates.add(source['timestamp'])
+        payload['stores'].append({'id':'store-'+str(osm_id),'name':name,'aliases':[name.lower(),tags['name']],
+            'type':'food','radius':4.8,'price':35,'heal':35,'robbery':260+(index%5)*15,
+            'sourceName':tags['name'],'source':{k:source[k] for k in ('type','id','lat','lon','version','timestamp')},
+            'buildingId':building['id'],'building':{'points':building['points'],'height':building['height']},
+            'district':district,**location})
+    payload['meta'].update(northWestMapSha256=digest(map_bytes),northWestSourceFiles=files,
+                           northWestSnapshotDate=north_west['meta']['source']['snapshotDate'],sourceDates=sorted(dates))
+
+
 def precincts(elements, world):
     """Retain exact source ways; roles and levels are bounded exterior interpretations."""
     lon0, lat0 = world['meta']['origin']
@@ -241,6 +297,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cache',type=Path,required=True)
     parser.add_argument('--north-cache',type=Path,required=True,help='Retained northern OSM source cache for Civic noodle shop')
+    parser.add_argument('--north-west-cache',type=Path,required=True,help='Pinned northern source tiles for Dickson and nearby shops')
     parser.add_argument('--output',type=Path,default=GAME/'data/stores.json')
     parser.add_argument('--module-output',type=Path,default=GAME/'stores.js')
     parser.add_argument('--precinct-output',type=Path,default=GAME/'data/shopping-precincts.json')
@@ -249,6 +306,7 @@ def main():
     payload, sites = build(args.cache)
     precinct_meta = dict(payload['meta'])
     add_north_store(payload,args.north_cache)
+    add_north_west_stores(payload,args.north_west_cache)
     args.output.write_text(json.dumps(payload,sort_keys=True,separators=(',',':'))+'\n')
     args.module_output.write_text(module(payload['stores'],'MAPPED_STORES')+'export const LEGACY_SHOP_IDS = Object.freeze(["crescent-kiosk", "manuka-store"]);\n')
     args.precinct_output.write_text(json.dumps({'version':1,'meta':precinct_meta,'precincts':sites,'managedBuildingIds':['act-87705-0']},sort_keys=True,separators=(',',':'))+'\n')

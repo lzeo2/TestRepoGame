@@ -62,8 +62,8 @@ export function createStorefrontsView(scene,heightAt,{excludeIds=[]}={}) {
     const width=Math.max(2.2,Math.min(10,f.width-.16));
     const pieces=[];
     function place(geometry) {return geometry.rotateY(angle).translate(f.x,ground,f.z);}
-    function box(color,x,y,z,w,h,d) {
-      const geometry=place(new THREE.BoxGeometry(w,h,d).translate(x,y,z));
+    function box(color,x,y,z,w,h,d,tilt=0) {
+      const geometry=place(new THREE.BoxGeometry(w,h,d).rotateZ(tilt).translate(x,y,z));
       const colors=new Float32Array(geometry.attributes.position.count*3),rgb=new THREE.Color(color);
       for(let i=0;i<colors.length;i+=3) rgb.toArray(colors,i);
       geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));pieces.push(geometry);
@@ -74,15 +74,24 @@ export function createStorefrontsView(scene,heightAt,{excludeIds=[]}={}) {
     box(accent,0,2.82,.16,width+.12,.64,.16);
     box(accent,0,2.42,.47,width+.10,.12,.90);
     box(0x363e40,0,1.14,.15,.98,2.24,.10);
-    box(0x6c8b91,0,1.44,.211,.77,1.32,.018);
+    box(0x526f79,0,1.44,.211,.77,1.32,.018);
+    box(0x94acb2,0,1.94,.225,.75,.27,.012);
+    box(0x303e45,0,1.77,.239,.79,.045,.022);
+    box(0xc4d0c9,-.21,1.40,.238,.025,.48,.012,-.15);
     box(0xe3c990,.30,1.05,.23,.045,.25,.04);
     const displayWidth=Math.max(.4,(width-1.55)/2);
     for(const side of [-1,1]) {
       const x=side*(width/4+.28);
       box(0x394849,x,1.28,.15,displayWidth,1.91,.10);
-      box(0x769396,x,1.31,.211,displayWidth-.12,1.71,.018);
+      box(0x526f79,x,1.31,.211,displayWidth-.12,1.71,.018);
       box(0xd1c6ad,x,.39,.23,displayWidth,.08,.08);
-      box(0xa9c1be,x,1.55,.225,displayWidth-.17,.055,.012);
+      // Opaque layered sky/low-room bands give depth without transparent glass.
+      box(0x94acb2,x,1.96,.225,displayWidth-.14,.31,.012);
+      box(0x3a505c,x,.69,.225,displayWidth-.14,.36,.012);
+      box(0x303e45,x,1.76,.243,displayWidth-.10,.055,.026);
+      box(0x303e45,x,1.30,.243,.045,1.74,.026);
+      box(0xc4d0c9,x-displayWidth*.23,1.38,.24,.025,.49,.012,-.18);
+      box(0xa9bfc1,x+displayWidth*.23,1.10,.24,.022,.28,.012,-.18);
     }
     // Till plaque marks the exterior interaction, not an enterable interior.
     box(0x303c35,0,.57,.225,.70,.31,.035);

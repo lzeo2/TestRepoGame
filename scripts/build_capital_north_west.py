@@ -2,7 +2,8 @@
 """Build bounded OSM north/west streets; raw pinned API responses remain external.
 
 This adds source road runs and named place nodes, not invented street connectors,
-building layouts or survey elevations. Existing map snapshots stay unchanged.
+building layouts or survey elevations. Selected complete footprint ways retain their source geometry.
+Existing map snapshots stay unchanged.
 """
 import argparse
 from concurrent.futures import ThreadPoolExecutor
@@ -18,6 +19,63 @@ BOXES = {'north': [149.110, -35.272, 149.153, -35.235],
          'west': [149.075, -35.322, 149.112, -35.268]}
 PLACE_NAMES = {'Lyneham', 'Dickson', 'Turner', 'O’Connor', "O'Connor", 'Acton',
                'Black Mountain', 'Yarralumla'}
+# Bounded authored selection from the pinned 21 November OSM responses.
+SELECTED_FOOTPRINTS = (
+    1222397180, 37413372, 37413371, 37413373, 72857408,
+    52869378, 52869377, 809149688, 1084336287, 50637169, 52869381,
+    5124277, 186854214, 50637171, 37693613, 67499704,
+    814363817, 814363818, 1099741761, 1386918890, 41758411, 73836990,
+    56188595, 56188622, 56188627, 56188657, 56188705, 186854207,
+    186854210, 186854223, 1041859368, 1099767740, 1223622143,
+)
+BUILDING_TAGS = {'building', 'building:levels', 'height', 'roof:levels', 'roof:height',
+                'name', 'alt_name', 'amenity', 'shop', 'tourism', 'man_made', 'layer',
+                'wikidata', 'architect', 'addr:street', 'addr:housenumber'}
+NAMED_PREMISES = (
+    ('dickson-library', 5124277, (5124277,)),
+    ('dickson-village', 1222397180, (1222397180,)),
+    ('daramalan-college', 51318431, (814363817, 814363818, 1099741761, 1386918890)),
+    ('dickson-college', 57922282, (41758411,)),
+    ('lyneham-high-school', 20211272, (56188595, 56188622, 56188627, 56188657, 56188705,
+                                  186854207, 186854210, 186854223, 1041859368, 1099767740, 1223622143)),
+    ('st-ninians-church', 186854214, (186854214,)),
+    ('abc-canberra', 50637171, (50637171,)),
+    ('black-mountain-tower', 37693613, (37693613,)),
+    ('parklands-hotel', 67499704, (67499704,)),
+)
+
+
+def footprint_key(points):
+    ring = [tuple(p) for p in points]
+    if ring and ring[0] == ring[-1]: ring.pop()
+    if not ring: return ()
+    first = min(range(len(ring)), key=lambda i: ring[i])
+    forward = ring[first:]+ring[:first]
+    return min(tuple(forward), tuple([forward[0]]+list(reversed(forward[1:]))))
+
+
+def footprint_overlap(a, b):
+    """Positive interior overlap; shared boundary edges alone are permitted."""
+    if any(max(p[axis] for p in a) <= min(p[axis] for p in b) or
+           max(p[axis] for p in b) <= min(p[axis] for p in a) for axis in (0, 1)):
+        return False
+    def cross(p, q, r):
+        return (q[0]-p[0])*(r[1]-p[1])-(q[1]-p[1])*(r[0]-p[0])
+    def strictly_inside(p, ring):
+        hit = False
+        for u, v in zip(ring, ring[1:]):
+            if abs(cross(u, v, p)) < 1e-7 and all(min(u[i], v[i])-1e-7 <= p[i] <= max(u[i], v[i])+1e-7 for i in (0, 1)):
+                return False
+            if (u[1] > p[1]) != (v[1] > p[1]) and p[0] < (v[0]-u[0])*(p[1]-u[1])/(v[1]-u[1])+u[0]:
+                hit = not hit
+        return hit
+    for first, second in ((a, b), (b, a)):
+        if any(strictly_inside(p, second) or strictly_inside([(p[0]+q[0])/2, (p[1]+q[1])/2], second)
+               for p, q in zip(first, first[1:])):
+            return True
+    return any(cross(p, q, u)*cross(p, q, v) < -1e-9 and cross(u, v, p)*cross(u, v, q) < -1e-9
+               for p, q in zip(a, a[1:]) for u, v in zip(b, b[1:]))
+
 
 
 def fetch(cache):
@@ -49,7 +107,7 @@ def segment(nodes, i):
     return tuple(sorted((nodes[i], nodes[i+1])))
 
 
-def build(cache, existing):
+def build(cache, existing, selected_ways=SELECTED_FOOTPRINTS):
     manifest = json.loads((cache / 'manifest.json').read_text())
     objects = {}
     for source in manifest['files']:
@@ -62,11 +120,12 @@ def build(cache, existing):
     nodes = {ident: item for (kind, ident), item in objects.items() if kind == 'node'}
     def inside(node):
         return any(w <= node['lon'] <= e and s <= node['lat'] <= n for w, s, e, n in BOXES.values())
-    used, pins, lake_points = set(), [], []
+    used, pins, lake_points, prior_buildings = set(), [], [], []
     for path in existing:
         raw = path.read_bytes()
         pins.append(dict(file=path.name, sha256=hashlib.sha256(raw).hexdigest()))
         snapshot = json.loads(raw)
+        prior_buildings.extend(snapshot.get('buildings', []))
         lake_points.extend(point for area in snapshot.get('areas', []) if area.get('sourceId') == 'relation/3400115' for point in area['points'])
         for road in snapshot['roads']:
             refs = road.get('nodes', [])
@@ -109,6 +168,51 @@ def build(cache, existing):
                 radius=200, sourceId=f'node/{ident}', sourceTags=tags,
                 description='Source place label; not a verified building entrance or road arrival.',
                 anchorType='exact OSM named place node'))
+    buildings, skipped, missing = [], [], []
+    ways = {ident: item for (kind, ident), item in objects.items() if kind == 'way'}
+    retained = {str(b['id']): b for b in prior_buildings}
+    keys = {footprint_key(b.get('points', [])): b for b in prior_buildings}
+    for ident in selected_ways:
+        way = ways.get(ident)
+        if not way or not way.get('tags', {}).get('building'):
+            missing.append(ident); continue
+        refs, tags = way['nodes'], way['tags']
+        assert refs[0] == refs[-1] and len(refs) >= 4 and all(ref in nodes for ref in refs), f'Incomplete source footprint way/{ident}'
+        polygon = [xy(nodes[ref]) for ref in refs]
+        record_id, source_id = f'osm-{ident}', f'way/{ident}'
+        exact = retained.get(record_id) or keys.get(footprint_key(polygon))
+        if exact:
+            skipped.append(dict(sourceId=source_id, retainedId=exact['id'], reason='duplicate ID or exact footprint')); continue
+        overlap = next((b for b in prior_buildings+buildings if footprint_overlap(polygon, b['points'])), None)
+        if overlap:
+            skipped.append(dict(sourceId=source_id, retainedId=overlap['id'], reason='positive footprint overlap')); continue
+        try:
+            height = float(tags['height'].replace(' m', ''))
+            height_source = 'OSM height tag'
+        except (KeyError, ValueError):
+            try:
+                height = float(tags['building:levels'])*3.2
+                height_source = 'OSM levels estimate at 3.2m per level'
+            except (KeyError, ValueError):
+                height, height_source = 6.4, 'estimated two-storey massing; no source height'
+        assert 1 <= height <= 250, f'Unsupported source building height way/{ident}'
+        building = dict(id=record_id, sourceId=source_id, source='osm',
+            name=tags.get('name', ''), type=tags['building'], height=height, heightSource=height_source,
+            sourceTags={k: v for k, v in tags.items() if k in BUILDING_TAGS}, nodes=list(refs), points=polygon)
+        buildings.append(building); retained[record_id] = building; keys[footprint_key(polygon)] = building
+    for place_id, source_way, parts in NAMED_PREMISES:
+        way = ways.get(source_way)
+        building_ids = [f'osm-{ident}' for ident in parts if f'osm-{ident}' in retained]
+        if not way or not building_ids: continue
+        refs, tags = way['nodes'], way.get('tags', {})
+        if not tags.get('name') or not all(ref in nodes for ref in refs): continue
+        ring = [xy(nodes[ref]) for ref in refs[:-1]]
+        x, z = [round(sum(p[axis] for p in ring)/len(ring), 2) for axis in (0, 1)]
+        landmarks.append(dict(id=place_id, name=tags['name'], x=x, z=z, radius=100,
+            sourceId=f'way/{source_way}', sourceBuildingId=building_ids[0], sourceBuildingIds=building_ids,
+            buildingId=building_ids[0], sourceTags={k: v for k, v in tags.items() if k in BUILDING_TAGS},
+            description='Mapped source footprint; exterior heights/details are estimates except explicit OSM height tags. No verified entrance.',
+            anchorType='source footprint vertex mean, not a verified public entrance'))
     points = [point for road in roads for point in road['points']]
     assert points and {'Lyneham', 'Dickson'} <= {place['name'] for place in landmarks}, 'Northern source places missing'
     bounds = dict(minX=min(p[0] for p in points+lake_points)-30, maxX=max(p[0] for p in points)+30,
@@ -116,10 +220,12 @@ def build(cache, existing):
     return dict(meta=dict(title='Lyneham, Dickson and western Canberra source streets',
         origin=[149.137, -35.318], projection='Local equirectangular metres; x east, z south',
         source=manifest, sourceBoxes=BOXES, existingSnapshots=pins,
+        selectedFootprints=dict(requestedWayIds=list(selected_ways), exported=len(buildings), skipped=skipped, missing=missing),
         notes=['Exact source nodes and tags; only segments absent from pinned existing snapshots are appended.',
-               'No buildings or connecting streets are invented. Historical shared nodes retain their source identities.',
+               'Selected complete OSM footprint ways are appended after duplicate/overlap guards; no connecting streets are invented.',
+               'Footprint coordinates are sourced. Untagged building heights, facades and entrances remain estimates.',
                'Road widths and default speeds are estimates where source tags are absent.']),
-        bounds=bounds, roads=roads, buildings=[], areas=[], landmarks=landmarks,
+        bounds=bounds, roads=roads, buildings=buildings, areas=[], landmarks=landmarks,
         terrainRequirements=dict(status='required-before-north-west-runtime', source='ACT 2020 LiDAR-derived 2m contours',
             sourceSha256='b8090f3ab023c2821747a760470eb8e53173c6d1b7a35dbb2a306885da7981b9'))
 
@@ -132,8 +238,9 @@ def main():
     args = parser.parse_args()
     if args.fetch: fetch(args.cache)
     result = build(args.cache, [ROOT/f'Games/Capital Drive/data/{name}.json' for name in ['canberra', 'canberra-north', 'airport']])
+    assert not result['meta']['selectedFootprints']['missing'], 'Selected source footprint missing'
     args.output.write_text(json.dumps(result, separators=(',', ':'))+'\n')
-    print(json.dumps(dict(roads=len(result['roads']), points=sum(len(road['points']) for road in result['roads']),
+    print(json.dumps(dict(roads=len(result['roads']), buildings=len(result['buildings']), points=sum(len(road['points']) for road in result['roads']),
                          landmarks=[place['name'] for place in result['landmarks']], bytes=args.output.stat().st_size)))
 
 

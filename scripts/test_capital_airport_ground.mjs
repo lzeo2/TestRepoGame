@@ -32,6 +32,25 @@ assert(Math.abs(area-40000)<.02,'four-region tile plus base exactly covers its r
 for(const x of [-41.37,13.19,83.41,137.13])for(const z of [-39.13,17.37,89.19,139.73])assert.equal(triangles.filter(t=>covers(t,x,z)).length,1,`single ground surface at ${x},${z}`);
 fixtureView.dispose();
 
+// A 100m saddle reproduces coarse mountain-cell triangle interpolation error.
+const coarse={...fixture,bounds:{minX:0,maxX:300,minZ:0,maxZ:100},terrain:grid(200,300,0,100,5,5),
+ terrainTiles:[{...grid(0,100,0,100,2,2),heights:[0,0,0,16]}],spawn:{x:40,z:60}};
+const coarseScene=new THREE.Scene(),coarseView=createWorldView(coarseScene,coarse,{lowGraphics:true});
+const coarseSampler=createTerrainSampler(coarse),coarseTriangles=groundTriangles(coarseScene);
+let maxError=0;
+for(let i=0;i<9;i++)for(let j=0;j<9;j++){
+ const x=3.17+i*10.31,z=4.73+j*10.13,matches=coarseTriangles.filter(t=>covers(t,x,z));
+ assert.equal(matches.length,1,'coarse adaptive cell retains single coverage');
+ const [a,b,c]=matches[0],den=(b[2]-c[2])*(a[0]-c[0])+(c[0]-b[0])*(a[2]-c[2]);
+ const u=((b[2]-c[2])*(x-c[0])+(c[0]-b[0])*(z-c[2]))/den,v=((c[2]-a[2])*(x-c[0])+(a[0]-c[0])*(z-c[2]))/den;
+ const rendered=u*a[1]+v*b[1]+(1-u-v)*c[1],expected=coarseSampler.groundHeightAt(x,z)-.18;
+ maxError=Math.max(maxError,Math.abs(rendered-expected));
+ assert(Math.abs(rendered-expected)<.08,'coarse nonplanar mesh tracks bilinear collision ground within 8cm');
+}
+assert(coarseTriangles.filter(t=>t.every(p=>p[0]>=-.001&&p[0]<=100.001&&p[2]>=-.001&&p[2]<=100.001)).length<=128,'coarse cell has at most eight by eight subdivisions');
+coarseView.dispose();
+console.log(`Capital coarse terrain PASS: 81 nonplanar mesh/collision probes, maximum error ${maxError.toFixed(4)}m, bounded adaptive subdivisions and single coverage.`);
+
 const json=async name=>JSON.parse(await readFile(new URL('../Games/Capital Drive/data/'+name,import.meta.url)));
 const base=await json('canberra.json'),north=await json('canberra-north.json'),snapshot=await json('airport.json');
 const original=applyMapExpansion(base,north);original.terrainTiles=[(await json('north-terrain.json')).terrain];

@@ -15,10 +15,15 @@ assert.equal(room.stats.gridBuilds,0,'no path grid for an unpursued room');
 const target={...plan.spawn,z:plan.spawn.z+2,speed:3};
 assert(!room.moveActor({...target},0,0,.45).blocked);
 const simulation=createSimulation(map,{trafficCount:0});
-const controller=createPolice(simulation,{getInterior:()=>registry.current,resolveInterior:id=>registry.resolve(id)});
+let hostageRoomId=plan.id;
+const controller=createPolice(simulation,{getInterior:()=>registry.current,resolveInterior:id=>registry.resolve(id),getHostageRoomId:()=>hostageRoomId});
 const officer=()=>({id:'police:test',x:0,z:-2.4,yaw:0,speed:0,health:100,mode:'foot',interiorId:null,
  car:{id:'police:test',x:5,z:-8,yaw:0,speed:0,active:true,length:4.8,width:1.9}});
 const state={mode:'foot',sandbox:false,wanted:1,heat:50,health:100,weapon:'unarmed',police:[officer()]};
+for(let i=0;i<90;i++)controller.step(1/60,state,target);
+assert.equal(state.police[0].interiorId,null,'the matching standoff holds an officer at the outside approach');
+assert(state.wanted>0,'the standoff leaves wanted state active');
+hostageRoomId=null;
 for(let i=0;i<180;i++)controller.step(1/60,state,target);
 assert.equal(state.police[0].interiorId,plan.id,'real room registry/navigation admits doorway pursuer');
 assert(room.contains(state.police[0]));assert(room.hasLineOfSight(state.police[0],target));
