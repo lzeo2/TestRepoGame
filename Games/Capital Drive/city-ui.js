@@ -61,7 +61,7 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
       const gear=state.gear||{};
       const armour=make('section',undefined,body);armour.className='city-row';
       make('h3',`${UTILITY_GEAR.armour.name} · ${gear.armour??0}/${UTILITY_GEAR.armour.capacity}`,armour,'city-armour-state');
-      make('p','Armour reduces incoming damage until depleted. Buy armour and supplies at an equipment dealer.',armour);
+      make('p',state.sandbox?'All equipment and unlimited practice supplies are available in Free roam.':'Armour reduces incoming damage until depleted. Buy armour and supplies at an equipment dealer.',armour);
       for(const kind of ['medkit','repair-kit','jammer']){
         const item=UTILITY_GEAR[kind],count=gear[item.field]??0,availability=state.utilityAvailability?.[kind];
         const row=make('section',undefined,body);row.className='city-row';

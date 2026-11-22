@@ -102,16 +102,27 @@ const shoeBounds = new THREE.Box3();
 // Pooled, unequipped guns remain hidden children of the player's joints.
 find('Adult player').traverseVisible(mesh=>{if(mesh.isMesh)shoeBounds.expandByObject(mesh,true);});
 assert(shoeBounds.min.y >= heightAt(2, 3), 'idle shoe soles rest above ground');
+const vest = find('Player body armour'), unarmouredDraws = view.stats.drawCalls;
+assert.equal(vest.parent, find('Torso'), 'only the playable torso owns the vest');
+assert(!vest.visible && !view.stats.armourVisible, 'legacy supplied state leaves the vest hidden');
+assert(vest.geometry.index.count / 3 <= 210, 'vest uses one bounded merged mesh');
+const vestGeometry = vest.geometry;
+state.armour = 42;
+view.update(state, { ...options, dt: 0 });
+assert(vest.visible && view.stats.armourVisible);
+assert.equal(view.stats.drawCalls, unarmouredDraws + 1, 'equipped armour adds one draw');
 const hip = find('Hip');
 state.actor.crouching=true;
 for(let frame=0;frame<12;frame++)view.update(state,options);
 assert(hip.rotation.x<-.8&&find('Knee').rotation.x>1.6,'crouch bends the hips and knees');
 assert(find('Adult player').position.y<heightAt(2,3)-.3,'the crouched body is lower');
+assert(vest.visible && vest.parent.rotation.x < -.1, 'armour follows the crouching torso');
 state.actor.crouching=false;
 for(let frame=0;frame<12;frame++)view.update(state,options);
 state.actor.speed = 5;
 view.update(state, options); const walking = hip.rotation.x;
 view.update(state, options); assert.notEqual(hip.rotation.x, walking, 'walking articulates hips');
+assert(vest.visible && vest.geometry === vestGeometry, 'walking preserves the original torso attachment and buffer');
 function transforms() {
   const result = [];
   root.traverse(object => result.push([object.name, ...object.position.toArray(), ...object.quaternion.toArray(), ...object.scale.toArray(), object.visible]));
@@ -153,6 +164,8 @@ state.attackTimer=.3; view.update(state,options); settlePose(); const windup=fis
 state.attackTimer=.15; view.update(state,options); settlePose(); const extension=fistZ(1);
 assert(extension < windup-.10 && elbows[1].rotation.x<windupElbow,'windup extends the actual fist forward and straightens its elbow');
 assert(find('Torso').position.z<-.05 && Math.abs(find('Torso').rotation.y)>.15,'strike shifts weight and torso toward the blow');
+root.updateMatrixWorld(true);
+assert(vest.visible && vest.matrixWorld.equals(find('Torso').matrixWorld), 'the vest inherits the actual animated melee pose');
 state.attackTimer=.02; view.update(state,options); settlePose();
 assert(fistZ(1)>extension+.15,'recovery retracts the fist');
 state.attackTimer=.15; state.attackSerial=2; view.update(state,options); settlePose();
@@ -198,9 +211,12 @@ assert.notDeepEqual(officerMatrix.toArray(),officerPose,'walking officer legs an
 state.police[0].car.x = 5000; state.police[0].car.z = 5000;
 view.update(state,options); assert.equal(view.stats.police,3); assert.equal(view.stats.officers,4,'car and officer cull independently');
 state.police = []; state.shots = [];
+state.armour = 0;
 view.update(state, options); const normalFootDraws = view.stats.drawCalls;
+assert(!vest.visible && !view.stats.armourVisible, 'depleted armour disappears on the next update');
 assert(normalFootDraws < 20);
-state.mode = 'vehicle'; view.update(state, options); assert(!view.stats.playerVisible);
+state.armour = 16;
+state.mode = 'vehicle'; view.update(state, options); assert(!view.stats.playerVisible && !vest.visible);
 view.update(state, { dt: .03, focus: { x: 5000, z: 5000 }, objective });
 assert.equal(view.stats.drawCalls, 0, 'far police, effects and objective are culled');
 state.actor = { x: NaN, z: Infinity, yaw: NaN, speed: Infinity, jumpHeight: NaN };
@@ -237,9 +253,11 @@ const indoorState = {
   police: Array.from({ length: 7 }, (_, i) => ({ id: `room-officer-${i}`, mode: 'foot', active: true, health: 100, x: i * 2, z: -4, yaw: 0, speed: 2, aiming: true, shotTimer: .1, car: { x: 0, z: 0, active: true } })),
   shots: [],
 };
+indoorState.armour = 54;
 const indoorBefore = structuredClone(indoorState), indoorOptions = { dt: .03, focus: indoorState.actor };
 indoor.update(indoorState, indoorOptions);
 assert.deepEqual(indoorState, indoorBefore, 'indoor view does not mutate the supplied same-room officers');
+assert(indoorFind('Player body armour').visible && indoor.stats.armourVisible, 'indoor view draws the same equipped vest');
 assert.equal(indoor.stats.police, 0, 'car-free view never reports rendered cars');
 assert.equal(indoor.stats.officers, 4, 'indoor officers remain bounded independently of the absent car array');
 assert.equal(indoor.stats.shots, 0, 'muzzle flashes do not fabricate shot streaks');

@@ -77,13 +77,22 @@ assert.equal(controller.selectCampaignCharacter('basement').ok,false);assert.dee
 // Mission/pagehide saves retain the last resumable checkpoint, and legacy is never captured as a normal hero.
 const stored=env.protagonists.serialize();campaign.state.active={};gameplay.state.actor.x=99;controller.captureActiveProtagonist();assert.deepEqual(env.protagonists.serialize(),stored);
 campaign.state.active=null;campaign.state.character='legacy';controller.captureActiveProtagonist();assert.deepEqual(env.protagonists.serialize(),stored);
-let written;Object.assign(env,{careerError:'',isSandbox:()=>false,CAREER_KEY:'fixture',localStorage:{setItem(key,value){written=JSON.parse(value);}},$:()=>({}),notify(){}});
+let written;Object.assign(env,{clearingProgress:false,careerError:'',campaignWorld:null,streetWorld:null,campaignAftermath:null,isSandbox:()=>false,CAREER_KEY:'fixture',localStorage:{setItem(key,value){written=JSON.parse(value);}},$:()=>({}),notify(){}});
 simulation.driving.nitroFuel=.35;
 env.progression.state.ownedVehicles=[];env.progression.serialize=()=>({cash:env.progression.state.cash});campaign.serialize=()=>({version:2,character:campaign.state.character});
-Function('env',`with(env){${source.slice(source.indexOf('function saveCareer() {'),source.indexOf('function routeTo(point) {'))};saveCareer();}`)(Object.assign(env,controller));
+const saveCareer=Function('env',`with(env){${source.slice(source.indexOf('function saveCareer() {'),source.indexOf('function routeTo(point) {'))};return saveCareer;}`)(Object.assign(env,controller));
+saveCareer();
 assert.equal(written.cash,cash);assert.deepEqual(written.protagonists,stored);assert.equal(written.campaign.version,2);
 const {campaign:storedCampaign,protagonists:storedHeroes,nitroFuel,...careerRecord}=written;assert.deepEqual(careerRecord,{cash});assert.equal(nitroFuel,.35);assert.equal(storedCampaign.version,2);assert.deepEqual(createProtagonistState(storedHeroes,{bounds:map.bounds}).serialize(),stored);
-assert(source.includes('protagonists:savedProtagonists,nitroFuel:savedNitro,...careerSave'),'outer optional records are removed before strict career validation');
+const worldRecords = { campaignWorld: { version: 1 }, streetWorld: { version: 1 }, campaignAftermath: { version: 1 } };
+Object.assign(env,{campaignWorld:{snapshot:()=>worldRecords.campaignWorld},streetWorld:{snapshot:()=>worldRecords.streetWorld},campaignAftermath:{serialize:()=>worldRecords.campaignAftermath}});
+saveCareer();
+for(const [field,value] of Object.entries(worldRecords))assert.deepEqual(written[field],value);
+env.clearingProgress=true;
+written=null;saveCareer();
+assert.equal(written,null,'an in-progress profile clear cannot save over itself');
+env.clearingProgress=false;
+assert(source.includes('protagonists:savedProtagonists,nitroFuel:savedNitro,campaignWorld:savedWorld,streetWorld:savedStreetWorld,campaignAftermath:savedAftermath,...careerSave'),'outer optional records are removed before strict career validation');
 assert(source.includes('!isSandbox()&&!heroCheckpoint'),'resume does not replay starter ammunition');
 assert(!body.includes('applyPlayerVehicle('),'restore only refreshes the mesh, preserving parked car placement');
 assert(source.includes("button.disabled=choice.id==='fight'&&protectedWork()"),'dialog pause cannot disable Fight');
@@ -93,19 +102,22 @@ assert(controller.selectCampaignCharacter('basement').ok);assert.equal(gameplay.
 assert(source.includes('onFoot:!!hero&&hero.onFoot!==false'),'initial Campaign Start respects authored vehicle mode');
 // A blocked preview return retains the original checkpoint without frame-loop retries.
 const originalBody=controller.protagonistCheckpoint(),returnCampaign={version:2,character:'student'},returnControls=new Map();
+let worldResets=0;
 Object.assign(env,{developerReturn:{mode:'campaign',body:originalBody,campaign:returnCampaign},selectedGameMode:'campaign',
-  clearInterior(){},syncExternalVehicles(){},refreshProtagonistVehicle(){},refreshModeUI(){},
+  clearInterior(){},syncExternalVehicles(){},resetCampaignWorld(){worldResets++;},refreshProtagonistVehicle(){},refreshModeUI(){},
   isSandbox:()=>false,$:id=>{if(!returnControls.has(id))returnControls.set(id,{});return returnControls.get(id);}});
 const previewReturn=Function('env',`with(env){${source.slice(source.indexOf('function finishDeveloperPreview('),source.indexOf("$('mission-dev-return').addEventListener"))};return finishDeveloperPreview;}`)(env);
 gameplay.reset();simulation.player.x=220;simulation.player.z=12;gameplay.state.health=89;
 let blockedCalls=0;simulation.canOccupy=()=>{blockedCalls++;return false;};
 assert.equal(previewReturn(),false);assert.equal(env.developerReturn.blocked,true);
+assert.equal(worldResets,0,'a blocked return retains the current world until body restoration is possible');
 assert.deepEqual(env.developerReturn.body,originalBody,'failure retains full original car/health/ammunition snapshot');
 assert.deepEqual(env.developerReturn.campaign,returnCampaign);assert.equal(returnControls.get('mission-dev-return').hidden,false);
 const attempts=blockedCalls;assert.equal(previewReturn(),false);assert.equal(blockedCalls,attempts,'ordinary frames do not repeat failed placement work');
 assert.match(controller.characterSwitchReason(),/Return from/,'pending return cannot be overwritten by a hero switch');
 simulation.canOccupy=oldCanOccupy;
 assert.equal(previewReturn(true),true,'explicit retry uses actual checked Gameplay restoration');
+assert.equal(worldResets,1,'a restored body returns to the current mode world once');
 assert.equal(env.developerReturn,null);assert.equal(returnControls.get('mission-dev-return').hidden,true);
 assert.deepEqual(controller.protagonistCheckpoint(),originalBody,'successful retry restores original mode, body, car, health and ammo');
 console.log('Capital character controller: actual controller + Simulation/Gameplay/checkpoint integration passed.');

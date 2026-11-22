@@ -14,6 +14,10 @@ import { createDeliveryService } from '../Games/Capital Drive/delivery-service.j
 import { createRideService } from '../Games/Capital Drive/ride-service.js';
 import { validExplosion } from '../Games/Capital Drive/ordnance.js';
 import { createVehicleFires } from '../Games/Capital Drive/vehicle-damage.js';
+import { gearForMode } from '../Games/Capital Drive/free-roam-gear.js';
+import { createCampaignWorld } from '../Games/Capital Drive/campaign-world.js';
+import { CAMPAIGN_AIRCRAFT_IDS } from '../Games/Capital Drive/aircraft.js';
+import { POLICE_POST_IDS } from '../Games/Capital Drive/police-stations.js';
 import { BY_ID } from '../assets/car-arcade/fleet.js';
 
 // Execute exact controller helpers with bounded owner doubles. This is adapter
@@ -37,6 +41,7 @@ function helper(name) {
 }
 function owner(names, context) {
   const scope = vm.createContext({ droneActive:false,delivery:null,houseController:null,aircraft:null,watercraft:null,interactWatercraft:()=>false,policeStations:null,
+    lightRail:null,depotTank:null,heists:null,campaign:null,campaignWorld:null,streetWorld:null,gameMode:'street',developerReturn:null,gearForMode,
     securityCameras:null,interiors:{active:null},burglaryContext:()=>({}),...context });
   vm.runInContext(names.map(helper).join('\n'), scope);
   return scope;
@@ -117,7 +122,7 @@ const game=createGameplay(tinyMap,physical,{hasWeapon:id=>commerce.state.equipme
 game.state.mode='foot';game.state.health=60;game.state.actor.x=0;game.state.actor.z=10;
 commerce.state.equipment.pistol=true;game.addAmmo(24,'pistol');
 let writes=0,menuPaused=true;
-const control=owner(['cityAction','recallDrone','stepDrone','canCrewAttack','canPlayerAttack','walkingInput','input','interact'],{
+const control=owner(['cityAction','currentGear','recallDrone','stepDrone','canCrewAttack','canPlayerAttack','walkingInput','input','interact'],{
   jetpack:null,
   developerReturn:null,progression:commerce,gameplay:game,interiors:{active:null},campaignScenes:{people:[]},
   careerContext:()=>({pose:{x:game.state.actor.x,z:game.state.actor.z},onFoot:true,health:game.state.health,vehicleHealth:100,wanted:0,respawnSerial:0,interior:control.interiors.active?{roomId:home.id}:null}),
@@ -260,12 +265,13 @@ actualBus.vehicles.forEach((car,i)=>Object.assign(car,{x:60+i*20,z:60,active:tru
 const patrol={id:'police:test',modelId:'relay',x:30,z:30,yaw:0,active:true,health:100};
 carGameplay.state.police.push({id:'officer:test',health:100,mode:'vehicle',car:patrol});
 let colliders;
-const damage=owner(['damageWorldVehicle','damageExplosionVehicles','vehicleForGunfire','hitWorldVehicle','shotVehicles','syncExternalVehicles','updateAbandonedMeshes'],{
+const damage=owner(['activeWorldRecord','damageWorldVehicle','damageExplosionVehicles','vehicleForGunfire','hitWorldVehicle','shotVehicles','syncExternalVehicles','updateAbandonedMeshes'],{
   simulation:carSimulation,gameplay:carGameplay,buses:actualBus,rideService:actualRide,delivery:actualDelivery,aircraft:{snapshot:()=>({planes:[]})},
   aircraftObstacles:()=>[],BY_ID,handledVehicleBlasts:new WeakSet(),validExplosion,
   world:{heightAt:()=>0,vehicleHeightAt:()=>0},shotObstacles:createShotObstacles(vehicleMap,{heightAt:()=>0}),
   abandonedMeshes:new Map(),createCar:(modelId,{color})=>({modelId,color,visible:false}),addCarShadow:()=>{},
   scene:{add:()=>{},remove:()=>{}},placeCar:()=>{},
+  isSandbox:()=>false,
 });
 assert(damage.damageWorldVehicle(npc.id,10));assert.equal(npc.health,90);
 assert(damage.damageWorldVehicle(patrol.id,10));assert.equal(patrol.health,90);
@@ -382,7 +388,7 @@ assert(paint.some(item=>item.color==='#8b5011'),'a marked jammed camera is amber
 activePulse.step(12);paint.length=0;mini.drawMap(canvas,false);
 assert(!paint.some(item=>item.color==='#8b5011'),'expired camera pulse marker leaves the actual minimap');
 
-const pulseAction=owner(['cityAction','pulseCameras'],{
+const pulseAction=owner(['cityAction','currentGear','pulseCameras'],{
   progression:{state:{gear:{scanner:false}}},gameplay:{state:{recovery:null}},focus:()=>({x:0,z:0}),
   securityCameras:activePulse,closeDialogs:()=>{pulseAction.closed=true;},notify:()=>{},
   careerContext:()=>({}),isSandbox:()=>false,developerReturn:null,saveCareer:()=>assert.fail('pulse never saves or spends gear'),
@@ -448,7 +454,7 @@ const strikeBody={mode:'foot',health:100,actor:{x:0,z:0,yaw:0}};
 const strikeOwner=createDrone({heightAt:()=>0});assert(strikeOwner.deploy(strikeBody,{owned:true}));
 let blastCalls=0,visualCalls=0,offenceCalls=0,strikePaused=false,strikeFreeRoam=false;
 const shakeCalls=[];
-const strikeAdapter=owner(['applyWorldExplosion','strikeDrone'],{
+const strikeAdapter=owner(['applyWorldExplosion','currentGear','strikeDrone'],{
   drone:strikeOwner,droneActive:true,reducedCombatMotion:{matches:false},explosionShake:{kick:(...args)=>shakeCalls.push(args)},
   gameplay:{state:strikeBody,applyExplosion:event=>{blastCalls++;assert.equal(event.radius,12);assert.equal(event.maxDamage,160);return true;},reportOffence:()=>offenceCalls++},
   progression:{state:{gear:{drone:true,droneStrike:true},activeJob:null,activity:null}},
@@ -466,3 +472,32 @@ assert(shakeCalls.every(([distance,radius,damage])=>distance>0&&distance<radius&
 strikePaused=true;assert.equal(strikeAdapter.strikeDrone().ok,false);
 assert.equal(blastCalls,3);assert.equal(visualCalls,3);
 console.log('PASS drone strike controller: fresh strikes during jobs, missions and Free roam, one authoritative blast and visual cue per action, career-only offence and pause guard');
+
+const [storyPlane, streetPlane] = CAMPAIGN_AIRCRAFT_IDS;
+const [post] = POLICE_POST_IDS;
+const storyWorld = createCampaignWorld({version:1,absentAircraft:[storyPlane],policePosts:{[post]:0}});
+const openWorld = createCampaignWorld({version:1,absentAircraft:[streetPlane],policePosts:{}});
+const resetAircraft = [], resetPosts = [], resetShotBarriers = [];
+const modeController = owner(['activeWorldRecord','resetCampaignWorld'], {
+  campaignWorld:storyWorld,streetWorld:openWorld,gameMode:'campaign',isSandbox:()=>modeController.gameMode==='free',
+  aircraft:{reset:input=>resetAircraft.push([...(input.absentAircraft||[])])},
+  policeStations:{restoreHealth:posts=>{resetPosts.push({...posts});return [{id:post,destroyed:posts[post]===0}];}},
+  shotObstacles:{setBarrierDestroyed:(id,destroyed)=>resetShotBarriers.push([id,destroyed])},
+});
+assert.equal(modeController.activeWorldRecord(),storyWorld);
+modeController.resetCampaignWorld();
+modeController.gameMode='street';
+assert.equal(modeController.activeWorldRecord(),openWorld);
+modeController.resetCampaignWorld();
+modeController.gameMode='free';
+assert.equal(modeController.activeWorldRecord(),null);
+modeController.resetCampaignWorld();
+modeController.gameMode='campaign';modeController.developerReturn={};
+assert.equal(modeController.activeWorldRecord(),null);
+modeController.resetCampaignWorld();
+assert.deepEqual(resetAircraft,[[storyPlane],[streetPlane],[],[]]);
+assert.deepEqual(resetPosts,[{[post]:0},{},{},{}]);
+assert.deepEqual(resetShotBarriers,[[post,true],[post,false],[post,false],[post,false]]);
+assert.deepEqual(storyWorld.snapshot().absentAircraft,[storyPlane]);
+assert.deepEqual(openWorld.snapshot().absentAircraft,[streetPlane]);
+console.log('PASS city persistence controller: Campaign and Street Life rehydrate different aircraft/posts; Free roam and developer previews start from the untouched world.');

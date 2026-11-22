@@ -66,7 +66,7 @@ export function createGameplay(map, simulation, options = {}) {
   const policeController = createPolice(simulation, { shotClear:options.policeShotClear, heightAt:options.heightAt, getAllies:options.getAllies, playerAltitude:options.playerAltitude,
     playerTargetHeight:()=>state.mode==='foot'&&state.actor.crouching ? .85 : 1.2,
     getDrone:options.getDrone,droneLineOfSight:options.droneLineOfSight,onAwareness:options.onAwareness,
-    getResponseLoss:options.getResponseLoss,getPatrolStations:options.getPatrolStations,
+    getResponseLoss:options.getResponseLoss,getPatrolStations:options.getPatrolStations,getSearchDuration:options.getSearchDuration,
     getInterior:options.getInterior, resolveInterior:options.resolveInterior, onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
   const passengerPose=()=>{const pose=options.passengerPose?.();return pose&&Number.isFinite(pose.x)&&Number.isFinite(pose.z)?pose:null;};
   Object.defineProperty(state,'passenger',{enumerable:true,get:()=>!!passengerPose()});
@@ -95,7 +95,7 @@ export function createGameplay(map, simulation, options = {}) {
     state.offencePressure = Math.min(25, state.offencePressure + level);
     if (level >= 2) state.offencePressure = Math.max(state.offencePressure, [0,1,4,9,16,25][level]);
     state.wanted = [1,4,9,16,25].filter(threshold => state.offencePressure >= threshold).length;
-    state.heat = 28 + state.wanted * 9; state.pursuit = 'search';
+    state.heat = policeController.searchDuration(state.wanted); state.pursuit = 'search';
     if (kind !== 'reckless') witnessCooldown = 1;
     policeController.report(point);
     emit('offence', `Reported: ${kind}`, { offence: kind, wanted: state.wanted });
@@ -438,7 +438,7 @@ export function createGameplay(map, simulation, options = {}) {
   }
   function reportSighting({x,z,interiorId:space=null}={}) {
     if(state.sandbox||state.recovery||state.wanted<=0||space!==interiorId()||![x,z].every(Number.isFinite))return false;
-    state.heat=28+state.wanted*9;state.pursuit='pursuit';policeController.report({x,z});return true;
+    state.heat=policeController.searchDuration(state.wanted);state.pursuit='pursuit';policeController.report({x,z});return true;
   }
   function inventorySnapshot(){return freeze(Object.fromEntries(Object.entries(ammunition).map(([id,pool])=>[id,{...pool}])));}
   function restoreInventory(pools){

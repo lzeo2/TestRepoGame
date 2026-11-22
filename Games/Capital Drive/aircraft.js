@@ -2,6 +2,7 @@ import { createVehicleChallenge } from './vehicle-challenges.js';
 
 const LENGTH = 10, SPAN = 9, ENTRY_RANGE = 3.5, MAX_SPEED = 68;
 export const JET_TAKEOFF_SPEED = 28;
+export const CAMPAIGN_AIRCRAFT_IDS = Object.freeze(['jet:1', 'jet:2', 'helicopter:1', 'jet:depot']);
 const ROTOR_LENGTH = 8, ROTOR_SPAN = 10;
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 const finitePose = p => p && [p.x, p.z].every(Number.isFinite);
@@ -26,7 +27,7 @@ function offset(pose, side, forward) {
 const entry = plane => offset(plane, 2.1, 1.3);
 const copy = plane => Object.freeze({ ...plane });
 
-// Original jets at the sourced airport apron and one checked rotorcraft stand.
+// Original jets on sourced airport aprons and the fictional depot strip.
 // The controller alone translates the returned theft/impact events into crimes
 // and player damage. This module has no wallet, storage or wall-clock authority.
 export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
@@ -109,41 +110,58 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
     pose.yaw = heading;
     const door = entry(pose);
     if (!simulation.canOccupy({ ...door, yaw: pose.yaw }, { length: 1, width: .9 })) continue;
-    planes.push({ ...pose, id: `jet:${planes.length + 1}`, kind:'jet', model: planes.length,
+    planes.push({ ...pose, id: CAMPAIGN_AIRCRAFT_IDS[planes.length], kind:'jet', model: planes.length,
       name: planes.length ? 'Peregrine jet' : 'Kestrel jet', y: heightAt(pose.x, pose.z),
       speed: 0, verticalSpeed: 0, pitch: 0, bank: 0, throttle: 0, takeoffRoll:0,
       length: LENGTH, width: SPAN, airborne: false, stolen: false, wrecked: false, active: true });
   }
-  function rotorStand(pose) {
+  function rotorStand(pose, id = CAMPAIGN_AIRCRAFT_IDS[2], separation = planes) {
     if(!finitePose(pose)||!Number.isFinite(pose.yaw)||!Number.isFinite(heightAt(pose.x,pose.z)))return null;
-    const rotor={...pose,id:'helicopter:1',kind:'helicopter',name:'Wattle helicopter',length:ROTOR_LENGTH,width:ROTOR_SPAN,
+    const rotor={...pose,id,kind:'helicopter',name:'Wattle helicopter',length:ROTOR_LENGTH,width:ROTOR_SPAN,
       y:heightAt(pose.x,pose.z),speed:0,verticalSpeed:0,pitch:0,bank:0,throttle:0,rotor:0,
       airborne:false,stolen:false,wrecked:false,active:true};
-    if(planes.some(plane=>distance(plane,rotor)<32)||!groundClear(rotor)||!airClear({...rotor,y:rotor.y+1}))return null;
+    if(separation.some(plane=>distance(plane,rotor)<32)||!groundClear(rotor)||!airClear({...rotor,y:rotor.y+1}))return null;
     const door=entry(rotor);
     return simulation.canOccupy({...door,yaw:rotor.yaw},{length:1,width:.9})&&simulation.hasLineOfSight(door,rotor)?rotor:null;
   }
   const depotPad=map.defenceDepot?.helipad;
-  let rotor=rotorStand(depotPad);
-  if(!rotor){
+  function airportRotor(id, separation) {
     for(const candidate of candidates){
       if(!clearOfRoads(candidate))continue;
-      rotor=rotorStand(candidate);
-      if(rotor)break;
+      const aircraft=rotorStand(candidate,id,separation);
+      if(aircraft)return aircraft;
     }
-  }else rotor.depot=true;
+    return null;
+  }
+  const depotRotor=rotorStand(depotPad);
+  if(depotRotor)depotRotor.depot=true;
+  const rotor=depotRotor||airportRotor();
   if(rotor)planes.push(rotor);
+  const jetStand=map.defenceDepot?.jetStand;
+  if(finitePose(jetStand)&&Number.isFinite(jetStand.yaw)&&jetStand.runLength===76){
+    const jet={...jetStand,id:CAMPAIGN_AIRCRAFT_IDS[3],kind:'jet',model:1,name:'Depot interceptor',depot:true,
+      y:heightAt(jetStand.x,jetStand.z),speed:0,verticalSpeed:0,pitch:0,bank:0,throttle:0,takeoffRoll:0,
+      length:LENGTH,width:SPAN,airborne:false,stolen:false,wrecked:false,active:true};
+    const door={...entry(jet),yaw:jet.yaw};
+    let clear=Number.isFinite(jet.y)&&simulation.canOccupy(door,{length:1,width:.9});
+    for(let d=0;clear&&d<=jet.runLength;d+=2){
+      const pose={...jet,...offset(jet,0,d)};
+      clear=groundClear(pose)&&(!rotor||distance(rotor,pose)>14);
+    }
+    if(clear)planes.push(jet);
+  }
   const initial = planes.map(p => ({ ...p }));
+  let loanRotor=null;
   function runwayAligned(plane) {
     if(runwayEdges.some(({a,b,heading,halfWidth})=>segmentDistance(plane.x,plane.z,a,b)<=halfWidth-4.5&&
       Math.abs(Math.cos(plane.yaw-heading))>=.97))return true;
     // Each apron stand already owns a physically checked departure line. This
     // preserves a usable short takeoff at the game stand without a hidden boost.
-    const stand=initial.find(p=>p.id===plane.id);
+    const stand=initial.find(p=>plane.loaner?p.kind==='jet':p.id===plane.id);
     if(!stand||Math.cos(plane.yaw-stand.yaw)<.97)return false;
     const dx=plane.x-stand.x,dz=plane.z-stand.z,sin=Math.sin(stand.yaw),cos=Math.cos(stand.yaw);
     const along=-dx*sin-dz*cos;
-    return along>=-1&&along<=224&&Math.abs(dx*cos-dz*sin)<=5;
+    return along>=-1&&along<=(stand.runLength||224)&&Math.abs(dx*cos-dz*sin)<=5;
   }
   function nearest(pose) {
     if (!finitePose(pose)) return null;
@@ -186,7 +204,7 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
     const target = nearest(ctx?.pose);
     if (!validApproach(ctx, target)) return { ok: false, reason: 'Walk beside a stopped aircraft.' };
     const actual = planes.find(p => p.id === target.id);
-    if (actual.stolen) {
+    if (actual.stolen || actual.loaner) {
       activeId = actual.id; events.push({ type: 'boarded', id: actual.id });
       return { ok: true, boarded: true, stolen: false };
     }
@@ -323,15 +341,27 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
       challenge: lock, prompt: lock.active ? lock.prompt.replace('CAR LOCK',`${lock.aircraftKind.toUpperCase()} LOCK`) : plane ?
         (plane.wrecked?'Aircraft damaged. Land and stop to exit.':plane.kind==='helicopter'?
           'W/S move · A/D turn · Space rise · Shift land · E exit':plane.airborne?
-          'W/S throttle · A/D turn · Space climb · Shift descend':'Align with runway · Hold W to 101 km/h · Space lift') : '' });
+          'W/S throttle · A/D turn · Space climb · Shift descend':plane.depot?
+          'Follow the marked strip · Hold W and Space to take off':'Align with runway · Hold W to 101 km/h · Space lift') : '' });
   }
   return { nearest, interact, step, snapshot,
     get active() { return flightCopy(activePlane()); },
     get challenge() { return challengeView(); },
     get seatPose() { const p = activePlane(); return p ? { ...offset(p, 0, 2), y: p.y + 1.55, yaw: p.yaw, speed: p.speed } : null; },
     drainEvents: () => events.splice(0),
-    reset() { challenge.clear(); challenge.drainEvents(); activeId = null; challengeId = null; events.length = 0;
-      planes.splice(0, planes.length, ...initial.map(p => ({ ...p }))); },
+    reset({absentAircraft=[]}={}) {
+      challenge.clear(); challenge.drainEvents(); activeId = null; challengeId = null; events.length = 0;
+      const absent=new Set(absentAircraft);
+      planes.splice(0, planes.length, ...initial.filter(p=>!absent.has(p.id)).map(p=>({...p})));
+      // Preserve the optional flight after a Campaign theft using distinctly
+      // named loan aircraft, without recreating a consumed original identity.
+      const jetStand=initial.find(p=>p.kind==='jet');
+      if(jetStand&&!planes.some(p=>p.kind==='jet'))planes.push({...jetStand,id:'loan:jet',name:'Jules training jet',loaner:true});
+      if(rotor&&absent.has(rotor.id)){
+        loanRotor??=airportRotor('loan:helicopter',initial);
+        if(loanRotor)planes.push({...loanRotor,name:'Airfield training helicopter',loaner:true});
+      }
+    },
     clearChallenge(reason = 'Interrupted.') { challenge.cancel(reason); challengeId = null; },
   };
 }

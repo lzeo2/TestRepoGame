@@ -1,5 +1,39 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 
+const tankParts=[];
+for(const side of [-1,1]){
+  tankParts.push([side*1.7,0,1,.97,6.6,0x333935,.2,0x424944]);
+  for(let i=-2;i<=2;i++)tankParts.push([side*2.14,i*1.04,.12,.27,.72,0x666c5a,.46,0x777d6a]);
+}
+tankParts.push([0,0,3.7,.92,5.9,0x53644d,1,0x697a59],
+  [0,.3,2.5,1.1,2.8,0x53644d,1.92,0x697a59],
+  [0,-1.65,.32,.35,2.4,0x535f50,2.3,0x65725d]);
+
+export function createDepotTankView(scene) {
+  const geometry=new THREE.BoxGeometry(1,1,1);
+  const material=new THREE.MeshLambertMaterial({color:0xffffff});
+  const mesh=new THREE.InstancedMesh(geometry,material,tankParts.length);
+  const part=new THREE.Object3D(),colour=new THREE.Color(),stats={draws:0,triangles:0};
+  mesh.name='Driveable depot tank';mesh.visible=false;mesh.scale.x=4/4.4;
+  for(const [index,[x,z,w,h,d,tint,y]] of tankParts.entries()){
+    part.position.set(x,y+h/2,z);part.scale.set(w,h,d);part.updateMatrix();
+    mesh.setMatrixAt(index,part.matrix);mesh.setColorAt(index,colour.setHex(tint));
+  }
+  mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;
+  mesh.computeBoundingSphere();scene.add(mesh);
+  let disposed=false;
+  return {
+    stats,
+    update(vehicle,focus){
+      if(disposed)return;
+      mesh.visible=!!(vehicle?.active&&focus&&Math.hypot(vehicle.x-focus.x,vehicle.z-focus.z)<360);
+      stats.draws=Number(mesh.visible);stats.triangles=mesh.visible?tankParts.length*12:0;
+      if(mesh.visible){mesh.position.set(vehicle.x,vehicle.y,vehicle.z);mesh.rotation.y=vehicle.yaw;}
+    },
+    dispose(){if(disposed)return;disposed=true;stats.draws=stats.triangles=0;mesh.removeFromParent();mesh.dispose();geometry.dispose();material.dispose();},
+  };
+}
+
 // A tiny single-batch fictional compound. GPU buffers exist only near the depot;
 // source footprints and fences remain with simulation when the view is evicted.
 export function createDefenceDepotView(scene,map,heightAt) {
@@ -30,26 +64,16 @@ export function createDefenceDepotView(scene,map,heightAt) {
     mark(-1.15,64,.45,3.8,.103,0xf3e5b4);
     mark(1.15,64,.45,3.8,.103,0xf3e5b4);
     mark(0,64,2.3,.45,.103,0xf3e5b4);
-    for(const {kind,u,v} of depot.parkedVehicles){
-      if(kind==='tank'){
-        for(const side of [-1,1]){
-          box(u+side*1.7,v,1,.97,6.6,0x333935,.2,0x424944);
-          for(let i=-2;i<=2;i++)box(u+side*2.14,v+i*1.04,.12,.27,.72,0x666c5a,.46,0x777d6a);
-        }
-        box(u,v,3.7,.92,5.9,0x53644d,1,0x697a59);
-        box(u,v+.3,2.5,1.1,2.8,0x53644d,1.92,0x697a59);
-        box(u,v-1.65,.32,.35,2.4,0x535f50,2.3,0x65725d);
-      }else{
-        box(u,v,2.8,1.54,12.8,0x787c79,.59,0xa1a7a2);
-        box(u,v+2.8,1.8,.96,2.5,0x2f4d58,2.1,0x567d86);
-        for(const side of [-1,1]){
-          const wing=(dx,dz,y)=>vertex(u+side*dx,v+dz,y);
-          tri(wing(1.3,-.55,1.66),wing(6,-.55,1.32),wing(6,2.35,1.33),0x89938d);
-          tri(wing(1.3,-.55,1.66),wing(6,2.35,1.33),wing(1.3,2.35,1.63),0x89938d);
-          box(u+side*.97,v-1.3,.55,.52,.75,0x2c3334,.2,0x404844);
-        }
-        tri(vertex(u,v-5.9,2),vertex(u,v-3.8,4.1),vertex(u,v-2.9,2),0x929d97);
+    if(depot.jetStand){
+      for(const side of [-1,1]){
+        // The central access road keeps its original surface and shoulders.
+        mark(side*25,36,28,8,.205,0x52585b);
+        for(const x of [14,22,30,37])mark(side*x,36,2.8,.27,.218,0xf3e5b4);
       }
+    }
+    for(const {u,v,drivable} of depot.parkedVehicles){
+      if(drivable)continue;
+      for(const [x,z,w,h,d,tint,y,top] of tankParts)box(u+x,v+z,w,h,d,tint,y,top);
     }
     for(const u of [-25,25]){
       box(u,68,28,7,40,0x737b65);

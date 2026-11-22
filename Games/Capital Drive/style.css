@@ -356,6 +356,14 @@ body.passenger.boating #touch-controls #touch-move{visibility:visible}
 body.passenger.boating #touch-actions>button#touch-jump{display:block}
 body.boating #touch-jump .car-action,body.boating #touch-jump .foot-action{display:none}
 body.boating #touch-jump .boat-action{display:inline}
+body.passenger.tanking #touch-controls #touch-move{visibility:visible}
+body.passenger.tanking #touch-actions>button#touch-jump{display:block}
+body.tanking #touch-jump .car-action,body.tanking #touch-jump .foot-action{display:none}
+body.tanking #touch-jump .boat-action{display:inline}
+#clear-progress-text{display:block;margin:6px 0 12px;width:100%;min-height:44px;padding:8px 10px;background:var(--panel);color:var(--ink);border:1px solid var(--line);font:inherit}
+#heist-notice{position:absolute;top:205px;left:32px;width:min(300px,calc(100% - 185px));margin:0;padding:10px 12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;font-size:.82rem;line-height:1.4}
+@media(max-width:800px){#heist-notice{top:165px;left:14px}}
+.intro-open #heist-notice,.in-cutscene #heist-notice{display:none}
 body.swimming #touch-jump,body.swimming #touch-weapon,body.swimming #touch-power,body.swimming #touch-crouch{display:none}
 .watercraft-offers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
 .watercraft-offers article{padding:14px;border:1px solid var(--line);border-radius:6px}

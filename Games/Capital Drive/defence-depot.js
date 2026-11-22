@@ -30,13 +30,14 @@ export function applyDefenceDepot(map) {
   const rect=(u,v,w,d)=>[point(u-w/2,v-d/2),point(u+w/2,v-d/2),point(u+w/2,v+d/2),point(u-w/2,v+d/2)];
   const buildings=[{id:'fictional-depot-hangar-1',type:'defence_hangar',height:9,points:rect(-25,68,28,40)}, {id:'fictional-depot-hangar-2',type:'defence_hangar',height:9,points:rect(25,68,28,40)}, {id:'fictional-depot-guardhouse',type:'defence_guardhouse',height:3.2,points:rect(17,12,9,9)}];
   const fences=[[-25.5,0,39,.25],[25.5,0,39,.25],[-45,50,.25,100],[45,50,.25,100],[0,100,90,.25]].map(([u,v,w,d],i)=>({id:`fictional-depot-fence-${i}`,type:'fence',height:2.2,points:rect(u,v,w,d)}));
-  const parkedVehicles=[{kind:'tank',u:-20,v:23},{kind:'tank',u:-31,v:24},{kind:'plane',u:29,v:32}];
-  const vehicleBarriers=parkedVehicles.flatMap(({kind,u,v},i)=>{
-    const parts=kind==='tank'?[[u,v,4.4,6.6,3]]:[[u,v,3.2,13,4.1],[u,v+.9,12,2.9,1.7]];
-    return parts.map(([x,z,w,d,height],j)=>({id:`fictional-depot-parked-${i}-${j}`,type:'depot-vehicle',height,points:rect(x,z,w,d)}));
-  });
+  const parkedVehicles=[{kind:'tank',u:-20,v:23,drivable:true},{kind:'tank',u:-31,v:24}];
+  const vehicleBarriers=parkedVehicles.flatMap(({u,v,drivable},i)=>drivable?[]:
+    [{id:`fictional-depot-parked-${i}-0`,type:'depot-vehicle',height:3,points:rect(u,v,4.4,6.6)}]);
   const [padX,padZ]=point(0,64),helipad={x:padX,z:padZ,yaw:Math.atan2(nx,nz)};
+  const [jetX,jetZ]=point(38,36),jetStand={x:jetX,z:jetZ,yaw:Math.atan2(tx,tz),runLength:76};
+  const [tankX,tankZ]=point(parkedVehicles[0].u,parkedVehicles[0].v);
+  const drivableTank={id:'depot-tank',kind:'tank',name:'Depot tank',x:tankX,z:tankZ,yaw:helipad.yaw,width:4,length:6.6,height:3.02};
   const [x,z]=point(0,8),landmark={id:'capital-defence-depot',name:'Capital Defence Depot',aliases:['military base','army base','defence base','military depot'],x,z,radius:18,description:'Original fictional military vehicle depot near the airport. Public vehicle gateway.'};
-  const depot={...site,buildings,fences,parkedVehicles,vehicleBarriers,helipad,landmark,gate:point(0,0),gatewayWidth:12,apron:rect(0,36,80,62)};
+  const depot={...site,buildings,fences,parkedVehicles,vehicleBarriers,drivableTank,helipad,jetStand,landmark,gate:point(0,0),gatewayWidth:12,apron:rect(0,36,80,62)};
   return {...map,defenceDepot:depot,buildings:[...(map.buildings||[]),...buildings],roads:[...roads,{id:'fictional-depot-access',name:'Capital Depot Access',type:'service',width:10,points:[site.connection,point(0,0),point(0,40)],fictional:true}],landmarks:[...(map.landmarks||[]),landmark]};
 }

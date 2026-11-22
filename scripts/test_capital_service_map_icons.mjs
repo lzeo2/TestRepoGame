@@ -22,8 +22,8 @@ const document = {
 };
 
 const icons = createServiceMapIcons(document);
-assert.equal(canvases.length, 7, 'one cached raster per service or aircraft badge');
-const [petrol, rental, ownDrone, policeDrone, policeHelicopter, depotHelicopter, boatShop] = canvases;
+assert.equal(canvases.length, 9, 'one cached raster per service or aircraft badge');
+const [petrol, rental, ownDrone, policeDrone, policeHelicopter, depotHelicopter, boatShop, tram, heist] = canvases;
 for (const raster of canvases) {
   assert.equal(raster.width, raster.height);
   assert(raster.width >= 40, 'render beyond typical map and button display sizes');
@@ -40,6 +40,8 @@ assert.notEqual(policeHelicopter.ctx.calls.find(call => call.method === 'fill').
 assert(ownDrone.ctx.calls.some(call => call.method === 'lineTo'), 'drone glyph has diagonal arms');
 assert(policeHelicopter.ctx.calls.some(call => call.method === 'fillRect' && call.args[2] === 15), 'helicopter glyph has one main rotor');
 assert(boatShop.ctx.calls.some(call => call.method === 'quadraticCurveTo'), 'boat shop glyph includes a waterline');
+assert(tram.ctx.calls.some(call => call.method === 'fillRect' && call.args[1] === 17), 'the tram has a base');
+assert(heist.ctx.calls.some(call => call.method === 'fillRect' && call.args[1] === 5.9), 'the heist case has a handle');
 
 const fullMap = context(), minimap = context();
 icons.draw(fullMap, 'petrol', 100, 40, 20);
@@ -51,7 +53,7 @@ icons.draw(fullMap, 'player-drone', 40, 30, 20);
 icons.draw(minimap, 'helicopter', 80, 70, 20);
 assert.deepEqual(fullMap.calls.at(-1).args, [ownDrone, 30, 20, 20, 20]);
 assert.deepEqual(minimap.calls.at(-1).args, [policeHelicopter, 70, 60, 20, 20]);
-assert.equal(canvases.length, 7, 'drawing on the maps does not regenerate glyphs');
+assert.equal(canvases.length, 9, 'drawing on the maps does not regenerate glyphs');
 for (const [kind, raster] of [['petrol', petrol], ['rental', rental]]) {
   const icon = icons.createElement(kind);
   assert.equal(icon.className, 'map-service-icon');
@@ -62,4 +64,4 @@ assert.equal(icons.createElement('gym'), null);
 icons.draw(minimap, 'gym', 50, 30, 20);
 icons.draw(minimap, 'rental', 50, 30, 0);
 assert.equal(minimap.calls.length, 3);
-console.log('PASS service and aircraft icons share seven bounded cached rasters across maps and labeled controls');
+console.log('PASS service and aircraft icons share nine bounded cached rasters across maps and labeled controls');

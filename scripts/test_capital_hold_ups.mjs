@@ -47,6 +47,25 @@ for (const punched of [false, true]) {
   const loaded = createProgression(map, p.serialize(), { interactiveRobbery: true }); assert.equal(loaded.state.activity, null);
   assert.equal(p.drainEvents().filter(event => event.type === 'robbery-complete').length, 1);
 }
+{
+  let missionStore;
+  const f=fixture(legacy,{isStoryRobbery:id=>id===missionStore}),p=f.p;
+  missionStore=f.site.id;
+  p.state.robberyCooldowns[f.site.id]=180;
+  assert.equal(p.robberyEligibility(f.site.id,f.inside),'The till is empty.');
+  const storyContext={...f.inside,campaign:true};
+  assert.equal(p.robberyEligibility(f.site.id,storyContext),'');
+  denied(p,()=>p.startActivity(f.site.id,'robbery',{...storyContext,weapon:'unarmed'}));
+  assert(p.startActivity(f.site.id,'robbery',storyContext).ok);
+  assert.equal(p.state.activity.duration,3);
+  ticks(p,storyContext,59);
+  assert.equal(p.state.cash,1000,'the faster authored hold-up still needs a full valid attempt');
+  ticks(p,storyContext,1);
+  assert.equal(p.state.cash,1000+f.site.robbery);
+  assert.equal(p.state.robberyCooldowns[f.site.id],180);
+  missionStore=undefined;
+  assert.equal(p.robberyEligibility(f.site.id,storyContext),'The till is empty.');
+}
 for (const change of ['leave-room', 'wrong-room', 'wrong-store', 'dead-target', 'lost-target', 'lost-threat', 'far', 'respawn', 'recover', 'sandbox', 'car', 'invalid']) {
   const f = fixture(), { p } = f; f.employee.threatened = true;
   const ctx = { ...f.inside, weapon: 'unarmed' }; assert(p.startActivity(f.site.id, 'robbery', ctx).ok); ticks(p, ctx, 80);

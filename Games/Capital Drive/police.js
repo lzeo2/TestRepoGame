@@ -6,6 +6,7 @@ const gap = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
 const angle = a => Math.atan2(Math.sin(a),Math.cos(a));
 const DRONE_SCAN_INTERVAL = .2, DRONE_RANGE = 48, DRONE_SCAN_LIMIT = 6;
 const PATROL_DISTANCE = 180, PATROL_REFRESH = .75, PATROL_CAP = 2;
+const standardSearchDuration = wanted => 28 + wanted * 9;
 export function createPolice(simulation, options = {}) {
   const planner = createRoutePlanner(simulation.graph);
   const support=createPoliceSupport(simulation,options);
@@ -19,6 +20,12 @@ export function createPolice(simulation, options = {}) {
   const knownRooms = new Set(), wrecks = [];
   const currentInterior = () => options.getInterior?.() || null;
   const resolveInterior = id => id ? (options.resolveInterior?.(id) || (currentInterior()?.id === id ? currentInterior() : null)) : null;
+  function searchOverride(wanted) {
+    if (wanted > 3) return undefined;
+    const duration = options.getSearchDuration?.(wanted);
+    return Number.isFinite(duration) && duration > 0 ? Math.min(duration, standardSearchDuration(wanted)) : undefined;
+  }
+  const searchDuration = wanted => searchOverride(wanted) ?? standardSearchDuration(wanted);
   function remember(point) { lastSeen = { x: point.x, z: point.z }; }
   function report(point) {
     const room = currentInterior();
@@ -506,10 +513,10 @@ export function createPolice(simulation, options = {}) {
       droneNoticed = !!droneObserver;
     }
     if(ambient) {state.offencePressure=0;state.pursuit='clear';state.arrestProgress=0;return;}
-    if(seen) { state.pursuit='pursuit';state.heat=28+state.wanted*9; }
-    else { state.pursuit='search';state.heat=Math.max(0,state.heat-dt);if(state.heat<=0) { state.wanted=0;state.offencePressure=0;state.pursuit='clear';state.police.length=0;reset();options.onEscape?.(); } }
+    if(seen) { state.pursuit='pursuit';state.heat=searchDuration(state.wanted); }
+    else { state.pursuit='search';state.heat=Math.max(0,Math.min(state.heat,searchOverride(state.wanted) ?? Infinity)-dt);if(state.heat<=0) { state.wanted=0;state.offencePressure=0;state.pursuit='clear';state.police.length=0;reset();options.onEscape?.(); } }
     arrest=arresting?arrest+dt:Math.max(0,arrest-dt*2);state.arrestProgress=clamp(arrest/3.5,0,1);
     if(arrest>=3.5) { arrest=0;options.onArrest?.(); }
   }
-  return {step,reset,report,noteExplosion,damageVehicle,get wrecks(){return [...wrecks];},support:()=>support.snapshot(),drainEvents:()=>events.splice(0)};
+  return {step,reset,report,noteExplosion,damageVehicle,searchDuration,get wrecks(){return [...wrecks];},support:()=>support.snapshot(),drainEvents:()=>events.splice(0)};
 }

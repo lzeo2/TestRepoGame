@@ -74,8 +74,8 @@ function helicopterGeometry() {
   });
 }
 
-// Three bodies share one material, with a separate rotor blade mesh. Updates
-// reuse all four meshes and rotate the rotor using the caller's frame time.
+// Aircraft share one material. The depot interceptor reuses a jet geometry
+// and the rotorcraft uses caller-supplied frame time for its blades.
 export function createAircraftView(scene, heightAt = () => 0) {
   const root = new THREE.Group(); root.name = 'Original flyable aircraft'; scene.add(root);
   const geometry = [jetGeometry(0),jetGeometry(1),helicopterGeometry(),
@@ -95,24 +95,33 @@ export function createAircraftView(scene, heightAt = () => 0) {
   });
   const blades=new THREE.Mesh(geometry[3],material);blades.name='Wattle main rotor';
   blades.position.set(0,3.42,.2);meshes[2].add(blades);
-  let disposed = false, visible = 0;
+  let disposed = false, visible = 0, depotJet=null;
+  function poseAircraft(mesh,plane,snapshot,focus) {
+    mesh.visible=Boolean(plane&&(!focus||plane.id===snapshot.activeId||Math.hypot(plane.x-focus.x,plane.z-focus.z)<1800));
+    if(!mesh.visible)return false;
+    mesh.position.set(plane.x,Number.isFinite(plane.y)?plane.y:heightAt(plane.x,plane.z),plane.z);
+    mesh.rotation.set(plane.pitch||0,plane.yaw||0,plane.bank||0,'YXZ');
+    return true;
+  }
   function update(snapshot, focus, dt = 0) {
     if (disposed) return;
     visible = 0;
     for (let i = 0; i < meshes.length; i++) {
       const mesh=meshes[i];
-      const plane=snapshot?.planes?.find(p=>i===2?p.kind==='helicopter':p.id===`jet:${i+1}`);
-      mesh.visible = Boolean(plane && (!focus || plane.id === snapshot.activeId || Math.hypot(plane.x-focus.x,plane.z-focus.z)<1800));
-      if (!plane || !mesh.visible) continue;
-      mesh.position.set(plane.x, Number.isFinite(plane.y) ? plane.y : heightAt(plane.x,plane.z), plane.z);
-      mesh.rotation.set(plane.pitch || 0, plane.yaw || 0, plane.bank || 0,'YXZ');
+      const plane=snapshot?.planes?.find(p=>i===2?p.kind==='helicopter':p.id===`jet:${i+1}`||p.loaner&&p.kind==='jet'&&p.model===i);
+      if(!poseAircraft(mesh,plane,snapshot,focus))continue;
       if(i===2&&plane.id===snapshot.activeId&&!plane.wrecked&&dt>0)blades.rotation.y=(blades.rotation.y+dt*34*(plane.rotor||0))%(2*Math.PI);
       visible+=i===2?2:1;
     }
+    const interceptor=snapshot?.planes?.find(p=>p.id==='jet:depot');
+    if(interceptor&&!depotJet){
+      depotJet=new THREE.Mesh(geometry[1],material);depotJet.name=interceptor.name;root.add(depotJet);
+    }
+    if(depotJet&&poseAircraft(depotJet,interceptor,snapshot,focus))visible++;
   }
   return { update,
-    get stats() { return Object.freeze({ models:3, meshes:disposed?0:4, visible, drawCalls:visible,
-      triangles:disposed?0:geometry.reduce((sum,g)=>sum+g.attributes.position.count/3,0),
+    get stats() { return Object.freeze({ models:depotJet?4:3, meshes:disposed?0:depotJet?5:4, visible, drawCalls:visible,
+      triangles:disposed?0:geometry.reduce((sum,g)=>sum+g.attributes.position.count/3,0)+(depotJet?geometry[1].attributes.position.count/3:0),
       bufferBytes:disposed?0:geometry.reduce((sum,g)=>sum+Object.values(g.attributes).reduce((n,a)=>n+a.array.byteLength,0),0), disposed }); },
     dispose() { if(disposed)return; disposed=true; visible=0; scene.remove(root);
       for(const g of geometry)g.dispose(); material.dispose(); },

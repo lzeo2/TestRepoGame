@@ -173,7 +173,8 @@ def main():
             page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=60000)
             check(not snap()['rendering']['compatibility'], 'Actual software WebGL boots with aircraft')
             planes = snap()['aircraft']['planes']
-            check(sum(plane['kind'] == 'jet' for plane in planes) == 2, 'Actual sourced apron admits two original jets')
+            check(sum(plane['kind'] == 'jet' and not plane.get('depot') for plane in planes) == 2, 'Actual sourced apron admits two original jets')
+            check(any(plane['id'] == 'jet:depot' and plane.get('depot') for plane in planes), 'Fictional depot supplies a flyable interceptor')
             check(sum(plane['kind'] == 'helicopter' for plane in planes) == 1, 'Actual map admits one checked helicopter')
             page.locator('[data-game-mode=free]').click()
             page.locator('#guided-tutorial').uncheck()

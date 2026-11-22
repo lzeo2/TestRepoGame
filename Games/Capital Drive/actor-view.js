@@ -234,16 +234,18 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
 
   const weaponEntries = Object.entries(weapons);
   const batchMaterial = new THREE.MeshLambertMaterial({ vertexColors: true }); materials.add(batchMaterial);
+  function tintGeometry(geometry, color) {
+    const colors = new Float32Array(geometry.attributes.position.count * 3);
+    for (let i = 0; i < colors.length; i += 3) color.toArray(colors, i);
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    return geometry;
+  }
   function batchStatic(parent, mat = batchMaterial) {
     const meshes = parent.children.filter(object => object.isMesh);
     if (meshes.length < 2) return null;
     const parts = meshes.map(mesh => {
       mesh.updateMatrix();
-      const geometry = mesh.geometry.clone().applyMatrix4(mesh.matrix);
-      const rgb = mesh.material.color, colors = new Float32Array(geometry.attributes.position.count * 3);
-      for (let i = 0; i < colors.length; i += 3) rgb.toArray(colors, i);
-      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-      return geometry;
+      return tintGeometry(mesh.geometry.clone().applyMatrix4(mesh.matrix), mesh.material.color);
     });
     const geometry = ownGeometry(mergeGeometries(parts, false));
     for (const part of parts) part.dispose();
@@ -252,6 +254,32 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
   }
   const joints = []; actor.traverse(object => { if (object.isGroup) joints.push(object); });
   for (const group of joints) batchStatic(group);
+  const plate = 0x2f3a39, cloth = 0x586353, webbing = 0x777a60;
+  const vestPanels = [
+    [0, 1.12, -.135, .406, .44, .124, cloth],
+    [0, 1.13, .139, .418, .45, .118, cloth],
+    [0, 1.146, -.193, .35, .326, .047, plate],
+    [0, 1.14, .194, .368, .338, .043, plate],
+    [0, 1.274, -.218, .115, .033, .015, 0xc5b89b],
+    [0, 1.197, .218, .304, .023, .017, webbing],
+    [0, 1.102, .218, .304, .023, .017, webbing],
+  ];
+  for (const side of [-1, 1]) {
+    vestPanels.push([side * .126, 1.36, .002, .068, .071, .34, webbing]);
+    vestPanels.push([side * .203, .998, 0, .05, .104, .241, cloth]);
+  }
+  for (const x of [-.112, 0, .112]) {
+    vestPanels.push([x, 1.035, -.213, .093, .131, .067, cloth]);
+    vestPanels.push([x, 1.074, -.24, .086, .027, .021, webbing]);
+  }
+  const vestColor = new THREE.Color();
+  const vestParts = vestPanels.map(([x, y, z, w, h, d, tint]) =>
+    tintGeometry(box.clone().scale(w, h, d).translate(x, y, z), vestColor.setHex(tint)));
+  const armourVest = new THREE.Mesh(ownGeometry(mergeGeometries(vestParts, false)), batchMaterial);
+  vestParts.forEach(geometry => geometry.dispose());
+  armourVest.name = 'Player body armour';
+  armourVest.visible = false;
+  body.add(armourVest);
   for (const [, weapon] of weaponEntries) {
     weapon.children[0].geometry.computeBoundingBox();
     weapon.userData.muzzleZ = weapon.children[0].geometry.boundingBox.min.z;
@@ -348,7 +376,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
   let swimPhase=0, swimRootY=null;
   let lastShotSerial = 0, flashRemaining = 0;
   const playerMuzzle = new THREE.Vector3();
-  const counters = { police: 0, officers: 0, shots: 0, playerVisible: false, objectiveVisible: false, meshes: 0, triangles: 0, drawCalls: 0, activeWeapon: null, weaponMeshes: weaponEntries.length };
+  const counters = { police: 0, officers: 0, shots: 0, playerVisible: false, armourVisible: false, objectiveVisible: false, meshes: 0, triangles: 0, drawCalls: 0, activeWeapon: null, weaponMeshes: weaponEntries.length };
   root.traverse(object => { if (object.isMesh) { counters.meshes++; counters.triangles += (object.geometry.index?.count || object.geometry.attributes.position.count) / 3 * (object.isInstancedMesh ? object.instanceMatrix.count : 1); } });
   function ground(x, z) { return finite(heightAt(x, z)); }
   function near(value, focus, radius = CULL_DISTANCE) { return !!value && Number.isFinite(value.x) && Number.isFinite(value.z) && Math.hypot(value.x - focus.x, value.z - focus.z) < radius; }
@@ -374,6 +402,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
     if (newShot && livePlayerShot) flashRemaining = FLASH_DURATION;
     if (!livePlayerShot || state.mode !== 'foot' || swimming || finite(state.reloading) > 0 || finite(pose.impactTime) > 0) flashRemaining = 0;
     actor.visible = state.mode === 'foot' && near(pose, center);
+    counters.armourVisible = armourVest.visible = actor.visible && Number.isFinite(state.armour) && state.armour > 0;
     if (actor.visible) {
       const speed = clamp(Math.abs(finite(pose.speed)), 0, 12);
       const attack = swimming?0:clamp(state.attackTimer, 0, .3), serial = Number.isFinite(state.attackSerial) ? state.attackSerial : null;
@@ -567,7 +596,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       root.traverse(object => { if (object.isInstancedMesh) object.dispose(); });
       for (const geometry of geometries) geometry.dispose();
       for (const value of materials) value.dispose();
-      counters.drawCalls = counters.police = counters.officers = counters.shots = 0; counters.activeWeapon = null; counters.playerVisible = counters.objectiveVisible = false;
+      counters.drawCalls = counters.police = counters.officers = counters.shots = 0; counters.activeWeapon = null; counters.playerVisible = counters.armourVisible = counters.objectiveVisible = false;
     },
   };
 }

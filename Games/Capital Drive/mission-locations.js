@@ -73,16 +73,22 @@ export function createMissionGuide(entries, storyHomes = {}) {
         indoors, entryId, stationId });
     }
     if(goal.kind==='escape' && active.escapeReached===true)return Object.freeze({
-      instruction: context.wanted>0?'Location reached. Lose the police.':'Location reached. Stay clear of the police.',
+      instruction: goal.aftermath && context.aftermathResolved === false && !plan ?
+        'Speak to the officer or leave the area.' : context.wanted>0?'Location reached. Lose the police.':'Location reached. Stay clear of the police.',
       location:'Escape the police',point:null,distance:null,indoors:false,entryId:null,stationId:null,escaping:true});
-    if((goal.kind==='escape'||goal.kind==='stealth-contract')&&plan&&point(plan.exit))return result('Leave the building through the marked exit.',name(plan.name,'the building'),plan.exit,true,plan.id);
+    const findVehicle = goal.kind === 'stolen' && goal.anywhere;
+    if((findVehicle||goal.kind==='escape'||goal.kind==='stealth-contract')&&plan&&point(plan.exit))return result('Leave the building through the marked exit.',name(plan.name,'the building'),plan.exit,true,plan.id);
+    if(findVehicle)return Object.freeze({
+      instruction:name(goal.label, 'Steal a nearby street vehicle.'),location:'Find a vehicle',
+      point:null,distance:null,indoors:false,entryId:null,stationId:null,roaming:true});
     const fallback = () => result(name(goal.label), name(goal.location, name(goal.label)), goal);
     if (goal.kind === 'recon') {
       const entry = byStore.get(goal.storeId);
       const subject = entry ? (goal.subject === 'departure' ? entry.approach : { x: entry.x - Math.sin(entry.yaw) * .25, z: entry.z - Math.cos(entry.yaw) * .25 }) : goal;
       if (!point(subject) || typeof goal.targetId !== 'string') return fallback();
       const directions = result(`${name(goal.label)}. Stand 2 to 18m away, hold a steady view, then press I or SCAN.`, entry?.name || name(goal.location, goal.label), subject);
-      return Object.freeze({ ...directions, recon: Object.freeze({ targetId: goal.targetId, x: subject.x, z: subject.z, y: 1.6, space: null, minDistance: 2, maxDistance: 18, hold: 1.1 }) });
+      const hold = goal.settleSeconds ?? 1.1;
+      return Object.freeze({ ...directions, recon: Object.freeze({ targetId: goal.targetId, x: subject.x, z: subject.z, y: 1.6, space: null, minDistance: 2, maxDistance: 18, hold }) });
     }
     if (!INTERIOR_KINDS.has(goal.kind)) return fallback();
     const entry = identity(goal.roomId) ? byId.get(goal.roomId) : byStore.get(goal.storeId);

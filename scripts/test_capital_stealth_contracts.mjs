@@ -15,7 +15,7 @@ const contracts=createStealthContracts(map,{canStand,hasLineOfSight:simulation.h
 assert.deepEqual(contracts.chapters.map(chapter=>chapter.id),STEALTH_CONTRACT_IDS);
 assert.equal(createStealthContracts(map,{canStand:()=>false,hasLineOfSight:()=>true}).chapters.length,0,'blocked layouts are not published');
 
-let serial=0,playablePlans=0;
+let serial=0,playablePlans=0,targetPlans=0;
 const actions=new Set();
 for(const chapter of contracts.chapters){
   assert(Object.isFrozen(chapter)&&Object.isFrozen(chapter.approaches)&&Object.isFrozen(chapter.exits));
@@ -40,6 +40,7 @@ for(const chapter of contracts.chapters){
       actions.add(target.action);
       active.stage=plan.stages.indexOf(target);active.target=target;
       context.pose={x:target.x,z:target.z};
+      context.crouching=!target.stand;
       assert(canStand(target),'every marked stage supports a foot body');
       const nearest=simulation.nearestRoad(target.x,target.z);
       assert(nearest.distance>=roadProfile(nearest.road).driveWidth/2+2,'marked stage clears the vehicle lanes');
@@ -48,6 +49,12 @@ for(const chapter of contracts.chapters){
         assert.equal(contracts.resolve(active,{...context,...wrong}).ok,false);
       }
       if(target.crouch)assert.equal(contracts.resolve(active,{...context,crouching:false}).ok,false);
+      if(target.targetName){
+        assert.equal(target.visual,'dummy','scored targets are clearly represented by stunt props');
+        assert(target.stand||target.crouch,'each target approach requires a stance');
+        if(target.stand)assert.match(contracts.resolve(active,{...context,crouching:true}).message,/Stand up/);
+        targetPlans++;
+      }
       active.target={...target,id:'foreign-prop'};
       assert.equal(contracts.resolve(active,context).ok,false);
       active.target=target;
@@ -59,6 +66,7 @@ for(const chapter of contracts.chapters){
     playablePlans++;
   }
 }
-assert.equal(playablePlans,16);
-assert.deepEqual([...actions].sort(),['cover','disarm','divert','evidence','extract','handoff','scout']);
-console.log(`PASS four checked stealth contracts, ${playablePlans} plans, all stage/extraction receipts, sight/stance/wanted, replay denial and immutable plans`);
+assert.equal(playablePlans,24);
+assert.equal(targetPlans,8,'each new target plan includes a scored target action');
+assert.deepEqual([...actions].sort(),['cover','disarm','divert','drop-target','evidence','extract','handoff','scout','tag-target']);
+console.log(`PASS six checked stealth contracts, ${playablePlans} plans, all stage/extraction receipts, sight/stance/wanted, replay denial and immutable plans`);

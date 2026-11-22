@@ -9,7 +9,7 @@ Operator-authorized original Canberra open-world preview, catalog 245, static en
 three fictional adult protagonists, two opening missions each, a shared Kingston
 meeting and fifteen assigned shared chapters, including reconnaissance and prepared heists.
 An optional aviation chapter uses the depot helicopter and airport jets.
-Four original stealth contracts have their own planning board within Campaign.
+Six original stealth contracts have their own planning board within Campaign.
 **Street Life** has jobs, cash, a
 garage, foot combat and police; **Free roam** has all cars, local address search
 and map teleporting. The mapped area covers the inner south and a source-derived
@@ -145,13 +145,55 @@ reduces future ground dispatch for the current session. Officers already on
 scene keep responding.
 
 The Stealth contracts board offers Ledger Switch, Echo Box, Silent Exchange,
-and Last Light Rehearsal. Each has two approaches and two extraction choices.
+Last Light Rehearsal, Glasshouse Double, and The False Courier. Each has two
+approaches and two extraction choices.
 Preview the intended entry and exit on the map before committing. The chosen
 plan orders four on-foot objectives with evidence, a relay diversion, a
 credential handover or a training rig. Each step checks actual location and
 sight. Scout or rehearsal steps can require crouching, and police searches
 must clear before the next interaction. Contracts share existing failure and
 checkpoint recovery and award payment once. Only nearby active props render.
+
+From Depot Interception onward, story handovers and held objectives move
+faster. Depot Interception starts at two stars and records the delivery
+once you stop with a stolen car. The search can then end away from the marker.
+Borrowed Wheels also remembers arrival. Shared campaign searches at one
+to three stars take 26–38 seconds after breaking sight. Assigned story till
+handovers take three seconds and use their own admission rules.
+
+After Lunch Breakpoint and the Pink Earmuffs rematch, an officer collects
+descriptions from surviving witnesses. Give a statement, decline to answer
+or leave the area. The Campaign briefing records the outcome. Witnessed
+departures, refusal and civilian harm can raise attention later. Completing
+the mission banks that outcome with the prelaunch checkpoint flow.
+
+Campaign and Street Life each save missing original aircraft and the condition
+of the three fictional police posts. Mission failure restores prelaunch world
+state and collision. Free roam builds a fresh world and provides all equipment.
+The visible player vest follows the character while armour charge is positive.
+Pause → Clear progress requires typing CLEAR and erases the three Capital Drive
+progress keys. Settings stay available after reload.
+
+Capital Line serves five mapped light rail stops from Civic to Dickson.
+The service follows pinned OpenStreetMap rails and platforms, with original
+trams and game timings. Press E to call a tram, board on an open platform,
+or request an exit at the next stop. Search for Civic Mutual Bank, Manuka
+Facets or Capital Line parcel job to start a fictional robbery activity.
+Each offers a different in-game symbol sequence and getaway. The parcel job
+starts away from the passenger platform, uses a real ride to the pickup stop
+and requires disembarking before payout. The two shopfronts use original
+fictional architecture by mapped public streets.
+
+Nearby drivers now anticipate a fast player cut-in and brake before the
+vehicle bodies meet. They use a shared per-driver horn cooldown for close
+cut-ins and queues. Enable Sound to hear nearby horns. Parallel traffic,
+different bridge levels and red signal approaches keep their existing rules.
+
+The depot now has a drivable tank and Depot interceptor. Use E on foot to
+take the tank, WASD to drive and Space to brake. The interceptor uses the
+existing console cues and a checked rollout strip. The original anchor
+aircraft can be removed by theft. Distinct airport loan aircraft keep the
+optional aviation chapter available after that.
 
 The fictional Capital Defence Depot sits on an airport-area service spur.
 Search for military base to route to its open vehicle gateway. The yard has
