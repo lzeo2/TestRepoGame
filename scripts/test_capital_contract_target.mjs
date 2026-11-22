@@ -1,0 +1,58 @@
+import assert from 'node:assert/strict';
+import {createContractTarget} from '../Games/Capital Drive/contract-target.js';
+import {PERSON_MODEL} from '../Games/Capital Drive/person-model.js';
+
+const missionId='blackthorn-account',targetId='blackthorn-voss';
+const spec={missionId,targetId,label:'Adrian Voss',appearanceId:'player:corporate',pose:{x:0,z:0,yaw:0}};
+let visible=true,blocked=false,probes=0;
+const actor=createContractTarget({heightAt:()=>0,hasLineOfSight:()=>visible,
+  clipMovement:(body,dx,dz,radius)=>{probes++;assert(Object.isFrozen(body));assert.equal(radius,.36);return {dx:blocked?0:dx,dz:blocked?0:dz,blocked};}});
+assert.equal(actor.body,null);assert.deepEqual(actor.shotTargets(),[]);
+assert(!actor.load({...spec,pose:{x:NaN,z:0}}));assert(actor.load(spec));
+const body=actor.body,shot=actor.shotTargets()[0];
+assert(Object.isFrozen(body)&&Object.isFrozen(shot)&&Object.isFrozen(body.appearance));
+assert.equal(body.personId,'contract:blackthorn-voss');assert.equal(body.appearanceId,'player:corporate');
+assert.notEqual(body.personId,body.appearanceId,'appearance cannot impersonate a player actor identity');
+assert.equal(body.adult,true);assert.equal(body.fictional,true);assert.equal(body.health,100);
+assert.equal(shot.height,(PERSON_MODEL.hair.y+PERSON_MODEL.hair.sy)*body.appearance.height);
+assert.equal(actor.body,body);assert.equal(actor.shotTargets()[0],shot);
+assert.throws(()=>{body.health=0;},TypeError);
+for(let i=0;i<300;i++)actor.step(.1,{activeMissionId:missionId,player:{x:0,z:6}});
+assert.equal(body.health,100);assert.deepEqual(actor.drainEvents(),[],'time and patrol never kill or complete the target');
+assert(Math.hypot(body.x,body.z)<=2.2,'patrol stays inside its small checked route');
+assert(probes<=300);assert.equal(actor.body,body);assert.equal(actor.shotTargets()[0],shot);
+const paused=actor.snapshot();actor.step(100,{activeMissionId:missionId,paused:true});assert.deepEqual(actor.snapshot(),paused);
+const ray=()=>({x:body.x,y:1,z:body.z+4,dx:0,dy:0,dz:-1,range:10,interiorId:null});
+assert.equal(actor.hitByShot(targetId,25,ray()).hits,0,'paused damage denied');
+actor.step(0,{activeMissionId:missionId,paused:false});
+assert.equal(actor.hitByShot('another-person',25,ray()).hits,0);
+assert.equal(actor.hitByShot(targetId,25,{...ray(),interiorId:'another-room'}).hits,0);
+assert.equal(actor.hitByShot(targetId,25,{...ray(),dx:1,dz:0}).hits,0,'capsule miss denied');
+visible=false;assert.equal(actor.hitByShot(targetId,25,ray()).hits,0);visible=true;
+assert.equal(actor.hitByShot(targetId,25,ray()).hits,1);assert.equal(body.health,75);
+assert(actor.load(spec));assert.equal(body.health,75,'repeated host setup does not reset live health');
+assert.equal(actor.hitByShot(targetId,100,ray()).hits,0,'duplicate same-frame/pellet damage is guarded');
+actor.step(.1,{activeMissionId:missionId});assert.equal(body.reaction,'panic');
+const initial={x:body.x,z:body.z};blocked=true;actor.step(.1,{activeMissionId:missionId});assert.equal(body.x,initial.x);assert.equal(body.z,initial.z);blocked=false;
+for(let i=0;i<3;i++)actor.step(.1,{activeMissionId:missionId});
+assert.equal(actor.strike({x:body.x,z:body.z+20,yaw:0,range:100,damage:100}).hits,0,'melee range cannot be inflated');
+assert.equal(actor.strike({x:body.x,z:body.z+1,yaw:Math.PI,damage:100}).hits,0,'must face target');
+assert.equal(actor.strike({x:body.x,z:body.z+1,yaw:0,interiorId:'other',damage:100}).hits,0);
+assert.equal(actor.strike({x:body.x,z:body.z+1,yaw:0,damage:0}).hits,0);
+for(let i=0;i<4;i++){
+  actor.step(.1,{activeMissionId:missionId});actor.step(.1,{activeMissionId:missionId});actor.step(.1,{activeMissionId:missionId});
+  assert.equal(actor.strike({x:body.x,z:body.z+1,yaw:0,damage:20,kind:'melee'}).hits,1);
+}
+assert.equal(body.health,0);assert(body.dead&&body.active,'corpse remains available to render during extraction');
+assert.equal(body.reaction,'dead');assert.equal(actor.shotTargets().length,0);
+const receipt=actor.drainEvents();assert.deepEqual(receipt,[{type:'defeated',missionId,targetId,serial:1,outcome:'killed'}]);
+assert.equal(actor.hitByShot(targetId,100,ray()).hits,0);assert.equal(actor.strike({x:body.x,z:body.z+1,damage:100}).hits,0);
+for(let i=0;i<100;i++)actor.step(.1,{activeMissionId:missionId});assert.deepEqual(actor.drainEvents(),[]);
+actor.clear();assert.equal(actor.body,null);assert.equal(actor.shotTargets().length,0);
+assert(actor.load(spec));assert.equal(actor.shotTargets()[0].damage(100,ray()).hits,1);
+assert.equal(actor.drainEvents()[0].serial,2,'receipt freshness survives clear/reload');
+actor.clear();assert(actor.load(spec));actor.step(0,{activeMissionId:'other-mission'});assert.equal(actor.body,null,'mission leave removes ghosts');
+assert(actor.load(spec));actor.dispose();assert.equal(actor.body,null);assert(!actor.load(spec));assert.deepEqual(actor.drainEvents(),[]);
+const unsafe=createContractTarget({hasLineOfSight:()=>true,clipMovement:()=>({dx:999,dz:0})});assert(unsafe.load(spec));unsafe.step(.1,{activeMissionId:missionId});assert.equal(unsafe.body.x,0,'invalid clip cannot teleport the actor');
+assert.throws(()=>unsafe.step(-1),/finite/);
+console.log('PASS contract target: original adult profile; stable read-only body/capsule; checked bounded patrol/reaction; real shot and F-melee health; pause/space/LOS/reach denials; HP-zero-only fresh completion; corpse retention, replay/cancel/disposal.');

@@ -229,7 +229,7 @@ const reports=[],sightings=[];
 const surveillance=owner(['recordCameraCrime','stepSecurityCameras','shotTargets'],{
   securityCameras:hardware,cameraCrimeSerial:0,cameraRoomPlan:null,interiors:{active:null},isSandbox:()=>false,focus:()=>({x:0,z:-10}),
   gameplay:{state:{wanted:0},reportOffence:(...args)=>reports.push(args),reportSighting:event=>sightings.push(event)},
-  pedestrians:{shotTargets:()=>[]},streetDealers:{shotTargets:()=>[]},rideService:{shotTargets:()=>[]},
+  pedestrians:{shotTargets:()=>[]},streetDealers:{shotTargets:()=>[]},rideService:{shotTargets:()=>[]},contractTarget:null,
 });
 surveillance.stepSecurityCameras(1);assert.equal(reports.length,0,'ordinary visible walking supplies no crime receipt or stars');
 surveillance.recordCameraCrime('gunfire');surveillance.stepSecurityCameras(.5);

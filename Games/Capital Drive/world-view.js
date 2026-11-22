@@ -18,6 +18,44 @@ const COLORS = {
   roof: 0x8e5643, metal: 0x737975, trunk: 0x796b57, green: 0x537158,
 };
 
+// Rendering ownership only: the source roads retain their traffic widths and IDs.
+// Near-coincident lake ways share a seam instead of drawing skins over each other.
+export function lakeBridgeRoadBands(segments) {
+  const sourceIds=new Set(['way/4878920','way/75247036','way/75247010','way/4878927','way/4878928']);
+  const lake = segments.filter(s => sourceIds.has(s.road.sourceId) && s.road.sourceTags?.bridge === 'yes');
+  const result = new Map();
+  for (const s of lake) {
+    const dx=(s.b[0]-s.a[0])/s.length,dz=(s.b[1]-s.a[1])/s.length,nx=-dz,nz=dx;
+    const partners=[];const cuts=[0,1];
+    for(const other of lake) {
+      if(other===s || other.road===s.road)continue;
+      const ox=(other.b[0]-other.a[0])/other.length,oz=(other.b[1]-other.a[1])/other.length;
+      const alignment=dx*ox+dz*oz;if(Math.abs(alignment)<.995)continue;
+      const sign=alignment<0?-1:1,onx=-oz*sign,onz=ox*sign;
+      const start=((other.a[0]-s.a[0])*dx+(other.a[1]-s.a[1])*dz)/s.length;
+      const end=((other.b[0]-s.a[0])*dx+(other.b[1]-s.a[1])*dz)/s.length;
+      const lo=Math.max(0,Math.min(start,end)),hi=Math.min(1,Math.max(start,end));
+      if(hi-lo<.001)continue;
+      const mid=(lo+hi)/2,x=s.a[0]+dx*s.length*mid,z=s.a[1]+dz*s.length*mid;
+      const gap=(other.a[0]-x)*onx+(other.a[1]-z)*onz;
+      if(Math.abs(gap)<.1 || Math.abs(gap)>=(s.width+other.width)/2)continue;
+      const boundary=(x,z)=>((other.a[0]-x)*onx+(other.a[1]-z)*onz)/(1+nx*onx+nz*onz);
+      partners.push({lo,hi,boundary,side:Math.sign(gap)});cuts.push(lo,hi);
+    }
+    const sorted=[...new Set(cuts)].sort((a,b)=>a-b),bands=[];
+    for(let i=1;i<sorted.length;i++) {
+      const lo=sorted[i-1],hi=sorted[i];if(hi-lo<1e-8)continue;
+      const active=partners.filter(p=>(lo+hi)/2>=p.lo-1e-8&&(lo+hi)/2<=p.hi+1e-8);
+      const left=active.filter(p=>p.side<0),right=active.filter(p=>p.side>0);
+      const point=t=>[s.a[0]+dx*s.length*t,s.a[1]+dz*s.length*t];
+      bands.push({a:point(lo),b:point(hi),left:(x,z)=>Math.max(-s.width/2,...left.map(p=>p.boundary(x,z))),
+        right:(x,z)=>Math.min(s.width/2,...right.map(p=>p.boundary(x,z))),leftOuter:!left.length,rightOuter:!right.length});
+    }
+    result.set(s,bands);
+  }
+  return result;
+}
+
 // Positions/UVs stay float32. Static lighting inputs need only bounded byte
 // precision; Three normalizes these attributes before the shader uses them.
 function compactAttribute(values, itemSize, signed = false) {
@@ -28,7 +66,7 @@ function compactAttribute(values, itemSize, signed = false) {
 }
 
 export function createWorldView(scene, map, { lowGraphics = false, streaming = false,
-  terrainSampler = createTerrainSampler(map), rail = null } = {}) {
+  terrainSampler = createTerrainSampler(map), rail = null, foliageTexture } = {}) {
   const root = new THREE.Group();
   root.name = 'Canberra streets';
   scene.add(root);
@@ -61,6 +99,11 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   }
   const opaque = new THREE.MeshLambertMaterial({ vertexColors: true });
   materials.push(opaque);
+  const canopies = foliageTexture === null ? null : new THREE.MeshLambertMaterial({
+    vertexColors: true, map: foliageTexture ?? null, alphaTest: .39, side: THREE.DoubleSide,
+  });
+  if (canopies) materials.push(canopies);
+  if (foliageTexture) textures.push(foliageTexture);
   const waterMaterial=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.3,metalness:.18});
   materials.push(waterMaterial);
   const glazing = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.16, metalness: 0 });
@@ -148,7 +191,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   function batchAt(x, z, kind = 'solid') {
     if (streaming && !owns(x, z)) return null;
     const chunk = chunkAt(x, z);
-    if (!chunk.batches.has(kind)) chunk.batches.set(kind, { positions: [], normals: [], colors: [], uvs: [], kinds: [] });
+    if (!chunk.batches.has(kind)) chunk.batches.set(kind, { positions: [], normals: [], colors: [], uvs: [], kinds: [], indices: kind === 'canopy' ? [] : null });
     return chunk.batches.get(kind);
   }
 
@@ -178,10 +221,10 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     triangle(batch, a, b, c, tint, uv || [a[0] / 3, a[2] / 3, b[0] / 3, b[2] / 3, c[0] / 3, c[2] / 3]);
     batch.kinds.push(kind, kind, kind);
   }
-  function softShadow(x, z, rx, rz, strength = 0.12, anchor) {
+  function softShadow(x, z, rx, rz, strength = 0.12) {
     if (lowGraphics) return;
     if (preparing) { deferSource(x, z, () => softShadow(x, z, rx, rz, strength)); return; }
-    const batch = batchAt(anchor?.x ?? x, anchor?.z ?? z, 'shadow');
+    const batch = batchAt(x, z, 'shadow');
     if (!batch) return;
     for (let i = 0; i < 10; i++) {
       const points = [[x, z], [x + Math.cos(i / 10 * Math.PI * 2) * rx, z + Math.sin(i / 10 * Math.PI * 2) * rz],
@@ -194,9 +237,9 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     }
   }
 
-  function primitive(geometry, x, y, z, sx, sy, sz, tint, yaw = 0, anchor) {
-    if (preparing) { deferSource(x, z, () => primitive(geometry, x, y, z, sx, sy, sz, tint, yaw)); return; }
-    const batch = batchAt(anchor?.x ?? x, anchor?.z ?? z);
+  function primitive(geometry, x, y, z, sx, sy, sz, tint, yaw = 0, kind = 'solid') {
+    if (preparing) { deferSource(x, z, () => primitive(geometry, x, y, z, sx, sy, sz, tint, yaw, kind)); return; }
+    const batch = batchAt(x, z, kind);
     if (!batch) return;
     position.set(x, y, z);
     scale.set(sx, sy, sz);
@@ -205,15 +248,23 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     normalMatrix.getNormalMatrix(matrix);
     const p = geometry.attributes.position;
     const n = geometry.attributes.normal;
+    const uv = geometry.attributes.uv;
+    const shades = geometry.attributes.color;
+    if (kind === 'canopy') {
+      const offset = batch.positions.length / 3;
+      for (const index of geometry.index.array) batch.indices.push(offset + index);
+    }
     setTint(tint);
     for (let i = 0; i < p.count; i++) {
       vertex.fromBufferAttribute(p, i).applyMatrix4(matrix);
       normal.fromBufferAttribute(n, i).applyMatrix3(normalMatrix).normalize();
       batch.positions.push(vertex.x, vertex.y, vertex.z);
       batch.normals.push(normal.x, normal.y, normal.z);
-      batch.colors.push(color.r, color.g, color.b);
+      const shade = shades ? shades.getX(i) : 1;
+      batch.colors.push(color.r * shade, color.g * shade, color.b * shade);
+      if (kind === 'canopy') batch.uvs.push(uv.getX(i), uv.getY(i));
     }
-    counters.triangles += p.count / 3;
+    counters.triangles += (geometry.index?.count ?? p.count) / 3;
   }
 
   function geometry(source) {
@@ -229,19 +280,67 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     shape.computeVertexNormals();
     return geometry(shape);
   }
-  function bentTrunk() {
-    const sides = 4, vertices = [], indices = [];
-    for (const [height, radius, bend, sweep] of [[-.5, .54, 0, 0], [-.055, .34, .16, -.06], [.5, .12, .87, .13]]) {
-      for (let side = 0; side < sides; side++) {
-        const angle = (side + .45) * Math.PI * 2 / sides;
-        vertices.push(bend + Math.cos(angle) * radius, height, sweep + Math.sin(angle) * radius);
+  function branchedTrunk(gum) {
+    const vertices = [], indices = [], shades = [];
+    function tube(sides, rings) {
+      const first = vertices.length / 3;
+      for (const [x, y, z, radius, shade] of rings) for (let side = 0; side < sides; side++) {
+        const angle = (side + .35) * Math.PI * 2 / sides;
+        vertices.push(x + Math.cos(angle) * radius, y, z + Math.sin(angle) * radius);
+        shades.push(shade - (side % 3) * .045, 1, 1);
+      }
+      for (let ring = 0; ring < rings.length - 1; ring++) for (let side = 0; side < sides; side++) {
+        const a = first + ring * sides + side, b = first + ring * sides + (side + 1) % sides;
+        indices.push(a, a + sides, b, b, a + sides, b + sides);
       }
     }
-    for (let ring = 0; ring < 2; ring++) for (let side = 0; side < sides; side++) {
-      const a = ring * sides + side, b = ring * sides + (side + 1) % sides;
-      indices.push(a, a + sides, b, b, a + sides, b + sides);
+    const shoulder = gum ? .035 : -.015;
+    tube(lowGraphics ? 4 : 6, [[0,-.014,0,.03,.62], [shoulder,.46,.014,.0145,.91], [shoulder+.022,.91,-.04,.0028,.93]]);
+    tube(3, [[shoulder,.49,.012,.012,.91], [-.24,.75,.074,.002,.95]]);
+    tube(3, [[shoulder+.007,.57,-.006,.013,.89], [.25,.8,-.073,.002,.96]]);
+    if (!lowGraphics) tube(3, [[shoulder,.62,-.015,.008,.87], [-.014,.86,-.23,.0018,.90]]);
+    const shape = new THREE.BufferGeometry();
+    shape.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    shape.setAttribute('color', new THREE.Float32BufferAttribute(shades, 3));
+    shape.setIndex(indices);
+    shape.computeVertexNormals();
+    return geometry(shape);
+  }
+  function canopyGeometry(gum) {
+    const vertices = [], uvs = [], indices = [];
+    const clumps = gum ? [
+      [-.205,.728,.08,.56,.34,1], [.236,.763,-.068,.55,.37,0], [.038,.91,-.025,.58,.35,0],
+      [-.02,.822,-.21,.43,.32,1],
+    ] : [
+      [-.205,.716,.075,.57,.41,2], [.226,.742,-.075,.63,.44,3], [.018,.885,-.029,.68,.47,2],
+      [-.036,.772,-.20,.59,.42,3],
+    ];
+    function leafCard([x,y,z,width,height,tile], yaw, pitch) {
+      const first = vertices.length / 3;
+      const rx = Math.cos(yaw) * width / 2, rz = Math.sin(yaw) * width / 2;
+      const ux = Math.sin(yaw) * Math.sin(pitch) * height / 2;
+      const uy = Math.cos(pitch) * height / 2, uz = -Math.cos(yaw) * Math.sin(pitch) * height / 2;
+      for (const [right, up] of [[-1,-1],[1,-1],[1,1],[-1,1]]) {
+        vertices.push(x + right*rx + up*ux, y + up*uy, z + right*rz + up*uz);
+      }
+      const u = (tile % 2) / 2, v = tile < 2 ? .5 : 0;
+      const inset = 2 / 512, right = u + .5 - inset, top = v + .5 - inset;
+      uvs.push(u + inset,v + inset, right,v + inset, right,top, u + inset,top);
+      indices.push(first,first+1,first+2, first,first+2,first+3);
     }
-    return smoothGeometry(vertices, indices);
+    clumps.forEach((clump, i) => {
+      leafCard(clump, i * 1.63, i % 2 ? .21 : -.34);
+      leafCard(clump, i * 1.63 + 1.49, i % 2 ? -.37 : .48);
+    });
+    // The angled upper card keeps a crown visible from bridges and aircraft.
+    leafCard(clumps[2], .58, 1.30);
+    const shape = new THREE.BufferGeometry();
+    shape.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    shape.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    shape.setIndex(indices);
+    shape.computeVertexNormals();
+    temporaryGeometry.push(shape);
+    return shape;
   }
   function patchyCrown(lobes) {
     const vertices = [], indices = [];
@@ -265,12 +364,8 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   const box = geometry(new THREE.BoxGeometry(1, 1, 1));
   const trunk = geometry(new THREE.CylinderGeometry(0.65, 1, 1, 5));
   const crown = geometry(new THREE.IcosahedronGeometry(1, 0));
-  const treeTrunk = bentTrunk();
-  const gumCrown = patchyCrown([
-    { x: -.25, y: -.13, z: .08, width: .81, height: .86, depth: .91, sides: 5, yaw: .25 },
-    { x: .52, y: .28, z: -.19, width: .61, height: .78, depth: .66, sides: 5, yaw: .65 },
-  ]);
-  const avenueCrown = patchyCrown([{ x: 0, y: 0, z: 0, width: 1, height: 1, depth: 1, sides: 10, yaw: .25 }]);
+  const gumTrunk = branchedTrunk(true), streetTrunk = branchedTrunk(false);
+  const gumCrown = canopies && canopyGeometry(true), streetCrown = canopies && canopyGeometry(false);
   const shrubCrown = patchyCrown([{ x: 0, y: 0, z: 0, width: 1, height: 1, depth: 1, sides: 6, yaw: .14 }]);
 
   function hash(n) {
@@ -415,6 +510,9 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     }
   }
 
+  const bridgeBands=lakeBridgeRoadBands(roadSegments);
+  const bridgeBandRoads=new Set([...bridgeBands.keys()].map(s=>s.road));
+
   // Subdivide only where a road triangle would cut through a bilinear hill.
   function drapedTriangle(batch, a, b, c, tint, lift, sampleHeight = heightAt, depth = 0) {
     const middle = (p, q) => {
@@ -443,7 +541,10 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       const t0 = i / pieces, t1 = (i + 1) / pieces;
       const x0 = THREE.MathUtils.lerp(a[0], b[0], t0), z0 = THREE.MathUtils.lerp(a[1], b[1], t0);
       const x1 = THREE.MathUtils.lerp(a[0], b[0], t1), z1 = THREE.MathUtils.lerp(a[1], b[1], t1);
-      const p = (x, z, d) => [x + nx * d, sampleHeight(x + nx * d, z + nz * d) + lift, z + nz * d];
+      const p = (x, z, offset) => {
+        const d=typeof offset==='function'?offset(x,z):offset;
+        return [x + nx * d, sampleHeight(x + nx * d, z + nz * d) + lift, z + nz * d];
+      };
       const batch = batchAt(x0, z0, tint === COLORS.asphalt ? 'road' : 'pavement');
       if (!batch) continue;
       const pa = p(x0, z0, right), pb = p(x1, z1, right), pc = p(x1, z1, left), pd = p(x0, z0, left);
@@ -451,22 +552,25 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       drapedTriangle(batch, pa, pc, pd, tint, lift, sampleHeight);
     }
   }
-  function drawRoad(s) {
+  function drawRoad(s,band=null) {
+    if(band)s={...s,a:band.a,b:band.b,length:Math.hypot(band.b[0]-band.a[0],band.b[1]-band.a[1])};
     const roadRibbon=(...args)=>ribbon(...args,s.road);
     const half = s.width / 2;
+    const left=band?.left||(()=>-half),right=band?.right||(()=>half);
+    const at=(fraction,offset=0)=>(x,z)=>left(x,z)+(right(x,z)-left(x,z))*fraction+offset;
     // Side strips avoid hidden duplicate pavement under the entire carriageway.
     const residentialPath = s.road.type === 'residential';
     const pathWidth = s.profile.pavementWidth;
     const kerbWidth = s.profile.hasKerb ? 0.18 : 0;
     if (pathWidth > 0) {
-      if (s.profile.sidewalkLeft) roadRibbon(s.a, s.b, -half - kerbWidth - pathWidth, -half - kerbWidth, residentialPath ? 0xb7b59c : COLORS.path, 0.045);
-      if (s.profile.sidewalkRight) roadRibbon(s.a, s.b, half + kerbWidth, half + kerbWidth + pathWidth, COLORS.path, 0.045);
+      if (s.profile.sidewalkLeft&&band?.leftOuter!==false) roadRibbon(s.a, s.b, -half - kerbWidth - pathWidth, -half - kerbWidth, residentialPath ? 0xb7b59c : COLORS.path, 0.045);
+      if (s.profile.sidewalkRight&&band?.rightOuter!==false) roadRibbon(s.a, s.b, half + kerbWidth, half + kerbWidth + pathWidth, COLORS.path, 0.045);
     }
     if (kerbWidth) {
-      roadRibbon(s.a, s.b, -half - kerbWidth, -half, COLORS.kerb, 0.065);
-      roadRibbon(s.a, s.b, half, half + kerbWidth, COLORS.kerb, 0.065);
+      if(band?.leftOuter!==false)roadRibbon(s.a, s.b, -half - kerbWidth, -half, COLORS.kerb, 0.065);
+      if(band?.rightOuter!==false)roadRibbon(s.a, s.b, half, half + kerbWidth, COLORS.kerb, 0.065);
     }
-    roadRibbon(s.a, s.b, -half, half, COLORS.asphalt, 0.083);
+    roadRibbon(s.a, s.b, left, right, COLORS.asphalt, 0.083);
     const marked = s.profile.markings;
     const schoolAnchor = (map.landmarks || []).find(l => l.id === 'telopea');
     const schoolApproach = schoolAnchor && /New South Wales Crescent/i.test(s.road.name || '') && Math.hypot((s.a[0] + s.b[0]) / 2 - schoolAnchor.x, (s.a[1] + s.b[1]) / 2 - schoolAnchor.z) < 350;
@@ -477,20 +581,27 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       const dx = (s.b[0] - s.a[0]) / s.length, dz = (s.b[1] - s.a[1]) / s.length;
       const offsets = roadMarkingOffsets(s.road, s.profile);
       for (const offset of offsets) for (let d = 8; d < s.length - 6; d += 12) {
-        roadRibbon([s.a[0] + dx * d, s.a[1] + dz * d], [s.a[0] + dx * Math.min(d + 3, s.length - 6), s.a[1] + dz * Math.min(d + 3, s.length - 6)], offset - .065, offset + .065, COLORS.paint, 0.105);
+        const fraction=(offset+half)/s.width;
+        roadRibbon([s.a[0] + dx * d, s.a[1] + dz * d], [s.a[0] + dx * Math.min(d + 3, s.length - 6), s.a[1] + dz * Math.min(d + 3, s.length - 6)], band?at(fraction,-.065):offset - .065, band?at(fraction,.065):offset + .065, COLORS.paint, 0.105);
       }
-      if (s.profile.major) for (const side of [-1, 1]) roadRibbon(s.a, s.b, side * (half - .25) - .06, side * (half - .25) + .06, COLORS.paint, .105);
+      if (s.profile.major) for (const side of [-1, 1]) roadRibbon(s.a, s.b, band?at(side<0?0:1,-side*.25-.06):side * (half - .25) - .06, band?at(side<0?0:1,-side*.25+.06):side * (half - .25) + .06, COLORS.paint, .105);
     }
     counters.roadSegments++;
   }
   for (const s of roadSegments) {
     const margin = s.width + s.profile.pavementWidth + 6;
-    deferSource(s.a[0], s.a[1], () => drawRoad(s), [Math.min(s.a[0],s.b[0])-margin, Math.min(s.a[1],s.b[1])-margin, Math.max(s.a[0],s.b[0])+margin, Math.max(s.a[1],s.b[1])+margin]);
+    deferSource(s.a[0], s.a[1], () => {
+      const bands=bridgeBands.get(s);
+      if(bands)for(const band of bands)drawRoad(s,band);else drawRoad(s);
+    }, [Math.min(s.a[0],s.b[0])-margin, Math.min(s.a[1],s.b[1])-margin, Math.max(s.a[0],s.b[0])+margin, Math.max(s.a[1],s.b[1])+margin]);
   }
 
   function nodeSurfaces(node) {
     const surfaces=[];
     for(const road of node.roads.values()) {
+      // Straight source lake spans already meet at their shared ribbon ends.
+      // Circular aprons would cover the ownership seam and duplicate its skin.
+      if(bridgeBandRoads.has(road))continue;
       const y=roadHeightAt(road,node.x,node.z),width=roadProfile(road).driveWidth;
       const previous=surfaces.find(item=>Math.abs(item.y-y)<.02);
       if(!previous)surfaces.push({road,y,width});
@@ -794,12 +905,11 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     return Math.hypot(x - school.x, z - school.z) < (school.radius || 140);
   });
 
-  // Pale bent gums break up the silhouette of rounded deciduous street trees.
-  // Each close silhouette is 36 solid triangles in low graphics.
-  const gumLeaves = [0x607d64, 0x6b8362, 0x78917a, 0x687c56, 0x747f63];
-  const avenueLeaves = [0x526d3f, 0x697d45, 0x73884e, 0x6b804c, 0x7e8652];
-  const gumBark = [0xa8a18e, 0x999b87, 0xc0b6a6, 0xb4ab95];
-  const avenueBark = [0x716752, 0x84705a, 0x745e4d];
+  // Shade original leaf clusters and branch forks together in scene daylight.
+  const gumLeaves = [0xe1e7d9, 0xd7dfd4, 0xcddbc8, 0xe5eadf];
+  const streetLeaves = [0xeef2d4, 0xdde6c4, 0xe3edda, 0xf5ebcf];
+  const gumBark = [0xb9b19d, 0xacb0a2, 0xd3c7b5, 0xbeb7a3];
+  const avenueBark = [0x7a6b54, 0x85735c, 0x745d4e];
   const scrubLeaves = [0x5f7251, 0x748463, 0x697850, 0x88885d];
   const vergeLeaves = [0x738755, 0x7d8e5e, 0x75835a, 0x818d63];
   const pick = (palette, seed) => palette[Math.floor(hash(seed) * palette.length)];
@@ -807,21 +917,16 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     const {x, z, seed, habitat} = plant;
     const park = habitat !== 'street';
     const eucalyptus = !avenue && (park || hash(seed + 19) > .32);
-    const angle = hash(seed + 3) * Math.PI * 2, lean = h * (eucalyptus ? .105 : .028);
-    const leanX = Math.cos(angle) * lean, leanZ = -Math.sin(angle) * lean;
-    const stem = .24 + h * .018;
+    const angle = hash(seed + 3) * Math.PI * 2;
+    const width = h * (.88 + hash(seed + 23) * .22);
+    const depth = h * (.84 + hash(seed + 31) * .24);
     const bark = pick(eucalyptus ? gumBark : avenueBark, seed + 29);
-    const leaves = pick(eucalyptus ? gumLeaves : avenueLeaves, seed + 51);
-    primitive(treeTrunk, x, y + h * .323, z, stem, h * .66, stem * .88, bark, angle);
-    primitive(eucalyptus ? gumCrown : avenueCrown, x + leanX, y + h * .766, z + leanZ,
-      h * (eucalyptus ? .315 : .372), h * (eucalyptus ? .245 : .257), h * .33, leaves, angle, plant);
-    if (!lowGraphics) {
-      const variation = angle + 1.9;
-      primitive(treeTrunk, x + leanX * .88, y + h * .62, z + leanZ * .88, stem * .52, h * .30, stem * .52, bark, variation, plant);
-      primitive(gumCrown, x - leanX * .8, y + h * .672, z - leanZ * .8, h * .19, h * .16, h * .20,
-        pick(eucalyptus ? gumLeaves : avenueLeaves, seed + 41), variation, plant);
-    }
-    softShadow(x + leanX * .36, z + leanZ * .36, h * .38, h * .32, .14, plant);
+    primitive(eucalyptus ? gumTrunk : streetTrunk, x, y, z, width, h, depth, bark, angle);
+    if (canopies) primitive(eucalyptus ? gumCrown : streetCrown, x, y, z, width, h, depth,
+      pick(eucalyptus ? gumLeaves : streetLeaves, seed + 51), angle, 'canopy');
+    else primitive(crown, x, y + h * .79, z, width * .38, h * .23, depth * .33,
+      eucalyptus ? 0x6b8362 : 0x73884e, angle);
+    softShadow(x, z, h * .38, h * .32, .14);
   }
   function emitShrub(x, z, seed, y, habitat) {
     const wood = habitat === 'wood', scale = .25 + hash(seed + 7) * (.48 + Number(wood) * .37);
@@ -830,7 +935,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   }
 
   // Test foliage positions once at recipe creation. Each district retains one
-  // recipe list and bakes it into the existing opaque batch when streamed in.
+  // recipe list and bakes trunks with opaque props and leaves into one canopy batch.
   const foliageChunks = new Map();
   {
     const exclusions = new Map(), railCells = new Map();
@@ -1003,6 +1108,11 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       if (kind === 'sign') meshGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uvs, 2));
       else {
         meshGeometry.setAttribute('color', compactAttribute(batch.colors, kind === 'shadow' ? 4 : 3));
+        if (kind === 'canopy') {
+          meshGeometry.setAttribute('uv', new THREE.Uint16BufferAttribute(batch.uvs.map(uv => Math.round(uv * 65535)), 2, true));
+          meshGeometry.setIndex(new THREE.Uint16BufferAttribute(batch.indices, 1));
+          counters.bufferBytes += meshGeometry.index.array.byteLength;
+        }
         if (kind === 'surface') {
           meshGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(batch.uvs, 2));
           meshGeometry.setAttribute('surfaceKind', new THREE.Uint8BufferAttribute(batch.kinds, 1));
@@ -1015,7 +1125,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       }
       meshGeometry.computeBoundingSphere();
       for (const attribute of Object.values(meshGeometry.attributes)) counters.bufferBytes += attribute.array.byteLength;
-      const mesh = new THREE.Mesh(meshGeometry, kind === 'sign' ? signMaterial : (kind === 'road' || kind === 'pavement') ? roadMaterial : kind === 'surface' ? surfaceMaterial : kind === 'shadow' ? shadowMaterial : kind === 'glass' ? glazing : kind==='water'?waterMaterial:opaque);
+      const mesh = new THREE.Mesh(meshGeometry, kind === 'sign' ? signMaterial : (kind === 'road' || kind === 'pavement') ? roadMaterial : kind === 'surface' ? surfaceMaterial : kind === 'canopy' ? canopies : kind === 'shadow' ? shadowMaterial : kind === 'glass' ? glazing : kind==='water'?waterMaterial:opaque);
       mesh.name = `Canberra ${kind}`;
       mesh.receiveShadow = false;
       mesh.castShadow = false;
@@ -1104,7 +1214,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       const distance = Math.hypot(chunk.x - x, chunk.z - z);
       chunk.group.visible = distance < (lowGraphics ? 500 : VISIBILITY) + CHUNK_SIZE * 0.71;
       for (const mesh of chunk.group.children) {
-        const range = (mesh.name === 'Canberra detail' || mesh.name === 'Canberra glass') ? 280 : mesh.name === 'Canberra shadow' ? 350 : mesh.name === 'Canberra pavement' ? 450 : mesh.name === 'Canberra solid' ? 475 : VISIBILITY;
+        const range = (mesh.name === 'Canberra detail' || mesh.name === 'Canberra glass') ? 280 : mesh.name === 'Canberra shadow' ? 350 : mesh.name === 'Canberra pavement' ? 450 : mesh.name === 'Canberra solid' || mesh.name === 'Canberra canopy' ? 475 : VISIBILITY;
         mesh.visible = distance < (lowGraphics ? Math.min(range, mesh.name === 'Canberra detail' || mesh.name === 'Canberra glass' ? 180 : 500) : range) + CHUNK_SIZE * 0.71;
       }
     }

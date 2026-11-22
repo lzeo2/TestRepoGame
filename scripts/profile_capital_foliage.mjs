@@ -56,12 +56,13 @@ function pathPoints(road){
 }
 const allocation={geometries:0,attributeArrays:0,attributeBytes:0,disposedGeometries:0};
 const seenGeometry=new WeakSet(),seenArrays=new WeakSet(),disposed=new WeakSet();
-const setAttribute=THREE.BufferGeometry.prototype.setAttribute,dispose=THREE.BufferGeometry.prototype.dispose;
-THREE.BufferGeometry.prototype.setAttribute=function(name,attribute){
-  if(!seenGeometry.has(this)){seenGeometry.add(this);allocation.geometries++;}
+const setAttribute=THREE.BufferGeometry.prototype.setAttribute,setIndex=THREE.BufferGeometry.prototype.setIndex,dispose=THREE.BufferGeometry.prototype.dispose;
+function measureAllocation(geometry,attribute){
+  if(!seenGeometry.has(geometry)){seenGeometry.add(geometry);allocation.geometries++;}
   if(!seenArrays.has(attribute.array)){seenArrays.add(attribute.array);allocation.attributeArrays++;allocation.attributeBytes+=attribute.array.byteLength;}
-  return setAttribute.call(this,name,attribute);
-};
+}
+THREE.BufferGeometry.prototype.setAttribute=function(name,attribute){measureAllocation(this,attribute);return setAttribute.call(this,name,attribute);};
+THREE.BufferGeometry.prototype.setIndex=function(index){const result=setIndex.call(this,index);if(this.index)measureAllocation(this,this.index);return result;};
 THREE.BufferGeometry.prototype.dispose=function(){if(seenGeometry.has(this)&&!disposed.has(this)){disposed.add(this);allocation.disposedGeometries++;}return dispose.call(this);};
 const scene=new THREE.Scene(),started=performance.now();
 const view=createWorldView(scene,map,{lowGraphics:options.quality==='low',streaming:true});
@@ -72,7 +73,7 @@ function measure(pose){
   camera.position.set(pose.x-forward.x*12,y+7,pose.z-forward.z*12);camera.lookAt(pose.x+forward.x*35,y+2,pose.z+forward.z*35);camera.updateMatrixWorld();
   matrix.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);frustum.setFromProjectionMatrix(matrix);scene.updateMatrixWorld();
   let residentBytes=0,residentMeshes=0,visibleBatches=0,visibleTriangles=0;const batches={};
-  scene.traverse(object=>{if(!object.isMesh)return;residentMeshes++;for(const attribute of Object.values(object.geometry.attributes))residentBytes+=attribute.array.byteLength;});
+  scene.traverse(object=>{if(!object.isMesh)return;residentMeshes++;residentBytes+=object.geometry.index?.array.byteLength??0;for(const attribute of Object.values(object.geometry.attributes))residentBytes+=attribute.array.byteLength;});
   scene.traverseVisible(object=>{
     if(!object.isMesh||(object.frustumCulled&&!frustum.intersectsObject(object)))return;
     visibleBatches++;const triangles=object.geometry.index?object.geometry.index.count/3:object.geometry.attributes.position.count/3;visibleTriangles+=triangles;

@@ -99,7 +99,7 @@ export function createTerrainSampler(map) {
       nodes.get(other).neighbours.set(key, distance);
     }
   }
-  const nodeHeights = new Map(), nodeProfiles = new Map(), visited = new Set();
+  const nodeHeights = new Map(), nodeProfiles = new Map(), visited = new Set(), lakeComponents=[];
   for (const start of nodes.keys()) {
     if (visited.has(start)) continue;
     const component = [], queue = [start];
@@ -123,13 +123,81 @@ export function createTerrainSampler(map) {
     const length = distances.get(lastKey) || 1;
     const lakeBridge = length > 200 && component.some(key => [...nodes.get(key).names].some(name => name === 'Kings Avenue' || name === 'Commonwealth Avenue'));
     const first = groundHeightAt(...nodes.get(firstKey).point), last = groundHeightAt(...nodes.get(lastKey).point);
+    const arch=lakeBridge?1.2:0;
+    if(lakeBridge)lakeComponents.push(deckRoads.filter(road=>road.points.some(point=>distances.has(keyOf(point)))));
     for (const key of component) {
       const t = (distances.get(key) || 0) / length;
       // A shallow authored deck estimate, not a claim of surveyed bridge levels.
-      const y = lerp(first, last, t) + (lakeBridge ? 1.2 * 4 * t * (1 - t) : 0);
+      const y = lerp(first, last, t) + arch * 4 * t * (1 - t);
       nodeHeights.set(key, lakeBridge ? Math.max(minimumLakeDeck, y) : y);
-      nodeProfiles.set(key, { t, first, last, lakeBridge });
+      nodeProfiles.set(key, { t, first, last, lakeBridge, arch });
     }
+  }
+  // Close parallel source ways can describe the same physical lake deck.
+  // Share one world-space profile without merging their logical road owners.
+  const sectionRoads=[...new Set(lakeComponents.flat())],lakeGroups=[];
+  const distanceTo=(p,a,b)=>{
+    const dx=b[0]-a[0],dz=b[1]-a[1],t=clamp(((p[0]-a[0])*dx+(p[1]-a[1])*dz)/(dx*dx+dz*dz||1),0,1);
+    return Math.hypot(p[0]-a[0]-dx*t,p[1]-a[1]-dz*t);
+  };
+  const overlaps=(a,b)=>{
+    if(a.name!==b.name)return false;
+    const radius=((Number(a.width)||7.5)+(Number(b.width)||7.5))/2;
+    for(let i=1;i<a.points.length;i++)for(let j=1;j<b.points.length;j++)
+      if(Math.min(distanceTo(a.points[i-1],b.points[j-1],b.points[j]),distanceTo(a.points[i],b.points[j-1],b.points[j]),
+        distanceTo(b.points[j-1],a.points[i-1],a.points[i]),distanceTo(b.points[j],a.points[i-1],a.points[i]))<radius)return true;
+    return false;
+  };
+  for(const road of sectionRoads){
+    const connected=lakeGroups.filter(group=>group.some(other=>overlaps(road,other)));
+    if(!connected.length)lakeGroups.push([road]);
+    else{connected[0].push(road);for(const group of connected.slice(1)){connected[0].push(...group);lakeGroups.splice(lakeGroups.indexOf(group),1);}}
+  }
+  const lakeFields=new Map();
+  for(const group of lakeGroups){
+    const points=group.flatMap(road=>road.points);let start=points[0],end=points[1],longest=0;
+    for(const a of points)for(const b of points){const d=Math.hypot(b[0]-a[0],b[1]-a[1]);if(d>longest){longest=d;start=a;end=b;}}
+    const dx=end[0]-start[0],dz=end[1]-start[1],lengthSquared=dx*dx+dz*dz;
+    const fraction=(x,z)=>clamp(((x-start[0])*dx+(z-start[1])*dz)/lengthSquared,0,1);
+    const samples=[];let first=minimumLakeDeck,last=minimumLakeDeck,arch=1.2;
+    for(const road of group)for(let i=1;i<road.points.length;i++){
+      const a=road.points[i-1],b=road.points[i],sx=b[0]-a[0],sz=b[1]-a[1],span=Math.hypot(sx,sz);if(!span)continue;
+      const radius=(Number(road.width)||7.5)/2+2,steps=Math.max(1,Math.ceil(span)),widthSteps=Math.ceil(radius*2);
+      for(let j=0;j<=steps;j++)for(let cross=0;cross<=widthSteps;cross++){
+        const side=cross/widthSteps*2-1;
+        const u=j/steps,x=lerp(a[0],b[0],u)-sz/span*radius*side,z=lerp(a[1],b[1],u)+sx/span*radius*side;
+        const t=fraction(x,z),bank=groundHeightAt(x,z);samples.push({t,bank});
+        if(t<.01)first=Math.max(first,bank+.08);if(t>.99)last=Math.max(last,bank+.08);
+      }
+    }
+    if(group.some(road=>road.name==='Kings Avenue')){
+      // The lake-edge contour drops into the bank below Kings' road landing.
+      // Anchor its authored abutment to the next 20m of connected high ground,
+      // so the road rises above that bank instead of inheriting a 35% cliff.
+      for(const bridge of group)for(const endPoint of [bridge.points[0],bridge.points.at(-1)]){
+        const t=fraction(...endPoint);if(t>.01&&t<.99)continue;
+        let landing=-Infinity;
+        for(const road of roads){
+          if(deckRoads.includes(road)||road.name!==bridge.name)continue;
+          const endKey=keyOf(endPoint),forward=keyOf(road.points[0])===endKey,backward=keyOf(road.points.at(-1))===endKey;
+          if(!forward&&!backward)continue;
+          const points=forward?road.points:[...road.points].reverse();let travelled=0;
+          for(let i=1;i<points.length&&travelled<20;i++){
+            const a=points[i-1],b=points[i],sx=b[0]-a[0],sz=b[1]-a[1],span=Math.hypot(sx,sz);if(!span)continue;
+            const distance=Math.min(span,20-travelled),steps=Math.max(1,Math.ceil(distance)),radius=(Number(road.width)||7.5)/2+2;
+            for(let j=0;j<=steps;j++)for(const side of [-1,-.5,0,.5,1]){
+              const u=distance*j/steps/span;
+              landing=Math.max(landing,groundHeightAt(lerp(a[0],b[0],u)-sz/span*radius*side,lerp(a[1],b[1],u)+sx/span*radius*side));
+            }
+            travelled+=distance;
+          }
+        }
+        if(t<.01)first=Math.max(first,landing+.08);else last=Math.max(last,landing+.08);
+      }
+    }
+    for(const {t,bank}of samples){const curve=4*t*(1-t);if(curve>1e-9)arch=Math.max(arch,(bank-lerp(first,last,t)+.08)/curve);}
+    const field=(x,z)=>{const t=fraction(x,z);return lerp(first,last,t)+arch*4*t*(1-t);};
+    for(const road of group)lakeFields.set(road.id,field);
   }
   const bridgeSegments = [];
   const cells = new Map(), cellSize = 80;
@@ -142,9 +210,11 @@ export function createTerrainSampler(map) {
       const pieces = Math.max(1, Math.ceil(Math.hypot(originalB[0] - originalA[0], originalB[1] - originalA[1]) / 25));
       const profileA = nodeProfiles.get(keyOf(originalA)), profileB = nodeProfiles.get(keyOf(originalB));
       const profileHeight = fraction => {
+        const field=lakeFields.get(road.id);
+        if(field&&!explicit)return field(lerp(originalA[0],originalB[0],fraction),lerp(originalA[1],originalB[1],fraction));
         if (explicit?.length === road.points.length) return lerp(heights[i - 1], heights[i], fraction);
         const t = lerp(profileA.t, profileB.t, fraction);
-        const y = lerp(profileA.first, profileA.last, t) + (profileA.lakeBridge ? 1.2 * 4 * t * (1 - t) : 0);
+        const y = lerp(profileA.first, profileA.last, t) + profileA.arch * 4 * t * (1 - t);
         return profileA.lakeBridge ? Math.max(minimumLakeDeck, y) : y;
       };
       for (let piece = 0; piece < pieces; piece++) {
@@ -179,6 +249,7 @@ export function createTerrainSampler(map) {
     return {t,distance:Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t),dx,dz,lengthSquared};
   };
   function ownDeckHeight(road,x,z) {
+    const field=lakeFields.get(road.id);if(field&&!estimates.has(String(road.id)))return field(x,z);
     let nearest=Infinity,result=null;
     for(const segment of ownedDecks.get(road.id)||[]) {
       const p=project(x,z,segment.a,segment.b);
@@ -197,7 +268,21 @@ export function createTerrainSampler(map) {
       const node=nodes.get(keyOf(point));
       if(node?.neighbours.size!==1)continue;
       if(!approaches.has(road.id))approaches.set(road.id,[]);
-      approaches.get(road.id).push({point,deck:jointHeights.get(keyOf(point))});
+      const points=point===road.points[0]?road.points:[...road.points].reverse();
+      const segments=[];let distance=0;
+      for(let i=1;i<points.length&&distance<20;i++){
+        const a=points[i-1],b=points[i],length=Math.hypot(b[0]-a[0],b[1]-a[1]);
+        if(length>0){segments.push({a,b,distance,length});distance+=length;}
+      }
+      const bridge=deckRoads.find(other=>other.points.some(p=>keyOf(p)===keyOf(point)));
+      const field=bridge&&!estimates.has(String(bridge.id))&&lakeFields.get(bridge.id);
+      const outer=segments.find(segment=>segment.distance+segment.length>=20);
+      let landing=null;
+      if(field&&bridge.name==='Kings Avenue'&&outer){
+        const t=(20-outer.distance)/outer.length,dx=outer.b[0]-outer.a[0],dz=outer.b[1]-outer.a[1];
+        landing={x:lerp(outer.a[0],outer.b[0],t),z:lerp(outer.a[1],outer.b[1],t),nx:-dz/outer.length,nz:dx/outer.length};
+      }
+      approaches.get(road.id).push({point,deck:jointHeights.get(keyOf(point)),field,segments,landing});
     }
   }
   function roadHeightAt(road,x,z) {
@@ -207,10 +292,23 @@ export function createTerrainSampler(map) {
     if(deck!==null)return Math.max(ground,deck);
     let result=ground;
     for(const approach of approaches.get(road.id)||[]) {
-      const distance=Math.hypot(x-approach.point[0],z-approach.point[1]);
+      if(Math.hypot(x-approach.point[0],z-approach.point[1])>=20+(Number(road.width)||8))continue;
+      let nearest=Infinity,distance=Infinity,offset=0;
+      for(const segment of approach.segments){
+        const p=project(x,z,segment.a,segment.b);
+        if(p.distance<nearest){
+          nearest=p.distance;distance=segment.distance+p.t*segment.length;
+          offset=((x-segment.a[0])*(-p.dz)+(z-segment.a[1])*p.dx)/segment.length;
+        }
+      }
       if(distance>=20)continue;
-      const delta=Math.max(0,approach.deck-groundHeightAt(...approach.point));
-      result=Math.max(result,ground+delta*(1-distance/20));
+      // Match the bridge cross-section, rather than adding one centreline
+      // height delta to sloping bank terrain. Fade along the source road so
+      // lane and pavement edges meet the same abutment plane as the deck.
+      const t=distance/20,weight=1-t*t*(3-2*t);
+      const landing=approach.landing;
+      const outer=landing?groundHeightAt(landing.x+landing.nx*offset,landing.z+landing.nz*offset):ground;
+      result=Math.max(result,lerp(outer,approach.field?approach.field(x,z):approach.deck,weight));
     }
     return result;
   }
@@ -271,7 +369,17 @@ export function createTerrainSampler(map) {
 
   function heightAt(x, z) {
     const ground = groundHeightAt(x, z), deck = bridgeHeightAt(x, z);
-    return deck === null ? ground : Math.max(ground, deck);
+    if(deck!==null)return Math.max(ground,deck);
+    // Walkers and props on the short source-connected approach use its paved
+    // elevation outside the rounded deck mask. Reuse the local vehicle index;
+    // distant ground and explicitly owned underpass roads stay unchanged.
+    let nearest=Infinity,owner=null;
+    for(const segment of vehicleCells.get(`${Math.floor(x/cellSize)},${Math.floor(z/cellSize)}`)||[]){
+      if(!approaches.has(segment.road.id))continue;
+      const p=project(x,z,segment.a,segment.b),width=(Number(segment.road.width)||8)/2+2;
+      if(p.distance<=width&&p.distance<nearest){nearest=p.distance;owner=segment.road;}
+    }
+    return owner?roadHeightAt(owner,x,z):ground;
   }
   return { groundHeightAt, heightAt, roadHeightAt, vehicleHeightAt, bridgeHeightAt, isOnBridge, bridgeSegments: Object.freeze(bridgeSegments.map(segment => Object.freeze({ roadId: segment.roadId, a: Object.freeze([...segment.a]), b: Object.freeze([...segment.b]), y0: segment.y0, y1: segment.y1, radius: segment.radius }))), stats: Object.freeze({ tiles: tiles.length, bridgeSegments: bridgeSegments.length }) };
 }

@@ -48,6 +48,7 @@ function chunkHashes(scene) {
     const hash = createHash('sha256');
     for (const mesh of [...chunk.children].sort((a, b) => a.name.localeCompare(b.name))) {
       hash.update(mesh.name);
+      if (mesh.geometry.index) hash.update(Buffer.from(mesh.geometry.index.array.buffer));
       for (const [name, attribute] of Object.entries(mesh.geometry.attributes)) hash.update(name).update(Buffer.from(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength));
     }
     result.set(chunk.name, hash.digest('hex'));
@@ -58,7 +59,8 @@ function measured(scene) {
   let bytes = 0, meshes = 0, triangles = 0;
   scene.traverse(object => {
     if (!object.isMesh) return;
-    meshes++; triangles += object.geometry.attributes.position.count / 3;
+    meshes++; triangles += (object.geometry.index?.count ?? object.geometry.attributes.position.count) / 3;
+    bytes += object.geometry.index?.array.byteLength ?? 0;
     for (const attribute of Object.values(object.geometry.attributes)) bytes += attribute.array.byteLength;
   });
   return { bytes, meshes, triangles };
@@ -68,7 +70,10 @@ for (const lowGraphics of process.argv.includes('--actual') ? [true] : [true, fa
   const reference = chunkHashes(fullScene), fullBytes = full.stats.bufferBytes;
   full.dispose();
   globalThis.gc?.();
-  const scene = new THREE.Scene(), view = createWorldView(scene, map, { lowGraphics, streaming: true });
+  const foliageTexture = new THREE.Texture();
+  let disposedFoliageTexture = 0;
+  foliageTexture.addEventListener('dispose', () => disposedFoliageTexture++);
+  const scene = new THREE.Scene(), view = createWorldView(scene, map, { lowGraphics, streaming: true, foliageTexture });
   const opening = view.stats, openingHashes = chunkHashes(scene);
   const worldRoot = scene.children[0];
   assert(opening.streaming && Object.isFrozen(opening));
@@ -99,6 +104,17 @@ for (const lowGraphics of process.argv.includes('--actual') ? [true] : [true, fa
     }
     observe();
     const measurement = measured(scene), stats = view.stats;
+    for (const chunk of worldRoot.children) {
+      const crowns = chunk.children.filter(mesh => mesh.name === 'Canberra canopy');
+      assert(crowns.length <= 1, 'one shared-atlas canopy batch per streamed district');
+      for (const mesh of crowns) {
+        assert.equal(mesh.material.map, foliageTexture);
+        assert(!mesh.material.transparent && mesh.material.depthWrite && mesh.material.alphaTest > 0);
+        assert.equal(mesh.geometry.attributes.uv.count, mesh.geometry.attributes.position.count);
+        assert(mesh.geometry.attributes.uv.array instanceof Uint16Array && mesh.geometry.attributes.uv.normalized);
+        assert(mesh.geometry.index.array instanceof Uint16Array && mesh.geometry.index.count > mesh.geometry.attributes.position.count);
+      }
+    }
     assert(stats.residentChunks <= 36, 'resident hard cap survives six distant areas');
     assert.equal(stats.residentBytes, measurement.bytes);
     assert.equal(stats.bufferBytes, measurement.bytes);
@@ -114,9 +130,10 @@ for (const lowGraphics of process.argv.includes('--actual') ? [true] : [true, fa
   assert(view.stats.evictions > 0 && disposedGeometry > 0, 'far resident CPU/GPU geometry is actually released');
   assert.deepEqual(chunkHashes(scene), openingHashes, 'evicted opening geometry rebuilds deterministically');
   assert.equal(canvases, originalCanvases, 'textures/atlases are allocated once');
-  assert(materialIds.size <= 7, 'chunks share their material instances');
+  assert(materialIds.size <= 8, 'chunks share their material instances, including one canopy material');
   const final = view.stats;
   view.dispose(); view.dispose(); view.update(poses[1]);
+  assert.equal(disposedFoliageTexture, 1, 'the shared canopy texture is disposed once');
   assert.equal(disposedGeometry, geometries, 'every loaded mesh geometry is disposed exactly once');
   assert.equal(scene.children.length, 0);
   assert.equal(worldRoot.children.length, 0, 'disposed roots retain no former mesh/CPU-buffer references');
