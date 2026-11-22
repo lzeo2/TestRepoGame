@@ -67,7 +67,7 @@ export function createGameplay(map, simulation, options = {}) {
     playerTargetHeight:()=>state.mode==='foot'&&state.actor.crouching ? .85 : 1.2,
     getDrone:options.getDrone,droneLineOfSight:options.droneLineOfSight,onAwareness:options.onAwareness,
     getResponseLoss:options.getResponseLoss,getPatrolStations:options.getPatrolStations,getSearchDuration:options.getSearchDuration,
-    getInterior:options.getInterior, resolveInterior:options.resolveInterior, onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
+    getInterior:options.getInterior, getHostageRoomId:options.getHostageRoomId, resolveInterior:options.resolveInterior, onArrest: () => beginRecovery('arrest'), onEscape: () => emit('escaped', 'Search ended.') });
   const passengerPose=()=>{const pose=options.passengerPose?.();return pose&&Number.isFinite(pose.x)&&Number.isFinite(pose.z)?pose:null;};
   Object.defineProperty(state,'passenger',{enumerable:true,get:()=>!!passengerPose()});
   const focus = () => passengerPose()||(state.mode === 'foot' ? state.actor : simulation.player);

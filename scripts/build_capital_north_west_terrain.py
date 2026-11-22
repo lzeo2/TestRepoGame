@@ -15,10 +15,17 @@ import build_capital_north_terrain as contours
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def build(source, overlay, output, cell_metres):
+def build(source, overlay, output, cell_metres, extra_overlay=None):
     assert 75 <= cell_metres <= 125, 'Keep the sparse extension terrain bounded to 75–125 metre cells.'
     raw = overlay.read_bytes()
     bounds = json.loads(raw)['bounds']
+    extra_raw = extra_overlay.read_bytes() if extra_overlay else None
+    if extra_raw:
+        extra_bounds = json.loads(extra_raw)['bounds']
+        for key in ('minX', 'minZ'):
+            bounds[key] = min(bounds[key], extra_bounds[key])
+        for key in ('maxX', 'maxZ'):
+            bounds[key] = max(bounds[key], extra_bounds[key])
     # Small outer margin covers round-off and keeps road endpoints inside the grid.
     contours.WEST = contours.LON0 + (bounds['minX']-50)/contours.MX
     contours.EAST = contours.LON0 + (bounds['maxX']+50)/contours.MX
@@ -27,6 +34,8 @@ def build(source, overlay, output, cell_metres):
     contours.build(source, output, cell_metres)
     result = json.loads(output.read_text())
     result['terrain']['streetSidecarSha256'] = hashlib.sha256(raw).hexdigest()
+    if extra_raw:
+        result['terrain']['giantSpraySidecarSha256'] = hashlib.sha256(extra_raw).hexdigest()
     result['terrain']['note'] += ' Sparse north/west street extension uses roughly 100m cells; existing higher-resolution terrain tiles retain priority.'
     output.write_text(json.dumps(result, separators=(',', ':'))+'\n')
 
@@ -35,10 +44,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source', type=Path, required=True)
     parser.add_argument('--overlay', type=Path, default=ROOT/'Games/Capital Drive/data/north-west.json')
+    parser.add_argument('--extra-overlay', type=Path, default=ROOT/'Games/Capital Drive/data/giant-spray.json')
     parser.add_argument('--output', type=Path, default=ROOT/'Games/Capital Drive/data/north-west-terrain.json')
     parser.add_argument('--cell-metres', type=float, default=100)
     args = parser.parse_args()
-    build(args.source, args.overlay, args.output, args.cell_metres)
+    build(args.source, args.overlay, args.output, args.cell_metres, args.extra_overlay)
 
 
 if __name__ == '__main__':

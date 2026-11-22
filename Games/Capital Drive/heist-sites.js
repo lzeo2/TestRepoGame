@@ -10,6 +10,11 @@ const STOREFRONTS = [
     id: 'manuka-jewels', kind: 'jeweller', name: 'Manuka Facets', area: 'manuka',
     aliases: ['heist', 'jeweller', 'jewelry store', 'jewellery shop', 'Manuka gems'], width: 10.4, depth: 6.4, height: 4.45,
   },
+  {
+    id: 'black-mountain-archive', kind: 'tower', name: 'Black Mountain Tower archive', area: 'black-mountain-tower',
+    aliases: ['tower heist', 'archive heist', 'Black Mountain robbery'], road: 'Black Mountain Drive',
+    width: 10.4, depth: 7.6, height: 4.2, terrainRise: 3.2,
+  },
 ];
 const PUBLIC_STREETS = new Set(['residential', 'tertiary', 'secondary', 'unclassified']);
 const SEARCH_RADIUS = 230;
@@ -49,7 +54,8 @@ function makeSite(spec, host, fraction, side, setback, nearby, simulation, heigh
   const centre = point(0, depth / 2);
   const floorProbes = [...corners, approach, centre];
   const heights = floorProbes.map(({ x, z }) => heightAt(x, z));
-  if (!heights.every(Number.isFinite) || Math.max(...heights) - Math.min(...heights) > 1.15) return null;
+  if (!heights.every(Number.isFinite) || Math.max(...heights) - Math.min(...heights) > (spec.terrainRise ?? 1.15)) return null;
+  if (spec.terrainRise && Math.max(...heights.slice(0,4))-heights[4] > 1) return null;
   if (!floorProbes.every(({ x, z }) => nearby.every(({ segment: s, halfWidth: width }) =>
     projectSegment(x, z, s.a, s.b).distance >= width + .8))) return null;
   const yaw = Math.atan2(-outX, -outZ);
@@ -67,7 +73,7 @@ function makeSite(spec, host, fraction, side, setback, nearby, simulation, heigh
   // Source streets anchor the entirely fictional architecture and game interaction.
   const site = Object.freeze({
     id: spec.id, kind: spec.kind, name: spec.name, aliases: [...spec.aliases, road.name], road: road.name,
-    ...approach, yaw, radius: 2.6, description: `Fictional ${spec.kind === 'bank' ? 'bank' : 'jewellery shop'} near ${road.name}`,
+    ...approach, yaw, radius: 2.6, description: `Fictional ${({bank:'bank',jeweller:'jewellery shop',tower:'tower archive'})[spec.kind]} near ${road.name}`,
     sourceRoad: road.sourceId || road.id, streetPoint: { x: roadX, z: roadZ },
     centre, point, floor, foundation, width, depth, height, apron,
     rotation: -Math.atan2(tangentZ, tangentX), readingDirection: -side,
@@ -78,7 +84,7 @@ function makeSite(spec, host, fraction, side, setback, nearby, simulation, heigh
 function placeSite(spec, anchor, simulation, heightAt) {
   const nearby = nearbySegments(simulation.graph.segments, anchor);
   const streets = nearby.filter(({ segment: { a, b, road }, distance, halfWidth }) =>
-    PUBLIC_STREETS.has(road.type) && road.name && !road.bridge && !road.tunnel &&
+    PUBLIC_STREETS.has(road.type) && road.name && (!spec.road||road.name===spec.road) && !road.bridge && !road.tunnel &&
     roadProfile(road).trafficAllowed && distance < SEARCH_RADIUS &&
     Math.hypot(b[0] - a[0], b[1] - a[1]) >= spec.width + halfWidth)
     .sort((a, b) => a.distance - b.distance);

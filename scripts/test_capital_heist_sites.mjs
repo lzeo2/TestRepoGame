@@ -31,6 +31,7 @@ const { sites, barriers } = buildHeistSites(map, simulation, heightAt);
 assert.deepEqual(sites.map(({ id, kind, road }) => [id, kind, road]), [
   ['civic-bank', 'bank', 'Akuna Street'],
   ['manuka-jewels', 'jeweller', 'Flinders Way'],
+  ['black-mountain-archive', 'tower', 'Black Mountain Drive'],
 ]);
 assert.equal(barriers.length, sites.length);
 simulation.registerStaticBarriers(barriers);
@@ -39,8 +40,14 @@ for (const [index, site] of sites.entries()) {
   assert.equal(nearestRoad.road.name, site.road);
   assert(nearestRoad.distance >= roadProfile(nearestRoad.road).driveWidth / 2 + .8, 'interaction is clear of the road');
   const actor = { ...site.streetPoint };
-  const step = simulation.moveActor(actor, site.x - actor.x, site.z - actor.z);
-  assert(step.moved && !step.blocked && Math.hypot(actor.x - site.x, actor.z - site.z) < .1, 'public approach is walkable');
+  const dx=site.x-actor.x,dz=site.z-actor.z,steps=Math.ceil(Math.hypot(dx,dz)/4);
+  for(let i=0;i<steps;i++)assert(!simulation.moveActor(actor,dx/steps,dz/steps).blocked,'public approach is walkable');
+  assert(Math.hypot(actor.x-site.x,actor.z-site.z)<.1);
+  if(site.kind==='tower'){
+    const tower=map.landmarks.find(place=>place.id==='black-mountain-tower');
+    assert(Math.hypot(site.x-tower.x,site.z-tower.z)<230,'archive stays on the mapped tower approach');
+    assert(site.floor-heightAt(site.x,site.z)<=1.03,'mountain foundation keeps the entrance in reach');
+  }
   assert(!simulation.canOccupy({ ...site.centre, yaw: site.yaw }, { length: 4.7, width: 2.2, ignoreId: 'player' }));
   assert(simulation.moveActor(actor, site.centre.x - actor.x, site.centre.z - actor.z).blocked, 'solid original facade');
   assert.equal(barriers[index].height, site.floor - site.foundation + site.height, 'collision and visual height agree');
@@ -67,4 +74,4 @@ assert.equal(view.stats.drawCalls, 0);
 view.dispose();
 view.dispose();
 assert.equal(scene.children.length, 0);
-console.log('PASS two fictional heist storefronts on mapped public streets, solid facade, clear walk-up approach, and one bounded reusable draw');
+console.log('PASS three fictional heist sites on mapped public streets, including the tower approach, solid facades and one reusable draw');

@@ -2579,6 +2579,882 @@ export const MAPPED_STORES = freeze([
     "type": "food",
     "x": -365.282,
     "z": -4407.647
+  },
+  {
+    "aliases": [
+      "coals dickson",
+      "Coles"
+    ],
+    "building": {
+      "height": 6.4,
+      "points": [
+        [
+          118.56,
+          -7697.18
+        ],
+        [
+          214.93,
+          -7684.64
+        ],
+        [
+          219.65,
+          -7684.02
+        ],
+        [
+          218.07,
+          -7680.81
+        ],
+        [
+          210.05,
+          -7664.6
+        ],
+        [
+          206.22,
+          -7656.87
+        ],
+        [
+          188.99,
+          -7620.1
+        ],
+        [
+          186.32,
+          -7619.94
+        ],
+        [
+          178.12,
+          -7623.87
+        ],
+        [
+          175.66,
+          -7617.63
+        ],
+        [
+          173.41,
+          -7616.19
+        ],
+        [
+          170.83,
+          -7616.04
+        ],
+        [
+          156.89,
+          -7622.53
+        ],
+        [
+          155.39,
+          -7618.79
+        ],
+        [
+          154.46,
+          -7617.93
+        ],
+        [
+          152.94,
+          -7617.82
+        ],
+        [
+          102.09,
+          -7640.76
+        ],
+        [
+          99.2,
+          -7642.61
+        ],
+        [
+          97.54,
+          -7645.19
+        ],
+        [
+          96.98,
+          -7648.52
+        ],
+        [
+          97.61,
+          -7652.95
+        ],
+        [
+          104.84,
+          -7697.49
+        ],
+        [
+          107.05,
+          -7699.7
+        ],
+        [
+          111.08,
+          -7700.95
+        ],
+        [
+          118.63,
+          -7700.08
+        ],
+        [
+          118.56,
+          -7697.18
+        ]
+      ]
+    },
+    "buildingId": "osm-1222397180",
+    "buildingMatch": {
+      "distance": 0,
+      "method": "containing footprint"
+    },
+    "district": "Dickson",
+    "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+    "frontage": {
+      "allocation": "nonoverlapping source-point-nearest public facade unit",
+      "confidence": "estimated",
+      "width": 2.575,
+      "x": 158.191,
+      "yaw": 2.706,
+      "z": -7621.682
+    },
+    "heal": 35,
+    "id": "store-11337142525",
+    "name": "Coals Dickson",
+    "price": 35,
+    "publicApproach": {
+      "x": 152.777,
+      "z": -7610.312
+    },
+    "radius": 4.8,
+    "road": "Hanna Enders Lane",
+    "roadId": "1386915345-north-west-0",
+    "robbery": 260,
+    "source": {
+      "id": 11337142525,
+      "lat": -35.2493164,
+      "lon": 149.1387942,
+      "timestamp": "2025-03-17T11:07:31Z",
+      "type": "node",
+      "version": 2
+    },
+    "sourceName": "Coles",
+    "sourcePosition": {
+      "x": 162.971,
+      "z": -7645.858
+    },
+    "type": "food",
+    "x": 157.144,
+    "z": -7619.433
+  },
+  {
+    "aliases": [
+      "dickson oodle house",
+      "Dickson Asian Noodle House"
+    ],
+    "building": {
+      "height": 6.4,
+      "points": [
+        [
+          -65.69,
+          -7623.09
+        ],
+        [
+          -34.63,
+          -7618.97
+        ],
+        [
+          -40.5,
+          -7574.65
+        ],
+        [
+          -44.91,
+          -7541.38
+        ],
+        [
+          -49.42,
+          -7507.35
+        ],
+        [
+          -53.69,
+          -7475.17
+        ],
+        [
+          -57.18,
+          -7448.9
+        ],
+        [
+          -89.75,
+          -7453.23
+        ],
+        [
+          -86.72,
+          -7476.16
+        ],
+        [
+          -67.94,
+          -7473.67
+        ],
+        [
+          -67.52,
+          -7476.89
+        ],
+        [
+          -66.2,
+          -7486.84
+        ],
+        [
+          -68.66,
+          -7487.17
+        ],
+        [
+          -69.34,
+          -7482.02
+        ],
+        [
+          -79.43,
+          -7483.36
+        ],
+        [
+          -80.19,
+          -7477.66
+        ],
+        [
+          -84.37,
+          -7478.23
+        ],
+        [
+          -80.23,
+          -7509.27
+        ],
+        [
+          -65.22,
+          -7507.25
+        ],
+        [
+          -64.97,
+          -7509.09
+        ],
+        [
+          -60.41,
+          -7543.28
+        ],
+        [
+          -56.69,
+          -7571.11
+        ],
+        [
+          -60.63,
+          -7571.63
+        ],
+        [
+          -59.97,
+          -7576.66
+        ],
+        [
+          -59.11,
+          -7583.05
+        ],
+        [
+          -64.37,
+          -7583.75
+        ],
+        [
+          -63.69,
+          -7588.92
+        ],
+        [
+          -57.94,
+          -7588.15
+        ],
+        [
+          -56.48,
+          -7599.14
+        ],
+        [
+          -68.66,
+          -7600.75
+        ],
+        [
+          -65.69,
+          -7623.09
+        ]
+      ]
+    },
+    "buildingId": "osm-37413373",
+    "buildingMatch": {
+      "distance": 0,
+      "method": "containing footprint"
+    },
+    "district": "Dickson",
+    "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+    "frontage": {
+      "allocation": "nonoverlapping source-point-nearest public facade unit",
+      "confidence": "estimated",
+      "width": 6.2,
+      "x": -45.143,
+      "yaw": -1.703,
+      "z": -7537.948
+    },
+    "heal": 35,
+    "id": "store-522278284",
+    "name": "Dickson Oodle House",
+    "price": 35,
+    "publicApproach": {
+      "x": -35.118,
+      "z": -7536.75
+    },
+    "radius": 4.8,
+    "road": "Woolley Street",
+    "roadId": "4852406-north-west-0",
+    "robbery": 275,
+    "source": {
+      "id": 522278284,
+      "lat": -35.2502788,
+      "lon": 149.136452,
+      "timestamp": "2025-05-15T08:05:11Z",
+      "type": "node",
+      "version": 5
+    },
+    "sourceName": "Dickson Asian Noodle House",
+    "sourcePosition": {
+      "x": -49.776,
+      "z": -7538.724
+    },
+    "type": "food",
+    "x": -42.684,
+    "z": -7537.622
+  },
+  {
+    "aliases": [
+      "prawn asian grocery",
+      "Swan Asian Grocery"
+    ],
+    "building": {
+      "height": 6.4,
+      "points": [
+        [
+          26.44,
+          -7543.76
+        ],
+        [
+          37.41,
+          -7542.4
+        ],
+        [
+          35.16,
+          -7524.17
+        ],
+        [
+          44.04,
+          -7523.07
+        ],
+        [
+          45.49,
+          -7534.69
+        ],
+        [
+          60.95,
+          -7532.78
+        ],
+        [
+          53.57,
+          -7473.25
+        ],
+        [
+          37.35,
+          -7475.26
+        ],
+        [
+          40.62,
+          -7501.68
+        ],
+        [
+          36.53,
+          -7502.19
+        ],
+        [
+          37.3,
+          -7508.3
+        ],
+        [
+          32.56,
+          -7508.89
+        ],
+        [
+          28.39,
+          -7475.2
+        ],
+        [
+          18.11,
+          -7476.47
+        ],
+        [
+          26.44,
+          -7543.76
+        ]
+      ]
+    },
+    "buildingId": "osm-72857408",
+    "buildingMatch": {
+      "distance": 0,
+      "method": "containing footprint"
+    },
+    "district": "Dickson",
+    "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+    "frontage": {
+      "allocation": "nonoverlapping source-point-nearest public facade unit",
+      "confidence": "estimated",
+      "width": 6.2,
+      "x": 56.668,
+      "yaw": -1.694,
+      "z": -7496.454
+    },
+    "heal": 35,
+    "id": "store-5286460796",
+    "name": "Prawn Asian Grocery",
+    "price": 35,
+    "publicApproach": {
+      "x": 63.524,
+      "z": -7495.598
+    },
+    "radius": 4.8,
+    "road": "Badham Street",
+    "roadId": "491731959-north-west-0",
+    "robbery": 290,
+    "source": {
+      "id": 5286460796,
+      "lat": -35.2506543,
+      "lon": 149.1375822,
+      "timestamp": "2018-11-28T07:51:45Z",
+      "type": "node",
+      "version": 4
+    },
+    "sourceName": "Swan Asian Grocery",
+    "sourcePosition": {
+      "x": 52.883,
+      "z": -7496.923
+    },
+    "type": "food",
+    "x": 59.129,
+    "z": -7496.149
+  },
+  {
+    "aliases": [
+      "supper express",
+      "Lyneham Supaexpress"
+    ],
+    "building": {
+      "height": 6.4,
+      "points": [
+        [
+          -1139.91,
+          -7326.99
+        ],
+        [
+          -1104.16,
+          -7354.09
+        ],
+        [
+          -1088.48,
+          -7333.37
+        ],
+        [
+          -1095.54,
+          -7328.02
+        ],
+        [
+          -1094.36,
+          -7326.46
+        ],
+        [
+          -1123.05,
+          -7304.72
+        ],
+        [
+          -1139.91,
+          -7326.99
+        ]
+      ]
+    },
+    "buildingId": "osm-52869378",
+    "buildingMatch": {
+      "distance": 0,
+      "method": "containing footprint"
+    },
+    "district": "Lyneham",
+    "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+    "frontage": {
+      "allocation": "nonoverlapping source-point-nearest public facade unit",
+      "confidence": "estimated",
+      "width": 6.2,
+      "x": -1093.622,
+      "yaw": -0.923,
+      "z": -7340.529
+    },
+    "heal": 35,
+    "id": "store-670169665",
+    "name": "Supper Express",
+    "price": 35,
+    "publicApproach": {
+      "x": -1071.553,
+      "z": -7357.294
+    },
+    "radius": 4.8,
+    "road": "Hall Street",
+    "roadId": "4837951-north-west-0",
+    "robbery": 305,
+    "source": {
+      "id": 670169665,
+      "lat": -35.252116,
+      "lon": 149.124868,
+      "timestamp": "2026-06-01T15:49:01Z",
+      "type": "node",
+      "version": 5
+    },
+    "sourceName": "Lyneham Supaexpress",
+    "sourcePosition": {
+      "x": -1101.977,
+      "z": -7334.207
+    },
+    "type": "food",
+    "x": -1091.644,
+    "z": -7342.026
+  },
+  {
+    "aliases": [
+      "bake pause",
+      "Bakehouse"
+    ],
+    "building": {
+      "height": 6.4,
+      "points": [
+        [
+          -1115.55,
+          -7295.36
+        ],
+        [
+          -1098.67,
+          -7273.23
+        ],
+        [
+          -1069.79,
+          -7295.29
+        ],
+        [
+          -1086.66,
+          -7317.42
+        ],
+        [
+          -1115.55,
+          -7295.36
+        ]
+      ]
+    },
+    "buildingId": "osm-52869377",
+    "buildingMatch": {
+      "distance": 0,
+      "method": "containing footprint"
+    },
+    "district": "Lyneham",
+    "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+    "frontage": {
+      "allocation": "nonoverlapping source-point-nearest public facade unit",
+      "confidence": "estimated",
+      "width": 6.2,
+      "x": -1080.437,
+      "yaw": -0.919,
+      "z": -7309.619
+    },
+    "heal": 35,
+    "id": "store-978074861",
+    "name": "Bake Pause",
+    "price": 35,
+    "publicApproach": {
+      "x": -1051.841,
+      "z": -7331.35
+    },
+    "radius": 4.8,
+    "road": "Hall Street",
+    "roadId": "4837951-north-west-0",
+    "robbery": 320,
+    "source": {
+      "id": 978074861,
+      "lat": -35.2524009,
+      "lon": 149.1250022,
+      "timestamp": "2026-05-04T01:38:51Z",
+      "type": "node",
+      "version": 6
+    },
+    "sourceName": "Bakehouse",
+    "sourcePosition": {
+      "x": -1089.787,
+      "z": -7302.492
+    },
+    "type": "food",
+    "x": -1078.465,
+    "z": -7311.123
+  },
+  {
+    "aliases": [
+      "till we meet cafe",
+      "Tilley Devine's Cafe"
+    ],
+    "building": {
+      "height": 6.4,
+      "points": [
+        [
+          -1144.31,
+          -7336.64
+        ],
+        [
+          -1160.59,
+          -7358.24
+        ],
+        [
+          -1140.58,
+          -7373.68
+        ],
+        [
+          -1128.23,
+          -7357.42
+        ],
+        [
+          -1134.09,
+          -7353.05
+        ],
+        [
+          -1130.05,
+          -7347.73
+        ],
+        [
+          -1144.31,
+          -7336.64
+        ]
+      ]
+    },
+    "buildingId": "osm-52869381",
+    "buildingMatch": {
+      "distance": 0,
+      "method": "containing footprint"
+    },
+    "district": "Lyneham",
+    "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+    "frontage": {
+      "allocation": "nonoverlapping source-point-nearest public facade unit",
+      "confidence": "estimated",
+      "width": 6.2,
+      "x": -1151.823,
+      "yaw": 0.657,
+      "z": -7365.283
+    },
+    "heal": 35,
+    "id": "store-654588066",
+    "name": "Till We Meet Cafe",
+    "price": 35,
+    "publicApproach": {
+      "x": -1159.655,
+      "z": -7375.291
+    },
+    "radius": 4.8,
+    "road": "Brigalow Street",
+    "roadId": "668220076-north-west-0",
+    "robbery": 260,
+    "source": {
+      "id": 654588066,
+      "lat": -35.2519047,
+      "lon": 149.1243834,
+      "timestamp": "2026-05-04T01:03:45Z",
+      "type": "node",
+      "version": 7
+    },
+    "sourceName": "Tilley Devine's Cafe",
+    "sourcePosition": {
+      "x": -1145.994,
+      "z": -7357.729
+    },
+    "type": "food",
+    "x": -1153.338,
+    "z": -7367.246
+  },
+  {
+    "aliases": [
+      "iggy's o'connor",
+      "IGA"
+    ],
+    "building": {
+      "height": 6.4,
+      "points": [
+        [
+          -1314.65,
+          -6042.45
+        ],
+        [
+          -1296.91,
+          -6009.77
+        ],
+        [
+          -1351.29,
+          -5979.84
+        ],
+        [
+          -1369.09,
+          -6013.24
+        ],
+        [
+          -1348.2,
+          -6025.22
+        ],
+        [
+          -1346.09,
+          -6021.31
+        ],
+        [
+          -1343.85,
+          -6022.52
+        ],
+        [
+          -1339.59,
+          -6014.69
+        ],
+        [
+          -1322.08,
+          -6024.2
+        ],
+        [
+          -1319.73,
+          -6019.86
+        ],
+        [
+          -1310.65,
+          -6024.79
+        ],
+        [
+          -1318.96,
+          -6040.11
+        ],
+        [
+          -1314.65,
+          -6042.45
+        ]
+      ]
+    },
+    "buildingId": "osm-809149688",
+    "buildingMatch": {
+      "distance": 0,
+      "method": "containing footprint"
+    },
+    "district": "O'Connor",
+    "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+    "frontage": {
+      "allocation": "nonoverlapping source-point-nearest public facade unit",
+      "confidence": "estimated",
+      "width": 6.2,
+      "x": -1353.264,
+      "yaw": 2.06,
+      "z": -5983.077
+    },
+    "heal": 35,
+    "id": "store-34495141",
+    "name": "Iggy's O'Connor",
+    "price": 35,
+    "publicApproach": {
+      "x": -1363.16,
+      "z": -5977.798
+    },
+    "radius": 4.8,
+    "road": "Macpherson Street",
+    "roadId": "307292437-north-west-0",
+    "robbery": 275,
+    "source": {
+      "id": 34495141,
+      "lat": -35.264169,
+      "lon": 149.1223146,
+      "timestamp": "2024-05-14T03:43:19Z",
+      "type": "node",
+      "version": 9
+    },
+    "sourceName": "IGA",
+    "sourcePosition": {
+      "x": -1333.908,
+      "z": -5992.467
+    },
+    "type": "food",
+    "x": -1355.453,
+    "z": -5981.91
+  },
+  {
+    "aliases": [
+      "braddon suppermarket",
+      "Braddon Supermarket"
+    ],
+    "building": {
+      "height": 3.2,
+      "points": [
+        [
+          -394.31,
+          -6016.66
+        ],
+        [
+          -396.75,
+          -5998.04
+        ],
+        [
+          -378.16,
+          -5995.61
+        ],
+        [
+          -377.59,
+          -5999.94
+        ],
+        [
+          -376.42,
+          -6008.91
+        ],
+        [
+          -375.73,
+          -6014.23
+        ],
+        [
+          -394.31,
+          -6016.66
+        ]
+      ]
+    },
+    "buildingId": "osm-50637169",
+    "buildingMatch": {
+      "distance": 0,
+      "method": "containing footprint"
+    },
+    "district": "Braddon",
+    "entranceNote": "Estimated street-facing interaction frontage; not an observed OSM entrance.",
+    "frontage": {
+      "allocation": "nonoverlapping source-point-nearest public facade unit",
+      "confidence": "estimated",
+      "width": 2.666,
+      "x": -376.407,
+      "yaw": -1.7,
+      "z": -6007.312
+    },
+    "heal": 35,
+    "id": "store-7148866337",
+    "name": "Braddon Suppermarket",
+    "price": 35,
+    "publicApproach": {
+      "x": -370.84,
+      "z": -6006.593
+    },
+    "radius": 4.8,
+    "road": "Lowanna Street",
+    "roadId": "4843545-north-west-0",
+    "robbery": 290,
+    "source": {
+      "id": 7148866337,
+      "lat": -35.264018,
+      "lon": 149.1327917,
+      "timestamp": "2025-11-14T08:06:52Z",
+      "type": "node",
+      "version": 7
+    },
+    "sourceName": "Braddon Supermarket",
+    "sourcePosition": {
+      "x": -382.249,
+      "z": -6009.276
+    },
+    "type": "food",
+    "x": -373.947,
+    "z": -6006.991
   }
 ]);
 export const LEGACY_SHOP_IDS = Object.freeze(["crescent-kiosk", "manuka-store"]);

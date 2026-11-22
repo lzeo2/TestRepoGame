@@ -82,7 +82,7 @@ export function createPolice(simulation, options = {}) {
   }
   function transition(unit,room,state,target,entering) {
     const from=entering?room.outside:room.exit, to=entering?room.inside:room.outside;
-    if (!from || !to || gap(unit,from)>1.4 || (entering && room.safehouse)) return false;
+    if (!from || !to || gap(unit,from)>1.4 || (entering && (room.safehouse || options.getHostageRoomId?.()===room.id))) return false;
     const sight=entering?simulation:room, mover=entering?room:simulation;
     if (!sight.hasLineOfSight(unit,from)) return false;
     const pose={...to};

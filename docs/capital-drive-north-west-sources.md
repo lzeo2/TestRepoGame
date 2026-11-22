@@ -54,3 +54,35 @@ node scripts/test_capital_game_data.mjs
 The final cache manifest/build stamp must be regenerated after integrating this
 isolated source lane with the release branch. Cache authority requires the
 whole ten-file map set; an older worker falls back to ordinary local loading.
+
+## Northern premises and Giant Spray
+
+The subsequent update imports 33 selected building footprints and nine mapped
+premises from the same pinned OpenStreetMap cache. The set includes Dickson
+Library, Dickson Village, Daramalan College, Dickson College, Lyneham High,
+St Ninian's, ABC Canberra and Black Mountain Tower. The tower uses OSM
+way 37693613 and its tagged 195.2 m height. Its model is an original
+interpretation. The archive room and robbery are fictional game content.
+Other heights come from tagged levels where available and estimates elsewhere.
+
+Eight northern stores use exact retail POI nodes and their containing source
+footprints. Display names are original parodies. The frontage allocator
+checks public roadside approaches and non-overlapping windows. In-game
+entrances are estimated from the building footprints.
+
+Giant Spray uses Big Splash's source perimeter (way 27480300), four pool
+outlines and six slide centerlines. The game's empty pools, worn slides
+and sign are an original abandoned-waterpark interpretation. The separate
+`giant-spray.json` overlay retains only 47 public road runs around the park
+and its connections to the existing map. Its metadata pins the raw OSM
+map API tile, exact feature identifiers and source versions. OSM contributors
+retain ODbL 1.0 attribution. The updated contour grid covers both western
+overlays and retains its ACT and Aerometrex CC BY 4.0 attribution.
+
+```sh
+python3 -B scripts/build_capital_giant_spray.py --help
+python3 -B scripts/build_capital_stores.py --help
+python3 -B scripts/build_capital_north_west_terrain.py --source <pinned-act-archive>
+node scripts/test_capital_giant_spray.mjs
+node scripts/test_capital_north_places_view.mjs
+```

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const read = path => readFile(new URL(path, import.meta.url), 'utf8');
 const { createInteriors, createGymEntry, createSchoolEntry } = await import(new URL('../Games/Capital Drive/interiors.js',import.meta.url));
@@ -138,7 +139,8 @@ interiors.reset();
 assert.equal(interiors.snapshot().activePlans, 0);
 
 // Exercise the retained real source storefronts, including non-axis-aligned doors.
-const actualMap = JSON.parse(await read('../Games/Capital Drive/data/canberra.json'));
+const actualMap = applyMapExpansion(JSON.parse(await read('../Games/Capital Drive/data/canberra.json')),
+  JSON.parse(await read('../Games/Capital Drive/data/north-west.json')));
 const actualStores = JSON.parse(await read('../Games/Capital Drive/data/stores.json')).stores;
 const baseStores = actualStores.filter(s => !s.interiorType);
 const actual = createInteriors(actualMap, { stores: baseStores });
@@ -243,11 +245,11 @@ assert.equal(mallScene.children.length, 0); assert.equal(mall.stats.activePlans,
 
 const noodleStore = actualStores.find(s => s.id === 'store-5656111023');
 assert(noodleStore && noodleStore.interiorType === 'noodle-shop');
-assert.equal(baseStores.length, 20, 'all twenty generic shops retain their full regression');
+assert.equal(baseStores.length, 28, 'the original and northern generic shops retain their full regression');
 assert.equal(noodleStore.buildingId, 'osm-584970594');
 assert.equal(noodleStore.source.id, 5656111023);
 const restaurant = createInteriors({ buildings: [...actualMap.buildings, ...north.buildings] }, { stores: actualStores });
-assert.equal(restaurant.entries.length, 21);
+assert.equal(restaurant.entries.length, actualStores.length);
 assert.equal(restaurant.stats.generatedPlans, 0);
 const noodleEntry = restaurant.entries.find(e => e.storeId === noodleStore.id);
 assert.equal(noodleEntry.variant, 'noodles');
@@ -385,13 +387,13 @@ gymView.load(gymRevisit); gym.reset(athlete); gymView.dispose(); gymView.dispose
 assert.equal(gymScene.children.length, 0);
 console.log(`PASS purposeful interiors: every house/shop/mall/noodle/gym station reachable with player clearance; actual Kingston source door approach; gym ${gymTriangles} triangles / 1 draw; deterministic lazy disposal`);
 
-// Include every runtime store, not only the original JSON's twenty-one shops.
+// Include the dedicated Civic store sidecar as well as the main registry.
 const civicExtras = JSON.parse(await read('../Games/Capital Drive/data/civic-extras.json'));
 const allStores = [...actualStores, ...civicExtras.stores];
 const allBuildings = [...actualMap.buildings, ...north.buildings];
 for (const store of allStores) if (!allBuildings.some(b => b.id === store.buildingId)) allBuildings.push({ id: store.buildingId, ...store.building });
 const all = createInteriors({ buildings: allBuildings }, { stores: allStores, heightAt: () => 3.25 });
-assert.equal(all.entries.length, 26, 'all twenty-six retained storefronts have interiors');
+assert.equal(all.entries.length, allStores.length, 'all mapped storefronts have interiors');
 const allScene = new THREE.Scene(), allView = createInteriorView(allScene), layouts = new Map();
 for (const entry of all.entries) {
   const s = Math.sin(entry.yaw), c = Math.cos(entry.yaw);
@@ -431,7 +433,7 @@ for (const solid of noodlePlan.furniture.filter(f => f.kind !== 'banquette')) {
 assert.equal(guest.seatHeight, .55);
 assert(noodlePlan.walls.some(w => w.kind === 'window-sill') && noodlePlan.walls.some(w => w.kind === 'window-lintel'));
 allView.dispose(); assert.equal(allScene.children.length, 0); assert.equal(all.stats.activePlans, 0);
-console.log('PASS all 26 source-tied shops: visible/reachable counters and activities, bounded sweeps, grocery/fast-food/cafe/retail distinction, actual noodle window/booth clearance, elevated floor return and lazy one-draw disposal');
+console.log('PASS all mapped source-tied shops: visible/reachable counters and activities, bounded sweeps, grocery/fast-food/cafe/retail distinction, actual noodle window/booth clearance, elevated floor return and lazy one-draw disposal');
 
 // The school opens one original wing inside the exact campus education body.
 {
