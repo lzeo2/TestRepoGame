@@ -1192,7 +1192,9 @@ function enterInterior(entry){
   indoorCampaignScenesView?.dispose();indoorCampaignScenesView=null;
   if(!compatibility)indoorActorView=createActorView(interiorScene,()=>plan.floorY,{policeLimit:safehouse?0:6,policeCars:false});
   syncPlayerAppearance();
-  cameraReady=false;clearInput();notify(plan.heist?`${plan.name}. Approach the employee to start a hold-up.`:`${plan.name}. E at the door leaves.`);
+  const entryHint=plan.heist?.kind==='memorial'?'Walk to the replica case and press E / USE.':
+    plan.heist?'Approach the employee to start a hold-up.':'E at the door leaves.';
+  cameraReady=false;clearInput();notify(`${plan.name}. ${entryHint}`);
 }
 function leaveInterior(){
   const roomId=interiors.active?.id;
