@@ -6,13 +6,15 @@ import { performance } from 'node:perf_hooks';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { applyRoadProfiles } from '../Games/Capital Drive/road-network.js';
 import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
-import { withCurrentRouting } from './capital-collision-baseline.mjs';
+import { withCurrentRouting,withCurrentFleet } from './capital-collision-baseline.mjs';
 
 // No persistent result cache: geometry, bridge callbacks and every live body
 // remain authoritative on the next query. Only temporary edge records disappear.
 const baselineRevision = '3695a9a7000807567f76cf074cd70e67984894f5';
 const sourceURL = new URL('../Games/Capital Drive/simulation.js', import.meta.url);
 const source = await readFile(sourceURL, 'utf8');
+assert.equal(withCurrentFleet(source,source),source,'Current roster alignment is idempotent');
+assert.throws(()=>withCurrentFleet('',source),/historical fleet import/,'Missing baseline boundaries fail closed');
 const baselineSource = withCurrentRouting(execFileSync('git', ['show', `${baselineRevision}:Games/Capital Drive/simulation.js`],
   { cwd: new URL('../', import.meta.url), encoding: 'utf8', maxBuffer: 1024 * 1024 }), source);
 const importSource = text => text.replace(/from ['"]([^'"]+)['"]/g, (_, path) => `from ${JSON.stringify(new URL(path, sourceURL).href)}`);
@@ -101,6 +103,10 @@ const terrain=createTerrainSampler(map),options={trafficCount:40,seed:20261112,i
 const oldSim=baselineSimulation(map,options),newSim=createSimulation(map,options);
 const snapshot=sim=>({player:{...sim.player},traffic:sim.traffic.map(({edge,...car})=>({...car,edgeId:edge?.id})),signals:{elapsed:sim.trafficLights.elapsed,colors:sim.trafficLights.approaches.map(item=>[item.id,item.color])}});
 assert.deepEqual(snapshot(newSim),snapshot(oldSim));
+// Measure the old contact/allocation oracle on identical deterministic queries,
+// independently of later changes to the autonomous driver policy.
+baselineMetrics.queries=optimizedMetrics.queries=0;
+baselineMetrics.polygons=optimizedMetrics.polygons=0;
 for(let i=0;i<600;i++) {
   const road=map.roads[i*37%map.roads.length],point=road.points[i%road.points.length];
   const probe={id:'actual-probe',modelId:['lantern','atlas','finch'][i%3],x:point[0]+i%7-3,z:point[1]+i%11-5,yaw:i*.71};
@@ -114,6 +120,15 @@ for(let i=0;i<600;i++) {
   const end={x:probe.x+Math.cos(i)*30,z:probe.z+Math.sin(i)*30};
   assert.equal(newSim.hasLineOfSight(probe,end),oldSim.hasLineOfSight(probe,end));
 }
+const probeMetrics={baselineCollisionQueries:baselineMetrics.queries,collisionQueries:optimizedMetrics.queries,
+  baselinePolygonContacts:baselineMetrics.polygons,polygonContacts:optimizedMetrics.polygons};
+assert(probeMetrics.collisionQueries<probeMetrics.baselineCollisionQueries,'conservative body envelopes avoid repeated circle grid queries on identical deterministic probes');
+// Match the performance suite's pre-pursuit gameplay revision for trajectories;
+// the older revision above remains the independent contact/allocation oracle.
+const replayRevision='68c00062b86c7266980d5fc4b9466155cae09c0c';
+const replaySource=withCurrentFleet(execFileSync('git',['show',`${replayRevision}:Games/Capital Drive/simulation.js`],
+  {cwd:new URL('../',import.meta.url),encoding:'utf8',maxBuffer:1024*1024}),source);
+const replayModule=await measuredModule(replaySource);
 const replay = sim => {
   const poses=[],start=performance.now();
   for(let frame=0;frame<600;frame++) {
@@ -122,8 +137,7 @@ const replay = sim => {
   }
   return {poses,ms:performance.now()-start};
 };
-const oldRun=replay(oldSim),newRun=replay(newSim);
+const oldRun=replay(replayModule.createSimulation(map,options)),newRun=replay(createSimulation(map,options));
 assert.deepEqual(newRun.poses,oldRun.poses,'all player/40-car/signal replay snapshots remain identical');
-assert(optimizedMetrics.queries<baselineMetrics.queries,'conservative body envelopes avoid repeated circle grid queries while exact physical trajectories remain above');
 console.log('PASS collision allocation: 20020 exact polygon results, no per-edge projection records, live shape/bridge/person/external/parked changes, 2400 actual-map probes and 600-frame/40-car exact replay.');
-console.log(JSON.stringify({measurementOnly:true,baselineRevision,baselineProjectionRecords:oldProbe.calls(),optimizedProjectionRecords:newProbe.calls(),baselineCollisionQueries:baselineMetrics.queries,collisionQueries:optimizedMetrics.queries,baselinePolygonContacts:baselineMetrics.polygons,polygonContacts:optimizedMetrics.polygons,baselineReplayMs:oldRun.ms,optimizedReplayMs:newRun.ms}));
+console.log(JSON.stringify({measurementOnly:true,baselineRevision,replayRevision,runtime:process.version,probeInputs:600,baselineProjectionRecords:oldProbe.calls(),optimizedProjectionRecords:newProbe.calls(),...probeMetrics,baselineReplayMs:oldRun.ms,optimizedReplayMs:newRun.ms}));

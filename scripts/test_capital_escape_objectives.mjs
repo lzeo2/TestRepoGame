@@ -13,8 +13,8 @@ for (const entry of catalog.developerChapters()) {
   if (catalog.current().stages.some(stage => stage.kind === 'escape')) escapeIds.push(entry.id);
   catalog.cancel();
 }
-assert.equal(catalog.developerChapters().length, 22, 'audit all actual campaign definitions');
-assert.deepEqual(escapeIds, ['student-paper-chase', 'corporate-lunch-breakpoint', 'late-parcel', 'under-the-awning', 'borrowed-wheels', 'quiet-streets', 'across-the-water', 'home-by-the-lake', 'shelf-life', 'two-till-problem', 'sealed-account', 'earmuffs-rematch', 'closing-time']);
+assert.equal(catalog.developerChapters().length, 24, 'audit all actual campaign definitions');
+assert.deepEqual(escapeIds, ['student-paper-chase', 'corporate-lunch-breakpoint', 'late-parcel', 'under-the-awning', 'borrowed-wheels', 'quiet-streets', 'across-the-water', 'home-by-the-lake', 'shelf-life', 'two-till-problem', 'sealed-account', 'earmuffs-rematch', 'closing-time', 'conflict-of-interest']);
 let serial = 0;
 function contextFor(campaign) {
   const target = campaign.state.active.target;
@@ -33,6 +33,8 @@ function contextFor(campaign) {
   } else if (target.kind === 'robbery') {
     context.interior = { storeId: target.storeId, roomId: 'fixture-room' };
     context.heist = { storeId: target.storeId, kind: 'robbery', serial: ++serial };
+  } else if (target.kind === 'recon') {
+    context.recon = { missionId: campaign.state.active.id, stage: campaign.state.active.stage, targetId: target.targetId, kind: 'recon', outcome: 'documented', space: null, serial: ++serial };
   } else if (target.kind === 'evidence') {
     context.interior = { storeId: target.storeId, roomId: 'fixture-room' };
     context.evidence = { storeId: target.storeId, roomId: 'fixture-room', missionId: campaign.state.active.id, outcome: 'secured', serial: ++serial };
@@ -126,4 +128,4 @@ for (const id of ['carbon-copy', 'terminal-transfer']) {
   assert(deliveries.length > 0);
   assert(deliveries.every(stage => stage.kind !== 'escape'), `${id}: physical deliveries and handovers retain location requirements`);
 }
-console.log(`PASS escape objectives: all 22 definitions audited, ${escapeIds.length} real escape stages, sticky arrival, exterior/context/dt guards, clear holds, retry reset and once-only rewards`);
+console.log(`PASS escape objectives: all 24 definitions audited, ${escapeIds.length} real escape stages, sticky arrival, exterior/context/dt guards, clear holds, retry reset and once-only rewards`);

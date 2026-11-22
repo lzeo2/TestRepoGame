@@ -1,8 +1,9 @@
-// Original game objectives for fictional storefronts, a tower archive and a parcel prop.
+// Original game objectives for fictional storefronts, workshops and props.
 const RULES = Object.freeze({
   bank: { loot: 'cash', reward: 2750, severity: 3, escape: 52, time: 360, cooldown: 360 },
   jeweller: { loot: 'jewellery', reward: 1500, severity: 2, escape: 36, time: 300, cooldown: 300 },
   tower: { loot: 'archive case', lootName: 'Archive case', reward: 2200, severity: 2, escape: 48, time: 360, cooldown: 360 },
+  memorial: { label: 'Replica case symbols', cues: ['up','x','y','x'], reward: 1800, severity: 2, escape: 44, time: 360, cooldown: 360 },
   rail: { label: 'Parcel symbols', cues: ['up','y','x'], reward: 1950, severity: 2, escape: 42, time: 420, cooldown: 300 },
 });
 const BUTTONS = Object.freeze({ x: 'X', y: 'Y', up: '↑' });
@@ -85,6 +86,9 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
   }
 
   function beginPuzzle(attempt) {
+    const { cues } = attempt.rules;
+    const offset = serial++ % cues.length;
+    attempt.sequence = Object.freeze([...cues.slice(offset), ...cues.slice(0, offset)]);
     attempt.phase = 'puzzle';
     attempt.index = 0;
     attempt.mistakes = 0;
@@ -95,6 +99,21 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     if (!sandbox && !allowWanted && ctx.wanted !== 0) return message(false, 'Clear your wanted level before starting.');
     const readyIn = (cooldowns.get(site.id) ?? 0) - clock;
     return !sandbox && readyIn > 0 ? message(false, `Heist available in ${Math.ceil(readyIn)}s.`) : null;
+  }
+
+  function caseWithinReach(ctx, loot, roomId) {
+    return distance(ctx.pose, loot) <= Math.min(2, loot.radius) && canSeeInside(ctx.pose, loot, roomId);
+  }
+
+  function openReplicaCase(ctx, site, sandbox) {
+    const { loot, id:roomId } = ctx.room;
+    if (!caseWithinReach(ctx, loot, roomId)) return null;
+    const unavailable = startAvailability(site, ctx, sandbox);
+    if (unavailable) return unavailable;
+    const rules = RULES[site.kind];
+    current = { site, rules, sandbox, roomId, loot, remaining:rules.time, heatSeen:false };
+    beginPuzzle(current);
+    return message(true, 'Match the replica case symbols.');
   }
 
   function confront(ctx, site, sandbox) {
@@ -120,7 +139,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
 
   // A short fictional standoff is an optional game state, not a police-immunity grant.
   function hostageAction(ctx = {}) {
-    if (!current || current.site.kind === 'rail' || !['surrender','escape'].includes(current.phase) ||
+    if (!current?.employeeId || !['surrender','escape'].includes(current.phase) ||
         !isPoint(ctx.pose) || ctx.paused || ctx.recovering || ctx.busy || ctx.doorway ||
         Boolean(ctx.sandbox) !== current.sandbox || indoorSite(ctx) !== current.site ||
         ctx.room.id !== current.roomId || !matchingEmployee(ctx,ctx.room) ||
@@ -161,6 +180,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     }
     if (ctx.indoors) {
       const site = indoorSite(ctx);
+      if (site?.kind === 'memorial') return openReplicaCase(ctx, site, sandbox);
       return site ? confront(ctx, site, sandbox) : null;
     }
     if (!onFoot(ctx)) return null;
@@ -168,9 +188,8 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     if (site?.kind !== 'rail') return null;
     const unavailable = startAvailability(site, ctx, sandbox);
     if (unavailable) return unavailable;
-    const rules = RULES[site.kind], offset = serial++ % rules.cues.length;
-    const sequence = Object.freeze([...rules.cues.slice(offset), ...rules.cues.slice(0, offset)]);
-    current = { site, rules, sequence, sandbox, remaining: rules.time, phase: 'board',
+    const rules = RULES[site.kind];
+    current = { site, rules, sandbox, remaining: rules.time, phase: 'board',
       heatSeen: false, origin: null };
     return message(true, 'Board the light rail at the marked stop.');
   }
@@ -228,7 +247,10 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     }
 
     if (attempt.phase === 'puzzle') {
-      if (!ctx.railPassenger || ctx.indoors) return cancel('Move back to the heist marker to retry.');
+      const reachable = attempt.roomId
+        ? indoorSite(ctx) === attempt.site && ctx.room.id === attempt.roomId && caseWithinReach(ctx, attempt.loot, attempt.roomId)
+        : ctx.railPassenger && !ctx.indoors;
+      if (!reachable) return cancel('Move back to the heist marker to retry.');
       const held = KEYS.filter(key => input?.[key] === true);
       if (!held.length) { attempt.armed = true; return null; }
       if (!attempt.armed) return null;

@@ -1,10 +1,10 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
 import { createCar } from '../../assets/car-arcade/models.js';
-import { BY_ID } from '../../assets/car-arcade/fleet.js';
+import { CAPITAL_BY_ID as BY_ID, TRAFFIC_CAR_IDS } from '../../assets/car-arcade/fleet.js';
 import { createVehicleContactShadow, vehicleShadowScale } from './vehicle-contact-shadow.js';
 
-const MODELS = ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch'];
+const MODELS = TRAFFIC_CAR_IDS;
 const CAPACITY = 56;
 
 // Copies the authored fleet once. Factory geometry/materials remain owned by the
@@ -20,7 +20,7 @@ export function createTrafficView(scene, heightAt, traffic, { vehicleHeightAt = 
     heightPose.x=x;heightPose.z=z;
     return vehicleHeightAt(heightPose,heightRoad);
   }
-  const stats = { visible: 0, drawCalls: 0, maxDrawCalls: 19, capacity: CAPACITY, models: MODELS.length,
+  const stats = { visible: 0, drawCalls: 0, maxDrawCalls: MODELS.length*3+1, capacity: CAPACITY, models: MODELS.length,
     geometries: 0, materials: 0, templateTriangles: 0, triangles: 0, sourceDrawCalls: 0, disposed: false };
   function ownMaterial(source) {
     if (!materialCopies.has(source)) {

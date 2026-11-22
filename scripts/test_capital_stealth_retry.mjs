@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import {createCampaign} from '../Games/Capital Drive/campaign.js';
+import {createStealthContracts} from '../Games/Capital Drive/stealth-contracts.js';
+const districts=['manuka','foreshore','canberra-centre','redhill','kingston','griffith','australian-war-memorial'].map((id,i)=>({id,x:i*470,z:0}));
+const map={spawn:{x:0,z:0},landmarks:[{id:'coals',name:'Coals',store:true,x:20,z:10},...districts],roads:districts.flatMap(({id,x,z})=>[-60,0,60].map((offset,i)=>({id:`${id}:${i}`,name:'Test Street',points:[[x-120,z+offset],[x+120,z+offset]],width:8,type:'residential'})))};
+const ctx={pose:map.spawn,onFoot:true,health:100,vehicleHealth:100,wanted:0,respawnSerial:0,campaign:true};
+const options={canStand:()=>true,hasLineOfSight:()=>true};
+const contracts=createStealthContracts(map,options);
+const full={version:1,completed:createCampaign(map).journal().shared.map(chapter=>chapter.id)};
+assert.equal(contracts.captureRetry(null),null);assert.equal(contracts.restoreRetry({},{}),false);
+let paths=0;
+for(const chapter of contracts.chapters)for(const approach of chapter.approaches) {
+  const campaign=createCampaign(map,full,{stealthContracts:contracts});
+  const plan={approachId:approach.id,exitId:chapter.exits.at(-1).id};
+  assert(campaign.startOptional(chapter.id,ctx,plan).ok);const saved=campaign.serialize();
+  let latest=null,respawnSerial=0;
+  const live=()=>({...ctx,respawnSerial,pose:campaign.state.active.target,crouching:campaign.state.active.target.crouch});
+  function advance() {
+    const active=campaign.state.active,stage=active.stage;
+    const action=contracts.resolve(active,live());assert(action.ok,action.message);latest=action.receipt;
+    assert.equal(contracts.captureRetry(active),null,'pending action receipts are not stage-boundary snapshots');
+    for(let i=0;i<12&&campaign.state.active?.stage===stage;i++)campaign.update(.1,{...live(),stealthOutcome:latest});
+    assert(!campaign.state.active||campaign.state.active.stage===stage+1);
+  }
+  const zero=contracts.captureRetry(campaign.state.active);assert(zero&&Object.isFrozen(zero));
+  advance();assert.equal(campaign.state.active.stage,1);
+  const prior=campaign.captureRetry(),stealthPrior=contracts.captureRetry(campaign.state.active);assert(stealthPrior);
+  advance();assert.equal(campaign.state.active.stage,2);
+  const future=campaign.captureRetry();
+  campaign.update(.1,{...ctx,recovering:true,respawnSerial:++respawnSerial});
+  assert(campaign.resumeRetry(prior,{...ctx,respawnSerial,stealthOutcome:latest}).ok);
+  assert.equal(campaign.state.active.stage,1);
+  assert.equal(contracts.resolve(campaign.state.active,live()).ok,false,'cloned Campaign active cannot invent missing contract progress');
+  for(const bad of [null,{},structuredClone(stealthPrior),zero])assert.equal(contracts.restoreRetry(campaign.state.active,bad),false);
+  const other=createStealthContracts(map,options);assert.equal(other.restoreRetry(campaign.state.active,stealthPrior),false,'tokens belong to their contracts instance');
+  for(const change of [{id:'other'},{stage:2},{stealthPlan:{...plan,approachId:'other'}},{target:{...campaign.state.active.target,x:999}}])assert.equal(contracts.restoreRetry({...campaign.state.active,...change},stealthPrior),false);
+  assert(contracts.restoreRetry(campaign.state.active,stealthPrior));
+  assert.equal(contracts.restoreRetry(campaign.state.active,stealthPrior),false,'cannot reset already-owned live action progress');
+  const stage=campaign.state.active.stage;
+  for(let i=0;i<12;i++)campaign.update(.1,{...live(),stealthOutcome:latest});
+  assert.equal(campaign.state.active.stage,stage,'pre-failure receipt stays stale after private progress restoration');
+  advance();assert.equal(campaign.state.active.stage,2,'restored next/cover authorizes the real stage-one action');
+  campaign.update(.1,{...ctx,recovering:true,respawnSerial:++respawnSerial});
+  assert.equal(campaign.resumeRetry(future,{...ctx,respawnSerial}).ok,false,'rewind retires future campaign checkpoints');
+  assert(campaign.resumeRetry(prior,{...ctx,respawnSerial,stealthOutcome:latest}).ok);
+  assert(contracts.restoreRetry(campaign.state.active,stealthPrior),'same snapshot supports repeated failure');
+  while(campaign.state.active)advance();
+  assert.deepEqual(campaign.drainEvents().filter(event=>event.type==='complete').map(event=>[event.id,event.reward]),[[chapter.id,chapter.reward]]);
+  assert.deepEqual(campaign.serialize(),{...saved,optionalCompleted:[chapter.id]});
+  assert.equal(campaign.resumeRetry(prior,{...ctx,respawnSerial}).ok,false,'completed contract cannot be rewound for another reward');
+  paths++;
+}
+assert.equal(paths,14,'both approaches of all seven contracts exercise cover and receipt progress');
+console.log('PASS private stealth retry: actual Campaign clone/resume across all 14 plans, saved next/cover transfer, stale receipt/identity/plan/stage/token guards, repeated failures and one reward.');

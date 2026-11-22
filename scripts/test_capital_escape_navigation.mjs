@@ -20,7 +20,7 @@ const context = { pose: { x: 0, z: 0, speed: 0 }, onFoot: false, wanted: 2, heal
 assert(campaign.start(context).ok);
 campaign.drainEvents();
 const calls = [];
-const env = { campaign, gameMode: 'campaign', missionLocations: createMissionGuide([]),
+const env = { campaign, heists: null, reportCampaignIncident() {}, gameMode: 'campaign', missionLocations: createMissionGuide([]),
   focus: () => context.pose, interiors: { active: null }, roomPeople: { snapshot: () => [] },
   gameplay: { state: { wanted: 2 }, reportOffence() {} }, progression: { state: { activeJob: null, garage: { x: 7, z: 8 } }, drainEvents: () => [] },
   rideService: { drainEvents: () => [] }, notify() {}, finishDeveloperPreview() {}, restoreFailedMission() {}, acceptMissionCheckpoint() {}, missionCheckpoint: null,

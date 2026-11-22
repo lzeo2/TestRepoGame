@@ -64,6 +64,7 @@ nav button{font-size:12px;min-width:44px;padding:8px 11px;}
 .build-label code{font-family:ui-monospace,monospace;font-weight:600;letter-spacing:.02em;}
 .toast{position:absolute;left:50%;top:calc(var(--hud-top) + 2px);transform:translateX(-50%);max-width:min(400px,calc(100% - 32px));padding:10px 14px;background:var(--panel);border:1px solid var(--accent);border-radius:4px;text-align:center;font-size:13px;color:var(--ink);z-index:5;line-height:1.4;}
 .toast[hidden]{display:none;}
+#game:has(#heist-notice:not([hidden])) .toast{top:calc(var(--hud-top) + 90px);bottom:auto;}
 dialog{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:20px;width:min(560px,calc(100% - 24px));max-height:calc(100dvh - 24px);overflow:auto;}
 dialog::backdrop{background:#0c1820a8;}
 .dialog-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px;}

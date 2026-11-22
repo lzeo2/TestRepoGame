@@ -15,7 +15,12 @@ const STOREFRONTS = [
     aliases: ['tower heist', 'archive heist', 'Black Mountain robbery'], road: 'Black Mountain Drive',
     width: 10.4, depth: 7.6, height: 4.2, terrainRise: 3.2,
   },
+  {
+    id: 'memorial-workshop', kind: 'memorial', name: 'Memorial Replica Workshop', area: 'australian-war-memorial',
+    aliases: ['replica heist', 'memorial heist', 'workshop'], width: 11, depth: 8.4, height: 4.6,
+  },
 ];
+const SITE_TYPES = {bank:'bank',jeweller:'jewellery shop',tower:'tower archive',memorial:'replica workshop'};
 const PUBLIC_STREETS = new Set(['residential', 'tertiary', 'secondary', 'unclassified']);
 const SEARCH_RADIUS = 230;
 const BOUNDS_MARGIN = 45;
@@ -73,7 +78,7 @@ function makeSite(spec, host, fraction, side, setback, nearby, simulation, heigh
   // Source streets anchor the entirely fictional architecture and game interaction.
   const site = Object.freeze({
     id: spec.id, kind: spec.kind, name: spec.name, aliases: [...spec.aliases, road.name], road: road.name,
-    ...approach, yaw, radius: 2.6, description: `Fictional ${({bank:'bank',jeweller:'jewellery shop',tower:'tower archive'})[spec.kind]} near ${road.name}`,
+    ...approach, yaw, radius: 2.6, description: `Fictional ${SITE_TYPES[spec.kind]} near ${road.name}`,
     sourceRoad: road.sourceId || road.id, streetPoint: { x: roadX, z: roadZ },
     centre, point, floor, foundation, width, depth, height, apron,
     rotation: -Math.atan2(tangentZ, tangentX), readingDirection: -side,

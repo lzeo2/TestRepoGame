@@ -7,9 +7,10 @@
 Operator-authorized original Canberra open-world preview, catalog 245, static entry
 `Games/Capital Drive/index.html`. Three modes share one runtime. **Campaign** has
 three fictional adult protagonists, two opening missions each, a shared Kingston
-meeting and fifteen assigned shared chapters, including reconnaissance and prepared heists.
+meeting and seventeen assigned shared chapters, including reconnaissance and prepared heists.
+The final two chapters establish who ran the invoice scheme and get the evidence out.
 An optional aviation chapter uses the depot helicopter and airport jets.
-Six original stealth contracts have their own planning board within Campaign.
+Seven original stealth contracts have their own planning board within Campaign.
 **Street Life** has jobs, cash, a
 garage, foot combat and police; **Free roam** has all cars, local address search
 and map teleporting. The mapped area covers the inner south and a source-derived
@@ -18,6 +19,30 @@ Lyneham, Acton and the western lake. Whole-city coverage remains later work. No 
 artwork or branded vehicle assets are used.
 
 ## Implementation map
+
+The [Australian War Memorial exterior](../../capital-drive-war-memorial-sources.md)
+uses the mapped footprint, Hall of Memory dome, public terraces and paths.
+Its two merged meshes add detail near the Memorial. Search for **Australian War
+Memorial** to visit the precinct. The **Memorial Replica Workshop** is a marked
+fictional building nearby. Walk to the case and press E, match the symbols, then
+leave and clear the search. Campaign's **Replica Relay** has its own planned
+approaches and exits, available after the story.
+
+Bus prompts name the next stop and show the distance remaining. Press E while
+moving to request it. The bus holds at the mapped platform until the front-left
+door has a clear exit. **Bus routes** on the full map shows the game's two loops.
+Stop positions come from OpenStreetMap and service timing is authored.
+
+Three additional vehicles appear in traffic and in Capital Drive's garage. The
+electric hatchback, tray ute and people mover use the existing instancing and
+shared collision model. Small black-and-white birds are decorative, with up to
+24 pooled birds and a cap of 12 in Low and Performance. Café, grocery and retail
+rooms add distinct furnishing and recessed windows in their existing one-batch
+room view. The plan and render geometry still load on entry.
+
+The [November code and security review](../../verification/capital-drive-memorial-review-2026-11-23.md)
+records the fixed save, cache, retry and room-ownership issues, plus the shared
+origin hosting boundary.
 
 The exterior materials pass gives streets baked aggregate and concrete grain,
 uses a wrapped atlas for brick, render and roof laps, and gives window panes a
@@ -163,7 +188,7 @@ reduces future ground dispatch for the current session. Officers already on
 scene keep responding.
 
 The Stealth contracts board offers Ledger Switch, Echo Box, Silent Exchange,
-Last Light Rehearsal, Glasshouse Double, and The False Courier. Each has two
+Last Light Rehearsal, Glasshouse Double, The False Courier and Replica Relay. Each has two
 approaches and two extraction choices.
 Preview the intended entry and exit on the map before committing. The chosen
 plan orders four on-foot objectives with evidence, a relay diversion, a
@@ -869,8 +894,9 @@ legitimate queues; no universal free-flow or hardware-FPS claim.
 Yoober's continuous lookahead reduces vertex hesitation while preserving corners,
 obstacles and lights. Nearby cancellations can provoke one bounded fictional
 driver; remote/recovery/mode/sandbox cancellations do not. At a bus's front-left
-door, E requests a stop within 10 m, boards beside the stopped clear door, and
-stops/exits while aboard. The player has a visible seated passenger and chase/orbit
+door, E requests a stop within 10 m and boards beside the stopped clear door.
+While riding, E requests the next stop or leaves through a clear stopped door.
+The player has a visible seated passenger and chase/orbit
 camera, with no new interior-camera toggle. Foot combat/rentals/jobs are excluded.
 
 K arms stock includes a scanner ($500) and packs of three flares ($120), capped at

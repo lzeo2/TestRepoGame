@@ -1,4 +1,4 @@
-import { BY_ID } from '../../assets/car-arcade/fleet.js';
+import { CAPITAL_BY_ID as BY_ID } from '../../assets/car-arcade/fleet.js';
 import { normalizeAmmoInventory, WEAPON_IDS } from './weapons.js';
 
 // Career rewards and ownership remain global. Only resumable body/car state lives here.

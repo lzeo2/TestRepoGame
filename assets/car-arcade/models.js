@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import { mergeGeometries } from './vendor/BufferGeometryUtils.js';
-import { BY_ID } from './fleet.js';
+import { CAPITAL_BY_ID as BY_ID } from './fleet.js';
 
 // Authored longitudinal profiles: cowl, roof start/end, rear glass, belt height,
 // nose/tail half-width factors, roof width, wheelbase fraction, distinguishing form.
@@ -20,6 +20,9 @@ const profiles = {
   relay: [-.26, -.08, .21, .35, .55, .86, .92, .79, .70, 'tourer'],
   tempest: [-.14, .02, .16, .31, .58, .68, .92, .70, .66, 'wing'],
   atlas: [-.29, -.20, .04, .13, .52, .97, .99, .89, .71, 'pickup'],
+  flux: [-.34,-.23,.27,.42,.55,.84,.91,.83,.65,'electric'],
+  rill: [-.30,-.21,.015,.11,.53,.90,.97,.83,.68,'runabout'],
+  gather: [-.40,-.32,.34,.44,.47,.93,.98,.90,.70,'shuttle'],
   sunray: [-.20, -.02, .17, .32, .57, .63, .83, .65, .69, 'halo'],
 };
 const prototypes = new Map();
@@ -206,7 +209,7 @@ function build(car) {
     for (const side of [-1,1]) box(paint,'#ffffff',side*w*.82,(y+h)/2,l*.23,.045,(h-y)*.68,l*.25);
     box(details,dark,0,y*.78,l/2-.009,.018,y*.51,.014);
   }
-  if (form === 'pickup') {
+  if (['pickup','runabout'].includes(form)) {
     box(details,dark,0,y+.01,l*.30,w*1.52,.035,l*.28);
     for (let i = -3; i <= 3; i++) box(details,metal,i*w*.19,y+.034,l*.30,.025,.02,l*.27);
     for (const side of [-1,1]) box(paint,'#ffffff',side*w*.85,y+.10,l*.30,.10,.20,l*.31);
@@ -224,6 +227,18 @@ function build(car) {
       box(details,dark,side*w*.86,.24,wheelZ+.18,.22,.27,.035);
       const lamp = new THREE.CylinderGeometry(.105,.105,.07,12);
       lamp.rotateX(Math.PI/2); lamp.translate(side*w*.26,y*.83,-l/2-.025); add(details,lamp,'#ffe8a1');
+    }
+  }
+  if(form==='electric'){
+    box(details,'#1d2a31',0,y*.68,-l/2-.006,w*1.48,.16,.028);
+    box(details,'#d5eee7',0,y*.83,-l/2-.012,w*1.43,.028,.022);
+    for(const side of [-1,1])box(details,dark,side*w*.935,y*.81,l*.05,.025,.045,.14);
+  }
+  if(form==='shuttle'){
+    for(const side of [-1,1]){
+      for(const z of [.15,.29])beam(details,dark,[side*w*.83,y,z*l],[side*w*roofWidth*.93,h-.07,z*l],.025);
+      box(details,metal,side*w*.945,y-.12,l*.25,.025,.035,.22);
+      box(details,dark,side*w*.94,.36,l*.04,.045,.07,l*.65);
     }
   }
   // Left front seat, ahead of the headrest and behind the wheel. Keep short

@@ -7,6 +7,7 @@ import { createSimulation } from '../Games/Capital Drive/simulation.js';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { applyRoadProfiles } from '../Games/Capital Drive/road-network.js';
 import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
+import {withCurrentFleet} from './capital-collision-baseline.mjs';
 
 const sourceURL = new URL('../Games/Capital Drive/simulation.js', import.meta.url);
 const source = await readFile(sourceURL, 'utf8');
@@ -43,18 +44,19 @@ assert.equal(polygonReads, 0, 'same-cell distant polygons never reach polygon na
 assert(!local.canOccupy({ id: 'probe', x: 30.5, z: 30.5, yaw: 0, modelId: 'lantern' }));
 assert(polygonReads > 0, 'nearby polygons retain physical contact');
 
-async function simulationAt(revision) {
+async function simulationAt(revision,alignFleet=false) {
   const historical = execFileSync('git', ['show', `${revision}:Games/Capital Drive/simulation.js`],
     { cwd: new URL('../', import.meta.url), encoding: 'utf8', maxBuffer: 1024 * 1024 });
-  const source = historical.replace(/from ['"]([^'"]+)['"]/g, (_, path) => `from ${JSON.stringify(new URL(path, sourceURL).href)}`);
-  return (await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`)).createSimulation;
+  const prepared=alignFleet?withCurrentFleet(historical,source):historical;
+  const moduleSource = prepared.replace(/from ['"]([^'"]+)['"]/g, (_, path) => `from ${JSON.stringify(new URL(path, sourceURL).href)}`);
+  return (await import(`data:text/javascript;base64,${Buffer.from(moduleSource).toString('base64')}`)).createSimulation;
 }
 // Keep the original broad-phase comparator. The traffic replay uses the
 // pre-pursuit build, which already includes later driving and traffic rules.
 const baselineRevision = '87b5d21325de3acb2ef51df1653c32ca8012f8eb';
 const trafficRevision = '68c00062b86c7266980d5fc4b9466155cae09c0c';
 const baselineSimulation = await simulationAt(baselineRevision);
-const trafficSimulation = await simulationAt(trafficRevision);
+const trafficSimulation = await simulationAt(trafficRevision,true);
 const openMap = { ...fixture, buildings: [] };
 const satBefore = baselineSimulation(openMap, { trafficCount: 0 }), satAfter = createSimulation(openMap, { trafficCount: 0 });
 for (let i = 0; i < 2500; i++) {

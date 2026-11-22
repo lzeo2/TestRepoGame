@@ -5,6 +5,9 @@ import { applyAirport } from '../Games/Capital Drive/airport.js';
 import { CIVIC_LANDMARKS } from '../Games/Capital Drive/civic-view.js';
 import { buildHeistSites } from '../Games/Capital Drive/heist-sites.js';
 import { createHeistSitesView } from '../Games/Capital Drive/heist-sites-view.js';
+import { createHeistActivities } from '../Games/Capital Drive/heist-activities.js';
+import { createInteriors } from '../Games/Capital Drive/interiors.js';
+import { prepareWarMemorial } from '../Games/Capital Drive/war-memorial.js';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { applyNorthWest } from '../Games/Capital Drive/north-west.js';
 import { createPoliceStations } from '../Games/Capital Drive/police-stations.js';
@@ -20,7 +23,7 @@ const [south, north, profiles, airport, airportTerrain, northTerrain, northWest,
 );
 const base = applyStreetAssetRoofs(applyMapExpansion(applyRoadProfiles(south, profiles), north));
 base.terrainTiles = [northTerrain.terrain];
-const map = applyNorthWest(applyAirport(base, airport, airportTerrain), northWest, northWestTerrain);
+const map = prepareWarMemorial(applyNorthWest(applyAirport(base, airport, airportTerrain), northWest, northWestTerrain));
 map.landmarks = [...CIVIC_LANDMARKS, ...map.landmarks];
 const { heightAt, isOnBridge, groundHeightAt, vehicleHeightAt } = createTerrainSampler(map);
 const simulation = createSimulation(map, { heightAt, isOnBridge, groundHeightAt, vehicleHeightAt, trafficCount: 0 });
@@ -28,11 +31,12 @@ simulation.registerStaticBarriers(buildRentalStorefronts(simulation, heightAt).b
 simulation.registerStaticBarriers(createPoliceStations(map, simulation, heightAt).barriers);
 const { sites, barriers } = buildHeistSites(map, simulation, heightAt);
 
-assert.deepEqual(sites.map(({ id, kind, road }) => [id, kind, road]), [
+assert.deepEqual(sites.slice(0, 3).map(({ id, kind, road }) => [id, kind, road]), [
   ['civic-bank', 'bank', 'Akuna Street'],
   ['manuka-jewels', 'jeweller', 'Flinders Way'],
   ['black-mountain-archive', 'tower', 'Black Mountain Drive'],
 ]);
+assert.deepEqual(sites.slice(3).map(({ id, kind }) => [id, kind]), [['memorial-workshop', 'memorial']]);
 assert.equal(barriers.length, sites.length);
 simulation.registerStaticBarriers(barriers);
 for (const [index, site] of sites.entries()) {
@@ -74,4 +78,38 @@ assert.equal(view.stats.drawCalls, 0);
 view.dispose();
 view.dispose();
 assert.equal(scene.children.length, 0);
-console.log('PASS three fictional heist sites on mapped public streets, including the tower approach, solid facades and one reusable draw');
+
+const workshop = sites.find(site => site.kind === 'memorial');
+const rooms = createInteriors({ buildings: [] }, { heightAt, heistSites: [workshop] });
+const actor = { x: workshop.x, z: workshop.z, yaw: workshop.yaw };
+const plan = rooms.enter(rooms.findEntry(actor), actor);
+assert.equal(plan.heistSiteId, workshop.id);
+const heat = [], rewards = [];
+const heists = createHeistActivities({ sites, onHeat: event => heat.push(event), onReward: event => rewards.push(event),
+  canSee: (from, to) => from.interiorId ? rooms.hasLineOfSight(from, to) : simulation.hasLineOfSight(from, to) });
+const room = { id: plan.id, storeId: plan.storeId, heistSiteId: plan.heistSiteId,
+  employeeId: plan.heist.employee.id, loot: plan.heist.loot };
+const context = { pose: actor, indoors: true, onFoot: true, room, wanted: 0 };
+assert.equal(heists.interact(context), null, 'case interaction requires being within reach');
+Object.assign(actor, room.loot);
+assert(heists.interact(context).ok);
+assert.equal(heists.hostageAction(context), null);
+assert.equal(heists.step(.03, { ...context, indoors: false, room: null }).ok, false, 'leaving interrupts the case puzzle');
+assert.equal(heat.length, 0);
+assert(heists.interact(context).ok);
+for (const key of heists.snapshot().challenge.sequence) {
+  heists.step(.03, context);
+  heists.step(.03, context, { [key]: true });
+}
+assert.equal(heists.snapshot().phase, 'escape');
+assert.equal(heat.length, 1);
+assert.equal(heat[0].kind, 'memorial');
+rooms.leave(actor);
+const outside = { ...context, indoors: false, room: null, wanted: 2 };
+heists.step(.03, outside);
+actor.x += 55;
+assert.equal(heists.step(.03, outside), null, 'leaving the area alone does not satisfy the wanted condition');
+assert(heists.step(.03, { ...outside, wanted: 0 }).ok);
+heists.step(.03, { ...outside, wanted: 0 });
+assert.deepEqual(rewards, [{ id: workshop.id, kind: 'memorial', amount: 1800 }]);
+console.log('PASS four fictional heist storefronts on mapped public streets with solid facades and one reusable draw, plus the workshop puzzle and single payout');

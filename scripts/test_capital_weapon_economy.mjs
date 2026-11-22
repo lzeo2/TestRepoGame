@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createProgression} from '../Games/Capital Drive/progression.js';
 import {WEAPONS,WEAPON_IDS} from '../Games/Capital Drive/weapons.js';
+import {createInteriors} from '../Games/Capital Drive/interiors.js';
+import {createInteriorPeople} from '../Games/Capital Drive/interior-people.js';
 
 const map=JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra.json',import.meta.url),'utf8'));
 const legacy={version:1,cash:20000,ownedVehicles:[{id:'lantern',color:'#e7e6df',health:100,stored:false}],completedJobs:[]};
@@ -15,6 +17,23 @@ const unchanged=(p,action)=>{
   const before=p.serialize(),result=action();
   assert.equal(result.ok,false);assert.deepEqual(p.serialize(),before,'denial cannot change wallet, ownership or save');
 };
+function holdUpFixture(saved=legacy){
+ let interiors,people,plan,employee;
+ const f=fixture({interactiveRobbery:true,crimeTarget:id=>people.getCrimeTarget(id),
+  robberyTarget:()=>people.getCrimeTarget(employee.id),servicePosition:site=>site.id===plan?.storeId?plan.counter:null,
+  canUseService:site=>site.type==='arms'||interiors.active?.storeId===site.id,
+  hasLineOfSight:(a,b)=>b.id===plan.storeId||b.id===employee.id?interiors.hasLineOfSight(a,b):true},saved);
+ interiors=createInteriors(map,{stores:[f.food]});const entry=interiors.entries.find(e=>e.storeId===f.food.id);assert(entry);
+ plan=interiors.enter(entry,{x:entry.x,z:entry.z,yaw:entry.yaw});assert(plan);
+ people=createInteriorPeople();people.load(plan);employee=people.snapshot().find(person=>['cashier','shopkeeper','cook'].includes(person.role));assert(employee);
+ let pose;
+ for(let i=0;i<32;i++){
+  const candidate={x:employee.x+Math.cos(i*Math.PI/16)*1.8,z:employee.z+Math.sin(i*Math.PI/16)*1.8};
+  if(!interiors.moveActor({...candidate},0,0,.45).blocked&&interiors.hasLineOfSight(candidate,employee)&&Math.hypot(candidate.x-plan.counter.x,candidate.z-plan.counter.z)<=4)pose??=candidate;
+ }
+ assert(pose,'weapon test uses a real living employee and clear customer position');
+ return {...f,inside:ctx(pose,{interior:{storeId:f.food.id,roomId:plan.id}})};
+}
 
 const old=fixture().p;
 assert.deepEqual(old.state.equipment,{pistol:false},'legacy shape remains unchanged');
@@ -93,21 +112,23 @@ for(const extraServices of [{},[dealer,dealer],[{...dealer,id:'canalside-supplie
 }
 
 for(const profile of WEAPONS){
-  const {p,arms,food}=fixture();
-  unchanged(p,()=>p.startActivity(food.id,'robbery',ctx(food,{weapon:profile.id})));
+  const {p,arms,food,inside}=holdUpFixture();
+  unchanged(p,()=>p.startActivity(food.id,'robbery',{...inside,weapon:profile.id}));
   assert(p.purchaseService(arms.id,profile.id,ctx(arms)).ok);
-  assert(p.startActivity(food.id,'robbery',ctx(food,{weapon:profile.id})).ok);
+  unchanged(p,()=>p.startActivity(food.id,'robbery',ctx(food,{weapon:profile.id})));
+  const armed={...inside,weapon:profile.id};assert(p.startActivity(food.id,'robbery',armed).ok);
   const cash=p.state.cash;
-  for(let i=0;i<81;i++)p.update(.05,ctx(food,{weapon:profile.id,wanted:2}));
-  assert.equal(p.state.cash,cash+food.robbery,'every owned equipped firearm completes a timed till action');
-  p.update(.05,ctx(food,{weapon:profile.id}));assert.equal(p.state.cash,cash+food.robbery,'pays once');
+  for(let i=0;i<99;i++)p.update(.05,{...armed,wanted:2});assert.equal(p.state.cash,cash,'equipping a weapon cannot bypass the employee handover');
+  p.update(.05,{...armed,wanted:2});
+  assert.equal(p.state.cash,cash+food.robbery,'every owned equipped firearm completes a live employee till action');
+  p.update(.05,armed);assert.equal(p.state.cash,cash+food.robbery,'pays once');
 }
 for(const interrupt of ['unarmed','unowned','ownership','sandbox']){
-  const {p,food}=fixture({}, {...legacy,equipment:{pistol:false,shotgun:true}});
-  assert(p.startActivity(food.id,'robbery',ctx(food,{weapon:'shotgun'})).ok);
+  const {p,food,inside}=holdUpFixture({...legacy,equipment:{pistol:false,shotgun:true}});
+  assert(p.startActivity(food.id,'robbery',{...inside,weapon:'shotgun'}).ok);
   const cash=p.state.cash;
   if(interrupt==='ownership')p.state.equipment.shotgun=false;
-  p.update(.05,ctx(food,{weapon:interrupt==='unarmed'?'unarmed':interrupt==='unowned'?'carbine':'shotgun',sandbox:interrupt==='sandbox'}));
+  p.update(.05,{...inside,weapon:interrupt==='unarmed'?'unarmed':interrupt==='unowned'?'carbine':'shotgun',sandbox:interrupt==='sandbox'});
   assert.equal(p.state.activity,null,'robbery continually verifies an owned equipped firearm and live mode');assert.equal(p.state.cash,cash);
 }
 console.log('PASS weapon economy: strict v1 ownership; catalogue purchases; matching ammo/caps; injected dealer stock/prices/location/visibility/admission; equipped ownership throughout robbery; single wallet effects.');

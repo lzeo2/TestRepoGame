@@ -81,6 +81,19 @@ const sites = Object.freeze([
           ['handoff',5,'Press E to collect the wardrobe case','wardrobe']]},
     ],
   },
+  {
+    id:'replica-relay', name:'Replica Relay', district:'australian-war-memorial', location:'Memorial replica crew lot',
+    briefing:'The crew has built a duplicate exhibit case for a private rehearsal. Identify the correct replica and get it to the pickup before the rehearsal ends.',
+    outro:'The replica reached the pickup. The crew can close out the rehearsal.', reward:2250,
+    approaches:[
+      {id:'spotter',name:'Spotter route',description:'Check the mock lot, match the display tag and collect the replica case.',
+        actions:[['scout',0,'Hold X and press E to check the rehearsal lot'],['evidence',2,'Press E to match the replica tag'],
+          ['handoff',4,'Press E to collect the replica case']]},
+      {id:'exhibit-crew',name:'Exhibit crew',description:'Pick up the crew pass, copy the dispatch slip and collect the alternate replica case.',
+        actions:[['cover',1,'Press E to collect the exhibit crew pass','exhibit-crew'],['evidence',3,'Press E to copy the dispatch slip','exhibit-crew'],
+          ['handoff',5,'Press E to collect the alternate replica case','exhibit-crew']]},
+    ],
+  },
 ]);
 
 export const STEALTH_CONTRACT_IDS = Object.freeze(sites.map(site=>site.id));
@@ -160,7 +173,36 @@ export function createStealthContracts(map,{canStand=()=>false,hasLineOfSight=()
     chapters.push(Object.freeze({id:site.id,name:site.name,location:site.location,briefing:site.briefing,outro:site.outro,
       reward:site.reward,time:600,optional:true,stealth:true,combat:false,approaches:Object.freeze(approaches),exits:Object.freeze(exits)}));
   }
-  const attempts=new WeakMap();
+  const attempts=new WeakMap(), retrySnapshots=new WeakMap();
+  function retryObjective(active) {
+    if(!active?.stealth||!Number.isInteger(active.stage)||active.stage<0||!active.target||
+      typeof active.stealthPlan?.approachId!=='string'||typeof active.stealthPlan?.exitId!=='string')return null;
+    const chapter=chapters.find(item=>item.id===active.id),planned=planStealthChapter(chapter,active.stealthPlan);
+    const objective=planned?.stages[active.stage];
+    return objective&&active.target.id===objective.id&&active.target.kind===objective.kind&&
+      active.target.x===objective.x&&active.target.z===objective.z ? objective : null;
+  }
+  // Retry authority is opaque and local. Campaign owns attempt generation and rewards;
+  // this owner restores only the private action cursor/credential at a stage boundary.
+  function captureRetry(active) {
+    const objective=retryObjective(active);
+    if(!objective)return null;
+    const progress=attempts.get(active)||(active.stage===0?{next:0,cover:null}:null);
+    if(!progress||progress.next!==active.stage)return null;
+    const token=Object.freeze({});
+    retrySnapshots.set(token,{id:active.id,stage:active.stage,objectiveId:objective.id,
+      approachId:active.stealthPlan.approachId,exitId:active.stealthPlan.exitId,
+      next:progress.next,cover:progress.cover});
+    return token;
+  }
+  function restoreRetry(active,token) {
+    const saved=token&&typeof token==='object'?retrySnapshots.get(token):null;
+    const objective=retryObjective(active);
+    if(!saved||!objective||attempts.has(active)||active.id!==saved.id||active.stage!==saved.stage||objective.id!==saved.objectiveId||
+      active.stealthPlan.approachId!==saved.approachId||active.stealthPlan.exitId!==saved.exitId)return false;
+    attempts.set(active,{next:saved.next,cover:saved.cover});
+    return true;
+  }
   let serial=0;
   function resolve(active,context={}) {
     if(!active?.stealth||!Number.isInteger(active.stage)||!active.target)return deny('No contract objective is active.');
@@ -186,5 +228,5 @@ export function createStealthContracts(map,{canStand=()=>false,hasLineOfSight=()
     return {ok:true,message:FEEDBACK[objective.action],
       receipt:Object.freeze({id:active.id,stage:active.stage,serial:++serial})};
   }
-  return {chapters:Object.freeze(chapters),resolve};
+  return {chapters:Object.freeze(chapters),resolve,captureRetry,restoreRetry};
 }

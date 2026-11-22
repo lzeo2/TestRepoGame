@@ -4,6 +4,23 @@ import * as THREE from '../assets/car-arcade/vendor/three.module.js';
 import { CARS, BY_ID } from '../assets/car-arcade/fleet.js';
 import { createCar, disposeCars } from '../assets/car-arcade/models.js';
 
+// Original16 reference: revision 470156bd, independently generated from its
+// SHA256-pinned historical factory (models.js 57d65ecb57e545a0cf521106ddaca62ed
+// de1edb966f920b35d046c63ca4f00b8) and unchanged pinned Three.js/helper sources.
+// The old raw-byte receipt does not reproduce even on that exact source here.
+// Freeze normalized geometry instead; this check needs no Git history/network.
+const referenceRevision='470156bd';
+const expectedFingerprint='df9a5aa6953adbd794a7077f4f28f0b9bd60ef6d3cb424afed32ab43b4adbf9f';
+
+// Exact topology; float geometry/transform/material values rounded to 1e-5.
+// Integer quantization avoids signed-zero and last-bit trig/runtime differences.
+function fingerprintMesh(hash,mesh){
+  const quantize=n=>typeof n==='number'?Math.round(n*100000):n;
+  hash.update(JSON.stringify({name:mesh.name,index:Array.from(mesh.geometry.index.array),
+    attributes:Object.entries(mesh.geometry.attributes).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([name,a])=>[name,a.itemSize,a.normalized,Array.from(a.array,quantize)]),
+    transform:[mesh.position.toArray(),mesh.rotation.toArray()].map(a=>a.map(quantize)),
+    material:[...mesh.material.color.toArray(),mesh.material.opacity,mesh.material.side].map(quantize)}));
+}
 const ids = 'bricklet pip parcel finch lantern comet orchard pebble dockside horizon morrow gravel relay tempest atlas sunray'.split(' ');
 const names = ['Bricklet80','Pip Borough','Parcel Cub','Finch Sport','Lantern Saloon','Comet Coupe','Orchard Wagon','Pebble Rally','Dockside Van','Horizon GT','Morrow Roadster','Gravel Scout','Relay Touring','Tempest Sprint','Atlas Utility','Sunray Halo'];
 assert.deepEqual(CARS.map(c=>c.id),ids);
@@ -87,8 +104,7 @@ for (let cycle = 0; cycle < 3; cycle++) {
     let count = 0, draws = 0;
     a.traverse(mesh=>{
       if (!mesh.isMesh) return;
-      for (const attr of [mesh.geometry.index,...Object.values(mesh.geometry.attributes)]) fingerprint.update(Buffer.from(attr.array.buffer,attr.array.byteOffset,attr.array.byteLength));
-      fingerprint.update(JSON.stringify([mesh.name,mesh.position.toArray(),mesh.rotation.toArray(),mesh.material.color.toArray(),mesh.material.opacity,mesh.material.side]));
+      fingerprintMesh(fingerprint,mesh);
       track(mesh.geometry); track(mesh.material); draws++;
       assert.equal(mesh.geometry.groups.length,0);
       assert(mesh.geometry.index); count+=mesh.geometry.index.count/3;
@@ -130,7 +146,7 @@ for (let cycle = 0; cycle < 3; cycle++) {
       rows.push({id:car.id,triangles:count,draws,width:+size.x.toFixed(3),height:+size.y.toFixed(3),length:+size.z.toFixed(3)});
     }
   }
-  assert.equal(fingerprint.digest('hex'),'c685193001c23d29e141f8403cf93f5cf95ceb1fcd7e1c4dcf7e5999e0c9e463','Refined live16 geometry/material/transform fingerprint');
+  assert.equal(fingerprint.digest('hex'),expectedFingerprint,'Original16 normalized geometry/material/transforms match source-pinned historical factory');
   assert.equal(retained.size,(cycle+1)*83,'No additional GPU resources');
   disposeCars(); disposeCars();
   for (const resource of retained) assert.equal(disposed.get(resource),1,'Each cached resource disposed exactly once');
@@ -145,4 +161,5 @@ assert.equal(numeric.children[0].material,text.children[0].material);
 assert.notEqual(numeric.children[0].geometry,[...retained][0]);
 disposeCars();
 console.table(rows);
+console.log(`Reference ${referenceRevision}: normalized1e-5 ${expectedFingerprint}; exact topology, no Git dependency`);
 console.log(`PASS: 16 distinct normalized prototypes, 3 all-car disposal cycles, ${retained.size} resources each disposed once; finite buffers, sharing, metadata, hostile inputs.`);

@@ -98,10 +98,16 @@ export function createBuses(map, simulation) {
     routes.push({ edges, ...served }); edges.forEach(edge => used.add(edge.id));
     if (routes.length === COUNT) break;
   }
+  const services = Object.freeze(routes.map((route, i) => Object.freeze({
+    id: `ambient-bus-${i}`, name: `Loop ${i + 1}`, fictional: true,
+    description: 'Fictional local circuit; source stop locations, no published timetable.',
+    stops: route.stops,
+    points: Object.freeze(route.points.map(point => Object.freeze({ x: point.x, z: point.z }))),
+  })));
   const vehicles = routes.map((route, i) => ({ id: `ambient-bus-${i}`, kind: 'bus',
     x: route.points[0].x, z: route.points[0].z, yaw: route.edges[0].yaw,
     length: LENGTH, width: WIDTH, health: 100, active: true, occupied: true, speed: 0,
-    color: i ? 0xbb7448 : 0x547389, layover: i ? 2 : 0, stopRequested: 0, playerAboard: false, currentStop: null, dwellRemaining: 0, stopVisits: 0 }));
+    color: i ? 0xbb7448 : 0x547389, layover: i ? 2 : 0, stopRequested: 0, requestedStopId: null, playerAboard: false, currentStop: null, dwellRemaining: 0, stopVisits: 0 }));
   const cursors = vehicles.map(() => 1);
   let aboard = null, exitRequested = false;
   const localPose = (bus, x, z) => ({ x: bus.x + Math.cos(bus.yaw) * x + Math.sin(bus.yaw) * z,
@@ -136,17 +142,33 @@ export function createBuses(map, simulation) {
     }
     return null;
   }
+  function requestStop() {
+    if (!aboard) return { ok: false, reason: 'Board a bus first' };
+    const i = vehicles.indexOf(aboard), route = routes[i];
+    const stop = aboard.currentStop || route.nextStops[cursors[i]];
+    exitRequested = true;
+    aboard.requestedStopId = stop?.id || null;
+    // Source-serving routes finish the legal road leg instead of braking in a
+    // live lane. Stopless fallback circuits retain checked roadside exits.
+    if (!stop) aboard.stopRequested = STOP_HOLD;
+    return { ok: true, stopping: true, stop: stop || null,
+      message: stop ? `Stop requested: ${stop.name || stop.ref || 'next stop'}. E / USE leaves when stopped.` : 'Bus stopping. E / USE leaves when stopped.' };
+  }
   function interact(ctx = {}) {
     if (ctx.recovering || ctx.indoors) return { ok: false, reason: 'Leave the interior or recovery before using a bus' };
     if (aboard) {
       if (aboard.speed > STOPPED) {
-        exitRequested = true; aboard.stopRequested = STOP_HOLD;
-        return { ok: false, stopping: true, reason: 'Bus stopping. Press E again when stopped' };
+        const request = requestStop();
+        return { ...request, ok: false, reason: request.message };
       }
       const exitPose = exitAt(aboard);
-      if (!exitPose) { exitRequested = true; return { ok: false, reason: 'Bus door blocked. Wait for clear ground' }; }
-      aboard.playerAboard = false; aboard.stopRequested = 3; aboard.speed = 0; aboard = null; exitRequested = false;
-      return { ok: true, exited: true, exitPose };
+      if (!exitPose) {
+        requestStop();
+        return { ok: false, reason: aboard.currentStop ? 'Bus door blocked. Wait for clear ground' : 'Bus door blocked. Requested the next stop' };
+      }
+      const stop = aboard.currentStop;
+      aboard.playerAboard = false; aboard.stopRequested = 3; aboard.requestedStopId = null; aboard.speed = 0; aboard = null; exitRequested = false;
+      return { ok: true, exited: true, exitPose, stop, message: stop ? `Off the bus: ${stop.name || stop.ref || 'bus stop'}.` : 'Off the bus.' };
     }
     if (!ctx.onFoot || ctx.busy) return { ok: false, reason: ctx.busy ? 'Finish your current activity before boarding' : 'Get out of your vehicle first' };
     const near = nearest(ctx.pose);
@@ -161,13 +183,15 @@ export function createBuses(map, simulation) {
     if (near.distance > 2 || !clearPath(bus, ctx.pose, localPose(bus, -.85, -4.1)) || !exitAt(bus)) {
       return { ok: false, reason: 'Walk beside the clear front-left bus door' };
     }
-    aboard = bus; bus.playerAboard = true; bus.stopRequested = 0; bus.layover = 0; bus.speed = 0; exitRequested = false;
-    return { ok: true, boarded: true, passenger: true, busId: bus.id, fare: 0 };
+    aboard = bus; bus.playerAboard = true; bus.stopRequested = 0; bus.requestedStopId = null; bus.layover = 0; bus.speed = 0; exitRequested = false;
+    const next = routes[vehicles.indexOf(bus)].nextStops[cursors[vehicles.indexOf(bus)]];
+    return { ok: true, boarded: true, passenger: true, busId: bus.id, fare: 0,
+      message: next ? `On the bus. Next: ${next.name || next.ref || 'bus stop'}. E / USE requests a stop.` : 'On the bus. E / USE requests a stop.' };
   }
   function reset() {
     aboard = null; exitRequested = false;
     vehicles.forEach((bus, i) => {
-      Object.assign(bus, routes[i].points[0], { yaw: routes[i].edges[0].yaw, speed: 0, health: 100, layover: i ? 2 : 0, active: true, stopRequested: 0, playerAboard: false, currentStop: null, dwellRemaining: 0, stopVisits: 0 });
+      Object.assign(bus, routes[i].points[0], { yaw: routes[i].edges[0].yaw, speed: 0, health: 100, layover: i ? 2 : 0, active: true, stopRequested: 0, requestedStopId: null, playerAboard: false, currentStop: null, dwellRemaining: 0, stopVisits: 0 });
       cursors[i] = 1;
     });
   }
@@ -181,7 +205,9 @@ export function createBuses(map, simulation) {
   function advance(bus, i, dt) {
     if (bus.health === 0) { bus.speed = 0; return; }
     bus.stopRequested = Math.max(0, bus.stopRequested - dt);
-    if (bus.stopRequested > 0 || aboard === bus && exitRequested) {
+    const requestedArrival = aboard === bus && exitRequested &&
+      (!bus.requestedStopId || bus.currentStop?.id === bus.requestedStopId);
+    if (bus.stopRequested > 0 || requestedArrival) {
       bus.speed = Math.max(0, bus.speed - 4 * dt);
       const signalDistance = simulation.trafficLights?.stopDistance(bus, { length: LENGTH }) ?? Infinity;
       const travel = Math.min(bus.speed * dt, Math.max(0, signalDistance - .1));
@@ -235,11 +261,39 @@ export function createBuses(map, simulation) {
     let remaining = Math.min(dt, .2);
     while (remaining > 1e-8) { const tick = Math.min(remaining, 1 / 30); vehicles.forEach((bus, i) => advance(bus, i, tick)); remaining -= tick; }
   }
+  function distanceToStop(bus, i) {
+    if (bus.currentStop) return 0;
+    const points = routes[i].points;
+    let previous = bus, distance = 0;
+    for (let offset = 0; offset < points.length; offset++) {
+      const point = points[(cursors[i] + offset) % points.length];
+      distance += Math.hypot(point.x - previous.x, point.z - previous.z);
+      if (point.stop) return Math.round(distance);
+      previous = point;
+    }
+    return null;
+  }
+  function tracking() {
+    if (!aboard) return null;
+    const i = vehicles.indexOf(aboard), nextStop = routes[i].nextStops[cursors[i]];
+    const stopped = aboard.speed <= STOPPED, exitPose = stopped ? exitAt(aboard) : null;
+    const phase = aboard.health === 0 ? 'disabled' : aboard.currentStop ? 'arrived' : exitRequested ? 'stop-requested' : 'riding';
+    const stopName = stop => stop?.name || stop?.ref || 'next stop';
+    const prompt = stopped && exitPose ? `E / USE · Leave bus${aboard.currentStop ? ` at ${stopName(aboard.currentStop)}` : ''}` :
+      stopped && aboard.currentStop ? 'Bus door blocked · wait for clear ground' :
+      exitRequested ? `Stop requested${nextStop ? ` · ${stopName(nextStop)}` : ''}` :
+      `E / USE · Request stop${nextStop ? ` · Next: ${stopName(nextStop)}` : ''}`;
+    return { busId: aboard.id, routeId: services[i].id, routeName: services[i].name, phase,
+      currentStop: aboard.currentStop, nextStop, distanceToNextStop: distanceToStop(aboard, i),
+      stopRequested: exitRequested, requestedStopId: aboard.requestedStopId,
+      stopped, canExit: !!exitPose, exitBlocked: stopped && !exitPose, prompt };
+  }
   function snapshot() {
     return vehicles.map((bus, i) => ({ ...bus, circuit: 'fictional ambient circuit',
       routeEdgeIds: routes[i].edges.map(edge => edge.id), waypoint: cursors[i],
-      servedStops: routes[i].stops, nextStop: routes[i].nextStops[cursors[i]] }));
+      routeId: services[i].id, routeName: services[i].name,
+      servedStops: routes[i].stops, nextStop: routes[i].nextStops[cursors[i]], distanceToNextStop: distanceToStop(bus, i) }));
   }
-  return { vehicles, damageVehicle, step, reset, snapshot, nearest, interact,
+  return { vehicles, services, damageVehicle, step, reset, snapshot, nearest, interact, requestStop, tracking,
     get passenger() { return !!aboard; }, get seatPose() { return aboard; } };
 }

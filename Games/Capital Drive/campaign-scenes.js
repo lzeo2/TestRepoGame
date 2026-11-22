@@ -1,5 +1,5 @@
 import {roadProfile} from './road-network.js';
-import {BY_ID} from '../../assets/car-arcade/fleet.js';
+import {CAPITAL_BY_ID as BY_ID} from '../../assets/car-arcade/fleet.js';
 import {createInteriorNavigation} from './interior-navigation.js';
 // Transient original cast. Campaign remains the sole owner of stages and rewards.
 const HEROES = Object.freeze(['student','corporate','basement']);

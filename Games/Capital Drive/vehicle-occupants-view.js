@@ -1,6 +1,6 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { createCar } from '../../assets/car-arcade/models.js';
-import { BY_ID } from '../../assets/car-arcade/fleet.js';
+import { CAPITAL_BY_ID as BY_ID } from '../../assets/car-arcade/fleet.js';
 import { appearanceForPerson, createPersonGeometries, emitPersonParts, PERSON_MODEL } from './person-model.js';
 
 const DRIVER_LIMIT = 64, EXIT_LIMIT = 12, EXIT_LIFE = 12, CULL_DISTANCE = 300, APPEARANCE_LIMIT = 128;

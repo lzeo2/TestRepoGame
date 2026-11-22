@@ -6,7 +6,7 @@ const threeURL = url(await read('../assets/car-arcade/vendor/three.module.js'));
 const THREE = await import(threeURL);
 const utilsURL = url((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace("'./three.module.js'", JSON.stringify(threeURL)));
 const fleetURL = url(await read('../assets/car-arcade/fleet.js'));
-const { BY_ID } = await import(fleetURL);
+const { CAPITAL_BY_ID:BY_ID, TRAFFIC_CAR_IDS } = await import(fleetURL);
 const factoryURL = url((await read('../assets/car-arcade/models.js'))
   .replace("'./vendor/three.module.js'", JSON.stringify(threeURL))
   .replace("'./vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
@@ -20,9 +20,10 @@ const { createTrafficView } = await import(url((await read('../Games/Capital Dri
   .replace("'../../assets/car-arcade/models.js'", JSON.stringify(factoryURL))
   .replace("'../../assets/car-arcade/fleet.js'", JSON.stringify(fleetURL))
   .replace("'./vehicle-contact-shadow.js'", JSON.stringify(shadowURL))));
-const models = ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch'];
+const models = TRAFFIC_CAR_IDS;
+const batchCount=models.length*3+1;
 const colors = [0xd4d7d3, 0x777e84, 0x274d79, 0xa4463b, 0xd1c8b4, 0x555952, 0xc5b86e];
-const traffic = Array.from({ length: 40 }, (_, i) => ({ id: `traffic:${i}`, modelId: models[i % 6], color: colors[i % 7], x: i, z: i * .2, yaw: i * .1, active: true }));
+const traffic = Array.from({ length: 40 }, (_, i) => ({ id: `traffic:${i}`, modelId: models[i % models.length], color: colors[i % 7], x: i, z: i * .2, yaw: i * .1, active: true }));
 const scene = new THREE.Scene(), heightAt = (x, z) => x * .02 + z * .01;
 const originals = models.map(id => createCar(id, { color: '#ffffff' }));
 const sharedGeometries = new Set(originals.flatMap(car => car.children.map(mesh => mesh.geometry)));
@@ -32,7 +33,7 @@ for (const resource of [...sharedGeometries, ...sharedMaterials]) resource.addEv
 const sourceAttributes = [...sharedGeometries].map(geometry => Array.from(geometry.attributes.position.array));
 const originalSnapshot = structuredClone(traffic);
 const view = createTrafficView(scene, heightAt, traffic), root = scene.children[0];
-assert.equal(root.children.length, 19); assert.equal(view.stats.drawCalls, 0);
+assert.equal(root.children.length, batchCount); assert.equal(view.stats.drawCalls, 0);
 const resources = root.children.map(mesh => [mesh.geometry, mesh.material, mesh.instanceMatrix.array, mesh.instanceColor?.array]);
 for (const mesh of root.children) { assert.equal(mesh.instanceMatrix.count, 56); assert(!sharedGeometries.has(mesh.geometry)); assert(!sharedMaterials.has(mesh.material)); }
 for (const [i, id] of models.entries()) {
@@ -62,8 +63,8 @@ for (const [i, id] of models.entries()) {
   assert(originals[i].userData.cockpit.eye[0] < 0, 'source left-side cockpit unchanged');
 }
 view.update({ x: 0, z: 0 });
-assert.equal(view.stats.visible, 40); assert.equal(view.stats.drawCalls, 19); assert.equal(view.stats.sourceDrawCalls, 320);
-assert.equal(view.stats.geometries, 19); assert.equal(view.stats.materials, 4);
+assert.equal(view.stats.visible, 40); assert.equal(view.stats.drawCalls, batchCount); assert.equal(view.stats.sourceDrawCalls, 320);
+assert.equal(view.stats.geometries, batchCount); assert.equal(view.stats.materials, 4);
 for (const id of models) {
   const paint = root.children.find(mesh => mesh.name === `${id} body`), matching = traffic.filter(car => car.modelId === id);
   assert.equal(paint.count, matching.length);
@@ -116,7 +117,7 @@ for (const mesh of root.children) { mesh.geometry.addEventListener('dispose', ()
 for (const material of new Set(root.children.map(mesh => mesh.material))) material.addEventListener('dispose', () => materialDisposals++);
 root.children.at(-1).material.map.addEventListener('dispose', () => textureDisposals++);
 view.dispose(); view.dispose(); view.update({ x: 0, z: 0 });
-assert.equal(scene.children.length, 0); assert.equal(geometryDisposals, 19); assert.equal(materialDisposals, 4); assert.equal(instanceDisposals, 19); assert.equal(textureDisposals, 1); assert.equal(sharedDisposals, 0);
+assert.equal(scene.children.length, 0); assert.equal(geometryDisposals, batchCount); assert.equal(materialDisposals, 4); assert.equal(instanceDisposals, batchCount); assert.equal(textureDisposals, 1); assert.equal(sharedDisposals, 0);
 assert(view.stats.disposed); assert.equal(view.stats.drawCalls, 0);
-console.log(`PASS traffic: 40 authored cars 320 draws -> 19 draws (94.1% reduction); six exact silhouettes, ${sharedGeometries.size} factory geometries -> 19 owned templates; ${view.stats.templateTriangles} template triangles; paints/glass/cockpit, terrain, claim hiding, 220/300m culling, 56 capacity, stable buffers and exact disposal`);
+console.log(`PASS traffic: 40 authored cars 320 draws -> ${batchCount} draws; ${models.length} exact silhouettes, ${sharedGeometries.size} factory geometries -> ${batchCount} owned templates; ${view.stats.templateTriangles} template triangles; paints/glass/cockpit, terrain, claim hiding, 220/300m culling, 56 capacity, stable buffers and exact disposal`);
 disposeCars();

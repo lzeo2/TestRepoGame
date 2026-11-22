@@ -15,6 +15,9 @@ const CARS = [
   { id: 'gravel', name: 'Suburban SUV', price: 2200 },
   { id: 'relay', name: 'Executive tourer', price: 3200 },
   { id: 'atlas', name: 'Weekend ute', price: 2600 },
+  { id: 'flux', name: 'Flux Borough EV', price: 2100 },
+  { id: 'rill', name: 'Rill Workmate', price: 1950 },
+  { id: 'gather', name: 'Gather Shuttle', price: 2900 },
 ];
 export const GARAGE_MODS = Object.freeze([
   {id:'engine',name:'Engine',costs:Object.freeze([350,700]),description:'More acceleration and road speed'},

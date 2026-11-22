@@ -7,12 +7,19 @@ import { createGameplay } from '../Games/Capital Drive/gameplay.js';
 import { MAPPED_STORES } from '../Games/Capital Drive/stores.js';
 import { EXTRA_STORES } from '../Games/Capital Drive/civic-extras.js';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
+import { applyNorthWest } from '../Games/Capital Drive/north-west.js';
 import { executeCampaignCrime } from './capital-crime-playability.mjs';
 const json = async name => JSON.parse(await readFile(new URL(`../Games/Capital Drive/data/${name}.json`, import.meta.url), 'utf8'));
-const map = applyMapExpansion(await json('canberra'), await json('canberra-north'));
+const map = applyNorthWest(applyMapExpansion(await json('canberra'), await json('canberra-north')),
+  await json('north-west'),await json('north-west-terrain'));
 const stores = [...MAPPED_STORES, ...EXTRA_STORES];
-assert.equal(stores.length, 26);
+const mappedSource=await json('stores');
+assert.deepEqual(MAPPED_STORES,mappedSource.stores,'runtime mapped shops retain the complete sourced premises list');
+const expectedStoreIds=new Set([...mappedSource.stores,...EXTRA_STORES].map(store=>store.id));
+assert.equal(stores.length,expectedStoreIds.size,'every sourced or original shop has one unique service ID');
 const interiors = createInteriors(map, { stores }), simulation = createSimulation(map, { trafficCount: 0 });
+assert.deepEqual(new Set(interiors.entries.map(entry=>entry.storeId)),expectedStoreIds,
+  'every registered shop, including the northern source carriers, creates its own real doorway and staff room');
 const source = await readFile(new URL('../Games/Capital Drive/script.js', import.meta.url), 'utf8');
 const local = (origin, p) => { const x = p.x-origin.x, z = p.z-origin.z, c = Math.cos(origin.yaw), s = Math.sin(origin.yaw); return { x:c*x-s*z, z:s*x+c*z }; };
 const touches = (p, box, radius) => { const q = local(box,p); return Math.hypot(Math.max(0,Math.abs(q.x)-box.width/2),Math.max(0,Math.abs(q.z)-box.depth/2)) < radius-1e-6; };
@@ -62,5 +69,5 @@ for (const entry of interiors.entries) {
   }
   rooms++; interiors.reset();
 }
-assert.equal(rooms,26); assert.equal(robberies,2);
-console.log('Capital shop staff: PASS (26 actual shops, intended live staff counts, solids/people/doors/activities/aisles, customer service and LOS; real Coals/Scoot till handovers)');
+assert.equal(rooms,expectedStoreIds.size); assert.equal(robberies,2);
+console.log(`Capital shop staff: PASS (${rooms} actual shops, complete source-backed doorways, intended live staff counts, solids/people/doors/activities/aisles, customer service and LOS; real Coals/Scoot till handovers)`);

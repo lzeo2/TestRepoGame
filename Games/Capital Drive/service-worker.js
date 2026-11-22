@@ -1,5 +1,5 @@
 'use strict';
-const buildId = 'ae291a0e40a6'; // Generated build ID
+const buildId = 'c212610b25ff'; // Generated build ID
 importScripts(`./cache-manifest.js?capital-build=${buildId}`);
 
 const manifest = self.CAPITAL_CACHE_MANIFEST;
@@ -115,18 +115,24 @@ self.addEventListener('fetch', event => {
     } catch {
       // Private browsing, eviction or storage failure must not prevent online play.
     }
-    let response = await fetch(request);
-    if (!cache) return response;
-    try {
-      const key = keyFor(canonical, file);
-      if (!await matches(response, file)) {
-        const fresh = await fetch(key, { cache: 'reload', credentials: 'same-origin' });
-        if (!await matches(fresh, file)) return response;
-        response = fresh;
+    const key = keyFor(canonical, file);
+    let response;
+    for (const retry of [false, true]) {
+      try {
+        const candidate = retry ? await fetch(key, { cache: 'reload', credentials: 'same-origin' }) : await fetch(request);
+        if (await matches(candidate, file)) { response = candidate; break; }
+      } catch {
+        // A failed transfer or digest never authorizes bytes from another revision.
       }
+    }
+    if (!response) return new Response('Game revision verification failed. Reload to try again.', {
+      status: 503,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+    });
+    if (cache) try {
       event.waitUntil(cache.put(key, response.clone()).catch(() => {}));
     } catch {
-      // An evicted file can still use its ordinary online response.
+      // Storage failures do not block a response whose bytes were verified above.
     }
     return response;
   })());

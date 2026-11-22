@@ -4,7 +4,7 @@ import { coveredCentrePassage } from './covered-passage.js';
 import { roadProfile, roadSpeed } from './road-network.js';
 import { prepareWaterRing } from './water-contact.js';
 import { createTrafficLights } from './traffic-lights.js';
-import { BY_ID } from '../../assets/car-arcade/fleet.js';
+import { CAPITAL_BY_ID as BY_ID, TRAFFIC_CAR_IDS } from '../../assets/car-arcade/fleet.js';
 // Coordinates are metres east/south; yaw matches THREE.Object3D.rotation.y.
 const TAU = Math.PI * 2;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -553,7 +553,7 @@ export function createSimulation(map, options = {}) {
   const flight = options.stuntSupportAt && options.vehicleHeightAt
     ? createVehicleFlight({supportAt:options.stuntSupportAt,heightAt:options.vehicleHeightAt}) : null;
   const random = seededRandom(options.seed ?? 20261112);
-  const traffic = [], models = ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch'];
+  const traffic = [], models = TRAFFIC_CAR_IDS;
   const colors = [0xd4d7d3, 0x777e84, 0x274d79, 0xa4463b, 0xd1c8b4, 0x555952, 0xc5b86e];
   let elapsed = 0, crashCooldown = 0;
   function placeTraffic(car, edge, position) {

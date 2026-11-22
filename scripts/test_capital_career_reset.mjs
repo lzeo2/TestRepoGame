@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {CAPITAL_PROGRESS_KEYS, CAREER_KEY, SAVE_KEY, TUTORIAL_KEY, clearCapitalProgress} from '../Games/Capital Drive/career-reset.js';
+import {CAPITAL_PROGRESS_KEYS, CAREER_KEY, SAVE_KEY, TUTORIAL_KEY, clearCapitalProgress, parseCareerSave} from '../Games/Capital Drive/career-reset.js';
 
 function fixture(entries, hooks = {}) {
   const values = new Map(Object.entries(entries)), removals = [], writes = [];
@@ -17,6 +17,11 @@ const progress = {[SAVE_KEY]:'{"discovered":["Kingston"]}', [TUTORIAL_KEY]:'',
 const preferences = {'capital-drive-rendering-v1':'performance', 'capital-drive-theme':'light',
   'capital-drive-sound':'on', 'different-game:save':'rank 12'};
 const all = {...progress, ...preferences};
+assert.equal(parseCareerSave(null), null);
+assert.equal(parseCareerSave(all[CAREER_KEY]).cash, 4700);
+for (const value of ['null', 'false', '0', '""', '[]', 'true', '3', '', '{', ' '.repeat(16001)]) {
+  assert.throws(() => parseCareerSave(value), `invalid stored record is surfaced: ${JSON.stringify(value.slice(0, 16))}`);
+}
 assert(Object.isFrozen(CAPITAL_PROGRESS_KEYS));
 assert.deepEqual(new Set(CAPITAL_PROGRESS_KEYS), new Set(['capital-drive-v1','capital-drive-career-v1','capital-drive-tutorial-v1']));
 

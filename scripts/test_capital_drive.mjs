@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 import {buildRoadGraph,pointOnLane,createSimulation} from '../Games/Capital Drive/simulation.js';
+import {TRAFFIC_CAR_IDS} from '../assets/car-arcade/fleet.js';
 const navigationSource = await readFile(new URL('../Games/Capital Drive/navigation.js', import.meta.url), 'utf8');
 const { findRoute } = await import(`data:text/javascript;base64,${Buffer.from(navigationSource).toString('base64')}`);
 const road = (id, points, nodes, oneway = 0) => ({ id, name: id, type: 'residential', width: 10, speed: 50, oneway, points, nodes });
@@ -176,7 +177,7 @@ for (let i = 0; i < 120 * 60; i++) {
   }
 }
 assert([...edgeVisits.values()].some(visited => visited.size > 3), 'traffic navigates connected intersections');
-assert(fleet.traffic.every(car => ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch'].includes(car.modelId)));
+assert.deepEqual(new Set(fleet.traffic.map(car => car.modelId)), new Set(TRAFFIC_CAR_IDS));
 const following = createSimulation(map, { seed: 17, trafficCount: 2 });
 for (const [i, car] of following.traffic.entries()) {
   car.edge = following.graph.edges.find(edge => edge.from.id === '1' && edge.to.id === '2');

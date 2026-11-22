@@ -13,8 +13,11 @@ const env={campaign,isCampaign:()=>true,gameplay:{state},progression:{state:{cas
 const source=await readFile(new URL('../Games/Capital Drive/street-ui.js',import.meta.url),'utf8');
 const body=source.slice(source.indexOf('  function refresh() {'),source.indexOf('  function renderServices(){'));
 const refresh=Function('env',`with(env){${body};return refresh;}`)(env);
-refresh();assert(output.get('job-progress').startsWith(`Stage 1/${campaign.current().stages.length}`));
+refresh();assert.equal(output.get('job-progress'),'','campaign HUD omits stage, reward and long countdown');
+assert.equal(output.get('job-description'),campaign.state.active.target.label);
 assert(output.get('job-title').includes('Split the score'));assert.equal(output.get('cash-value'),'$1000');
 campaign.cancel();refresh();assert.equal(output.get('job-progress'),'');
-assert(campaign.start(ctx).ok);refresh();assert(output.get('job-progress').startsWith(`Stage 1/${campaign.current().stages.length}`));
-console.log('PASS actual mission HUD: locked cross-character preview, normal chapter, stage counts, cancellation and unchanged cash');
+assert.equal(output.get('job-title'),'');assert.equal(output.get('job-description'),'');
+assert(campaign.start(ctx).ok);refresh();assert.equal(output.get('job-progress'),'','campaign HUD omits stage, reward and long countdown');
+assert.equal(output.get('job-description'),campaign.state.active.target.label);
+console.log('PASS actual mission HUD: locked cross-character preview, normal chapter, compact objective text, final-minute countdown boundaries, actual stage transition, cancellation and unchanged cash');
