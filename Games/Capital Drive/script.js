@@ -684,8 +684,10 @@ function trackYoober(){
 function updateNavigation(){
   if(guidanceRoute!==route){guidance.setRoute(route,destination);guidanceRoute=route;}
   guideState=guidance.update(focus());
-  $('navigation-hud').hidden=!guideState||!destination||!!interiors.active||!started;
-  if(guideState){
+  const atObjective=destination?.campaignObjective&&guideState?.kind==='arrive'&&guideState.distance<35&&gameplay.state.mode==='foot';
+  const navigation=$('navigation-hud');
+  navigation.hidden=!guideState||!destination||!!interiors.active||!started||atObjective;
+  if(!navigation.hidden){
     const distance=guideState.distance>=1000?`${(guideState.distance/1000).toFixed(1)} km`:`${Math.max(0,Math.round(guideState.distance/5)*5)} m`;
     $('navigation-distance').textContent=distance;
     $('navigation-instruction').textContent=guideState.offRoute?'Rejoin the route':({left:'Turn left',right:'Turn right',uturn:'Make a U-turn',straight:'Continue',arrive:'Destination'}[guideState.kind]);
@@ -1703,7 +1705,8 @@ function refreshModeLabel(){
 function campaignNavigationTarget(){
   const active=campaign.state.active,guide=missionLocations?.guide(active,{pose:focus(),plan:interiors.active,people:roomPeople.snapshot(),wanted:gameplay.state.wanted});
   if(guide?.escaping||guide?.roaming)return null;
-  return guide?{...guide.point,label:guide.instruction,name:guide.location}:active?.target;
+  if(guide)return {...guide.point,label:guide.instruction,name:guide.location,campaignObjective:true};
+  return active?{...active.target,campaignObjective:true}:null;
 }
 function renderMissionGuide(){
   const active=campaign.state.active,aftermathResolved=!campaignAftermath?.isCase(active?.id)||campaignAftermath.recorded(active.id)||!!developerReturn;
@@ -3057,8 +3060,9 @@ function updateHud() {
   const stance=$('stance-status');stance.hidden=!crouching;
   if(crouching)stance.textContent=nearbyCrouchCover(gameplay.state.actor)?'Crouched · cover nearby':'Crouched';
   $('driving-hint').textContent = aircraft?.active?aircraft.snapshot().prompt:buses?.passenger?'E request stop / leave bus':rideService?.passenger?'T phone · E exits when stopped':jetpack.active?'SPACE rise · SHIFT descend · U land':gameplay.state.mode==='foot'?'SHIFT sprint · SPACE jump · U jetpack':'SPACE drift · SHIFT nitro · F camera';
-  $('destination-line').hidden=!destination;
-  $('destination-line').textContent = destination ? `${destination.name} · ${(Math.hypot(destination.x - p.x, destination.z - p.z) / 1000).toFixed(1)} km away` : '';
+  const destinationLine=$('destination-line');
+  destinationLine.hidden=!destination||!!destination.campaignObjective;
+  if(!destinationLine.hidden)destinationLine.textContent=`${destination.name} · ${(Math.hypot(destination.x - p.x, destination.z - p.z) / 1000).toFixed(1)} km away`;
   if (started && !paused()) for (const place of map.landmarks) {
     if (!discovered.has(place.id) && Math.hypot(place.x - p.x, place.z - p.z) < place.radius) {
       discovered.add(place.id); saveProgress(); updatePlaces();
