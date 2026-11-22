@@ -73,7 +73,10 @@ class CountedHandler(http.server.SimpleHTTPRequestHandler):
         if path.startswith('/__capital_cache_fixture/'):
             version = self.server.fixture_version
             build = hashlib.sha256(f'fixture-v{version}'.encode()).hexdigest()[:12]
-            document = f'<!doctype html><title>Cache worker fixture</title><link rel="icon" href="data:,"><p>Worker fixture only</p><code id="build-version">{build}</code><p id="cache-status"></p><script src="code.js"></script>'.encode()
+            document = (f'<!doctype html><title>Cache worker fixture</title><link rel="icon" href="data:,">'
+                        f'<section id="start-panel"><p>Worker fixture only</p><p id="cache-status"></p></section>'
+                        f'<code id="build-version">{build}</code><button id="cache-update" type="button" hidden>Load update</button>'
+                        f'<script src="code.js"></script>').encode()
             client = (GAME / 'cache-client.js').read_bytes()
             launcher = (GAME / 'cache-launcher.js').read_bytes()
             worker = self.server.legacy_worker if version == 1 and self.server.legacy_worker else (GAME / 'service-worker.js').read_bytes()
@@ -470,11 +473,14 @@ def main():
                     page.reload()
                     page.wait_for_function('!!navigator.serviceWorker.controller')
                     check(page.evaluate('fetch("asset.js").then(r=>r.text())') == 'fixture-v1', 'Legacy actual worker controls complete v1 fixture')
-                    token = page.evaluate('''(playing)=>{window.fixtureStarted=playing;window.fixtureToken='same-document';return document.querySelector('#build-version').textContent;}''', playing)
+                    token = page.evaluate('''(playing)=>{window.fixtureStarted=playing;window.fixtureToken='same-document';document.querySelector('#start-panel').hidden=playing;return document.querySelector('#build-version').textContent;}''', playing)
                     page.evaluate('''async()=>{const {setupGameCache}=await import('./cache-client.js');setupGameCache({canReload:()=>!window.fixtureStarted});}''')
-                    page.wait_for_timeout(100)
+                    page.wait_for_function('document.querySelector("#cache-status").textContent.includes("Saved for faster starts")')
+                    context.set_offline(True)
+                    page.wait_for_function('!navigator.onLine')
                     server.fixture_version = 2
-                    page.evaluate('void navigator.serviceWorker.getRegistration().then(r=>r.update())')
+                    context.set_offline(False)
+                    page.wait_for_function('navigator.onLine')
                     expected = hashlib.sha256(b'fixture-v2').hexdigest()[:12]
                     wait_async(page, '''(build)=>new Promise(async resolve=>{const reg=await navigator.serviceWorker.getRegistration();if(!reg?.active||reg.waiting||reg.installing)return resolve(false);const channel=new MessageChannel();const timer=setTimeout(()=>{channel.port1.close();resolve(false)},1000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data?.type==='CAPITAL_CACHE_BUILD'&&e.data.build===build)};navigator.serviceWorker.controller.postMessage({type:'CAPITAL_CACHE_BUILD'},[channel.port2]);})''', arg=expected, timeout=30000)
                     prefix = 'capital-drive-files-v1-' + FIXTURE_PATH.replace('/', '%2F') + '-'
@@ -485,9 +491,12 @@ def main():
                     check(page.evaluate('localStorage.getItem("capital-drive-career-v1")') == 'fixture-save-sentinel', 'Worker migration preserves career save bytes')
                     if playing:
                         check(page.evaluate('window.fixtureToken') == 'same-document' and page.locator('#build-version').text_content() == token, 'Already-started session does not reload or switch running document build')
-                        page.wait_for_function('document.querySelector("#cache-status").textContent.includes("Reopen")')
+                        page.locator('#cache-update').wait_for(state='visible')
+                        check(page.locator('#cache-update').is_disabled() and page.locator('#cache-update').text_content() == 'Update ready · start menu', 'Running session sees the pending update in its footer')
                         check(page.evaluate('fetch("../sibling.txt").then(r=>r.text())') == 'sibling-v2', 'Sibling fetch remains outside worker scope')
-                        page.goto(fixture_url)
+                        page.evaluate('window.fixtureStarted=false;document.querySelector("#start-panel").hidden=false')
+                        page.wait_for_function('(build)=>document.querySelector("#build-version").textContent===build', arg=expected)
+                        check(page.evaluate('typeof window.fixtureToken') == 'undefined', 'Returning to the menu applies the ready build without reopening the tab')
                     else:
                         page.wait_for_function('(build)=>document.querySelector("#build-version").textContent===build', arg=expected)
                         check(page.evaluate('typeof window.fixtureToken') == 'undefined', 'Unstarted menu automatically reloads into newly activated build')
