@@ -71,18 +71,22 @@ const LETTERS = {
   Y:[5,5,2,2,2], Z:[7,1,2,4,7],
 };
 
-function platformArt(stop, width) {
-  const side = stop.side === -1 ? -1 : 1;
+function platformArt(stop, width, sourced = false) {
+  const trainSide = stop.side === -1 ? -1 : 1;
+  // Directional descriptors point toward their own train; shelter furniture
+  // belongs on the opposite edge. Legacy islands keep their original layout.
+  const side = sourced ? -trainSide : trainSide;
   const compact = width < 1.4, floor = compact ? .14 : .35, signY = compact ? 2.42 : 1.94;
   const label = String(stop.name || 'LIGHT RAIL').toUpperCase()
     .replace(/\b(STREET|AVENUE|PLATFORM|STATION|NORTHBOUND|SOUTHBOUND)\b/g, '').replace(/[^A-Z ]/g, ' ').trim().slice(0, 16);
   const ramp = compact ? .065 : .16;
   const parts = [piece(0, floor / 2 - .018, 0, 2.86, floor, 25, CONCRETE), piece(0, floor - .02, 0, 2.79, .047, 24.8, COPING),
-    piece(-1.25, floor + .011, 0, .23, .02, 24.55, GOLD), piece(1.25, floor + .011, 0, .23, .02, 24.55, GOLD),
-    piece(0, floor / 3, -13.2, 2.78, floor * .65, 1.5, CONCRETE, -ramp), piece(0, floor / 3, 13.2, 2.78, floor * .65, 1.5, CONCRETE, ramp),
     piece(side * .37, 2.87, 1.05, 1.93, .15, 8.78, SLATE), piece(side * .37, 2.77, 1.05, 1.75, .075, 8.63, CREAM),
     piece(side * .88, 1.18, -5.23, .29, 1.65, .57, SLATE), piece(side * .685, 1.56, -5.23, .13, .5, .46, GOLD),
     piece(side * 1.05, signY, -2.16, .125, .49, 5.08, RED)];
+  if (sourced) parts.push(piece(trainSide * 1.25, floor + .011, 0, .23, .02, 24.55, GOLD));
+  else parts.push(piece(-1.25, floor + .011, 0, .23, .02, 24.55, GOLD), piece(1.25, floor + .011, 0, .23, .02, 24.55, GOLD),
+    piece(0, floor / 3, -13.2, 2.78, floor * .65, 1.5, CONCRETE, -ramp), piece(0, floor / 3, 13.2, 2.78, floor * .65, 1.5, CONCRETE, ramp));
   // Leave tight islands open at eye height so the walking camera can see past the shelter.
   if (!compact) parts.push(piece(side * 1.22, 1.6, 1.05, .07, 2.26, 8.54, GLASS),
     piece(side * .94, .79, 1.63, .57, .16, 3.43, RED), piece(side * .92, 1.02, 1.63, .135, .4, 3.43, RED));
@@ -134,7 +138,7 @@ function eachTrackSpan(routes, heightAt, add) {
   }
 }
 
-export function createLightRailView(scene, { routes = [], stops = [] } = {}, heightAt = () => 0) {
+export function createLightRailView(scene, { routes = [], stops = [], platforms } = {}, heightAt = () => 0) {
   const geometry = new THREE.BoxGeometry(1, 1, 1), material = new THREE.MeshLambertMaterial({ color: 0xffffff });
   const track = new THREE.InstancedMesh(geometry, material, STATIC_CAP);
   const fleet = new THREE.InstancedMesh(geometry, material, TRAIN_CAP);
@@ -155,7 +159,7 @@ export function createLightRailView(scene, { routes = [], stops = [] } = {}, hei
   const tramMatrices = TRAIN_ART.map(parts => parts.map(box => { setLocalBox(box); return local.matrix.clone(); }));
   for (let index = 0; index < TRAIN_CAP; index++) fleet.setColorAt(index, color.setHex(TRAIN_ART[1][index % TRAIN_ART[1].length].color));
   fleet.instanceColor.needsUpdate = true;
-  const stats = { trains: 0, trackSections: 0, stops: 0, drawCalls: 0, triangles: 0,
+  const stats = { trains: 0, trackSections: 0, stops: 0, platforms: 0, drawCalls: 0, triangles: 0,
     maxDrawCalls: 2, trackCapacity: STATIC_CAP, trainCapacity: TRAIN_CAP, staticUploads: 0, vehicleUploads: 0, disposed: false };
   let anchor = null, previousFleet = '';
 
@@ -165,15 +169,20 @@ export function createLightRailView(scene, { routes = [], stops = [] } = {}, hei
     groups.get(key).push(item);
   }
   eachTrackSpan(routes, heightAt, add);
-  for (const stop of stops) {
+  const sourcedPlatforms = Array.isArray(platforms);
+  for (const stop of sourcedPlatforms ? platforms : stops) {
     if (!position(stop) || !Number.isFinite(stop.yaw)) continue;
+    if (sourcedPlatforms && (!(Number.isFinite(stop.length) && stop.length > 0) ||
+      !(Number.isFinite(stop.platformWidth) && stop.platformWidth > 0))) continue;
     const y = Number.isFinite(stop.y) ? stop.y : heightAt(stop.x, stop.z);
     if (!Number.isFinite(y)) continue;
-    const dx = 11 * Math.sin(stop.yaw), dz = 11 * Math.cos(stop.yaw);
-    const pitch = Math.atan2(heightAt(stop.x - dx, stop.z - dz) - heightAt(stop.x + dx, stop.z + dz), 22);
+    const halfSpan = sourcedPlatforms ? Math.min(22, stop.length * .45) : 11;
+    const dx = halfSpan * Math.sin(stop.yaw), dz = halfSpan * Math.cos(stop.yaw);
+    const pitch = Math.atan2(heightAt(stop.x - dx, stop.z - dz) - heightAt(stop.x + dx, stop.z + dz), halfSpan * 2);
     const clearance = Number.isFinite(stop.trackGap) ? Math.max(.15, stop.trackGap - 2.82) : 3.8;
-    const width = Math.min(Number.isFinite(stop.platformWidth) && stop.platformWidth > 0 ? stop.platformWidth : 2.86, clearance);
-    add({ ...stop, y, pitch, widthScale: width / 2.86, parts: platformArt(stop, width) });
+    const width = sourcedPlatforms ? stop.platformWidth : Math.min(Number.isFinite(stop.platformWidth) && stop.platformWidth > 0 ? stop.platformWidth : 2.86, clearance);
+    add({ ...stop, y, pitch, widthScale: width / 2.86, lengthScale: sourcedPlatforms ? stop.length / 25 : 1,
+      parts: platformArt(stop, width, sourcedPlatforms) });
   }
 
   function transformBase(pose) {
@@ -181,10 +190,10 @@ export function createLightRailView(scene, { routes = [], stops = [] } = {}, hei
     base.rotation.set(pose.pitch || 0, pose.yaw, 0, 'YXZ');
     base.updateMatrix();
   }
-  function drawParts(mesh, pose, parts, sx = 1) {
+  function drawParts(mesh, pose, parts, sx = 1, sz = 1) {
     transformBase(pose);
     for (const box of parts) {
-      setLocalBox(box, sx); matrix.multiplyMatrices(base.matrix, local.matrix);
+      setLocalBox(box, sx, sz); matrix.multiplyMatrices(base.matrix, local.matrix);
       mesh.setMatrixAt(mesh.count, matrix); mesh.setColorAt(mesh.count, color.setHex(box.color)); mesh.count++;
     }
   }
@@ -197,7 +206,8 @@ export function createLightRailView(scene, { routes = [], stops = [] } = {}, hei
   function updateTrack(focus) {
     if (anchor && rangeSquared(anchor, focus) < 18 ** 2) return;
     anchor = { x: focus.x, z: focus.z };
-    track.count = 0; stats.trackSections = 0; stats.stops = 0;
+    track.count = 0; stats.trackSections = 0; stats.stops = 0; stats.platforms = 0;
+    const stopIds = new Set();
     const visible = [];
     for (let x = Math.floor((focus.x - RANGE.platform) / CELL); x <= Math.floor((focus.x + RANGE.platform) / CELL); x++) {
       for (let z = Math.floor((focus.z - RANGE.platform) / CELL); z <= Math.floor((focus.z + RANGE.platform) / CELL); z++) {
@@ -210,9 +220,10 @@ export function createLightRailView(scene, { routes = [], stops = [] } = {}, hei
     visible.sort((a, b) => Number(!!a.item.track) - Number(!!b.item.track) || a.distance - b.distance);
     for (const { item } of visible) {
       if (track.count + item.parts.length > STATIC_CAP) continue;
-      drawParts(track, item, item.parts, item.widthScale);
-      if (item.track) stats.trackSections++; else stats.stops++;
+      drawParts(track, item, item.parts, item.widthScale, item.lengthScale);
+      if (item.track) stats.trackSections++; else { stats.platforms++; stopIds.add(item.stopId || item.id); }
     }
+    stats.stops = stopIds.size;
     flush(track); stats.staticUploads++;
   }
   function updateFleet(vehicles, focus) {
@@ -253,7 +264,7 @@ export function createLightRailView(scene, { routes = [], stops = [] } = {}, hei
     if (stats.disposed) return;
     if (position(focus)) { updateTrack(focus); updateFleet(vehicles, focus); }
     else { anchor = null; previousFleet = ''; track.count = fleet.count = 0; track.visible = fleet.visible = false;
-      stats.trains = stats.stops = stats.trackSections = 0; }
+      stats.trains = stats.stops = stats.platforms = stats.trackSections = 0; }
     stats.drawCalls = Number(track.visible) + Number(fleet.visible);
     stats.triangles = 12 * (track.count + fleet.count);
   }
