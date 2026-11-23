@@ -1,17 +1,17 @@
 # Capital Drive light rail source notes
 
-Capital Line runs through five mapped Canberra stops. It uses Alinga Street,
-Elouera Street, Ipima Street, Macarthur Avenue and Dickson Interchange. The track
-uses projected OpenStreetMap `railway=tram` ways, and each direction stops at
-the mapped `public_transport=stop_position` node. The two terminal turns follow
-connected track and crossover ways. The data includes the input filenames,
-SHA-256 hashes, OSM way identifiers and station nodes. © OpenStreetMap
-contributors, ODbL 1.0.
+Capital Line runs through all 14 mapped stops on the operating Alinga Street
+to Gungahlin Place corridor. The two tracks are about 11.9 km each. Both use
+projected OpenStreetMap `railway=tram` ways, directional stop-position nodes and
+connected terminal crossovers. Each of the 28 platforms uses a mapped polygon.
+Separate side platforms and paired island halves retain their own boarding and
+exit points. The generated asset records the route relations, way and node IDs,
+input files and SHA-256 pins. © OpenStreetMap contributors, ODbL 1.0.
 
-The foot approaches sit within the modelled islands near their directional
-stop positions. Ground clearance selects a nearby safe approach where needed.
-The service timing, fleet, visual design, platform details and any activities
-are fictional gameplay. The north end of this game service is Dickson.
+The source-constrained approaches sit near the directional stop doors and must
+pass foot-clearance checks. The original shelter models and game schedule use
+eight regular trams and one on-demand set. In-game service ends at Alinga Street
+in Civic and Gungahlin Place in the north.
 
 To rebuild the sourced geometry with the existing Canberra snapshot caches, run
 from the repository root:
@@ -19,13 +19,13 @@ from the repository root:
 ```sh
 python3 -B scripts/build_capital_light_rail.py \
   --cache /tmp/canberra-north-data \
-  --cache /tmp/capital-north-west-osm
+  --cache /tmp/capital-north-west-osm \
+  --cache /tmp/capital-regions-north
 node scripts/test_capital_light_rail.mjs
 ```
 
-Both cache directories need their original manifests and raw snapshots. The
-generator checks their hashes and runs offline. The game loads its small local
-derivative. The own-physics test checks every stop against the assembled terrain
-and movement geometry, rides between the first two stops and exercises the spare
-tram call at an empty platform. It also steps all fixed sets around a full
-service cycle.
+All three cache directories need their original manifests and raw snapshots.
+The generator verifies their hashes and the station order in both route
+relations. The offline regression checks all 28 dry approaches, connected road
+access, opposite-platform rejection, the Civic parcel journey, long rides and a
+full service cycle for all eight scheduled trams.

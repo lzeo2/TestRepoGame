@@ -1066,7 +1066,11 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     for (const route of rail?.routes || []) {
       for (let i = 1; i < route.points.length; i++) indexRail(route.points[i - 1], route.points[i], 1.8);
     }
-    for (const stop of rail?.stops || []) {
+    for (const platform of rail?.platforms || []) {
+      const ring=prepareWaterRing(platform.points);
+      indexArea(platform.points,(x,z)=>ring.contains(x,z));
+    }
+    for (const stop of rail?.platforms ? [] : rail?.stops || []) {
       const dx = Math.sin(stop.yaw) * 13, dz = Math.cos(stop.yaw) * 13;
       indexRail([stop.x - dx, stop.z - dz], [stop.x + dx, stop.z + dz], stop.trackGap / 2 + 1.8);
     }
