@@ -13,7 +13,7 @@ const env={aircraft:null,jetpack:null,refreshAircraftRescue(){},tutorial:createT
   gameplay:{state:{mode:'foot',actor:{impactTime:0},health:100},focus:()=>({x:0,z:0,speed:0})},
   cutscenes:{snapshot:()=>({active:false})},interiors:{active:null},activities:{snapshot:()=>({active:false})},
   micromobility:{snapshot:()=>({active:null})},
-  streetChallenge:()=>null,paused:()=>[...nodes.values()].some(n=>n.open),clearInput(){},resetDevEntry(){},
+  skylineLease:null,streetChallenge:()=>null,paused:()=>[...nodes.values()].some(n=>n.open),clearInput(){},resetDevEntry(){},
   refreshModeUI(){},fitMapCanvas(){},drawMap(){},dialogs:[],renderer:null};
 const helpers=source.slice(source.indexOf('function readTutorialPreference(){'),source.indexOf("$('help-button').addEventListener"));
 const open=source.slice(source.indexOf('function openDialog(id) {'),source.indexOf('function closeDialogs()'));
@@ -35,7 +35,7 @@ assert.equal(store.get('career'),'unchanged-career');assert(writes.every(key=>ke
 
 // Both map actions only record a lesson for an actually connected route.
 const routes=[];Object.assign(env,{mapSelection:{x:10,z:0},route:[],mapCanvas:{},
-  routeTo(){},notify(){},closeDialogs(){routes.push('close');},updateNavigation(){routes.push('guidance');},
+  routeTo(){},airNavigationActive:()=>false,notify(){},closeDialogs(){routes.push('close');},updateNavigation(){routes.push('guidance');},
   observeTutorialMenu:menu=>routes.push(menu)});
 const route=source.slice(source.indexOf('function routeSelected() {'),source.indexOf("$('map-route-button').addEventListener"));
 const selectRoute=Function('env',`with(env){${route};return routeSelected;}`)(env);

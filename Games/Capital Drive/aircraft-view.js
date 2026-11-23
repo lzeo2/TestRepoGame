@@ -106,9 +106,13 @@ export function createAircraftView(scene, heightAt = () => 0) {
   function update(snapshot, focus, dt = 0) {
     if (disposed) return;
     visible = 0;
+    const aircraft=snapshot?.planes||[];
+    const jobRotor=aircraft.find(plane=>plane.jobLoaner&&(plane.id===snapshot.activeId||
+      focus&&Math.hypot(plane.x-focus.x,plane.z-focus.z)<680));
     for (let i = 0; i < meshes.length; i++) {
       const mesh=meshes[i];
-      const plane=snapshot?.planes?.find(p=>i===2?p.kind==='helicopter':p.id===`jet:${i+1}`||p.loaner&&p.kind==='jet'&&p.model===i);
+      const plane=i===2?jobRotor||aircraft.find(p=>p.kind==='helicopter'&&!p.jobLoaner):
+        aircraft.find(p=>p.id===`jet:${i+1}`||p.loaner&&p.kind==='jet'&&p.model===i);
       if(!poseAircraft(mesh,plane,snapshot,focus))continue;
       if(i===2&&plane.id===snapshot.activeId&&!plane.wrecked&&dt>0)blades.rotation.y=(blades.rotation.y+dt*34*(plane.rotor||0))%(2*Math.PI);
       visible+=i===2?2:1;

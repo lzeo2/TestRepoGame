@@ -39,8 +39,9 @@ uses the same gallery for its campaign approaches and unlocks after the story.
 **Black Mountain Tower** has a marked archive entrance on its mapped base.
 Both interiors are original layouts and load on entry. **Civic Mutual Bank · Manuka**
 adds a vault-symbol robbery on Captain Cook Crescent alongside the Civic branch.
-The Manuka branch uses a staff handover, a symbol puzzle at the marked vault and
-the normal escape requirement.
+Both branches require staff surrender, access at a marked console, separate cash
+pickup and escape. The Civic console releases the cash while you stay nearby.
+The Manuka console uses a timed sequence of game symbols.
 
 Bus prompts name the next stop and show the distance remaining. Press E while
 moving to request it. The bus holds at the mapped platform until the front-left
@@ -238,16 +239,46 @@ The visible player vest follows the character while armour charge is positive.
 Pause → Clear progress requires typing CLEAR and erases the three Capital Drive
 progress keys. Settings stay available after reload.
 
-Capital Line serves five mapped light rail stops from Civic to Dickson.
-The service follows pinned OpenStreetMap rails and platforms, with original
-trams and game timings. Press E to call a tram, board on an open platform,
-or request an exit at the next stop. Civic Mutual Bank and Manuka Facets
+Capital Line serves 14 mapped light rail stops from Alinga Street through
+Dickson to Gungahlin Place. The map searches for every stop. Press E from the
+directional platform to call a tram or board when its doors are open. The
+interaction prompt names the destination before boarding and the next stop
+during the ride. Press E at a platform to exit. Civic Mutual Bank and Manuka Facets
 have distinct original interiors accessed through their front doors. Approach
 the live employee, point an equipped weapon or land a punch, then press E.
 Take the marked cash or jewellery and leave. Career payment follows escape
 and clearing wanted stars. The Capital Line parcel job keeps its symbol
 sequence and requires riding to the pickup stop and disembarking before payout.
 The shopfronts are fictional and placed by mapped public streets.
+
+The minimap hides ordinary points of interest at its default scale. Use its +
+control for local details or open the full map with M. Full-map pins appear at
+4×, and zoom reaches 48×. Close zoom draws nearby source geometry directly.
+Current routes and active tracking remain visible at overview scale. In flight,
+the selected destination supplies a bearing and horizontal distance. Map and
+flight guidance do not control the aircraft.
+
+ANU uses the existing campus footprint data, six detailed exterior treatments,
+nine searchable places, mapped Kambri Lawn and five University Avenue walking
+spans. Macquarie Shops uses its real source footprint and original frontage
+details based on two ACT exterior photos. The north and south snapshots retain
+704 more checked residential footprints. See the [ANU source notes](../../capital-drive-anu-sources.md),
+[Macquarie reference notes](../../capital-drive-macquarie-reference.md) and
+[regional map notes](../../capital-drive-regional-sources.md).
+
+Open More → Skylark job or Jobs → Skylark retrieval while stopped outside to
+start a repeatable original contract. Use WASD to steer the drop and Space to
+deploy the parachute. Search the three guarded caches, match the safe symbols,
+collect the sealed case, beat the foreman and pilot the extraction helicopter
+through three flight gates. Career pays $8,500 after extraction. Free roam is
+practice. The loan weapon returns to its prior inventory after the attempt.
+The 15-minute duration is a design target that depends on play.
+
+Initial terrain loads the nearest nine districts. Remaining terrain chunks
+load one at a time during render updates. Terrain sampling caches exact
+coordinates for a single chunk build. Prepared neighbourhood outlines and
+local-history obstacle bounds reduce startup CPU while retaining geometry and
+collision. The CPU comparisons exclude WebGL and target hardware FPS.
 
 Street verges, park groves and mapped woodland use deterministic foliage recipes
 with chunk budgets. Gum trees and broadleaf trees use forked branches and an
