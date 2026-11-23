@@ -142,6 +142,9 @@ import {createMacquarieShopsView,MACQUARIE_SHOPS_REFERENCE} from './macquarie-sh
 import {createSkylineJob} from './skyline-job.js';
 import {createSkylineOpponents} from './skyline-opponents.js';
 import {createSkylineSiteView} from './skyline-site-view.js';
+import {createSkylineCover} from './skyline-cover.js';
+import {createSkylineAtv} from './skyline-atv.js';
+import {createSkylineAtvView} from './skyline-atv-view.js';
 import {createTerrainSampler} from './terrain.js';
 import {createCivicView,CIVIC_BUILDING_IDS,CIVIC_LANDMARKS,CIVIC_INTERIOR_ENTRIES} from './civic-view.js';
 import {carCockpitFrame,drivingCameraShake} from './car-camera.js';
@@ -485,6 +488,7 @@ let pedestrians, neighbourhood;
 let gameplay, progression, actorView, landmarkView, northPlacesView, regionalLandmarksView, streetUI, addressSearch;
 let anuCampusView,macquarieShopsView;
 let skylineJob,skylineOpponents,skylineSiteView,skylineLease=null,skylineAirPose=null,skylineHelicopter=null;
+let skylineAtv,skylineAtvView,skylineCover=[];
 const SKYLINE_SITE=Object.freeze({x:2760,z:2750,yaw:0}),SKYLINE_WEAPON='carbine';
 const skylineSymbols=new Set();
 let buses,busView,occupantsView,servicesView,previousActorMode='vehicle';
@@ -932,8 +936,8 @@ function updateAircraft(dt){
 function skylineContext(enemyOutcomes=[]){
   const state=gameplay.state,pose=focus(),pilot=aircraft.active;
   const craft=pilot?.id===skylineHelicopter?.id?pilot:skylineHelicopter;
-  return {player:{...pose,y:Number.isFinite(pose.y)?pose.y:world.heightAt(pose.x,pose.z)},
-    onFoot:state.mode==='foot'&&!state.passenger&&!state.actor.swimming&&!skylineAirPose&&!interiors.active,
+  const onFoot=state.mode==='foot'&&!state.passenger&&!state.actor.swimming&&!skylineAirPose&&!interiors.active;
+  return {player:{...pose,y:!onFoot&&Number.isFinite(pose.y)?pose.y:world.heightAt(pose.x,pose.z)},onFoot,
     recovering:!!state.recovery,dead:state.health<=0,enemyOutcomes,
     extraction:craft?{...craft,vehicleId:craft.id,active:!craft.wrecked,
       boarded:pilot?.id===craft.id,pilotControlled:pilot?.id===craft.id&&!craft.wrecked}:null};
@@ -955,12 +959,27 @@ function renderSkylineOffer(){
   status.textContent=active?skylineJob.snapshot().objective:reason;
 }
 function openSkylineOffer(){if(started){renderSkylineOffer();openDialog('skylark-dialog');}}
+function setSkylineCover(active){
+  if(active)simulation.registerStaticBarriers(skylineCover);
+  else simulation.unregisterStaticBarriers(skylineCover);
+  for(const part of skylineCover)shotObstacles.setBarrierDestroyed(part.id,!active);
+}
+function skylineOpponentSight(from,to){
+  if(!visible(from,to))return false;
+  // Player bullets already pass through the height-aware shot trace.
+  if(!Number.isFinite(from.y)||!Number.isFinite(to.y)||Number.isFinite(from.range))return true;
+  const dx=to.x-from.x,dy=to.y-from.y,dz=to.z-from.z,range=Math.hypot(dx,dy,dz);
+  return range<.03||shotObstacles.trace({x:from.x,y:from.y,z:from.z,dx:dx/range,dy:dy/range,dz:dz/range,range})>=range-.02;
+}
 function startSkyline(){
   const blocked=skylineLaunchReason();if(blocked){notify(blocked);return;}
   saveCareer();
   const start=skylineJob.start();if(!start.ok){notify(start.message);return;}
   const state=gameplay.state;
   skylineLease={body:{...protagonistCheckpoint(),...gameplay.missionRecoverySnapshot()},destination};
+  setSkylineCover(true);
+  const atv=skylineAtv.spawn(skylineJob.layout.landing);
+  if(!atv.ok){skylineJob.fail('The ATV parking spot is blocked. Start the retrieval again.');handleSkylineEvents();return;}
   skylineSymbols.clear();footMotion.capture(null,null);
   state.mode='foot';state.actor.swimming=false;
   const loan=weaponById(SKYLINE_WEAPON);
@@ -968,16 +987,16 @@ function startSkyline(){
   gameplay.setWeapon(SKYLINE_WEAPON);
   placeSkylineFall(skylineJob.snapshot().pose);
   footCameraYaw=state.actor.yaw;footLookPitch=-.36;cameraReady=false;
-  routeTo(null);closeDialogs();renderer.domElement.focus();handleSkylineEvents();notify(`${start.message} Space deploys.`);
+  routeTo(null);closeDialogs();renderer.domElement.focus();handleSkylineEvents();notify(start.message);
 }
-function placeSkylineFall(pose){
-  skylineAirPose={...pose,speed:Math.abs(pose.verticalSpeed||0)};
+function placeSkylineFall(pose,stage='freefall'){
+  skylineAirPose={...pose,speed:Math.abs(pose.verticalSpeed||0),skydive:stage==='flare'?'flare':'fall'};
   Object.assign(gameplay.state.actor,{x:pose.x,z:pose.z,yaw:pose.yaw,speed:0,
     jumpHeight:Math.max(0,pose.y-world.heightAt(pose.x,pose.z))});
 }
 function handleSkylineEvents(){
   for(const event of skylineJob.drainEvents()){
-    if(event.type==='parachute-deployed'){
+    if(event.type==='landing-flare'){
       clearTimeout(toastTimer);$('toast').hidden=true;
     }else if(event.type==='landed'){
       const {pose}=event;
@@ -987,7 +1006,9 @@ function handleSkylineEvents(){
       skylineAirPose=null;
       Object.assign(gameplay.state.actor,{x:pose.x,z:pose.z,yaw:pose.yaw,jumpHeight:0,speed:0});
       footMotion.capture(null,null);cameraReady=false;
-      notify('On the ground. Follow the cache markers.');
+      notify('On the ground. Press E beside the ATV to ride to the first cache.');
+    }else if(event.type==='reinforcement-alert'){
+      notify('The cache crew called for backup. Get behind cover.');
     }else if(event.type==='extraction-ready'){
       const result=aircraft.addJobHelicopter(event.vehicleId,event.pad);
       if(result.ok){skylineHelicopter=result.aircraft;notify('Extraction helicopter is on the pad.');}
@@ -1004,6 +1025,7 @@ function handleSkylineEvents(){
 function finishSkyline(event){
   const lease=skylineLease;if(!lease)return;
   skylineLease=skylineAirPose=null;skylineSymbols.clear();skylineOpponents.clear();
+  skylineAtv.reset();setSkylineCover(false);syncExternalVehicles();
   if(skylineHelicopter)aircraft.releaseJobHelicopter(skylineHelicopter.id);
   skylineHelicopter=null;
   const state=gameplay.state,succeeded=event.type==='complete';
@@ -1019,6 +1041,7 @@ function finishSkyline(event){
 }
 function updateSkyline(dt,walk){
   if(!skylineLease)return;
+  if(skylineAtv.seatPose)skylineAtv.step(dt,input(),{valid:!gameplay.state.recovery&&gameplay.state.health>0});
   const mission=skylineJob.snapshot();
   const ctx=skylineContext();
   skylineOpponents.step(dt,mission,{...ctx,active:mission.active,health:gameplay.state.health});
@@ -1029,15 +1052,36 @@ function updateSkyline(dt,walk){
     else if(!down)skylineSymbols.delete(key);
   }
   if(ctx.extraction?.boarded&&!ctx.extraction.active)skylineJob.fail('Extraction helicopter disabled.');
-  skylineJob.step(dt,ctx,{steerX:walk.moveX,steerZ:walk.moveZ,deploy:walk.jump,confirmSymbol});
+  skylineJob.step(dt,ctx,{steerX:walk.moveX,steerZ:walk.moveZ,confirmSymbol});
   const next=skylineJob.snapshot();
-  if(next.stage==='freefall'||next.stage==='parachute')placeSkylineFall(next.pose);
+  if(next.stage==='freefall'||next.stage==='flare')placeSkylineFall(next.pose,next.stage);
   handleSkylineEvents();
+}
+function nearbySkylineAtv(pose){
+  const atv=skylineAtv.vehicle;
+  return atv&&Math.hypot(atv.x-pose.x,atv.z-pose.z)<=3;
+}
+function interactSkylineAtv(ctx){
+  const ride=skylineAtv.interact({pose:ctx.player,onFoot:ctx.onFoot,
+    valid:!ctx.dead&&!ctx.recovering&&!(gameplay.state.actor.impactTime>0)});
+  if(ride.exitPose){
+    const {x,z,yaw}=ride.exitPose;
+    delete gameplay.state.actor.y;
+    Object.assign(gameplay.state.actor,{x,z,yaw,speed:0,jumpHeight:0});
+    footCameraYaw=yaw;
+  }
+  if(ride.boarded||ride.exited){clearInput();cameraReady=false;}
+  if(ride.boarded)notify('WASD drive. Stop and press E to hop off.');
+  else if(ride.exited)notify('Off the ATV.');
+  else if(ride.reason==='stop-before-exit')notify('Stop the ATV before hopping off.');
+  else if(ride.reason==='atv-exit-blocked')notify('Move the ATV to a clear spot before hopping off.');
+  else notify('Move beside the ATV on foot.');
 }
 function interactSkyline(){
   if(!skylineLease)return false;
   const mission=skylineJob.snapshot();
-  if(skylineAirPose){notify('Use Space to deploy the parachute.');return true;}
+  if(skylineAirPose)return true;
+  if(skylineAtv.seatPose){interactSkylineAtv(skylineContext());return true;}
   if(mission.stage==='flight'){notify('Fly through the remaining marked gates.');return true;}
   if(mission.stage==='boarding'&&!aircraft.active){interactAircraft();return true;}
   if(mission.stage==='safe')return true;
@@ -1045,7 +1089,8 @@ function interactSkyline(){
     const result=aircraft.addJobHelicopter(mission.extraction.vehicleId,mission.layout.helipad);
     if(!result.ok){notify(result.reason);return true;}skylineHelicopter=result.aircraft;
   }
-  const result=skylineJob.interact(skylineContext());
+  const ctx=skylineContext(),result=skylineJob.interact(ctx);
+  if(!result.ok&&ctx.onFoot&&nearbySkylineAtv(ctx.player)){interactSkylineAtv(ctx);return true;}
   handleSkylineEvents();if(!aircraft.active)notify(result.message);
   return true;
 }
@@ -1540,10 +1585,14 @@ function interactWatercraft(){
 function interiorHint(){
   if(skylineLease){
     const {stage,objective}=skylineJob.snapshot();
-    if(stage==='freefall')return 'WASD steer · Space deploys parachute';
-    if(stage==='parachute')return 'WASD steer to the marked drop zone';
+    if(stage==='freefall')return 'WASD steer · Release over the ring';
+    if(stage==='flare')return 'Stay inside the landing ring';
     if(stage==='flight')return aircraft.snapshot().prompt;
-    return ['search','safe-approach','loot','helipad','boarding'].includes(stage)?`E / USE · ${objective}`:objective;
+    if(skylineAtv.seatPose)return 'WASD drive ATV · E / USE hop off when stopped';
+    const marker=skylineJob.snapshot().marker;
+    const usable=['search','capture','safe-approach','loot','helipad','boarding'].includes(stage);
+    if(usable&&marker&&Math.hypot(marker.x-focus().x,marker.z-focus().z)<=marker.radius)return `E / USE · ${objective}`;
+    return nearbySkylineAtv(focus())?'E / USE · Ride the ATV':objective;
   }
   if(jetpack?.active)return 'SPACE rise · SHIFT descend · U land · Z aim';
   if(inquiryOfficer&&!interiors.active&&campaignAftermath.canSpeak(focus()))return 'E / USE · Speak to the investigating officer';
@@ -2093,7 +2142,8 @@ function shotTargets(){
   return result;
 }
 function shotVehicles(ray,room){
-  const vehicles=room?[]:[...simulation.nearbyVehicles(ray.x,ray.z,ray.range+12),...(lightRail?.vehicles||[]),...(depotTank?.vehicle?[depotTank.vehicle]:[]),...(buses?.vehicles||[]),...(rideService?.vehicles||[]),...(delivery?.vehicles||[]),
+  const atv=skylineAtv?.vehicle;
+  const vehicles=room?[]:[...simulation.nearbyVehicles(ray.x,ray.z,ray.range+12),...(lightRail?.vehicles||[]),...(depotTank?.vehicle?[depotTank.vehicle]:[]),...(atv?[atv]:[]),...(buses?.vehicles||[]),...(rideService?.vehicles||[]),...(delivery?.vehicles||[]),
     ...gameplay.state.police.filter(unit=>unit.health>0&&unit.car).map(unit=>unit.car),...(gameplay.policeWrecks||[]),
     ...(aircraft?.snapshot().planes||[]).map(plane=>({...plane,kind:'aircraft',width:plane.kind==='helicopter'?3.4:4}))];
   return vehicles;
@@ -2152,7 +2202,7 @@ function policeShotClear(from,to,{room,interiorId}={}){
   const distance=Math.hypot(to.x-from.x,to.y-from.y,to.z-from.z);
   if(!(distance>0))return false;
   let occupied;
-  if(to.id==='player')occupied=aircraft?.active?.id||lightRail?.seatPose?.id||depotTank?.seatPose?.id||(buses?.passenger&&buses.seatPose?.id)||(rideService?.passenger&&rideService.seatPose?.id)||
+  if(to.id==='player')occupied=aircraft?.active?.id||skylineAtv?.seatPose?.id||lightRail?.seatPose?.id||depotTank?.seatPose?.id||(buses?.passenger&&buses.seatPose?.id)||(rideService?.passenger&&rideService.seatPose?.id)||
     (gameplay.state.mode==='vehicle'?'player':null);
   else occupied=(campaignScenes?.people||[]).find(person=>person.id===to.id&&person.seated)?.vehicleId;
   const ray={x:from.x,y:from.y,z:from.z,dx:(to.x-from.x)/distance,dy:(to.y-from.y)/distance,dz:(to.z-from.z)/distance,
@@ -3466,6 +3516,7 @@ function updateHud() {
   const car=simulation.player,speed=manual?Math.hypot(car.vx,car.vz):Math.abs(p.speed);
   const bus=buses?.tracking();
   const tram=lightRail?.passenger;
+  const atv=skylineAtv?.seatPose;
   $('speed').textContent = String(Math.round(speed * 3.6));
   refreshAircraftRescue();
   $('gear').textContent = tram?'–':watercraft?.isActive?'LAKE':aircraft?.active?(aircraft.active.airborne?'AIR':'LAND'):p.speed < -.5 ? 'R' : Math.abs(p.speed) < .6 ? 'N' : String(Math.min(6, Math.floor(Math.abs(p.speed) / 8) + 1));
@@ -3473,7 +3524,7 @@ function updateHud() {
   const busDistance=bus?.currentStop?'AT PLATFORM':bus?.distanceToNextStop!=null?`${bus.distanceToNextStop} M TO STOP`:null;
   $('distance').textContent = tram?(lightRail.passengerStopId?'AT PLATFORM':'EN ROUTE'):busDistance||(watercraft?.isActive?'LAKE BURLEY GRIFFIN':aircraft?.active?`${Math.round(aircraftAltitude())} M AGL`:`${(simulation.player.odometer / 1000).toFixed(1)} KM`);
   const carLabel=vehicles.find(v=>v.id===selectedCar)?.label||selectedCar.toUpperCase();
-  $('car-label').textContent = tram?'CAPITAL LINE':aircraft?.active?(aircraft.active.kind==='helicopter'?'HELICOPTER':'JET'):bus?`BUS · ${bus.routeName.toUpperCase()}`:rideService?.passenger?'YOOBER':gameplay?.state.mode==='foot'?'ON FOOT':gameplay.state.vehicle.rented?`RENTAL · ${carLabel}`:carLabel;
+  $('car-label').textContent = atv?'SKYLARK ATV':tram?'CAPITAL LINE':aircraft?.active?(aircraft.active.kind==='helicopter'?'HELICOPTER':'JET'):bus?`BUS · ${bus.routeName.toUpperCase()}`:rideService?.passenger?'YOOBER':gameplay?.state.mode==='foot'?'ON FOOT':gameplay.state.vehicle.rented?`RENTAL · ${carLabel}`:carLabel;
   $('street').textContent = interiors?.active?.name||nearby?.road.name || 'Canberra backstreets';
   const districtPlaces=map.landmarks.filter(place=>place.sourceTags?.place==='suburb'||[
     'telopea','manuka','kingston','foreshore','redhill','griffith','narrabundah','canberra-centre','canberra-airport',
@@ -3616,7 +3667,8 @@ function updateCareer(dt=0) {
   }
 }
 function syncExternalVehicles(){
-  simulation.setExternalVehicles([...aircraftObstacles(),...(depotTank?.vehicle?[depotTank.vehicle]:[]),...(lightRail?.vehicles||[]),...(buses?.vehicles||[]),...(rideService?.vehicles||[]),...(delivery?.vehicles||[]),...gameplay.state.police.filter(p=>p.health>0&&p.car).map(p=>p.car),...(gameplay.policeWrecks||[])]);
+  const atv=skylineAtv?.vehicle;
+  simulation.setExternalVehicles([...(atv?[atv]:[]),...aircraftObstacles(),...(depotTank?.vehicle?[depotTank.vehicle]:[]),...(lightRail?.vehicles||[]),...(buses?.vehicles||[]),...(rideService?.vehicles||[]),...(delivery?.vehicles||[]),...gameplay.state.police.filter(p=>p.health>0&&p.car).map(p=>p.car),...(gameplay.policeWrecks||[])]);
 }
 function syncExternalPeople(){
   externalPeopleContacts.length=0;
@@ -3770,7 +3822,7 @@ function animate(time) {
   if(!renderGate.shouldRender({paused:paused()&&!graphicsTest.active,hidden:document.hidden,cinematic:cutscenes.snapshot().active,tracking,revision:viewRevision,pendingChunks:pendingWorldChunks()}))return;
   const renderDt = Math.min(.1, (time - (lastRender || time)) / 1000); lastRender = time;
   const p = focus(), activeDt = paused()&&!tracking ? 0 : renderDt;
-  const drawnActor=skylineAirPose?{...gameplay.state.actor,feetY:skylineAirPose.y}:jetpack.active?{...gameplay.state.actor,feetY:jetpack.feetY}:
+  const drawnActor=skylineAirPose?{...gameplay.state.actor,feetY:skylineAirPose.y,skydive:skylineAirPose.skydive}:jetpack.active?{...gameplay.state.actor,feetY:jetpack.feetY}:
     footMotion.sample(ordinaryFootPose(),interiors.active,accumulator*60,!cameraReady)||gameplay.state.actor;
   const cameraPose=p===gameplay.state.actor?drawnActor:p;
   const cockpit=cockpitCamera&&cockpitAvailable();
@@ -3808,6 +3860,7 @@ function animate(time) {
   anuCampusView?.update(p);
   macquarieShopsView?.update(p);
   skylineSiteView?.update(skylineJob.snapshot(),p);
+  skylineAtvView?.update(skylineAtv.snapshot(),p);
   warMemorialView?.update(p);
   birdsView?.update(p,activeDt,{lowGraphics:quality==='low'||quality==='performance',paused:activeDt===0,reducedMotion:reducedCombatMotion.matches});
   assassinationSiteView?.update(p);
@@ -3897,6 +3950,10 @@ function animate(time) {
     const angle=p.yaw+orbit,distance=19+Math.min(7,aircraft.active.speed*.1);
     desiredCamera.set(p.x+Math.sin(angle)*distance,p.y+7+orbitHeight,p.z+Math.cos(angle)*distance);
     lookTarget.set(p.x-Math.sin(p.yaw)*10,p.y+Math.tan(lookPitch)*(distance+10),p.z-Math.cos(p.yaw)*10);
+  } else if(skylineAtv?.seatPose){
+    const angle=p.yaw+orbit,distance=6.5;
+    desiredCamera.set(p.x+Math.sin(angle)*distance,p.y+2.9+orbitHeight,p.z+Math.cos(angle)*distance);
+    lookTarget.set(p.x-Math.sin(p.yaw)*3,p.y+Math.tan(lookPitch)*9,p.z-Math.cos(p.yaw)*3);
   } else if(lightRail?.passenger){
     const angle=p.yaw+orbit,distance=22;
     desiredCamera.set(p.x+Math.sin(angle)*distance,p.y+8+orbitHeight,p.z+Math.cos(angle)*distance);
@@ -4173,8 +4230,13 @@ async function boot() {
   aircraft=createAircraft(map,simulation,{heightAt:world.heightAt});
   aircraftView=compatibility?emptyView():createAircraftView(scene);
   skylineJob=createSkylineJob({site:SKYLINE_SITE,groundHeightAt:world.groundHeightAt});
-  skylineSiteView=compatibility?null:createSkylineSiteView(scene,world.groundHeightAt);
-  skylineOpponents=createSkylineOpponents({heightAt:world.heightAt,hasLineOfSight:visible,
+  skylineCover=createSkylineCover(skylineJob.layout,{heightAt:world.groundHeightAt,canOccupy:simulation.canOccupy,nearestRoad:simulation.nearestRoad});
+  skylineSiteView=compatibility?null:createSkylineSiteView(scene,world.groundHeightAt,{cover:skylineCover});
+  skylineAtv=createSkylineAtv({heightAt:world.groundHeightAt,canOccupy:simulation.canOccupy,moveVehicle:simulation.moveVehicle,
+    canStand:(pose,{ignoreId})=>standClear(pose,ignoreId)&&!simulation.waterAt(pose.x,pose.z,{underBridge:true}),
+    canSee:(from,to)=>visible(from,to)});
+  skylineAtvView=compatibility?null:createSkylineAtvView(scene);
+  skylineOpponents=createSkylineOpponents({heightAt:world.heightAt,hasLineOfSight:skylineOpponentSight,
     clipMovement:(body,dx,dz,radius)=>{const step=simulation.moveActor({...body},dx,dz,radius);return {dx:step.x-body.x,dz:step.z-body.z};},
     onPlayerHit:amount=>gameplay.damageActor(amount)});
   for(const plane of aircraft.snapshot().planes){
@@ -4218,7 +4280,8 @@ async function boot() {
     campaign=createCampaign(map,null,campaignOptions);progression = createProgression(map,null,careerOptions); $('save-status').textContent = careerError;
     campaignWorld=createCampaignWorld();streetWorld=createCampaignWorld();campaignAftermath=createCampaignAftermath();
   }
-  shotObstacles=createShotObstacles(map,{heightAt:world.heightAt,groundHeightAt:world.groundHeightAt,vehicleHeightAt:world.vehicleHeightAt,bridgeSegments:terrainSampler.bridgeSegments});
+  shotObstacles=createShotObstacles({...map,barriers:[...map.barriers,...skylineCover]},{heightAt:world.heightAt,groundHeightAt:world.groundHeightAt,vehicleHeightAt:world.vehicleHeightAt,bridgeSegments:terrainSampler.bridgeSegments});
+  setSkylineCover(false);
   drone=createDrone({heightAt:world.groundHeightAt,canOccupy:droneCanOccupy});droneView=compatibility?emptyView():createDroneView(scene);
   const cameraLocations=streetCameraLocations(ALL_STORES,world.heightAt,cameraMountClear);
   securityCameras=createSecurityCameras(cameraLocations,{heightAt:world.heightAt,hasLineOfSight:cameraSight});
@@ -4254,7 +4317,7 @@ async function boot() {
     playerFeetY:()=>skylineAirPose?.y??jetpack?.feetY,
     launchRocket:ray=>ordnance?.launchRocket(ray),onVehicleShot:hitWorldVehicle,onVehicleExplosion:damageExplosionVehicles,policeShotClear,getAllies:()=>campaignScenes?.people||[],
     getSearchDuration:campaign.policeSearchDuration,
-    passengerPose:()=>aircraft?.seatPose||depotTank?.seatPose||watercraft?.seatPose||lightRail?.seatPose||rideService?.seatPose||buses?.seatPose,
+    passengerPose:()=>aircraft?.seatPose||skylineAtv?.seatPose||depotTank?.seatPose||watercraft?.seatPose||lightRail?.seatPose||rideService?.seatPose||buses?.seatPose,
     playerAltitude:aircraftAltitude,isPiloting:()=>!!aircraft?.active||watercraft?.isActive===true||depotTank?.isActive===true,
     hasWeapon:id=>!!progression.state.equipment[id]||!!skylineLease&&id===SKYLINE_WEAPON,hasPistol:()=>progression.state.equipment.pistol,fitness:()=>progression.state.fitnessLevel,
     onCarjacked:pose=>occupantsView?.addExit(pose),
@@ -4397,7 +4460,7 @@ async function boot() {
     assassination:freezeCopy({approach:assassinationMission?.stages[0],target:contractTarget.snapshot(),site:assassinationSiteView.stats}),
     watercraft:freezeCopy({...watercraft.snapshot(),view:watercraftView.stats}),
     lightRail:freezeCopy({...lightRail.snapshot(),view:lightRailView.stats}),depotTank:freezeCopy(depotTank.snapshot()),
-    heists:freezeCopy(heists.snapshot()),skyline:freezeCopy(skylineJob.snapshot()),skylineView:freezeCopy(skylineSiteView?.stats()||null),flightGuide:freezeCopy(airGuideState),minimapZoomed,northPlaces:freezeCopy(northPlacesView?.stats()||null),regionalLandmarks:freezeCopy(regionalLandmarksView?.stats||null),anuCampus:freezeCopy(anuCampusView?.stats()||null),regions:freezeCopy(map.regionalExpansion),memorial:freezeCopy(warMemorialView?.stats||null),birds:freezeCopy(birdsView?.stats()||null),campaignWorld:campaignWorld.snapshot(),streetWorld:streetWorld.snapshot(),
+    heists:freezeCopy(heists.snapshot()),skyline:freezeCopy(skylineJob.snapshot()),skylineView:freezeCopy(skylineSiteView?.stats()||null),skylineAtv:freezeCopy(skylineAtv.snapshot()),flightGuide:freezeCopy(airGuideState),minimapZoomed,northPlaces:freezeCopy(northPlacesView?.stats()||null),regionalLandmarks:freezeCopy(regionalLandmarksView?.stats||null),anuCampus:freezeCopy(anuCampusView?.stats()||null),regions:freezeCopy(map.regionalExpansion),memorial:freezeCopy(warMemorialView?.stats||null),birds:freezeCopy(birdsView?.stats()||null),campaignWorld:campaignWorld.snapshot(),streetWorld:streetWorld.snapshot(),
     aftermath:freezeCopy({case:campaignAftermath.current(),history:campaignAftermath.serialize()}),
     trafficSample: freezeCopy(simulation.traffic.slice(0, 8).map(({ id, x, z, speed, active, behaviour, honkCount }) => ({ id, x, z, speed, active, behaviour, honkCount }))) });
   raf = requestAnimationFrame(animate);
@@ -4411,7 +4474,7 @@ window.addEventListener('pagehide', event => {
   stealthContractView?.dispose();
   watercraft?.dispose();watercraftView?.dispose();
   lightRailView?.dispose();heistSitesView?.dispose();northPlacesView?.dispose();depotTankView?.dispose();
-  regionalLandmarksView?.dispose();anuCampusView?.dispose();macquarieShopsView?.dispose();skylineSiteView?.dispose();skylineOpponents?.dispose();
+  regionalLandmarksView?.dispose();anuCampusView?.dispose();macquarieShopsView?.dispose();skylineSiteView?.dispose();skylineOpponents?.dispose();skylineAtvView?.dispose();skylineAtv?.reset();
   warMemorialView?.dispose();birdsView?.dispose();
   aircraft?.reset();aircraftView?.dispose();jetpack?.reset(gameplay?.state);jetpackView?.dispose();ordnance?.reset();ordnanceView?.dispose();indoorOrdnanceView?.dispose();atmosphereView?.dispose();airportView?.dispose();defenceDepotView?.dispose();policeStationView?.dispose();vehicleDamageView?.dispose();
   if (audio) { audio.engine.dispose(); audio.context.close().catch(error => console.warn('Could not release audio:', error.message)); }

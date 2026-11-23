@@ -1,5 +1,5 @@
 'use strict';
-const buildId = '3b9ed485358a'; // Generated build ID
+const buildId = '165a5ba058ac'; // Generated build ID
 importScripts(`./cache-manifest.js?capital-build=${buildId}`);
 
 const manifest = self.CAPITAL_CACHE_MANIFEST;
