@@ -70,6 +70,7 @@ import { createAddressSearch } from './address-search.js';
 import { LANDMARKS, LANDMARK_CLEARINGS, replacedBuildingIds,POOL_BARRIERS,POOL_GATE_APPROACHES,MANUKA_POOL_BASIN } from './landmarks.js';
 import { createLandmarksView } from './landmarks-view.js';
 import {createNorthPlacesView} from './north-places-view.js';
+import {createRegionalLandmarksView} from './regional-landmarks-view.js';
 import {createDriveAudio} from './drive-audio.js';
 import {applyRoadProfiles,roadProfile,roadSpeed} from './road-network.js';
 import {createBuses} from './buses.js';
@@ -134,6 +135,7 @@ import {selectStoryHomes,createMissionGuide} from './mission-locations.js';
 import {planSafehouseReturn} from './safehouse-recovery.js';
 import {applyMapExpansion,expansionPlaces} from './map-expansion.js';
 import {applyNorthWest} from './north-west.js';
+import {applyRegionalExpansion} from './regional-expansion.js';
 import {createTerrainSampler} from './terrain.js';
 import {createCivicView,CIVIC_BUILDING_IDS,CIVIC_LANDMARKS,CIVIC_INTERIOR_ENTRIES} from './civic-view.js';
 import {carCockpitFrame,drivingCameraShake} from './car-camera.js';
@@ -474,7 +476,7 @@ let cameraReady = false, raf = 0, frameCount = 0;
 let compatibility = false;
 const parkedResources = [];
 let pedestrians, neighbourhood;
-let gameplay, progression, actorView, landmarkView, northPlacesView, streetUI, addressSearch;
+let gameplay, progression, actorView, landmarkView, northPlacesView, regionalLandmarksView, streetUI, addressSearch;
 let buses,busView,occupantsView,servicesView,previousActorMode='vehicle';
 let gameMode = 'street', selectedGameMode = 'street', careerError = '', footCameraYaw = 0, careerNitro = 1;
 let mouseAim = false, mouseFire = false, lastJobTarget = '';
@@ -2782,8 +2784,9 @@ function updateKeyboardLook(dt){
 
 function createMapImage() {
   const b = map.bounds;
-  mapImage = document.createElement('canvas'); mapImage.width = 1800;
-  mapScale = mapImage.width / (b.maxX - b.minX);
+  mapImage = document.createElement('canvas');
+  mapScale = Math.min(1800 / (b.maxX - b.minX), 2400 / (b.maxZ - b.minZ));
+  mapImage.width = Math.round((b.maxX - b.minX) * mapScale);
   mapImage.height = Math.round((b.maxZ - b.minZ) * mapScale);
   const ctx = mapImage.getContext('2d'); ctx.fillStyle = '#dfdfcc'; ctx.fillRect(0, 0, mapImage.width, mapImage.height);
   const path = (points,begin=true) => { if(begin)ctx.beginPath(); points.forEach(([x, z], i) => ctx[i ? 'lineTo' : 'moveTo']((x - b.minX) * mapScale, (z - b.minZ) * mapScale)); };
@@ -3581,6 +3584,7 @@ function animate(time) {
   depotTankView?.update(depotTank.vehicle,p);
   heistSitesView?.update(p);
   northPlacesView?.update(p);
+  regionalLandmarksView?.update(p);
   warMemorialView?.update(p);
   birdsView?.update(p,activeDt,{lowGraphics:quality==='low'||quality==='performance',paused:activeDt===0,reducedMotion:reducedCombatMotion.matches});
   assassinationSiteView?.update(p);
@@ -3735,12 +3739,14 @@ function animate(time) {
   if (hudTime > .18) { renderBurglaryHUD();updateHud(); streetUI.refresh();renderMissionGuide(); hudTime = 0; }
 }
 async function boot() {
-  const [response, addressResponse,profileResponse,northResponse,terrainResponse,signalResponse,airportResponse,airportTerrainResponse,northWestResponse,northWestTerrainResponse,giantSprayResponse] = await loadGameData(['./data/canberra.json','./data/addresses.json','./data/road-profiles.json','./data/canberra-north.json','./data/north-terrain.json','./data/traffic-signals.json','./data/airport.json','./data/airport-terrain.json','./data/north-west.json','./data/north-west-terrain.json','./data/giant-spray.json']);
-  if (!response.ok || !addressResponse.ok||!profileResponse.ok||!northResponse.ok||!terrainResponse.ok||!signalResponse.ok||!airportResponse.ok||!airportTerrainResponse.ok||!northWestResponse.ok||!northWestTerrainResponse.ok||!giantSprayResponse.ok) throw new Error('Local map or address data could not be loaded.');
+  const responses = await loadGameData(['./data/canberra.json','./data/addresses.json','./data/road-profiles.json','./data/canberra-north.json','./data/north-terrain.json','./data/traffic-signals.json','./data/airport.json','./data/airport-terrain.json','./data/north-west.json','./data/north-west-terrain.json','./data/giant-spray.json','./data/region-belconnen.json','./data/region-north.json','./data/region-south.json']);
+  if (responses.some(response=>!response.ok)) throw new Error('Local map or address data could not be loaded.');
+  const [response,addressResponse,profileResponse,northResponse,terrainResponse,signalResponse,airportResponse,airportTerrainResponse,northWestResponse,northWestTerrainResponse,giantSprayResponse,...regionResponses] = responses;
   map = applyStreetAssetRoofs(applyMapExpansion(applyRoadProfiles(await response.json(),await profileResponse.json()),await northResponse.json()));
   map.terrainTiles=[(await terrainResponse.json()).terrain];
   map=applyDefenceDepot(applyAirport(map,await airportResponse.json(),await airportTerrainResponse.json()));
   map=applyNorthWest(map,await northWestResponse.json(),await northWestTerrainResponse.json(),await giantSprayResponse.json());
+  map=applyRegionalExpansion(map,await Promise.all(regionResponses.map(response=>response.json())));
   map.trafficSignals=await signalResponse.json();
   map.lakeWaterLevel=5.93;
   terrainSampler=createTerrainSampler(map);
@@ -3835,6 +3841,8 @@ async function boot() {
   heistSitesView=compatibility?emptyView():createHeistSitesView(scene,heistSites.sites);
   const towerFootprint=map.buildings.find(building=>building.id===tower?.buildingId)?.points;
   northPlacesView=compatibility?null:createNorthPlacesView(scene,{tower,towerFootprint,waterpark:map.giantSpray,heightAt:surfaceAt});
+  regionalLandmarksView=compatibility?null:createRegionalLandmarksView(scene,map,terrainSampler.groundHeightAt);
+  if(regionalLandmarksView)map.landmarkBuildingIds.push(...regionalLandmarksView.managedBuildingIds);
   warMemorialView=compatibility?null:createWarMemorialView(scene,map,terrainSampler.groundHeightAt);
   const assassinationMission=createAssassinationChapter(map,{
     canStand:pose=>standClear(pose),hasLineOfSight:simulation.hasLineOfSight,nearestRoad:simulation.nearestRoad,
@@ -4147,7 +4155,7 @@ async function boot() {
     assassination:freezeCopy({approach:assassinationMission?.stages[0],target:contractTarget.snapshot(),site:assassinationSiteView.stats}),
     watercraft:freezeCopy({...watercraft.snapshot(),view:watercraftView.stats}),
     lightRail:freezeCopy({...lightRail.snapshot(),view:lightRailView.stats}),depotTank:freezeCopy(depotTank.snapshot()),
-    heists:freezeCopy(heists.snapshot()),northPlaces:freezeCopy(northPlacesView?.stats()||null),memorial:freezeCopy(warMemorialView?.stats||null),birds:freezeCopy(birdsView?.stats()||null),campaignWorld:campaignWorld.snapshot(),streetWorld:streetWorld.snapshot(),
+    heists:freezeCopy(heists.snapshot()),northPlaces:freezeCopy(northPlacesView?.stats()||null),regionalLandmarks:freezeCopy(regionalLandmarksView?.stats||null),regions:freezeCopy(map.regionalExpansion),memorial:freezeCopy(warMemorialView?.stats||null),birds:freezeCopy(birdsView?.stats()||null),campaignWorld:campaignWorld.snapshot(),streetWorld:streetWorld.snapshot(),
     aftermath:freezeCopy({case:campaignAftermath.current(),history:campaignAftermath.serialize()}),
     trafficSample: freezeCopy(simulation.traffic.slice(0, 8).map(({ id, x, z, speed, active, behaviour, honkCount }) => ({ id, x, z, speed, active, behaviour, honkCount }))) });
   raf = requestAnimationFrame(animate);
@@ -4161,6 +4169,7 @@ window.addEventListener('pagehide', event => {
   stealthContractView?.dispose();
   watercraft?.dispose();watercraftView?.dispose();
   lightRailView?.dispose();heistSitesView?.dispose();northPlacesView?.dispose();depotTankView?.dispose();
+  regionalLandmarksView?.dispose();
   warMemorialView?.dispose();birdsView?.dispose();
   aircraft?.reset();aircraftView?.dispose();jetpack?.reset(gameplay?.state);jetpackView?.dispose();ordnance?.reset();ordnanceView?.dispose();indoorOrdnanceView?.dispose();atmosphereView?.dispose();airportView?.dispose();defenceDepotView?.dispose();policeStationView?.dispose();vehicleDamageView?.dispose();
   if (audio) { audio.engine.dispose(); audio.context.close().catch(error => console.warn('Could not release audio:', error.message)); }

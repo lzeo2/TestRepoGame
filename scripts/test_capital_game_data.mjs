@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 const source = await readFile(new URL('../Games/Capital Drive/game-data.js', import.meta.url), 'utf8');
 const {loadGameData} = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 const baseURL = 'https://arcade.test/repo/Games/Capital%20Drive/game-data.js';
-const urls = ['canberra', 'addresses', 'road-profiles', 'canberra-north', 'north-terrain', 'traffic-signals', 'airport', 'airport-terrain', 'north-west', 'north-west-terrain', 'giant-spray'].map(name => `./data/${name}.json`);
+const urls = ['canberra', 'addresses', 'road-profiles', 'canberra-north', 'north-terrain', 'traffic-signals', 'airport', 'airport-terrain', 'north-west', 'north-west-terrain', 'giant-spray', 'region-belconnen', 'region-north', 'region-south'].map(name => `./data/${name}.json`);
 const resolved = urls.map(url => new URL(url, baseURL).href);
 const prefix = `capital-drive-files-v1-${encodeURIComponent(new URL('./', baseURL).pathname)}-`;
 const cacheName = prefix + 'a'.repeat(64);

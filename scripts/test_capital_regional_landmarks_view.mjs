@@ -1,0 +1,76 @@
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import {createRegionalLandmarksView} from '../Games/Capital Drive/regional-landmarks-view.js';
+
+const designs=['arena','mall','library','hospital','campus','exhibition'];
+const rotate=(points,x,z,angle)=>points.map(([u,v])=>[x+Math.cos(angle)*u+Math.sin(angle)*v,z-Math.sin(angle)*u+Math.cos(angle)*v]);
+const outline=[[-40,-30],[40,-30],[40,30],[12,30],[12,20],[-12,20],[-12,30],[-40,30],[-40,-30]];
+const map={buildings:designs.map((design,i)=>({id:'source-'+i,sourceId:'way/'+(100+i),height:15,
+ points:rotate(outline,i*1800,200,.31+i*.10),innerRings:i===3?[{points:rotate([[-5,-5],[5,-5],[5,5],[-5,5]],i*1800,200,.31+i*.10)}]:[]})),
+ regionalPlaces:designs.map((design,i)=>({id:'place-'+i,name:['AIS ARENA','WESTFIELD BELCONNEN','PUBLIC LIBRARY','PUBLIC HOSPITAL','UNIVERSITY CAMPUS','EXHIBITION PARK'][i],design,buildingId:'source-'+i,sourceId:'way/'+(100+i),x:i*1800,z:150}))};
+const original=structuredClone(map),scene=new THREE.Scene();let heightCalls=0;
+const ground=(x,z)=>{heightCalls++;return 200+x*.001+z*.002;};
+const labels=Array.from({length:30},(_,i)=>({id:`suburb-${i}`,x:0,z:0}));
+const view=createRegionalLandmarksView(scene,{...map,regionalPlaces:[...labels,...map.regionalPlaces]},ground),root=scene.children[0];
+assert.equal(root.children.length,2);assert.equal(view.stats.sites,6);assert.equal(view.stats.drawCalls,0);
+assert.deepEqual(view.managedBuildingIds,map.buildings.map(b=>b.id));assert(Object.isFrozen(view.managedBuildingIds));
+assert.throws(()=>view.managedBuildingIds.push('wrong'),TypeError);
+const body=root.getObjectByName('Exact sourced landmark shells'),detail=root.getObjectByName('Original regional landmark facade accents');
+assert.equal(body.material.transparent,false);assert.equal(detail.material.transparent,false);assert.equal(view.stats.textureCount,0);
+const area=points=>Math.abs(points.reduce((n,p,i)=>{const q=points[(i+1)%points.length];return n+p[0]*q[1]-q[0]*p[1];},0))/2;
+const inside=(p,points)=>{let found=false;for(let i=0,j=points.length-1;i<points.length;j=i++){
+ const a=points[i],b=points[j];if((a[1]>p[1])!==(b[1]>p[1])&&p[0]<(b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0])found=!found;}return found;};
+const signatures=new Set();
+const constructionCalls=heightCalls;
+for(let i=0;i<map.regionalPlaces.length;i++){
+ const place=map.regionalPlaces[i],source=map.buildings[i];view.update(place);
+ assert.equal(view.stats.visible,1);assert.equal(view.stats.detailed,1);assert.equal(view.stats.drawCalls,2);
+ assert(view.stats.triangles>=view.stats.visibleTriangles,'pooled submission count includes collapsed distant triangles honestly');
+ const positions=body.geometry.attributes.position,xs=source.points.map(p=>p[0]),zs=source.points.map(p=>p[1]);
+ const center=[(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...zs)+Math.max(...zs))/2],roof=200+center[0]*.001+center[1]*.002+15;
+ let roofArea=0,wallVertices=0;
+ for(let v=0;v<positions.count;v+=3){
+  const triangle=[0,1,2].map(j=>[positions.getX(v+j),positions.getY(v+j),positions.getZ(v+j)]);
+  if(triangle.every(p=>p.every(n=>n===0)))continue;
+  for(const p of triangle){
+   const known=[...source.points,...source.innerRings.flatMap(h=>h.points)].some(([x,z])=>Math.hypot(x-p[0],z-p[2])<.001);
+   assert(known,'shell vertices belong to the exact source footprint or courtyard');
+   assert(p[1]<=roof+.0001,'interpretive architecture does not raise the source roof');wallVertices++;
+  }
+  if(triangle.every(p=>Math.abs(p[1]-roof)<.0001)){
+   roofArea+=area(triangle.map(p=>[p[0],p[2]]));
+   const centroid=[triangle.reduce((n,p)=>n+p[0]/3,0),triangle.reduce((n,p)=>n+p[2]/3,0)];
+   for(const hole of source.innerRings)assert(!inside(centroid,hole.points),'courtyard stays open in the roof');
+  }
+ }
+ assert(wallVertices>0);const expected=area(source.points)-source.innerRings.reduce((n,h)=>n+area(h.points),0);
+ assert(Math.abs(roofArea-expected)<.1,'concave source roof and holes retain their exact plan area');
+ const hash=createHash('sha256');
+ for(const mesh of [body,detail]){
+  const p=mesh.geometry.attributes.position,c=mesh.geometry.attributes.color;
+  for(let j=0;j<p.count;j++)if(p.getY(j)!==0)hash.update(JSON.stringify([Math.round((p.getX(j)-center[0])*1000),Math.round((p.getY(j)-roof+15)*1000),Math.round((p.getZ(j)-center[1])*1000),c.getX(j),c.getY(j),c.getZ(j)]));
+ }
+ signatures.add(hash.digest('hex'));
+ const versions=root.children.map(m=>m.geometry.attributes.position.version);view.update(place);
+ root.children.forEach((m,j)=>assert.equal(m.geometry.attributes.position.version,versions[j],'stationary focus does not upload geometry'));
+}
+const submittedTriangles=view.stats.triangles;
+assert.equal(signatures.size,6,'six facade families have distinct original detail/color geometry');assert.equal(heightCalls,constructionCalls,'distance updates never resample terrain');
+view.update({x:400,z:200});assert.equal(view.stats.visible,1);assert.equal(view.stats.detailed,0);assert.equal(view.stats.drawCalls,1,'far view keeps only the sourced shell');
+view.update({x:100000,z:100000});assert.equal(view.stats.drawCalls,0);assert.equal(view.stats.triangles,0);
+for(const mesh of root.children)assert(mesh.geometry.attributes.position.array.every(v=>v===0));
+view.update({x:NaN,z:Infinity});assert.equal(view.stats.visible,0);
+const detached=view.stats;detached.visible=99;assert.equal(view.stats.visible,0);
+assert.deepEqual(map,original,'view never edits source/collider metadata');
+let geometries=0,materials=0;root.children.forEach(m=>{m.geometry.addEventListener('dispose',()=>geometries++);m.material.addEventListener('dispose',()=>materials++);});
+view.dispose();view.dispose();view.update(map.regionalPlaces[0]);
+assert.equal(scene.children.length,0);assert.equal(geometries,2);assert.equal(materials,2);assert.equal(view.stats.disposed,true);
+
+const extraScene=new THREE.Scene(),longOutline=Array.from({length:24},(_,i)=>[Math.sin(i/24*Math.PI*2)*1000,Math.cos(i/24*Math.PI*2)*1000]);
+const longView=createRegionalLandmarksView(extraScene,{buildings:[{id:'large',height:40,points:longOutline}],regionalPlaces:[{id:'large',buildingId:'large',design:'hospital',name:'PUBLIC HOSPITAL'}]},()=>100);
+longView.update({x:0,z:0});assert(longView.stats.visibleTriangles<=24*3+longView.stats.maxDetailTrianglesPerSite,'long facades have a hard per-site detail budget');
+const largeStats=longView.stats;longView.dispose();
+const invalid=createRegionalLandmarksView(extraScene,{buildings:[{id:'oversize',height:20,points:Array.from({length:1025},(_,i)=>[Math.sin(i)*100,Math.cos(i)*100])}],regionalPlaces:[{id:'missing',buildingId:'missing',design:'arena'},{id:'oversize',buildingId:'oversize',design:'mall'}]},()=>100);
+assert.equal(invalid.stats.sites,0);assert.equal(invalid.stats.rejected,2);assert.deepEqual(invalid.managedBuildingIds,[],'missing/oversize owners retain generic fallback instead of clipped footprints');invalid.dispose();
+console.log(`PASS regional landmarks: six source-bound archetypes, concave roofs/courtyard, height/rotation, two opaque batches/${submittedTriangles} submitted triangles/no textures, cached near/far LOD, immutable metadata/managed IDs and exact disposal; stress ${largeStats.visibleTriangles} triangles capped at ${largeStats.maxDetailTrianglesPerSite} facade triangles/site`);

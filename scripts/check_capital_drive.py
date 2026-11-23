@@ -27,6 +27,7 @@ MODULES = (
     'water-contact.js', 'watercraft.js', 'watercraft-view.js',
     'light-rail.js', 'light-rail-source.js', 'light-rail-view.js', 'heist-sites.js', 'heist-sites-view.js', 'heist-activities.js',
     'war-memorial.js', 'war-memorial-data.js', 'war-memorial-view.js', 'birds-view.js',
+    'regional-expansion.js', 'regional-landmarks-view.js',
     'campaign-world.js', 'campaign-aftermath.js', 'career-reset.js', 'free-roam-gear.js', 'depot-tank.js',
     'ballistics.js', 'shot-obstacles.js', 'recon.js', 'camera-control.js', 'foot-motion.js', 'safehouse-recovery.js',
     'aircraft.js', 'aircraft-view.js', 'stealth-contracts.js', 'stealth-contracts-view.js',
@@ -43,6 +44,8 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','north-west.js', 'north-places-view.js', 'drive-audio.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
+    'test_capital_regional_expansion.mjs', 'test_capital_regional_landmarks_view.mjs',
+    'test_capital_regional_water.mjs', 'test_capital_regions_actual.mjs',
     'test_capital_gallery_contract.mjs', 'test_capital_jetpack_collision.mjs', 'test_capital_foliage_lighting.mjs',
     'test_capital_war_memorial.mjs', 'test_capital_birds_view.mjs', 'test_capital_bus_passenger_service.mjs',
     'test_capital_campaign_resolution.mjs', 'test_capital_interior_styles.mjs', 'test_capital_stealth_retry.mjs',
