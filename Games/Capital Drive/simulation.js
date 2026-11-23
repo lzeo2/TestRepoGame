@@ -237,11 +237,14 @@ export function createSimulation(map, options = {}) {
   }
   registerStaticBarriers(map.barriers||[]);
   const waterEdges=new SpatialGrid(128),waterMask=new WeakMap(),waterRings=new WeakMap();
-  const lake=(map.areas || []).find(area=>area.type==='water' && area.id==='osm-relation-3400115-0' && area.points?.length>2);
-  const lakeSurface=lake && Object.freeze({id:lake.id,y:Number.isFinite(map.lakeWaterLevel)?map.lakeWaterLevel:5.93});
+  const waterSurfaces=new WeakMap();
   const underDeck=Object.freeze({underBridge:true});
   for(const area of map.areas||[]){
     if(area.type!=='water')continue;
+    if(area.points?.length>2){
+      const level=area.id==='osm-relation-3400115-0'?(Number.isFinite(map.lakeWaterLevel)?map.lakeWaterLevel:5.93):area.surfaceY;
+      if(Number.isFinite(level))waterSurfaces.set(area,Object.freeze({id:area.id,y:level}));
+    }
     waterRings.set(area,{outer:prepareWaterRing(area.points||[]),holes:(area.innerRings||[]).map(r=>prepareWaterRing(r.points||r))});
     for(const ring of [area.points,...(area.innerRings||[]).map(r=>r.points||r)]){
       if(!ring)continue;
@@ -266,13 +269,16 @@ export function createSimulation(map, options = {}) {
     return mask;
   }
   function waterAt(x,z,optionsForWater){
-    if(!lake || !Number.isFinite(x) || !Number.isFinite(z)) return null;
+    if(!Number.isFinite(x) || !Number.isFinite(z)) return null;
     if(map.bounds&&(x<map.bounds.minX||x>map.bounds.maxX||z<map.bounds.minZ||z>map.bounds.maxZ))return null;
-    const bounds=waterIndex.extents.get(lake);
-    if(x<bounds.minX || x>bounds.maxX || z<bounds.minZ || z>bounds.maxZ) return null;
-    const mask=waterCell(lake,x,z),{outer,holes}=waterRings.get(lake);
-    const wet=mask==='water' || (mask==='edge' && outer.contains(x,z) && !holes.some(r=>r.contains(x,z)));
-    return wet && (optionsForWater?.underBridge || !options.isOnBridge?.(x,z)) ? lakeSurface : null;
+    if(!optionsForWater?.underBridge&&options.isOnBridge?.(x,z))return null;
+    for(const area of waterIndex.query(x,z,0)){
+      const surface=waterSurfaces.get(area);
+      if(!surface)continue;
+      const mask=waterCell(area,x,z),{outer,holes}=waterRings.get(area);
+      if(mask==='water'||(mask==='edge'&&outer.contains(x,z)&&!holes.some(r=>r.contains(x,z))))return surface;
+    }
+    return null;
   }
   function physicalContact(index,polygon,x,z,radius){
     if(index!==waterIndex){
@@ -1052,7 +1058,7 @@ export function createSimulation(map, options = {}) {
     function moveIfClear(x, z) {
       if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return false;
       for (const index of [buildingIndex, barrierIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
-        if(allowSwimming && index===waterIndex && polygon===lake) continue;
+        if(allowSwimming && index===waterIndex && waterSurfaces.has(polygon)) continue;
         if (physicalContact(index,polygon,x,z,radius)) return false;
       }
       const nextWater=allowSwimming ? waterAt(x,z,water?underDeck:undefined) : null;

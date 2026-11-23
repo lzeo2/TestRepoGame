@@ -412,7 +412,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     const points=area.points&&openRing(area.points);
     if(!points||points.length<3)return;
     const lake=area.id==='osm-relation-3400115-0';
-    const level=lake?(map.lakeWaterLevel??5.93):Math.min(...points.map(p=>groundHeightAt(...p)))+lift;
+    const level=lake?(map.lakeWaterLevel??5.93):Number.isFinite(area.surfaceY)?area.surfaceY:Math.min(...points.map(p=>groundHeightAt(...p)))+lift;
     const rings=(area.innerRings||[]).map(r=>openRing(r.points||r)).filter(r=>r.length>=3);
     const flat=[...points,...rings.flat()];
     const faces=THREE.ShapeUtils.triangulateShape(points.map(p=>new THREE.Vector2(...p)),rings.map(r=>r.map(p=>new THREE.Vector2(...p))));
@@ -429,11 +429,36 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     for(const face of faces)tile(...face.map(i=>flat[i]));
   }
 
-  // Match bilinear terrain cells. Adaptive subdivision bounds the difference
-  // between the rendered triangles and heightAt to under eight centimetres.
-  function terrainTile(x, z, dx, dz) {
+  // Visual floor correction only: the source DEM, roads and collision sampler
+  // remain authoritative. Fixed regional water planes are not bathymetry.
+  const waterFloors=(map.areas||[]).filter(a=>a.id!=='osm-relation-3400115-0'&&/water|lake|basin/.test(a.type)&&Number.isFinite(a.surfaceY)&&a.points?.length>=3).map(a=>({
+    level:a.surfaceY, outer:prepareWaterRing(a.points), holes:(a.innerRings||[]).map(r=>prepareWaterRing(r.points||r)),
+    minX:Math.min(...a.points.map(p=>p[0])),maxX:Math.max(...a.points.map(p=>p[0])),
+    minZ:Math.min(...a.points.map(p=>p[1])),maxZ:Math.max(...a.points.map(p=>p[1])),
+  }));
+  const inWaterFloor=(w,x,z)=>w.outer.contains(x,z)&&!w.holes.some(h=>h.contains(x,z));
+  // Only boundary cells refine: at most 32 subdivisions per axis, targeting 3m.
+  const waterGroundStep=3,waterGroundMaxDepth=5;
+
+  // Match bilinear terrain cells away from explicit water floors. Shoreline
+  // refinement bounds the narrow transition between source land and visual floor.
+  function terrainTile(x, z, dx, dz, depth=0) {
+    const water=waterFloors.filter(w=>x+dx>=w.minX&&x<=w.maxX&&z+dz>=w.minZ&&z<=w.maxZ);
+    if(depth<waterGroundMaxDepth&&Math.max(dx,dz)>waterGroundStep&&water.some(w=>{
+      const samples=[[x,z],[x+dx,z],[x,z+dz],[x+dx,z+dz],[x+dx/2,z+dz/2]];
+      if(!samples.some(p=>groundHeightAt(...p)-.18>w.level-.3))return false;
+      const radius=Math.hypot(dx,dz)/2,px=x+dx/2,pz=z+dz/2;
+      return [w.outer,...w.holes].some(r=>{const contact=r.contact(px,pz,radius);return contact&&contact.depth<2*radius;});
+    })){
+      for(let j=0;j<2;j++)for(let i=0;i<2;i++)terrainTile(x+i*dx/2,z+j*dz/2,dx/2,dz/2,depth+1);
+      return;
+    }
     const shade = new THREE.Color(COLORS.grass).multiplyScalar(0.98 + hash(x + z * 0.3) * 0.04);
-    const point = (px, pz) => [px, groundHeightAt(px, pz) - 0.18, pz];
+    const point = (px, pz) => {
+      let y=groundHeightAt(px,pz)-.18;
+      for(const w of water)if(inWaterFloor(w,px,pz))y=Math.min(y,w.level-.3);
+      return [px,y,pz];
+    };
     const a = point(x, z), b = point(x, z + dz), c = point(x + dx, z + dz), d = point(x + dx, z);
     surfaceTriangle(x, z, a, b, c, shade, 3); surfaceTriangle(x, z, a, c, d, shade, 3);
   }
@@ -462,12 +487,34 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       const [iz0, iz1] = gridRange(bounds.minZ, 35, Math.ceil((bounds.maxZ - bounds.minZ) / 35), 1);
       for (let iz = iz0; iz < iz1; iz++) for (let ix = ix0; ix < ix1; ix++) terrainTile(bounds.minX + ix * 35, bounds.minZ + iz * 35, 35, 35);
     }
+    const earlierTerrain=terrain?[terrain]:[];
     for(const tile of map.terrainTiles||[]){
+      // Regional grids are lower-priority overlays. Subtract earlier source
+      // rectangles before tessellation; keep legacy tile geometry unchanged.
+      const occluders=tile.gridSha256?earlierTerrain.filter(r=>r.minX<tile.maxX&&r.maxX>tile.minX&&r.minZ<tile.maxZ&&r.maxZ>tile.minZ):null;
+      earlierTerrain.push(tile);
       const dx=(tile.maxX-tile.minX)/(tile.cols-1),dz=(tile.maxZ-tile.minZ)/(tile.rows-1);
       const [ix0, ix1] = gridRange(tile.minX, dx, tile.cols - 1, 0);
       const [iz0, iz1] = gridRange(tile.minZ, dz, tile.rows - 1, 1);
       for(let iz=iz0;iz<iz1;iz++)for(let ix=ix0;ix<ix1;ix++){
         const x=tile.minX+ix*dx,z=tile.minZ+iz*dz;
+        if(occluders){
+          let pieces=[[x,z,x+dx,z+dz]];
+          for(const r of occluders){
+            const next=[];
+            for(const [a,b,c,d] of pieces){
+              if(c<=r.minX||a>=r.maxX||d<=r.minZ||b>=r.maxZ){next.push([a,b,c,d]);continue;}
+              const lo=Math.max(a,r.minX),hi=Math.min(c,r.maxX);
+              if(lo>a)next.push([a,b,lo,d]);
+              if(hi<c)next.push([hi,b,c,d]);
+              if(b<r.minZ)next.push([lo,b,hi,Math.min(d,r.minZ)]);
+              if(d>r.maxZ)next.push([lo,Math.max(b,r.maxZ),hi,d]);
+            }
+            pieces=next;if(!pieces.length)break;
+          }
+          for(const [a,b,c,d] of pieces)if(c-a>1e-8&&d-b>1e-8)extensionTerrainTile(a,b,c-a,d-b);
+          continue;
+        }
         if(!terrain){extensionTerrainTile(x,z,dx,dz);continue;}
         // Draw the cell outside the complete base rectangle. Left/right bands
         // own the corners; north/south strips use only the overlapping x span.

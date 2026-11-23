@@ -15,10 +15,20 @@ Seven original stealth contracts have their own planning board within Campaign.
 garage, foot combat and police; **Free roam** has all cars, local address search
 and map teleporting. The mapped area covers the inner south and a source-derived
 lake/Civic corridor. Source road extensions reach the airport, Dickson,
-Lyneham, Acton and the western lake. Whole-city coverage remains later work. No GTA code,
+Lyneham, Acton and the western lake. The regional expansion connects Belconnen
+and Bruce, Watson and Gungahlin, and Woden through Greenway. No GTA code,
 artwork or branded vehicle assets are used.
 
 ## Implementation map
+
+The [regional expansion](../../capital-drive-regional-sources.md) adds connected
+neighbourhood streets and major road approaches in three source packs. Search
+for Westfield Belconnen, AIS Arena, Exhibition Park in Canberra, Gungahlin
+Public Library, Canberra Hospital or South Point Tuggeranong on the full map.
+Selected landmarks use their mapped footprints and original façades. Lake
+Ginninderra, Yerrabi Pond, Gungahlin Pond and Lake Tuggeranong retain their mapped
+islands and use estimated surface heights. The existing higher-resolution
+terrain retains priority at the joins.
 
 The [Australian War Memorial exterior](../../capital-drive-war-memorial-sources.md)
 uses the mapped footprint, Hall of Memory dome, public terraces and paths.
