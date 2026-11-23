@@ -2,6 +2,7 @@ import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { roadProfile } from './road-network.js';
 import { retailDistrict } from './districts.js';
 import { suburbCharacter, rearGarden } from './suburb-character.js';
+import { prepareWaterRing } from './water-contact.js';
 
 // Original procedural streetscape details, anchored to the supplied footprints.
 const CHUNK = 350;
@@ -59,7 +60,15 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
       index.get(key).push(item);
     }
   }
+  let preparedRings=new WeakMap();
   function inside(x, z, points) {
+    // Keep tiny inferred rectangles cheap; large immutable source outlines use
+    // the shared exact parity narrow phase with a bounded per-view index.
+    if(points.length>=32){
+      let ring=preparedRings.get(points);
+      if(!ring){ring=prepareWaterRing(points);preparedRings.set(points,ring);}
+      return ring.contains(x,z);
+    }
     let result = false;
     for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
       const a = points[i], b = points[j];
@@ -637,7 +646,7 @@ export function createNeighbourhoodDetails(scene, map, heightAt, { lowGraphics =
     root.traverse(o => { if (o.isMesh) o.geometry.dispose(); });
     for (const m of materials) m.dispose(); for (const t of textures) t.dispose();
     if (streaming) for (const source of geometrySources) source.dispose();
-    root.clear(); root.removeFromParent(); chunks.clear(); sources.clear(); gardenPlans.clear(); queue = [];
+    root.clear(); root.removeFromParent(); chunks.clear(); sources.clear(); gardenPlans.clear(); preparedRings=new WeakMap(); queue = [];
     stats.bufferBytes = 0; stats.residentBytes = 0; stats.residentChunks = 0; stats.residentTriangles = 0; stats.meshes = 0; stats.queue = 0;
   }
   update(map.spawn || { x: 0, z: 0 });

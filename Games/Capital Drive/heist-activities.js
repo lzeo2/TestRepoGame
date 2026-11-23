@@ -1,6 +1,6 @@
 // Original game objectives for playable businesses, exhibits and props.
 const RULES = Object.freeze({
-  bank: { loot: 'cash', reward: 2750, severity: 3, escape: 52, time: 360, cooldown: 360 },
+  bank: { loot: 'cash', lootName:'Secured cash', releaseSeconds:3.5, reward: 2750, severity: 3, escape: 52, time: 360, cooldown: 360 },
   jeweller: { loot: 'jewellery', reward: 1500, severity: 2, escape: 36, time: 300, cooldown: 300 },
   tower: { loot: 'archive case', lootName: 'Archive case', reward: 2200, severity: 2, escape: 48, time: 360, cooldown: 360 },
   memorial: { label: 'Exhibition case symbols', cues: ['up','x','y','x'], reward: 1800, severity: 2, escape: 44, time: 360, cooldown: 360 },
@@ -73,7 +73,9 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     if (typeof storeId !== 'string' || id !== `interior-${storeId}` || heistSiteId !== storeId ||
         employeeId !== `${id}-employee` || !isPoint(loot) || loot.id !== `${id}-loot` ||
         !Number.isFinite(loot.radius) || loot.radius <= 0) return null;
-    return locations.find(site => site.kind !== 'rail' && site.id === storeId) || null;
+    const site=locations.find(site => site.kind !== 'rail' && site.id === storeId);
+    if(site?.kind==='bank'&&(!isPoint(ctx.room.console)||ctx.room.console.id!==`${id}-console`||!Number.isFinite(ctx.room.console.radius)||ctx.room.console.radius<=0))return null;
+    return site || null;
   }
 
   function canSeeInside(pose, target, roomId) {
@@ -134,15 +136,16 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     const loot = Object.freeze({ id:room.loot.id, ...toPoint(room.loot), radius:Math.min(2, room.loot.radius),
       name:rules.lootName || (rules.loot === 'cash' ? 'Cash' : 'Jewellery'), interiorId:room.id });
     current = { site, rules, sandbox, loot, roomId:room.id, employeeId:employee.id,
+      console:site.kind==='bank'?Object.freeze({id:room.console.id,...toPoint(room.console),radius:Math.min(2,room.console.radius),name:site.vaultPuzzle?'Vault console':'Cash release console',interiorId:room.id}):null,
       roomCrime:Object.freeze({ type:'robbery', targetId:employee.id, phase:'handover' }),
       remaining:rules.time, phase:'surrender', heatSeen:false, origin:null, hostage:null, hostageUsed:false };
-    return message(true, site.vaultPuzzle?'Employee surrendered. Press E / USE at the vault console.':
+    return message(true, site.kind==='bank'?(site.vaultPuzzle?'Employee surrendered. Press E / USE at the vault console.':'Employee surrendered. Press E / USE at the cash release console.'):
       `Employee surrendered. E / USE takes the ${rules.loot}.`);
   }
 
   // A short fictional standoff is an optional game state, not a police-immunity grant.
   function hostageAction(ctx = {}) {
-    if (!current?.employeeId || !['surrender','escape'].includes(current.phase) ||
+    if (!current?.employeeId || !['surrender','release','loot','escape'].includes(current.phase) ||
         !isPoint(ctx.pose) || ctx.paused || ctx.recovering || ctx.busy || ctx.doorway ||
         Boolean(ctx.sandbox) !== current.sandbox || indoorSite(ctx) !== current.site ||
         ctx.room.id !== current.roomId || !matchingEmployee(ctx,ctx.room) ||
@@ -170,14 +173,20 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     if (current) {
       if (current.sandbox !== sandbox) return null;
       if (current.phase === 'surrender') {
+        const target=current.console||current.loot;
         if (indoorSite(ctx) !== current.site || ctx.room.id !== current.roomId ||
-            !matchingEmployee(ctx, ctx.room) || distance(ctx.pose, current.loot) > current.loot.radius ||
-            !canSeeInside(ctx.pose, current.loot, current.roomId)) return null;
+            !matchingEmployee(ctx, ctx.room) || distance(ctx.pose, target) > target.radius ||
+            !canSeeInside(ctx.pose, target, current.roomId)) return null;
         if (current.site.vaultPuzzle) {
           beginPuzzle(current);
-          return message(true, 'Match the vault symbols to collect the cash.');
+          return message(true, 'Match the vault symbols to unlock the cash pickup.');
         }
+        if(current.site.kind==='bank'){current.phase='release';current.releaseRemaining=current.rules.releaseSeconds;return message(true,'Cash release started. Stay at the console.');}
         return collect(current, current.site);
+      }
+      if(current.phase==='loot'){
+        if(indoorSite(ctx)!==current.site||ctx.room.id!==current.roomId||!caseWithinReach(ctx,current.loot,current.roomId))return null;
+        return collect(current,current.site);
       }
       if (current.phase === 'puzzle') return cancel();
       if (current.phase !== 'ride' || !ctx.railPassenger || !ctx.railStopId || ctx.railStopId === current.site.stopId ||
@@ -215,6 +224,11 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
       'Loot collected. Leave the area and lose any wanted stars.');
   }
 
+  function unlockCash(attempt){
+    attempt.phase='loot';
+    return message(true,'Cash unlocked. Walk to the marked cash pickup and press E / USE.');
+  }
+
   function step(dt, ctx = {}, input = {}) {
     if (ctx.paused || !Number.isFinite(dt) || dt <= 0) return null;
     const elapsed = Math.min(dt, 1);
@@ -245,17 +259,22 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     }
     if (attempt.phase === 'ride') return ctx.railPassenger ? null : cancel('You left the train before the pickup.');
 
-    if (attempt.phase === 'surrender') {
+    if (['surrender','release','loot'].includes(attempt.phase)) {
       if (indoorSite(ctx) !== attempt.site || ctx.room.id !== attempt.roomId) {
         return cancel('You left before collecting the loot. Return inside to retry.');
       }
-      if (!matchingEmployee(ctx, ctx.room)) return cancel('The employee is unavailable. Return inside to retry.');
+      if (attempt.phase==='surrender'&&!matchingEmployee(ctx, ctx.room)) return cancel('The employee is unavailable. Return inside to retry.');
+      if(attempt.phase==='release'){
+        if(!caseWithinReach(ctx,attempt.console,attempt.roomId))return cancel('Cash release interrupted. Return to the employee to retry.');
+        attempt.releaseRemaining=Math.max(0,attempt.releaseRemaining-elapsed);
+        if(!attempt.releaseRemaining)return unlockCash(attempt);
+      }
       return null;
     }
 
     if (attempt.phase === 'puzzle') {
       const reachable = attempt.roomId
-        ? indoorSite(ctx) === attempt.site && ctx.room.id === attempt.roomId && caseWithinReach(ctx, attempt.loot, attempt.roomId)
+        ? indoorSite(ctx) === attempt.site && ctx.room.id === attempt.roomId && caseWithinReach(ctx, attempt.console||attempt.loot, attempt.roomId)
         : ctx.railPassenger && !ctx.indoors;
       if (!reachable) return cancel('Move back to the heist marker to retry.');
       const held = KEYS.filter(key => input?.[key] === true);
@@ -264,7 +283,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
       attempt.armed = false;
       if (held.length === 1 && held[0] === attempt.sequence[attempt.index]) {
         attempt.index++;
-        return attempt.index === attempt.sequence.length ? collect(attempt, ctx.pose) : null;
+        return attempt.index === attempt.sequence.length ? (attempt.site.kind==='bank'?unlockCash(attempt):collect(attempt, ctx.pose)) : null;
       }
       attempt.index = 0;
       if (++attempt.mistakes >= 3) return cancel('Pattern missed. Press E at the marker to retry.');
@@ -301,8 +320,12 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
       challenge = Object.freeze({ active: true, kind: 'heist', phase: 'cue', label: rules.label, sequence, index, mistakes,
         maxMistakes: 3, expectedKey: sequence[index], instruction: `PRESS ${BUTTONS[sequence[index]]}`, guidance: `${guidance} E cancels.` });
     } else if (phase === 'surrender') {
-      indoorTarget = current.loot;
-      guidance = site.vaultPuzzle?'E / USE at the marked vault console.':`E / USE to take the ${rules.loot}.`;
+      indoorTarget = current.console||current.loot;
+      guidance = site.kind==='bank'?(site.vaultPuzzle?'E / USE at the marked vault console.':'E / USE at the cash release console.'):`E / USE to take the ${rules.loot}.`;
+    } else if(phase==='release'){
+      indoorTarget=current.console;guidance=`Stay at the release console · ${Math.ceil(current.releaseRemaining)}s`;
+    } else if(phase==='loot'){
+      indoorTarget=current.loot;guidance='Cash unlocked. Walk to the marked cash pickup · E / USE collects.';
     } else {
       guidance = current.awaitingDismount ? 'Leave the train at a stop.' :
         current.awaitingExit ? 'Exit the building, then leave the area and lose any wanted stars.' :
@@ -311,11 +334,12 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     }
     return Object.freeze({ active: true, site, phase, guidance, target: target && Object.freeze(target),
       indoorTarget, employeeId:current.employeeId ?? null, challenge,
+      progress:phase==='release'?1-current.releaseRemaining/rules.releaseSeconds:null,
       hostage:current.hostage ? Object.freeze({roomId:current.hostage.roomId,employeeId:current.hostage.employeeId,remaining:current.hostage.remaining}) : null, remaining: Math.max(0, remaining) });
   }
 
   return { get active() { return !!current; },
     get hostageRoomId() { return current?.hostage?.roomId ?? null; },
-    get roomCrime() { return current?.phase === 'surrender' || current?.awaitingExit ? current.roomCrime : null; },
+    get roomCrime() { return current?.employeeId&&(['surrender','release','puzzle','loot'].includes(current.phase)||current.awaitingExit) ? current.roomCrime : null; },
     nearby, interact, hostageAction, toggleHostage, step, snapshot, cancel };
 }

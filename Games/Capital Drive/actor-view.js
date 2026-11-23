@@ -375,6 +375,8 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
   const blendedAngles = new Float64Array(animatedJoints.length * 3);
   let poseReady = false, locomotionSpeed = 0, blendedBodyZ = 0, renderedAimOffset = 0, crouchAngle = 0;
   let swimPhase=0, swimRootY=null;
+  let gaitX=null,gaitZ=null,gaitForward=1,gaitSide=0;
+  const solePoint=new THREE.Vector3();
   let lastShotSerial = 0, flashRemaining = 0;
   const playerMuzzle = new THREE.Vector3();
   const counters = { police: 0, officers: 0, shots: 0, playerVisible: false, armourVisible: false, objectiveVisible: false, meshes: 0, triangles: 0, drawCalls: 0, activeWeapon: null, weaponMeshes: weaponEntries.length };
@@ -413,8 +415,19 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       actor.rotation.set(0, finite(pose.yaw), 0);
       const blend = finite(pose.impactTime) > 0 ? 1 : 1 - Math.exp(-step * 24);
       locomotionSpeed += (speed - locomotionSpeed) * (1 - Math.exp(-step * 12));
-      phase = (phase + step * locomotionSpeed * 2.7) % (Math.PI * 2);
-      const stride = Math.min(1, locomotionSpeed / 3) * Math.sin(phase) * (.55 + .30 * clamp((locomotionSpeed - 3) / 3, 0, 1));
+      const moving=clamp(locomotionSpeed/3,0,1),running=clamp((locomotionSpeed-3.6)/3.2,0,1);
+      if(step>0){
+        const dx=gaitX===null?0:pose.x-gaitX,dz=gaitZ===null?0:pose.z-gaitZ,distance=Math.hypot(dx,dz);
+        if(distance>.0001&&distance<.75){
+          const sy=Math.sin(finite(pose.yaw)),cy=Math.cos(finite(pose.yaw)),weight=1-Math.exp(-step*14);
+          gaitForward+=(-(dx*sy+dz*cy)/distance-gaitForward)*weight;
+          gaitSide+=((dx*cy-dz*sy)/distance-gaitSide)*weight;
+        }
+        gaitX=pose.x;gaitZ=pose.z;
+      }
+      const cadence=(pose.crouching?4.1:5.6)+locomotionSpeed*(pose.crouching?.55:.65);
+      phase=(phase+step*cadence*Math.min(1,locomotionSpeed/.9))%(Math.PI*2);
+      const stride=moving*Math.sin(phase)*(.55+.30*running);
       const jump = clamp(pose.jumpHeight, 0, 22);
       const crouch = pose.crouching ? 1.14 : 0;
       crouchAngle = poseReady ? crouchAngle + (crouch - crouchAngle) * blend : crouch;
@@ -423,13 +436,15 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       const feet=Number.isFinite(pose.feetY)?pose.feetY:ground(pose.x,pose.z)+jump;
       const ordinaryY=swimming?0:feet+.035-crouchDrop;
       actor.position.set(pose.x,ordinaryY,pose.z); actor.rotation.y = finite(pose.yaw);
-      body.rotation.x = -.10 * clamp((locomotionSpeed - 3) / 3, 0, 1) - crouch * .16;
+      body.rotation.x = -.15*running-crouchAngle*.16;
+      body.rotation.z=-gaitSide*moving*.055;
+      if(!swimming&&!state.aiming&&attack===0&&jump===0&&finite(pose.impactTime)===0)body.position.y=Math.sin(clock*1.7)*.003*(1-moving);
       for (let i = 0; i < 2; i++) {
-        const swing = stride * (i ? -1 : 1) * (pose.crouching ? .45 : 1);
-        legs[i].rotation.set(jump > .05 ? -.35 : swing - crouch, 0, 0);
-        knees[i].rotation.set(jump > .05 ? .75 : 2 * crouch + Math.max(0, -swing) * .7, 0, 0);
-        arms[i].rotation.set(-swing * .7, 0, (i ? -1 : 1) * .08);
-        elbows[i].rotation.set(-.12, 0, 0);
+        const swing=stride*(i?-1:1)*(1-crouchAngle/1.14*.55);
+        legs[i].rotation.set(jump>.05?-.35:swing*gaitForward-crouchAngle,0,jump>.05?0:swing*gaitSide*.7);
+        knees[i].rotation.set(jump>.05?.75:2*crouchAngle+Math.max(0,-swing)*(.7+running*.65),0,0);
+        arms[i].rotation.set(-swing*gaitForward*(.7+running*.25),0,(i?-1:1)*(.08+Math.abs(swing*gaitSide)*.18));
+        elbows[i].rotation.set(-.12-running*.7-crouchAngle*.12,0,0);
       }
       const firearm = swimming?null:weapons[state.weapon];
       for (const [id, weapon] of weaponEntries) weapon.visible = !swimming && id === state.weapon;
@@ -508,10 +523,24 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
         actor.position.y=swimRootY;
         if(Math.abs(ordinaryY-swimRootY)<.025) {actor.position.y=ordinaryY;swimRootY=null;}
       }
+      // Set the lower sole against the sampled surface, after joint blending.
+      // This bounded visual correction never moves the authoritative x/z root.
+      const grounded=!swimming&&jump===0&&finite(pose.impactTime)===0&&!state.aiming&&attack===0&&finite(state.reloading)===0;
+      if(grounded&&(moving>.01||crouchAngle>.01)){
+        let lift=-Infinity;
+        for(let i=0;i<2;i++)for(let corner=0;corner<8;corner++){
+          solePoint.set(corner&1?.0875:-.0875,-.438+(corner&2?.013:-.013),dimensions.shoes.z+(corner&4?.1425:-.1425));
+          solePoint.applyEuler(knees[i].rotation);solePoint.y-=.36;solePoint.applyEuler(legs[i].rotation);
+          solePoint.x+=legs[i].position.x;solePoint.y+=.81;
+          solePoint.multiplyScalar(actor.scale.y).applyEuler(actor.rotation);
+          lift=Math.max(lift,ground(pose.x+solePoint.x,pose.z+solePoint.z)+.018-(actor.position.y+solePoint.y));
+        }
+        actor.position.y+=clamp(lift,-.16,.18)*Math.min(1,moving+crouchAngle);
+      }
       poseReady = true;
       if(swimming) impactPose.reset(); else impactPose.update(pose, step, state.health);
     } else {
-      impactPose.reset(); poseReady = false; locomotionSpeed = 0; renderedAimOffset = 0; crouchAngle = 0;swimRootY=null;swimPhase=0;
+      impactPose.reset(); poseReady = false; locomotionSpeed = 0; renderedAimOffset = 0; crouchAngle = 0;swimRootY=null;swimPhase=0;gaitX=gaitZ=null;gaitForward=1;gaitSide=0;
     }
     counters.police = 0; counters.officers = 0;let muzzleCount=0;
     // Officers also render in lazy rooms that have no patrol-car allocation.

@@ -580,7 +580,11 @@ export function createGameplay(map, simulation, options = {}) {
       state.actor.aimPitch = state.aimPitch;
       state.aiming = Boolean(!struck && !swimming && input.aim && weaponById(state.weapon));
       if (!struck && !swimming && Number.isFinite(input.aimYaw) && (state.aiming || input.fire || input.melee)) state.actor.yaw = input.aimYaw;
-      else if (length > 0 && !struck) state.actor.yaw = yawFor(x, z);
+      else if (length > 0 && !struck && !externalFlight) {
+        const heading=yawFor(x,z)-state.actor.yaw;
+        const turn=Math.atan2(Math.sin(heading),Math.cos(heading));
+        state.actor.yaw+=clamp(turn,-16*dt,16*dt);
+      }
       if (externalFlight) jumpVelocity = 0;
       if (!struck && !externalFlight && !crouching && !swimming && !wasSwimming && input.jump && state.actor.jumpHeight === 0 && jumpVelocity === 0) jumpVelocity = 5 * powerFactor('jump');
       if (!externalFlight && (jumpVelocity !== 0 || state.actor.jumpHeight > 0)) {
@@ -782,6 +786,6 @@ export function createGameplay(map, simulation, options = {}) {
     emit('explosion',event.kind==='drone-strike'?'Drone strike detonated.':event.kind==='rocket'?'Rocket detonated.':'Grenade detonated.',{hits});return true;
   }
   return { state, focus, step, syncSwimming, interact, cancelCarjacking, setWeapon, reload, reportOffence, resolveDeliveryRisk, reportSighting, inventorySnapshot, restoreInventory,
-    takeInventory:item=>transferInventory(item,false),giveInventory:item=>transferInventory(item,true),reset, restoreProtagonist, missionRecoverySnapshot, restoreMissionCheckpoint, switchToCompanion, applyExplosion, addAmmo, getAmmo, heal, strikePolice, damageVehicle, damagePoliceVehicle, get policeWrecks(){return policeController.wrecks;}, policeSupport:()=>policeController.support(), drainPoliceEvents:()=>policeEvents.splice(0),
+    takeInventory:item=>transferInventory(item,false),giveInventory:item=>transferInventory(item,true),reset, restoreProtagonist, missionRecoverySnapshot, restoreMissionCheckpoint, switchToCompanion, applyExplosion, addAmmo, getAmmo, heal, strikePolice, damageActor:applyCombatDamage, damageVehicle, damagePoliceVehicle, get policeWrecks(){return policeController.wrecks;}, policeSupport:()=>policeController.support(), drainPoliceEvents:()=>policeEvents.splice(0),
     snapshot: () => freeze(JSON.parse(JSON.stringify(state))) };
 }

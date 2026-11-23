@@ -43,6 +43,22 @@ function solve(system, context) {
     if(cue<7)system.step(.02, {}, context);
   }
 }
+function checkSteering(system,context,label){
+  const token=system.captureCheckpoint(),start=system.active;assert(token,label+' checkpoint');
+  for(const turn of [-1,-.35,.35,1]){
+    assert(system.restoreCheckpoint(token).ok);
+    system.step(.1,{turn,throttle:start.kind==='helicopter'?.3:0},context);
+    const next=system.active,heading=Math.atan2(Math.sin(next.yaw-start.yaw),Math.cos(next.yaw-start.yaw));
+    assert(heading*turn<0,label+': positive/right input reduces -Z-forward yaw');
+    const right=(next.x-start.x)*Math.cos(start.yaw)-(next.z-start.z)*Math.sin(start.yaw);
+    assert(right*turn>0,label+': world-space motion bends toward the requested side');
+    if(start.airborne)assert(next.bank*turn<0,label+': roll and actual turn agree');
+    assert(!next.wrecked,label+': small real steering probe remains clear');
+  }
+  assert(system.restoreCheckpoint(token).ok);system.step(.1,{turn:0},context);
+  assert.equal(system.active.yaw,start.yaw,label+': neutral input preserves heading');
+  assert(system.restoreCheckpoint(token).ok);
+}
 solve(jets, ctx);
 assert.equal(jets.active.id, parked[0].id);
 assert.equal(jets.active.stolen, true);
@@ -62,11 +78,13 @@ for(let i=0;i<70;i++)jets.step(.02,{climb:true},pilot);
 assert.equal(jets.active.speed,0);assert.equal(jets.active.airborne,false,'Space alone cannot lift a parked jet');
 for(let i=0;i<110&&jets.active.speed<12;i++)jets.step(.02,{throttle:1},pilot);
 assert(jets.active.takeoffRoll>0 && jets.active.speed<JET_TAKEOFF_SPEED && !jets.active.airborne,'actual ground roll precedes takeoff');
+checkSteering(jets,pilot,'jet ground steering');
 for(let i=0;i<500 && jets.active.altitude<10;i++){jets.step(.02,{throttle:1,climb:true},pilot);sync();}
 assert(jets.active.airborne && jets.active.y>terrain.heightAt(jets.active.x,jets.active.z)+3,
   'normal throttle and climb take off from the checked source apron');
 assert(jets.active.speed>=JET_TAKEOFF_SPEED && jets.active.takeoffRoll>=22);
 assert.equal(jets.active.wrecked,false,'source apron takeoff is clear');
+checkSteering(jets,pilot,'jet airborne steering');
 assert.equal(jets.interact(pilot).ok,false,'no airborne exit');
 for(let i=0;i<500 && jets.active.airborne;i++){
   const throttle=jets.active.speed>38?-1:jets.active.speed<30?1:0;
@@ -102,6 +120,7 @@ for(let i=0;i<150;i++)jets.step(.02,{climb:true},rotorPilot);
 assert(jets.active.airborne && jets.active.altitude>10 && !jets.active.wrecked);
 assert.equal(jets.active.speed,0,'helicopter takes off vertically from rest');
 assert.equal(jets.interact(rotorPilot).ok,false);
+checkSteering(jets,rotorPilot,'helicopter steering');
 for(let i=0;i<30;i++)jets.step(.02,{turn:.4},rotorPilot);
 for(let i=0;i<100;i++)jets.step(.02,{throttle:1},rotorPilot);
 assert(Math.hypot(jets.active.x-helicopter.x,jets.active.z-helicopter.z)>10 && !jets.active.wrecked);
@@ -145,3 +164,59 @@ jets.reset();
 assert.deepEqual(jets.snapshot().planes,fleet,'isolating a Campaign save leaves the Free roam fleet available');
 view.dispose();view.dispose();assert.equal(view.stats.bufferBytes,0);assert.equal(scene.children.length,0);
 console.log(`Capital aircraft PASS: two checked jet stands, visible ground roll, fixed-wing landing, helicopter hijack/vertical lift/hover/land/exit, Campaign aircraft removal with distinct loaners, pooled view (${resources.triangles} triangles).`);
+
+// Transient retrieval loaners have a checked physical stand and exact attempt ID.
+// They use the same nearby E boarding, supplied-time piloting and safe exit owner.
+const jobMap={bounds:{minX:-400,maxX:400,minZ:-400,maxZ:400},spawn:{x:0,z:0,yaw:0},roads:[],areas:[],landmarks:[],
+  buildings:[{id:'job-test-solid',height:12,points:[[90,90],[110,90],[110,110],[90,110]]}]};
+const jobSimulation=createSimulation(jobMap,{trafficCount:0});let blockJobExit=false;
+const jobAircraft=createAircraft(jobMap,{
+  canOccupy:(...args)=>jobSimulation.canOccupy(...args),hasLineOfSight:(...args)=>jobSimulation.hasLineOfSight(...args),
+  moveActor:(...args)=>blockJobExit?{blocked:true}:jobSimulation.moveActor(...args),moveVehicle:(...args)=>jobSimulation.moveVehicle(...args),
+},{heightAt:()=>0});
+const baseCheckpoint=jobAircraft.captureCheckpoint();assert(baseCheckpoint);
+for(const id of ['',null,'jet:1','helicopter:1','loan:helicopter','bad id'])assert.equal(jobAircraft.addJobHelicopter(id,{x:-80,z:-80,yaw:0}).ok,false);
+assert.equal(jobAircraft.addJobHelicopter('job:blocked',{x:100,z:100,yaw:0}).ok,false,'solid stand rejects creation');
+assert.equal(jobAircraft.addJobHelicopter('job:edge',{x:399,z:0,yaw:0}).ok,false,'rotor/air clearance retains the map edge');
+assert.equal(jobAircraft.addJobHelicopter('job:invalid',{x:NaN,z:0,yaw:0}).ok,false);
+const attemptId='job:skylark:1:helicopter',jobPose={x:-80,z:-80,yaw:0,y:500,id:'wrong'};
+const added=jobAircraft.addJobHelicopter(attemptId,jobPose);assert(added.ok);assert.equal(added.aircraft.id,attemptId);
+assert.equal(added.aircraft.y,0,'controller pose cannot override checked terrain height');assert(added.aircraft.jobLoaner&&added.aircraft.loaner&&!added.aircraft.stolen);
+assert.throws(()=>{added.aircraft.id='different';},TypeError);jobPose.x=200;
+assert.equal(jobAircraft.snapshot().planes.find(p=>p.id===attemptId).x,-80,'mutating an input/returned copy cannot relocate the stand');
+assert.equal(jobAircraft.addJobHelicopter(attemptId,{x:150,z:150,yaw:0}).ok,false,'same attempt cannot be replaced or remotely moved');
+assert.equal(jobAircraft.addJobHelicopter('job:skylark:2:helicopter',{x:180,z:180,yaw:0}).ok,false,'transient live pool is bounded to one');
+assert.deepEqual(jobAircraft.drainEvents(),[],'creation is not theft, payment or a teleport event');
+const staged=jobAircraft.captureCheckpoint();assert(staged);assert(jobAircraft.restoreCheckpoint(baseCheckpoint).ok);
+assert(jobAircraft.snapshot().planes.some(p=>p.id===attemptId),'unrelated checkpoint restore leaves the live unsaved loaner in place');
+const jobDoor=door(added.aircraft),remote={valid:true,onFoot:true,pose:{x:200,z:200}};
+const stagedBefore=jobAircraft.snapshot();assert.equal(jobAircraft.interact(remote).ok,false);
+assert.deepEqual(jobAircraft.snapshot(),stagedBefore,'remote interaction cannot board or warp the craft');
+assert.equal(jobAircraft.nearest(jobDoor).id,attemptId);
+assert(jobAircraft.interact({valid:true,onFoot:true,pose:jobDoor}).boarded,'nearby loaner boards without a lock');
+assert.equal(jobAircraft.challenge.phase,'idle');assert.equal(jobAircraft.active.id,attemptId);
+assert.equal(jobAircraft.drainEvents().filter(e=>e.type==='stolen').length,0,'job loaner never emits a theft crime');
+assert.equal(jobAircraft.captureCheckpoint(),null,'active job pilot is never serialized into normal aircraft checkpoints');
+assert.equal(jobAircraft.restoreCheckpoint(baseCheckpoint).ok,false,'normal checkpoint cannot eject an active job pilot');
+for(let i=0;i<180;i++)jobAircraft.step(.02,{climb:true},{valid:true});
+assert(jobAircraft.active.airborne&&jobAircraft.active.altitude>10,'normal manual input takes off');
+const departure=jobAircraft.active,release=jobAircraft.releaseJobHelicopter(attemptId);
+assert(release.ok&&release.deferred&&!release.removed);assert.equal(jobAircraft.active.id,attemptId);
+assert.equal(jobAircraft.active.y,departure.y,'completion cleanup does not eject or move an airborne pilot');
+assert.equal(jobAircraft.interact({valid:true}).ok,false,'pending release cannot bypass ordinary airborne exit guard');
+for(let i=0;i<600&&jobAircraft.active.airborne;i++)jobAircraft.step(.02,{descend:true},{valid:true});
+assert(!jobAircraft.active.airborne&&!jobAircraft.active.wrecked);
+blockJobExit=true;assert.equal(jobAircraft.interact({valid:true}).ok,false);
+assert.equal(jobAircraft.active.id,attemptId,'blocked safe exit retains the pending craft and pilot');
+blockJobExit=false;assert(jobAircraft.interact({valid:true}).exited);assert.equal(jobAircraft.active,null);
+assert(!jobAircraft.snapshot().planes.some(p=>p.id===attemptId),'pending cleanup removes only after the actual safe exit');
+assert(jobAircraft.releaseJobHelicopter(attemptId).ok,'cleanup is idempotent for an already released attempt');
+assert.equal(jobAircraft.addJobHelicopter(attemptId,{x:-80,z:-80,yaw:0}).ok,false,'released attempt ID cannot be reused');
+assert(jobAircraft.restoreCheckpoint(staged).ok);assert.equal(jobAircraft.snapshot().planes.length,0,'checkpoint never resurrects a staged temporary craft');
+const nextId='job:skylark:2:helicopter';assert(jobAircraft.addJobHelicopter(nextId,{x:-80,z:-80,yaw:0}).ok,'fresh attempt can repeat normally');
+assert(jobAircraft.releaseJobHelicopter(nextId).removed,'unoccupied job helicopter is removed immediately');
+assert.equal(jobAircraft.releaseJobHelicopter('helicopter:1').ok,false,'cleanup cannot remove an original identity');
+assert(jobAircraft.addJobHelicopter('job:reset',{x:-80,z:-80,yaw:0}).ok);jobAircraft.reset();assert.equal(jobAircraft.snapshot().planes.length,0);
+assert(jobAircraft.addJobHelicopter('job:reset',{x:-80,z:-80,yaw:0}).ok,'reset clears the transient session identity history');
+jobAircraft.reset();
+console.log('PASS transient job helicopter: exact immutable IDs/checked placement, one live loaner, nearby lock-free boarding/no crime, normal piloting, deferred safe-exit cleanup, no checkpoint persistence and repeat/reset lifecycle');

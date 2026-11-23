@@ -1,0 +1,40 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import {createMacquarieShopsView,MACQUARIE_SHOPS_REFERENCE as site} from '../Games/Capital Drive/macquarie-shops-view.js';
+import {createTerrainSampler} from '../Games/Capital Drive/terrain.js';
+import {createSimulation} from '../Games/Capital Drive/simulation.js';
+
+const source=JSON.parse(await readFile(new URL('../Games/Capital Drive/data/region-belconnen.json',import.meta.url)));
+const before=JSON.stringify(source),map={...source,spawn:{x:site.x+50,z:site.z+30}};
+const sampler=createTerrainSampler(map),simulation=createSimulation(map,{...sampler,trafficCount:0,parkedCount:0});
+const canStand=pose=>simulation.canOccupy(pose,{length:.6,width:.6,ignoreId:'player'});
+const scene=new THREE.Scene(),view=createMacquarieShopsView(scene,map,sampler.groundHeightAt,{canStand});
+assert.equal(JSON.stringify(source),before,'actual roads, source bodies and terrain remain unchanged');
+assert.equal(view.stats.buildings,2);assert(view.stats.triangles>300&&view.stats.triangles<=2200);
+assert(view.stats.pavingJoints>20);assert(view.stats.shrubs>0&&view.stats.shrubs<=9);
+view.update(site);assert.equal(view.stats.drawCalls,1);assert.equal(scene.children.length,1);
+const root=scene.children[0],mesh=root.children[0],geometry=mesh.geometry,material=mesh.material;
+assert.equal(root.children.length,1);assert(material.isMeshLambertMaterial);assert.equal(material.map,null);
+assert(!mesh.castShadow&&!mesh.receiveShadow);assert(geometry.boundingSphere.radius<65);
+const p=geometry.attributes.position,c=geometry.attributes.color,n=geometry.attributes.normal,positions=p.array;
+for(const attribute of Object.values(geometry.attributes))assert([...attribute.array].every(Number.isFinite));
+const paving=new THREE.Color(0x8f8b80);let probes=0;
+for(let i=0;i<p.count;i++)if(Math.abs(c.getX(i)-paving.r)<1e-6&&Math.abs(c.getY(i)-paving.g)<1e-6&&Math.abs(c.getZ(i)-paving.b)<1e-6){
+  const pose={x:p.getX(i)+site.x,z:p.getZ(i)+site.z,yaw:0};
+  assert(canStand(pose),'every decorative paving joint stays outside actual source collision');
+  assert(Math.abs(p.getY(i)-sampler.groundHeightAt(pose.x,pose.z)-.045)<.0001,'joints drape the actual terrain without a raised apron');
+  probes++;
+}
+assert(probes>100);
+const version=p.version;for(let i=0;i<120;i++)view.update(site);
+assert.equal(geometry.attributes.position.array,positions);assert.equal(p.version,version);
+view.update({x:site.x+500,z:site.z});assert.equal(view.stats.drawCalls,0);
+view.update(null);assert.equal(view.stats.drawCalls,0);
+let disposedGeometry=0,disposedMaterial=0;geometry.addEventListener('dispose',()=>disposedGeometry++);material.addEventListener('dispose',()=>disposedMaterial++);
+view.dispose();view.dispose();view.update(site);assert.equal(disposedGeometry,1);assert.equal(disposedMaterial,1);assert.equal(scene.children.length,0);
+const blocked=createMacquarieShopsView(scene,map,sampler.groundHeightAt,{canStand:()=>false});
+assert.equal(blocked.stats.pavingJoints,0);assert.equal(blocked.stats.shrubs,0);assert.equal(blocked.stats.stonePieces,0);blocked.dispose();
+const absent=createMacquarieShopsView(scene,{buildings:[],roads:[]},()=>0);assert.equal(scene.children.length,0);absent.dispose();
+assert.equal(site.source.license,'ODbL-1.0');assert.match(site.source.sha256,/^[a-f\d]{64}$/);assert.equal(site.references.length,2);
+console.log(`PASS Macquarie exact source bodies and terrain, ${probes} physical paving probes, ${view.stats.triangles} triangles/one draw, rejection guards, culling, stable buffers and disposal`);

@@ -16,6 +16,12 @@ DATA = ROOT / 'Games/Capital Drive/data'
 GET_TAGS = ROAD_TAGS | {'maxspeed:forward', 'maxspeed:backward'}
 MAX_BUILDINGS = 2100
 CELL_SIZE = 250
+RESIDENTIAL_TYPES = {'house', 'detached', 'residential', 'apartments', 'terrace',
+                     'semidetached_house', 'bungalow', 'cabin'}
+# Bounded source-pin circles, not inferred administrative suburb boundaries.
+HOUSING_WINDOWS = {'north': (('Watson', 895522214), ('Downer', 899042580), ('Gungahlin', 4564887164)),
+                   'south': (('Woden', 26764260), ('Greenway', 291971878))}
+HOUSING_LIMITS = {'north': 700, 'south': 50}
 
 
 def load_source(cache):
@@ -119,7 +125,7 @@ def nearest_site(point, centres):
     return min((math.hypot(point[0]-x, point[1]-z) for x, z in centres), default=0)
 
 
-def make_buildings(boxes, ways, nodes, centres, requested, earlier):
+def make_buildings(boxes, ways, nodes, centres, requested, earlier, region):
     from shapely.geometry import Polygon
     from shapely.strtree import STRtree
 
@@ -129,6 +135,7 @@ def make_buildings(boxes, ways, nodes, centres, requested, earlier):
     earlier_by_source = {body.get('sourceId'): body['id'] for body in earlier}
     prior_ids = {body['id'] for body in earlier}
     promoted, zones, invalid = [], collections.defaultdict(list), 0
+    housing = []
     for way_id, way in sorted(ways.items()):
         source = f'way/{way_id}'
         # An OSM building multipolygon can carry its tags on the parent only.
@@ -160,6 +167,8 @@ def make_buildings(boxes, ways, nodes, centres, requested, earlier):
         body = dict(id=f'osm-{way_id}', sourceId=source, source='osm', name=tags.get('name',''),
                     type=building, height=round(height, 2), heightSource=height_source, points=points,
                     sourceTags={k: v for k, v in tags.items() if k in BUILDING_TAGS})
+        if building in RESIDENTIAL_TYPES:
+            housing.append((way_id, point, shape, body))
         if force:
             promoted.append(body)
         else:
@@ -179,7 +188,53 @@ def make_buildings(boxes, ways, nodes, centres, requested, earlier):
                 break
             if depth < len(bucket):
                 chosen.append(bucket[depth][-1])
-    return sorted(chosen, key=lambda body: body['id']), invalid
+    coverage = None
+    if region in HOUSING_WINDOWS:
+        retained_count = len(chosen)
+        retained_ids_hash = hashlib.sha256('\n'.join(sorted(body['sourceId'] for body in chosen)).encode()).hexdigest()
+        selected = {body['id'] for body in chosen}
+        shapes = {body['id']: Polygon(body['points']) for body in chosen}
+        shapes.update({body['id']: shape for _, _, shape, body in housing})
+        shape_ids = list(shapes)
+        shape_values = list(shapes.values())
+        housing_index = STRtree(shape_values)
+        windows, added, additional_sources = [], 0, []
+        for name, node_id in HOUSING_WINDOWS[region]:
+            anchor = xy(nodes[node_id])
+            candidates = [row for row in housing if math.dist(row[1], anchor) <= 750]
+            target = math.ceil(len(candidates)*.75)
+            before = sum(body['id'] in selected for _, _, _, body in candidates)
+            counts = collections.Counter((math.floor(p[0]/CELL_SIZE), math.floor(p[1]/CELL_SIZE))
+                                         for _, p, _, body in candidates if body['id'] in selected)
+            totals = collections.Counter((math.floor(p[0]/CELL_SIZE), math.floor(p[1]/CELL_SIZE))
+                                         for _, p, _, _ in candidates)
+            remaining = [row for row in candidates if row[3]['id'] not in selected]
+            kept = before
+            while kept < target and remaining and added < HOUSING_LIMITS[region]:
+                # Fill the most thinned source cells first, with stable source-ID ties.
+                remaining.sort(key=lambda row: (counts[(math.floor(row[1][0]/CELL_SIZE), math.floor(row[1][1]/CELL_SIZE))] /
+                    totals[(math.floor(row[1][0]/CELL_SIZE), math.floor(row[1][1]/CELL_SIZE))], math.dist(row[1], anchor), row[0]))
+                _, point, shape, body = remaining.pop(0)
+                if any(shape_ids[int(other)] in selected and
+                       shape.intersection(shape_values[int(other)]).area > .5*min(shape.area, shape_values[int(other)].area)
+                       for other in housing_index.query(shape, predicate='intersects')):
+                    continue
+                chosen.append(body)
+                selected.add(body['id'])
+                counts[(math.floor(point[0]/CELL_SIZE), math.floor(point[1]/CELL_SIZE))] += 1
+                added += 1
+                additional_sources.append(body['sourceId'])
+                kept += 1
+            if kept < target:
+                raise ValueError(f'{region}/{name} cannot meet verified housing coverage within its bounded allocation')
+            windows.append(dict(name=name, sourcePlace=f'node/{node_id}', x=anchor[0], z=anchor[1], radiusMetres=750,
+                                sourceTagged=len(candidates), retainedBefore=before, retainedAfter=kept,
+                                additional=kept-before, target=target))
+        coverage = dict(method='At least 75 percent of eligible explicit OSM residential building tags in 750m source-pin circles; not survey completeness.',
+                        maximumAdditional=HOUSING_LIMITS[region], retainedCount=retained_count,
+                        retainedIdsSha256=retained_ids_hash, added=added,
+                        additionalSourceIds=sorted(additional_sources), windows=windows)
+    return sorted(chosen, key=lambda body: body['id']), invalid, coverage
 
 
 def source_points(element, nodes, ways):
@@ -228,7 +283,7 @@ def build(region, cache, existing):
     requested = {ref: {k:v for k,v in elements[row[2]].get('tags',{}).items() if k in BUILDING_TAGS}
                  if row[2].startswith('relation/') else {} for row in spec['sites'] for ref in row[4]}
     sites = [(row, midpoint(source_points(elements[row[2]], nodes, ways))) for row in spec['sites']]
-    buildings, invalid = make_buildings(boxes, ways, nodes, [point for _, point in sites], requested, history[3])
+    buildings, invalid, housing_coverage = make_buildings(boxes, ways, nodes, [point for _, point in sites], requested, history[3], region)
     building_ids = {body.get('sourceId'):body['id'] for body in history[3]+buildings}
     landmarks = []
     seen_names = set()
@@ -274,7 +329,8 @@ def build(region, cache, existing):
                 license=manifest['license'],licenseUrl=manifest['licenseUrl'],attributionUrl=manifest['attributionUrl'],
                 snapshotDate=manifest['snapshotDate'],sourceBoxes=boxes,
                 files=[{key: record[key] for key in ('file','url','sha256')} for record in manifest['files']],
-                priorSnapshots=history[4],invalidFootprintsSkipped=invalid,buildingLimit=MAX_BUILDINGS)
+                priorSnapshots=history[4],invalidFootprintsSkipped=invalid,buildingLimit=MAX_BUILDINGS+HOUSING_LIMITS.get(region,0),
+                **({'housingCoverage':housing_coverage} if housing_coverage else {}))
     return dict(meta=meta,bounds=bounds,roads=roads,buildings=buildings,areas=areas,landmarks=sorted(landmarks,key=lambda place:place['id']))
 
 

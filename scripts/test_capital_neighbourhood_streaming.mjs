@@ -7,8 +7,9 @@ const THREE = await import(threeURL);
 const source = await readFile(new URL('../Games/Capital Drive/neighbourhood.js', import.meta.url), 'utf8');
 const districtsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/districts.js', import.meta.url), 'utf8'));
 const characterURL = moduleURL(await readFile(new URL('../Games/Capital Drive/suburb-character.js', import.meta.url), 'utf8'));
+const waterURL = moduleURL(await readFile(new URL('../Games/Capital Drive/water-contact.js', import.meta.url), 'utf8'));
 const roadsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/road-network.js', import.meta.url), 'utf8'));
-const loadNeighbourhood = async text => import(moduleURL(text.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL).replace('./suburb-character.js', characterURL)));
+const loadNeighbourhood = async text => import(moduleURL(text.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL).replace('./suburb-character.js', characterURL).replace('./water-contact.js', waterURL)));
 const { createNeighbourhoodDetails } = await loadNeighbourhood(source);
 
 const { createInteriors } = await import(new URL('../Games/Capital Drive/interiors.js',import.meta.url));

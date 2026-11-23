@@ -62,7 +62,7 @@ assert.deepEqual(rental.snapshot(),paused,'pause, recovery and non-foot mode fre
 for(let i=0;i<100;i++)rental.step(.1,{throttle:1},context);
 assert.equal(rental.snapshot().active.speed,6.9,'scooter capped at 25km/h');assert(moves>0);
 assert.equal(rental.end(context).ok,false,'must stop before dismount');
-const yaw=rental.snapshot().active.yaw;rental.step(.1,{steer:1,throttle:1},context);assert(rental.snapshot().active.yaw>yaw);
+const yaw=rental.snapshot().active.yaw;rental.step(.1,{steer:1,throttle:1},context);assert(rental.snapshot().active.yaw<yaw,'D/right reduces -Z-forward yaw, matching cars');
 collide=true;const stoppedAt={x:pose.x,z:pose.z};rental.step(.1,{throttle:1},context);
 assert.equal(rental.snapshot().active.speed,0,'swept actor collision stops ride');assert.equal(pose.x,stoppedAt.x);assert.equal(pose.z,stoppedAt.z);
 // Reset is a mode/session lifecycle action, never a persisted career mutation.
@@ -122,4 +122,19 @@ view.update(allNear,{x:1e6,z:1e6},.1);assert.equal(view.stats.drawCalls,0);asser
 view.update(allNear,{x:NaN,z:0});assert.equal(view.stats.drawCalls,0);
 let disposedGeometry=0,disposedMaterial=0;for(const mesh of root.children)mesh.geometry.addEventListener('dispose',()=>disposedGeometry++);root.children[0].material.addEventListener('dispose',()=>disposedMaterial++);
 view.dispose();view.dispose();view.update(allNear,{x:0,z:0},.1);assert.equal(scene.children.length,0);assert.equal(disposedGeometry,5);assert.equal(disposedMaterial,1);assert.equal(view.stats.drawCalls,0);
+// Both paid scooter/e-bike owners use the same right-positive control ABI,
+// including fractional touch-stick input. This clear mover isolates the sign.
+const steeringRental=createMicromobility(map);
+for(const kind of ['scooter','bike'])for(const steer of [-1,-.35,.35,1]){
+  steeringRental.reset();const offer=steeringRental.snapshot().assets.find(a=>a.kind===kind);
+  const actor={x:offer.x,z:offer.z,yaw:0,speed:0},start={...actor};
+  const context={pose:actor,onFoot:true,assetId:offer.id,pay:()=>true,
+    moveActor(p,dx,dz){p.x+=dx;p.z+=dz;return {blocked:false};}};
+  assert(steeringRental.start(kind,context).ok);
+  for(let i=0;i<12;i++)steeringRental.step(.1,{throttle:1,steer},context);
+  assert(actor.yaw*steer<0,kind+': positive/right input reduces yaw');
+  assert((actor.x-start.x)*steer>0,kind+': actual path bends to requested side');
+  assert(actor.z<start.z,kind+': forward travel remains local -Z');
+}
+steeringRental.reset();
 console.log('PASS 56 deterministic Lemon assets across ten districts, source-road and sensitive-area safety, paid hire guards, completed one-use scooter permit, no wallet theft/no teleport, ride physics/recovery, nearest 24 within 180m, five pooled draws, rider reserve and exact disposal');

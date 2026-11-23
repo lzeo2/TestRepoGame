@@ -37,3 +37,20 @@ motion.capture(actor,room);
 assert.equal(motion.sample(null,room,.5),null,'combat, ragdolls and vehicle modes discard history');
 assert.equal(motion.sample(actor,room,.5),actor,'returning to locomotion starts fresh');
 console.log('PASS fixed-step foot render motion, shared camera pose, pause and discontinuities');
+
+const elevated={x:1,z:2,yaw:0,speed:1,jumpHeight:0,feetY:5,impactSerial:9};
+motion.capture(elevated,room);elevated.feetY=5.2;
+const raised=motion.sample(elevated,room,.5);close(raised.feetY,5.1);
+assert.equal(elevated.feetY,5.2,'camera/mesh floor interpolation never changes source feet');
+const raisedCamera=footCameraFrame(raised),floorCamera=footCameraFrame(elevated);
+close(raisedCamera.camera.y,floorCamera.camera.y-.1);
+assert.equal(motion.sample(elevated,room,NaN),raised,'invalid render fraction keeps the last finite presentation');
+assert(Number.isFinite(raised.x)&&Number.isFinite(raised.feetY));
+motion.capture(elevated,room);elevated.x+=.1;elevated.impactSerial++;
+assert.equal(motion.sample(elevated,room,.5),elevated,'a fresh impact bypasses ordinary motion history');
+motion.capture(elevated,room);elevated.impactTime=.2;
+assert.equal(motion.sample(elevated,room,.5),elevated,'active impact cannot be interpolated as walking');
+console.log('PASS finite bounded floor/camera interpolation, current impact bypass and unchanged source pose');
+
+elevated.impactTime=0;motion.capture(elevated,room);delete elevated.feetY;elevated.x+=.1;
+assert(!Object.hasOwn(motion.sample(elevated,room,.5),'feetY'),'reused render pose cannot retain a removed floor override');

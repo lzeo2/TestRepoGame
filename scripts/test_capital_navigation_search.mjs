@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
-import { findRoute } from '../Games/Capital Drive/navigation.js';
+import { findRoute,aerialGuidance } from '../Games/Capital Drive/navigation.js';
 import { buildRoadGraph, createSimulation } from '../Games/Capital Drive/simulation.js';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { applyRoadProfiles } from '../Games/Capital Drive/road-network.js';
@@ -90,3 +90,18 @@ const baseline = observe(dijkstra), candidate = observe(findRoute);
 console.log(`Capital navigation PASS: ${comparisons} pinned-Dijkstra cost/endpoint/reachability comparisons; ${changedTies} equal-cost route shapes changed.`);
 console.log(JSON.stringify({ measurementOnly: true, baselineRevision, baseline, candidate,
   scope: 'Source graph search only; identical current expanded-map graph for both searches. Missing full boot colliders do not establish physical travel, native input or FPS.' }));
+
+const pilot={x:0,z:0,yaw:0,y:900},target={x:100,z:0,y:-400},beforeGuidance=JSON.stringify({pilot,target});
+const right=aerialGuidance(pilot,target);assert.equal(right.turn,'right');assert.equal(right.distance,100);assert(Math.abs(right.turnAngle-Math.PI/2)<1e-12);
+assert.equal(aerialGuidance(pilot,{x:-100,z:0}).turn,'left');
+assert.equal(aerialGuidance(pilot,{x:0,z:-100}).turn,'straight');
+assert.equal(aerialGuidance({...pilot,yaw:-Math.PI/2},target).turn,'straight','east-facing craft sees east target ahead');
+assert.equal(aerialGuidance({...pilot,yaw:Math.PI/2},target).turnAngle,Math.PI,'behind target remains a bounded direct bearing');
+const wrap=aerialGuidance({...pilot,yaw:Math.PI-.02},{x:2,z:100});assert(Math.abs(wrap.turnAngle)<.05,'heading wraps across +/-pi along the short arc');
+assert.equal(aerialGuidance(pilot,{x:21,z:0}).turn,'arrived','horizontal arrival radius is explicit');
+assert.equal(aerialGuidance(pilot,pilot,{arrivalRadius:0}).turnAngle,0);
+assert.equal(aerialGuidance(pilot,{x:21,z:0},{arrivalRadius:0}).turn,'right');
+assert.deepEqual(aerialGuidance({...pilot,y:-10000},{...target,y:20000}),right,'guidance imposes no altitude or landing enforcement');
+for(const invalid of [null,{}, {...pilot,x:NaN},{...pilot,z:Infinity},{...pilot,yaw:NaN}])assert.equal(aerialGuidance(invalid,target),null);
+assert.equal(aerialGuidance(pilot,{x:NaN,z:0}),null);assert.equal(JSON.stringify({pilot,target}),beforeGuidance);
+console.log('PASS aerial guidance: horizontal distance, right-positive relative arrow, shortest yaw wrap, arrival radius, immutable inputs and no altitude/autopilot authority');

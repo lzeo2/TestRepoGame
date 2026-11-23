@@ -28,6 +28,12 @@ export function createInteriorView(scene) {
     stats.triangles = roomTriangles + (lootMarker.visible ? 8 : 0);
     return true;
   }
+  function setHeistTarget(target){
+    if(!lootMarker)return false;
+    const valid=target&&target.interiorId===current?.id&&[target.x,target.z].every(Number.isFinite);
+    if(valid)lootMarker.position.set(target.x,current.floorY+.38,target.z);
+    return setHeistLootActive(!!valid);
+  }
   function load(plan) {
     if (disposed) return false;
     if (plan === current) return true;
@@ -279,7 +285,11 @@ export function createInteriorView(scene) {
       }
     }
     for (const item of plan.details || []) {
-      if(item.kind==='shop-window') {
+      if(item.kind==='release-console') {
+        detail(item,0,.07,0,item.width,.14,item.depth,0x35434a);
+        detail(item,0,.28,.1,item.width,.32,.065,item.color);
+        detail(item,0,.29,.061,item.width*.78,.21,.012,0xb5c3aa);
+      } else if(item.kind==='shop-window') {
         const {width:w,height:h}=item;
         detail(item,0,h/2,-.025,w,h,.035,0x536b6b);
         detail(item,0,h/2,.035,w-.12,h-.12,.035,item.color);
@@ -416,6 +426,6 @@ export function createInteriorView(scene) {
     }
     current = plan; return true;
   }
-  return { load, clear, setHeistLootActive, stats,
+  return { load, clear, setHeistLootActive, setHeistTarget, stats,
     dispose() { if (disposed) return; clear(); material.dispose(); lootMaterial.dispose(); scene.remove(root); disposed = true; } };
 }

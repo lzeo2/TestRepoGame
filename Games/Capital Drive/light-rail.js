@@ -3,9 +3,43 @@ import { LIGHT_RAIL_SOURCE } from './light-rail-source.js';
 const TRAIN_LENGTH = 26.4, TRAIN_WIDTH = 2.62;
 const SERVICE_SPEED = 21, TURN_SPEED = 8, ACCEL = 1.75, BRAKE = 2.1;
 const DWELL = 7, SUBSTEP = 1 / 30, HEADWAY = 150;
-const BOARD_REACH = 5;
+const BOARD_REACH = 5, SERVICE_TRAINS = 8, RESERVE_CLEARANCE = 500;
 const finitePose = pose => pose && Number.isFinite(pose.x) && Number.isFinite(pose.z);
 const gap = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+
+function compilePlatform(stop, key, line, heightAt, canStand) {
+  const footprint = stop.platforms[key], direction = key === 'north' ? 1 : -1;
+  const index = line.nodes.indexOf(stop[key]);
+  const [railX, railZ] = line.points[index];
+  const [ax, az] = line.points[Math.max(0, index - 2)], [bx, bz] = line.points[Math.min(line.points.length - 1, index + 2)];
+  const trackYaw = Math.atan2(ax - bx, az - bz);
+  const corners = footprint.points.slice(0, -1);
+  const x = corners.reduce((sum, point) => sum + point[0], 0) / corners.length;
+  const z = corners.reduce((sum, point) => sum + point[1], 0) / corners.length;
+  const edges = corners.map(([px, pz], i) => {
+    const [qx, qz] = corners[(i + 1) % corners.length];
+    return {dx:qx - px, dz:qz - pz, length:Math.hypot(qx - px, qz - pz)};
+  });
+  const long = edges.reduce((best, edge) => edge.length > best.length ? edge : best);
+  const sameDirection = long.dx * Math.sin(trackYaw) + long.dz * Math.cos(trackYaw) < 0;
+  const fx = long.dx / long.length * (sameDirection ? 1 : -1);
+  const fz = long.dz / long.length * (sameDirection ? 1 : -1);
+  const yaw = Math.atan2(-fx, -fz);
+  const width = edges.filter(edge => edge.length < long.length / 2).reduce((sum, edge) => sum + edge.length, 0) / 2;
+  const length = edges.filter(edge => edge.length >= long.length / 2).reduce((sum, edge) => sum + edge.length, 0) / 2;
+  const side = Math.sign((railX - x) * Math.cos(yaw) - (railZ - z) * Math.sin(yaw)) || 1;
+  const doorSide = Math.sign((x - railX) * Math.cos(trackYaw) - (z - railZ) * Math.sin(trackYaw)) || -side;
+  const nearDoor = (railX - x) * fx + (railZ - z) * fz;
+  const candidates = [0, 2, -2, 4, -4, 8, -8].map(offset => {
+    const at = Math.min(length / 2 - .8, Math.max(.8 - length / 2, nearDoor + offset));
+    return {x:x + fx * at, z:z + fz * at, yaw:trackYaw};
+  });
+  const approach = candidates.find(candidate => canStand(candidate)) || candidates[0];
+  return Object.freeze({id:`${stop.id}-${key}`, stopId:stop.id, name:stop.name, direction,
+    sourceId:footprint.sourceId, points:Object.freeze(footprint.points.map(point => Object.freeze(point.slice()))),
+    x, z, y:heightAt(x,z), yaw, side, doorSide, length, platformWidth:width,
+    approach:Object.freeze({...approach, y:heightAt(approach.x,approach.z)})});
+}
 
 function compileLine(source, bounds, heightAt, canStand) {
   const routes = source.lines.map(line => Object.freeze({
@@ -15,33 +49,28 @@ function compileLine(source, bounds, heightAt, canStand) {
   if (!bounds || routes.some(route => route.points.some(([x,z]) =>
     x < bounds.minX || x > bounds.maxX || z < bounds.minZ || z > bounds.maxZ))) return null;
   const north = source.lines[0], south = source.lines[2];
+  const platforms = [];
+  const platformsByStop = new Map();
   const stops = source.stops.map(stop => {
-    const sight = north.nodes.indexOf(stop.north);
-    const [nx, nz] = north.points[sight], [sx, sz] = south.points[south.nodes.indexOf(stop.south)];
-    const [ax, az] = north.points[Math.max(0, sight - 2)];
-    const [bx, bz] = north.points[Math.min(north.points.length - 1, sight + 2)];
-    const yaw = Math.atan2(ax - bx, az - bz);
-    const centre = {x:(nx + sx) / 2, z:(nz + sz) / 2, yaw};
-    // Prefer the station island. Move a blocked spawn up the same island before
-    // falling back to its surveyed label. No door exit ever searches a road.
-    const candidates = [centre, ...[2,-2,4,-4].map(forward => ({ x:centre.x-Math.sin(yaw)*forward,
-      z:centre.z-Math.cos(yaw)*forward, yaw })),
-      {x:stop.coordinates[0], z:stop.coordinates[1], yaw}];
-    const approach = candidates.find(candidate => canStand(candidate)) || centre;
-    const trackGap = Math.hypot(nx-sx,nz-sz);
-    return Object.freeze({id:stop.id, name:stop.name, sourceId:`node/${stop.station}`, side:1,
-      ...centre, y:heightAt(centre.x, centre.z), trackGap,
-      platformWidth:Math.max(.7, trackGap - TRAIN_WIDTH - .16),
-      approach:Object.freeze({...approach, y:heightAt(approach.x, approach.z)}),
+    const northPlatform = compilePlatform(stop, 'north', north, heightAt, canStand);
+    const southPlatform = compilePlatform(stop, 'south', south, heightAt, canStand);
+    platforms.push(northPlatform, southPlatform);
+    platformsByStop.set(stop.id, {north:northPlatform, south:southPlatform});
+    const {approach} = stop === source.stops.at(-1) ? southPlatform : northPlatform;
+    return Object.freeze({id:stop.id, name:stop.name, sourceId:`node/${stop.station}`,
+      x:approach.x, z:approach.z, y:approach.y, approach,
       aliases:Object.freeze(['light rail','tram','Capital Line',`${stop.name} light rail`])});
   });
   const path = [], markers = [];
   let circuitLength = 0;
   for (const line of source.lines) {
-    const names = new Map(source.stops.map((stop, i) => [line.direction === 1 ? stop.north : stop.south, stops[i]]));
+    const direction = line.direction === 1 ? 'north' : 'south';
+    const names = new Map(source.stops.map((stop, i) => [stop[direction], {
+      stop:stops[i], platform:platformsByStop.get(stop.id)[direction],
+    }]));
     for (let i = 0; i < line.points.length; i++) {
       if (line.direction && names.has(line.nodes[i]))
-        markers.push(Object.freeze({distance:circuitLength, stop:names.get(line.nodes[i]), direction:line.direction}));
+        markers.push(Object.freeze({distance:circuitLength, ...names.get(line.nodes[i]), direction:line.direction}));
       if (i === line.points.length - 1) break;
       const a = line.points[i], b = line.points[i + 1], length = Math.hypot(b[0] - a[0], b[1] - a[1]);
       if (length < .001) continue;
@@ -50,22 +79,38 @@ function compileLine(source, bounds, heightAt, canStand) {
       circuitLength += length;
     }
   }
-  return {routes:Object.freeze(routes), stops:Object.freeze(stops), markers, path, circuitLength};
+  return {routes:Object.freeze(routes), stops:Object.freeze(stops), platforms:Object.freeze(platforms), markers, path, circuitLength};
 }
 
 export function createLightRail(map, { heightAt = () => 0, canStand = () => true, canReach = () => true } = {}) {
   const line = compileLine(LIGHT_RAIL_SOURCE, map?.bounds, heightAt, canStand);
   const stops = line?.stops || Object.freeze([]), routes = line?.routes || Object.freeze([]);
-  const fleet = line ? Array.from({length:5}, (_, i) => ({
+  const platforms = line?.platforms || Object.freeze([]), stopsById = new Map(stops.map(stop => [stop.id,stop]));
+  const fleet = line ? Array.from({length:SERVICE_TRAINS + 1}, (_, i) => ({
     id:`capital-tram-${i + 1}`, kind:'tram', width:TRAIN_WIDTH,length:TRAIN_LENGTH,
-    x:0,y:0,z:0,yaw:0,speed:0,active:i!==4,stopId:null,nextStopId:null,doorsOpen:false,
+    x:0,y:0,z:0,yaw:0,speed:0,active:i<SERVICE_TRAINS,stopId:null,nextStopId:null,doorsOpen:false,
     occupied:true,direction:0,playerAboard:false,
   })) : [];
   const records = fleet.map(train => ({train, distance:0, at:0, next:0, dwell:0, track:0}));
   const cap = line?.circuitLength || 1;
   const wrap = distance => (distance % cap + cap) % cap;
+  // Spread the scheduled sets along the full circuit, starting at Alinga Street.
+  const startingMarkers = line ? records.map((_, i) => {
+    const target = cap * i / SERVICE_TRAINS;
+    return i === SERVICE_TRAINS ? 0 : line.markers.reduce((best, marker, index) =>
+      Math.abs(marker.distance - target) < Math.abs(line.markers[best].distance - target) ? index : best, 0);
+  }) : [];
   let riding = null, exitQueued = false, seatValue;
   const upcoming = record => line.markers[record.next];
+  function journey(record) {
+    const {markers} = line;
+    const previous = markers[(record.next - 1 + markers.length) % markers.length];
+    const next = upcoming(record);
+    // A terminus has a stop marker on each track. Show the next distinct stop.
+    const onward = previous.stop === next.stop ? markers[(record.next + 1) % markers.length] : next;
+    return { nextStop:onward.stop.name, destination:(onward.direction === 1 ? stops.at(-1) : stops[0]).name,
+      direction:onward.direction };
+  }
   const findSegment = (distance, index) => {
     const {path} = line;
     while (index > 0 && distance < path[index].start) index--;
@@ -93,6 +138,7 @@ export function createLightRail(map, { heightAt = () => 0, canStand = () => true
     record.dwell = DWELL + extraDwell;
     train.speed = 0;
     train.stopId = occurrence.stop.id;
+    train.doorSide = occurrence.platform.doorSide;
     train.doorsOpen = true;
     position(record);
     // At terminus track branches the next running segment already reverses.
@@ -108,8 +154,8 @@ export function createLightRail(map, { heightAt = () => 0, canStand = () => true
     if(!line)return;
     records.forEach((record, index) => {
       record.train.playerAboard = false;
-      record.train.active = index < 4;
-      stop(record, [0,2,5,8,4][index], 2);
+      record.train.active = index < SERVICE_TRAINS;
+      stop(record, startingMarkers[index], 2);
       if (!record.train.active) {
         record.train.doorsOpen = false;
         record.train.stopId = null;
@@ -121,20 +167,21 @@ export function createLightRail(map, { heightAt = () => 0, canStand = () => true
   function nearStop(pose, radius = 12) {
     if (!finitePose(pose) || !Number.isFinite(radius) || radius < 0) return null;
     let closest = null, best = radius;
-    for (const stop of stops) {
-      const distance = gap(pose, stop.approach);
-      if (distance <= best) { closest = stop; best = distance; }
+    for (const platform of platforms) {
+      const distance = gap(pose, platform.approach);
+      if (distance <= best) { closest = platform; best = distance; }
     }
-    return closest ? {...closest, distance:best} : null;
+    return closest ? {...stopsById.get(closest.stopId), approach:closest.approach,
+      platformId:closest.id, direction:closest.direction, distance:best} : null;
   }
 
-  function callShuttle(stopId, pose) {
+  function callShuttle(platform, pose) {
     const reserve = records.at(-1);
-    if (records.some(record => record.train.active && upcoming(record).stop.id === stopId &&
+    if (records.some(record => record.train.active && upcoming(record).platform.id === platform.platformId &&
       wrap(upcoming(record).distance - record.distance) <= 210)) return true;
-    if (!reserve || reserve === riding || reserve.train.active && gap(reserve.train, pose) < 320) return false;
+    if (!reserve || reserve === riding || reserve.train.active && gap(reserve.train, pose) < RESERVE_CLEARANCE) return false;
     for (const [index, occurrence] of line.markers.entries()) {
-      if (occurrence.stop.id !== stopId) continue;
+      if (occurrence.platform.id !== platform.platformId) continue;
       const distance = wrap(occurrence.distance - 160);
       const track = findSegment(distance, 0);
       if (!line.path[track].direction || records.some(record => record !== reserve && record.train.active &&
@@ -149,6 +196,10 @@ export function createLightRail(map, { heightAt = () => 0, canStand = () => true
     return false;
   }
 
+  function boardableRecord(stopId, direction) {
+    return records.find(({train}) => train.active && train.doorsOpen && train.stopId === stopId && train.direction === direction);
+  }
+
   function interact(ctx = {}) {
     if (ctx.recovering || ctx.indoors) return {ok:false,reason:'Use the light rail outside recovery and interiors.'};
     if (riding) {
@@ -156,7 +207,7 @@ export function createLightRail(map, { heightAt = () => 0, canStand = () => true
         exitQueued = true;
         return {ok:false,stopping:true,reason:'Exit requested. Press E at the next platform.'};
       }
-      const platform = line.markers[riding.at].stop;
+      const platform = line.markers[riding.at].platform;
       if (!canStand(platform.approach,riding.train.id)) {
         exitQueued = true;
         return {ok:false,reason:'Platform is blocked. The doors will wait briefly.'};
@@ -165,15 +216,14 @@ export function createLightRail(map, { heightAt = () => 0, canStand = () => true
       riding = null;
       exitQueued = false;
       seatValue = null;
-      return {ok:true,exited:true,stopId:platform.id,exitPose:platform.approach,reason:`Exited at ${platform.name}.`};
+      return {ok:true,exited:true,stopId:platform.stopId,exitPose:platform.approach,reason:`Exited at ${platform.name}.`};
     }
     if (!ctx.onFoot || ctx.busy) return {ok:false,reason:'Finish your activity and approach the platform on foot.'};
     const platform = nearStop(ctx.pose, BOARD_REACH);
     if (!platform) return {ok:false,reason:'Walk to a Capital Line platform marker.'};
-    const available = records.filter(record => record.train.active && record.train.doorsOpen && record.train.stopId === platform.id);
-    const train = available.find(record => upcoming(record).stop.id !== platform.id) || available[0];
+    const train = boardableRecord(platform.id,platform.direction);
     if (!train) {
-      const called = callShuttle(platform.id,ctx.pose);
+      const called = callShuttle(platform,ctx.pose);
       return {ok:false,waiting:true,stopId:platform.id,
         reason:called?'Tram approaching. Press E when the doors open.':'Wait at the platform for the next tram.'};
     }
@@ -184,7 +234,8 @@ export function createLightRail(map, { heightAt = () => 0, canStand = () => true
     exitQueued = false;
     // Give time to enter, then restart promptly.
     train.dwell = Math.min(train.dwell, 2.4);
-    return {ok:true,boarded:true,passenger:true,trainId:train.train.id,stopId:platform.id,reason:`Boarded the Capital Line at ${platform.name}.`};
+    const {destination} = journey(train);
+    return {ok:true,boarded:true,passenger:true,trainId:train.train.id,stopId:platform.id,reason:`Boarded the Capital Line towards ${destination}.`};
   }
 
   function step(dt) {
@@ -219,12 +270,15 @@ export function createLightRail(map, { heightAt = () => 0, canStand = () => true
   }
 
   function snapshot() {
-    return { vehicles:fleet.map(train => ({...train})), stops, routes,
-      passenger:!!riding, passengerStopId:riding?.train.stopId || null, exitRequested:exitQueued };
+    return { vehicles:fleet.map(train => ({...train})), stops, routes, platforms,
+      passenger:!!riding, passengerStopId:riding?.train.stopId || null,
+      passengerJourney:riding ? journey(riding) : null, exitRequested:exitQueued };
   }
-  return { routes,stops,vehicles:fleet,nearStop,interact,step,snapshot,reset,
+  return { routes,stops,platforms,vehicles:fleet,nearStop,interact,step,snapshot,reset,
+    platformJourney(stopId, direction) { const record = boardableRecord(stopId,direction); return record ? journey(record) : null; },
     get passenger(){return !!riding;},
     get passengerStopId(){return riding?.train.doorsOpen ? riding.train.stopId : null;},
+    get passengerJourney(){return riding ? journey(riding) : null;},
     get seatPose(){
       if (!riding) return null;
       const {train} = riding;

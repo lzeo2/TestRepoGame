@@ -34,6 +34,8 @@ nav button{font-size:12px;min-width:44px;padding:8px 11px;}
 .minimap-wrap{position:absolute;bottom:calc(var(--footer-height) + 12px);left:20px;width:190px;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--panel);color:var(--ink);}
 #minimap-button{display:block;position:relative;padding:0;border:0;border-radius:0;width:100%;height:132px;background:var(--map);}
 #minimap{width:100%;height:100%;display:block;}
+#minimap-zoom{position:absolute;top:4px;right:4px;width:44px;height:44px;padding:0;background:var(--panel);color:var(--ink);font-size:22px;line-height:1;}
+#minimap-zoom:focus-visible{outline-offset:-3px;}
 .map-caption{position:absolute;bottom:6px;left:auto;right:8px;display:block;justify-content:space-between;color:#37433c;font-size:10px;font-weight:700;letter-spacing:0;}
 .map-footer{padding:6px 9px;display:flex;align-items:center;gap:8px;font-size:10px;}
 .driving-hud{position:absolute;bottom:calc(var(--footer-height) + 12px);right:20px;width:186px;color:var(--ink);text-shadow:none;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:4px;}

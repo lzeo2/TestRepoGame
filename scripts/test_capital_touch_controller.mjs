@@ -12,7 +12,7 @@ function extract(name){
 }
 let move={x:0,y:0,active:false},look={x:0,y:0,active:false};
 const stick=(get,reset)=>({snapshot:get,clear:reset});
-const env={droneActive:false,keys:new Set(),touch:new Set(),actionTouch:new Set(),miniKeys:new Set(),touchHolds:new Map(),
+const env={droneActive:false,skylineLease:null,skylineJob:{snapshot:()=>({stage:'safe'})},keys:new Set(),touch:new Set(),actionTouch:new Set(),miniKeys:new Set(),touchHolds:new Map(),
   moveStick:stick(()=>({...move}),()=>{move={x:0,y:0,active:false};}),
   lookStick:stick(()=>({...look}),()=>{look={x:0,y:0,active:false};}),
   THREE:{MathUtils:{clamp:(value,min,max)=>Math.max(min,Math.min(max,value))}},
@@ -26,6 +26,8 @@ const near=(actual,expected)=>assert(Math.abs(actual-expected)<1e-9,`${actual} ~
 move={x:.25,y:-.5,active:true};
 near(api.walkingInput().moveX,.25);near(api.walkingInput().moveZ,-.5);
 near(api.input().steer,.25);near(api.input().throttle,.5);
+env.keys.add('ArrowUp');env.skylineLease={};near(api.walkingInput().moveZ,-.5);
+env.skylineLease=null;near(api.walkingInput().moveZ,-1);env.keys.delete('ArrowUp');
 env.footCameraYaw=Math.PI/2;near(api.walkingInput().moveX,-.5);near(api.walkingInput().moveZ,-.25);
 env.keys.add('KeyW');near(api.input().throttle,1);
 env.keys.add('KeyS');near(api.input().throttle,.5);

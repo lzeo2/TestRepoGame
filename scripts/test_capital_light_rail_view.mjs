@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import {LIGHT_RAIL_SOURCE} from '../Games/Capital Drive/light-rail-source.js';
 import { createLightRailView } from '../Games/Capital Drive/light-rail-view.js';
 
 const scene = new THREE.Scene();
@@ -58,6 +59,30 @@ assert.equal(fleet.instanceColor.version, fleetColorVersion, 'moving parts reuse
 view.update([tram, ...Array.from({ length: 5 }, (_, index) => ({ ...tram, id: `return-${index}`, x: 2.6, z: -50 * index, y: ground(2.6, -50 * index), yaw: Math.PI }))], focus);
 assert.equal(view.stats.trains, 5, 'the shared draw covers all scheduled and spare trains with a bounded pool');
 assert(fleet.count <= view.stats.trainCapacity && track.count <= view.stats.trackCapacity);
+
+// Eight scheduled trains and a reserve can all be local: source array order
+// must not hide the closest/ridden train near the end of the service roster.
+const crowded = Array.from({ length: 9 }, (_, index) => ({ ...tram,
+  id: index === 8 ? 'ridden-last' : `scheduled-${index}`, x: (8 - index) * 50, z: 0, yaw: 0 }));
+const crowdedBefore = structuredClone(crowded);
+const visibleTrainXs = () => {
+  const partsPerTrain = fleet.count / view.stats.trains, xs = [];
+  for (let index = 0; index < view.stats.trains; index++) {
+    fleet.getMatrixAt(index * partsPerTrain, matrix); xs.push(matrix.elements[12]);
+  }
+  return xs.sort((a, b) => a - b);
+};
+view.update([...crowded, { ...tram, id: 'inactive-near', x: 1, active: false }], focus);
+assert.deepEqual(visibleTrainXs(), [0, 50, 100, 150, 200], 'five nearest active trains include the ridden last roster entry');
+assert.equal(view.stats.drawCalls, 2);assert.equal(view.stats.trains, 5);
+assert.equal(fleet.count, view.stats.trainCapacity, 'nearest selection preserves the existing fixed instance capacity');
+const crowdedVersion = fleet.instanceMatrix.version;
+view.update([...crowded].reverse(), { x: 1, z: 0 });
+assert.equal(fleet.instanceMatrix.version, crowdedVersion, 'same nearest membership reuses buffers after roster reordering');
+view.update(crowded, { x: 360, z: 0 });
+assert.deepEqual(visibleTrainXs(), [200, 250, 300, 350, 400], 'pool follows the focus to the new nearest trains');
+assert.deepEqual(crowded, crowdedBefore, 'selection never reorders or edits controller-owned trains');
+
 view.update([tram], { x: 1500, z: 1500 });
 assert.equal(view.stats.drawCalls, 0);
 view.update([{ ...tram, x: NaN }, null], focus);
@@ -87,3 +112,48 @@ for (let index = 0; index < tight.count; index++) {
 assert(signSide[0] > 0 && signSide[0] === signSide[1], 'platform signs have lettering on both faces');
 tightView.dispose();
 console.log('PASS light rail view: paired contour track, compact island stop, platform-side doors, fixed two-draw pool and cleanup');
+
+// Build directional descriptors from independently measured frozen polygons.
+// These real adjacent island halves must not become a combined track-gap slab.
+function sourcePlatform(stop,direction){
+  const source=stop.platforms[direction],points=source.points.slice(0,-1);
+  const edge=points.map((a,i)=>{const b=points[(i+1)%points.length];return {dx:b[0]-a[0],dz:b[1]-a[1],length:Math.hypot(b[0]-a[0],b[1]-a[1])};}).sort((a,b)=>b.length-a.length)[0];
+  const yaw=Math.atan2(edge.dx,edge.dz),c=Math.cos(yaw),s=Math.sin(yaw);
+  const us=points.map(([x,z])=>x*c-z*s),vs=points.map(([x,z])=>x*s+z*c);
+  const u=(Math.min(...us)+Math.max(...us))/2,v=(Math.min(...vs)+Math.max(...vs))/2;
+  const x=u*c+v*s,z=-u*s+v*c;
+  const route=LIGHT_RAIL_SOURCE.lines[direction==='north'?0:2],at=route.nodes.indexOf(stop[direction]),train=route.points[at];
+  const side=Math.sign((train[0]-x)*c-(train[1]-z)*s)||1;
+  return {id:`${stop.id}-${direction}`,stopId:stop.id,name:stop.name,direction:direction==='north'?1:-1,
+    sourceId:source.sourceId,x,y:0,z,yaw,side,length:Math.max(...vs)-Math.min(...vs),platformWidth:Math.max(...us)-Math.min(...us),points:source.points,approach:{x,z}};
+}
+const originalRailSource=structuredClone(LIGHT_RAIL_SOURCE);
+for(const stopId of ['rail-swinden','rail-gungahlin']){
+  const stop=LIGHT_RAIL_SOURCE.stops.find(s=>s.id===stopId),platforms=['north','south'].map(d=>sourcePlatform(stop,d));
+  assert(platforms.every(p=>p.platformWidth<3.2&&p.length>30),'surveyed directional halves have metre-scale width, not a 27m combined island');
+  const scene=new THREE.Scene(),view=createLightRailView(scene,{platforms,stops:[{id:stop.id,name:stop.name,x:platforms[0].x,z:platforms[0].z,yaw:platforms[0].yaw,trackGap:30,platformWidth:27}]},()=>0);
+  view.update([],platforms[0]);const track=scene.children[0];
+  assert.equal(view.stats.platforms,2,'both sourced directional structures are visible');
+  assert.equal(view.stats.stops,1,'directional structures retain their shared logical stop');
+  assert.equal(view.stats.drawCalls,1);assert(track.count<=view.stats.trackCapacity);
+  let floors=0,tactile=0,backs=0;
+  for(let i=0;i<track.count;i++){
+    track.getMatrixAt(i,matrix);const scale=new THREE.Vector3().setFromMatrixScale(matrix),center=new THREE.Vector3().setFromMatrixPosition(matrix),tint=new THREE.Color();track.getColorAt(i,tint);
+    const corners=[];for(const x of [-.5,.5])for(const y of [-.5,.5])for(const z of [-.5,.5])corners.push(new THREE.Vector3(x,y,z).applyMatrix4(matrix));
+    const contains=p=>{const c=Math.cos(p.yaw),s=Math.sin(p.yaw);return corners.every(q=>{
+      const dx=q.x-p.x,dz=q.z-p.z,u=dx*c-dz*s,v=dx*s+dz*c;
+      return Math.abs(u)<=p.platformWidth/2+.025&&Math.abs(v)<=p.length/2+.025;
+    });};
+    assert(platforms.some(contains),'source-aligned art stays on a single platform half, without side-edge or external end ramps');
+    if(Math.abs(scale.y-.35)<1e-5&&scale.z>30){floors++;assert(scale.x<3.2,'no broad logical track-gap floor leaks into physical art');}
+    const own=platforms.find(contains);
+    const localX=(center.x-own.x)*Math.cos(own.yaw)-(center.z-own.z)*Math.sin(own.yaw);
+    if(tint.getHex()===0xf2b955&&scale.z>25){tactile++;assert.equal(Math.sign(localX),own.side,'tactile coping faces this platform own train');}
+    if(tint.getHex()===0x426476&&scale.y>2){backs++;assert.equal(Math.sign(localX),-own.side,'shelter backs remain away from boarding edge');}
+  }
+  assert.equal(floors,2);assert.equal(tactile,2);assert.equal(backs,2);
+  view.update([{...tram,x:platforms[0].x,z:platforms[0].z,y:0}],platforms[0]);assert.equal(view.stats.drawCalls,2,'directional platforms share existing two draw budget with trains');
+  view.dispose();assert.equal(scene.children.length,0);
+}
+assert.deepEqual(LIGHT_RAIL_SOURCE,originalRailSource,'directional rendering never edits source geometry');
+console.log('PASS directional rail platforms: actual Swinden/Gungahlin source halves, source-aligned width/length, single train-side tactile edge, opposing shelters, no extra ramps or logical slabs, two draws and immutable source');

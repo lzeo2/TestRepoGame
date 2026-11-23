@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {createSimulation,projectSegment} from '../Games/Capital Drive/simulation.js';
 const read=p=>readFile(new URL(p,import.meta.url),'utf8'),url=s=>`data:text/javascript;base64,${Buffer.from(s).toString('base64')}`;
 const threeURL=url(await read('../assets/car-arcade/vendor/three.module.js')),THREE=await import(threeURL);
 const utilsURL=url((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace('./three.module.js',threeURL));
 const landmarksURL=url(await read('../Games/Capital Drive/landmarks.js'));
 const {LANDMARKS,POOL_GATE_APPROACHES,POOL_BARRIERS}=await import(landmarksURL);
-const {createLocalDetailsView}=await import(url((await read('../Games/Capital Drive/local-details-view.js')).replace('../../assets/car-arcade/vendor/three.module.js',threeURL).replace('../../assets/car-arcade/vendor/BufferGeometryUtils.js',utilsURL).replace('./landmarks.js',landmarksURL)));
+const source=await read('../Games/Capital Drive/local-details-view.js');
+const load=text=>import(url(text.replace('../../assets/car-arcade/vendor/three.module.js',threeURL).replace('../../assets/car-arcade/vendor/BufferGeometryUtils.js',utilsURL).replace('./landmarks.js',landmarksURL)));
+const {createLocalDetailsView}=await load(source);
 const map=JSON.parse(await read('../Games/Capital Drive/data/canberra.json'));map.barriers=POOL_BARRIERS;map.collisionReplacedBuildingIds=['act-75267-0'];
 const original=JSON.stringify(map),scene=new THREE.Scene(),height=(x,z)=>12+x*.001+z*.001;
 const view=createLocalDetailsView(scene,map,height),root=scene.children[0];
@@ -27,3 +30,16 @@ let geometries=0,materials=0;for(const mesh of root.children){for(const attr of 
 view.update({x:1e8,z:1e8});assert.equal(view.stats.drawCalls,0);view.update({x:NaN,z:0});assert.equal(view.stats.drawCalls,0);
 assert.equal(JSON.stringify(map),original);view.dispose();view.dispose();view.update(view.details[0]);assert.equal(scene.children.length,0);assert.equal(geometries,3);assert.equal(materials,1);assert.equal(view.stats.drawCalls,0);
 console.log(`PASS local history: three original source-anchor notices, ${view.stats.triangles} triangles, at most three near-only draws, no textures, source road/path and pool-gate clearance, shared-material exact disposal`);
+const fullScanSource=source.replace(/const within=.*;/,'const within=()=>true;');assert.notEqual(fullScanSource,source);
+const {createLocalDetailsView:fullScan}=await load(fullScanSource);
+const geometryHash=target=>{const hash=createHash('sha256');target.traverse(mesh=>{if(!mesh.isMesh)return;for(const [name,a]of Object.entries(mesh.geometry.attributes))hash.update(name).update(Buffer.from(a.array.buffer,a.array.byteOffset,a.array.byteLength));if(mesh.geometry.index)hash.update(Buffer.from(mesh.geometry.index.array.buffer));});return hash.digest('hex');};
+const centre=POOL_GATE_APPROACHES[0].outside;
+const crossing={...map,roads:[...map.roads,{width:20,points:[[centre[0]-10000,centre[1]+6],[centre[0]+10000,centre[1]+6]]}],
+ barriers:[...map.barriers,{points:[[centre[0]-10000,centre[1]+15],[centre[0]+2,centre[1]+15],[centre[0]+2,centre[1]+17],[centre[0]-10000,centre[1]+17]]}]};
+for(const fixture of [map,crossing]){
+ const indexedScene=new THREE.Scene(),referenceScene=new THREE.Scene(),indexed=createLocalDetailsView(indexedScene,fixture,height),reference=fullScan(referenceScene,fixture,height);
+ assert.deepEqual(indexed.details,reference.details);assert.deepEqual(indexed.obstacles,reference.obstacles);
+ assert.equal(geometryHash(indexedScene),geometryHash(referenceScene),'bounds prefilter preserves full-scan probe decisions and every notice vertex, including long crossing sources');
+ indexed.dispose();reference.dispose();
+}
+console.log('PASS exact local-history broad phase: source placements, collision obstacles and typed geometry match a full scan, including distant-endpoint crossing roads/barriers');

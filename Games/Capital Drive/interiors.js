@@ -217,7 +217,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
     const front = site.point(0, 0);
     if (!validPoint(front)) continue;
     add({ id: `interior-${site.id}`, buildingId: site.sourceBuildingId || `${site.id}-walls`, storeId: site.id,
-      serviceId: site.id, heistSiteId: site.id, type: 'shop', variant: site.kind, name: site.name,
+      serviceId: site.id, heistSiteId: site.id, type: 'shop', variant: site.kind, name: site.name,vaultPuzzle:site.vaultPuzzle===true,
       ...front, yaw: site.yaw + Math.PI, width: site.width, depth: site.depth, floorY: site.floor + .14 });
   }
   Object.freeze(entries);
@@ -367,6 +367,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
         box(furniture, 'teller-counter', -2.8, 4.6, 4.2, .8, 1.05, 0x8d7860);
         for (const side of [-1, 1]) box(furniture, 'bench', side * 5.15, 2.6, .8, 1.9, .65, 0x52667a);
         box(furniture, 'writing-table', 2.4, 2.7, 1.6, .8, 1.02, 0xa38d6e);
+        box(details,'release-console',2.4,2.7,.62,.34,.42,0x536b72,1.08);
         box(furniture, 'cash-safe', 4.8, 5.65, 1.2, 1.4, 1.9, 0x67727a);
         const vaultLabel=box(details,'shop-sign',4.8,4.92,.88,.025,.25,0x35454c,1.4);vaultLabel.label='VAULT';
         box(furniture, 'document-cabinet', -5.5, 6.25, .65, 1.5, 1.75, 0xa4a597);
@@ -407,11 +408,12 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
       }
       const anchors=memorial?memorialGalleryActions(origin,floorY):null;
       const loot = { id: `${entry.id}-loot`, ...worldPoint(origin, bank ? 3.45 : memorial?0:2.05, bank ? 5.65 : memorial?4.1:5.05), y: floorY,
-        yaw: origin.yaw + Math.PI / 2, radius: 1.4 };
+        yaw: origin.yaw + Math.PI / 2, radius: bank ? .75 : 1.4 };
       if(memorial)Object.assign(loot,anchors[3],{id:`${entry.id}-loot`,radius:1.4,label:'Exhibition case',variant:'exhibit'});
       heist = { siteId: entry.heistSiteId, kind: entry.variant,
         employee: { id: `${entry.id}-employee`, character: 'heist-employee', ...worldPoint(origin, employeeX, employeeZ),
           y: floorY, yaw: origin.yaw + Math.PI,...(memorial?{label:'Fictional gallery registrar'}:{}) }, loot,
+        ...(bank?{console:{id:`${entry.id}-console`,...worldPoint(origin,2.4,4),y:floorY,radius:.85,label:entry.vaultPuzzle?'Vault console':'Cash release console'}}:{}),
         ...(memorial?{anchors}:{}) };
     } else if (entry.type === 'mall') {
       const hall = 10, unitWidth = (width - hall) / 2, unitDepth = (depth - 6) / 2, unitGap = 5;

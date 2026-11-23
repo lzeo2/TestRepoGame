@@ -43,10 +43,13 @@ for (const site of sites) {
     assert.deepEqual({x:plan.heist.loot.x,z:plan.heist.loot.z},site.point(3.45,5.65),'vault styling preserves the existing bank pickup');
     const safe=plan.furniture.find(item=>item.kind==='cash-safe');assert(safe);
     assert.equal(safe.width,1.2);assert.equal(safe.depth,1.4);assert.equal(safe.height,1.9);
+    assert(Object.isFrozen(plan.heist.console));assert(plan.details.some(item=>item.kind==='release-console'));
+    assert(Math.hypot(plan.heist.console.x-plan.heist.loot.x,plan.heist.console.z-plan.heist.loot.z)>plan.heist.console.radius+plan.heist.loot.radius,'console and cash require separate physical approaches');
   }
   const collider = createInteriorCollider(plan), navigation = createInteriorNavigation(plan);
   assert(collider.canOccupy(plan.spawn)); assert(collider.canOccupy(plan.counter));
   assert(collider.canOccupy(plan.heist.employee, .36)); assert(collider.canOccupy(plan.heist.loot));
+  if(site.kind==='bank')assert(collider.canOccupy(plan.heist.console)&&navigation.nextWaypoint(plan.spawn,plan.heist.console),'bank console is physically accessible');
   const walk = (x, z) => {
     const target = site.point(x, z), dx = target.x - actor.x, dz = target.z - actor.z;
     const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / .25));
@@ -78,6 +81,12 @@ for (const site of sites) {
   view.load(plan); assert.equal(view.stats.draws, 1); assert(view.stats.triangles < 2500);
   scene.children[0].children[0].geometry.addEventListener('dispose', () => totalDisposed++);
   const marker = scene.children[0].children[1], markerGeometry = marker.geometry;
+  if(site.kind==='bank'){
+    assert(view.setHeistTarget({...plan.heist.console,interiorId:plan.id}));assert.equal(marker.position.x,plan.heist.console.x);assert.equal(marker.position.z,plan.heist.console.z);
+    assert(view.setHeistTarget({...plan.heist.loot,interiorId:plan.id}));assert.equal(marker.position.x,plan.heist.loot.x);
+    assert.equal(marker.geometry,markerGeometry,'phase target changes reuse the single marker');
+    view.setHeistTarget({...plan.heist.loot,interiorId:'elsewhere'});assert(!marker.visible,'another room cannot expose a bank target');
+  }
   assert.equal(marker.visible, false); assert(view.setHeistLootActive(true)); assert.equal(marker.visible, true); assert.equal(view.stats.draws, 2);
   assert(view.setHeistLootActive(false)); assert.equal(view.stats.draws, 1); assert.equal(marker.geometry, markerGeometry, 'loot state toggles reuse active geometry');
   scene.traverse(mesh => { if (mesh.isMesh) for (const a of Object.values(mesh.geometry.attributes)) assert(a.array.every(Number.isFinite)); });

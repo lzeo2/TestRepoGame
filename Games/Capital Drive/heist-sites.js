@@ -84,7 +84,7 @@ function makeSite(spec, host, fraction, side, setback, nearby, simulation, heigh
   // Source streets anchor the entirely fictional architecture and game interaction.
   const site = Object.freeze({
     id: spec.id, kind: spec.kind, name: spec.name, aliases: [...spec.aliases, road.name], road: road.name,
-    ...approach, yaw, radius: 2.6, description: `Fictional ${SITE_TYPES[spec.kind]} near ${road.name}`,
+    ...approach, yaw, radius: 2.6, description: spec.kind==='bank'?'Fictional bank · staff release, cash pickup, then escape.':`Fictional ${SITE_TYPES[spec.kind]} near ${road.name}`,
     sourceRoad: road.sourceId || road.id, streetPoint: { x: roadX, z: roadZ },
     centre, point, floor, foundation, width, depth, height, apron,
     rotation: -Math.atan2(tangentZ, tangentX), readingDirection: -side,
@@ -152,7 +152,7 @@ function placeSourceSite(spec, map, simulation, heightAt) {
     landmarkExterior: true, sourceBuildingId: buildingId, sourceId: building.sourceId,
     sourceFacadeEdge: edge, sourceRoad: road.sourceId || road.id, road: road.name || '',
     streetPoint: {x: host.projection.x, z: host.projection.z},
-    radius: 2.6, description: spec.sourceLabel ? `Heist inside ${spec.sourceLabel}.` : 'Bank robbery on Captain Cook Crescent.',
+    radius: 2.6, description: spec.kind==='bank'?'Fictional bank · vault symbols, cash pickup, then escape.':spec.sourceLabel ? `Heist inside ${spec.sourceLabel}.` : 'Bank robbery on Captain Cook Crescent.',
     centre: point(0, spec.depth / 2), point, floor, foundation: floor, rotation,
     readingDirection: 1, apron: [], exits: Object.freeze(exits.map(Object.freeze))})};
 }
