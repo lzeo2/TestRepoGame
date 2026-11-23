@@ -1,3 +1,17 @@
+// Direct manual-flight guidance in world metres/radians. No road graph,
+// altitude target, collision query or autopilot authority is involved.
+// turnAngle is positive to the pilot's RIGHT, suitable for a HUD arrow.
+export function aerialGuidance(pose,destination,{arrivalRadius=35,straightAngle=.12}={}) {
+  if(!pose||!destination||![pose.x,pose.z,pose.yaw,destination.x,destination.z].every(Number.isFinite))return null;
+  const dx=destination.x-pose.x,dz=destination.z-pose.z,distance=Math.hypot(dx,dz);
+  if(!Number.isFinite(distance))return null;
+  const radius=Number.isFinite(arrivalRadius)&&arrivalRadius>=0?arrivalRadius:35;
+  const tolerance=Number.isFinite(straightAngle)?Math.max(0,Math.min(Math.PI/2,straightAngle)):.12;
+  const arrived=distance<=radius,bearing=distance>0?Math.atan2(-dx,-dz):Math.atan2(Math.sin(pose.yaw),Math.cos(pose.yaw));
+  const turnAngle=arrived?0:Math.atan2(Math.sin(pose.yaw-bearing),Math.cos(pose.yaw-bearing));
+  return {distance,bearing,turnAngle,turn:arrived?'arrived':Math.abs(turnAngle)<=tolerance?'straight':turnAngle>0?'right':'left',arrived};
+}
+
 // Routes use the same directed OSM graph as ambient traffic.
 export function findRoute(graph, start, destination) {
   const roadNodes = [...graph.nodes.values()].filter(node => node.outgoing.some(edge => edge.road.name && edge.road.type !== 'service'));

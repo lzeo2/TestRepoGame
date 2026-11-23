@@ -154,7 +154,8 @@ export function createMicromobility(map) {
     if(typeof context.moveActor!=='function')return;
     const time=Math.min(dt,.1),spec=KINDS[active.kind],throttle=clamp(Number(input.throttle)||0,0,1),brake=clamp(Number(input.brake)||0,0,1),steer=clamp(Number(input.steer)||0,-1,1);
     active.speed=clamp(active.speed+(throttle*spec.acceleration-(brake?6*brake:.55))*time,0,spec.maxSpeed);
-    active.yaw+=steer*(1.65/(1+active.speed*.13))*Math.min(1,active.speed/.6)*time;
+    // D/right is positive input, which decreases yaw for local -Z forward.
+    active.yaw-=steer*(1.65/(1+active.speed*.13))*Math.min(1,active.speed/.6)*time;
     context.pose.yaw=active.yaw;
     const dx=-Math.sin(active.yaw)*active.speed*time,dz=-Math.cos(active.yaw)*active.speed*time,before={x:context.pose.x,z:context.pose.z};
     const result=context.moveActor(context.pose,dx,dz,RADIUS);

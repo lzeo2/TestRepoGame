@@ -43,6 +43,22 @@ function solve(system, context) {
     if(cue<7)system.step(.02, {}, context);
   }
 }
+function checkSteering(system,context,label){
+  const token=system.captureCheckpoint(),start=system.active;assert(token,label+' checkpoint');
+  for(const turn of [-1,-.35,.35,1]){
+    assert(system.restoreCheckpoint(token).ok);
+    system.step(.1,{turn,throttle:start.kind==='helicopter'?.3:0},context);
+    const next=system.active,heading=Math.atan2(Math.sin(next.yaw-start.yaw),Math.cos(next.yaw-start.yaw));
+    assert(heading*turn<0,label+': positive/right input reduces -Z-forward yaw');
+    const right=(next.x-start.x)*Math.cos(start.yaw)-(next.z-start.z)*Math.sin(start.yaw);
+    assert(right*turn>0,label+': world-space motion bends toward the requested side');
+    if(start.airborne)assert(next.bank*turn<0,label+': roll and actual turn agree');
+    assert(!next.wrecked,label+': small real steering probe remains clear');
+  }
+  assert(system.restoreCheckpoint(token).ok);system.step(.1,{turn:0},context);
+  assert.equal(system.active.yaw,start.yaw,label+': neutral input preserves heading');
+  assert(system.restoreCheckpoint(token).ok);
+}
 solve(jets, ctx);
 assert.equal(jets.active.id, parked[0].id);
 assert.equal(jets.active.stolen, true);
@@ -62,11 +78,13 @@ for(let i=0;i<70;i++)jets.step(.02,{climb:true},pilot);
 assert.equal(jets.active.speed,0);assert.equal(jets.active.airborne,false,'Space alone cannot lift a parked jet');
 for(let i=0;i<110&&jets.active.speed<12;i++)jets.step(.02,{throttle:1},pilot);
 assert(jets.active.takeoffRoll>0 && jets.active.speed<JET_TAKEOFF_SPEED && !jets.active.airborne,'actual ground roll precedes takeoff');
+checkSteering(jets,pilot,'jet ground steering');
 for(let i=0;i<500 && jets.active.altitude<10;i++){jets.step(.02,{throttle:1,climb:true},pilot);sync();}
 assert(jets.active.airborne && jets.active.y>terrain.heightAt(jets.active.x,jets.active.z)+3,
   'normal throttle and climb take off from the checked source apron');
 assert(jets.active.speed>=JET_TAKEOFF_SPEED && jets.active.takeoffRoll>=22);
 assert.equal(jets.active.wrecked,false,'source apron takeoff is clear');
+checkSteering(jets,pilot,'jet airborne steering');
 assert.equal(jets.interact(pilot).ok,false,'no airborne exit');
 for(let i=0;i<500 && jets.active.airborne;i++){
   const throttle=jets.active.speed>38?-1:jets.active.speed<30?1:0;
@@ -102,6 +120,7 @@ for(let i=0;i<150;i++)jets.step(.02,{climb:true},rotorPilot);
 assert(jets.active.airborne && jets.active.altitude>10 && !jets.active.wrecked);
 assert.equal(jets.active.speed,0,'helicopter takes off vertically from rest');
 assert.equal(jets.interact(rotorPilot).ok,false);
+checkSteering(jets,rotorPilot,'helicopter steering');
 for(let i=0;i<30;i++)jets.step(.02,{turn:.4},rotorPilot);
 for(let i=0;i<100;i++)jets.step(.02,{throttle:1},rotorPilot);
 assert(Math.hypot(jets.active.x-helicopter.x,jets.active.z-helicopter.z)>10 && !jets.active.wrecked);

@@ -298,7 +298,8 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
     const ground=heightAt(plane.x,plane.z), climb=input.climb===true&&!input.descend&&plane.rotor>=.7;
     if(!plane.airborne&&!climb)return;
     plane.airborne=true;
-    plane.yaw+=turn*h*.78;
+    // Positive input is D/right, matching the car owner; forward is local -Z.
+    plane.yaw-=turn*h*.78;
     const ease=1-Math.exp(-2*h);
     plane.speed+=(throttle*24-plane.speed)*ease;
     plane.bank+=(-turn*.24-plane.bank)*ease;
@@ -349,7 +350,7 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
       plane.throttle = clamp(plane.throttle + throttle * h * .32, 0, 1);
       plane.speed = clamp(plane.speed + (plane.throttle * 13 - 1.3 - plane.speed * .055 - (throttle < 0 ? 13 : 0)) * h, 0, MAX_SPEED);
       const oldYaw = plane.yaw;
-      plane.yaw += turn * h * (plane.airborne ? .63 : .8) * Math.min(1, plane.speed / 6);
+      plane.yaw -= turn * h * (plane.airborne ? .63 : .8) * Math.min(1, plane.speed / 6);
       plane.bank += ((plane.airborne ? -turn * .42 : 0) - plane.bank) * Math.min(1, h * 4);
       const canLift=plane.airborne||plane.speed>=JET_TAKEOFF_SPEED&&plane.takeoffRoll>=22&&runwayAligned(plane);
       const lift = input.climb === true && canLift && plane.speed>=JET_TAKEOFF_SPEED ? 10 * Math.min(1, (plane.speed - 24) / 16) : 0;
