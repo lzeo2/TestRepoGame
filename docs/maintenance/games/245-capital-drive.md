@@ -197,6 +197,15 @@ Walk in from a low bank, use WASD or the left stick, and hold Shift or RUN to
 swim faster. Shore and bridge checks distinguish the water beneath a deck
 from the driving surface above it. Cars keep their shore collision.
 
+The Skylark retrieval yard sits over the Molonglo river arm, and routes
+between its caches cross the channel. While that job is active, water inside
+the yard ring around the site no longer blocks actors on foot, the ATV,
+opponents or backup spawns, so the channel reads as open yard instead of an
+invisible wall. The waiver is a scoped seam in the shared sweep and occupancy
+checks, gated by the live job state and a 283 m radius around the site centre.
+Water outside the ring keeps its normal blocking, swimming and shoreline
+behavior, and the waiver disappears again the moment the job ends.
+
 The original Boat Shed on Menindee Drive is marked on the map. Its Lake launch
 costs $2,400 and its Reed jet ski costs $1,600 in the career modes. Ownership
 persists. Free roam can use both. The craft have separate speed and turn
