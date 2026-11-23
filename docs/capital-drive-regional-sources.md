@@ -1,11 +1,17 @@
 # Capital Drive regional expansion
 
 23 November 2026. Three locally cached source packs extend the drivable map
-with 11,213 road sections, 6,225 building footprints and 61 searchable places.
+with 11,213 road sections, 6,929 building footprints and 61 searchable places.
 Shared source nodes connect the new roads to the retained network. Road names,
 one-way tags, speed tags and exact source geometry are retained where available.
 The importer bounds the subset and omits private roads, driveways and parking
 aisles from the extensions.
+
+A second residential pass restored 704 complete, non-overlapping OpenStreetMap
+footprints in Downer, Watson, Gungahlin, Woden and Greenway. Each checked 750 m
+window now retains at least 75% of the eligible source-mapped homes. Total source
+coverage varies by suburb. The original terrain, roads and retained bodies are
+preserved. The two revised packs add about 276 KB to the offline bundle.
 
 | Region | Coverage | Selected places |
 | --- | --- | --- |

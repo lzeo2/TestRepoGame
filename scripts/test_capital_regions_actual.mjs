@@ -47,7 +47,25 @@ for(const [index,region]of regions.entries()){
   assert(region.meta.files.length>1);
   for(const pin of region.meta.files){assert.match(pin.url,/^https:\/\/api\.openstreetmap\.org\/api\/0\.6\//);assert.match(pin.sha256,/^[a-f0-9]{64}$/);assert(!pin.file.includes('/'));}
   for(const pin of region.meta.priorSnapshots)assert.equal(inputs.get(pin.file.replace(/\.json$/,'')).sha256,pin.sha256,`${region.meta.regionId} retained source revision ${pin.file}`);
-  assert(region.buildings.length<=2100,'per-region source-footprint allocation stays bounded');
+  const housing=region.meta.housingCoverage;
+  assert(region.buildings.length<=2100+(region.meta.regionId==='north'?700:region.meta.regionId==='south'?50:0),'per-region source-footprint allocation stays bounded');
+  if(housing){
+    assert.equal(region.buildings.length,housing.retainedCount+housing.added);
+    assert(housing.retainedCount<=2100&&housing.added<=housing.maximumAdditional);
+    const additional=new Set(housing.additionalSourceIds);assert.equal(additional.size,housing.added);
+    const retained=region.buildings.filter(body=>!additional.has(body.sourceId));
+    assert.equal(sha(retained.map(body=>body.sourceId).sort().join('\n')),housing.retainedIdsSha256,'all original selected source identities are preserved');
+    for(const body of region.buildings.filter(body=>additional.has(body.sourceId)))assert(['house','detached','residential','apartments','terrace','semidetached_house','bungalow','cabin'].includes(body.type),'housing correction uses explicit residential source tags');
+    for(const window of housing.windows){
+      assert.equal(window.radiusMetres,750);assert.equal(window.target,Math.ceil(window.sourceTagged*.75));
+      const homes=region.buildings.filter(body=>['house','detached','residential','apartments','terrace','semidetached_house','bungalow','cabin'].includes(body.type)).filter(body=>{
+        const points=body.points.slice(0,-1),x=points.reduce((n,p)=>n+p[0],0)/points.length,z=points.reduce((n,p)=>n+p[1],0)/points.length;
+        return Math.hypot(x-window.x,z-window.z)<=750;
+      });
+      assert.equal(homes.length,window.retainedAfter,`${window.name}: bundled known residential coverage matches source receipt`);
+      assert(homes.length>=window.target);assert.equal(window.retainedAfter-window.retainedBefore,window.additional);
+    }
+  }
   assert(inputs.get(`region-${region.meta.regionId}`).bytes<8_000_000,'one bundled overlay stays below 8 MB');
   assert.equal(map.terrainTiles[prior.terrainTiles.length+index].heights,region.terrain.heights);
   assert.equal(map.terrainTiles[prior.terrainTiles.length+index].blendPreviousMetres,150);
@@ -59,6 +77,7 @@ for(const [index,region]of regions.entries()){
     assert(!['email','phone','website','contact:email'].some(key=>key in body.sourceTags));
   }
 }
+assert(regions.reduce((n,region)=>n+(region.meta.housingCoverage?.added||0),0)<=750,'housing correction remains a bounded additive source selection');
 const retainedPositions=new Map(),coordinates=new Set(),sourcePair=(a,b)=>a<b?`${a}:${b}`:`${b}:${a}`;
 for(const road of prior.roads)for(const [i,p]of road.points.entries()){
   if(road.nodes&&!retainedPositions.has(road.nodes[i]))retainedPositions.set(road.nodes[i],p);
