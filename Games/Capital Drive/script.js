@@ -495,6 +495,10 @@ let skylineJob,skylineOpponents,skylineSiteView,skylineLease=null,skylineAirPose
 let skylineAtv,skylineAtvView,skylineCover=[];
 let skylinePressure,skylinePressureView,skylineSupport,skylineBackup;
 const SKYLINE_SITE=Object.freeze({x:2760,z:2750,yaw:0}),SKYLINE_WEAPON='carbine';
+// While the Skylark retrieval is active, the river arm crossing the freight yard
+// stops acting as a wall inside the yard ring; water rules elsewhere are unchanged.
+const SKYLINE_YARD_RADIUS=283,
+skylineYardWaterExempt=(x,z)=>Boolean(skylineJob?.snapshot().active)&&Math.hypot(x-SKYLINE_SITE.x,z-SKYLINE_SITE.z)<=SKYLINE_YARD_RADIUS;
 const skylineSymbols=new Set();
 let buses,busView,occupantsView,servicesView,previousActorMode='vehicle';
 let gameMode = 'street', selectedGameMode = 'street', careerError = '', footCameraYaw = 0, careerNitro = 1;
@@ -1052,7 +1056,7 @@ function handleSkylineEvents(){
       clearTimeout(toastTimer);$('toast').hidden=true;
     }else if(event.type==='landed'){
       const {pose}=event;
-      if(simulation.waterAt(pose.x,pose.z,{underBridge:true})||simulation.moveActor({...pose},0,0,.45).blocked){
+      if((simulation.waterAt(pose.x,pose.z,{underBridge:true})&&!skylineYardWaterExempt(pose.x,pose.z))||simulation.moveActor({...pose},0,0,.45).blocked){
         skylineJob.fail('Landing blocked. Aim for the marked drop zone.');continue;
       }
       skylineAirPose=null;
@@ -4189,7 +4193,7 @@ async function boot() {
   map.barriers.push(...(neighbourhood.backyardBarriers||[]));
   const groundVehicleHeightAt=compatibility?surfaceAt:terrainSampler.vehicleHeightAt;
   stuntsView=compatibility?emptyView():createStuntRampsView(scene,stunts);
-  simulation=createSimulation(map,{isOnBridge:terrainSampler.isOnBridge,groundHeightAt:terrainSampler.groundHeightAt,vehicleHeightAt:groundVehicleHeightAt,stuntSupportAt:stunts.supportAt,nitroAutoRecharge:false,onTrafficHorn:soundTrafficHorn,vehicleMods:()=>!isSandbox()&&gameplay?progression.vehicleMods(gameplay.state.vehicle):{},powerModifiers:()=>heroPowers.modifiers(powerContext())});
+  simulation=createSimulation(map,{isOnBridge:terrainSampler.isOnBridge,groundHeightAt:terrainSampler.groundHeightAt,vehicleHeightAt:groundVehicleHeightAt,stuntSupportAt:stunts.supportAt,nitroAutoRecharge:false,onTrafficHorn:soundTrafficHorn,vehicleMods:()=>!isSandbox()&&gameplay?progression.vehicleMods(gameplay.state.vehicle):{},powerModifiers:()=>heroPowers.modifiers(powerContext()),waterExemption:skylineYardWaterExempt});
   const nitroStations=createNitroStations(FUEL_STATIONS,simulation),nitroById=new Map(nitroStations.map(site=>[site.id,site]));
   const forecourts=buildPetrolForecourts(nitroStations,FUEL_STATIONS,simulation,terrainSampler.heightAt,map.buildings);
   const rentals=buildRentalStorefronts(simulation,terrainSampler.heightAt);
@@ -4327,7 +4331,7 @@ async function boot() {
   skylineCover=createSkylineCover(skylineJob.layout,{heightAt:world.groundHeightAt,canOccupy:simulation.canOccupy,nearestRoad:simulation.nearestRoad});
   skylineSiteView=compatibility?null:createSkylineSiteView(scene,world.groundHeightAt,{cover:skylineCover});
   skylineAtv=createSkylineAtv({heightAt:world.groundHeightAt,canOccupy:simulation.canOccupy,moveVehicle:simulation.moveVehicle,
-    canStand:(pose,{ignoreId})=>standClear(pose,ignoreId)&&!simulation.waterAt(pose.x,pose.z,{underBridge:true}),
+    canStand:(pose,{ignoreId})=>standClear(pose,ignoreId)&&(!simulation.waterAt(pose.x,pose.z,{underBridge:true})||skylineYardWaterExempt(pose.x,pose.z)),
     canSee:(from,to)=>visible(from,to)});
   skylineAtvView=compatibility?null:createSkylineAtvView(scene);
   skylineOpponents=createSkylineOpponents({heightAt:world.heightAt,hasLineOfSight:skylineOpponentSight,
@@ -4336,7 +4340,7 @@ async function boot() {
   skylinePressure=createSkylinePressure({hasLineOfSight:skylineOpponentSight});
   skylinePressureView=compatibility?null:createSkylinePressureView(scene,world.groundHeightAt);
   skylineBackup=createSkylineBackup({opponents:skylineOpponents,heightAt:world.heightAt,hasLineOfSight:skylineOpponentSight,
-    canStand:pose=>standClear(pose)&&!simulation.waterAt(pose.x,pose.z,{underBridge:true})});
+    canStand:pose=>standClear(pose)&&(!simulation.waterAt(pose.x,pose.z,{underBridge:true})||skylineYardWaterExempt(pose.x,pose.z))});
   skylineSupport=createSkylineSupport({canUse:canOrderSkylineSupport,apply:applySkylineSupport});
   for(const plane of aircraft.snapshot().planes){
     const parking=aircraftStandParking(plane);

@@ -215,6 +215,9 @@ export function createSimulation(map, options = {}) {
   const trafficLights = createTrafficLights(map, graph, options.trafficSignals || map.trafficSignals);
   const roadIndex = new SpatialGrid(80), buildingIndex = new SpatialGrid(48), waterIndex = new SpatialGrid(128), barrierIndex = new SpatialGrid(32);
   const replacedColliders=new Set(map.collisionReplacedBuildingIds||[]);
+  // Mission-scoped water waiver: a live predicate may exempt a position from
+  // water blocking (the Skylark yard river arm). Surfaces and waterAt stay untouched.
+  const waterExemption=options.waterExemption;
   for (const segment of graph.segments) roadIndex.insert(segment,
     Math.min(segment.a[0], segment.b[0]), Math.min(segment.a[1], segment.b[1]),
     Math.max(segment.a[0], segment.b[0]), Math.max(segment.a[1], segment.b[1]));
@@ -478,6 +481,7 @@ export function createSimulation(map, options = {}) {
       const x = pose.x - sin * offset, z = pose.z - cos * offset;
       if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return false;
       for (const [index, polygons] of candidates) for (const polygon of polygons) {
+        if (index === waterIndex && waterExemption?.(x, z)) continue;
         const box = index.extents.get(polygon);
         if (box.maxX < x - radius || box.minX > x + radius || box.maxZ < z - radius || box.minZ > z + radius) continue;
         const occupied = index !== waterIndex && !polygon.innerRings?.length
@@ -1059,6 +1063,7 @@ export function createSimulation(map, options = {}) {
       if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return false;
       for (const index of [buildingIndex, barrierIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
         if(allowSwimming && index===waterIndex && waterSurfaces.has(polygon)) continue;
+        if(index===waterIndex && waterExemption?.(x,z)) continue;
         if (physicalContact(index,polygon,x,z,radius)) return false;
       }
       const nextWater=allowSwimming ? waterAt(x,z,water?underDeck:undefined) : null;
