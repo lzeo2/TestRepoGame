@@ -1,0 +1,47 @@
+import assert from 'node:assert/strict';
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import {createSkylineAtv} from '../Games/Capital Drive/skyline-atv.js';
+import {createSkylineAtvView} from '../Games/Capital Drive/skyline-atv-view.js';
+import {createSimulation} from '../Games/Capital Drive/simulation.js';
+const map={bounds:{minX:-100,maxX:100,minZ:-100,maxZ:100},spawn:{x:80,z:80,yaw:0},roads:[],buildings:[],areas:[],landmarks:[]};
+const simulation=createSimulation(map,{trafficCount:0});let stand=true,seen=true,moves=0;
+const atv=createSkylineAtv({heightAt:()=>10,canOccupy:(p,o)=>{assert.equal(o.ignoreId,'skyline-atv');return simulation.canOccupy(p,o);},
+ moveVehicle:(p,dx,dz,o)=>{moves++;assert.equal(o.ignoreId,p.id);return simulation.moveVehicle(p,dx,dz,o);},
+ canStand:()=>stand,canSee:()=>seen});
+assert.throws(()=>createSkylineAtv(),TypeError);assert.equal(atv.spawn({x:NaN,z:0}).ok,false);
+stand=false;assert.equal(atv.spawn({x:0,z:0}).ok,false);stand=true;
+const landing={x:0,z:0,yaw:0},before={...landing};assert(atv.spawn(landing).ok);assert.deepEqual(landing,before);
+const first=atv.vehicle;assert.equal(first.id,'skyline-atv');assert(Math.hypot(first.x,first.z)>=4);assert.equal(first.y,10);
+assert.equal(atv.spawn({x:50,z:50}).ok,false,'one transient ATV cannot be remotely moved/replaced');
+assert.throws(()=>{first.x=90;},TypeError);assert.equal(atv.interact({pose:{x:50,z:50},onFoot:true}).ok,false);
+assert.equal(atv.interact({pose:{x:first.x,z:first.z,y:100},onFoot:true}).ok,false,'falling above the ATV cannot board remotely');
+assert.equal(atv.interact({pose:first,onFoot:false}).ok,false);seen=false;assert.equal(atv.interact({pose:first,onFoot:true}).ok,false);seen=true;
+assert(atv.interact({pose:first,onFoot:true}).boarded);assert(atv.seatPose&&atv.seatPose.y===11.55);
+const paused=atv.snapshot();atv.step(1,{throttle:1},{paused:true});assert.deepEqual(atv.snapshot(),paused);atv.step(NaN,{throttle:1});assert.deepEqual(atv.snapshot(),paused);
+// Register the actual own body: ignoreId prevents self-blocking in shared SAT.
+simulation.setExternalVehicles([atv.vehicle]);
+for(let i=0;i<15;i++)atv.step(.05,{throttle:1,steer:1});
+assert(atv.vehicle.x>first.x&&atv.vehicle.z<first.z&&atv.vehicle.yaw<0,'D/right follows the same -Z-forward convention as cars');assert(moves>0);
+assert.equal(atv.interact({onFoot:false}).reason,'stop-before-exit');
+for(let i=0;i<40;i++)atv.step(.05,{handbrake:true});assert.equal(atv.vehicle.speed,0);
+stand=false;assert.equal(atv.interact({}).reason,'atv-exit-blocked');assert(atv.snapshot().occupied);stand=true;
+const exit=atv.interact({});assert(exit.exited&&Number.isFinite(exit.exitPose.y));assert.equal(atv.seatPose,null);
+assert(atv.interact({pose:atv.vehicle,onFoot:true}).boarded);
+for(let i=0;i<20;i++)atv.step(.05,{throttle:-1});assert(atv.vehicle.speed<0&&atv.vehicle.speed>=-3.4,'S brakes then reverses with bounded speed');
+const a=atv.snapshot(),scene=new THREE.Scene(),view=createSkylineAtvView(scene),mesh=scene.children[0];
+view.update(a,a.vehicle);assert.equal(view.stats.drawCalls,1);assert.equal(view.stats.wheels,4);assert(view.stats.triangles<2000);const viewTriangles=view.stats.triangles;
+mesh.updateMatrixWorld(true);const bounds=new THREE.Box3().setFromObject(mesh);assert(bounds.min.y>=a.vehicle.y-.001);assert(bounds.max.y<a.vehicle.y+1.8);
+const visible=mesh.geometry.attributes.position.array.slice(),version=mesh.geometry.attributes.position.version;
+view.update(a,a.vehicle);assert.equal(mesh.geometry.attributes.position.version,version,'stationary occupied frames reuse geometry');
+view.update({...a,occupied:false},a.vehicle);assert.notDeepEqual(mesh.geometry.attributes.position.array,visible,'unoccupied view hides the seated rider');
+view.update(a,{x:10000,z:10000});assert.equal(view.stats.drawCalls,0);
+let geometries=0,materials=0;mesh.geometry.addEventListener('dispose',()=>geometries++);mesh.material.addEventListener('dispose',()=>materials++);
+view.dispose();view.dispose();assert.equal(geometries,1);assert.equal(materials,1);assert.equal(scene.children.length,0);
+atv.reset();assert.equal(atv.vehicle,null);assert.equal(atv.seatPose,null);assert(!atv.snapshot().occupied);
+assert(atv.spawn(landing).ok,'fresh mission can repeat after reset');
+const wallMap={...map,buildings:[{id:'solid',height:5,points:[[2,-6],[6,-6],[6,-4],[2,-4]]}]};
+const wallSim=createSimulation(wallMap,{trafficCount:0}),wallAtv=createSkylineAtv({heightAt:()=>0,canOccupy:wallSim.canOccupy,moveVehicle:wallSim.moveVehicle,canStand:()=>true,canSee:()=>true});
+assert(wallAtv.spawn(landing).ok);assert(wallAtv.interact({pose:wallAtv.vehicle,onFoot:true}).boarded);
+for(let i=0;i<80;i++)wallAtv.step(.05,{throttle:1});
+assert(wallAtv.vehicle.z>-3.1&&wallAtv.vehicle.speed===0,'actual shared swept body stops at a building rather than tunnelling');
+console.log(`PASS Skylark ATV: checked adjacent dry spawn, one own-ID body/shared SAT, nearby LOS boarding, right steering/brake/reverse, blocked safe exits, supplied-time/reset; original four wheels/seated rider, one draw/${viewTriangles} triangles, stable buffers and exact disposal`);
