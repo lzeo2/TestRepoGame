@@ -83,6 +83,8 @@ export function createSkylineOpponents({heightAt=()=>undefined,hasLineOfSight=()
   function hitByShot(id,amount,ray){
     const r=records.find(r=>r.targetId===id);
     if(!enabled||disposed||!r||r.health<=0||r.cooldown>0||!Number.isFinite(amount)||amount<=0||
+      ((ray?.supportMissionId!==undefined||ray?.supportEncounterId!==undefined)&&
+        (ray.supportMissionId!==r.missionId||ray.supportEncounterId!==r.encounterId))||
       !Number.isFinite(rayTargetDistance(ray,r.shot))||hasLineOfSight(ray,r.body)!==true)return empty();
     return damage(r,amount);
   }
