@@ -451,5 +451,11 @@ assert.equal(walker.speed,0);assert.equal(walkingPose.speed,3,'view never mutate
 const geometries=new Set(root.children.map(mesh=>mesh.geometry));let released=0,instances=0,materials=0;
 geometries.forEach(g=>g.addEventListener('dispose',()=>released++));root.children.forEach(m=>m.addEventListener('dispose',()=>instances++));root.children[0].material.addEventListener('dispose',()=>materials++);
 view.dispose();view.dispose();view.update(scenes.people,mission.target,{dt:1/60});assert.equal(released,3);assert.equal(instances,7);assert.equal(materials,1);assert.equal(scene.children.length,0);
+const sixPersonView=createCampaignScenesView(scene,()=>4,{capacity:6});
+const response=Array.from({length:6},(_,i)=>({...walker,id:`response-${i}`,x:walker.x+i*2}));
+sixPersonView.update(response,null,{dt:1/60});
+assert.equal(sixPersonView.stats.people,6,'two Skylark allies stay visible with all four opponents');
+assert.equal(sixPersonView.stats.drawCalls,7,'the additional bodies reuse the same batches');
+sixPersonView.dispose();
 console.log('PASS companion recruitment/following: actual source-road clearance, real swept walls/cars/people, immutable identities, bounded live-police LOS shots, cooldown/event cap, own health/death, pause/interior/cancel/recovery/dispose and seven pooled gun/tracer draws');
 console.log(`PASS transient three-character meeting: actual expanded Kingston source roads/rails/parked clearance, immutable guards/pause, swept foot contacts/sliding, shared identities, gestures, seven stable pooled draws and exact disposal; approach ${scenes.meetingPoint.x.toFixed(3)},${scenes.meetingPoint.z.toFixed(3)}`);

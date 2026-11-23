@@ -274,8 +274,16 @@ Stop and press E again to hop off. Each cache calls for backup when you start
 the capture. Clear the responding crew, use the concrete barriers and crates
 as cover, then press E at the cache to finish. Match the safe symbols, collect
 the sealed case, beat the foreman and fly through three extraction gates.
-Career pays $8,500 after extraction. Free roam is
-practice. The loan weapon returns to its prior inventory after the attempt.
+Reinforcement waves deploy a shootable drone that marks one airstrike. Move
+outside the red ring during the five-second countdown or cancel the strike by
+shooting the drone or activating the jammer.
+
+Each secured cache makes $750 from the haul available. Press T on foot to
+open the support radio. Choose two allies during a fight ($600), carbine ammo
+and medical resupply ($350), or 20 seconds of drone jamming ($500). Each option
+can be used once per attempt. Career pays $8,500 minus support spending after
+extraction. Free roam is practice. The loan weapon returns to its prior
+inventory after the attempt.
 The 15-minute duration is a design target that depends on play.
 
 Initial terrain loads the nearest nine districts. Remaining terrain chunks

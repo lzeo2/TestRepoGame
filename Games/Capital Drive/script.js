@@ -11,7 +11,7 @@ import {createContractTarget} from './contract-target.js';
 import {lookAngles,footCameraFrame,cameraBlend,createExplosionShake} from './camera-control.js';
 import {createFootMotion} from './foot-motion.js';
 import {createHeroPowers} from './hero-powers.js';
-import {createOrdnance,validExplosion} from './ordnance.js';
+import {blastLimits,createOrdnance,validExplosion} from './ordnance.js';
 import {createOrdnanceView} from './ordnance-view.js';
 import {createAtmosphere} from './atmosphere.js';
 import {createAtmosphereView} from './atmosphere-view.js';
@@ -145,6 +145,10 @@ import {createSkylineSiteView} from './skyline-site-view.js';
 import {createSkylineCover} from './skyline-cover.js';
 import {createSkylineAtv} from './skyline-atv.js';
 import {createSkylineAtvView} from './skyline-atv-view.js';
+import {createSkylinePressure} from './skyline-pressure.js';
+import {createSkylinePressureView} from './skyline-pressure-view.js';
+import {createSkylineSupport} from './skyline-support.js';
+import {createSkylineBackup} from './skyline-backup.js';
 import {createTerrainSampler} from './terrain.js';
 import {createCivicView,CIVIC_BUILDING_IDS,CIVIC_LANDMARKS,CIVIC_INTERIOR_ENTRIES} from './civic-view.js';
 import {carCockpitFrame,drivingCameraShake} from './car-camera.js';
@@ -489,6 +493,7 @@ let gameplay, progression, actorView, landmarkView, northPlacesView, regionalLan
 let anuCampusView,macquarieShopsView;
 let skylineJob,skylineOpponents,skylineSiteView,skylineLease=null,skylineAirPose=null,skylineHelicopter=null;
 let skylineAtv,skylineAtvView,skylineCover=[];
+let skylinePressure,skylinePressureView,skylineSupport,skylineBackup;
 const SKYLINE_SITE=Object.freeze({x:2760,z:2750,yaw:0}),SKYLINE_WEAPON='carbine';
 const skylineSymbols=new Set();
 let buses,busView,occupantsView,servicesView,previousActorMode='vehicle';
@@ -955,10 +960,57 @@ function renderSkylineOffer(){
   $('skylark-offer').textContent=isSandbox()?'Free roam practice · About 15 minutes':'Repeatable job · About 15 minutes · $8,500';
   $('skylark-start').hidden=active;$('skylark-start').disabled=!!reason;
   $('skylark-cancel').hidden=!active;
+  $('skylark-open-support').hidden=!active;
   const status=$('skylark-status');status.hidden=!reason;
   status.textContent=active?skylineJob.snapshot().objective:reason;
 }
 function openSkylineOffer(){if(started){renderSkylineOffer();openDialog('skylark-dialog');}}
+function skylineRadioContext(mission=skylineJob.snapshot()){
+  const context=skylineContext(),state=gameplay.state;
+  return {...context,mission,missionId:mission.missionId,encounterId:mission.encounterId,active:mission.active,health:state.health,
+    onFoot:context.onFoot&&!(state.actor.impactTime>0),paused:document.hidden};
+}
+function canOrderSkylineSupport(id,context){
+  if(id==='backup')return skylineBackup.canRequest(context.mission,context);
+  if(id==='resupply'){
+    const ammo=gameplay.getAmmo(SKYLINE_WEAPON),weapon=weaponById(SKYLINE_WEAPON);
+    const needed=!!ammo&&ammo.reserveAmmo<weapon.reserveCap||context.health<100;
+    return needed?{ok:true}:{ok:false,message:'Your health and carbine reserve are full.'};
+  }
+  return {ok:id==='jammer'};
+}
+function applySkylineSupport(id,context){
+  if(id==='backup')return skylineBackup.request(context.mission,context);
+  if(id==='resupply'){
+    const ammo=gameplay.addAmmo(48,SKYLINE_WEAPON),healed=gameplay.heal(40);
+    return ammo||healed?{ok:true,message:'Resupply received.'}:{ok:false,message:'Your health and carbine reserve are full.'};
+  }
+  return {ok:id==='jammer',message:'Drone jammer active for 20 seconds.'};
+}
+function renderSkylineRadio(message=''){
+  const funds=skylineSupport.snapshot(),context=skylineRadioContext();
+  $('skylark-support-balance').textContent=`$${funds.balance.toLocaleString('en-AU')} available · $${funds.spent.toLocaleString('en-AU')} spent`;
+  const status=$('skylark-support-status');status.hidden=!message;status.textContent=message;
+  const choices=skylineSupport.offers(context).map(offer=>{
+    const button=document.createElement('button');
+    button.type='button';button.textContent=`${offer.name} · $${offer.cost.toLocaleString('en-AU')}`;
+    button.disabled=!offer.available;button.title=offer.reason;
+    button.addEventListener('click',()=>{
+      const result=skylineSupport.buy(offer.id,skylineRadioContext());
+      if(result.ok){closeDialogs();notify(result.message);}
+      else renderSkylineRadio(result.message);
+    });
+    return button;
+  });
+  $('skylark-support-actions').replaceChildren(...choices);
+}
+function openSkylineRadio(){
+  if(!started||!skylineLease)return;
+  const context=skylineRadioContext();
+  if(!context.onFoot||context.dead||context.recovering){notify('Use the support radio on foot.');return;}
+  if(context.mission.stage==='safe'){notify('Step away from the safe panel to use the radio.');return;}
+  renderSkylineRadio();openDialog('skylark-support-dialog');
+}
 function setSkylineCover(active){
   if(active)simulation.registerStaticBarriers(skylineCover);
   else simulation.unregisterStaticBarriers(skylineCover);
@@ -1009,6 +1061,8 @@ function handleSkylineEvents(){
       notify('On the ground. Press E beside the ATV to ride to the first cache.');
     }else if(event.type==='reinforcement-alert'){
       notify('The cache crew called for backup. Get behind cover.');
+    }else if(event.type==='cache-searched'){
+      notify('Cache secured. Press T to trade loot for support.');
     }else if(event.type==='extraction-ready'){
       const result=aircraft.addJobHelicopter(event.vehicleId,event.pad);
       if(result.ok){skylineHelicopter=result.aircraft;notify('Extraction helicopter is on the pad.');}
@@ -1024,11 +1078,15 @@ function handleSkylineEvents(){
 }
 function finishSkyline(event){
   const lease=skylineLease;if(!lease)return;
+  const succeeded=event.type==='complete';
+  const settlement=succeeded?skylineSupport.complete(skylineJob.snapshot(),{missionId:event.missionId}):null;
+  const reward=settlement?.reward??(succeeded?Math.max(0,event.reward-skylineSupport.snapshot().spent):0);
+  skylineSupport.clear();skylinePressure.reset();skylineBackup.reset();
   skylineLease=skylineAirPose=null;skylineSymbols.clear();skylineOpponents.clear();
   skylineAtv.reset();setSkylineCover(false);syncExternalVehicles();
   if(skylineHelicopter)aircraft.releaseJobHelicopter(skylineHelicopter.id);
   skylineHelicopter=null;
-  const state=gameplay.state,succeeded=event.type==='complete';
+  const state=gameplay.state;
   const restored=!succeeded&&!aircraft.active&&gameplay.restoreMissionCheckpoint(lease.body).ok;
   if(!restored){
     state.actor.jumpHeight=0;
@@ -1036,15 +1094,26 @@ function finishSkyline(event){
     gameplay.setWeapon(lease.body.weapon);
   }
   routeTo(lease.destination);clearInput();footMotion.capture(null,null);cameraReady=false;
-  if(succeeded&&!isSandbox()){progression.state.cash=Math.min(1000000000,progression.state.cash+event.reward);saveCareer();}
-  notify(succeeded?(isSandbox()?'Retrieval complete.':'Retrieval complete. +$8,500'):event.reason||'Retrieval abandoned.');
+  if(succeeded&&!isSandbox()){progression.state.cash=Math.min(1000000000,progression.state.cash+reward);saveCareer();}
+  notify(succeeded?(isSandbox()?'Retrieval complete.':`Retrieval complete. +$${reward.toLocaleString('en-AU')}`):event.reason||'Retrieval abandoned.');
 }
 function updateSkyline(dt,walk){
   if(!skylineLease)return;
   if(skylineAtv.seatPose)skylineAtv.step(dt,input(),{valid:!gameplay.state.recovery&&gameplay.state.health>0});
   const mission=skylineJob.snapshot();
-  const ctx=skylineContext();
+  const ctx=skylineRadioContext(mission);
+  skylinePressure.step(dt,mission,{...ctx,jammed:skylineSupport.jammerActive});
+  for(const event of skylinePressure.drainEvents()){
+    if(event.type!=='airstrike-impact'||event.missionId!==mission.missionId)continue;
+    const kind='skylark-airstrike';
+    const blast={type:'explosion',id:event.id,kind,x:event.x,y:world.groundHeightAt(event.x,event.z)+.2,z:event.z,
+      interiorId:null,...blastLimits(kind)};
+    if(applyWorldExplosion(blast))ordnance.showExplosion(blast);
+  }
   skylineOpponents.step(dt,mission,{...ctx,active:mission.active,health:gameplay.state.health});
+  ctx.health=gameplay.state.health;ctx.dead=ctx.health<=0;
+  skylineBackup.step(dt,mission,ctx);
+  skylineBackup.drainEvents();
   ctx.enemyOutcomes=skylineOpponents.drainEvents();
   const pressed=miniInput();let confirmSymbol;
   for(const [key,down] of Object.entries(pressed)){
@@ -1054,6 +1123,7 @@ function updateSkyline(dt,walk){
   if(ctx.extraction?.boarded&&!ctx.extraction.active)skylineJob.fail('Extraction helicopter disabled.');
   skylineJob.step(dt,ctx,{steerX:walk.moveX,steerZ:walk.moveZ,confirmSymbol});
   const next=skylineJob.snapshot();
+  skylineSupport.step(dt,next,{...ctx,active:next.active});
   if(next.stage==='freefall'||next.stage==='flare')placeSkylineFall(next.pose,next.stage);
   handleSkylineEvents();
 }
@@ -1096,6 +1166,7 @@ function interactSkyline(){
 }
 $('skylark-menu').addEventListener('click',openSkylineOffer);
 $('jobs-skylark').addEventListener('click',openSkylineOffer);
+$('skylark-open-support').addEventListener('click',openSkylineRadio);
 $('skylark-start').addEventListener('click',startSkyline);
 $('skylark-cancel').addEventListener('click',()=>{skylineJob.cancel();handleSkylineEvents();closeDialogs();});
 function interactAircraft(){
@@ -1256,6 +1327,7 @@ for(const button of document.querySelectorAll('[data-mini]')){
   for(const event of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(event,()=>miniKeys.delete(button.dataset.mini));
 }
 function openPhone(){
+  if(skylineLease){openSkylineRadio();return;}
   if(jetpack?.active){notify('Land the jetpack before ordering a service.');return;}
   if(!started)return;
   cityUI?.render();
@@ -2136,7 +2208,7 @@ function reportContractOutcome(){
 }
 function shotTargets(){
   const result=[];
-  for(const [prefix,owner] of interiors.active?[['room',roomPeople],['camera',securityCameras]]:[['ped',pedestrians],['dealer',streetDealers],['ride',rideService],['camera',securityCameras],['contract',contractTarget],['skyline',skylineOpponents]]){
+  for(const [prefix,owner] of interiors.active?[['room',roomPeople],['camera',securityCameras]]:[['ped',pedestrians],['dealer',streetDealers],['ride',rideService],['camera',securityCameras],['contract',contractTarget],['skyline',skylineOpponents],['skyline-drone',skylinePressure]]){
     for(const target of owner?.shotTargets?.()||[])result.push({...target,id:`${prefix}:${target.id}`,damage:(amount,ray)=>owner.hitByShot(target.id,amount,{...ray,targetId:target.id})});
   }
   return result;
@@ -3139,6 +3211,14 @@ function drawMap(canvas, full) {
     ctx.beginPath(); ctx.arc(x, y, 13, 0, Math.PI * 2); ctx.moveTo(x - 21, y); ctx.lineTo(x + 21, y); ctx.moveTo(x, y - 21); ctx.lineTo(x, y + 21); ctx.stroke();
   }
   if(details)drawCameraMarks(ctx,securityCameras?.mapMarks(interiors?.active?.id||null)||[],{w,h,sx,sz,full,label});
+  const pressure=skylineLease&&skylinePressure.snapshot();
+  if(pressure?.strike?.active){
+    const {strike}=pressure,x=sx(strike.x),y=sz(strike.z),r=Math.max(7,strike.radius*scale);
+    if(visible(x,y,r)){
+      ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle='#ba282957';ctx.fill();
+      ctx.strokeStyle='#b32223';ctx.lineWidth=2;ctx.stroke();
+    }
+  }
   const tracked=rideService?.activeFare&&rideService.vehicles[0];
   if(tracked?.active){
     const x=sx(tracked.x),y=sz(tracked.z);
@@ -3180,6 +3260,7 @@ function drawMap(canvas, full) {
     if(craft.kind==='helicopter')airPin(craft,'helicopter','Police helicopter');
     if(craft.kind==='drone')airPin(craft,'police-drone','Police drone');
   }
+  if(pressure?.drone?.active)airPin(pressure.drone,'police-drone','Skylark drone');
   for(const plane of details ? aircraft?.snapshot().planes||[] : []){
     if(plane.kind==='helicopter'&&!plane.wrecked)airPin(plane,'depot-helicopter',plane.name);
   }
@@ -3502,8 +3583,17 @@ function updateHud() {
   if(armour)armour.textContent=String(Math.floor(gear.armour??0));
   const heistNotice=$('heist-notice'),robbery=heists?.active?heists.snapshot():null;
   const skyline=skylineLease&&skylineJob.snapshot();
+  const pressure=skyline&&skylinePressure.snapshot(),strike=pressure?.strike;
   heistNotice.hidden=!robbery&&!skyline;
-  if(skyline)heistNotice.textContent=`Skylark retrieval · ${skyline.objective}`;
+  heistNotice.classList.toggle('skyline-danger',!!strike?.active);
+  if(skyline){
+    const support=skylineSupport.snapshot();
+    const detail=strike?.active?`Airstrike in ${Math.ceil(strike.remaining)}s · Leave the red ring`:
+      support.jammerRemaining>0?`Jammer ${Math.ceil(support.jammerRemaining)}s`:
+      pressure?.drone?.active?'Hostile drone overhead':support.balance>0?'T · Support radio':'';
+    const notice=`${skyline.objective}${detail?' · '+detail:''}`;
+    if(heistNotice.textContent!==notice)heistNotice.textContent=notice;
+  }
   const hostage=$('heist-hostage'),hostageAction=robbery?heists.hostageAction(heistContext()):null;
   hostage.hidden=!hostageAction;
   if(hostageAction)hostage.textContent=hostageAction==='release'?'Release hostage · Y':'Hold hostage · Y';
@@ -3684,7 +3774,10 @@ function syncExternalPeople(){
   for(const person of campaignScenes?.people||[])if(!person.seated&&!person.interiorId)add(person,.32);
   if(contractTarget?.body?.health>0)add(contractTarget.body,.34);
   if(contractTarget?.guardBody?.health>0)add(contractTarget.guardBody,.34);
-  if(skylineLease)for(const opponent of skylineOpponents.bodies)if(opponent.health>0)add(opponent,.34);
+  if(skylineLease){
+    for(const opponent of skylineOpponents.bodies)if(opponent.health>0)add(opponent,.34);
+    for(const ally of skylineBackup.bodies)add(ally,.36);
+  }
   for(const officer of gameplay.state.police)if(officer.health>0&&officer.mode==='foot'&&!officer.interiorId)add(officer,.35);
   const job=progression.state.activeJob;
   if(job?.type==='ride'&&job.stage===0&&!job.passenger){
@@ -3861,6 +3954,7 @@ function animate(time) {
   macquarieShopsView?.update(p);
   skylineSiteView?.update(skylineJob.snapshot(),p);
   skylineAtvView?.update(skylineAtv.snapshot(),p);
+  skylinePressureView?.update(skylinePressure.snapshot(),p);
   warMemorialView?.update(p);
   birdsView?.update(p,activeDt,{lowGraphics:quality==='low'||quality==='performance',paused:activeDt===0,reducedMotion:reducedCombatMotion.matches});
   assassinationSiteView?.update(p);
@@ -3908,7 +4002,7 @@ function animate(time) {
   rideView?.update({car:rideService.vehicles[0],passenger:rideService.passenger,driver:rideService.people[0]},{focus:p,playerCar:{...simulation.player,modelId:gameplay.state.vehicle.modelId},job:progression.state.activeJob,dt:activeDt});
   const targetPerson=contractTarget.body;
   const cast=targetPerson?[targetPerson,contractTarget.guardBody,...campaignScenes.people]:
-    skylineLease?[...skylineOpponents.bodies,...campaignScenes.people]:campaignScenes.people;
+    skylineLease?[...skylineBackup.bodies,...skylineOpponents.bodies,...campaignScenes.people]:campaignScenes.people;
   campaignScenesView?.update(cast,p,{interiorId:null,dt:activeDt});
   if(interiors.active){
     if(!indoorCampaignScenesView&&!compatibility&&campaignScenes.people.some(person=>person.interiorId===interiors.active.id))indoorCampaignScenesView=createCampaignScenesView(interiorScene,()=>interiors.active?.floorY||0);
@@ -4239,6 +4333,11 @@ async function boot() {
   skylineOpponents=createSkylineOpponents({heightAt:world.heightAt,hasLineOfSight:skylineOpponentSight,
     clipMovement:(body,dx,dz,radius)=>{const step=simulation.moveActor({...body},dx,dz,radius);return {dx:step.x-body.x,dz:step.z-body.z};},
     onPlayerHit:amount=>gameplay.damageActor(amount)});
+  skylinePressure=createSkylinePressure({hasLineOfSight:skylineOpponentSight});
+  skylinePressureView=compatibility?null:createSkylinePressureView(scene,world.groundHeightAt);
+  skylineBackup=createSkylineBackup({opponents:skylineOpponents,heightAt:world.heightAt,hasLineOfSight:skylineOpponentSight,
+    canStand:pose=>standClear(pose)&&!simulation.waterAt(pose.x,pose.z,{underBridge:true})});
+  skylineSupport=createSkylineSupport({canUse:canOrderSkylineSupport,apply:applySkylineSupport});
   for(const plane of aircraft.snapshot().planes){
     const parking=aircraftStandParking(plane);
     if(!parking)continue;
@@ -4249,7 +4348,7 @@ async function boot() {
   }
   addressSearch=createAddressSearch(map,addressData);
   campaignScenes=createCampaignScenes(map,simulation,{entrances:interiors.entries});
-  campaignScenesView=compatibility?emptyView():createCampaignScenesView(scene,world.heightAt);
+  campaignScenesView=compatibility?emptyView():createCampaignScenesView(scene,world.heightAt,{capacity:6});
   interiorScene=new THREE.Scene();interiorScene.background=new THREE.Color(0xccc3ad);
   interiorScene.add(new THREE.HemisphereLight(0xfff8df,0x70685b,2));
   if(!compatibility){const ring=new THREE.RingGeometry(.35,.49,18);ring.rotateX(-Math.PI/2);indoorObjective=new THREE.Mesh(ring,new THREE.MeshBasicMaterial({color:0xf2b544,side:THREE.DoubleSide,depthWrite:false}));indoorObjective.visible=false;interiorScene.add(indoorObjective);}
@@ -4462,6 +4561,7 @@ async function boot() {
     lightRail:freezeCopy({...lightRail.snapshot(),view:lightRailView.stats}),depotTank:freezeCopy(depotTank.snapshot()),
     heists:freezeCopy(heists.snapshot()),skyline:freezeCopy(skylineJob.snapshot()),skylineView:freezeCopy(skylineSiteView?.stats()||null),skylineAtv:freezeCopy(skylineAtv.snapshot()),flightGuide:freezeCopy(airGuideState),minimapZoomed,northPlaces:freezeCopy(northPlacesView?.stats()||null),regionalLandmarks:freezeCopy(regionalLandmarksView?.stats||null),anuCampus:freezeCopy(anuCampusView?.stats()||null),regions:freezeCopy(map.regionalExpansion),memorial:freezeCopy(warMemorialView?.stats||null),birds:freezeCopy(birdsView?.stats()||null),campaignWorld:campaignWorld.snapshot(),streetWorld:streetWorld.snapshot(),
     aftermath:freezeCopy({case:campaignAftermath.current(),history:campaignAftermath.serialize()}),
+    skylinePressure:skylinePressure.snapshot(),skylineSupport:skylineSupport.snapshot(),skylineBackup:freezeCopy(skylineBackup.snapshot()),
     trafficSample: freezeCopy(simulation.traffic.slice(0, 8).map(({ id, x, z, speed, active, behaviour, honkCount }) => ({ id, x, z, speed, active, behaviour, honkCount }))) });
   raf = requestAnimationFrame(animate);
 }
@@ -4475,6 +4575,7 @@ window.addEventListener('pagehide', event => {
   watercraft?.dispose();watercraftView?.dispose();
   lightRailView?.dispose();heistSitesView?.dispose();northPlacesView?.dispose();depotTankView?.dispose();
   regionalLandmarksView?.dispose();anuCampusView?.dispose();macquarieShopsView?.dispose();skylineSiteView?.dispose();skylineOpponents?.dispose();skylineAtvView?.dispose();skylineAtv?.reset();
+  skylinePressureView?.dispose();skylinePressure?.dispose();skylineSupport?.dispose();skylineBackup?.reset();
   warMemorialView?.dispose();birdsView?.dispose();
   aircraft?.reset();aircraftView?.dispose();jetpack?.reset(gameplay?.state);jetpackView?.dispose();ordnance?.reset();ordnanceView?.dispose();indoorOrdnanceView?.dispose();atmosphereView?.dispose();airportView?.dispose();defenceDepotView?.dispose();policeStationView?.dispose();vehicleDamageView?.dispose();
   if (audio) { audio.engine.dispose(); audio.context.close().catch(error => console.warn('Could not release audio:', error.message)); }

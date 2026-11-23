@@ -304,6 +304,8 @@ body.tanking #touch-jump .boat-action{display:inline;}
 #clear-progress-text{display:block;margin:6px 0 12px;width:100%;min-height:44px;padding:8px 10px;background:var(--panel);color:var(--ink);border:1px solid var(--line);font:inherit;}
 #heist-notice{position:absolute;top:calc(var(--hud-top) + 10px);left:50%;width:min(340px,calc(100% - 450px));margin:0;padding:10px 12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;font-size:12px;line-height:1.4;transform:translateX(-50%);}
 .intro-open #heist-notice,.in-cutscene #heist-notice{display:none;}
+#heist-notice.skyline-danger{background:#65272b;color:#fff;border-color:#e6a09b;}
+#skylark-support-actions button{min-height:44px;}
 body.swimming #touch-jump,body.swimming #touch-weapon,body.swimming #touch-power,body.swimming #touch-crouch{display:none;}
 .watercraft-offers{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px;}
 .watercraft-offers article{padding:12px;border:1px solid var(--line);border-radius:4px;}

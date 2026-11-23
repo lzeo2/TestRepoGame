@@ -1,6 +1,7 @@
 // Original arcade thrown equipment. The controller owns admission and inventory.
 export const ORDNANCE_LIMITS = Object.freeze({ projectiles: 4, clouds: 3, bursts: 4, burstLifetime: .65, fuse: 2, smokeLifetime: 10, smokeRadius: 5, blastRadius: 8 });
 export const DRONE_STRIKE_BLAST = Object.freeze({ radius: 12, maxDamage: 160 });
+const SKYLARK_AIRSTRIKE_BLAST = Object.freeze({ radius: 7, maxDamage: 45 });
 const GRENADE_BLAST = Object.freeze({ radius: ORDNANCE_LIMITS.blastRadius, maxDamage: 100 });
 const ROCKET_BLAST = Object.freeze({ radius: 10, maxDamage: 130 });
 const ROCKET_SPEED = 58;
@@ -9,10 +10,10 @@ const point = value => value && Number.isFinite(value.x) && Number.isFinite(valu
 const room = value => value == null ? null : typeof value === 'string' && value.length > 0 && value.length <= 160 ? value : undefined;
 const copy = value => Object.freeze({ ...value });
 
-export const blastLimits = kind => kind === 'drone-strike' ? DRONE_STRIKE_BLAST : kind === 'rocket' ? ROCKET_BLAST : GRENADE_BLAST;
+export const blastLimits = kind => kind === 'drone-strike' ? DRONE_STRIKE_BLAST : kind === 'skylark-airstrike' ? SKYLARK_AIRSTRIKE_BLAST : kind === 'rocket' ? ROCKET_BLAST : GRENADE_BLAST;
 
 export function validExplosion(event) {
-  if (event?.type !== 'explosion' || !point(event) || (event.kind === 'drone-strike' && event.interiorId != null)) return false;
+  if (event?.type !== 'explosion' || !point(event) || (['drone-strike','skylark-airstrike'].includes(event.kind) && event.interiorId != null)) return false;
   const limits = blastLimits(event.kind);
   return Number.isFinite(event.radius) && event.radius > 0 && event.radius <= limits.radius &&
     Number.isFinite(event.maxDamage) && event.maxDamage > 0 && event.maxDamage <= limits.maxDamage;

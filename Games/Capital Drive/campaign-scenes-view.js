@@ -4,7 +4,7 @@ import { CAPITAL_BY_ID as BY_ID } from '../../assets/car-arcade/fleet.js';
 import { PERSON_MODEL, appearanceForPerson, createPersonGeometries, emitPersonParts } from './person-model.js';
 
 // Meeting gestures, two armed companions and brief tracers reuse seven batches.
-export function createCampaignScenesView(scene,heightAt) {
+export function createCampaignScenesView(scene,heightAt,{capacity=4}={}) {
   const root=new THREE.Group();root.name='Campaign meeting cast';scene.add(root);
   const shapes=createPersonGeometries(), material=new THREE.MeshLambertMaterial({color:0xffffff});
   const batches={}, color=new THREE.Color(), local=new THREE.Object3D(), world=new THREE.Object3D(), matrix=new THREE.Matrix4();
@@ -15,11 +15,12 @@ export function createCampaignScenesView(scene,heightAt) {
     return [id,{eye,scale:Math.min(1,(BY_ID[id].height-eye[1]-.025)/PERSON_MODEL.seatedHeadTop),rear:Math.min(.78,BY_ID[id].length*.18)}];
   }));
   const carPose=new THREE.Object3D(),seat=new THREE.Object3D(),seated={kind:'driver'};
-  for(const [name,capacity] of [['torso',4],['head',4],['hair',4],['arms',8],['legs',8],['shoes',48],['hands',8]]) {
-    const mesh=new THREE.InstancedMesh(shapes[PERSON_MODEL.shapes[name]],material,capacity);
+  for(const [name,parts] of [['torso',1],['head',1],['hair',1],['arms',2],['legs',2],['shoes',12],['hands',2]]) {
+    const instances=capacity*parts;
+    const mesh=new THREE.InstancedMesh(shapes[PERSON_MODEL.shapes[name]],material,instances);
     mesh.name=`Meeting ${name}`;mesh.count=0;mesh.visible=false;mesh.frustumCulled=false;
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    for(let i=0;i<capacity;i++)mesh.setColorAt(i,color.setHex(0xffffff));
+    for(let i=0;i<instances;i++)mesh.setColorAt(i,color.setHex(0xffffff));
     mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);root.add(mesh);batches[name]=mesh;
   }
   let disposed=false;
@@ -56,7 +57,7 @@ export function createCampaignScenesView(scene,heightAt) {
     for(const mesh of Object.values(batches))mesh.count=0;
     const seen=new Set();
     for(const person of Array.isArray(people)?people:[]) {
-      if(stats.people>=4)break;
+      if(stats.people>=capacity)break;
       if(typeof person?.id==='string'&&seen.has(person.id))continue;
       const contract=person?.role==='contract-target'||person?.role==='contract-guard';
       const appearance=contract?person.appearance:appearances.get(person?.appearanceId);
