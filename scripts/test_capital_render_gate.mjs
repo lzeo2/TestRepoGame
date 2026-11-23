@@ -19,7 +19,7 @@ assert.equal(gate.shouldRender(menu),true,'returning to the page refreshes');
 const controller=await readFile(new URL('../Games/Capital Drive/script.js',import.meta.url),'utf8');
 assert(controller.indexOf('renderGate.shouldRender(')>controller.indexOf('if (!framePacer.ready'),'only rendered frames consume a revision');
 assert(controller.includes('pendingChunks:pendingWorldChunks()'));
-const room={active:null},pending=Function('world','neighbourhood','airportView','interiors',controller.slice(controller.indexOf('function pendingWorldChunks(){'),controller.indexOf('function animate(time) {'))+';return pendingWorldChunks;')({stats:{queuedChunks:2}},{stats:{queue:3}},{stats:{pendingChunks:4}},room);
+const room={active:null},pending=Function('world','neighbourhood','airportView','interiors',controller.slice(controller.indexOf('function pendingWorldChunks(){'),controller.indexOf('function animate(time) {'))+';return pendingWorldChunks;')({pendingChunks:2},{stats:{queue:3}},{stats:{pendingChunks:4}},room);
 assert.equal(pending(),9,'every exterior geometry queue participates');
 room.active={id:'room'};assert.equal(pending(),0,'suspended exterior queues cannot force paused indoor rendering');
 console.log('PASS render gate: paused/hidden static frames, dirty revision, chunk queues, active play, cutscenes and live tracking');
