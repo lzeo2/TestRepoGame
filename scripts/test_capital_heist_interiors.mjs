@@ -32,6 +32,18 @@ for (const site of sites) {
   assert.equal(plan.heist.siteId, site.id); assert.equal(plan.heist.kind, site.kind);
   assert(Object.isFrozen(plan.heist.employee) && Object.isFrozen(plan.heist.loot));
   assert.equal(plan.activities.length, 0, 'only the heist controller can authorize taking loot');
+  if(site.kind==='tower') {
+    assert(plan.details.some(item=>item.kind==='shop-sign'&&item.label==='BLACK MOUNTAIN TOWER'));
+    assert(plan.details.some(item=>item.kind==='observation-window'));
+    assert(plan.furniture.some(item=>item.kind==='observation-console'));
+    assert.deepEqual({x:plan.heist.loot.x,z:plan.heist.loot.z},site.point(2.05,5.05),'observation details preserve the existing archive pickup');
+  }
+  if(site.kind==='bank') {
+    assert(plan.details.some(item=>item.kind==='shop-sign'&&item.label==='VAULT'));
+    assert.deepEqual({x:plan.heist.loot.x,z:plan.heist.loot.z},site.point(3.45,5.65),'vault styling preserves the existing bank pickup');
+    const safe=plan.furniture.find(item=>item.kind==='cash-safe');assert(safe);
+    assert.equal(safe.width,1.2);assert.equal(safe.depth,1.4);assert.equal(safe.height,1.9);
+  }
   const collider = createInteriorCollider(plan), navigation = createInteriorNavigation(plan);
   assert(collider.canOccupy(plan.spawn)); assert(collider.canOccupy(plan.counter));
   assert(collider.canOccupy(plan.heist.employee, .36)); assert(collider.canOccupy(plan.heist.loot));

@@ -216,7 +216,9 @@ export function createGameplay(map, simulation, options = {}) {
       return false;
     }
     const space = interiorId(), ground = (x,z) => finite(options.heightAt?.(x,z));
-    const rays = weapon ? createShotRays({ x:actor.x,y:ground(actor.x,actor.z) + (actor.crouching ? .9 : 1.35) + actor.jumpHeight,
+    const flightFeet = weapon ? options.playerFeetY?.() : null;
+    const feet = Number.isFinite(flightFeet) ? flightFeet : ground(actor.x,actor.z) + actor.jumpHeight;
+    const rays = weapon ? createShotRays({ x:actor.x,y:feet + (actor.crouching ? .9 : 1.35),
       z:actor.z,yaw:actor.yaw,pitch:state.aimPitch,range:state.aiming?weapon.aimRange:weapon.range,pellets:weapon.pellets,
       spread:weapon.spread,aiming:state.aiming,serial:shotSerial+1,interiorId:space }) : null;
     const rocket=weapon?.projectile==='rocket'?rays[0]:null;

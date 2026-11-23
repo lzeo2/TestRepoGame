@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
+import {createGalleryFixture} from './capital-gallery-fixture.mjs';
 import {createCampaign} from '../Games/Capital Drive/campaign.js';
 import {createStealthContracts} from '../Games/Capital Drive/stealth-contracts.js';
 const districts=['manuka','foreshore','canberra-centre','redhill','kingston','griffith','australian-war-memorial'].map((id,i)=>({id,x:i*470,z:0}));
 const map={spawn:{x:0,z:0},landmarks:[{id:'coals',name:'Coals',store:true,x:20,z:10},...districts],roads:districts.flatMap(({id,x,z})=>[-60,0,60].map((offset,i)=>({id:`${id}:${i}`,name:'Test Street',points:[[x-120,z+offset],[x+120,z+offset]],width:8,type:'residential'})))};
 const ctx={pose:map.spawn,onFoot:true,health:100,vehicleHealth:100,wanted:0,respawnSerial:0,campaign:true};
-const options={canStand:()=>true,hasLineOfSight:()=>true};
+const options={canStand:()=>true,hasLineOfSight:()=>true,gallery:createGalleryFixture().gallery};
 const contracts=createStealthContracts(map,options);
 const full={version:1,completed:createCampaign(map).journal().shared.map(chapter=>chapter.id)};
 assert.equal(contracts.captureRetry(null),null);assert.equal(contracts.restoreRetry({},{}),false);
@@ -14,7 +15,7 @@ for(const chapter of contracts.chapters)for(const approach of chapter.approaches
   const plan={approachId:approach.id,exitId:chapter.exits.at(-1).id};
   assert(campaign.startOptional(chapter.id,ctx,plan).ok);const saved=campaign.serialize();
   let latest=null,respawnSerial=0;
-  const live=()=>({...ctx,respawnSerial,pose:campaign.state.active.target,crouching:campaign.state.active.target.crouch});
+  const live=()=>({...ctx,respawnSerial,visible:()=>true,interior:campaign.state.active.target.roomId?{roomId:campaign.state.active.target.roomId}:null,pose:campaign.state.active.target,crouching:campaign.state.active.target.crouch});
   function advance() {
     const active=campaign.state.active,stage=active.stage;
     const action=contracts.resolve(active,live());assert(action.ok,action.message);latest=action.receipt;

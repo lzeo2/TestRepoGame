@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import {createGalleryFixture} from './capital-gallery-fixture.mjs';
+import {buildHeistSites} from '../Games/Capital Drive/heist-sites.js';
 import {readFileSync} from 'node:fs';
 import {applyMapExpansion} from '../Games/Capital Drive/map-expansion.js';
 import {applyAirport} from '../Games/Capital Drive/airport.js';
@@ -12,7 +14,10 @@ const map=prepareWarMemorial(applyAirport(applyMapExpansion(applyRoadProfiles(re
   reader('airport'),reader('airport-terrain')));
 const simulation=createSimulation(map,{trafficCount:0});
 const canStand=point=>!simulation.moveActor({...point},0,0,.45).blocked;
-const contracts=createStealthContracts(map,{canStand,hasLineOfSight:simulation.hasLineOfSight,nearestRoad:simulation.nearestRoad});
+const memorialSite=buildHeistSites(map,simulation,()=>0).sites.find(site=>site.id==='memorial-workshop');
+assert(memorialSite,'actual mapped Memorial facade owns the fictional gallery');
+const galleryFixture=createGalleryFixture(memorialSite,memorialSite.exits);
+const contracts=createStealthContracts(map,{canStand,hasLineOfSight:simulation.hasLineOfSight,nearestRoad:simulation.nearestRoad,gallery:galleryFixture.gallery});
 assert.deepEqual(contracts.chapters.map(chapter=>chapter.id),STEALTH_CONTRACT_IDS);
 assert.equal(createStealthContracts(map,{canStand:()=>false,hasLineOfSight:()=>true}).chapters.length,0,'blocked layouts are not published');
 
@@ -42,9 +47,11 @@ for(const chapter of contracts.chapters){
       active.stage=plan.stages.indexOf(target);active.target=target;
       context.pose={x:target.x,z:target.z};
       context.crouching=!target.stand;
-      assert(canStand(target),'every marked stage supports a foot body');
+      context.interior=target.roomId?{roomId:target.roomId}:null;
+      context.visible=target.roomId?(from,to)=>galleryFixture.interiors.hasLineOfSight(from,to):true;
+      assert(target.roomId?galleryFixture.collider.canOccupy(target):canStand(target),'every marked stage supports a foot body');
       const nearest=simulation.nearestRoad(target.x,target.z);
-      assert(nearest.distance>=roadProfile(nearest.road).driveWidth/2+2,'marked stage clears the vehicle lanes');
+      if(!target.roomId)assert(nearest.distance>=roadProfile(nearest.road).driveWidth/2+2,'marked outdoor stage clears the vehicle lanes');
       for(const wrong of [{onFoot:false},{interior:{}},{paused:true},{recovering:true},{passenger:true},{wanted:1},
         {visible:false},{visible:()=>false},{pose:{x:target.x+15,z:target.z}},{health:0}]){
         assert.equal(contracts.resolve(active,{...context,...wrong}).ok,false);
@@ -61,7 +68,7 @@ for(const chapter of contracts.chapters){
       active.target=target;
       const outcome=contracts.resolve(active,context);
       assert(outcome.ok&&Object.isFrozen(outcome.receipt));
-      assert.deepEqual(outcome.receipt,{id:chapter.id,stage:active.stage,serial:++serial});
+      assert.deepEqual(outcome.receipt,{id:chapter.id,stage:active.stage,serial:++serial,...(target.roomId?{roomId:target.roomId}:{})});
       assert.equal(contracts.resolve(active,context).ok,false,'one receipt per real stage');
     }
     playablePlans++;

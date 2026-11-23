@@ -440,8 +440,10 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     if (goal.kind === 'aviation') eligible = !ctx.interior && ctx.aircraft?.id===goal.aircraftId && ctx.aircraft?.kind===goal.aircraftKind && ctx.aircraft.wrecked===false && (!goal.airborne||ctx.aircraft.airborne===true) && Number.isFinite(ctx.aircraft.altitude) && ctx.aircraft.altitude >= (goal.minimumAltitude||0);
     else if (goal.kind === 'stealth-contract') {
       const receipt = ctx.stealthOutcome;
-      eligible &&= active.stealth && ctx.onFoot && !ctx.interior && !ctx.passenger && !ctx.aircraft && ctx.wanted===0 &&
-        receipt?.id===active.id && receipt.stage===active.stage && serial(receipt)>active.stealthSerial;
+      const roomId = goal.roomId ?? null;
+      const matchingSpace = roomId ? ctx.interior?.roomId===roomId : !ctx.interior;
+      eligible &&= active.stealth && ctx.onFoot && matchingSpace && !ctx.passenger && !ctx.aircraft && ctx.wanted===0 &&
+        receipt?.id===active.id && (receipt.roomId??null)===roomId && receipt.stage===active.stage && serial(receipt)>active.stealthSerial;
     }
     else if (goal.kind === 'assassination') {
       const receipt = ctx.assassinationOutcome;

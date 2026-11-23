@@ -82,16 +82,16 @@ const sites = Object.freeze([
     ],
   },
   {
-    id:'replica-relay', name:'Replica Relay', district:'australian-war-memorial', location:'Memorial replica crew lot',
-    briefing:'The crew has built a duplicate exhibit case for a private rehearsal. Identify the correct replica and get it to the pickup before the rehearsal ends.',
-    outro:'The replica reached the pickup. The crew can close out the rehearsal.', reward:2250,
+    id:'replica-relay', name:'The Gallery Ledger', district:'australian-war-memorial', location:'War Memorial Gallery',
+    briefing:'Inside the original fictional gallery room, compare its exhibit ledger with the dispatch record and recover the crew’s archive copy. Leave through the public approach.',
+    outro:'The gallery ledger and dispatch copy agree. The crew’s archive is safely outside.', reward:2250,
     approaches:[
-      {id:'spotter',name:'Spotter route',description:'Check the mock lot, match the display tag and collect the replica case.',
-        actions:[['scout',0,'Hold X and press E to check the rehearsal lot'],['evidence',2,'Press E to match the replica tag'],
-          ['handoff',4,'Press E to collect the replica case']]},
-      {id:'exhibit-crew',name:'Exhibit crew',description:'Pick up the crew pass, copy the dispatch slip and collect the alternate replica case.',
-        actions:[['cover',1,'Press E to collect the exhibit crew pass','exhibit-crew'],['evidence',3,'Press E to copy the dispatch slip','exhibit-crew'],
-          ['handoff',5,'Press E to collect the alternate replica case','exhibit-crew']]},
+      {id:'spotter',name:'Quiet inspection',description:'Inspect the gallery label from a crouch, compare the ledger and collect its archive copy.',
+        actions:[['scout',0,'Hold X and press E to inspect the gallery label'],['evidence',2,'Press E to compare the gallery ledger'],
+          ['handoff',4,'Press E to collect the gallery archive copy']]},
+      {id:'exhibit-crew',name:'Exhibit crew',description:'Collect the gallery crew pass, copy the dispatch slip and retrieve the archive envelope.',
+        actions:[['cover',1,'Press E to collect the gallery crew pass','exhibit-crew'],['evidence',3,'Press E to copy the dispatch slip','exhibit-crew'],
+          ['handoff',5,'Press E to retrieve the archive envelope','exhibit-crew']]},
     ],
   },
 ]);
@@ -145,7 +145,8 @@ function findPoints(map,anchor,canStand,hasLineOfSight,nearestRoad) {
 function stage(id,site,p,action,label,credential) {
   const target = action==='drop-target'||action==='tag-target';
   return Object.freeze({id,kind:'stealth-contract',action,label,location:site.location,x:p.x,z:p.z,yaw:p.yaw,
-    radius:action==='extract'?3.5:2.7,hold:0,visual:VISUALS[action],crouch:action==='scout'||action==='disarm'||action==='drop-target',
+    ...(p.roomId?{roomId:p.roomId,...(Number.isFinite(p.y)?{y:p.y}:{})}:{}),
+    radius:action==='extract'?3.5:p.roomId?Math.max(.6,Math.min(1.4,Number.isFinite(p.radius)?p.radius:.8)):2.7,hold:0,visual:VISUALS[action],crouch:action==='scout'||action==='disarm'||action==='drop-target',
     ...(target?{targetName:site.targetName,stand:action==='tag-target'}:{}),
     ...(credential?{cover:credential}:{})});
 }
@@ -159,17 +160,22 @@ export function planStealthChapter(chapter,plan = {}) {
   return Object.freeze({...chapter,stealthPlan:Object.freeze({approachId,exitId}),stages:Object.freeze([...approach.stages,extraction])});
 }
 
-export function createStealthContracts(map,{canStand=()=>false,hasLineOfSight=()=>false,nearestRoad}={}) {
+export function createStealthContracts(map,{canStand=()=>false,hasLineOfSight=()=>false,nearestRoad,gallery}={}) {
   const chapters=[];
   for(const site of sites){
     const anchor=map?.landmarks?.find(place=>place.id===site.district);
     if(!finite(anchor))continue;
-    const points=findPoints(map,anchor,canStand,hasLineOfSight,nearestRoad);
-    if(points.length!==8)continue;
+    const indoor=site.id==='replica-relay';
+    const validGallery=gallery?.roomId==='interior-memorial-workshop'&&Array.isArray(gallery.points)&&gallery.points.length===6&&
+      gallery.points.every(point=>finite(point)&&Number.isFinite(point.y))&&Array.isArray(gallery.exits)&&gallery.exits.length===2&&
+      new Set(gallery.exits.map(exit=>exit.id)).size===2&&gallery.exits.every(exit=>finite(exit)&&typeof exit.id==='string'&&exit.id&&typeof exit.name==='string'&&exit.name);
+    if(indoor&&!validGallery)continue;
+    const points=indoor?gallery.points.map(point=>({...point,roomId:gallery.roomId})):findPoints(map,anchor,canStand,hasLineOfSight,nearestRoad);
+    if(!indoor&&points.length!==8)continue;
     const approaches=site.approaches.map(approach=>Object.freeze({id:approach.id,name:approach.name,description:approach.description,
       stages:Object.freeze(approach.actions.map(([action,point,label,credential],index)=>
         stage(`${site.id}:${approach.id}:${index}`,site,points[point],action,label,credential)))}));
-    const exits=points.slice(6).map((p,index)=>Object.freeze({id:index?'side':'main',name:`${index?'Side':'Main'} pickup · ${p.road}`,x:p.x,z:p.z,yaw:p.yaw}));
+    const exits=indoor?gallery.exits.map(exit=>Object.freeze({id:exit.id,name:exit.name,x:exit.x,z:exit.z,yaw:exit.yaw})):points.slice(6).map((p,index)=>Object.freeze({id:index?'side':'main',name:`${index?'Side':'Main'} pickup · ${p.road}`,x:p.x,z:p.z,yaw:p.yaw}));
     chapters.push(Object.freeze({id:site.id,name:site.name,location:site.location,briefing:site.briefing,outro:site.outro,
       reward:site.reward,time:600,optional:true,stealth:true,combat:false,approaches:Object.freeze(approaches),exits:Object.freeze(exits)}));
   }
@@ -180,7 +186,7 @@ export function createStealthContracts(map,{canStand=()=>false,hasLineOfSight=()
     const chapter=chapters.find(item=>item.id===active.id),planned=planStealthChapter(chapter,active.stealthPlan);
     const objective=planned?.stages[active.stage];
     return objective&&active.target.id===objective.id&&active.target.kind===objective.kind&&
-      active.target.x===objective.x&&active.target.z===objective.z ? objective : null;
+      active.target.x===objective.x&&active.target.z===objective.z&&active.target.y===objective.y&&active.target.roomId===objective.roomId ? objective : null;
   }
   // Retry authority is opaque and local. Campaign owns attempt generation and rewards;
   // this owner restores only the private action cursor/credential at a stage boundary.
@@ -208,14 +214,17 @@ export function createStealthContracts(map,{canStand=()=>false,hasLineOfSight=()
     if(!active?.stealth||!Number.isInteger(active.stage)||!active.target)return deny('No contract objective is active.');
     const chapter=chapters.find(item=>item.id===active.id),planned=planStealthChapter(chapter,active.stealthPlan);
     const objective=planned?.stages[active.stage];
-    if(!objective||active.target.kind!==objective.kind||active.target.id!==objective.id||active.target.x!==objective.x||active.target.z!==objective.z)
+    if(!objective||active.target.kind!==objective.kind||active.target.id!==objective.id||active.target.x!==objective.x||active.target.z!==objective.z||active.target.y!==objective.y||active.target.roomId!==objective.roomId)
       return deny('Use the marked objective in your contract plan.');
     const {pose,onFoot,interior,paused,passenger,recovering,wanted,crouching,health}=context;
-    if(!finite(pose)||onFoot!==true||interior||paused||passenger||recovering||
+    const correctRoom=objective.roomId?(interior?.id??interior?.roomId)===objective.roomId:!interior;
+    if(!finite(pose)||onFoot!==true||!correctRoom||paused||passenger||recovering||
       health!==undefined&&(!Number.isFinite(health)||health<=0))return deny('Approach the marked objective on foot.');
     if(wanted!==0)return deny('Clear the police search before continuing.');
-    if(distance(pose,objective)>objective.radius||context.visible===false||
-      (typeof context.visible==='function'&&!context.visible(pose,objective))||!hasLineOfSight(pose,objective))
+    const visible=objective.roomId?
+      typeof context.visible==='function'&&context.visible({...pose,interiorId:objective.roomId},{...objective,interiorId:objective.roomId})===true:
+      context.visible!==false&&(typeof context.visible!=='function'||context.visible(pose,objective))&&hasLineOfSight(pose,objective);
+    if(distance(pose,objective)>objective.radius||!visible)
       return deny('Move into clear reach of the marked objective.');
     if(objective.crouch&&!crouching)return deny('Hold X to crouch, then press E.');
     if(objective.stand&&crouching)return deny('Stand up, then press E at the target marker.');
@@ -226,7 +235,7 @@ export function createStealthContracts(map,{canStand=()=>false,hasLineOfSight=()
     progress.next++;
     attempts.set(active,progress);
     return {ok:true,message:FEEDBACK[objective.action],
-      receipt:Object.freeze({id:active.id,stage:active.stage,serial:++serial})};
+      receipt:Object.freeze({id:active.id,stage:active.stage,serial:++serial,...(objective.roomId?{roomId:objective.roomId}:{})})};
   }
   return {chapters:Object.freeze(chapters),resolve,captureRetry,restoreRetry};
 }

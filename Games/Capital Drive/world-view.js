@@ -102,7 +102,17 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   const canopies = foliageTexture === null ? null : new THREE.MeshLambertMaterial({
     vertexColors: true, map: foliageTexture ?? null, alphaTest: .39, side: THREE.DoubleSide,
   });
-  if (canopies) materials.push(canopies);
+  if (canopies) {
+    // Cards represent a rounded leaf volume, so their baked outward normals
+    // must not flip toward the camera when a card is seen from its reverse side.
+    // Keep ordinary Lambert sun/hemisphere lighting, fog and alpha testing.
+    canopies.onBeforeCompile = shader => {
+      shader.fragmentShader = shader.fragmentShader.replace('#include <normal_fragment_begin>',
+        '#include <normal_fragment_begin>\nnormal *= faceDirection;\nnonPerturbedNormal = normal;');
+    };
+    canopies.customProgramCacheKey = () => 'capital-canopy-volume-light-v1';
+    materials.push(canopies);
+  }
   if (foliageTexture) textures.push(foliageTexture);
   const waterMaterial=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.3,metalness:.18});
   materials.push(waterMaterial);
@@ -307,7 +317,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     return geometry(shape);
   }
   function canopyGeometry(gum) {
-    const vertices = [], uvs = [], indices = [];
+    const vertices = [], normals = [], shades = [], uvs = [], indices = [];
     const clumps = gum ? [
       [-.205,.728,.08,.56,.34,1], [.236,.763,-.068,.55,.37,0], [.038,.91,-.025,.58,.35,0],
       [-.02,.822,-.21,.43,.32,1],
@@ -321,7 +331,15 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       const ux = Math.sin(yaw) * Math.sin(pitch) * height / 2;
       const uy = Math.cos(pitch) * height / 2, uz = -Math.cos(yaw) * Math.sin(pitch) * height / 2;
       for (const [right, up] of [[-1,-1],[1,-1],[1,1],[-1,1]]) {
-        vertices.push(x + right*rx + up*ux, y + up*uy, z + right*rz + up*uz);
+        const vx = x + right*rx + up*ux, vy = y + up*uy, vz = z + right*rz + up*uz;
+        vertices.push(vx, vy, vz);
+        // Rounded clump normals provide a lit upper rim and a shaded underside
+        // instead of nine unrelated, flat billboard lighting planes.
+        normal.set((vx-x)/width + vx*.45, .26 + (vy-y)/height + (vy-.78)*.48,
+          (vz-z)/width + vz*.45).normalize();
+        normals.push(normal.x, normal.y, normal.z);
+        const shade = Math.max(.62, Math.min(1, .66 + (up+1)*.14 + (y-.7)*.23));
+        shades.push(shade, shade, shade);
       }
       const u = (tile % 2) / 2, v = tile < 2 ? .5 : 0;
       const inset = 2 / 512, right = u + .5 - inset, top = v + .5 - inset;
@@ -336,14 +354,15 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     leafCard(clumps[2], .58, 1.30);
     const shape = new THREE.BufferGeometry();
     shape.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    shape.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    shape.setAttribute('color', new THREE.Float32BufferAttribute(shades, 3));
     shape.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     shape.setIndex(indices);
-    shape.computeVertexNormals();
     temporaryGeometry.push(shape);
     return shape;
   }
   function patchyCrown(lobes) {
-    const vertices = [], indices = [];
+    const vertices = [], indices = [], shades = [];
     const irregularity = [1.05, .8, .98, 1.16, .86, 1.02, .85, 1.14, .96, .81];
     const rimHeights = [.08, -.16, .04, .21, -.08, .14, -.11, .06, .18, -.14];
     for (const { x, y, z, width, height, depth, sides, yaw } of lobes) {
@@ -351,19 +370,34 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       for (let i = 0; i < sides; i++) {
         const angle = yaw + i * Math.PI * 2 / sides, radius = irregularity[i];
         vertices.push(x + Math.cos(angle) * width * radius, y + height * rimHeights[i], z + Math.sin(angle) * depth * radius);
+        const shade = .8 + rimHeights[i]*.2;
+        shades.push(shade, shade, shade);
       }
       const top = first + sides, bottom = top + 1;
       vertices.push(x + width * .19, y + height * .99, z - depth * .12, x - width * .14, y - height * .79, z + depth * .13);
+      shades.push(1,1,1, .62,.62,.62);
       for (let i = 0; i < sides; i++) {
         const a = first + i, b = first + (i + 1) % sides;
         indices.push(top, b, a, bottom, a, b);
       }
     }
-    return smoothGeometry(vertices, indices);
+    const result = smoothGeometry(vertices, indices);
+    // smoothGeometry expands the index; retain the matching per-vertex shade.
+    result.setAttribute('color', new THREE.Float32BufferAttribute(indices.flatMap(i => shades.slice(i*3,i*3+3)), 3));
+    return result;
   }
   const box = geometry(new THREE.BoxGeometry(1, 1, 1));
   const trunk = geometry(new THREE.CylinderGeometry(0.65, 1, 1, 5));
   const crown = geometry(new THREE.IcosahedronGeometry(1, 0));
+  const fallbackCrown = canopies ? null : geometry(new THREE.IcosahedronGeometry(1, 0));
+  if (fallbackCrown) {
+    const points = fallbackCrown.attributes.position, shades = [];
+    for (let i=0;i<points.count;i++) {
+      const shade = .62 + (points.getY(i)+1)*.19;
+      shades.push(shade,shade,shade);
+    }
+    fallbackCrown.setAttribute('color', new THREE.Float32BufferAttribute(shades,3));
+  }
   const gumTrunk = branchedTrunk(true), streetTrunk = branchedTrunk(false);
   const gumCrown = canopies && canopyGeometry(true), streetCrown = canopies && canopyGeometry(false);
   const shrubCrown = patchyCrown([{ x: 0, y: 0, z: 0, width: 1, height: 1, depth: 1, sides: 6, yaw: .14 }]);
@@ -932,7 +966,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     primitive(eucalyptus ? gumTrunk : streetTrunk, x, y, z, width, h, depth, bark, angle);
     if (canopies) primitive(eucalyptus ? gumCrown : streetCrown, x, y, z, width, h, depth,
       pick(eucalyptus ? gumLeaves : streetLeaves, seed + 51), angle, 'canopy');
-    else primitive(crown, x, y + h * .79, z, width * .38, h * .23, depth * .33,
+    else primitive(fallbackCrown, x, y + h * .79, z, width * .38, h * .23, depth * .33,
       eucalyptus ? 0x6b8362 : 0x73884e, angle);
     softShadow(x, z, h * .38, h * .32, .14);
   }

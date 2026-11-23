@@ -77,6 +77,12 @@ export function createMissionGuide(entries, storyHomes = {}) {
         'Speak to the officer or leave the area.' : context.wanted>0?'Location reached. Lose the police.':'Location reached. Stay clear of the police.',
       location:'Escape the police',point:null,distance:null,indoors:false,entryId:null,stationId:null,escaping:true});
     const findVehicle = goal.kind === 'stolen' && goal.anywhere;
+    if (goal.kind==='stealth-contract' && goal.roomId) {
+      const entry = byId.get(goal.roomId);
+      if (!entry) return null;
+      if (plan?.id===entry.id) return result(name(goal.label),entry.name,goal,true,entry.id);
+      if (!plan) return result(`Enter ${entry.name} at the marked door.`,entry.name,entry.approach,false,entry.id);
+    }
     if((findVehicle||goal.kind==='escape'||goal.kind==='stealth-contract')&&plan&&point(plan.exit))return result('Leave the building through the marked exit.',name(plan.name,'the building'),plan.exit,true,plan.id);
     if(findVehicle)return Object.freeze({
       instruction:name(goal.label, 'Steal a nearby street vehicle.'),location:'Find a vehicle',

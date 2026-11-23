@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createHeistActivities } from '../Games/Capital Drive/heist-activities.js';
 
 const bank = { id:'civic-bank', name:'Civic Mutual Bank', kind:'bank', x:0, z:0, radius:3 };
+const branch = { id:'manuka-bank', name:'Civic Mutual Bank · Manuka', kind:'bank', x:-100, z:200, radius:3, vaultPuzzle:true };
 const jewel = { id:'manuka-jewels', name:'Manuka Facets', kind:'jeweller', x:0, z:100 };
 const rail = { id:'rail-parcels', name:'Metro Parcel Run', kind:'rail', x:100, z:0,
   stopId:'rail-alinga', arrivalStopId:'rail-elouera', boarding:{x:106,z:0}, pickup:{x:300,z:0} };
@@ -20,7 +21,7 @@ function roomFor(site) {
 
 function fixture(options) {
   const heat = [], rewards = [];
-  const heists = createHeistActivities({ sites:[bank,jewel,rail], onHeat:event=>heat.push(event),
+  const heists = createHeistActivities({ sites:[bank,jewel,rail,branch], onHeat:event=>heat.push(event),
     onReward:event=>rewards.push(event), ...options });
   return { heists, heat, rewards };
 }
@@ -31,6 +32,26 @@ function playSequence(heists, ctx) {
     heists.step(1/60, ctx);
     heists.step(1/60, ctx, { [symbol]:true });
   }
+}
+
+{
+  const {heists,heat,rewards}=fixture();
+  const {entry,counter}=roomFor(branch);
+  assert.match(heists.interact(entry).message,/vault console/i);
+  assert.equal(heists.interact(roomFor(bank).counter),null,'the other branch cannot open this vault');
+  assert(heists.interact(counter).ok);
+  assert.equal(heists.snapshot().challenge.label,'Vault symbols');
+  assert.equal(heat.length,0,'starting the vault puzzle does not collect cash');
+  assert.equal(heists.step(.05,{...counter,pose:{x:410,z:500}}).ok,false,'leaving console reach interrupts the challenge');
+  assert.deepEqual(rewards,[]);
+  assert(heists.interact(entry).ok);assert(heists.interact(counter).ok);
+  playSequence(heists,counter);
+  assert.equal(heists.snapshot().phase,'escape');
+  assert.equal(heat.length,1);
+  heists.step(.05,onFoot({x:403,z:500},{wanted:3}));
+  heists.step(.05,onFoot({x:490,z:500}));
+  heists.step(.05,onFoot({x:490,z:500}));
+  assert.deepEqual(rewards,[{id:branch.id,kind:'bank',amount:3100}]);
 }
 
 {
