@@ -152,6 +152,27 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
   }
   const initial = planes.map(p => ({ ...p }));
   let loanRotor=null;
+  const jobHelicopterIds=new Set();
+  function addJobHelicopter(id,pose) {
+    if(typeof id!=='string'||!/^[A-Za-z0-9][A-Za-z0-9:._-]{0,127}$/.test(id)||
+      CAMPAIGN_AIRCRAFT_IDS.includes(id)||id==='loan:jet'||id==='loan:helicopter')return {ok:false,reason:'invalid-job-aircraft-id'};
+    if(jobHelicopterIds.has(id)||planes.some(p=>p.id===id))return {ok:false,reason:'job-aircraft-id-used'};
+    if(planes.some(p=>p.jobLoaner))return {ok:false,reason:'job-aircraft-present'};
+    if(!finitePose(pose)||!Number.isFinite(pose.yaw))return {ok:false,reason:'invalid-job-aircraft-pose'};
+    const rotor=rotorStand({x:pose.x,z:pose.z,yaw:pose.yaw},id,planes);
+    if(!rotor)return {ok:false,reason:'job-aircraft-placement-blocked'};
+    Object.defineProperty(rotor,'id',{value:id,enumerable:true,writable:false,configurable:false});
+    Object.assign(rotor,{name:'Skylark extraction helicopter',loaner:true,jobLoaner:true,pendingRelease:false});
+    planes.push(rotor);jobHelicopterIds.add(id);
+    return {ok:true,id,aircraft:copy(rotor)};
+  }
+  function releaseJobHelicopter(id) {
+    const index=planes.findIndex(p=>p.jobLoaner&&p.id===id);
+    if(index<0)return jobHelicopterIds.has(id)?{ok:true,id,removed:false,deferred:false}:{ok:false,reason:'unknown-job-aircraft'};
+    const rotor=planes[index];
+    if(activeId===id){rotor.pendingRelease=true;return {ok:true,id,removed:false,deferred:true};}
+    planes.splice(index,1);return {ok:true,id,removed:true,deferred:false};
+  }
   const checkpoints=new WeakMap(),checkpointIds=new Set([...initial.map(p=>p.id),'loan:jet','loan:helicopter']);
   function checkpointPlane(plane) {
     const ground=heightAt(plane.x,plane.z);
@@ -173,9 +194,10 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
     return Object.freeze(saved);
   }
   function captureCheckpoint() {
-    if(challenge.snapshot().active||planes.length>CAMPAIGN_AIRCRAFT_IDS.length+2)return null;
+    const retained=planes.filter(p=>!p.jobLoaner);
+    if(challenge.snapshot().active||activePlane()?.jobLoaner||retained.length>CAMPAIGN_AIRCRAFT_IDS.length+2)return null;
     try {
-      const records=planes.map(ref=>({ref,saved:checkpointPlane(ref)}));
+      const records=retained.map(ref=>({ref,saved:checkpointPlane(ref)}));
       if(records.some(record=>!record.saved)||new Set(records.map(record=>record.saved.id)).size!==records.length||
         (activeId!==null&&!records.some(record=>record.saved.id===activeId&&record.saved.active&&!record.saved.wrecked)))return null;
       const token=Object.freeze(Object.create(null));
@@ -185,6 +207,7 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
   function checkpointReason(token) {
     const saved=token&&typeof token==='object'?checkpoints.get(token):null;
     if(!saved)return 'invalid-checkpoint';
+    if(activePlane()?.jobLoaner)return 'job-aircraft-active';
     try {
       for(const {saved:plane} of saved.records) {
         if(!checkpointPlane(plane))return 'invalid-aircraft';
@@ -199,7 +222,8 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
     const saved=checkpoints.get(token);
     // Preflight every retained aircraft before changing any live object or event.
     for(const {ref,saved:plane} of saved.records)Object.assign(ref,plane);
-    planes.splice(0,planes.length,...saved.records.map(record=>record.ref));activeId=saved.activeId;
+    const liveJobCraft=planes.filter(plane=>plane.jobLoaner);
+    planes.splice(0,planes.length,...saved.records.map(record=>record.ref),...liveJobCraft);activeId=saved.activeId;
     challenge.clear();challenge.drainEvents();challengeId=null;challengeSandbox=false;events.length=0;
     return {ok:true,activeId};
   }
@@ -246,6 +270,7 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
       if (!p) return { ok: false, reason: 'The aircraft exit is blocked.' };
       activeId = null; plane.throttle = 0;
       events.push({ type: 'exited', id: plane.id, exitPose: p });
+      if(plane.jobLoaner&&plane.pendingRelease)planes.splice(planes.indexOf(plane),1);
       return { ok: true, exited: true, exitPose: p };
     }
     if (challenge.snapshot().active) {
@@ -396,13 +421,14 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
           'W/S throttle · A/D turn · Space climb · Shift descend':plane.depot?
           'Follow the marked strip · Hold W and Space to take off':'Align with runway · Hold W to 101 km/h · Space lift') : '' });
   }
-  return { nearest, interact, step, snapshot, captureCheckpoint, canRestoreCheckpoint, restoreCheckpoint,
+  return { nearest, interact, step, snapshot, captureCheckpoint, canRestoreCheckpoint, restoreCheckpoint,addJobHelicopter,releaseJobHelicopter,
     get active() { return flightCopy(activePlane()); },
     get challenge() { return challengeView(); },
     get seatPose() { const p = activePlane(); return p ? { ...offset(p, 0, 2), y: p.y + 1.55, yaw: p.yaw, speed: p.speed } : null; },
     drainEvents: () => events.splice(0),
     reset({absentAircraft=[]}={}) {
       challenge.clear(); challenge.drainEvents(); activeId = null; challengeId = null; events.length = 0;
+      jobHelicopterIds.clear();
       const absent=new Set(absentAircraft);
       planes.splice(0, planes.length, ...initial.filter(p=>!absent.has(p.id)).map(p=>({...p})));
       // Preserve the optional flight after a Campaign theft using distinctly
