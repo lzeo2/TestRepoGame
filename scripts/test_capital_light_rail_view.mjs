@@ -58,6 +58,30 @@ assert.equal(fleet.instanceColor.version, fleetColorVersion, 'moving parts reuse
 view.update([tram, ...Array.from({ length: 5 }, (_, index) => ({ ...tram, id: `return-${index}`, x: 2.6, z: -50 * index, y: ground(2.6, -50 * index), yaw: Math.PI }))], focus);
 assert.equal(view.stats.trains, 5, 'the shared draw covers all scheduled and spare trains with a bounded pool');
 assert(fleet.count <= view.stats.trainCapacity && track.count <= view.stats.trackCapacity);
+
+// Eight scheduled trains and a reserve can all be local: source array order
+// must not hide the closest/ridden train near the end of the service roster.
+const crowded = Array.from({ length: 9 }, (_, index) => ({ ...tram,
+  id: index === 8 ? 'ridden-last' : `scheduled-${index}`, x: (8 - index) * 50, z: 0, yaw: 0 }));
+const crowdedBefore = structuredClone(crowded);
+const visibleTrainXs = () => {
+  const partsPerTrain = fleet.count / view.stats.trains, xs = [];
+  for (let index = 0; index < view.stats.trains; index++) {
+    fleet.getMatrixAt(index * partsPerTrain, matrix); xs.push(matrix.elements[12]);
+  }
+  return xs.sort((a, b) => a - b);
+};
+view.update([...crowded, { ...tram, id: 'inactive-near', x: 1, active: false }], focus);
+assert.deepEqual(visibleTrainXs(), [0, 50, 100, 150, 200], 'five nearest active trains include the ridden last roster entry');
+assert.equal(view.stats.drawCalls, 2);assert.equal(view.stats.trains, 5);
+assert.equal(fleet.count, view.stats.trainCapacity, 'nearest selection preserves the existing fixed instance capacity');
+const crowdedVersion = fleet.instanceMatrix.version;
+view.update([...crowded].reverse(), { x: 1, z: 0 });
+assert.equal(fleet.instanceMatrix.version, crowdedVersion, 'same nearest membership reuses buffers after roster reordering');
+view.update(crowded, { x: 360, z: 0 });
+assert.deepEqual(visibleTrainXs(), [200, 250, 300, 350, 400], 'pool follows the focus to the new nearest trains');
+assert.deepEqual(crowded, crowdedBefore, 'selection never reorders or edits controller-owned trains');
+
 view.update([tram], { x: 1500, z: 1500 });
 assert.equal(view.stats.drawCalls, 0);
 view.update([{ ...tram, x: NaN }, null], focus);

@@ -218,11 +218,21 @@ export function createLightRailView(scene, { routes = [], stops = [] } = {}, hei
   function updateFleet(vehicles, focus) {
     const selected = [];
     for (const tram of vehicles || []) {
-      if (selected.length >= FLEET_CAP) break;
-      if (!position(tram) || !Number.isFinite(tram.yaw) || tram.active === false || rangeSquared(tram, focus) > RANGE.tram ** 2) continue;
+      if (!position(tram) || !Number.isFinite(tram.yaw) || tram.active === false) continue;
+      const distance = rangeSquared(tram, focus), sortId = String(tram.id ?? '');
+      if (distance > RANGE.tram ** 2) continue;
+      let at = selected.length;
+      while (at > 0 && (distance < selected[at - 1].distance ||
+        distance === selected[at - 1].distance && sortId < selected[at - 1].sortId)) at--;
+      if (at >= FLEET_CAP) continue;
       const y = Number.isFinite(tram.y) ? tram.y : heightAt(tram.x, tram.z);
-      if (Number.isFinite(y)) selected.push({ ...tram, y });
+      if (!Number.isFinite(y)) continue;
+      selected.splice(at, 0, { ...tram, y, distance, sortId });
+      if (selected.length > FLEET_CAP) selected.pop();
     }
+    // Distance chooses membership; stable ID order avoids GPU uploads when the
+    // same five trains merely exchange distance ranks or controller array slots.
+    selected.sort((a, b) => a.sortId < b.sortId ? -1 : a.sortId > b.sortId ? 1 : 0);
     const key = selected.map(tram => [tram.id, tram.x, tram.y, tram.z, tram.yaw, tram.pitch || 0, tram.width, tram.length, tram.doorsOpen ? tram.doorSide === -1 ? -1 : 1 : 0].join(',')).join(';');
     if (key === previousFleet) return;
     previousFleet = key; fleet.count = 0; stats.trains = selected.length;
