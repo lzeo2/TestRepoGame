@@ -22,11 +22,15 @@ artwork or branded vehicle assets are used.
 
 The [Australian War Memorial exterior](../../capital-drive-war-memorial-sources.md)
 uses the mapped footprint, Hall of Memory dome, public terraces and paths.
-Its two merged meshes add detail near the Memorial. Search for **Australian War
-Memorial** to visit the precinct. The **Memorial Replica Workshop** is a marked
-fictional building nearby. Walk to the case and press E, match the symbols, then
-leave and clear the search. Campaign's **Replica Relay** has its own planned
-approaches and exits, available after the story.
+Its two merged meshes add detail near the Memorial. Search **War Memorial Gallery**
+for a playable entrance on the main building. Walk to the exhibition case and
+press E, match the symbols, then leave and clear the search. **The Gallery Ledger**
+uses the same gallery for its campaign approaches and unlocks after the story.
+**Black Mountain Tower** has a marked archive entrance on its mapped base.
+Both interiors are original layouts and load on entry. **Civic Mutual Bank · Manuka**
+adds a vault-symbol robbery on Captain Cook Crescent alongside the Civic branch.
+The Manuka branch uses a staff handover, a symbol puzzle at the marked vault and
+the normal escape requirement.
 
 Bus prompts name the next stop and show the distance remaining. Press E while
 moving to request it. The bus holds at the mapped platform until the front-left
@@ -50,6 +54,10 @@ cooler tint. Roads and pavements use one shared diffuse texture with matte
 Lambert lighting. Pavement vertices add two UV coordinates (8 bytes per
 vertex). The underlying street ribbons and source footprints remain the
 basis for rendering and collision.
+
+Leaf cards use rounded canopy normals and shaded lower foliage. The existing sun
+and sky lights now give trees directional highlights and softer dusk shadows.
+The change reuses the existing foliage batches and vertex buffers.
 
 Driveways, lawn sections and garden walls vary through their existing vertex
 colours. These colours represent authored material estimates. A 32×64 shadow
@@ -94,10 +102,13 @@ the search continues. Wrecks and station losses still limit dispatch capacity.
 Canalside Supplies sells a reusable jetpack for $1,200 in Street Life and
 Campaign. Ownership is validated as optional gear when loading older saves.
 Flight requires ownership, clear outdoor ground and a break between jobs.
-Horizontal thrust builds gradually, neutral lift hovers, and U requests a
-controlled landing. Powered flight lasts roughly 50–110 seconds depending on
-thrust. Fuel replenishes while standing outside between flights. A merged
-twin-tank shell and instanced exhaust use at most two draws.
+Use Space to climb, Shift to descend and U to request or cancel a landing.
+The jetpack body checks actual heights of roofs, vehicles and bridge decks.
+Bridge undersides limit climbing while leaving clear space open for horizontal
+flight. Use the ordinary aim and fire controls in flight. Powered flight lasts
+roughly 50–110 seconds depending on thrust, and fuel replenishes on the ground.
+A raised surface can support the jetpack until you steer off it. The pack and
+exhaust use at most two draws.
 
 Petrol and rental symbols share artwork across the full map, minimap,
 shortcuts and search results. All twelve
@@ -188,7 +199,7 @@ reduces future ground dispatch for the current session. Officers already on
 scene keep responding.
 
 The Stealth contracts board offers Ledger Switch, Echo Box, Silent Exchange,
-Last Light Rehearsal, Glasshouse Double, The False Courier and Replica Relay. Each has two
+Last Light Rehearsal, Glasshouse Double, The False Courier and The Gallery Ledger. Each has two
 approaches and two extraction choices.
 Preview the intended entry and exit on the map before committing. The chosen
 plan orders four on-foot objectives with evidence, a relay diversion, a

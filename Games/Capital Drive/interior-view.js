@@ -64,7 +64,7 @@ export function createInteriorView(scene) {
       plan.width, 0.16, plan.depth, o.yaw, plan.type === 'house' ? 0xa88e70 : 0xb3b1a0);
     for (const room of plan.rooms || []) {
       const color = { living: 0xaa9c84, kitchen: 0xb8b6a4, bedroom: 0x9b9e90, bathroom: 0xb2c1bb,
-        'bank-lobby': 0xc8c4b9, 'tower-archive': 0xb3bdad, 'exhibit-workshop':0xbeb69f, 'jeweller-showroom': 0xb7a9b2, shop: 0xb3b1a0, grocery: 0xc1c4b1, 'fast-food-dining': 0xbda78c, 'cafe-dining': 0xc4b49a, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e,
+        'bank-lobby': 0xc8c4b9, 'tower-archive': 0xb3bdad, 'memorial-gallery':0xc7c0ac, 'jeweller-showroom': 0xb7a9b2, shop: 0xb3b1a0, grocery: 0xc1c4b1, 'fast-food-dining': 0xbda78c, 'cafe-dining': 0xc4b49a, concourse: 0xd1c7b1, 'mall-unit': 0xb7b39e,
         'noodle-dining': 0xc9baa0, 'noodle-kitchen': 0xb3bbb0, 'gym-floor': 0x777e79, 'school-corridor': 0xaeb9ab, classroom: 0xc1baa4, 'staff-area': 0xb6b6a5 }[room.kind];
       box(room.x, plan.floorY + 0.006, room.z, room.width - 0.12, 0.012, room.depth - 0.12, o.yaw, color);
     }
@@ -75,21 +75,21 @@ export function createInteriorView(scene) {
     }
     for (const item of plan.furniture) {
       const { width: w, depth: d, height: h, color } = item;
-      if (item.kind === 'jewellery-case' || item.kind==='replica-case') {
+      if (item.kind === 'jewellery-case' || item.kind==='exhibition-case') {
         detail(item, 0, .32, 0, w, .64, d, color);
         detail(item, 0, .69, 0, w * .88, .07, d * .9, 0x34313d);
         for (const x of [-1, 1]) for (const z of [-1, 1]) detail(item, x * (w / 2 - .035), .91,
           z * (d / 2 - .035), .07, .42, .07, 0xd4b577);
         detail(item, 0, h, 0, w, .055, d, 0x98adb3);
-        for (const z of item.kind==='replica-case'?[]:[-d * .26, d * .26]) {
+        for (const z of item.kind==='exhibition-case'?[]:[-d * .26, d * .26]) {
           detail(item, 0, .76, z, w * .68, .06, d * .22, 0x6b5268);
           detail(item, -.22, .84, z, .15, .12, .15, 0xe0cc88);
           detail(item, .21, .85, z, .13, .15, .13, 0xd4dbe7);
         }
-        if(item.kind==='replica-case') {
-          detail(item,0,.8,0,.88,.16,.4,0xb9a371);
-          detail(item,.08,.96,0,.4,.16,.3,0xcac2a7);
-          for(const x of [-.3,.3])for(const z of [-.23,.23])detail(item,x,.77,z,.2,.2,.075,0x44514d);
+        if(item.kind==='exhibition-case') {
+          detail(item,0,.8,0,w*.6,.16,d*.45,0xb9a371);
+          detail(item,w*.05,.96,0,w*.27,.16,d*.3,0xcac2a7);
+          for(const x of [-w*.22,w*.22])for(const z of [-d*.25,d*.25])detail(item,x,.77,z,w*.13,.2,d*.075,0x44514d);
         }
       } else if(item.kind==='shipping-crate') {
         detail(item,0,h/2,0,w,h,d,color);
@@ -170,7 +170,7 @@ export function createInteriorView(scene) {
       } else if (item.kind === 'bench') {
         detail(item, 0, h - 0.09, 0, w, 0.18, d, color);
         for (const end of [-1, 1]) detail(item, 0, (h - 0.18) / 2, end * (d / 2 - 0.3), w * 0.65, h - 0.18, 0.15, 0x5e6458);
-      } else if (/table/.test(item.kind) || ['office-desk','school-desk','workshop-bench','registrar-desk'].includes(item.kind)) {
+      } else if (/table/.test(item.kind) || ['office-desk','school-desk','workshop-bench','registrar-desk','gallery-ledger-desk','gallery-info-desk','archive-desk'].includes(item.kind)) {
         detail(item, 0, h - 0.05, 0, w, 0.1, d, color);
         for (const x of [-1, 1]) for (const z of [-1, 1]) detail(item, x * (w / 2 - 0.09), h / 2,
           z * (d / 2 - 0.09), 0.09, h - 0.1, 0.09, color);
@@ -193,6 +193,10 @@ export function createInteriorView(scene) {
         detail(item, 0, h * .55, -d / 2 - .075, w * .27, .06, .06, 0xbaa97a);
         detail(item, 0, h * .55, -d / 2 - .08, .06, h * .22, .06, 0xbaa97a);
         for (const y of [.25, h - .25]) detail(item, -w * .34, y, -d / 2 - .06, .06, .16, .08, 0xadb7b6);
+        if(item.kind==='cash-safe')for(const y of [.3,.65]) {
+          detail(item,0,y,-d/2-.055,w*.74,.025,.018,0xaab3ad);
+          detail(item,0,y+.12,-d/2-.07,w*.3,.045,.025,0xc8b27c);
+        }
       } else if (item.kind === 'document-cabinet') {
         for (const y of [.35, .85, 1.35]) {
           detail(item, 0, y, -d / 2 - .015, w * .85, .4, .03, 0xbec0b0);
@@ -204,9 +208,19 @@ export function createInteriorView(scene) {
           detail(item,0,h+.1,z,.38,.16,.48,0xd5c49e);
           detail(item,.28,h+.06,z,.08,.08,.5,0x596463);
         }
-      } else if(item.kind==='registrar-desk') {
-        detail(item,-.25,h+.035,-.1,.5,.05,.35,0xe0d4b8);
-        detail(item,.48,h+.11,.1,.35,.22,.28,0x5d756a);
+      } else if(item.kind==='registrar-desk'||item.kind==='gallery-ledger-desk'||item.kind==='dispatch-table'||item.kind==='archive-desk') {
+        detail(item,-w*.15,h+.035,-.1,Math.min(.5,w*.5),.05,.35,0xe0d4b8);
+        detail(item,Math.min(.48,w*.25),h+.11,.1,.35,.22,.28,0x5d756a);
+      } else if(item.kind==='gallery-info-desk') {
+        detail(item,0,h+.12,0,w*.7,.24,.08,0x354b4b);
+        for(const z of [-.2,0,.2])detail(item,0,h+.025,z,w*.55,.05,.13,0xddcda8);
+      } else if(item.kind==='gallery-display') {
+        detail(item,0,h-.26,0,w*.84,.06,d*.84,0xc6b99c);
+        detail(item,0,h-.12,0,w*.5,.22,d*.48,0x8b7450);
+        detail(item,0,h+.02,0,w*.73,.06,d*.7,0xe0d3b3);
+      } else if(item.kind==='observation-console') {
+        detail(item,0,h+.025,0,w*.9,.05,d*.9,0xb8bfa9);
+        for(const z of [-d*.3,0,d*.3])detail(item,0,h+.055,z,w*.65,.025,d*.2,0x536c6b);
       } else if (item.kind === 'lockers') {
         for (let x = -w / 2 + 0.3; x < w / 2; x += 0.62) {
           detail(item, x, h / 2, -d / 2 - 0.01, 0.012, h - 0.12, 0.02, 0x717d75);
@@ -280,6 +294,18 @@ export function createInteriorView(scene) {
             const x=((text.length*4-1)/2-column*4-run.index-(run[0].length-1)/2)*pixel;
             detail(item,x,item.height/2+(2-y)*pixel,-item.depth/2-.008,run[0].length*pixel*.88,pixel*.82,.014,0xeee2bf);
           }});
+        }
+      } else if(item.kind==='observation-window') {
+        detail(item,0,item.height/2,0,item.width,item.height,item.depth,0x6f8e91);
+        for(const z of [-item.depth/2,0,item.depth/2])detail(item,-.025,item.height/2,z,.07,item.height+.12,.06,0xb8b6a3);
+        for(const y of [0,item.height])detail(item,-.025,y,0,.07,.06,item.depth,0xb8b6a3);
+        // Abstract skyline relief keeps the view original and within the wall plane.
+        for(const [index,rise]of [.2,.35,.24,.5,.3,.18].entries())detail(item,-.045,rise/2,-item.depth*.4+index*item.depth*.16,.025,rise,item.depth*.11,0x536f6b);
+      } else if(item.kind==='gallery-panel') {
+        detail(item,0,item.height/2,0,item.width,item.height,item.depth,item.color);
+        for(const z of [-item.depth*.28,0,item.depth*.28]) {
+          detail(item,item.face*.045,item.height*.66,z,.035,item.height*.3,item.depth*.2,0xb8a77f);
+          detail(item,item.face*.048,item.height*.34,z,.038,.045,item.depth*.22,0xddd0b0);
         }
       } else if(item.kind==='shop-light') {
         detail(item,0,item.height/2,0,item.width+.12,item.height,item.depth+.12,0x6a766e);

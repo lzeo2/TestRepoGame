@@ -7,6 +7,7 @@ const GLYPHS = {
   C: ['111', '100', '100', '100', '111'],
   E: ['111', '100', '110', '100', '111'],
   F: ['111', '100', '110', '100', '100'],
+  G: ['111', '100', '101', '101', '111'],
   H: ['101', '101', '111', '101', '101'],
   I: ['111', '010', '010', '010', '111'],
   L: ['100', '100', '100', '100', '111'],
@@ -17,6 +18,7 @@ const GLYPHS = {
   T: ['111', '010', '010', '010', '010'],
   U: ['101', '101', '101', '101', '111'],
   V: ['101', '101', '101', '101', '010'],
+  Y: ['101', '101', '010', '010', '010'],
 };
 
 function title(add, site, text, xScale, y, tint) {
@@ -35,10 +37,8 @@ function title(add, site, text, xScale, y, tint) {
 function facade(add, site) {
   const { width, depth, height, floor, foundation } = site;
   const bank = site.kind === 'bank';
-  const tower = site.kind === 'tower';
-  const workshop = site.kind === 'memorial';
-  const siding = workshop ? 0xb3a593 : tower ? 0x9c9f92 : bank ? 0xc8b6a5 : 0x74635f;
-  const trim = workshop || tower ? 0x30464a : bank ? 0x293d57 : 0x4d3347;
+  const siding = bank ? 0xc8b6a5 : 0x74635f;
+  const trim = bank ? 0x293d57 : 0x4d3347;
   const glass = bank ? 0x557682 : 0x577178;
   const brass = bank ? 0xe3c080 : 0xdcae73;
   const doorWidth = bank ? 2.34 : 1.74;
@@ -72,8 +72,23 @@ function facade(add, site) {
       }
     }
   }
-  const sign = workshop ? 'REPLICA' : tower ? 'ARCHIVE' : bank ? 'CIVIC MUTUAL' : 'FACETS';
+  const sign = bank ? 'CIVIC MUTUAL' : 'FACETS';
   title(add, site, sign, bank ? .186 : .278, floor + height - .665, 0xfff3dd);
+}
+
+function landmarkDoor(add, site) {
+  // A small fictional entrance cue attached to the source facade. The existing
+  // landmark remains the entire exterior: no replacement shell, roof or apron.
+  const y = site.floor;
+  add(-1.12, -.13, y, .18, .22, 2.8, 0xdacbbe);
+  add(1.12, -.13, y, .18, .22, 2.8, 0xdacbbe);
+  add(0, -.13, y + 2.66, 2.42, .22, .2, 0xdacbbe);
+  add(0, -.105, y + .08, 2.06, .15, 2.55, 0x3d565a);
+  add(0, -.2, y + .08, .055, .05, 2.55, 0xc6b68d);
+  add(.22, -.23, y + 1.1, .08, .06, .36, 0xc6b68d);
+  add(0, -.2, y + 2.92, 3.1, .16, .95, 0x30464a);
+  const sign = site.kind === 'bank' ? 'MUTUAL' : site.kind === 'memorial' ? 'GALLERY' : 'ARCHIVE';
+  title(add, site, sign, .105, y + 3.71, 0xfff3dd);
 }
 
 export function createHeistSitesView(scene, sites) {
@@ -106,7 +121,7 @@ export function createHeistSitesView(scene, sites) {
     for (const [index, site] of sites.entries()) {
       if (!(next & (1 << index))) continue;
       stats.sites++;
-      facade((across, depth, y, width, length, height, tint) => {
+      (site.landmarkExterior ? landmarkDoor : facade)((across, depth, y, width, length, height, tint) => {
         const { x, z } = site.point(across, depth);
         box.position.set(x, y + height / 2, z);
         box.rotation.y = site.rotation;

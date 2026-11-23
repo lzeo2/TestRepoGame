@@ -420,7 +420,8 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       crouchAngle = poseReady ? crouchAngle + (crouch - crouchAngle) * blend : crouch;
       // Pay for the raised heels as the knee bends so the toes stay above ground.
       const crouchDrop = Math.max(0, .8 * (1 - Math.cos(crouchAngle)) - .10 * Math.sin(crouchAngle)) * actor.scale.y;
-      const ordinaryY=swimming?0:ground(pose.x, pose.z)+.035+jump-crouchDrop;
+      const feet=Number.isFinite(pose.feetY)?pose.feetY:ground(pose.x,pose.z)+jump;
+      const ordinaryY=swimming?0:feet+.035-crouchDrop;
       actor.position.set(pose.x,ordinaryY,pose.z); actor.rotation.y = finite(pose.yaw);
       body.rotation.x = -.10 * clamp((locomotionSpeed - 3) / 3, 0, 1) - crouch * .16;
       for (let i = 0; i < 2; i++) {

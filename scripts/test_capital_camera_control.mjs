@@ -9,6 +9,8 @@ for(const yaw of [0,.7,-1.8,Math.PI])for(const pitch of [-.9,0,.9])for(const ind
   assert(Math.abs(frame.target.x-(pose.x-Math.sin(yaw)*Math.cos(pitch)*32))<1e-10);
 }
 assert.deepEqual(pose,copy);
+const underDeck=footCameraFrame({...pose,feetY:3,jumpHeight:3},{ground:12});
+assert.equal(underDeck.target.y,4.45,'flight framing uses the absolute feet level beneath the bridge deck');
 const scoped=footCameraFrame({...pose,crouching:true},{yaw:.5,pitch:.3,ground:6,aiming:true,scoped:true});
 assert.deepEqual(scoped.camera,{x:pose.x,y:7.2,z:pose.z},'scope camera sits at the crouched shot origin');
 assert(Math.abs(scoped.target.y-(scoped.camera.y+Math.sin(.3)*32))<1e-9);

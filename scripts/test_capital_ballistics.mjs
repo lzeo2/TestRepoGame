@@ -62,10 +62,10 @@ const map={bounds:{minX:-100,maxX:100,minZ:-100,maxZ:100},roads:[{id:'r',points:
   preparing();game.step(.01,{crouch:true,aim:true,aimYaw:0,fire:true});
   assert.equal(rays.at(-1).y,.9);assert.equal(arrivals.length,1,'crouched fire is blocked by the same physical wall');
 }
-function fixture({targets=[],modifier=1,blocked=false}={}) {
+function fixture({targets=[],modifier=1,blocked=false,playerFeetY,heightAt=()=>0}={}) {
   const sim=createSimulation(map,{trafficCount:0}),events=[];
   const obstacle=createShotObstacles(map);
-  const game=createGameplay(map,sim,{sandbox:true,heightAt:()=>0,getShotTargets:()=>targets,traceShot:r=>blocked?3:obstacle.trace(r),powerModifiers:()=>({gunAttack:modifier}),onEvent:e=>events.push(e)});
+  const game=createGameplay(map,sim,{sandbox:true,heightAt,playerFeetY,getShotTargets:()=>targets,traceShot:r=>blocked?3:obstacle.trace(r),powerModifiers:()=>({gunAttack:modifier}),onEvent:e=>events.push(e)});
   game.reset({sandbox:true,onFoot:true,startPose:{x:5,z:0,yaw:0}});Object.assign(game.state.actor,{x:0,z:0});game.setWeapon('shotgun');
   return {game,events};
 }
@@ -76,6 +76,16 @@ game.step(.01,{fire:true});assert.equal(hits,1,'six pellets damage the same vict
 assert.equal(game.state.combatFeedback.hitSerial,1);assert.equal(game.state.combatFeedback.shotSerial,1);
 assert(game.state.shots.every(s=>Number.isFinite(s.y)&&Number.isFinite(s.endY)));
 const paused=game.snapshot();game.step(0,{fire:true,aimPitch:1});assert.deepEqual(game.snapshot(),paused);
+{
+  const {game:flight}=fixture({playerFeetY:()=>3,heightAt:()=>12});
+  flight.setWeapon('pistol');
+  flight.state.actor.jumpHeight=3;
+  const ammo=flight.state.ammo;
+  flight.step(.01,{externalFlight:true,aim:true,aimYaw:0,aimPitch:.1,fire:true});
+  assert.equal(flight.state.ammo,ammo-1);
+  assert.equal(flight.state.shots[0].y,4.35,'aerial shot leaves the actual muzzle below an overhead road surface');
+  assert.equal(flight.state.actor.jumpHeight,3,'combat does not take vertical authority from flight');
+}
 hits=0;({game}=fixture({targets:[victim]}));game.step(.01,{fire:true,aimPitch:1});assert.equal(hits,0);assert.equal(game.state.aimPitch,1);
 hits=0;({game}=fixture({targets:[victim],blocked:true}));game.step(.01,{fire:true});assert.equal(hits,0);
 let farHits=0;({game}=fixture({targets:[{...victim,id:'far',z:-10,damage:()=>{farHits++;return true;}},victim]}));

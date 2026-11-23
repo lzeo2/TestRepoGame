@@ -64,7 +64,7 @@ export function createJetpackView(scene, heightAt) {
       root.visible = Boolean(flight?.active && Number.isFinite(floor));
       if (!root.visible) { jets.visible = false; return; }
       const altitude = Number.isFinite(actor.jumpHeight) ? Math.max(0, actor.jumpHeight) : 0;
-      root.position.set(actor.x, floor + altitude, actor.z); root.rotation.y = Number.isFinite(actor.yaw) ? actor.yaw : 0;
+      root.position.set(actor.x, Number.isFinite(flight.feetY)?flight.feetY:floor + altitude, actor.z); root.rotation.y = Number.isFinite(actor.yaw) ? actor.yaw : 0;
       const leanX = Number.isFinite(flight.leanX) ? flight.leanX : 0, leanZ = Number.isFinite(flight.leanZ) ? flight.leanZ : 0;
       const yaw = root.rotation.y, localX = leanX * Math.cos(yaw) - leanZ * Math.sin(yaw), localZ = leanX * Math.sin(yaw) + leanZ * Math.cos(yaw);
       harness.rotation.x = Math.max(-.12, Math.min(.12, localZ * .12));

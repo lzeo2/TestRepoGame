@@ -1,11 +1,12 @@
-// Original game objectives for fictional storefronts, workshops and props.
+// Original game objectives for playable businesses, exhibits and props.
 const RULES = Object.freeze({
   bank: { loot: 'cash', reward: 2750, severity: 3, escape: 52, time: 360, cooldown: 360 },
   jeweller: { loot: 'jewellery', reward: 1500, severity: 2, escape: 36, time: 300, cooldown: 300 },
   tower: { loot: 'archive case', lootName: 'Archive case', reward: 2200, severity: 2, escape: 48, time: 360, cooldown: 360 },
-  memorial: { label: 'Replica case symbols', cues: ['up','x','y','x'], reward: 1800, severity: 2, escape: 44, time: 360, cooldown: 360 },
+  memorial: { label: 'Exhibition case symbols', cues: ['up','x','y','x'], reward: 1800, severity: 2, escape: 44, time: 360, cooldown: 360 },
   rail: { label: 'Parcel symbols', cues: ['up','y','x'], reward: 1950, severity: 2, escape: 42, time: 420, cooldown: 300 },
 });
+const VAULT = Object.freeze({ ...RULES.bank, lootName:'Vault cash', label:'Vault symbols', cues:['x','up','y','x'], reward:3100 });
 const BUTTONS = Object.freeze({ x: 'X', y: 'Y', up: '↑' });
 const KEYS = Object.keys(BUTTONS);
 const EMPTY = Object.freeze({ active: false, site: null, phase: null, guidance: '', target: null,
@@ -41,6 +42,7 @@ function loadSites(sites) {
         (site.kind === 'rail' && (typeof site.stopId !== 'string' || !site.stopId))) continue;
     const radius = Number.isFinite(site.radius) ? Math.max(1, Math.min(4, site.radius)) : 3;
     accepted.set(site.id, Object.freeze({ id: site.id, name: site.name, kind: site.kind, ...toPoint(site), radius,
+      ...(site.kind==='bank'&&site.vaultPuzzle===true?{vaultPuzzle:true}:{}),
       stopId: site.stopId, arrivalStopId: site.arrivalStopId,
       boarding: isPoint(site.boarding) ? toPoint(site.boarding) : null,
       pickup: isPoint(site.pickup) ? toPoint(site.pickup) : null }));
@@ -105,7 +107,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     return distance(ctx.pose, loot) <= Math.min(2, loot.radius) && canSeeInside(ctx.pose, loot, roomId);
   }
 
-  function openReplicaCase(ctx, site, sandbox) {
+  function openExhibitionCase(ctx, site, sandbox) {
     const { loot, id:roomId } = ctx.room;
     if (!caseWithinReach(ctx, loot, roomId)) return null;
     const unavailable = startAvailability(site, ctx, sandbox);
@@ -113,7 +115,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     const rules = RULES[site.kind];
     current = { site, rules, sandbox, roomId, loot, remaining:rules.time, heatSeen:false };
     beginPuzzle(current);
-    return message(true, 'Match the replica case symbols.');
+    return message(true, 'Match the exhibition case symbols.');
   }
 
   function confront(ctx, site, sandbox) {
@@ -128,13 +130,14 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     if (!melee && !aimedAtEmployee(ctx, gap)) return message(false, THREAT_PROMPT);
     const unavailable = startAvailability(site, ctx, sandbox, melee);
     if (unavailable) return unavailable;
-    const rules = RULES[site.kind];
+    const rules = site.vaultPuzzle ? VAULT : RULES[site.kind];
     const loot = Object.freeze({ id:room.loot.id, ...toPoint(room.loot), radius:Math.min(2, room.loot.radius),
       name:rules.lootName || (rules.loot === 'cash' ? 'Cash' : 'Jewellery'), interiorId:room.id });
     current = { site, rules, sandbox, loot, roomId:room.id, employeeId:employee.id,
       roomCrime:Object.freeze({ type:'robbery', targetId:employee.id, phase:'handover' }),
       remaining:rules.time, phase:'surrender', heatSeen:false, origin:null, hostage:null, hostageUsed:false };
-    return message(true, `Employee surrendered. E / USE takes the ${rules.loot}.`);
+    return message(true, site.vaultPuzzle?'Employee surrendered. Press E / USE at the vault console.':
+      `Employee surrendered. E / USE takes the ${rules.loot}.`);
   }
 
   // A short fictional standoff is an optional game state, not a police-immunity grant.
@@ -170,6 +173,10 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
         if (indoorSite(ctx) !== current.site || ctx.room.id !== current.roomId ||
             !matchingEmployee(ctx, ctx.room) || distance(ctx.pose, current.loot) > current.loot.radius ||
             !canSeeInside(ctx.pose, current.loot, current.roomId)) return null;
+        if (current.site.vaultPuzzle) {
+          beginPuzzle(current);
+          return message(true, 'Match the vault symbols to collect the cash.');
+        }
         return collect(current, current.site);
       }
       if (current.phase === 'puzzle') return cancel();
@@ -180,7 +187,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     }
     if (ctx.indoors) {
       const site = indoorSite(ctx);
-      if (site?.kind === 'memorial') return openReplicaCase(ctx, site, sandbox);
+      if (site?.kind === 'memorial') return openExhibitionCase(ctx, site, sandbox);
       return site ? confront(ctx, site, sandbox) : null;
     }
     if (!onFoot(ctx)) return null;
@@ -295,7 +302,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
         maxMistakes: 3, expectedKey: sequence[index], instruction: `PRESS ${BUTTONS[sequence[index]]}`, guidance: `${guidance} E cancels.` });
     } else if (phase === 'surrender') {
       indoorTarget = current.loot;
-      guidance = `E / USE to take the ${rules.loot}.`;
+      guidance = site.vaultPuzzle?'E / USE at the marked vault console.':`E / USE to take the ${rules.loot}.`;
     } else {
       guidance = current.awaitingDismount ? 'Leave the train at a stop.' :
         current.awaitingExit ? 'Exit the building, then leave the area and lose any wanted stars.' :

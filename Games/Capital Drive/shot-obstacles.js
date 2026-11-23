@@ -158,5 +158,88 @@ export function createShotObstacles(map,{heightAt=()=>0,groundHeightAt=heightAt,
     solid.removed=destroyed;
     return true;
   }
-  return {trace,traceHit,setBarrierDestroyed,removeBarrier:id=>setBarrierDestroyed(id,true)};
+  const segmentDistance=(x,z,a,b)=>{
+    const dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz||1)));
+    return Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t);
+  };
+  function ringDistance(x,z,ring){
+    let nearest=Infinity;
+    for(let i=0;i<ring.length;i++)nearest=Math.min(nearest,segmentDistance(x,z,ring[i],ring[(i+1)%ring.length]));
+    return nearest;
+  }
+  function overlapsBody(x,z,radius,solid){
+    if(!inside(x,z,solid.points)&&ringDistance(x,z,solid.points)>=radius-EPS)return false;
+    return !solid.holes.some(ring=>inside(x,z,ring)&&ringDistance(x,z,ring)>=radius-EPS);
+  }
+  function bodySolids(x,z,radius){
+    const found=new Set();
+    for(let cx=Math.floor((x-radius)/cellSize);cx<=Math.floor((x+radius)/cellSize);cx++)
+      for(let cz=Math.floor((z-radius)/cellSize);cz<=Math.floor((z+radius)/cellSize);cz++)
+        for(const solid of cells.get(`${cx},${cz}`)||[])if(!solid.removed)found.add(solid);
+    return found;
+  }
+  function solidSurface(solid,x,z,radius=0){
+    const p=solid.plane;
+    const plane=p?p.y+(x-p.x)*p.gx+(z-p.z)*p.gz:0;
+    const slope=p?Math.hypot(p.gx,p.gz)*radius:0;
+    return {bottom:plane+solid.bottom-slope,top:plane+solid.top+slope};
+  }
+  function vehicleSolid(vehicle){
+    if(!vehicle||vehicle.active===false||![vehicle.x,vehicle.z].every(Number.isFinite))return null;
+    const model=BY_ID[vehicle.modelId],dimension=(key,fallback)=>Number.isFinite(vehicle[key])&&vehicle[key]>0?vehicle[key]:model?.[key]||fallback;
+    const width=dimension('width',1.9),length=dimension('length',4.8),yaw=vehicle.yaw||0,c=Math.cos(yaw),s=Math.sin(yaw);
+    const bottom=Number.isFinite(vehicle.y)?vehicle.y:(vehicleHeightAt?vehicleHeightAt(vehicle,vehicle.edge?.road):heightAt(vehicle.x,vehicle.z))+.18;
+    return {points:[[-width/2,-length/2],[width/2,-length/2],[width/2,length/2],[-width/2,length/2]].map(([x,z])=>[vehicle.x+c*x+s*z,vehicle.z-s*x+c*z]),holes:[],bottom,
+      top:bottom+dimension('height',vehicle.kind==='bus'?3:1.6)};
+  }
+  function validBody(pose,radius,height){
+    return pose&&[pose.x,pose.z,pose.y,radius,height].every(Number.isFinite)&&radius>0&&radius<=2&&height>0&&height<=5;
+  }
+  function canOccupyBody(pose,{fromY=pose?.y,radius=.45,height=1.8,vehicles=[],ignoreId=null}={}){
+    if(!validBody(pose,radius,height)||!Number.isFinite(fromY))return false;
+    const bounds=map.bounds;
+    if(bounds&&(pose.x-radius<bounds.minX||pose.x+radius>bounds.maxX||pose.z-radius<bounds.minZ||pose.z+radius>bounds.maxZ))return false;
+    const low=Math.min(fromY,pose.y),high=Math.max(fromY,pose.y)+height;
+    if(low<groundHeightAt(pose.x,pose.z)-.001)return false;
+    const blocked=solid=>{
+      if(!overlapsBody(pose.x,pose.z,radius,solid))return false;
+      const surface=solidSurface(solid,pose.x,pose.z,radius);
+      return high>surface.bottom+EPS&&low<surface.top-EPS;
+    };
+    for(const solid of bodySolids(pose.x,pose.z,radius))if(blocked(solid))return false;
+    for(const vehicle of vehicles){
+      if(vehicle?.id===ignoreId||(vehicle?.interiorId||null))continue;
+      const solid=vehicleSolid(vehicle);if(solid&&blocked(solid))return false;
+    }
+    return true;
+  }
+  function moveBody(actor,dx,dz,{y,fromY=y,radius=.45,height=1.8,vehicles=[],ignoreId=null}={}){
+    if(!actor||![actor.x,actor.z,dx,dz,y,fromY].every(Number.isFinite)||!validBody({x:actor.x,z:actor.z,y},radius,height))return {blocked:true,moved:false,distance:0};
+    const beforeX=actor.x,beforeZ=actor.z,length=Math.hypot(dx,dz),scale=length>8?8/length:1;
+    dx*=scale;dz*=scale;
+    const steps=Math.max(1,Math.ceil(Math.hypot(dx,dz)/Math.min(.2,radius*.5)));
+    let blocked=scale<1;
+    const clear=(x,z)=>canOccupyBody({x,z,y},{fromY,radius,height,vehicles,ignoreId});
+    for(let i=0;i<steps;i++){
+      const x=actor.x+dx/steps,z=actor.z+dz/steps;
+      if(clear(x,z)){actor.x=x;actor.z=z;}
+      else{blocked=true;if(clear(x,actor.z))actor.x=x;else if(clear(actor.x,z))actor.z=z;}
+    }
+    const distance=Math.hypot(actor.x-beforeX,actor.z-beforeZ);
+    return {blocked,moved:distance>.00001,distance,x:actor.x,z:actor.z};
+  }
+  function supportHeightAt(x,z,{y,fromY=y,radius=.45,vehicles=[]}={}){
+    if(![x,z,y,fromY,radius].every(Number.isFinite)||radius<=0||radius>2)return NaN;
+    let support=groundHeightAt(x,z);
+    const ceiling=Math.max(y,fromY)+.001;
+    const consider=solid=>{
+      if(!inside(x,z,solid.points)||solid.holes.some(ring=>inside(x,z,ring)))return;
+      const top=solidSurface(solid,x,z,radius).top;
+      if(top<=ceiling&&top>support)support=top;
+    };
+    for(const solid of bodySolids(x,z,radius))consider(solid);
+    for(const vehicle of vehicles){const solid=vehicleSolid(vehicle);if(solid)consider(solid);}
+    return support;
+  }
+  return {trace,traceHit,canOccupyBody,moveBody,supportHeightAt,setBarrierDestroyed,removeBarrier:id=>setBarrierDestroyed(id,true)};
 }

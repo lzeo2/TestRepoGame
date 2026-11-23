@@ -6,7 +6,7 @@ const validPoints=points=>(points||[]).filter(p=>Array.isArray(p)&&p.length>=2&&
 
 // Original interpretive geometry. The map's tower footprint remains authoritative;
 // the dry pool outlines are scenery, with no public-access or operating-ride claim.
-export function createNorthPlacesView(scene,{tower,waterpark,heightAt=()=>0}={}) {
+export function createNorthPlacesView(scene,{tower,towerFootprint,waterpark,heightAt=()=>0}={}) {
   const roots=[],geometries=new Set(),materials=new Set(),textures=new Set();
   const counters={towerInstances:0,waterparkInstances:0,pools:0,slideTriangles:0};
   const physicalProps=[];
@@ -32,7 +32,27 @@ export function createNorthPlacesView(scene,{tower,waterpark,heightAt=()=>0}={})
     const root=siteRoot(tower,'Black Mountain Tower interpretive model',10000),pieces=[];
     const height=195.2;
     const ring=(y,r,h,color)=>pieces.push({position:[0,y+h/2,0],size:[r,h,r],color});
-    ring(0,9,2,PALETTE.concrete);
+    const footprint=validPoints(towerFootprint);
+    if(footprint.length>3&&footprint[0][0]===footprint.at(-1)[0]&&footprint[0][1]===footprint.at(-1)[1])footprint.pop();
+    if(footprint.length>=3){
+      const c=Math.cos(root.rotation.y),s=Math.sin(root.rotation.y);
+      const base=footprint.map(([x,z])=>{
+        const dx=x-root.position.x,dz=z-root.position.z;
+        return [dx*c-dz*s,ground(x,z)-root.position.y-.12,dx*s+dz*c];
+      });
+      const roof=Math.max(...base.map(point=>point[1]))+4.12;
+      const top=base.map(([x,,z])=>[x,roof,z]),vertices=[];
+      for(const triangle of THREE.ShapeUtils.triangulateShape(top.map(([x,,z])=>new THREE.Vector2(x,z)),[])){
+        for(const index of triangle)vertices.push(...top[index]);
+      }
+      for(let i=0;i<base.length;i++){
+        const j=(i+1)%base.length;
+        for(const point of [base[i],base[j],top[i],top[i],base[j],top[j]])vertices.push(...point);
+      }
+      const geo=own(new THREE.BufferGeometry());geo.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geo.computeVertexNormals();
+      const podium=new THREE.Mesh(geo,material({color:PALETTE.concrete,fog:false,side:THREE.DoubleSide}));
+      podium.name='Tower podium on the mapped footprint';root.add(podium);
+    }else ring(0,9,2,PALETTE.concrete);
     // Taper in short shared-cylinder sections rather than expensive unique meshes.
     for(let i=0;i<13;i++)ring(2+i*8,5.7-i*.21,8,PALETTE.concrete);
     ring(58,8,4,PALETTE.concrete);

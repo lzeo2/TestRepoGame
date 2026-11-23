@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createGalleryFixture} from './capital-gallery-fixture.mjs';
 import { createCampaign } from '../Games/Capital Drive/campaign.js';
 import { createStealthContracts, STEALTH_CONTRACT_IDS } from '../Games/Capital Drive/stealth-contracts.js';
 
@@ -6,9 +7,10 @@ const districts = ['manuka', 'foreshore', 'canberra-centre', 'redhill', 'kingsto
 const map = { spawn:{x:0,z:0}, landmarks:[{id:'coals',name:'Coals',store:true,x:20,z:10}, ...districts],
   roads: districts.flatMap(({id,x,z}) => [-60,0,60].map((offset, index) => ({ id:`${id}:${index}`, name:`Test Street ${index+1}`,
     points:[[x-120,z+offset],[x+120,z+offset]], width:8, type:'residential' }))) };
-const stealthContracts = createStealthContracts(map, { canStand:()=>true, hasLineOfSight:()=>true });
+const galleryFixture=createGalleryFixture();
+const stealthContracts = createStealthContracts(map, { canStand:()=>true, hasLineOfSight:()=>true,gallery:galleryFixture.gallery });
 const options = { stealthContracts };
-const context = { pose:map.spawn, onFoot:true, health:100, vehicleHealth:100, wanted:0, respawnSerial:0, campaign:true };
+const context = { visible:()=>true, pose:map.spawn, onFoot:true, health:100, vehicleHealth:100, wanted:0, respawnSerial:0, campaign:true };
 let campaign = createCampaign(map, null, options);
 const tick = (change, count = 8) => {
   for (let index = 0; index < count; index++) campaign.update(.1, { ...context, ...change });
@@ -70,7 +72,7 @@ for (const chapter of stealthContracts.chapters) {
   const originalTarget = campaign.state.active.target;
   const defaultExtract = campaign.current().stages.at(-1);
   assert.deepEqual(campaign.state.active.stealthPlan, { approachId:plans.approaches[0].id, exitId:plans.exits[0].id });
-  const first = stealthContracts.resolve(campaign.state.active, { ...context, pose:originalTarget, crouching:true });
+  const first = stealthContracts.resolve(campaign.state.active, { ...context, pose:originalTarget, interior:originalTarget.roomId?{roomId:originalTarget.roomId}:null, crouching:true });
   assert(first.ok);
   assert(campaign.cancel());
   assert.deepEqual(campaign.drainEvents().at(-1), { type:'failed', id, stage:0, message:'Mission cancelled.' });
@@ -88,7 +90,7 @@ for (const chapter of stealthContracts.chapters) {
 
   for (let stage = 0; stage < active.stageCount; stage++) {
     const { target } = active;
-    const here = { ...context, pose:target, crouching:!target.stand };
+    const here = { ...context, pose:target, interior:target.roomId?{roomId:target.roomId}:null, crouching:!target.stand };
     const action = stealthContracts.resolve(active, here);
     assert(action.ok, `${id} stage ${stage}: ${action.message}`);
     assert.equal(stealthContracts.resolve(active, here).ok, false, 'a step receipt is issued only once');
@@ -97,10 +99,10 @@ for (const chapter of stealthContracts.chapters) {
       { pose:{x:target.x+10,z:target.z} }, { stealthOutcome:{ ...action.receipt, id:'wrong' } },
       { stealthOutcome:{ ...action.receipt, stage:stage+1 } }, { stealthOutcome:{ ...action.receipt, serial:Infinity } },
     ]) {
-      tick({ pose:target, stealthOutcome:action.receipt, ...invalid });
+      tick({ pose:target, interior:target.roomId?{roomId:target.roomId}:null, stealthOutcome:action.receipt, ...invalid });
       assert.equal(active.stage, stage, 'remote, stale, wrong-mode or malformed receipts cannot advance');
     }
-    tick({ pose:target, stealthOutcome:action.receipt });
+    tick({ pose:target, interior:target.roomId?{roomId:target.roomId}:null, stealthOutcome:action.receipt });
     if (stage+1 < active.stageCount) assert.equal(active.stage, stage+1);
   }
   assert.equal(campaign.state.active, null);

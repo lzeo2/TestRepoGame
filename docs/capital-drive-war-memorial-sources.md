@@ -1,9 +1,8 @@
 # Australian War Memorial public exterior
 
-22 November 2026. This extends the existing Capital Drive game 245 with an original
-exterior architectural model. It contains no real interior, security arrangement,
-room plan or access procedure. The fictional campaign location and its mechanics
-are separate authored material.
+The original exterior model was added on 22 November 2026. The gallery heist now
+uses a playable entrance on the Memorial's main game building. The gallery and
+its exhibition, staff, entrance and campaign objectives are original game designs.
 
 The local source is the same pinned OpenStreetMap northern snapshot used by
 `data/canberra-north.json`. The developer-only builder reads the external cache;
@@ -64,9 +63,17 @@ is a simplified foundation estimate rather than a measured architectural level.
 
 `prepareWarMemorial(map)` retains the original road, building and terrain
 references. It checks source footprint agreement and suppresses only the
-corresponding generic building draws. The original courtyard record remains in
-the collision owner, so the model does not create an accessible real interior.
-Only the mapped main footprint and public paving polygons exclude random trees.
+corresponding generic building draws. The original courtyard and exterior remain
+in the collision owner. An authored door cue uses the actual exterior polygon and
+transitions to the lazy gallery room. Only the mapped main footprint and public
+paving polygons exclude random trees.
+
+Black Mountain Tower follows the same room transition at its mapped tower base.
+The Manuka branch of Civic Mutual Bank uses ACT footprint `act-87705-0` and the
+public bank point [OpenStreetMap node 439239484](https://www.openstreetmap.org/node/439239484)
+in the pinned southern map cache, version 4. The door, the branch name and the
+vault-symbol game are authored designs. The existing Civic branch retains its
+own robbery and cash handover.
 
 ## Integration and verification
 

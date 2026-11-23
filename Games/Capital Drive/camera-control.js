@@ -8,7 +8,9 @@ export function lookAngles(yaw,pitch,dx,dy){
 }
 export function footCameraFrame(pose,{yaw=0,pitch=0,ground=0,aiming=false,indoors=false,scoped=false}={}){
   yaw=finite(yaw);pitch=clamp(finite(pitch),-MAX_AIM_PITCH,MAX_AIM_PITCH);
-  const x=finite(pose?.x),z=finite(pose?.z),eye=finite(ground)+(pose?.crouching?1:1.45)+Math.max(0,finite(pose?.jumpHeight));
+  const x=finite(pose?.x),z=finite(pose?.z);
+  const feet=Number.isFinite(pose?.feetY)?pose.feetY:finite(ground)+Math.max(0,finite(pose?.jumpHeight));
+  const eye=feet+(pose?.crouching?1:1.45);
   const distance=indoors?(aiming?2.5:3.2):(aiming?3.4:5.8),shoulder=aiming?.55:.12;
   const sy=Math.sin(yaw),cy=Math.cos(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch),reach=aiming?32:14;
   if(scoped){

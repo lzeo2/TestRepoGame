@@ -97,7 +97,7 @@ import {SHOPPING_BUILDING_IDS} from './shopping-precincts.js';
 import {createShoppingView,SHOPPING_CLEARINGS} from './shopping-view.js';
 import {CAMPUS_BARRIERS,CAMPUS_BUILDING_IDS,CAMPUS_GATES} from './campus.js';
 import {createCampusView} from './campus-view.js';
-import {createInteriors,createGymEntry,createSchoolEntry} from './interiors.js';
+import {createInteriors,createGymEntry,createSchoolEntry,memorialGalleryActions} from './interiors.js';
 import {createInteriorActivities,isWorkoutKind} from './interior-activities.js';
 import {createInteriorPeople} from './interior-people.js';
 import {createInteriorPeopleView} from './interior-people-view.js';
@@ -173,6 +173,7 @@ let watercraft,watercraftView,watercraftDock,watercraftViewState;
 let nitroView,rentalStorefrontsView,carRentalSites=[];
 let streetDealers,dealerView,delivery,deliveryView,deliveryCatalog=[],houseController,stunts,stuntsView;
 let jetpack,jetpackView,cockpitCamera=false;
+let jetpackBodies=[];
 const deliveryReceipts=new Map(),deliveryViewState={car:null};
 let rideService,rideView,aircraft,aircraftView,aircraftRescueHealth=null;
 let carRental;
@@ -600,7 +601,7 @@ function protectedWork(){
   return tutorialRunning||(gameMode==='campaign'&&campaign?.state.active?.combat===false)||progression?.state.activity?.type==='work'||['delivery','ride'].includes(progression?.state.activeJob?.type);
 }
 function canCrewAttack(){return !paused()&&!cutscenes.snapshot().active&&!activities.snapshot().active&&!protectedWork();}
-function canPlayerAttack(){return !droneActive&&!jetpack?.active&&!gameplay?.state?.actor?.swimming&&!watercraft?.isActive&&canCrewAttack();}
+function canPlayerAttack(){return !droneActive&&!gameplay?.state?.actor?.swimming&&!watercraft?.isActive&&canCrewAttack();}
 function directStation(station){const goal=campaign?.state.active?.target;return station&&(isWorkoutKind(station.kind)||['presentation','alarm'].includes(station.kind)||(gameMode==='campaign'&&['work','home-action','evidence'].includes(goal?.kind)&&station.kind===(goal.stationKind||'stock')));}
 function powerContext(){
   const state=gameplay?.state;
@@ -610,7 +611,7 @@ function powerContext(){
 }
 function activatePower(){const result=heroPowers.activate(campaign.state.character,powerContext());notify(result.message);}
 function throwEquipment(kind){
-  if(!canPlayerAttack()||!touchInputEnabled())return;
+  if(jetpack?.active||!canPlayerAttack()||!touchInputEnabled())return;
   const result=ordnance.throw(kind,{...careerContext(),pose:{...focus(),y:interiors.active?.floorY??world.heightAt(focus().x,focus().z)},aimYaw:footCameraYaw,interiorId:interiors.active?.id||null,passenger:gameplay.state.passenger});
   if(result.ok){if(kind==='grenade'&&!isSandbox())gameplay.reportOffence('explosives',3,{witnessed:true,point:focus()});if(!isSandbox())saveCareer();}
   notify(result.message);
@@ -842,9 +843,21 @@ function jetpackContext(){
     drone:droneActive,aircraft:!!aircraft?.active,micromobility:!!micromobility?.active,
     launchAllowed:!tutorialRunning&&!developerReturn&&!gameplay.state.actor.swimming&&!rideService?.activeFare&&!delivery?.busy};
 }
+function refreshJetpackBodies(pose){
+  jetpackBodies=simulation.nearbyVehicles(pose.x,pose.z,12);
+  for(const vehicles of [buses?.vehicles,lightRail?.vehicles,rideService?.vehicles,delivery?.vehicles,
+    gameplay.policeWrecks,gameplay.state.police.map(unit=>unit.car)]){
+    for(const vehicle of vehicles||[])if(vehicle&&Math.hypot(vehicle.x-pose.x,vehicle.z-pose.z)<=18)jetpackBodies.push(vehicle);
+  }
+}
 function toggleJetpack(){
   const context=jetpackContext();
   if(!context.owned&&!jetpack?.active){notify(`Buy a jetpack for $${JETPACK_OFFER.price.toLocaleString('en-AU')} at ${JETPACK_OFFER.siteName}. Find it in Shops (K).`);return;}
+  const actor=gameplay.state.actor;
+  if(!jetpack.active){
+    context.feetY=world.heightAt(actor.x,actor.z);
+    refreshJetpackBodies(actor);
+  }
   if(!jetpack?.toggle(gameplay.state,context)){
     notify(jetpack.chargeFraction<.15?'The jetpack needs time on the ground to refill.':'Start the jetpack on clear ground outside between jobs.');return;
   }
@@ -1192,7 +1205,8 @@ function enterInterior(entry){
   indoorCampaignScenesView?.dispose();indoorCampaignScenesView=null;
   if(!compatibility)indoorActorView=createActorView(interiorScene,()=>plan.floorY,{policeLimit:safehouse?0:6,policeCars:false});
   syncPlayerAppearance();
-  const entryHint=plan.heist?.kind==='memorial'?'Walk to the replica case and press E / USE.':
+  const entryHint=campaign.state.active?.target.roomId===plan.id?'Follow the marked objective.':
+    plan.heist?.kind==='memorial'?'Walk to the exhibition case and press E / USE.':
     plan.heist?'Approach the employee to start a hold-up.':'E at the door leaves.';
   cameraReady=false;clearInput();notify(`${plan.name}. ${entryHint}`);
 }
@@ -1360,7 +1374,7 @@ function interactWatercraft(){
   return ctx.swimming;
 }
 function interiorHint(){
-  if(jetpack?.active)return 'WASD move · SPACE rise · SHIFT descend · U land';
+  if(jetpack?.active)return 'SPACE rise · SHIFT descend · U land · Z aim';
   if(inquiryOfficer&&!interiors.active&&campaignAftermath.canSpeak(focus()))return 'E / USE · Speak to the investigating officer';
   if(lightRail?.passenger)return 'Capital Line · E / USE exits at a platform';
   if(depotTank?.isActive)return 'WASD drive tank · Space brake · E / USE exit when stopped';
@@ -1396,9 +1410,12 @@ function interiorHint(){
     if(plan.heist){
       if(interiors.nearExit(pose))return 'E / USE · Leave building';
       const current=heists?.snapshot();
-      if(current?.phase==='surrender')return `E / USE · Take ${({bank:'cash',jeweller:'jewellery',tower:'the archive case'})[plan.heist.kind]} at the marked spot`;
+      if(current?.phase==='surrender')return current.site.vaultPuzzle?'E / USE · Open the vault puzzle at the marker':
+        `E / USE · Take ${({bank:'cash',jeweller:'jewellery',tower:'the archive case'})[plan.heist.kind]} at the marked spot`;
       if(current?.phase==='escape')return 'Get out through the front door';
-      if(plan.heist.kind==='memorial')return current?.phase==='puzzle'?'Match the case symbols · E cancels':'Walk to the replica case · E / USE opens the puzzle';
+      if(campaign.state.active?.stealth)return nearbyStealthObjective(pose)?.label??null;
+      if(current?.phase==='puzzle')return 'Match the symbols · E cancels';
+      if(plan.heist.kind==='memorial')return 'Walk to the exhibition case · E / USE opens the puzzle';
       return 'Aim at the employee or land a punch, then press E / USE';
     }
     const hostile=roomPeople.snapshot().find(person=>person.character==='booth-guest'&&person.health>0&&person.reaction==='angry'&&Math.hypot(person.x-pose.x,person.z-pose.z)<=5&&visible(pose,person));
@@ -1571,7 +1588,8 @@ function openContractPlan(id){
 function showContractPlanMap(){
   const planned=plannedContract();
   if(!planned||campaign.state.active)return;
-  const entry=planned.stages[0],exit=planned.stages.at(-1);
+  const first=planned.stages[0],exit=planned.stages.at(-1);
+  const entry=first.roomId?missionLocations.guide({target:first})?.point??first:first;
   stealthPreview={entry,exit,route:findRoute(simulation.graph,entry,exit)};
   mapView.x=(entry.x+exit.x)/2;mapView.z=(entry.z+exit.z)/2;
   openDialog('map-dialog');
@@ -1806,7 +1824,7 @@ function refreshModeLabel(){
 }
 function campaignNavigationTarget(){
   const active=campaign.state.active,guide=missionLocations?.guide(active,{pose:focus(),plan:interiors.active,people:roomPeople.snapshot(),wanted:gameplay.state.wanted});
-  if(guide?.escaping||guide?.roaming)return null;
+  if(guide?.escaping||guide?.roaming||guide?.indoors)return null;
   if(guide)return {...guide.point,label:guide.instruction,name:guide.location,campaignObjective:true};
   return active?{...active.target,campaignObjective:true}:null;
 }
@@ -1826,8 +1844,9 @@ function renderMissionGuide(){
 }
 function nearbyStealthObjective(pose){
   const active=campaign?.state.active;
-  if(!active?.stealth||interiors.active||gameplay.state.mode!=='foot'||gameplay.state.passenger||gameplay.state.actor.swimming)return null;
+  if(!active?.stealth||gameplay.state.mode!=='foot'||gameplay.state.passenger||gameplay.state.actor.swimming)return null;
   const goal=active.target;
+  if((interiors.active?.id??null)!==(goal.roomId??null))return null;
   return Math.hypot(pose.x-goal.x,pose.z-goal.z)<=goal.radius?goal:null;
 }
 function interactStealthObjective(){
@@ -1835,7 +1854,7 @@ function interactStealthObjective(){
   if(!nearbyStealthObjective(pose))return false;
   const state=gameplay.state;
   const result=stealthContracts.resolve(campaign.state.active,{pose,onFoot:true,interior:interiors.active,
-    recovering:!!state.recovery,wanted:state.wanted,health:state.health,
+    recovering:!!state.recovery,wanted:state.wanted,health:state.health,visible,
     crouching:state.actor.crouching||keys.has('KeyX')||actionTouch.has('crouch')});
   if(result.ok)stealthOutcome=result.receipt;
   notify(result.message);
@@ -3265,7 +3284,11 @@ function updateHud() {
     petrolCue.textContent=distance>petrol.radius?`${petrol.name} · ${Math.round(distance)} m to nitro bay`:boost.nitroFuel>=.995?'Nitro bay · tank full':'Nitro bay · stop and press E';
   }
   $('jetpack-status').hidden=!jetpack.active;
-  if(jetpack.active)$('jetpack-status').textContent=`Jetpack fuel ${Math.round(jetpack.chargeFraction*100)}% · ${Math.round(gameplay.state.actor.jumpHeight)} m${jetpack.landing?' · Landing':''}`;
+  if(jetpack.active){
+    const status=jetpack.snapshot();
+    const landing=status.reason==='surface-supported'?' · Move off the raised surface to land':jetpack.landing?' · Landing':'';
+    $('jetpack-status').textContent=`Jetpack fuel ${Math.round(jetpack.chargeFraction*100)}% · ${Math.round(gameplay.state.actor.jumpHeight)} m${landing}`;
+  }
   const crouching=gameplay.state.mode==='foot'&&gameplay.state.actor.crouching&&!gameplay.state.passenger&&!droneActive;
   const stance=$('stance-status');stance.hidden=!crouching;
   if(crouching)stance.textContent=nearbyCrouchCover(gameplay.state.actor)?'Crouched · cover nearby':'Crouched';
@@ -3293,7 +3316,8 @@ function updateHud() {
   else if(gameplay.state.actor.swimming)$('driving-hint').textContent='WASD swim · SHIFT swim faster';
   if(vehicleDamage.snapshot().burning)$('driving-hint').textContent='ENGINE FIRE · Stop and get out with E / USE';
   const footCombat=gameplay.state.mode==='foot'&&!gameplay.state.passenger&&!gameplay.state.actor.swimming&&!protectedWork();
-  for(const button of document.querySelectorAll('#touch-actions [data-action]:not([data-action=crouch]),#touch-grenade,#touch-smoke'))button.disabled=!footCombat;
+  for(const button of document.querySelectorAll('#touch-actions [data-action]:not([data-action=crouch])'))button.disabled=!footCombat;
+  $('touch-grenade').disabled=$('touch-smoke').disabled=!footCombat||jetpack.active;
   $('touch-crouch').disabled=gameplay.state.mode!=='foot'||!!gameplay.state.passenger||!!jetpack.active||droneActive;
   updateNavigation();drawMap($('minimap'), false);
   if($('map-dialog').open&&(followYoober||followCourier))drawMap($('full-map'),true);
@@ -3393,7 +3417,7 @@ function syncExternalPeople(){
     const pose=job.waitingPose||job.target;
     if(pose)add({id:'waiting-fare',x:pose.x,z:pose.z},.32);
   }
-  if(!interiors.active&&gameplay.state.mode==='foot'&&!gameplay.state.passenger&&!gameplay.state.recovery&&!gameplay.state.actor.swimming){
+  if(!interiors.active&&!jetpack?.active&&gameplay.state.mode==='foot'&&!gameplay.state.passenger&&!gameplay.state.recovery&&!gameplay.state.actor.swimming){
     playerContact.x=gameplay.state.actor.x;playerContact.z=gameplay.state.actor.z;
     externalPeopleContacts.push(playerContact);
   }
@@ -3402,7 +3426,7 @@ function syncExternalPeople(){
 function pendingWorldChunks(){return interiors.active?0:(world.stats.queuedChunks||0)+(neighbourhood.stats.queue||0)+(airportView?.stats.pendingChunks||0);}
 function ordinaryFootPose(){
   const state=gameplay.state;
-  if(state.mode!=='foot'||state.passenger||micromobility.active||state.recovery||
+  if(state.mode!=='foot'||state.passenger||micromobility.active||state.recovery||jetpack?.active||
     state.actor.swimming||state.aiming||state.attackTimer>0||state.combatFeedback.recoil>.001||state.actor.impactTime>0)return null;
   return state.actor;
 }
@@ -3449,9 +3473,12 @@ function animate(time) {
       }
       const walk=walkingInput();
       const flying=jetpack.active;
-      gameplay.step(1/60,flying?{externalFlight:true}:{...walk,challenge:miniInput()});
+      gameplay.step(1/60,flying?{externalFlight:true,aim:walk.aim,aimYaw:walk.aimYaw,aimPitch:walk.aimPitch,
+        fire:walk.fire&&!!weaponById(gameplay.state.weapon)}:{...walk,challenge:miniInput()});
       if(contractTarget.body)reportContractOutcome();
-      if(flying||jetpack.chargeFraction<1)jetpack.step(1/60,{moveX:walk.moveX,moveZ:walk.moveZ,lift:Number(!!walk.jump)-Number(!!walk.sprint)},gameplay.state,jetpackContext());
+      if(flying)refreshJetpackBodies(gameplay.state.actor);
+      if(flying||jetpack.chargeFraction<1)jetpack.step(1/60,{moveX:walk.moveX,moveZ:walk.moveZ,aiming:walk.aim||walk.fire,
+        lift:Number(!!walk.jump)-Number(!!walk.sprint)},gameplay.state,jetpackContext());
       let hiredCasualty=false;
       for(const event of gameplay.drainPoliceEvents()){
         if(campaignScenes.receiveHit(event)&&campaignScenes.people.some(person=>person.hired&&person.id===event.targetId&&person.health<=0))hiredCasualty=true;
@@ -3520,7 +3547,8 @@ function animate(time) {
   if(!renderGate.shouldRender({paused:paused()&&!graphicsTest.active,hidden:document.hidden,cinematic:cutscenes.snapshot().active,tracking,revision:viewRevision,pendingChunks:pendingWorldChunks()}))return;
   const renderDt = Math.min(.1, (time - (lastRender || time)) / 1000); lastRender = time;
   const p = focus(), activeDt = paused()&&!tracking ? 0 : renderDt;
-  const drawnActor=footMotion.sample(ordinaryFootPose(),interiors.active,accumulator*60,!cameraReady)||gameplay.state.actor;
+  const drawnActor=jetpack.active?{...gameplay.state.actor,feetY:jetpack.feetY}:
+    footMotion.sample(ordinaryFootPose(),interiors.active,accumulator*60,!cameraReady)||gameplay.state.actor;
   const cameraPose=p===gameplay.state.actor?drawnActor:p;
   const cockpit=cockpitCamera&&cockpitAvailable();
   if(!cockpit)cockpitCamera=false;
@@ -3539,7 +3567,7 @@ function animate(time) {
   if(!interiors.active){
   airportView?.update(p);defenceDepotView?.update(p);policeStationView?.update(p);
   const activeMission=campaign.state.active;
-  stealthContractView?.update(activeMission?.stealth?[activeMission.target]:activeMission?.target.kind==='assassination'?assassinationMarkers:railHeistMarker?[railHeistMarker]:null,p);
+  stealthContractView?.update(activeMission?.stealth?(activeMission.target.roomId?null:[activeMission.target]):activeMission?.target.kind==='assassination'?assassinationMarkers:railHeistMarker?[railHeistMarker]:null,p);
   watercraftView?.update(watercraftViewState,p);
   pedestrianFocus.x=p.x;pedestrianFocus.z=p.z;pedestrianFocus.yaw=p.yaw;pedestrianFocus.speed=gameplay.state.mode==='vehicle'?p.speed:0;
   pedestrians?.update(pedestrianFocus, activeDt, simulation.traffic,simulation.hasLineOfSight);
@@ -3665,7 +3693,16 @@ function animate(time) {
     if(!visible(a,view))view={x:a.x+Math.sin(yaw)*.8,z:a.z+Math.cos(yaw)*.8};
     desiredCamera.set(view.x,ground+2.25,view.z);lookTarget.set(a.x,ground+1.25,a.z);
   }
-  if(!cockpit&&!interiors.active&&!droneActive){const floor=gameplay.state.mode==='vehicle'&&!aircraft?.active?world.vehicleHeightAt({...p,x:desiredCamera.x,z:desiredCamera.z},p.edge?.road):world.heightAt(desiredCamera.x,desiredCamera.z);desiredCamera.y=Math.max(desiredCamera.y,floor+.65);}
+  if(!cockpit&&!interiors.active&&!droneActive){const floor=gameplay.state.mode==='vehicle'&&!aircraft?.active?world.vehicleHeightAt({...p,x:desiredCamera.x,z:desiredCamera.z},p.edge?.road):
+    jetpack.active?world.groundHeightAt(desiredCamera.x,desiredCamera.z):world.heightAt(desiredCamera.x,desiredCamera.z);desiredCamera.y=Math.max(desiredCamera.y,floor+.65);}
+  if(jetpack.active&&!scoped){
+    const {x,z,feetY}=drawnActor,y=feetY+1.45,dx=desiredCamera.x-x,dy=desiredCamera.y-y,dz=desiredCamera.z-z;
+    const range=Math.hypot(dx,dy,dz);
+    if(range>.1){
+      const clear=shotObstacles.trace({x,y,z,dx:dx/range,dy:dy/range,dz:dz/range,range});
+      if(clear<range){const t=Math.max(0,clear-.18)/range;desiredCamera.set(x+dx*t,y+dy*t,z+dz*t);cameraReady=false;}
+    }
+  }
   stableCameraPosition.lerp(desiredCamera,cameraReady&&!cockpit?cameraBlend(renderDt,gameplay.state.aiming):1);
   camera.position.copy(stableCameraPosition);
   const shake=explosionShake.advance(renderDt,paused()||cinematic.active||reducedCombatMotion.matches);
@@ -3794,9 +3831,10 @@ async function boot() {
   const heistSites=buildHeistSites(map,simulation,surfaceAt);
   map.barriers.push(...heistSites.barriers);
   simulation.registerStaticBarriers(heistSites.barriers);
-  map.landmarkTreeExclusions.push(...heistSites.sites.map(site=>site.apron));
+  map.landmarkTreeExclusions.push(...heistSites.sites.filter(site=>site.apron).map(site=>site.apron));
   heistSitesView=compatibility?emptyView():createHeistSitesView(scene,heistSites.sites);
-  northPlacesView=compatibility?null:createNorthPlacesView(scene,{tower,waterpark:map.giantSpray,heightAt:surfaceAt});
+  const towerFootprint=map.buildings.find(building=>building.id===tower?.buildingId)?.points;
+  northPlacesView=compatibility?null:createNorthPlacesView(scene,{tower,towerFootprint,waterpark:map.giantSpray,heightAt:surfaceAt});
   warMemorialView=compatibility?null:createWarMemorialView(scene,map,terrainSampler.groundHeightAt);
   const assassinationMission=createAssassinationChapter(map,{
     canStand:pose=>standClear(pose),hasLineOfSight:simulation.hasLineOfSight,nearestRoad:simulation.nearestRoad,
@@ -3827,7 +3865,7 @@ async function boot() {
   }
   heists=createHeistActivities({sites:robberyLocations,canSee:visible,
     onHeat:({kind,point,severity})=>{
-      const offence=({rail:'light rail robbery',jeweller:'jewellery robbery',tower:'tower archive robbery',bank:'bank robbery',memorial:'replica case theft'})[kind];
+      const offence=({rail:'light rail robbery',jeweller:'jewellery robbery',tower:'tower archive robbery',bank:'bank robbery',memorial:'exhibition case theft'})[kind];
       const reported=gameplay.reportOffence(offence,severity,{witnessed:true,point});
       recordCameraCrime(offence,point,reported);
     },
@@ -3907,7 +3945,11 @@ async function boot() {
   interiorView=compatibility?{load(){},clear(){},dispose(){},stats:{}}:createInteriorView(interiorScene);
   roomPeopleView=compatibility?{load(){},update(){},clear(){},dispose(){},stats:{}}:createInteriorPeopleView(interiorScene,()=>interiors.active?.floorY||0);
   const careerOptions={nitroStations,isStoryRobbery:id=>gameMode==='campaign'&&campaign?.isStoryRobbery(id),watercraftDock:()=>watercraftDock,takeSafehouseRest:(roomId,ctx)=>houseController?.takeRestReceipt(roomId,ctx),deliveryOrder:()=>delivery?.busy?delivery.snapshot().order:null,takeDeliveryReceipt:orderId=>{const receipt=deliveryReceipts.get(orderId);deliveryReceipts.delete(orderId);return receipt;},takeHouseLoot:(roomId,ctx)=>burglary.takeHouseLoot(roomId,ctx),homes:interiors.entries.filter(entry=>entry.type==='house'),extraServices:streetDealers.services,workSession:()=>({plan:interiors.active,session:activities.snapshot()}),interactiveWorkouts:true,interactiveRobbery:true,crimeTarget,robberyTarget,hasLineOfSight:visible,servicePosition:servicePosition,canUseService:site=>site.dealer?!interiors.active&&streetDealers.canTrade(site.id):site.type==='gym'?interiors.active?.serviceId===site.id:!site.buildingId||interiors.active?.storeId===site.id};
-  stealthContracts=createStealthContracts(map,{canStand:pose=>simulation.canOccupy({...pose,yaw:0},{length:1,width:1,ignoreId:'player'}),
+  const memorialSite=heistSites.sites.find(site=>site.kind==='memorial');
+  const memorialEntry=memorialSite&&interiors.entries.find(entry=>entry.heistSiteId===memorialSite.id);
+  const gallery=memorialEntry&&{roomId:memorialEntry.id,
+    points:memorialGalleryActions(memorialEntry,memorialEntry.floorY),exits:memorialSite.exits};
+  stealthContracts=createStealthContracts(map,{gallery,canStand:pose=>simulation.canOccupy({...pose,yaw:0},{length:1,width:1,ignoreId:'player'}),
     nearestRoad:simulation.nearestRoad,hasLineOfSight:simulation.hasLineOfSight});
   stealthContractView=compatibility?emptyView():createStealthContractsView(scene,world.heightAt);
   const campaignOptions={meetingPoint:campaignScenes.meetingPoint||undefined,stealthContracts,assassinationMission};
@@ -3959,6 +4001,7 @@ async function boot() {
     powerModifiers:()=>heroPowers.modifiers(powerContext()),onVehicleImpacts:(events,dt)=>pedestrians.applyVehicleImpacts(events,dt),hasBlastLineOfSight:(a,b)=>visible(a,b,true),
     getInterior:()=>policeRooms.current,getHostageRoomId:()=>heists?.hostageRoomId,resolveInterior:id=>policeRooms.resolve(id),
     canAttack:canPlayerAttack,canFireWeapon:()=>campaign.state.active?.target.victory!==true,getShotTargets:shotTargets,traceShot:tracePlayerShot,
+    playerFeetY:()=>jetpack?.feetY,
     launchRocket:ray=>ordnance?.launchRocket(ray),onVehicleShot:hitWorldVehicle,onVehicleExplosion:damageExplosionVehicles,policeShotClear,getAllies:()=>campaignScenes?.people||[],
     getSearchDuration:campaign.policeSearchDuration,
     passengerPose:()=>aircraft?.seatPose||depotTank?.seatPose||watercraft?.seatPose||lightRail?.seatPose||rideService?.seatPose||buses?.seatPose,
@@ -4008,9 +4051,12 @@ async function boot() {
     } });
   carRental=createCarRental(carRentalSites,simulation,{pay:progression.payCarRental,install:installRentalVehicle,visible});
   houseController=createHouseController({burglary,activities,progression,getPlan:()=>interiors.active,save:saveCareer,heal:amount=>gameplay.heal(amount)});
-  jetpack=createJetpack({moveActor:moveBody,heightAt:world.heightAt});
-  jetpackView=compatibility?emptyView():createJetpackView(scene,world.heightAt);
-  ordnance=createOrdnance({consumeThrow:(kind,ctx)=>progression.consumeThrowable(kind,ctx),canThrow:()=>canPlayerAttack(),
+  jetpack=createJetpack({moveActor:moveBody,heightAt:world.groundHeightAt,
+    moveFlight:(actor,dx,dz,options)=>shotObstacles.moveBody(actor,dx,dz,{...options,vehicles:jetpackBodies}),
+    canOccupy:(pose,options)=>shotObstacles.canOccupyBody(pose,{...options,vehicles:jetpackBodies}),
+    supportHeightAt:(x,z,options)=>shotObstacles.supportHeightAt(x,z,{...options,vehicles:jetpackBodies})});
+  jetpackView=compatibility?emptyView():createJetpackView(scene,world.groundHeightAt);
+  ordnance=createOrdnance({consumeThrow:(kind,ctx)=>progression.consumeThrowable(kind,ctx),canThrow:()=>!jetpack?.active&&canPlayerAttack(),
     moveProjectile:(body,dx,dz,radius,ctx)=>ctx.interiorId?(policeRooms.resolve(ctx.interiorId)?.moveActor(body,dx,dz,radius)||{blocked:true}):simulation.moveActor(body,dx,dz,radius),
     traceRocket:ray=>{
       const room=ray.interiorId?interiors.active:null;

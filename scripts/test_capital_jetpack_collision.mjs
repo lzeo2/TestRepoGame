@@ -1,0 +1,58 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { createShotObstacles } from '../Games/Capital Drive/shot-obstacles.js';
+import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
+import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
+
+const rectangle=(id,x,z,w,d,height,extra={})=>({id,height,points:[[x-w/2,z-d/2],[x+w/2,z-d/2],[x+w/2,z+d/2],[x-w/2,z+d/2]],...extra});
+const map={bounds:{minX:-60,maxX:60,minZ:-60,maxZ:60},roads:[],buildings:[rectangle('roof',8,0,6,6,3),rectangle('canopy',20,0,4,4,2,{y:6,type:'roof'}),rectangle('courtyard',33,0,8,8,4,{innerRings:[{points:[[31,-2],[35,-2],[35,2],[31,2]]}]})],
+ barriers:[rectangle('fence',15,0,.1,8,1,{destructible:true})],areas:[rectangle('lake',50,0,10,10,0,{type:'water'})]};
+const before=JSON.stringify(map),bridge={roadId:'source-bridge',a:[-10,10],b:[10,10],y0:8,y1:10,radius:3};
+const obstacles=createShotObstacles(map,{groundHeightAt:()=>0,heightAt:()=>0,bridgeSegments:[bridge]});
+const clear=(x,z,y,extra={})=>obstacles.canOccupyBody({x,z,y},extra);
+assert(!clear(8,0,1)&&clear(8,0,3),'building height blocks bodies below roof, permits roof contact');
+assert(!clear(4.7,0,1),'whole-body radius clips source facade before its center enters');
+let actor={x:2,z:0};
+assert(obstacles.moveBody(actor,8,0,{y:1}).blocked&&actor.x<4.56,'horizontal sweep cannot cross facade');
+actor={x:2,z:0}; assert(!obstacles.moveBody(actor,8,0,{y:4}).blocked&&Math.abs(actor.x-10)<1e-8,'sufficient altitude flies over source roof');
+assert.equal(obstacles.supportHeightAt(8,0,{y:4}),3);
+assert.equal(obstacles.supportHeightAt(8,0,{y:2}),0,'overhead roof never teleports feet upward');
+assert(!clear(8,0,2,{fromY:4}),'descending body cannot tunnel through a roof');
+assert(clear(15,0,1.01)&&!clear(15,0,.5),'fence has finite source height');
+assert(obstacles.removeBarrier('fence'));assert(clear(15,0,.5),'destroyed barrier removes the same flight solid');
+assert(clear(20,0,5)&&!clear(20,0,6.1)&&clear(20,0,8),'elevated roof has open space below its thin actual slab');
+assert(clear(33,0,0)&&!clear(30,0,0),'source polygon holes remain open');
+assert(clear(50,0,4),'water area does not become an infinite airborne wall');
+assert(clear(0,10,5)&&!clear(0,10,7),'sloped bridge underside has finite body clearance');
+assert(!clear(0,10,10,{fromY:5}),'full vertical sweep hits bridge from below');
+assert.equal(obstacles.supportHeightAt(0,10,{y:5}),0,'ground underneath bridge stays ground');
+const deck=obstacles.supportHeightAt(0,10,{y:11});
+assert(Math.abs(deck-9.128)<1e-8,'support includes asphalt top and body-radius slope');
+assert(clear(0,10,deck),'body can stand on the matching sloped top');
+actor={x:-15,z:10};assert(!obstacles.moveBody(actor,8,0,{y:5}).blocked,'horizontal flight passes under deck');
+actor={x:-15,z:10};assert(obstacles.moveBody(actor,8,0,{y:7.5}).blocked,'underside edge blocks the whole body');
+const vehicle={id:'live-car',x:40,z:0,y:0,yaw:0,length:4,width:2,height:2,active:true};
+assert(!clear(40,0,1,{vehicles:[vehicle]})&&clear(40,0,2,{vehicles:[vehicle]}),'live vehicles have finite hulls');
+vehicle.x=45;assert(clear(40,0,1,{vehicles:[vehicle]}),'vehicle poses are live inputs');
+assert(!clear(NaN,0,1)&&!clear(59.9,0,1),'invalid/out-of-map positions are rejected');
+actor={x:-40,z:-40};assert(obstacles.moveBody(actor,100,0,{y:4}).blocked&&actor.x<=-32+1e-8,'single movement stays bounded');
+assert.equal(JSON.stringify(map),before,'source geometry is immutable');
+// Bullet and body bridge adapters agree about exactly the same prepared slab.
+const hit=obstacles.trace({x:0,y:5,z:10,dx:0,dy:1,dz:0,range:10});
+assert(Math.abs(hit-(8.65-5-.005))<1e-6);
+
+const data=async name=>JSON.parse(await readFile(new URL(`../Games/Capital Drive/data/${name}.json`,import.meta.url)));
+const sourceMap=applyMapExpansion(await data('canberra'),await data('canberra-north'));
+sourceMap.terrainTiles=[(await data('north-terrain')).terrain];
+const terrain=createTerrainSampler(sourceMap),sourceBefore=JSON.stringify(sourceMap);
+const lake=sourceMap.roads.find(r=>r.name==='Commonwealth Avenue'&&r.sourceTags?.bridge==='yes');
+assert(lake);
+const segment=terrain.bridgeSegments.filter(s=>s.roadId===lake.id).sort((a,b)=>Math.hypot(...[b.b[0]-b.a[0],b.b[1]-b.a[1]])-Math.hypot(...[a.b[0]-a.a[0],a.b[1]-a.a[1]]))[0];
+assert(segment);
+const x=(segment.a[0]+segment.b[0])/2,z=(segment.a[1]+segment.b[1])/2,top=(segment.y0+segment.y1)/2,ground=terrain.groundHeightAt(x,z);
+const actual=createShotObstacles(sourceMap,{heightAt:terrain.heightAt,groundHeightAt:terrain.groundHeightAt,bridgeSegments:terrain.bridgeSegments});
+assert.equal(actual.supportHeightAt(x,z,{y:top-2.2}),ground,'actual source bridge does not become ground underneath');
+assert(actual.canOccupyBody({x,z,y:top+1}),'source bridge can be flown over');
+assert(!actual.canOccupyBody({x,z,y:top-.4}),'actual source slab blocks body overlap');
+assert.equal(JSON.stringify(sourceMap),sourceBefore);
+console.log('PASS jetpack collision: finite source roofs/fences, live vehicles, holes, water overflight, bounded sweeps, destroyed barriers, sloped bridge underside/top and shared bullet slab; actual Commonwealth source profile unchanged');
