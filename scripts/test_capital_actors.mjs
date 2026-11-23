@@ -323,5 +323,35 @@ emptyRoom.update(indoorBefore, indoorOptions);
 assert.equal(emptyRoom.stats.officers, 0); assert.equal(emptyRoom.stats.police, 0);
 emptyRoom.dispose(); emptyRoom.dispose(); assert.equal(emptyRoomScene.children.length, 0, 'zero-cap safehouse view cleans up safely');
 assert.equal(carCreationCount(), factoryCalls);
+// Compare complete ordinary gait cycles from actual translated source poses.
+function gaitProbe(speed,{sideways=false,crouching=false}={}){
+  const scene=new THREE.Scene(),v=createActorView(scene,()=>0,{policeLimit:0,policeCars:false});
+  const player=scene.getObjectByName('Adult player'),hips=[],knees=[];
+  player.traverse(o=>{if(o.name==='Hip')hips.push(o);if(o.name==='Knee')knees.push(o);});
+  const state={mode:'foot',actor:{x:0,z:0,yaw:0,speed,jumpHeight:0,crouching},weapon:'unarmed',aiming:false,attackTimer:0,reloading:0,police:[],shots:[]};
+  const buffers=[];player.traverse(o=>{if(o.isMesh)buffers.push([o,o.geometry,o.geometry.attributes.position.array]);});
+  let kneePeak=0,hipPeak=0,rollPeak=0,minSole=Infinity,rootStep=0,previousY=null;
+  const bounds=new THREE.Box3();
+  for(let i=0;i<120;i++){
+    state.actor[sideways?'x':'z']+=(sideways?1:-1)*speed/60;
+    const before=structuredClone(state);v.update(state,{dt:1/60,focus:state.actor});assert.deepEqual(state,before);
+    assert.equal(player.position.x,state.actor.x);assert.equal(player.position.z,state.actor.z,'animated roots retain authoritative swept endpoints');
+    kneePeak=Math.max(kneePeak,knees[0].rotation.x);hipPeak=Math.max(hipPeak,Math.abs(hips[0].rotation.x));rollPeak=Math.max(rollPeak,Math.abs(hips[0].rotation.z));
+    player.updateMatrixWorld(true);for(const knee of knees){bounds.setFromObject(knee);minSole=Math.min(minSole,bounds.min.y);}
+    if(previousY!==null)rootStep=Math.max(rootStep,Math.abs(player.position.y-previousY));previousY=player.position.y;
+  }
+  for(const [o,g,p]of buffers){assert.equal(o.geometry,g);assert.equal(g.attributes.position.array,p,'ordinary gait reuses every source buffer');}
+  const result={kneePeak,hipPeak,rollPeak,minSole,rootStep,y:player.position.y};
+  v.dispose();v.dispose();assert.equal(scene.children.length,0);return result;
+}
+const walkCycle=gaitProbe(3.6),runCycle=gaitProbe(6.8),sideCycle=gaitProbe(3.6,{sideways:true}),crouchCycle=gaitProbe(1.65,{crouching:true});
+assert(runCycle.kneePeak>walkCycle.kneePeak+.1&&runCycle.hipPeak>walkCycle.hipPeak,'sprint has visibly larger knee lift and stride than walking');
+assert(sideCycle.rollPeak>.15&&sideCycle.hipPeak<walkCycle.hipPeak*.7,'translated strafe uses lateral steps instead of forward marching');
+assert(crouchCycle.y<walkCycle.y-.3&&crouchCycle.kneePeak>1.8,'crouch retains a distinct lowered stepping gait');
+for(const cycle of [walkCycle,runCycle,sideCycle,crouchCycle]){
+  assert(cycle.minSole>-.18,'bounded footfall correction limits sole penetration');
+  assert(cycle.rootStep<.25,'ordinary grounded transitions do not pop by a large step');
+}
+console.log('PASS translated walk/sprint/strafe/crouch cycles, sole grounding, bounded transitions and unchanged source/resource lifecycles');
 disposeCars();
 console.log(`PASS shared rounded adult/police identity and proportions, articulation/grounding, aim/reload/melee/jump, bounded outdoor/car-free indoor officers and gun/muzzle pools, pause/culling, finite transforms, disposal; ${stats.meshes} max draws, ${normalFootDraws} normal foot draws, ${stats.triangles} triangles, ${ownedGeometries.size} geometry resources`);
