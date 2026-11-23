@@ -783,7 +783,7 @@ export function createGameplay(map, simulation, options = {}) {
     }
     policeController.noteExplosion?.(event);
     options.onVehicleExplosion?.(event);
-    emit('explosion',event.kind==='drone-strike'?'Drone strike detonated.':event.kind==='rocket'?'Rocket detonated.':'Grenade detonated.',{hits});return true;
+    emit('explosion',event.kind==='drone-strike'?'Drone strike detonated.':event.kind==='skylark-airstrike'?'Airstrike hit the marked area.':event.kind==='rocket'?'Rocket detonated.':'Grenade detonated.',{hits});return true;
   }
   return { state, focus, step, syncSwimming, interact, cancelCarjacking, setWeapon, reload, reportOffence, resolveDeliveryRisk, reportSighting, inventorySnapshot, restoreInventory,
     takeInventory:item=>transferInventory(item,false),giveInventory:item=>transferInventory(item,true),reset, restoreProtagonist, missionRecoverySnapshot, restoreMissionCheckpoint, switchToCompanion, applyExplosion, addAmmo, getAmmo, heal, strikePolice, damageActor:applyCombatDamage, damageVehicle, damagePoliceVehicle, get policeWrecks(){return policeController.wrecks;}, policeSupport:()=>policeController.support(), drainPoliceEvents:()=>policeEvents.splice(0),

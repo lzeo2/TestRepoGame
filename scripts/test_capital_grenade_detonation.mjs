@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import * as THREE from '../assets/car-arcade/vendor/three.module.js';
-import {createOrdnance, ORDNANCE_LIMITS} from '../Games/Capital Drive/ordnance.js';
+import {blastLimits, createOrdnance, ORDNANCE_LIMITS} from '../Games/Capital Drive/ordnance.js';
 import {createOrdnanceView} from '../Games/Capital Drive/ordnance-view.js';
 import {createGameplay} from '../Games/Capital Drive/gameplay.js';
 import {createSimulation} from '../Games/Capital Drive/simulation.js';
@@ -81,3 +81,15 @@ assert(rocketBlast.z>-6&&rocketBlast.z<-5.9,'an intervening building stops the b
 assert.equal(rocketOwner.snapshot().projectiles.length,0);
 assert.equal(rocketOwner.snapshot().bursts[0].radius,10,'the same explosion drives pooled presentation');
 console.log('Capital grenade and rocket detonation PASS: fuse/controller damage once, visible pooled burst after event drain, room isolation, pause, expiry, smoke and disposal');
+
+const kind='skylark-airstrike',airstrike={type:'explosion',kind,id:'skylark-test',x:0,y:.2,z:0,interiorId:null,...blastLimits(kind)};
+assert.deepEqual(blastLimits(kind),{radius:7,maxDamage:45});
+for(const invalid of [{interiorId:'room'},{radius:8},{maxDamage:46}])assert(!game.applyExplosion({...airstrike,...invalid}));
+game.state.health=100;
+Object.assign(game.state.actor,{x:7.1,z:0});
+assert(game.applyExplosion(airstrike));assert.equal(game.state.health,100,'escaping the marked radius protects the player');
+Object.assign(game.state.actor,{x:0,z:0});
+assert(game.applyExplosion(airstrike));assert.equal(game.state.health,55,'remaining in the mark applies the configured damage');
+assert(system.showExplosion(airstrike));assert.equal(system.snapshot().bursts[0].kind,kind);
+assert.deepEqual(system.drainEvents(),[],'the strike visuals cannot apply damage again');
+console.log('PASS Skylark airstrike world handoff: outdoor validation, radius/HP, escape and pooled blast');

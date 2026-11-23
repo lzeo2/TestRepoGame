@@ -34,10 +34,13 @@ let call;env.interiors.active=null;env.pedestrians={shotTargets:()=>[{id:5,x:0,z
 env.streetDealers={shotTargets:()=>[]};env.rideService={shotTargets:()=>[]};
 env.contractTarget={shotTargets:()=>[{id:'voss',x:2,z:-4,health:100}],hitByShot(...args){call=args;return {hits:1};}};
 env.skylineOpponents={shotTargets:()=>[{id:'crew:1',x:-2,z:-4,health:100}],hitByShot(...args){call=args;return {hits:1};}};
+env.skylinePressure={shotTargets:()=>[{id:'observer',x:-2,y:12,z:-4,feetY:11.35,height:1.3,health:90}],hitByShot(...args){call=args;return {hits:1};}};
 const targets=api.shotTargets();
 assert.equal(targets[0].id,'ped:5');assert.equal(targets[0].damage(30,{pitch:.2}).hits,1);assert.deepEqual(call,[5,30,{pitch:.2,targetId:5}]);
 assert.equal(targets[1].id,'contract:voss');assert.equal(targets[1].damage(34,{interiorId:null}).hits,1);assert.deepEqual(call,['voss',34,{interiorId:null,targetId:'voss'}]);
 assert.equal(targets[2].id,'skyline:crew:1');assert.equal(targets[2].damage(42,{interiorId:null}).hits,1);assert.deepEqual(call,['crew:1',42,{interiorId:null,targetId:'crew:1'}]);
+assert.equal(targets[3].id,'skyline-drone:observer');assert.equal(targets[3].feetY,11.35);
+assert.equal(targets[3].damage(42,{interiorId:null}).hits,1);assert.deepEqual(call,['observer',42,{interiorId:null,targetId:'observer'}]);
 assert(source.includes('aimPitch:footLookPitch'),'actual walking input supplies pitch');
 console.log('PASS combat controller: terrain-resolved deliberate scans, neutral/pause/retry/hold authority, exact case-session/mission binding and native adult damage IDs');
 
@@ -85,7 +88,7 @@ const indoorPlan={id:'bound-room',storeId:'noodles',type:'shop',variant:'noodles
 const roomOwner=createInteriorPeople();roomOwner.load(indoorPlan);env.interiors.active=indoorPlan;env.roomPeople=roomOwner;
 const guest=roomOwner.snapshot().find(person=>person.character==='booth-guest');
 const boundTarget=api.shotTargets().find(person=>person.id===`room:${guest.id}`);
-assert(!api.shotTargets().some(person=>person.id.startsWith('skyline:')),'outside job opponents cannot leak into an interior');
+assert(!api.shotTargets().some(person=>/^skyline(?:-drone)?:/.test(person.id)),'outside job opponents cannot leak into an interior');
 const ray={x:guest.x,y:4.35,z:guest.z-3,dx:0,dy:0,dz:1,range:6,interiorId:indoorPlan.id,targetId:boundTarget.id};
 assert.equal(boundTarget.damage(25,ray),true,'selected global target delegates a real room hit using the native target id');
 assert.equal(roomOwner.snapshot().find(person=>person.id===guest.id).health,75);
