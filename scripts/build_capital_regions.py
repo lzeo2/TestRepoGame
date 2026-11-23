@@ -232,10 +232,14 @@ def build(region, cache, existing):
     building_ids = {body.get('sourceId'):body['id'] for body in history[3]+buildings}
     landmarks = []
     seen_names = set()
-    for node in nodes.values():
+    named_nodes = [node for node in nodes.values() if node.get('tags',{}).get('name') in spec['places']]
+    # OSM can tag the broad district and its town-centre suburb with the same
+    # name. Use the local suburb marker when both are present.
+    named_nodes.sort(key=lambda node: (node['tags'].get('place') != 'suburb', node['id']))
+    for node in named_nodes:
         tags = node.get('tags', {})
         name = tags.get('name')
-        if name not in spec['places'] or not tags.get('place') or name in seen_names or not in_boxes(node, boxes):
+        if not tags.get('place') or name in seen_names or not in_boxes(node, boxes):
             continue
         seen_names.add(name)
         x, z = xy(node)

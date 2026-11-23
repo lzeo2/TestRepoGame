@@ -17,6 +17,8 @@ Each region JSON records its bounding boxes, official OpenStreetMap v0.6 API pul
 and SHA-256 pins. The source packs retain complete lake outlines and their island
 rings. The [landmark selection](../scripts/capital_region_landmarks.py) records the
 public source IDs used for named places and selected architectural footprints.
+Where a wider district and a suburb share a name, search and the driving HUD use
+the local suburb marker.
 Façade treatments and untagged heights are original visual estimates. Pools of
 regional façade meshes only display near the player. Generic buildings and exact
 source colliders retain their existing owners. © OpenStreetMap contributors,

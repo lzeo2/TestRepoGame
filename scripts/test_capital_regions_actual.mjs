@@ -128,6 +128,14 @@ for(const [id,sourceId]of [['westfield-belconnen','way/27795123'],['ais-arena','
   routeReports.push(`${id}:${out.length}/${home.length}`);
 }
 for(const name of ['Belconnen','Bruce','Watson','Mitchell','Gungahlin','Phillip','Greenway'])assert(search.search(name).some(hit=>hit.kind==='landmark'&&hit.label===name),`offline suburb search ${name}`);
+const suburbs=map.landmarks.filter(place=>place.sourceTags?.place==='suburb');
+for(const [hubId,name,sourceId]of [['westfield-belconnen','Belconnen','node/4563377371'],
+  ['gungahlin-library','Gungahlin','node/4564887164'],['south-point-tuggeranong','Greenway','node/291971878']]){
+  const hub=mergedPlaces.get(hubId);
+  const nearest=suburbs.reduce((best,place)=>gap(place,hub)<gap(best,hub)?place:best);
+  assert.equal(nearest.name,name,`${hub.name}: district uses the local suburb marker`);
+  assert.equal(nearest.sourceId,sourceId,`${name}: broad district marker cannot displace the local suburb`);
+}
 for(const name of ['Belconnen Way','Flemington Road','Gungahlin Drive','Hindmarsh Drive','Athllon Drive'])assert(search.search(name).some(hit=>hit.kind==='street'&&hit.label===name),`offline road search ${name}`);
 
 const pointInside=(ring,predicate=()=>true)=>{
