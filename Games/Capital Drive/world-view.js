@@ -66,7 +66,7 @@ function compactAttribute(values, itemSize, signed = false) {
 }
 
 export function createWorldView(scene, map, { lowGraphics = false, streaming = false,
-  terrainSampler = createTerrainSampler(map), rail = null, foliageTexture } = {}) {
+  terrainSampler = createTerrainSampler(map), rail = null, foliageTexture, openingChunks = Infinity } = {}) {
   const root = new THREE.Group();
   root.name = 'Canberra streets';
   scene.add(root);
@@ -165,7 +165,23 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   const shadowMaterial = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false });
   materials.push(shadowMaterial);
 
-  const {heightAt,groundHeightAt,roadHeightAt,vehicleHeightAt}=terrainSampler;
+  const {heightAt,groundHeightAt:sourceGroundHeightAt,roadHeightAt,vehicleHeightAt}=terrainSampler;
+  // One geometry load shares many exact terrain vertices. Never retain samples
+  // between loads or cache the runtime authority exposed to the controller.
+  const MAX_GROUND_SAMPLES=8192,negativeZero=Symbol('negative zero');
+  let groundSampleCache=null,groundSampleCount=0;
+  function groundHeightAt(x,z){
+    if(!groundSampleCache)return sourceGroundHeightAt(x,z);
+    const keyX=Object.is(x,-0)?negativeZero:x,keyZ=Object.is(z,-0)?negativeZero:z;
+    let row=groundSampleCache.get(keyX);
+    if(row?.has(keyZ))return row.get(keyZ);
+    const y=sourceGroundHeightAt(x,z);
+    if(groundSampleCount<MAX_GROUND_SAMPLES){
+      if(!row)groundSampleCache.set(keyX,row=new Map());
+      row.set(keyZ,y);groundSampleCount++;
+    }
+    return y;
+  }
 
   const keyAt = (x, z) => `${Math.floor(x / CHUNK_SIZE)},${Math.floor(z / CHUNK_SIZE)}`;
   function deferSource(x, z, draw, extent) {
@@ -1245,11 +1261,16 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     const before = { ...counters };
     // Empty source districts still contain terrain, so there are no blank holes.
     const chunk = chunkAt(targetBounds[0], targetBounds[1]);
-    drawTerrain();
-    for (const draw of sources.get(key) || []) draw();
-    compileChunk(chunk);
+    groundSampleCache=new Map();groundSampleCount=0;
+    try {
+      drawTerrain();
+      for (const draw of sources.get(key) || []) draw();
+      compileChunk(chunk);
+    } finally {
+      groundSampleCache=null;groundSampleCount=0;
+      targetKey=targetBounds=null;
+    }
     chunk.counts = Object.fromEntries(countKeys.map(name => [name, counters[name] - before[name]]));
-    targetKey = targetBounds = null;
     loads++;
     peakResidentBytes = Math.max(peakResidentBytes, counters.bufferBytes);
     counters.chunks = chunks.size;
@@ -1278,7 +1299,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   }
   const statsSnapshot = () => Object.freeze({ ...counters, streaming, residentBytes: counters.bufferBytes,
     peakResidentBytes, residentChunks: chunks.size, queuedChunks: queue.length, evictions, loads, totalTrees, totalShrubs });
-  function update(player) {
+  function update(player, options) {
     if (disposed) return;
     const x = player.x ?? player.position?.x ?? 0;
     const z = player.z ?? player.position?.z ?? 0;
@@ -1290,7 +1311,8 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
         for (const [key, chunk] of chunks) if (Math.hypot(chunk.x - x, chunk.z - z) > EVICT_RADIUS) evictChunk(key);
         refreshQueue(x, z);
       }
-      for (let budget = 0; budget < 2 && queue.length; budget++) {
+      const maxLoads=Number.isInteger(options?.maxLoads)?Math.max(0,Math.min(2,options.maxLoads)):2;
+      for (let budget = 0; budget < maxLoads && queue.length; budget++) {
         if (chunks.size >= MAX_RESIDENT) {
           let farthest = null, distance = -1;
           for (const [key, chunk] of chunks) { const d = Math.hypot(chunk.x - x, chunk.z - z); if (d > distance) { farthest = key; distance = d; } }
@@ -1324,10 +1346,10 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   if (streaming) {
     const spawn = map.spawn || { x: 0, z: 0 };
     refreshQueue(spawn.x, spawn.z);
-    // Build the opening district and all surrounding districts before first render.
-    while (queue.length) loadChunk(queue.shift());
+    // Build the nearest opening districts first. The frame queue can finish the rest.
+    for (let i = 0; i < openingChunks && queue.length; i++) loadChunk(queue.shift());
     lastCellX = Math.floor(spawn.x / CELL_SIZE); lastCellZ = Math.floor(spawn.z / CELL_SIZE);
   }
   update(map.spawn || { x: 0, z: 0 });
-  return { heightAt,groundHeightAt,roadHeightAt,vehicleHeightAt, update, dispose, get stats() { return statsSnapshot(); } };
+  return { heightAt,groundHeightAt,roadHeightAt,vehicleHeightAt, update, dispose, get pendingChunks() { return queue.length; }, get stats() { return statsSnapshot(); } };
 }

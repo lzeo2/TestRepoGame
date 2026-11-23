@@ -21,19 +21,31 @@ export function createLocalDetailsView(scene,map,heightAt) {
   const material=new THREE.MeshLambertMaterial({vertexColors:true}),records=[],obstacles=[];
   let disposed=false;
   const poolGate=POOL_GATE_APPROACHES[0];
+  const radii=[4,8,14,22,32],reach=radii.at(-1);
+  const boundsFor=points=>({minX:Math.min(...points.map(p=>p[0])),maxX:Math.max(...points.map(p=>p[0])),
+    minZ:Math.min(...points.map(p=>p[1])),maxZ:Math.max(...points.map(p=>p[1]))});
+  const buildings=(map.buildings||[]).map(body=>({body,...boundsFor(body.points)}));
+  const barriers=(map.barriers||[]).filter(body=>body.points).map(body=>({body,...boundsFor(body.points)}));
+  const segments=(map.roads||[]).flatMap(road=>road.points.slice(1).map((b,i)=>({a:road.points[i],b,
+    clearance:(road.width||2)/2+2,...boundsFor([road.points[i],b])})));
+  const within=(item,base,pad)=>item.minX<=base[0]+pad&&item.maxX>=base[0]-pad&&item.minZ<=base[1]+pad&&item.maxZ>=base[1]-pad;
   const specifications=[['manuka-pool','1931','Pool opened in 1931',poolGate.outside],['manuka-oval','BLANDFORDIA','Earlier name: Blandfordia Recreation Reserve'],['kingston-powerhouse','WHISTLE','Historic powerhouse whistle and siren']];
-  function clear(x,z) {
+  function clear(x,z,candidates) {
     if(map.bounds&&(x<map.bounds.minX+2||x>map.bounds.maxX-2||z<map.bounds.minZ+2||z>map.bounds.maxZ-2))return false;
-    if((map.buildings||[]).some(b=>inside(x,z,b.points)||b.points.some((a,i)=>distance(x,z,a,b.points[(i+1)%b.points.length])<2)))return false;
-    if((map.barriers||[]).some(b=>b.points&&(inside(x,z,b.points)||b.points.some((a,i)=>distance(x,z,a,b.points[(i+1)%b.points.length])<2))))return false;
+    if(candidates.buildings.some(({body:b})=>inside(x,z,b.points)||b.points.some((a,i)=>distance(x,z,a,b.points[(i+1)%b.points.length])<2)))return false;
+    if(candidates.barriers.some(({body:b})=>inside(x,z,b.points)||b.points.some((a,i)=>distance(x,z,a,b.points[(i+1)%b.points.length])<2)))return false;
     if(distance(x,z,poolGate.outside,poolGate.inside)<4)return false;
-    return (map.roads||[]).every(r=>r.points.slice(1).every((b,i)=>distance(x,z,r.points[i],b)>(r.width||2)/2+2));
+    return candidates.segments.every(s=>distance(x,z,s.a,s.b)>s.clearance);
   }
   for(const [id,label,fact,override] of specifications) {
     const anchor=LANDMARKS.find(s=>s.id===id);if(!anchor)continue;
     const base=override||[anchor.x+(id==='manuka-oval'?85:20),anchor.z];
+    // Every probe is within reach; only source bounds outside its complete
+    // clearance envelope are skipped. Original ordering and tests stay exact.
+    const candidates={buildings:buildings.filter(b=>within(b,base,reach+2)),barriers:barriers.filter(b=>within(b,base,reach+2)),
+      segments:segments.filter(s=>within(s,base,reach+s.clearance))};
     let spot=null;
-    for(const radius of [4,8,14,22,32]) {for(let i=0;i<16;i++){const a=i/16*Math.PI*2,x=base[0]+Math.cos(a)*radius,z=base[1]+Math.sin(a)*radius;if(clear(x,z)&&Number.isFinite(heightAt(x,z))){spot={x,z};break;}}if(spot)break;}
+    for(const radius of radii) {for(let i=0;i<16;i++){const a=i/16*Math.PI*2,x=base[0]+Math.cos(a)*radius,z=base[1]+Math.sin(a)*radius;if(clear(x,z,candidates)&&Number.isFinite(heightAt(x,z))){spot={x,z};break;}}if(spot)break;}
     if(!spot)continue;
     const y=heightAt(spot.x,spot.z),pieces=[];
     function box(x,dy,z,w,h,d,tint) {

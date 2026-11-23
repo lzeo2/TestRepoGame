@@ -94,6 +94,12 @@ for (const lowGraphics of process.argv.includes('--actual') ? [true] : [true, fa
   const originalCanvases = canvases;
   for (const pose of [...poses.slice(1), poses[0]]) {
     let beforeLoads = view.stats.loads;
+    view.update(pose,{maxLoads:0});
+    assert.equal(view.stats.loads,beforeLoads,'queue refresh can defer all geometry work');
+    assert.equal(view.pendingChunks,view.stats.queuedChunks,'allocation-free queue getter stays current');
+    view.update(pose,{maxLoads:1});
+    assert(view.stats.loads-beforeLoads<=1,'caller can limit a render to one geometry load');
+    beforeLoads=view.stats.loads;
     view.update(pose);
     assert(view.stats.loads - beforeLoads <= 2, 'each supplied update builds at most two districts');
     while (view.stats.queuedChunks) {
@@ -143,3 +149,23 @@ for (const lowGraphics of process.argv.includes('--actual') ? [true] : [true, fa
   assert.equal(createHash('sha256').update(JSON.stringify(map)).digest('hex'), sourceHash, 'streaming does not modify geographic source data');
   console.log(`PASS ${lowGraphics ? 'Low' : 'Standard'} resident world: six far areas, exact full-scene chunk hashes, two-load budget, cap36, ${final.evictions} evictions, ${opening.residentBytes}/${fullBytes} opening bytes, ${final.peakResidentBytes} peak bytes, shared atlases/materials, idle/revisit/disposal`);
 }
+
+// The full path is uncached; the streamed load must emit byte-identical geometry
+// while calling a deterministic injected source fewer times at shared vertices.
+const memoMap={bounds:{minX:0,minZ:0,maxX:70,maxZ:70},spawn:{x:35,z:35},roads:[],buildings:[],areas:[],
+ terrain:{minX:0,minZ:0,maxX:70,maxZ:70,cols:3,rows:3,heights:Array(9).fill(0)}};
+let sourceCalls=0,offset=0;
+const exactGround=(x,z)=>{sourceCalls++;return x*.0001+z*.0003+offset;};
+const sampler={groundHeightAt:exactGround,heightAt:exactGround,roadHeightAt:(_road,x,z)=>exactGround(x,z),vehicleHeightAt:exactGround,bridgeSegments:[]};
+const plainScene=new THREE.Scene(),plain=createWorldView(plainScene,memoMap,{lowGraphics:true,terrainSampler:sampler});
+const plainCalls=sourceCalls;sourceCalls=0;
+const memoScene=new THREE.Scene(),memo=createWorldView(memoScene,memoMap,{lowGraphics:true,streaming:true,terrainSampler:sampler});
+assert.deepEqual(chunkHashes(memoScene),chunkHashes(plainScene),'exact source coordinates and heights retain uncached geometry hashes');
+assert(sourceCalls<plainCalls,'per-load memo avoids repeated source vertex evaluation');
+const beforeRuntime=sourceCalls;
+assert.equal(memo.groundHeightAt(1.23456789,7.89123456),1.23456789*.0001+7.89123456*.0003);
+offset=13;
+assert.equal(memo.groundHeightAt(1.23456789,7.89123456),1.23456789*.0001+7.89123456*.0003+13,'runtime authority never reads a warm rendering memo');
+assert.equal(sourceCalls,beforeRuntime+2,'each runtime query reaches the source after a load');
+plain.dispose();memo.dispose();
+console.log('PASS per-load ground memo: fewer source calls, exact uncached mesh hashes and direct runtime authority; zero/one/default geometry load limits');

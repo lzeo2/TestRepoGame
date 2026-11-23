@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const threeSource = await readFile(new URL('../assets/car-arcade/vendor/three.module.js', import.meta.url), 'utf8');
 const threeURL = moduleURL(threeSource);
@@ -7,8 +8,9 @@ const THREE = await import(threeURL);
 const source = await readFile(new URL('../Games/Capital Drive/neighbourhood.js', import.meta.url), 'utf8');
 const districtsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/districts.js', import.meta.url), 'utf8'));
 const characterURL = moduleURL(await readFile(new URL('../Games/Capital Drive/suburb-character.js', import.meta.url), 'utf8'));
+const waterURL = moduleURL(await readFile(new URL('../Games/Capital Drive/water-contact.js', import.meta.url), 'utf8'));
 const roadsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/road-network.js', import.meta.url), 'utf8'));
-const loadNeighbourhood = async text => import(moduleURL(text.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL).replace('./suburb-character.js', characterURL)));
+const loadNeighbourhood = async text => import(moduleURL(text.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL).replace('./suburb-character.js', characterURL).replace('./water-contact.js', waterURL)));
 const { createNeighbourhoodDetails } = await loadNeighbourhood(source);
 const house = { id: 'house', type: 'house', height: 4, points: [[-6, 20], [6, 20], [6, 32], [-6, 32], [-6, 20]] };
 const base = { roads: [{ id: '1', name: 'Test Street', type: 'residential', width: 8, points: [[-100, 0], [100, 0]] }], buildings: [house], areas: [], landmarks: [], spawn: { x: 0, z: 0 } };
@@ -203,3 +205,17 @@ for(let m=0;m<compactMeshes.length;m++)for(const [name,attribute] of Object.entr
 assert(compactBytes<floatBytes*.6); assert.equal(compact.stats.triangles,reference.stats.triangles);
 assert.deepEqual(compact.entries,reference.entries); compact.dispose();reference.dispose();
 console.log(`PASS compact neighbourhood: exact positions/entries/triangles, bounded normals/colors, ${floatBytes}→${compactBytes} bytes`);
+// Differential check against the retained linear parity path: complex source
+// outlines, concave bays and reversed winding must make identical decisions.
+const linearSource=source.replace('if(points.length>=32){','if(false){');assert.notEqual(linearSource,source);
+const {createNeighbourhoodDetails:linearDetails}=await loadNeighbourhood(linearSource);
+const meshHash=target=>{const hash=createHash('sha256');target.traverse(mesh=>{if(!mesh.isMesh)return;hash.update(mesh.name);for(const [name,a]of Object.entries(mesh.geometry.attributes))hash.update(name).update(Buffer.from(a.array.buffer,a.array.byteOffset,a.array.byteLength));});return hash.digest('hex');};
+for(const centreZ of [8,40,90])for(const reversed of [false,true]){
+ const ring=Array.from({length:96},(_,i)=>{const angle=i/96*Math.PI*2,radius=10+3*Math.sin(angle*5);return [Math.cos(angle)*radius,centreZ+Math.sin(angle)*radius];});ring.push([...ring[0]]);if(reversed)ring.reverse();
+ const fixture={...base,areas:[{id:'complex-source-park',type:'park',points:ring}]},indexedScene=new THREE.Scene(),linearScene=new THREE.Scene();
+ const indexed=createNeighbourhoodDetails(indexedScene,fixture,()=>0),linear=linearDetails(linearScene,fixture,()=>0);
+ assert.deepEqual(indexed.entries,linear.entries);assert.deepEqual(indexed.backyardBarriers,linear.backyardBarriers);
+ assert.deepEqual(indexed.sourceStats,linear.sourceStats);assert.equal(meshHash(indexedScene),meshHash(linearScene),'indexed source parity preserves every frontage/garden vertex and compact attribute');
+ indexed.dispose();linear.dispose();
+}
+console.log('PASS indexed large-source rings: concave boundaries/reversed winding retain exact linear-parity geometry, doors and physical fences');
