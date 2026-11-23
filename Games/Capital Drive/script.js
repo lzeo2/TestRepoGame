@@ -753,7 +753,9 @@ function updateNavigation(){
   if(!navigation.hidden&&airGuideState){
     const {distance,turnAngle,arrived}=airGuideState;
     $('navigation-distance').textContent=distance>=1000?`${(distance/1000).toFixed(1)} km`:`${Math.round(distance)} m`;
-    $('navigation-instruction').textContent=arrived?'Over target':objective.label||`Fly to ${objective.name}`;
+    const gate=skylineLease&&skylineJob.snapshot().stage==='flight',rise=gate?objective.y-flight.y:0;
+    $('navigation-instruction').textContent=gate&&Math.abs(rise)>25?`${rise>0?'Climb':'Descend'} ${Math.round(Math.abs(rise))} m to gate`:
+      arrived?'Over target':objective.label||`Fly to ${objective.name}`;
     const symbol=$('navigation-symbol');
     symbol.setAttribute('d',arrived?'M12 42 V6 H36 V24 H12':'M24 43 V6 M12 18 L24 6 L36 18');
     symbol.setAttribute('transform',arrived?'':`rotate(${turnAngle*180/Math.PI} 24 24)`);
@@ -975,7 +977,9 @@ function placeSkylineFall(pose){
 }
 function handleSkylineEvents(){
   for(const event of skylineJob.drainEvents()){
-    if(event.type==='landed'){
+    if(event.type==='parachute-deployed'){
+      clearTimeout(toastTimer);$('toast').hidden=true;
+    }else if(event.type==='landed'){
       const {pose}=event;
       if(simulation.waterAt(pose.x,pose.z,{underBridge:true})||simulation.moveActor({...pose},0,0,.45).blocked){
         skylineJob.fail('Landing blocked. Aim for the marked drop zone.');continue;
@@ -3886,9 +3890,9 @@ function animate(time) {
     }
     indoorActorView?.update({...gameplay.state,actor:drawnActor,armour:exteriorState.armour,mode:cameraClear&&!workout&&!scoped?'foot':'vehicle',police:gameplay.state.police.filter(unit=>unit.interiorId===interiors.active.id),shots:gameplay.state.shots.filter(shot=>shot.interiorId===interiors.active.id)},{dt:activeDt,time:time/1000,focus:p,objective:null});
   } else if(skylineAirPose){
-    const angle=footCameraYaw,distance=9;
-    desiredCamera.set(p.x+Math.sin(angle)*distance,p.y+4,p.z+Math.cos(angle)*distance);
-    lookTarget.set(p.x-Math.sin(angle)*6,p.y-6,p.z-Math.cos(angle)*6);
+    const angle=footCameraYaw,distance=12;
+    desiredCamera.set(p.x+Math.sin(angle)*distance,p.y+18,p.z+Math.cos(angle)*distance);
+    lookTarget.set(p.x,p.y+2,p.z);
   } else if(aircraft?.active){
     const angle=p.yaw+orbit,distance=19+Math.min(7,aircraft.active.speed*.1);
     desiredCamera.set(p.x+Math.sin(angle)*distance,p.y+7+orbitHeight,p.z+Math.cos(angle)*distance);

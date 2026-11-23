@@ -31,12 +31,20 @@ export function createSkylineSiteView(scene,heightAt=()=>0) {
     props.setMatrixAt(props.count,pose.matrix);props.setColorAt(props.count++,color.setHex(tint));
   }
   function ring(point,radius,tint){for(let i=0;i<16;i++){const angle=i*Math.PI/8;box(point,Math.sin(angle)*radius,.065,Math.cos(angle)*radius,.20,.035,radius*.39,tint,angle+Math.PI/2);}}
-  function rope(a,b){
+  function joint(a,b,width=.024,shade=0xd4d5c1){
     if(props.count>=CAPACITY)return;
-    direction.subVectors(b,a);pose.position.copy(a).add(b).multiplyScalar(.5);pose.quaternion.setFromUnitVectors(up,direction.clone().normalize());pose.scale.set(.024,direction.length(),.024);pose.updateMatrix();
-    props.setMatrixAt(props.count,pose.matrix);props.setColorAt(props.count++,color.setHex(0xd4d5c1));
+    direction.subVectors(b,a);const length=direction.length();
+    pose.position.copy(a).add(b).multiplyScalar(.5);pose.quaternion.setFromUnitVectors(up,direction.normalize());pose.scale.set(width,length,width);pose.updateMatrix();
+    props.setMatrixAt(props.count,pose.matrix);props.setColorAt(props.count++,color.setHex(shade));
   }
-  function rebuild(snapshot,nearSite){
+  function flightGate(point,previous){
+    const dx=point.x-previous.x,dz=point.z-previous.z,length=Math.hypot(dx,dz)||1;
+    const ringPoint=(angle,out)=>out.set(point.x+dz/length*Math.cos(angle)*point.radius,
+      point.y+Math.sin(angle)*point.radius,point.z-dx/length*Math.cos(angle)*point.radius);
+    const a=new THREE.Vector3(),b=new THREE.Vector3();
+    for(let i=0;i<20;i++)joint(ringPoint(i*Math.PI/10,a),ringPoint((i+1)*Math.PI/10,b),.9,i%2?0xf2bc56:0xd99d3e);
+  }
+  function rebuild(snapshot,nearSite,nearGate){
     props.count=0;
     if(nearSite){
       const open=['loot','boss','helipad','boarding','flight'].includes(snapshot.stage);
@@ -58,14 +66,21 @@ export function createSkylineSiteView(scene,heightAt=()=>0) {
       if(valid(layout.landing)&&['freefall','parachute','landing'].includes(snapshot.stage))ring(layout.landing,8,0xd1a965);
       if(valid(snapshot.marker)&&!['flight','freefall','parachute','landing'].includes(snapshot.stage))ring(snapshot.marker,2.7,0xd3ae68);
     }
+    if(nearGate){
+      const index=layout.airRoute.findIndex(point=>point.id===snapshot.marker.id);
+      if(index>=0)flightGate(snapshot.marker,layout.airRoute[index-1]||layout.helipad);
+    }
   }
   function update(snapshot,focus={}){
     if(disposed)return;
     const active=snapshot?.active===true&&snapshot.layout?.fictional===true;
     root.visible=active;shown=active;if(!active){canopy.visible=false;props.count=0;lastKey='';return;}
     const nearSite=!valid(focus)||!valid(snapshot.layout.origin)||Math.hypot(focus.x-snapshot.layout.origin.x,focus.z-snapshot.layout.origin.z)<RANGE;
-    const nextKey=[snapshot.missionId,snapshot.stage,snapshot.marker?.id,snapshot.lootCollected,nearSite].join(':');
-    if(layout!==snapshot.layout||nextKey!==lastKey){layout=snapshot.layout;rebuild(snapshot,nearSite);lastKey=nextKey;staticCount=props.count;}
+    const marker=snapshot.marker;
+    const nearGate=snapshot.stage==='flight'&&valid(marker)&&Number.isFinite(marker.y)&&marker.radius>0&&
+      (!valid(focus)||Math.hypot(focus.x-marker.x,focus.z-marker.z)<850);
+    const nextKey=[snapshot.missionId,snapshot.stage,marker?.id,snapshot.lootCollected,nearSite,nearGate].join(':');
+    if(layout!==snapshot.layout||nextKey!==lastKey){layout=snapshot.layout;rebuild(snapshot,nearSite,nearGate);lastKey=nextKey;staticCount=props.count;}
     props.count=staticCount;
     // Ropes follow the authoritative pose; no freefall canopy or landed canopy.
     const p=snapshot.pose;
@@ -75,7 +90,7 @@ export function createSkylineSiteView(scene,heightAt=()=>0) {
       const c=Math.cos(canopy.rotation.y),s=Math.sin(canopy.rotation.y);
       for(const side of [-1,1])for(const z of [-1,1]){
         const a=new THREE.Vector3(side*.25,1.35,z*.12),b=new THREE.Vector3(side*3.1,3.7,z*1.1);
-        for(const v of [a,b]){const x=v.x;v.set(p.x+c*x+s*v.z,p.y+v.y,p.z-s*x+c*v.z);}rope(a,b);
+        for(const v of [a,b]){const x=v.x;v.set(p.x+c*x+s*v.z,p.y+v.y,p.z-s*x+c*v.z);}joint(a,b);
       }
     }
     props.instanceMatrix.needsUpdate=true;if(props.instanceColor)props.instanceColor.needsUpdate=true;

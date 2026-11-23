@@ -4,6 +4,7 @@ function fixture(kind='bank') {
   const site={id:{bank:'civic-bank',jeweller:'manuka-jewels',tower:'black-mountain-archive'}[kind],kind,name:'Fictional test shop',x:0,z:0};
   const roomId=`interior-${site.id}`,employee={id:`${roomId}-employee`,roomId,storeId:site.id,kind:'employee',x:0,z:0,health:100};
   const room={id:roomId,storeId:site.id,heistSiteId:site.id,employeeId:employee.id,loot:{id:`${roomId}-loot`,x:2,z:0,radius:1.4}};
+  if(kind==='bank')room.console={id:`${roomId}-console`,x:-2,z:0,radius:1.2};
   const ctx={pose:{x:0,z:2},room,employee,indoors:true,onFoot:true,wanted:0,armed:true,aiming:true,aimYaw:0};
   const heat=[],rewards=[];let sight=true;
   const heists=createHeistActivities({sites:[site],canSee:()=>sight,onHeat:e=>heat.push(e),onReward:e=>rewards.push(e)});
@@ -27,7 +28,15 @@ for(const kind of ['bank','jeweller','tower']) {
   assert.deepEqual(heat,[]);assert.deepEqual(rewards,[],'hold grants no payout or robbery shortcut');
   heists.step(1,{...ctx,paused:true});assert.equal(heists.snapshot().hostage.remaining,12);
   heists.step(1,ctx);assert.equal(heists.snapshot().hostage.remaining,11);
-  const pickup={...ctx,pose:ctx.room.loot};assert(heists.interact(pickup).ok,'normal cash/case collection still works during hold');
+  const pickup={...ctx,pose:ctx.room.loot};
+  if(kind==='bank'){
+    assert.equal(heists.interact(pickup),null,'the standoff cannot bypass the secured console');
+    const consoleCtx={...ctx,pose:ctx.room.console};
+    assert(heists.interact(consoleCtx).ok);
+    for(let i=0;i<4;i++)heists.step(1,consoleCtx);
+    assert.equal(heists.snapshot().phase,'loot');assert.equal(heat.length,0);
+  }
+  assert(heists.interact(pickup).ok,'normal cash/case collection still works during hold');
   assert.equal(heists.snapshot().phase,'escape');assert.equal(heat.length,1);assert.equal(rewards.length,0);
   assert(heists.toggleHostage(ctx).ok);assert.equal(heists.snapshot().hostage,null);
   assert.equal(heists.hostageAction(ctx),null,'voluntary release cannot be followed by another hold in the same attempt');

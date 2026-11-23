@@ -145,7 +145,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
 
   // A short fictional standoff is an optional game state, not a police-immunity grant.
   function hostageAction(ctx = {}) {
-    if (!current?.employeeId || !['surrender','escape'].includes(current.phase) ||
+    if (!current?.employeeId || !['surrender','release','loot','escape'].includes(current.phase) ||
         !isPoint(ctx.pose) || ctx.paused || ctx.recovering || ctx.busy || ctx.doorway ||
         Boolean(ctx.sandbox) !== current.sandbox || indoorSite(ctx) !== current.site ||
         ctx.room.id !== current.roomId || !matchingEmployee(ctx,ctx.room) ||
@@ -225,7 +225,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
   }
 
   function unlockCash(attempt){
-    attempt.phase='loot';attempt.hostage=null;
+    attempt.phase='loot';
     return message(true,'Cash unlocked. Walk to the marked cash pickup and press E / USE.');
   }
 

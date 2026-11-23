@@ -21,6 +21,12 @@ view.update(loot,loot.layout.origin);assert(!view.stats().parachute);assert(view
 const count=view.stats().instances;
 view.update({...loot,lootCollected:true},loot.layout.origin);assert(view.stats().instances<count,'collected case disappears');
 view.update(loot,{x:5000,z:5000});assert.equal(view.stats().draws,0);
+const marker=deployed.layout.airRoute[1],flight={...deployed,stage:'flight',marker,pose:null};
+view.update(flight,marker);assert.equal(view.stats().draws,1);assert.equal(view.stats().instances,20,'distant air gate shares the existing prop pool');
+const gateMesh=scene.children[0].children.find(child=>child.isInstancedMesh),matrix=new THREE.Matrix4(),translation=new THREE.Vector3();
+gateMesh.getMatrixAt(5,matrix);translation.setFromMatrixPosition(matrix);
+assert(translation.y>marker.y+marker.radius*.9,'upright gate uses the supplied airborne height');
+view.update(flight,{x:5000,z:5000});assert.equal(view.stats().draws,0,'distant gates cull independently of the yard');
 view.update({...deployed,active:false},deployed.pose);assert.equal(view.stats().draws,0);
 assert.equal(JSON.stringify(freefall),before);assert.deepEqual(view.physicalProps,[]);
 let disposals=0;scene.traverse(o=>{if(o.isMesh)o.geometry.addEventListener('dispose',()=>disposals++);});
