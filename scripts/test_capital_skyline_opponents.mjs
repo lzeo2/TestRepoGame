@@ -58,8 +58,11 @@ assert.equal(opponents.drainEvents()[0].serial,3,'receipt freshness survives cle
 opponents.dispose();opponents.dispose();opponents.step(.1,wave,ctx);assert.equal(opponents.bodies.length,0);
 
 // The actual repeatable job accepts real HP-zero receipts from this owner.
-const job=createSkylineJob({groundHeightAt:()=>12});job.start();job.step(.1,{}, {deploy:true});
-for(let i=0;i<1600&&job.snapshot().stage==='parachute';i++)job.step(.1,{},{});
+const job=createSkylineJob({groundHeightAt:()=>12});job.start();
+for(let i=0;i<300&&['freefall','flare'].includes(job.snapshot().stage);i++){
+ const p=job.snapshot().pose,target=job.layout.landing,dx=target.x-p.x,dz=target.z-p.z,d=Math.max(2.4,Math.hypot(dx,dz));
+ job.step(.1,{}, {steerX:dx/d,steerZ:dz/d});
+}
 job.step(.1,{onFoot:true,player:job.layout.landing});job.step(.1,{onFoot:true,player:job.layout.searches[0]});
 assert.equal(job.snapshot().stage,'encounter');
 const real=createSkylineOpponents({heightAt:()=>12,hasLineOfSight:()=>true});
@@ -68,6 +71,15 @@ for(const enemy of real.bodies)assert.equal(real.hitByShot(enemy.id,100,ray(enem
 const realReceipts=real.drainEvents();assert.equal(realReceipts.length,4);
 job.step(.1,{onFoot:true,player:job.layout.searches[0],enemyOutcomes:realReceipts});
 assert.equal(job.snapshot().stage,'search','actual combat completion unlocks the actual job cache');
+assert(job.interact({onFoot:true,player:job.layout.searches[0]}).ok);
+real.step(0,job.snapshot(),realCtx);assert.equal(real.shotTargets().length,0,'counted response cannot attack early');
+for(let i=0;i<16;i++)job.step(.25,realCtx);
+assert.equal(job.snapshot().encounterKind,'reinforcement');real.step(0,job.snapshot(),realCtx);
+assert.equal(real.bodies.length,2);assert(real.bodies.every(body=>body.health===90),'followup wave has fresh real health');
+for(const enemy of real.bodies)assert.equal(real.hitByShot(enemy.id,100,ray(enemy)).hits,1);
+const followup=real.drainEvents();assert(followup.every(e=>e.serial>4&&e.encounterId!==realReceipts[0].encounterId));
+job.step(.1,{onFoot:true,player:job.layout.searches[0],enemyOutcomes:followup});assert.equal(job.snapshot().stage,'capture');
+assert(job.interact({onFoot:true,player:job.layout.searches[0]}).ok);assert.equal(job.snapshot().stage,'approach');
 real.dispose();
 const unsafe=createSkylineOpponents({heightAt:()=>12,hasLineOfSight:()=>true,clipMovement:()=>({dx:900,dz:0})});
 unsafe.step(.1,wave,ctx);assert.equal(unsafe.bodies[0].x,wave.enemies[0].x,'unbounded movement callback cannot teleport an opponent');unsafe.dispose();

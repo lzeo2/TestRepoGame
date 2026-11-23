@@ -374,7 +374,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
   const animatedJoints = [body, head, ...legs, ...knees, ...arms, ...elbows];
   const blendedAngles = new Float64Array(animatedJoints.length * 3);
   let poseReady = false, locomotionSpeed = 0, blendedBodyZ = 0, renderedAimOffset = 0, crouchAngle = 0;
-  let swimPhase=0, swimRootY=null;
+  let swimPhase=0, swimRootY=null,divePitch=0;
   let gaitX=null,gaitZ=null,gaitForward=1,gaitSide=0;
   const solePoint=new THREE.Vector3();
   let lastShotSerial = 0, flashRemaining = 0;
@@ -390,6 +390,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
     const center = { x: finite(focus?.x), z: finite(focus?.z) };
     const pose = state.actor || {};
     const swimming=pose.swimming===true && Number.isFinite(pose.swimSurfaceY);
+    const diving=!swimming&&finite(pose.impactTime)===0&&finite(state.health,100)>0&&(pose.skydive==='fall'||pose.skydive==='flare');
     const shotSerial = finite(state.combatFeedback?.shotSerial, finite(state.shotSerial));
     const recoil = clamp(state.combatFeedback?.recoil ?? state.shotKick, 0, 1);
     const newShot = shotSerial > 0 && shotSerial !== lastShotSerial;
@@ -403,12 +404,12 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
     // Only a supplied shot edge can start a flash; room-filtered empty lists
     // clear it immediately, including when coordinates overlap another room.
     if (newShot && livePlayerShot) flashRemaining = FLASH_DURATION;
-    if (!livePlayerShot || state.mode !== 'foot' || swimming || finite(state.reloading) > 0 || finite(pose.impactTime) > 0) flashRemaining = 0;
+    if (!livePlayerShot || state.mode !== 'foot' || swimming || diving || finite(state.reloading) > 0 || finite(pose.impactTime) > 0) flashRemaining = 0;
     actor.visible = state.mode === 'foot' && near(pose, center);
     counters.armourVisible = armourVest.visible = actor.visible && Number.isFinite(state.armour) && state.armour > 0;
     if (actor.visible) {
       const speed = clamp(Math.abs(finite(pose.speed)), 0, 12);
-      const attack = swimming?0:clamp(state.attackTimer, 0, .3), serial = Number.isFinite(state.attackSerial) ? state.attackSerial : null;
+      const attack = swimming||diving?0:clamp(state.attackTimer, 0, .3), serial = Number.isFinite(state.attackSerial) ? state.attackSerial : null;
       if (state.weapon === 'unarmed' && attack > 0 && ((serial !== null && serial !== lastAttackSerial) || (serial === null && attack > lastAttackTimer + 1e-6))) punchingArm = serial !== null ? (Math.abs(Math.floor(serial)) % 2 ? 1 : 0) : 1-punchingArm;
       lastAttackSerial = serial; lastAttackTimer = attack;
       body.position.set(0,0,0); body.rotation.set(0,0,0); head.rotation.set(0,0,0);
@@ -446,8 +447,8 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
         arms[i].rotation.set(-swing*gaitForward*(.7+running*.25),0,(i?-1:1)*(.08+Math.abs(swing*gaitSide)*.18));
         elbows[i].rotation.set(-.12-running*.7-crouchAngle*.12,0,0);
       }
-      const firearm = swimming?null:weapons[state.weapon];
-      for (const [id, weapon] of weaponEntries) weapon.visible = !swimming && id === state.weapon;
+      const firearm = swimming||diving?null:weapons[state.weapon];
+      for (const [id, weapon] of weaponEntries) weapon.visible = !swimming && !diving && id === state.weapon;
       let aimOffset = 0;
       if (state.weapon === 'sniper' || state.weapon === 'rpg') {
         arms[1].rotation.x = .8; elbows[1].rotation.x = .38;
@@ -494,6 +495,16 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
           knees[i].rotation.x=.26+Math.max(0,-stroke)*.43;
         }
       }
+      if(diving){
+        body.position.set(0,0,0);body.rotation.set(-.08,0,0);head.rotation.x=.28;
+        for(let i=0;i<2;i++){
+          const side=i? -1:1;
+          legs[i].rotation.set(pose.skydive==='fall'?.24:-.18,0,side*.24);
+          knees[i].rotation.set(pose.skydive==='fall'?.48:.72,0,0);
+          arms[i].rotation.set(pose.skydive==='fall'?-.28:.55,0,side*(pose.skydive==='fall'?1.20:.92));
+          elbows[i].rotation.set(-.65,0,0);
+        }
+      }
       // Camera pitch/recoil respond immediately during aim. On release their
       // offset fades with the stance instead of snapping the shoulders down.
       const liveAim = firearm && finite(state.reloading) <= 0 && (state.aiming || attack > 0 || recoil > .001);
@@ -523,9 +534,16 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
         actor.position.y=swimRootY;
         if(Math.abs(ordinaryY-swimRootY)<.025) {actor.position.y=ordinaryY;swimRootY=null;}
       }
+      // The same articulated adult supplies the dive silhouette, with a pelvis
+      // pivot and a short flare-to-standing blend. No gameplay translation moves.
+      const diveTarget=diving?(pose.skydive==='fall'?-1.32:-.38):0;
+      divePitch+=(diveTarget-divePitch)*(1-Math.exp(-step*12));
+      if(!swimming&&finite(pose.impactTime)===0&&Math.abs(divePitch)>.0001){
+        actor.rotation.x=divePitch;actor.position.y+=.84*actor.scale.y*(1-Math.cos(divePitch));
+      }
       // Set the lower sole against the sampled surface, after joint blending.
       // This bounded visual correction never moves the authoritative x/z root.
-      const grounded=!swimming&&jump===0&&finite(pose.impactTime)===0&&!state.aiming&&attack===0&&finite(state.reloading)===0;
+      const grounded=!swimming&&!diving&&Math.abs(divePitch)<.01&&jump===0&&finite(pose.impactTime)===0&&!state.aiming&&attack===0&&finite(state.reloading)===0;
       if(grounded&&(moving>.01||crouchAngle>.01)){
         let lift=-Infinity;
         for(let i=0;i<2;i++)for(let corner=0;corner<8;corner++){
@@ -540,7 +558,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
       poseReady = true;
       if(swimming) impactPose.reset(); else impactPose.update(pose, step, state.health);
     } else {
-      impactPose.reset(); poseReady = false; locomotionSpeed = 0; renderedAimOffset = 0; crouchAngle = 0;swimRootY=null;swimPhase=0;gaitX=gaitZ=null;gaitForward=1;gaitSide=0;
+      impactPose.reset(); poseReady = false; locomotionSpeed = 0; renderedAimOffset = 0; crouchAngle = 0;swimRootY=null;swimPhase=0;divePitch=0;gaitX=gaitZ=null;gaitForward=1;gaitSide=0;
     }
     counters.police = 0; counters.officers = 0;let muzzleCount=0;
     // Officers also render in lazy rooms that have no patrol-car allocation.
@@ -615,7 +633,7 @@ export function createActorView(scene, heightAt, { policeLimit = POLICE_LIMIT, p
     streaks.instanceMatrix.needsUpdate = impacts.instanceMatrix.needsUpdate = true;
     marker.visible = near(objective, center, 850);
     if (marker.visible) { marker.position.set(objective.x, ground(objective.x, objective.z), objective.z); arrow.position.y = 3.2 + Math.sin(clock * 2) * .15; }
-    counters.activeWeapon = actor.visible && !swimming && weapons[state.weapon] ? state.weapon : null;
+    counters.activeWeapon = actor.visible && !swimming && !diving && weapons[state.weapon] ? state.weapon : null;
     counters.playerVisible = actor.visible; counters.objectiveVisible = marker.visible; counters.drawCalls = 0;
     root.traverseVisible(object => { if (object.isMesh) counters.drawCalls++; });
   }

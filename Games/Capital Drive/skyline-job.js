@@ -2,6 +2,9 @@
 // rules; this module has no wallet, persistence, combat or aircraft authority.
 export const SKYLINE_JOB_ID='skyline-retrieval';
 const SYMBOLS=Object.freeze(['x','up','y']);
+const DROP_HEIGHT=600, DROP_APPROACH=120, DROP_STEER_SPEED=24;
+const FREEFALL_SPEED=46, LANDING_HEIGHT=24, LANDING_SPEED=8;
+const RESPONSE_SECONDS=4;
 const finite=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 const freeze=value=>{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;};
@@ -14,6 +17,7 @@ export function createSkylineJob({site={x:0,z:0,yaw:0,groundY:0},groundHeightAt}
   const point=(x,z)=>{const wx=site.x+c*x+s*z,wz=site.z-s*x+c*z;return{x:wx,z:wz,y:ground(wx,wz),yaw};};
   const station=(id,label,x,z,radius=2.2)=>freeze({id,label,...point(x,z),radius});
   const landing=station('skyline-landing','Marked drop zone',-140,-150,28);
+  const dropStart=point(-140,-150+DROP_APPROACH);
   const searches=freeze([
     station('skyline-relay','Relay cache',115,-145),
     station('skyline-manifest','Manifest cache',-125,55),
@@ -23,7 +27,7 @@ export function createSkylineJob({site={x:0,z:0,yaw:0,groundY:0},groundHeightAt}
   const helipad=station('skyline-helipad','Extraction helipad',-155,155,10);
   const airRoute=freeze([station('skyline-flight-1','Fly through the first air marker',-150,-650,75),station('skyline-flight-2','Fly through the second air marker',650,-1150,75),station('skyline-flight-3','Reach the extraction air marker',1050,-400,90)].map(p=>({...p,y:p.y+80,altitude:80})));
   const layout=freeze({id:'skyline-temporary-yard',name:'Skylark freight yard',fictional:true,origin:{...point(0,0)},width:400,depth:400,landing,searches,safe,loot,helipad,airRoute,
-    briefing:'Drop into the fictional Skylark yard. Search three caches, clear the crew, match the safe symbols, collect the case and defeat the foreman. Reach the helicopter and pilot it through the air markers.',
+    briefing:'Drop into the fictional Skylark yard. Clear each cache, trigger its alert, defeat the response crew and capture it. Match the safe symbols, collect the case and defeat the foreman. Pilot the extraction helicopter through the air markers.',
     targetDurationSeconds:900,reward:8500});
   let attempt=0,eventSerial=0,current=null,events=[],cached=null;
   const dirty=()=>{cached=null;};
@@ -40,20 +44,22 @@ export function createSkylineJob({site={x:0,z:0,yaw:0,groundY:0},groundHeightAt}
   function start(){
     if(active())return result(false,'Finish or cancel the active retrieval.');
     attempt++;
-    current={missionId:`${SKYLINE_JOB_ID}:${attempt}`,stage:'freefall',elapsed:0,leg:0,enemies:[],defeated:new Set(),
-      pose:{...landing,y:landing.y+760,verticalSpeed:-34,parachute:false},safeRound:0,safeIndex:0,safeRemaining:0,safeMistakes:0,safeSequence:[],loot:false,
+    current={missionId:`${SKYLINE_JOB_ID}:${attempt}`,stage:'freefall',elapsed:0,leg:0,enemies:[],defeated:new Set(),alerted:new Set(),reinforced:new Set(),responseRemaining:0,encounterKind:null,
+      pose:{...dropStart,y:dropStart.y+DROP_HEIGHT,verticalSpeed:-FREEFALL_SPEED},safeRound:0,safeIndex:0,safeRemaining:0,safeMistakes:0,safeSequence:[],loot:false,
       flightIndex:0,controlledSeconds:0,flightDistance:0,lastFlight:null,reason:'',extractionId:`skyline-extraction:${attempt}`};
-    dirty();emit('started',{pose:{...current.pose}});return result(true,'Steer toward the drop zone. Deploy the parachute before landing.');
+    dirty();emit('started',{pose:{...current.pose}});return result(true,'Steer into the marked drop zone and release the controls over the ring.');
   }
-  function encounter(boss=false){
-    const center=boss?point(-45,20):searches[current.leg],id=`${current.missionId}:${boss?'boss':`wave-${current.leg+1}`}`;
-    current.enemies=freeze(Array.from({length:boss?1:4},(_,i)=>{
-      const angle=yaw+i*Math.PI/2,p={x:center.x+Math.cos(angle)*(boss?6:12),z:center.z+Math.sin(angle)*(boss?6:12)};
+  function encounter(boss=false,reinforcement=false){
+    const center=boss?point(-45,20):searches[current.leg],id=`${current.missionId}:${boss?'boss':`${reinforcement?'reinforcement':'wave'}-${current.leg+1}`}`;
+    const offsets=[[-13,-8],[13,8],[-10,12]],count=boss?1:reinforcement?(current.leg===0?2:3):4;
+    current.enemies=freeze(Array.from({length:count},(_,i)=>{
+      const angle=yaw+i*Math.PI/2,[dx,dz]=offsets[(i+current.leg)%offsets.length];
+      const p=reinforcement?{x:center.x+c*dx+s*dz,z:center.z-s*dx+c*dz}:{x:center.x+Math.cos(angle)*(boss?6:12),z:center.z+Math.sin(angle)*(boss?6:12)};
       const targetId=`${id}:${i+1}`;
       return {id:targetId,targetId,missionId:current.missionId,encounterId:id,...p,y:ground(p.x,p.z),yaw,
-        health:boss?220:100,label:boss?'Foreman Vale':`Skylark crew ${i+1}`,appearanceId:boss?'contract:skyline-foreman':'contract:skyline-crew',boss};
+        health:boss?220:reinforcement?90+current.leg*10:100,label:boss?'Foreman Vale':`Skylark ${reinforcement?'response':'crew'} ${i+1}`,appearanceId:boss?'contract:skyline-foreman':reinforcement?'contract:skyline-response':'contract:skyline-crew',boss,reinforcement};
     }));
-    current.encounterId=id;current.defeated=new Set();setStage(boss?'boss':'encounter');emit('encounter-start',{encounterId:id,enemies:current.enemies,boss});
+    current.encounterId=id;current.encounterKind=boss?'boss':reinforcement?'reinforcement':'initial';current.defeated=new Set();setStage(boss?'boss':'encounter');emit('encounter-start',{encounterId:id,enemies:current.enemies,boss,reinforcement});
   }
   function beginSafeRound(){
     const length=4+current.safeRound;
@@ -78,9 +84,15 @@ export function createSkylineJob({site={x:0,z:0,yaw:0,groundY:0},groundHeightAt}
   function interact(ctx={}){
     if(!usable(ctx)||!active())return result(false,'No available job interaction.');
     if(current.stage==='search'&&near(ctx,searches[current.leg])){
-      emit('cache-searched',{stationId:searches[current.leg].id});current.leg++;
+      if(current.alerted.has(current.leg))return result(false,'Clear the response crew before capturing this cache.');
+      current.alerted.add(current.leg);current.responseRemaining=RESPONSE_SECONDS;
+      setStage('response');emit('reinforcement-alert',{stationId:searches[current.leg].id,cacheIndex:current.leg+1,responseSeconds:RESPONSE_SECONDS});
+      return result(true,'Cache alert triggered. Response crew arrives in 4 seconds.');
+    }
+    if(current.stage==='capture'&&current.reinforced.has(current.leg)&&near(ctx,searches[current.leg])){
+      emit('cache-searched',{stationId:searches[current.leg].id,captured:true});current.leg++;
       setStage(current.leg<searches.length?'approach':'safe-approach');
-      return result(true,current.leg<searches.length?'Cache checked. Reach the next cache.':'Cipher collected. Reach the symbol safe.');
+      return result(true,current.leg<searches.length?'Cache captured. Reach the next cache.':'Final cache captured. Reach the symbol safe.');
     }
     if(current.stage==='safe-approach'&&near(ctx,safe)){beginSafeRound();setStage('safe');return result(true,'Match each visible symbol before its row timer expires.');}
     if(current.stage==='loot'&&near(ctx,loot)){
@@ -99,31 +111,42 @@ export function createSkylineJob({site={x:0,z:0,yaw:0,groundY:0},groundHeightAt}
     // Fixed-step callers normally supply 1/60. Long suspended frames cannot
     // skip the drop, safe or moving-flight checks.
     dt=Math.min(dt,.25);current.elapsed+=dt;dirty();
-    if(current.stage==='freefall'||current.stage==='parachute'){
-      const p=current.pose,altitude=p.y-ground(p.x,p.z);
-      if(input.deploy===true&&current.stage==='freefall'&&altitude>=12){p.parachute=true;p.verticalSpeed=-6.5;setStage('parachute');emit('parachute-deployed');}
+    if(current.stage==='freefall'||current.stage==='flare'){
+      const p=current.pose;
       let dx=clamp(input.steerX),dz=clamp(input.steerZ),length=Math.hypot(dx,dz);if(length>1){dx/=length;dz/=length;}
-      const speed=p.parachute?17:9;p.x+=dx*speed*dt;p.z+=dz*speed*dt;
+      const speed=current.stage==='flare'?LANDING_SPEED:DROP_STEER_SPEED;
+      p.x+=dx*speed*dt;p.z+=dz*speed*dt;
       if(length>.01)p.yaw=Math.atan2(-dx,-dz);
-      p.y+=p.verticalSpeed*dt;
       const floor=ground(p.x,p.z);
+      const inZone=distance(p,landing)<=landing.radius;
+      if(current.stage==='freefall'&&inZone&&p.y-floor<=LANDING_HEIGHT&&p.y>=floor){
+        p.verticalSpeed=-LANDING_SPEED;
+        setStage('flare');emit('landing-flare');
+      }
+      p.y+=p.verticalSpeed*dt;
       if(p.y<=floor){
         p.y=floor;
-        if(!p.parachute){fail('Hard landing. Deploy the parachute on the next attempt.');return;}
+        if(current.stage!=='flare'||!inZone){fail('Missed the drop zone. Steer into the ring before reaching the ground.');return;}
         p.verticalSpeed=0;setStage('landing');emit('landed',{pose:{...p}});
       }
       return;
     }
     if(current.stage==='landing'&&near(ctx,landing)){setStage('approach');return;}
     if(current.stage==='approach'&&near(ctx,searches[current.leg],32)){encounter();return;}
+    if(current.stage==='response'){
+      current.responseRemaining=Math.max(0,current.responseRemaining-dt);
+      if(!current.responseRemaining)encounter(false,true);
+      return;
+    }
     if(current.stage==='encounter'||current.stage==='boss'){
       for(const receipt of Array.isArray(ctx.enemyOutcomes)?ctx.enemyOutcomes:[]){
-        if(receipt?.type!=='defeated'||receipt.missionId!==current.missionId||receipt.outcome!=='killed'||!Number.isSafeInteger(receipt.serial)||receipt.serial<=0||receipt.encounterId&&receipt.encounterId!==current.encounterId)continue;
+        if(receipt?.type!=='defeated'||receipt.missionId!==current.missionId||receipt.outcome!=='killed'||!Number.isSafeInteger(receipt.serial)||receipt.serial<=0||receipt.encounterId!==current.encounterId)continue;
         if(current.enemies.some(e=>e.targetId===receipt.targetId))current.defeated.add(receipt.targetId);
       }
       if(current.enemies.every(e=>current.defeated.has(e.targetId))){
-        const boss=current.stage==='boss';emit('encounter-cleared',{encounterId:current.encounterId,boss});current.enemies=[];
-        setStage(boss?'helipad':'search');
+        const boss=current.stage==='boss',reinforcement=current.encounterKind==='reinforcement';emit('encounter-cleared',{encounterId:current.encounterId,boss,reinforcement});current.enemies=[];
+        if(reinforcement)current.reinforced.add(current.leg);
+        setStage(boss?'helipad':reinforcement?'capture':'search');
         if(boss)emit('extraction-ready',{vehicleId:current.extractionId,pad:helipad});
       }
       return;
@@ -159,8 +182,8 @@ export function createSkylineJob({site={x:0,z:0,yaw:0,groundY:0},groundHeightAt}
   }
   function marker(){
     if(!current)return null;
-    if(['freefall','parachute','landing'].includes(current.stage))return landing;
-    if(['approach','search','encounter'].includes(current.stage))return searches[current.leg];
+    if(['freefall','flare','landing'].includes(current.stage))return landing;
+    if(['approach','search','response','encounter','capture'].includes(current.stage))return searches[current.leg];
     if(['safe-approach','safe'].includes(current.stage))return safe;
     if(current.stage==='loot')return loot;
     if(current.stage==='boss')return current.enemies[0]||null;
@@ -168,11 +191,13 @@ export function createSkylineJob({site={x:0,z:0,yaw:0,groundY:0},groundHeightAt}
     if(current.stage==='flight')return airRoute[Math.min(current.flightIndex,airRoute.length-1)];
     return null;
   }
-  const objective=()=>({freefall:'Steer to the drop zone. Deploy the parachute.',parachute:'Steer the parachute onto the marked drop zone.',landing:'Reach the marked drop zone on foot.',approach:'Reach the next marked cache.',encounter:'Defeat the crew guarding this cache.',search:'Search the cleared cache on foot.',
+  const objective=()=>({freefall:'Steer into the marked drop zone.',flare:'Landing. Stay inside the ring.',landing:'Drop zone reached.',approach:'Reach the next marked cache.',encounter:current?.encounterKind==='reinforcement'?'Defeat the cache response crew.':'Defeat the crew guarding this cache.',search:'Use the cleared cache to trigger its alert.',response:`Response crew arrives in ${Math.ceil(current?.responseRemaining||0)}s.`,capture:'Response crew cleared. Capture the cache on foot.',
     'safe-approach':'Reach the symbol safe on foot.',safe:'Match the visible symbol row before its timer expires.',loot:'Take the sealed case from the open safe.',boss:'Defeat foreman Vale.',helipad:'Reach the helipad and board the extraction helicopter.',boarding:'Board the active extraction helicopter.',flight:'Pilot through the air markers. Keep moving above the flight floor.',complete:'Retrieval complete.',failed:current?.reason,cancelled:'Retrieval cancelled.'})[current?.stage]||'Start the Skylark retrieval.';
   function snapshot(){
     if(!cached)cached=freeze({active:Boolean(active()),jobId:SKYLINE_JOB_ID,missionId:current?.missionId||null,attempt,stage:current?.stage||'idle',objective:objective(),layout,marker:marker(),elapsed:current?.elapsed||0,
       pose:current?{...current.pose}:null,enemies:current?.enemies||[],encounterId:current?.encounterId||null,defeated:current?[...current.defeated]:[],lootCollected:current?.loot||false,
+      encounterKind:current?.encounterKind||null,responseRemaining:current?.responseRemaining||0,
+      caches:searches.map((cache,i)=>({stationId:cache.id,alerted:current?.alerted.has(i)||false,reinforcementsCleared:current?.reinforced.has(i)||false,captured:(current?.leg||0)>i})),
       safe:{sequence:current?.safeSequence||[],index:current?.safeIndex||0,round:current?.safeRound||0,rounds:3,remaining:Math.max(0,current?.safeRemaining||0),mistakes:current?.safeMistakes||0},
       extraction:{vehicleId:current?.extractionId||null,pad:helipad,route:airRoute,markerIndex:current?.flightIndex||0,controlledSeconds:current?.controlledSeconds||0,requiredSeconds:45,distance:current?.flightDistance||0,requiredDistance:1500},
       targetDurationSeconds:layout.targetDurationSeconds});

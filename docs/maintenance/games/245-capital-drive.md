@@ -267,10 +267,14 @@ details based on two ACT exterior photos. The north and south snapshots retain
 [regional map notes](../../capital-drive-regional-sources.md).
 
 Open More → Skylark job or Jobs → Skylark retrieval while stopped outside to
-start a repeatable original contract. Use WASD to steer the drop and Space to
-deploy the parachute. Search the three guarded caches, match the safe symbols,
-collect the sealed case, beat the foreman and pilot the extraction helicopter
-through three flight gates. Career pays $8,500 after extraction. Free roam is
+start a repeatable original contract. Use WASD to steer the freefall into the
+marked ring and release the controls over it. The arcade landing brakes
+automatically inside the ring. Press E beside the ATV to ride between caches.
+Stop and press E again to hop off. Each cache calls for backup when you start
+the capture. Clear the responding crew, use the concrete barriers and crates
+as cover, then press E at the cache to finish. Match the safe symbols, collect
+the sealed case, beat the foreman and fly through three extraction gates.
+Career pays $8,500 after extraction. Free roam is
 practice. The loan weapon returns to its prior inventory after the attempt.
 The 15-minute duration is a design target that depends on play.
 

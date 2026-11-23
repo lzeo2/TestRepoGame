@@ -353,5 +353,27 @@ for(const cycle of [walkCycle,runCycle,sideCycle,crouchCycle]){
   assert(cycle.rootStep<.25,'ordinary grounded transitions do not pop by a large step');
 }
 console.log('PASS translated walk/sprint/strafe/crouch cycles, sole grounding, bounded transitions and unchanged source/resource lifecycles');
+const diveScene=new THREE.Scene(),diveView=createActorView(diveScene,()=>0,{policeLimit:0,policeCars:false});
+const diveActor=diveScene.getObjectByName('Adult player'),diveShoulders=[];
+diveActor.traverse(o=>{if(o.name==='Shoulder')diveShoulders.push(o);});
+const diveState={mode:'foot',health:100,actor:{x:9,z:11,yaw:.6,speed:0,jumpHeight:0,feetY:300,skydive:'fall'},weapon:'pistol',aiming:false,attackTimer:0,reloading:0,police:[],shots:[]};
+const diveBefore=structuredClone(diveState);
+for(let i=0;i<45;i++)diveView.update(diveState,{dt:1/60});
+assert.deepEqual(diveState,diveBefore,'dive is a display pose, never authoritative motion');
+assert(diveActor.rotation.x<-1.25&&Math.abs(diveShoulders[0].rotation.z)>1.1,'fall displays a horizontal spread-limb dive');
+assert.equal(diveView.stats.activeWeapon,null);assert.equal(diveActor.position.x,9);assert.equal(diveActor.position.z,11);
+const diveDraws=diveView.stats.drawCalls,diveGeometries=diveView.stats.geometryCount;
+const frozenDive=diveActor.rotation.toArray();for(let i=0;i<10;i++)diveView.update(diveState,{dt:0});
+assert.deepEqual(diveActor.rotation.toArray(),frozenDive,'paused dive has no autonomous animation');
+diveState.actor.skydive='flare';for(let i=0;i<45;i++)diveView.update(diveState,{dt:1/60});
+assert(diveActor.rotation.x>-.42&&diveActor.rotation.x<-.35,'brief arcade flare opens the body toward landing');
+assert.equal(diveView.stats.drawCalls,diveDraws);assert.equal(diveView.stats.geometryCount,diveGeometries,'dive and flare add no geometry/draws');
+delete diveState.actor.skydive;diveState.actor.feetY=0;diveState.weapon='unarmed';
+for(let i=0;i<45;i++)diveView.update(diveState,{dt:1/60});
+assert(Math.abs(diveActor.rotation.x)<.01&&Math.abs(diveActor.position.y-.035)<.01,'landing settles into normal grounded stance');
+diveState.actor.skydive='fall';diveState.actor.impactTime=.3;diveState.actor.impactDuration=.5;
+diveView.update(diveState,{dt:1/60});assert.equal(diveView.stats.ragdoll.phase,'flinch','actual impact retains priority over a dive flag');
+diveView.dispose();diveView.dispose();assert.equal(diveScene.children.length,0);
+console.log('PASS canopy-free dive/flare/landing poses, impact priority, pause, authoritative translation and unchanged resource budgets');
 disposeCars();
 console.log(`PASS shared rounded adult/police identity and proportions, articulation/grounding, aim/reload/melee/jump, bounded outdoor/car-free indoor officers and gun/muzzle pools, pause/culling, finite transforms, disposal; ${stats.meshes} max draws, ${normalFootDraws} normal foot draws, ${stats.triangles} triangles, ${ownedGeometries.size} geometry resources`);
