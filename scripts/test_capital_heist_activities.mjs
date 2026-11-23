@@ -12,11 +12,12 @@ const aboard = (pose, railStopId = null, extra = {}) => ({ pose, wanted:0, railP
 function roomFor(site) {
   const id = `interior-${site.id}`;
   const employee = { id:`${id}-employee`, roomId:id, storeId:site.id, kind:'employee', health:100, x:401, z:498 };
-  const loot = { id:`${id}-loot`, x:403, z:500, radius:1.4 };
-  const room = { id, storeId:site.id, heistSiteId:site.id, employeeId:employee.id, loot };
+  const loot = { id:`${id}-loot`, x:site.kind==='bank'?406:403, z:500, radius:1.4 };
+  const console = {id:`${id}-console`,x:403,z:500,radius:1.2};
+  const room = { id, storeId:site.id, heistSiteId:site.id, employeeId:employee.id, loot,...(site.kind==='bank'?{console}:{}) };
   const entry = onFoot({x:401,z:500}, { indoors:true, room, employee, armed:true, aiming:true, aimYaw:0 });
-  const counter = { ...entry, pose:{x:loot.x,z:loot.z}, armed:false, aiming:false };
-  return { room, employee, entry, counter };
+  const counter = { ...entry, pose:site.kind==='bank'?{x:console.x,z:console.z}:{x:loot.x,z:loot.z}, armed:false, aiming:false };
+  return { room, employee, entry, counter, pickup:{...counter,pose:{x:loot.x,z:loot.z}} };
 }
 
 function fixture(options) {
@@ -36,7 +37,7 @@ function playSequence(heists, ctx) {
 
 {
   const {heists,heat,rewards}=fixture();
-  const {entry,counter}=roomFor(branch);
+  const {entry,counter,pickup}=roomFor(branch);
   assert.match(heists.interact(entry).message,/vault console/i);
   assert.equal(heists.interact(roomFor(bank).counter),null,'the other branch cannot open this vault');
   assert(heists.interact(counter).ok);
@@ -46,8 +47,10 @@ function playSequence(heists, ctx) {
   assert.deepEqual(rewards,[]);
   assert(heists.interact(entry).ok);assert(heists.interact(counter).ok);
   playSequence(heists,counter);
-  assert.equal(heists.snapshot().phase,'escape');
-  assert.equal(heat.length,1);
+  assert.equal(heists.snapshot().phase,'loot','puzzle unlocks a physical pickup, never cash or escape');
+  assert.equal(heat.length,0);assert.deepEqual(rewards,[]);
+  assert.equal(heists.interact(counter),null,'console is not the separate cash pickup');
+  assert(heists.interact(pickup).ok);assert.equal(heists.snapshot().phase,'escape');assert.equal(heat.length,1);
   heists.step(.05,onFoot({x:403,z:500},{wanted:3}));
   heists.step(.05,onFoot({x:490,z:500}));
   heists.step(.05,onFoot({x:490,z:500}));
@@ -55,7 +58,20 @@ function playSequence(heists, ctx) {
 }
 
 {
-  const { room, employee, entry, counter } = roomFor(bank);
+  const {heists,heat,rewards}=fixture(),{entry,counter,pickup}=roomFor(bank);
+  assert(heists.interact(entry).ok);assert.equal(heists.interact(pickup),null,'cash stays secured before release');
+  assert(heists.interact(counter).ok);heists.step(.5,counter);
+  assert(heists.snapshot().progress>0&&heists.snapshot().progress<1);
+  assert.equal(heists.step(.1,{...counter,pose:{x:420,z:500}}).ok,false,'walking away interrupts the release');
+  assert(!heists.active);assert.deepEqual(heat,[]);assert.deepEqual(rewards,[]);
+  assert(heists.interact(entry).ok);assert(heists.interact(counter).ok);
+  for(let i=0;i<7;i++)heists.step(.5,counter);
+  assert.equal(heists.snapshot().phase,'loot');assert.equal(heists.step(.1,onFoot(bank)).ok,false,'leaving unlocked cash behind cancels without a payout');
+  assert.deepEqual(rewards,[]);assert.deepEqual(heat,[]);
+}
+
+{
+  const { room, employee, entry, counter, pickup } = roomFor(bank);
   let obstructed;
   const { heists, heat, rewards } = fixture({canSee:(a,b)=> {
     if (a.interiorId || b.interiorId) assert.equal(a.interiorId, b.interiorId, 'indoor sight checks use the same room');
@@ -83,7 +99,7 @@ function playSequence(heists, ctx) {
   assert.equal(heists.snapshot().phase, 'surrender');
   assert.equal(heists.snapshot().challenge, null);
   assert.equal(heists.snapshot().target, null, 'an interior target is kept out of GPS');
-  assert.deepEqual(heists.snapshot().indoorTarget, { ...room.loot, name:'Cash', interiorId:room.id });
+  assert.deepEqual(heists.snapshot().indoorTarget, { ...room.console, name:'Cash release console', interiorId:room.id });
   const roomCrime = heists.roomCrime;
   assert.deepEqual(roomCrime, {type:'robbery',targetId:employee.id,phase:'handover'});
   assert.equal(heists.roomCrime, roomCrime, 'the renderer can reuse the crime descriptor');
@@ -92,11 +108,18 @@ function playSequence(heists, ctx) {
   assert.equal(heists.interact(roomFor(jewel).counter), null, 'another shop cannot satisfy the objective');
   assert.equal(heists.interact({...counter,doorway:true}), null, 'the normal exit always takes priority');
   assert.equal(heists.interact({...counter,employee:{...employee,health:0}}), null);
-  obstructed = room.loot.id;
+  obstructed = room.console.id;
   assert.equal(heists.interact(counter), null, 'loot cannot be taken through an obstruction');
   assert.equal(heat.length, 0);
   obstructed = null;
-  assert.match(heists.interact(counter).message, /exit the building/i);
+  assert.match(heists.interact(counter).message, /stay at the console/i);
+  assert.equal(heists.snapshot().phase,'release');
+  const frozen=heists.snapshot();heists.step(10,{...counter,paused:true});assert.deepEqual(heists.snapshot(),frozen,'paused release cannot progress');
+  for(let i=0;i<7;i++)heists.step(.5,counter);
+  assert.equal(heists.snapshot().phase,'loot');assert.equal(heat.length,0);assert.deepEqual(rewards,[]);
+  assert.equal(heists.interact(counter),null,'release console cannot also collect the cash');
+  obstructed=room.loot.id;assert.equal(heists.interact(pickup),null,'locked room sight still guards physical pickup');obstructed=null;
+  assert.match(heists.interact(pickup).message, /exit the building/i);
   assert.equal(heists.snapshot().phase, 'escape');
   assert.deepEqual(heat, [{ id:bank.id, kind:'bank', point:{x:0,z:0}, severity:3 }]);
   assert.match(heists.snapshot().guidance, /exit the building/i);
