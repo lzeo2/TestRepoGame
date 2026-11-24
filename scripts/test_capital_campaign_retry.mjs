@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { createCampaign } from '../Games/Capital Drive/campaign.js';
 
 const map = { spawn: { x: 0, z: 0 }, landmarks: [
@@ -73,3 +74,16 @@ previewCampaign.update(.1, { ...context, recovering: true });
 assert.equal(previewCampaign.state.active, null);
 assert.deepEqual(previewCampaign.serialize(), beforePreview);
 console.log('PASS campaign failure stops the attempt, preserves progression, restores the launch character and requires a fresh manual start');
+
+const controller = await readFile(new URL('../Games/Capital Drive/script.js', import.meta.url), 'utf8');
+const failedBranch = controller.indexOf("event.type==='failed'&&missionCheckpoint");
+assert(failedBranch > 0, 'script.js keeps the campaign failure checkpoint branch');
+const overlayCall = controller.indexOf('beginMissionFailureTitle(event.message)', failedBranch);
+assert(overlayCall > 0 && overlayCall - failedBranch < 900, 'the failure branch drives the shared mission failure overlay');
+const overlayTitle = controller.indexOf("'MISSION FAILED'");
+assert(overlayTitle > 0, 'the overlay shows a MISSION FAILED title');
+const overlayScreen = controller.lastIndexOf('recovery-screen', overlayTitle);
+assert(overlayScreen > 0 && overlayTitle - overlayScreen < 1500, 'the MISSION FAILED title drives the existing recovery screen element');
+assert(controller.includes('MISSION_FAILURE_HOLD'), 'the failure title holds before the restore proceeds');
+assert(controller.includes("event.message==='Mission cancelled.'"), 'cancelling a mission keeps the plain notify path');
+console.log('PASS controller wiring: campaign failed events show the shared MISSION FAILED recovery overlay and cancels stay plain');

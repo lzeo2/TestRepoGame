@@ -199,6 +199,8 @@ let guidanceRoute=null,guideState=null,airGuideState=null,followYoober=false,fol
 let trafficView,storefrontsView,shoppingView,campusView,civicView,noodleShopView,civicExtrasView;
 let interiors,interiorScene,interiorView,indoorActorView,campaign,terrainSampler,gymEntry;
 let missionCheckpoint=null;
+const MISSION_FAILURE_HOLD=1.6,MISSION_FAILURE_FADE=.8;
+let missionFailureTitle=null;
 let stealthContracts,stealthContractView,stealthOutcome=null,stealthPreview=null,planningContractId=null;
 let contractTarget,assassinationSiteView,assassinationMarkers=[],assassinationOutcome=null;
 let lightRail,lightRailView,heists,heistSitesView,railHeistMarker,campaignAftermath,campaignWorld,streetWorld,inquiryOfficer=null;
@@ -1943,6 +1945,43 @@ function restoreMissionRoom(room){
   Object.assign(actor,pose,{speed:0,jumpHeight:0});
   return true;
 }
+function clearMissionFailureTitle(){
+  if(!missionFailureTitle)return;
+  missionFailureTitle=null;
+  const screen=$('recovery-screen');
+  if(screen){screen.hidden=true;screen.style.backgroundColor='';}
+}
+function beginMissionFailureTitle(message){
+  if(gameplay.state.recovery)return; // Death or arrest already owns the screen with WASTED or BUSTED.
+  missionFailureTitle={elapsed:0,message:String(message||'Mission failed.')};
+  updateMissionFailureTitle(0);
+}
+function updateMissionFailureTitle(dt=0){
+  const overlay=missionFailureTitle;
+  if(!overlay)return;
+  const screen=$('recovery-screen');
+  if(!screen){missionFailureTitle=null;return;}
+  if(dt>0)overlay.elapsed+=dt;
+  if(overlay.elapsed>=MISSION_FAILURE_HOLD+MISSION_FAILURE_FADE){
+    clearMissionFailureTitle();
+    streetUI?.refresh();
+    return;
+  }
+  screen.hidden=false;
+  // Same alpha fade as the death recovery overlay: darken fast, hold, then
+  // fade out while the mission restore proceeds underneath.
+  const alpha=overlay.elapsed<MISSION_FAILURE_HOLD
+    ?Math.min(.96,.96*overlay.elapsed/.35)
+    :Math.max(0,.96-.96*(overlay.elapsed-MISSION_FAILURE_HOLD)/MISSION_FAILURE_FADE);
+  screen.style.backgroundColor=`rgba(10,15,18,${alpha})`;
+  const title=$('recovery-title');
+  if(title){
+    if(title.textContent!=='MISSION FAILED')title.textContent='MISSION FAILED';
+    title.style.letterSpacing='.12em';
+  }
+  const status=$('recovery-status');
+  if(status&&status.textContent!==overlay.message)status.textContent=overlay.message;
+}
 function restoreFailedMission(dt=0,force=false){
   const pending=missionCheckpoint;
   if(!pending?.failure)return true;
@@ -1980,7 +2019,8 @@ function restoreFailedMission(dt=0,force=false){
   ({footCameraYaw,footLookPitch,orbit,orbitHeight,orbitHold,lookPitch,cockpitCamera}=checkpoint.view);
   previousActorMode=gameplay.state.mode;
   cameraReady=false;accumulator=0;clearInput();syncExternalVehicles();syncExternalPeople();
-  pedestrians.resetPopulation(focus());refreshProtagonistVehicle();syncPlayerAppearance();streetUI.refresh();
+  pedestrians.resetPopulation(focus());refreshProtagonistVehicle();syncPlayerAppearance();
+  if(!missionFailureTitle)streetUI.refresh();
   destination=null;route=[];lastJobTarget='';mapSelection=checkpoint.mapSelection;
   if(retry){
     pending.steps=pending.steps.filter(step=>step.attempt.stage<=retry.attempt.stage);
@@ -1997,6 +2037,7 @@ function restoreFailedMission(dt=0,force=false){
 }
 function endCampaignAttempt(){
   campaign.cancel();campaign.drainEvents();
+  clearMissionFailureTitle();
   if(!missionCheckpoint)return true;
   if(missionCheckpoint.retryStep)missionCheckpoint.prepared=false;
   missionCheckpoint.retryStep=null;
@@ -3730,7 +3771,12 @@ function updateCareer(dt=0) {
     }else if(event.type==='failed'&&missionCheckpoint){
       const previous=Math.max(0,event.stage-1);
       missionCheckpoint.retryStep=missionCheckpoint.steps.findLast(step=>step.attempt.id===event.id&&step.attempt.stage<=previous)||null;
-      missionCheckpoint.failure=event.message;missionCheckpoint.retryIn=0;
+      missionCheckpoint.failure=event.message;
+      // A genuine failure holds the restore behind the shared MISSION FAILED
+      // overlay; cancels keep the plain notify and death or arrest recovery
+      // already owns the screen with WASTED or BUSTED.
+      if(gameplay.state.recovery||event.message==='Mission cancelled.')missionCheckpoint.retryIn=0;
+      else{missionCheckpoint.retryIn=MISSION_FAILURE_HOLD;beginMissionFailureTitle(event.message);}
     }else if(event.message)notify(event.message);
   }
   restoreFailedMission(dt);
@@ -3896,7 +3942,7 @@ function animate(time) {
     if (destination&&routeClock>6&&!interiors.active&&!airNavigationActive()) { routeClock=0;route=findRoute(simulation.graph,focus(),destination); }
   } else {accumulator = 0;updateRecon(0);}
   if(tutorialRunning||tutorialVisible){if(tutorialRunning)tutorial.observe(tutorialContext(),dt);syncTutorial();}
-  updateMini();updateCareer(dt);
+  updateMini();updateCareer(dt);updateMissionFailureTitle(dt);
   if (audio) {
     const active=audio.enabled&&!paused()&&gameplay.state.mode==='vehicle'&&!gameplay.state.passenger&&gameplay.state.vehicleHealth>0;
     const car=simulation.player,driving=simulation.driving;
@@ -4121,7 +4167,7 @@ function animate(time) {
     }
   }
   hudTime += renderDt;
-  if (hudTime > .18) { renderBurglaryHUD();updateHud(); streetUI.refresh();renderMissionGuide(); hudTime = 0; }
+  if (hudTime > .18) { renderBurglaryHUD();updateHud(); if(!missionFailureTitle)streetUI.refresh();renderMissionGuide(); hudTime = 0; }
 }
 async function boot() {
   const responses = await loadGameData(['./data/canberra.json','./data/addresses.json','./data/road-profiles.json','./data/canberra-north.json','./data/north-terrain.json','./data/traffic-signals.json','./data/airport.json','./data/airport-terrain.json','./data/north-west.json','./data/north-west-terrain.json','./data/giant-spray.json','./data/region-belconnen.json','./data/region-north.json','./data/region-south.json']);
