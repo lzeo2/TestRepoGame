@@ -14,7 +14,7 @@ const hiredRoster = ctx => [...new Set((Array.isArray(ctx.hiredMembers)?ctx.hire
 const EMPTY = Object.freeze([]), RADIUS = .32;
 const ALLY_RANGE = 28, ALLY_DAMAGE = 12, ALLY_COOLDOWN = 1.1, SHOT_LIMIT = 4;
 const CATCHUP_DISTANCE = 35, STUCK_DISTANCE = 10, STUCK_SECONDS = 3, CATCHUP_RETRY = 1.25;
-const SEAT_RETRY = .5, BOARD_RANGE = 6, SEAT_PATH_LIMIT = 7;
+const SEAT_RETRY = .5, BOARD_RANGE = 8, SEAT_PATH_LIMIT = 9;
 export function campaignPassengerCapacity(modelId) {
   const model=BY_ID[modelId];
   return !model?0:model.style==='sport'||['parcel','dockside','atlas'].includes(modelId)?1:2;
@@ -48,9 +48,11 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
   }
   let people=EMPTY, dialogueLines=EMPTY, signature='', elapsed=0, allies=[], events=[], disposed=false, active=false, catchupRetry=0;
   const attachments=new Map(), seatRetries=new Map(), leaders=new Map();
+  const seatFailures=new Map();
+  const decaySeatRetry=id=>{const failures=(seatFailures.get(id)||0)+1;seatFailures.set(id,failures);seatRetries.set(id,Math.max(.12,SEAT_RETRY/failures));};
   let crewRoom=null;
   const hiredHistory=new Map();
-  function clear(){people=EMPTY;dialogueLines=EMPTY;signature='';elapsed=0;allies=[];events=[];active=false;catchupRetry=0;crewRoom=null;attachments.clear();seatRetries.clear();leaders.clear();}
+  function clear(){people=EMPTY;dialogueLines=EMPTY;signature='';elapsed=0;allies=[];events=[];active=false;catchupRetry=0;crewRoom=null;attachments.clear();seatRetries.clear();seatFailures.clear();leaders.clear();}
   function enterInterior(plan,entry,outside) {
     if(!plan?.id||entry?.id!==plan.id||!point(entry)||!point(outside)||!point(plan.spawn)||!point(plan.exit))return false;
     if(crewRoom&&crewRoom.plan.id!==plan.id&&allies.some(ally=>ally.interiorId===crewRoom.plan.id&&ally.health>0))return false;
@@ -220,7 +222,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
       if(side===undefined)return false;
       seatRetries.set(ally.id,SEAT_RETRY);
       const door=carPoint(car,side*(car.width/2+.8),car.length*.32);
-      if(!seatPath(ally,door,ally,car)||!seatPath(door,car,ally,car))return false;
+      if(!seatPath(ally,door,ally,car)||!seatPath(door,car,ally,car)){decaySeatRetry(ally.id);return false;}
       attachments.set(ally.id,{car});clearShots(ally);
       Object.assign(ally,{x:car.x,z:car.z,yaw:car.yaw,speed:0,mode:'passenger',seated:false,
         bedRider:true,bedPose:Object.freeze({side}),vehicleId:car.id,vehicleKey:car.key,
@@ -228,12 +230,18 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
       return true;
     }
     seatRetries.set(ally.id,SEAT_RETRY);
-    const door=carPoint(car,car.width/2+.8,seatIndex===0?-.35:.65);
-    if(!seatPath(ally,door,ally,car)||!seatPath(door,car,ally,car))return false;
-    attachments.set(ally.id,{car});clearShots(ally);
-    Object.assign(ally,{x:car.x,z:car.z,yaw:car.yaw,speed:0,mode:'passenger',seated:true,
-      vehicleId:car.id,vehicleKey:car.key,seatIndex,carModelId:car.modelId,followTime:0,stuck:false});
-    return true;
+    // Boarding tries both sides of the stopped car before giving up, and a
+    // failed attempt decays its retry instead of idling a fixed half second.
+    for(const attempt of [1,-1])for(const extra of [.8,1.2,1.6]) {
+      const door=carPoint(car,attempt*(car.width/2+extra),seatIndex===0?-.35:.65);
+      if(!seatPath(ally,door,ally,car)||!seatPath(door,car,ally,car))continue;
+      attachments.set(ally.id,{car});clearShots(ally);seatFailures.delete(ally.id);
+      Object.assign(ally,{x:car.x,z:car.z,yaw:car.yaw,speed:0,mode:'passenger',seated:true,
+        vehicleId:car.id,vehicleKey:car.key,seatIndex,carModelId:car.modelId,followTime:0,stuck:false});
+      return true;
+    }
+    decaySeatRetry(ally.id);
+    return false;
   }
   function windowCombat(ally,ctx,hostiles) {
     const car=attachments.get(ally.id)?.car;if(!car||!ally.armed||ctx.attacksAllowed===false)return;

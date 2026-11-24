@@ -81,6 +81,16 @@ for (const descriptor of chapters) {
   const receipts = {}, reconOwner = createRecon();
   const tick = dt => { campaign.update(dt, ctx); };
   const chapter = campaign.current(), stages = [], holds = new Set(fixture.limits);
+  // Data-driven guidance contract: every stage of every chapter must produce a
+  // non-null navigation label a player can act on, plus a marker point unless the
+  // objective is deliberately anywhere (roaming) or already reached (escaping).
+  for (const [index, stage] of chapter.stages.entries()) {
+    const guidance = guide.guide({ target: stage }, { pose: descriptor.start });
+    assert(guidance && typeof guidance.instruction === 'string' && guidance.instruction.trim(),
+      `${chapter.id} stage ${index} must state a concrete action`);
+    assert(guidance.roaming || guidance.escaping || (Number.isFinite(guidance.point?.x) && Number.isFinite(guidance.point?.z)),
+      `${chapter.id} stage ${index} navigation marker missing`);
+  }
   if (ctx.wanted > 0) tick(.05); // normal controller tick observes the actual incident before later fixture evasion
   let previous = descriptor.start, seconds = 0, inputs = 0;
   function finishStage(stage) {
