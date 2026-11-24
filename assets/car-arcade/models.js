@@ -154,7 +154,7 @@ function build(car) {
   hull(details, [[dashZ-.09,w*.72,y,y+.075], [dashZ-.055,w*.75,y,y+.11], [dashZ+.055,w*.75,y,y+.11], [dashZ+.09,w*.72,y+.015,y+.085]], dark);
   // Original analogue faces and raised ticks, facing the seat, all in the trim batch.
   for (const offset of [-.09,.09]) {
-    const gx = -w*.4+offset, gy = y+.054, gz = dashZ+.092;
+    const gx = w*.4+offset, gy = y+.054, gz = dashZ+.092;
     const face = new THREE.CylinderGeometry(.043,.043,.008,12);
     face.rotateX(Math.PI/2); face.translate(gx,gy,gz); add(details,face,'#111416');
     for (let i = 0; i < 5; i++) {
@@ -172,7 +172,7 @@ function build(car) {
   beam(details,dark,[0,y,dashZ+.25],[0,y+.075,dashZ+.27],.017);
   box(details,'#66574a',0,y+.075,dashZ+.27,.045,.035,.045);
   const steering = new THREE.TorusGeometry(.115,.018,5,12);
-  steering.rotateX(-.45); steering.translate(-w*.4,y+.19,cowl*l+.25); add(details,steering,dark);
+  steering.rotateX(-.45); steering.translate(w*.4,y+.19,cowl*l+.25); add(details,steering,dark);
   for (const end of [-1,1]) {
     box(details,form === 'worn' ? '#696c64' : dark,0,.43,end*(l/2-.04),w*1.72,.12,.08);
     box(details,'#ddd3b4',0,.52,end*(l/2+.004),.28,.085,.012);
@@ -241,9 +241,9 @@ function build(car) {
       box(details,dark,side*w*.94,.36,l*.04,.045,.07,l*.65);
     }
   }
-  // Left front seat, ahead of the headrest and behind the wheel. Keep short
+  // Right front seat (right-hand-drive Canberra), ahead of the headrest and behind the wheel. Keep short
   // pickup cabins under their actual roof rather than behind its rear edge.
-  const eye = Object.freeze([-w*.4, y+(h-y)*.63, l*Math.min(.06,rr-.005)]);
+  const eye = Object.freeze([w*.4, y+(h-y)*.63, l*Math.min(.06,rr-.005)]);
   const cockpit = Object.freeze({eye, target:Object.freeze([eye[0],eye[1],-l])});
   const result = {paint:merge(paint), details:merge(details), glass:merge(windows), wheel:wheelGeometry(r, car.style === 'sport' ? 7 : 5), r, wheelZ, cockpit};
   return result;

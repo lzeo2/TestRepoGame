@@ -46,7 +46,8 @@ for (const model of CARS) {
   const factory = createCar(model.id), eye = factory.userData.cockpit.eye;
   const scale=Math.min(1,(model.height-eye[1]-.025)/PERSON_MODEL.seatedHeadTop);
   batches.head.getMatrixAt(0,matrix); position.setFromMatrixPosition(matrix);
-  assert(Math.abs(position.x-car.x-eye[0])<1e-6 && eye[0]<0,'head shares baked left cockpit seat');
+  // Right-hand-drive Canberra: cockpit seat moved from left to right.
+  assert(Math.abs(position.x-car.x-eye[0])<1e-6 && eye[0]>0,'head shares baked right cockpit seat');
   assert(Math.abs(position.z-car.z-eye[2])<1e-6,'head aligns with model cockpit');
   assert(Math.abs(position.y-heightAt(car.x,car.z)-.18-eye[1]+.015*scale)<1e-6,'head retains shared seated eye offset');
   for(const name of ['head','hair']) {
