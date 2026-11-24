@@ -19,8 +19,8 @@ export function createHeadlightsView(scene, { heightAt }) {
   texture.magFilter = texture.minFilter = THREE.LinearFilter;
   const lampGeometry = new THREE.PlaneGeometry(1, 1); lampGeometry.rotateY(Math.PI);
   const groundGeometry = new THREE.PlaneGeometry(1, 1); groundGeometry.rotateX(-Math.PI / 2);
-  const lampMaterial = new THREE.MeshBasicMaterial({ color: 0xfff3c2, toneMapped: false });
-  const groundMaterial = new THREE.MeshBasicMaterial({ color: 0xffefbb, map: texture, transparent: true, opacity: .25,
+  const lampMaterial = new THREE.MeshBasicMaterial({ color: 0xfffacd, toneMapped: false });
+  const groundMaterial = new THREE.MeshBasicMaterial({ color: 0xfff6d5, map: texture, transparent: true, opacity: .42,
     blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2 });
   function batch(geometry, material, count, name) {
     const mesh = new THREE.InstancedMesh(geometry, material, count);
@@ -30,7 +30,7 @@ export function createHeadlightsView(scene, { heightAt }) {
   const lamps = batch(lampGeometry, lampMaterial, 2, 'Self-lit front lamps');
   const ground = batch(groundGeometry, groundMaterial, SEGMENTS * 2, 'Forward ground illumination');
   const pose = new THREE.Object3D(), carPose = new THREE.Object3D(), point = new THREE.Vector3(), color = new THREE.Color();
-  for (let i = 0; i < SEGMENTS * 2; i++) ground.setColorAt(i, color.setScalar((1 - Math.floor(i / 2) / SEGMENTS) ** 1.3));
+  for (let i = 0; i < SEGMENTS * 2; i++) ground.setColorAt(i, color.setScalar((1 - Math.floor(i / 2) / SEGMENTS) ** 1.0));
   const stats = { visible: 0, lamps: 0, groundPatches: 0, drawCalls: 0, maxDrawCalls: 2, triangles: 0,
     geometries: 2, materials: 2, textures: 1, capacity: 1, lights: 0, disposed: false };
   let disposed = false, lastX, lastZ, lastYaw, lastModel;
