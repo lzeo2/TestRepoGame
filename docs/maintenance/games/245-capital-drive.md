@@ -725,6 +725,23 @@ sweeps. Objective changes alone do not relocate the crew. Indoor hiding and the
 fixed Kingston meeting remain. See the [story contract](../../capital-drive-story-and-streaming-contract.md)
 and [fresh receipt](../../verification/capital-drive-crew-catchup-2026-11-15.md).
 
+### Campaign boarding and simulation probes, 24 November 2026
+
+Batch two playability and performance pass. Crew boarding now starts from
+8m of the stopped manual car, checks door paths up to 9m, tries both sides
+before giving up and decays a failed seat retry (.5s halving to a .12s floor)
+instead of idling a fixed half second. Bed-tray riders keep their own boarding
+path. The crew-seat scenes suite still passes, including blocked exit retry.
+`simulation.js` only swapped internal probe arithmetic: SpatialGrid cell keys
+are packed integers instead of template strings, insert uses one lookup, and
+polygon contact probes compare squared distances with a single final square
+root. No returned contact, depth or water result changes; the exact-parity
+water suites and the source-domain profile show the measured improvement
+(adult index refresh 143 to 132ms, skyline contact replay 1415 to 267ms).
+Campaign stage guidance gained a data-driven assertion: every chapter stage
+must yield a non-null concrete-action label and a marker point unless the
+objective is deliberately roaming or escaping.
+
 ### Indoor pursuit, driving starts and direct stored maps, latest15 November2026
 
 The [indoor pursuit contract](../../capital-drive-indoor-pursuit-contract.md) and
