@@ -33,15 +33,20 @@ export function projectSegment(x, z, a, b) {
   return { x: px, z: pz, t, distance: Math.hypot(x - px, z - pz) };
 }
 
+// Map coordinates stay within +/-20km and every grid cell size is >= 8, so
+// cell indices remain far inside +/-0x8000 and this packed integer key is an
+// exact, collision-free replacement for a `${x},${z}` string.
+const cellKey = (x, z) => (x + 0x8000) * 0x10000 + (z + 0x8000);
 class SpatialGrid {
   constructor(size = 64) { this.size = size; this.cells = new Map(); this.extents = new WeakMap(); }
   insert(item, minX, minZ, maxX, maxZ) {
     this.extents.set(item, { minX, minZ, maxX, maxZ });
     for (let x = Math.floor(minX / this.size); x <= Math.floor(maxX / this.size); x++) {
       for (let z = Math.floor(minZ / this.size); z <= Math.floor(maxZ / this.size); z++) {
-        const key = `${x},${z}`;
-        if (!this.cells.has(key)) this.cells.set(key, []);
-        this.cells.get(key).push(item);
+        const key = cellKey(x, z);
+        let cell = this.cells.get(key);
+        if (cell === undefined) { cell = []; this.cells.set(key, cell); }
+        cell.push(item);
       }
     }
   }
@@ -50,7 +55,7 @@ class SpatialGrid {
     if (!box) return;
     for (let x = Math.floor(box.minX / this.size); x <= Math.floor(box.maxX / this.size); x++) {
       for (let z = Math.floor(box.minZ / this.size); z <= Math.floor(box.maxZ / this.size); z++) {
-        const key = `${x},${z}`, items = this.cells.get(key), index = items.indexOf(item);
+        const key = cellKey(x, z), items = this.cells.get(key), index = items.indexOf(item);
         if (index >= 0) items.splice(index, 1);
         if (!items.length) this.cells.delete(key);
       }
@@ -62,7 +67,7 @@ class SpatialGrid {
     const minX = x - radius, maxX = x + radius, minZ = z - radius, maxZ = z + radius;
     for (let ix = Math.floor((x - radius) / this.size); ix <= Math.floor((x + radius) / this.size); ix++) {
       for (let iz = Math.floor((z - radius) / this.size); iz <= Math.floor((z + radius) / this.size); iz++) {
-        for (const item of this.cells.get(`${ix},${iz}`) || []) {
+        for (const item of this.cells.get(cellKey(ix, iz)) || []) {
           if (found.has(item)) continue;
           const box = this.extents.get(item);
           // Cell membership is deliberately coarse. Retain touching boxes, but
@@ -119,7 +124,7 @@ function seededRandom(seed) {
 }
 
 function polygonContact(x, z, points, radius) {
-  let inside = false, hasClosest = false, closestDistance = 0, closestX = 0, closestZ = 0, closestDX = 0, closestDZ = 0, area = 0;
+  let inside = false, hasClosest = false, closestSq = 0, closestX = 0, closestZ = 0, closestDX = 0, closestDZ = 0, area = 0;
   for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
     const a = points[j], b = points[i];
     if (a[0] === b[0] && a[1] === b[1]) continue;
@@ -130,12 +135,15 @@ function polygonContact(x, z, points, radius) {
     const dx = b[0] - a[0], dz = b[1] - a[1];
     const t = clamp(((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1);
     const px = a[0] + dx * t, pz = a[1] + dz * t;
-    const distance = Math.hypot(x - px, z - pz);
-    if (!hasClosest || distance < closestDistance) {
-      hasClosest = true; closestDistance = distance; closestX = px; closestZ = pz; closestDX = dx; closestDZ = dz;
+    const ex = x - px, ez = z - pz, distanceSq = ex * ex + ez * ez;
+    if (!hasClosest || distanceSq < closestSq) {
+      hasClosest = true; closestSq = distanceSq; closestX = px; closestZ = pz; closestDX = dx; closestDZ = dz;
     }
   }
-  if (!hasClosest || (!inside && closestDistance >= radius)) return null;
+  if (!hasClosest) return null;
+  // One real distance for the chosen edge; depth math stays bit-identical.
+  const closestDistance = Math.hypot(x - closestX, z - closestZ);
+  if (!inside && closestDistance >= radius) return null;
   let nx = x - closestX, nz = z - closestZ;
   const length = Math.hypot(nx, nz);
   if (length > 0.0001) { nx /= length; nz /= length; }
@@ -152,6 +160,7 @@ function polygonContact(x, z, points, radius) {
 // live edges with the same strict distance test as polygonContact.
 function polygonIntersectsCircle(x, z, points, radius) {
   let inside = false, hasEdge = false;
+  const radiusSq = radius * radius;
   for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
     const a = points[j], b = points[i];
     if (a[0] === b[0] && a[1] === b[1]) continue;
@@ -159,8 +168,8 @@ function polygonIntersectsCircle(x, z, points, radius) {
     const dx = b[0] - a[0], dz = b[1] - a[1];
     const t = clamp(((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1);
     const px = a[0] + dx * t, pz = a[1] + dz * t;
-    const distance = Math.hypot(x - px, z - pz);
-    if (distance < radius || (!hasEdge && !(distance >= radius))) return true;
+    const ex = x - px, ez = z - pz, distanceSq = ex * ex + ez * ez;
+    if (distanceSq < radiusSq || (!hasEdge && !(distanceSq >= radiusSq))) return true;
     hasEdge = true;
   }
   return hasEdge && inside;
@@ -1075,7 +1084,8 @@ export function createSimulation(map, options = {}) {
         const yaw = car.yaw || 0, dx = x - car.x, dz = z - car.z;
         const along = Math.abs(-Math.sin(yaw) * dx - Math.cos(yaw) * dz);
         const across = Math.abs(Math.cos(yaw) * dx - Math.sin(yaw) * dz);
-        if(Math.hypot(Math.max(0,along-size.length/2),Math.max(0,across-size.width/2))>=radius) return false;
+        const clearX=Math.max(0,along-size.length/2),clearZ=Math.max(0,across-size.width/2);
+        if(clearX*clearX+clearZ*clearZ>=radius*radius) return false;
         return !nextWater || !options.vehicleHeightAt || vehicleBase(car)<=nextWater.y+.8;
       });
       if(blocked) return false;
