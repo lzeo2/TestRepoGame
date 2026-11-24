@@ -175,7 +175,7 @@ combat.update({ x: 0, z: -100 }, 0.1);
 assert(combat.snapshot().some(p => p.reaction === 'flee'), 'panic turns into sidewalk fleeing');
 for (let i = 0; i < 120; i++) combat.update({ x: 0, z: -100 }, 0.1);
 for (const p of combat.snapshot()) {
-  assert(Math.abs(Math.abs(p.z) - (5.2 + p.escape)) < 1e-8, 'fleeing stays on generated safe sidewalk');
+  assert(p.x > bounds.minX && p.x < bounds.maxX && p.z > bounds.minZ && p.z < bounds.maxZ, 'fleeing stays inside the map');
   assert(!(p.x > 30 && p.x < 60 && p.z > 4 && p.z < 20), 'fleeing never enters buildings');
 }
 combat.resetPopulation(origin);
@@ -426,3 +426,39 @@ for (const p of motion.snapshot().filter(p => Math.hypot(p.x, p.z) < 150)) {
 motion.dispose(); motion.dispose();
 console.log('PASS instanced pedestrian gait start/stop easing, immediate contacts, pause, sidewalk turns and reset');
 }
+
+const panic = createPedestrians(new THREE.Scene(), fixture, heightAt);
+panic.resetPopulation(origin);
+const D = { x: 0, z: 0 };
+const affected = panic.snapshot().map(p => ({ id: p.id, distance: Math.hypot(p.x - D.x, p.z - D.z) })).filter(p => p.distance <= 80);
+assert(affected.length >= 8, 'the fixture samples fleeing adults across a spread of distances');
+assert(panic.alert({ x: D.x, z: D.z, radius: 80, kind: 'gunshot' }) >= affected.length, 'the danger alert reaches the whole sampled radius');
+const firstReaction = new Map();
+const positives = [], negatives = [];
+let previous = panic.snapshot();
+for (let frame = 0; frame < 90; frame++) {
+  panic.update({ x: 0, z: -100, speed: 0 }, 1 / 30);
+  const current = panic.snapshot();
+  for (const p of current) {
+    const before = previous.find(q => q.id === p.id);
+    if (!before) continue;
+    if (!firstReaction.has(p.id) && p.reaction !== 'calm') firstReaction.set(p.id, frame);
+    const dx = p.x - before.x, dz = p.z - before.z;
+    if (p.reaction === 'flee' && Math.hypot(dx, dz) > 0.01 && Math.hypot(before.x - D.x, before.z - D.z) > 0.5) {
+      const radial = dx * (before.x - D.x) + dz * (before.z - D.z);
+      (radial > 0 ? positives : negatives).push(radial);
+    }
+  }
+  previous = current;
+}
+assert(positives.length >= 60, 'fleeing sampled enough movement to judge the scatter direction');
+assert(positives.length / (positives.length + negatives.length) >= 0.7,
+  'fleeing adults scatter away from the danger point instead of along their old walking line');
+const alerted = affected.filter(sample => firstReaction.has(sample.id));
+assert(alerted.length >= 8, 'every sampled adult eventually reacts');
+for (const a of alerted) for (const b of alerted) {
+  if (a === b || a.distance + 3 >= b.distance) continue;
+  assert(firstReaction.get(a.id) <= firstReaction.get(b.id), 'reaction delay never grows with distance from the danger point');
+}
+panic.dispose();
+console.log('PASS panic spread: ' + alerted.length + ' alerted adults, delay shrinks with proximity, ' + positives.length + '/' + (positives.length + negatives.length) + ' scatter samples move away from the danger');
