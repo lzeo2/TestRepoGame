@@ -4,6 +4,8 @@ import {createTerrainSampler} from '../Games/Capital Drive/terrain.js';
 import {applyMapExpansion,expansionPlaces} from '../Games/Capital Drive/map-expansion.js';
 import {createSimulation} from '../Games/Capital Drive/simulation.js';
 import {createCampaignScenes,campaignPassengerCapacity} from '../Games/Capital Drive/campaign-scenes.js';
+import {pickupBedAnchor} from '../assets/car-arcade/models.js';
+import {CAPITAL_BY_ID as FLEET} from '../assets/car-arcade/fleet.js';
 import {createCampaign} from '../Games/Capital Drive/campaign.js';
 import * as WORLD_THREE from '../assets/car-arcade/vendor/three.module.js';
 import {createNeighbourhoodDetails} from '../Games/Capital Drive/neighbourhood.js';
@@ -357,6 +359,57 @@ seatTick({mission:{...seatContext.mission,id:'next-heist'},interior:true});asser
 seatTick({mission:{...seatContext.mission,id:'next-heist'}});assert(seatCrew.people.every(person=>person.health===100&&!person.seated),'mission transition releases previous seats');
 seatTick({mission:null});assert.equal(seatCrew.people.length,0);assert.equal(seatCrew.drainEvents().length,0);
 seatCrew.dispose();
+
+// Full pickup trays accept prone bed riders when every interior seat is taken.
+// The anchor reuses the authored tray literals; other models keep seat-only boarding.
+assert.equal(pickupBedAnchor('lantern'),null,'non-tray models never gain a bed anchor');
+for(const id of ['atlas','rill']) {
+  const model=FLEET[id],anchor=pickupBedAnchor(id),l=model.length,w=model.width/2;
+  assert(anchor&&anchor.form===(id==='atlas'?'pickup':'runabout'));
+  assert(anchor.z>=l*.16&&anchor.z<=l*.44,`${id} prone anchor sits inside the authored tray polygon`);
+  for(const slot of anchor.slots)assert(Math.abs(slot)<anchor.railHalf&&anchor.railHalf<=w*.80,`${id} lateral slots stay inside the rails`);
+}
+const bedSim=createSimulation(seatMap,{trafficCount:0});
+const bedCrew=createCampaignScenes(seatMap,bedSim);
+const bedBase={...fc,hiredMembers:[{id:'merc-river'},{id:'merc-stone'}],pose:{x:0,z:6,yaw:0},car:bedSim.player,carKey:7};
+const bedTick=(overrides={},dt=.1)=>{
+  bedSim.setExternalPeople(bedCrew.people.filter(person=>!person.seated&&!person.bedRider));
+  bedCrew.update({...bedBase,...overrides},dt);
+};
+const bedDrive={playerMode:'vehicle',pose:bedSim.player};
+Object.assign(bedSim.player,{x:0,z:0,yaw:0,speed:0,modelId:'atlas'});
+bedTick();assert.equal(bedCrew.people.length,4,'two heroes plus both hired mercs form a four-hand crew');
+for(let i=0;i<200;i++)bedTick(bedDrive);
+assert.equal(bedCrew.people.filter(person=>person.seated).length,1,'the single atlas seat takes one crew member');
+const bedRiders=bedCrew.people.filter(person=>person.bedRider);
+assert.equal(bedRiders.length,2,'the atlas tray carries two prone riders laterally');
+assert.deepEqual(bedRiders.map(person=>person.bedPose.side).sort(),[-1,1]);
+for(const rider of bedRiders) {
+  assert(rider.seated===false&&rider.mode==='passenger'&&rider.vehicleId==='player'&&rider.vehicleKey===7&&rider.carModelId==='atlas');
+  assert(Object.isFrozen(rider.bedPose),'bed poses are frozen transient state');
+}
+const leftOut=bedCrew.people.find(person=>!person.seated&&!person.bedRider);
+assert(leftOut&&leftOut.mode!=='passenger','bed capacity stays at two prone riders');
+Object.assign(bedSim.player,{speed:0});
+for(let i=0;i<40&&bedCrew.people.some(person=>person.bedRider);i++)bedTick({playerMode:'foot',pose:{x:3,z:6,yaw:0}});
+const landedIds=bedRiders.map(person=>person.id);
+for(const person of bedCrew.people.filter(item=>landedIds.includes(item.id))) {
+  assert(!person.bedRider&&!person.seated&&person.mode==='following','leaving the cab dismounts prone riders on foot');
+  assert(bedSim.canOccupy(person,{length:1,width:.8,ignorePersonId:person.id}),'dismounts land on clear ground');
+  assert(person.z-bedSim.player.z>FLEET.atlas.length*.2,'prone riders step out behind the cab, never through it');
+}
+bedCrew.clear();Object.assign(bedSim.player,{x:0,z:0,yaw:0,speed:0,modelId:'rill'});
+bedTick();
+for(let i=0;i<200;i++)bedTick(bedDrive);
+assert(bedCrew.people.every(person=>person.seated||person.bedRider),'the runabout seats two crew and carries the other two prone');
+assert.equal(bedCrew.people.filter(person=>person.seated).length,2);
+bedCrew.clear();Object.assign(bedSim.player,{x:0,z:0,yaw:0,speed:0,modelId:'lantern'});
+bedTick();
+for(let i=0;i<200;i++)bedTick(bedDrive);
+assert(bedCrew.people.every(person=>!person.bedRider),'full non-tray models keep the existing seat-only boarding failure');
+assert.equal(bedCrew.people.filter(person=>person.seated).length,2);
+bedCrew.dispose();
+console.log('PASS pickup trays: prone bed riders only on pickup/runabout forms, two lateral slots, rear door dismount, non-tray models unchanged');
 console.log('PASS manual-car crew seats: bounded capacity, distinct seats, identity/health preservation, live pose, no ghost bodies, window-side combat, dt/pause, blocked exit retry, downed exclusion and mission teardown');
 
 // Leadership transfers the real two bodies. It does not recreate the third
@@ -457,5 +510,24 @@ sixPersonView.update(response,null,{dt:1/60});
 assert.equal(sixPersonView.stats.people,6,'two Skylark allies stay visible with all four opponents');
 assert.equal(sixPersonView.stats.drawCalls,7,'the additional bodies reuse the same batches');
 sixPersonView.dispose();
+// Prone tray riders reuse the standing rig rotated flat at the authored bed anchor.
+const {pickupBedAnchor:bedAnchor}=await import(modelsURL);
+assert.equal(bedAnchor('lantern'),null,'the view agrees with the model tray table');
+const proneScene=new THREE.Scene(),proneView=createCampaignScenesView(proneScene,()=>0);
+const proneRider={id:'campaign-ally:corporate',appearanceId:'player:corporate',x:0,z:0,yaw:0,active:true,armed:false,mode:'passenger',seated:false,bedRider:true,bedPose:{side:1},carModelId:'atlas',vehicleId:'player',vehicleKey:7,shot:null};
+proneView.update([proneRider],proneRider);
+assert.equal(proneView.stats.people,1,'a prone tray rider renders through the shared batches');
+const headMatrix=new THREE.Matrix4();
+proneScene.children[0].getObjectByName('Meeting head').getMatrixAt(0,headMatrix);
+const headAt=new THREE.Vector3().setFromMatrixPosition(headMatrix),tray=bedAnchor('atlas');
+assert(headAt.y<tray.floorY+.7,'the prone body lies down in the tray instead of standing');
+assert(headAt.z>tray.z&&headAt.z<tray.z+2,'the prone head rests over the bed, aft of the feet');
+assert(Math.abs(headAt.x-tray.slots[1])<1e-6,'the right lateral slot separates prone riders');
+proneView.update([{...proneRider,bedPose:{side:0}}]);
+assert.equal(proneView.stats.people,0,'invalid bed slots are hidden');
+proneView.update([{...proneRider,carModelId:'lantern'}]);
+assert.equal(proneView.stats.people,0,'non-tray models never render prone crew');
+proneView.dispose();
+console.log('PASS prone tray rendering: shared batches, authored anchor, lateral slot, invalid slot and non-tray guards');
 console.log('PASS companion recruitment/following: actual source-road clearance, real swept walls/cars/people, immutable identities, bounded live-police LOS shots, cooldown/event cap, own health/death, pause/interior/cancel/recovery/dispose and seven pooled gun/tracer draws');
 console.log(`PASS transient three-character meeting: actual expanded Kingston source roads/rails/parked clearance, immutable guards/pause, swept foot contacts/sliding, shared identities, gestures, seven stable pooled draws and exact disposal; approach ${scenes.meetingPoint.x.toFixed(3)},${scenes.meetingPoint.z.toFixed(3)}`);

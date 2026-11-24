@@ -11,8 +11,8 @@ export function createCampaignScenesView(scene,heightAt,{capacity=4}={}) {
   const appearances=new Map(['student','corporate','basement'].map(id=>[`player:${id}`,appearanceForPerson(`player:${id}`)]));
   // Borrow the original cockpit anchors once; factory resources remain shared.
   const cabins=new Map(Object.keys(BY_ID).map(id=>{
-    const eye=createCar(id).userData.cockpit.eye;
-    return [id,{eye,scale:Math.min(1,(BY_ID[id].height-eye[1]-.025)/PERSON_MODEL.seatedHeadTop),rear:Math.min(.78,BY_ID[id].length*.18)}];
+    const factory=createCar(id),eye=factory.userData.cockpit.eye;
+    return [id,{eye,scale:Math.min(1,(BY_ID[id].height-eye[1]-.025)/PERSON_MODEL.seatedHeadTop),rear:Math.min(.78,BY_ID[id].length*.18),bed:factory.userData.bed}];
   }));
   const carPose=new THREE.Object3D(),seat=new THREE.Object3D(),seated={kind:'driver'};
   for(const [name,parts] of [['torso',1],['head',1],['hair',1],['arms',2],['legs',2],['shoes',12],['hands',2]]) {
@@ -64,6 +64,22 @@ export function createCampaignScenesView(scene,heightAt,{capacity=4}={}) {
       if(!appearance||(person.interiorId||null)!==interiorId||person.active===false||![person.x,person.z,person.yaw].every(Number.isFinite))continue;
       if(focus&&(!Number.isFinite(focus.x)||!Number.isFinite(focus.z)||Math.hypot(person.x-focus.x,person.z-focus.z)>140))continue;
       const y=person.interiorId?person.floorY:heightAt(person.x,person.z);if(!Number.isFinite(y))continue;
+      if(person.bedRider===true&&person.bedPose) {
+        poses.delete(person.id);
+        const bed=cabins.get(person.carModelId)?.bed,side=person.bedPose.side;
+        if(!bed||(side!==1&&side!==-1))continue;
+        if(typeof person.id==='string')seen.add(person.id);
+        const s=Math.sin(person.yaw),c=Math.cos(person.yaw);
+        const frontY=heightAt(person.x-s*2,person.z-c*2),rearY=heightAt(person.x+s*2,person.z+c*2);
+        if(![frontY,rearY].every(Number.isFinite))continue;
+        carPose.position.set(person.x,y+.18,person.z);carPose.rotation.set(Math.atan2(frontY-rearY,4),person.yaw,0,'YXZ');carPose.updateMatrix();
+        // Reuse the standing rig rotated flat at the tray anchor: supine, feet
+        // toward the cab and head toward the tail. The pose is view-only.
+        seat.position.set(bed.slots[side<0?0:1],bed.floorY+.16,bed.z);
+        seat.rotation.set(Math.PI/2,0,0);seat.scale.setScalar(appearance.height);seat.updateMatrix();
+        world.matrix.multiplyMatrices(carPose.matrix,seat.matrix);emitPersonParts(appearance,{kind:'standing',stride:0},part);
+        stats.people++;continue;
+      }
       if(person.seated===true) {
         poses.delete(person.id);
         const cabin=cabins.get(person.carModelId);if(!cabin||![0,1].includes(person.seatIndex))continue;

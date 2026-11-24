@@ -1,5 +1,6 @@
 import {roadProfile} from './road-network.js';
 import {CAPITAL_BY_ID as BY_ID} from '../../assets/car-arcade/fleet.js';
+import {pickupBedAnchor} from '../../assets/car-arcade/models.js';
 import {createInteriorNavigation} from './interior-navigation.js';
 // Transient original cast. Campaign remains the sole owner of stages and rewards.
 const HEROES = Object.freeze(['student','corporate','basement']);
@@ -86,7 +87,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
       }
       return true;
     }
-    if(!room.entering||ally.seated)return false;
+    if(!room.entering||ally.seated||ally.bedRider)return false;
     const distance=gap(ally,room.entry);
     if(distance>1.4&&!(canRetry&&(distance>CATCHUP_DISTANCE||ally.stuck))) {
       if(!ally.followTime)ally.followStartDistance=distance;
@@ -197,11 +198,12 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
       if(retry>0)return true;
       seatRetries.set(ally.id,SEAT_RETRY);
       if(Math.abs(carrier.speed)>1.2)return true;
+      const along=ally.bedRider?carrier.length*.32:ally.seatIndex===0?-.35:.65;
       for(const side of [1,-1])for(const extra of [.8,1.2,1.6]) {
-        const door=carPoint(carrier,side*(carrier.width/2+extra),ally.seatIndex===0?-.35:.65);
+        const door=carPoint(carrier,side*(carrier.width/2+extra),along);
         if(nearDoor(door)||!seatPath(carrier,door,ally,carrier)||!clearPosition(door,ally.id)||
           allies.some(other=>other.id!==ally.id&&!other.seated&&other.active!==false&&gap(other,door)<1.2))continue;
-        Object.assign(ally,door,{mode:'following',seated:false,vehicleId:null,vehicleKey:null,seatIndex:null,carModelId:null,followTime:0,stuck:false});
+        Object.assign(ally,door,{mode:'following',seated:false,bedRider:false,bedPose:null,vehicleId:null,vehicleKey:null,seatIndex:null,carModelId:null,followTime:0,stuck:false});
         attachments.delete(ally.id);clearShots(ally);return false;
       }
       return true;
@@ -209,7 +211,22 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
     if(ctx.playerMode!=='vehicle'||!car||Math.abs(car.speed)>1.2||retry>0||gap(ally,car)>BOARD_RANGE)return false;
     const occupied=new Set(allies.filter(person=>person.seated&&person.vehicleKey===car.key).map(person=>person.seatIndex));
     const seatIndex=Array.from({length:campaignPassengerCapacity(car.modelId)},(_,index)=>index).find(index=>!occupied.has(index));
-    if(seatIndex===undefined)return false;
+    if(seatIndex===undefined) {
+      // Full interior seats: pickup/runabout trays accept two prone bed riders.
+      const bed=pickupBedAnchor(car.modelId);
+      if(!bed)return false;
+      const taken=allies.filter(person=>person.bedRider&&person.vehicleKey===car.key).map(person=>person.bedPose.side);
+      const side=[1,-1].find(value=>!taken.includes(value));
+      if(side===undefined)return false;
+      seatRetries.set(ally.id,SEAT_RETRY);
+      const door=carPoint(car,side*(car.width/2+.8),car.length*.32);
+      if(!seatPath(ally,door,ally,car)||!seatPath(door,car,ally,car))return false;
+      attachments.set(ally.id,{car});clearShots(ally);
+      Object.assign(ally,{x:car.x,z:car.z,yaw:car.yaw,speed:0,mode:'passenger',seated:false,
+        bedRider:true,bedPose:Object.freeze({side}),vehicleId:car.id,vehicleKey:car.key,
+        seatIndex:null,carModelId:car.modelId,followTime:0,stuck:false});
+      return true;
+    }
     seatRetries.set(ally.id,SEAT_RETRY);
     const door=carPoint(car,car.width/2+.8,seatIndex===0?-.35:.65);
     if(!seatPath(ally,door,ally,car)||!seatPath(door,car,ally,car))return false;
@@ -254,7 +271,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
       !HEROES.includes(ctx.character)||!HEROES.includes(hero)||hero===ctx.character||!point(ctx.pose)||!Number.isFinite(ctx.pose.yaw)||
       !Number.isFinite(ctx.health)||ctx.health<=0||ctx.health>100||!mission||!Array.isArray(mission.companions)||!mission.companions.includes(hero))return null;
     const selected=allies.find(ally=>ally.id===`campaign-ally:${hero}`);
-    if(!selected||selected.active===false||selected.health<=0||selected.seated||gap(selected,ctx.pose)>80)return null;
+    if(!selected||selected.active===false||selected.health<=0||selected.seated||selected.bedRider||gap(selected,ctx.pose)>80)return null;
     const current=HEROES.filter(value=>value!==ctx.character&&mission.companions.includes(value)).slice(0,2);
     if(signature!==`allies:${mission.id}:${ctx.character}:${current.join(':')}`)return null;
     // Each body is checked in its current space. The player is about to leave
@@ -275,7 +292,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
       gesturePhase:elapsed,cooldown:ALLY_COOLDOWN,hitPhase:0,shot:null};
     Object.assign(former,{x:ctx.pose.x,z:ctx.pose.z,yaw:ctx.pose.yaw,health:ctx.health,active:true,
       armed:typeof ctx.armed==='boolean'?ctx.armed:former.armed??true,mode:'following',speed:0,
-      seated:false,vehicleId:null,vehicleKey:null,seatIndex:null,carModelId:null,followTime:0,followStartDistance:0,stuck:false});
+      seated:false,bedRider:false,bedPose:null,vehicleId:null,vehicleKey:null,seatIndex:null,carModelId:null,followTime:0,followStartDistance:0,stuck:false});
     allies[allies.indexOf(selected)]=former;
     const heroes=HEROES.filter(value=>value!==next&&(ctx.mission.companions.includes(value)||value===previous)).slice(0,2);
     signature=`allies:${ctx.mission.id}:${next}:${heroes.join(':')}`;
@@ -295,7 +312,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
     }
     for(const ally of allies)if(ally.hired&&!hired.includes(ally.id)){
       attachments.delete(ally.id);seatRetries.delete(ally.id);clearShots(ally);
-      Object.assign(ally,{seated:false,vehicleId:null,vehicleKey:null,seatIndex:null,carModelId:null,interiorId:null,floorY:null});
+      Object.assign(ally,{seated:false,bedRider:false,bedPose:null,vehicleId:null,vehicleKey:null,seatIndex:null,carModelId:null,interiorId:null,floorY:null});
     }
     // A higher authoritative purchase serial is an explicit new admission for a
     // downed hire. Merely retaining or readding the same roster cannot heal it.
@@ -320,7 +337,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
         if(retained){
           if(retained.health<=0){allies.push(retained);continue;}
           const landing=nearbyLanding(goal,id,wanted.indexOf(descriptor));
-          if(landing){Object.assign(retained,landing,{interiorId:null,floorY:null,seated:false,vehicleId:null,vehicleKey:null,seatIndex:null,carModelId:null});allies.push(retained);}
+          if(landing){Object.assign(retained,landing,{interiorId:null,floorY:null,seated:false,bedRider:false,bedPose:null,vehicleId:null,vehicleKey:null,seatIndex:null,carModelId:null});allies.push(retained);}
           else attemptedCatchup=true;
           continue;
         }
@@ -339,7 +356,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
       ally.cooldown=Math.max(0,ally.cooldown-step);ally.hitPhase=Math.max(0,ally.hitPhase-step);ally.gesturePhase=elapsed;
       if(ally.shot){ally.shot.remaining-=step;if(ally.shot.remaining<=0)ally.shot=null;}
       if(transitionRoom(ally,ctx,step,index,canRetry))continue;
-      if(!ally.interiorId&&updateSeat(ally,ctx,car,step)){windowCombat(ally,ctx,threats);continue;}
+      if(!ally.interiorId&&updateSeat(ally,ctx,car,step)){if(!ally.bedRider)windowCombat(ally,ctx,threats);continue;}
       let target=null,distance=ALLY_RANGE;
       for(const hostile of threats) {
         if(typeof hostile?.id!=='string'||!hostile.id.startsWith('police:')||hostile.mode!=='foot'||(hostile.interiorId||null)!==(ally.interiorId||null)||hostile.active===false||!Number.isFinite(hostile.health)||hostile.health<=0||!point(hostile))continue;
@@ -472,7 +489,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
       const length2=rx*rx+rz*rz;if(length2<1e-12)break;
       let first=1,hit=null;
       for(const person of contacts) {
-        if(person.id===actor.id||person.active===false||person.seated||(person.interiorId||null)!==(actor.interiorId||null))continue;
+        if(person.id===actor.id||person.active===false||person.seated||person.bedRider||(person.interiorId||null)!==(actor.interiorId||null))continue;
         const ox=x-person.x,oz=z-person.z,dot=ox*rx+oz*rz,c=ox*ox+oz*oz-reach*reach;
         if(dot>=0)continue;
         const discriminant=dot*dot-length2*c;if(discriminant<0)continue;

@@ -259,6 +259,20 @@ function paintColor(options, fallback) {
   throw new TypeError('Color must be #RRGGBB or a 24-bit integer');
 }
 
+// Tray anchor for prone pickup-bed crew. Literals mirror the authored bed in
+// build(): floor at l*.30 with l*.28 depth, rails at w*.85, cab rear plane
+// rr*l. Feet rest at the floor's forward edge so the body never meets the cab.
+export function pickupBedAnchor(id) {
+  const profile = profiles[id];
+  if (!profile || !['pickup','runabout'].includes(profile[9])) return null;
+  const [, , rr, , belt] = profile, car = BY_ID[id], w = car.width / 2, l = car.length;
+  return Object.freeze({
+    form: profile[9], floorY: car.height * belt + .01,
+    z: Math.max(l * .16, rr * l + .25), railHalf: w * .80,
+    slots: Object.freeze([-w * .35, w * .35])
+  });
+}
+
 export function createCar(id, options = {}) {
   if (typeof id !== 'string' || !Object.hasOwn(BY_ID,id)) throw new RangeError('Unknown car ID');
   const car = BY_ID[id], color = paintColor(options,car.color);
@@ -284,6 +298,7 @@ export function createCar(id, options = {}) {
     if (o.isMesh) { triangles += o.geometry.index.count/3; drawCalls++; }
   });
   group.userData = Object.freeze({carId:id,wheels:Object.freeze(wheels),triangles,drawCalls,cockpit:p.cockpit,
+    bed:pickupBedAnchor(id),
     dimensions:Object.freeze({width:size.x,height:size.y,length:size.z}),
     profile:Object.freeze({form:profiles[id][9],wheelRadius:p.r,axleHeight:-p.wheel.boundingBox.min.y,wheelbase:p.wheelZ*2,forward:'-Z',wheelAxis:'X',measurement:'local unrotated geometry; single color pass, no shadows'})});
   return group;
