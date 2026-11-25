@@ -1,5 +1,7 @@
 # Tanks and Soldiers (248) - original combined-arms preview
 
+<!-- maintenance-game: Games/Tanks and Soldiers -->
+
 ## Identity and status
 
 Registered portal entry `Games/Tanks and Soldiers/index.html`, catalog id 248,
