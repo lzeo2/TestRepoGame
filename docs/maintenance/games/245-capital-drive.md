@@ -29,6 +29,11 @@ vehicle bodies use their vertical spans when a horizontal sweep would otherwise
 hit. At the same level an actor caught partway into a car can step back out.
 A zero-distance placement probe still rejects the occupied space.
 
+Boarding and exiting check that a person can travel between the seat and the
+standing position. At the Telopea fence a shorter step out beside the door
+keeps the player on the reachable side. A fully boxed-in car requires a new
+parking position.
+
 Parked saloons, wagons and SUVs now use their fleet dimensions in placement and
 collision. They share three templates with sloping windscreens, divided side
 windows, wheel hubs and lamps. A parked car costs one instance in its 300 m cell.
@@ -47,6 +52,7 @@ Run the focused regressions from the repository root.
 node scripts/test_capital_bridge_support_selection.mjs
 node scripts/test_capital_contact_levels.mjs
 node scripts/test_capital_actor_vehicle_escape.mjs
+node scripts/test_capital_vehicle_access.mjs
 node scripts/test_capital_vehicle_contacts.mjs
 node scripts/test_capital_parked_cars_view.mjs
 node scripts/test_capital_car_model.mjs

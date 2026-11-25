@@ -47,7 +47,7 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','north-west.js', 'north-places-view.js', 'drive-audio.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
-    'test_capital_parked_cars_view.mjs', 'test_capital_contact_levels.mjs',
+    'test_capital_parked_cars_view.mjs', 'test_capital_contact_levels.mjs', 'test_capital_vehicle_access.mjs',
     'test_capital_bridge_support_selection.mjs', 'test_capital_actor_vehicle_escape.mjs', 'test_capital_car_model.mjs',
     'test_capital_regional_expansion.mjs', 'test_capital_regional_landmarks_view.mjs',
     'test_capital_regional_water.mjs', 'test_capital_regions_actual.mjs',
