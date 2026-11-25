@@ -8,9 +8,15 @@ import {MAPPED_STORES} from '../Games/Capital Drive/stores.js';
 import {EXTRA_STORES} from '../Games/Capital Drive/civic-extras.js';
 import {CIVIC_INTERIOR_ENTRIES} from '../Games/Capital Drive/civic-view.js';
 import {SOURCE_GYM_SERVICES,GENERIC_SERVICES} from '../Games/Capital Drive/services.js';
+import {createTerrainSampler} from '../Games/Capital Drive/terrain.js';
+import {addCapitalWorldObstacles} from './capital-world-obstacles-fixture.mjs';
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import {createInteriorView} from '../Games/Capital Drive/interior-view.js';
 
 // Actual composed source data; no browser, player travel or surveyed-interior claim.
 const map=await loadCapitalMap();
+const mapTerrain=createTerrainSampler(map);
+const worldObstacles=process.argv.includes('--world-obstacles')?addCapitalWorldObstacles(map,mapTerrain):null;
 const summary={buildings:0,areas:0,areaTypes:{},holes:0,vertices:0,closedSourceRings:0,duplicateAdjacentVertices:[],places:0,aliases:0,entries:0};
 const features=[...(map.areas||[]).map(source=>({source,kind:'area'})),...map.buildings.map(source=>({source,kind:'building'}))];
 const extent={minX:Infinity,maxX:-Infinity,minZ:Infinity,maxZ:-Infinity};
@@ -92,8 +98,30 @@ for(const place of places){
 
 const gyms=[...SOURCE_GYM_SERVICES,...GENERIC_SERVICES.filter(s=>s.type==='gym')].map(s=>createGymEntry(map,s)).filter(Boolean);
 const school=createSchoolEntry(map),stores=[...MAPPED_STORES,...EXTRA_STORES];
-const interiors=createInteriors(map,{stores,publicEntries:[...CIVIC_INTERIOR_ENTRIES,...gyms,...(school?[school]:[])]});
+const interiors=createInteriors(map,{heightAt:mapTerrain.heightAt,stores,publicEntries:[...CIVIC_INTERIOR_ENTRIES,...gyms,...(school?[school]:[])]});
 const guide=createMissionGuide(interiors.entries).guide;
+const shellScene=new THREE.Scene(),shellView=createInteriorView(shellScene);
+const houseAudit={sourceDoors:map.interiorEntries?.length||0,houseEntries:0,plans:0,renderedSamples:0,geometryVertices:0,omittedDescriptors:{}};
+const admittedHouses=new Set(interiors.entries.filter(e=>e.type==='house').map(e=>String(e.buildingId)));
+const occupied=new Set([...stores,...CIVIC_INTERIOR_ENTRIES,...gyms,...(school?[school]:[])].map(e=>String(e.buildingId)));
+const buildingsById=new Map(map.buildings.map(b=>[String(b.id),b]));
+for(const door of map.interiorEntries||[]){
+  assert([door.x,door.z,door.nx,door.nz,door.width].every(Number.isFinite),`${door.id} finite exterior descriptor`);
+  assert(Math.abs(Math.hypot(door.nx,door.nz)-1)<1e-8&&door.width>0,`${door.id} doorway normal/width`);
+  const source=buildingsById.get(String(door.buildingId));assert(source,`${door.id} door retains source footprint`);
+  const distance=Math.min(...source.points.map((a,i)=>{
+    const b=source.points[(i+1)%source.points.length],dx=b[0]-a[0],dz=b[1]-a[1];
+    const t=Math.max(0,Math.min(1,((door.x-a[0])*dx+(door.z-a[1])*dz)/(dx*dx+dz*dz||1)));
+    return Math.hypot(door.x-a[0]-t*dx,door.z-a[1]-t*dz);
+  }));
+  // The production frame and visible door each sit .08m outside the source face.
+  assert(distance<=.160001,`${door.id} exterior door remains on mapped facade: ${distance}m`);
+  if(admittedHouses.has(String(door.buildingId)))continue;
+  const building=buildingsById.get(String(door.buildingId));
+  const reason=!building?'missing-source':occupied.has(String(door.buildingId))?'occupied-shop-or-public':building.height>9?'source-height-over-9m':!/^(house|residential|detached|semidetached_house|terrace|bungalow|yes)$/.test(building.type||'')?'ineligible-source-type':'other';
+  houseAudit.omittedDescriptors[reason]=(houseAudit.omittedDescriptors[reason]||0)+1;
+}
+const sampledTypes=new Set();
 for(const entry of interiors.entries){
   summary.entries++;
   assert(map.buildings.some(b=>String(b.id)===String(entry.buildingId)),`${entry.id} retained footprint`);
@@ -105,8 +133,28 @@ for(const entry of interiors.entries){
   const plan=interiors.enter(entry,actor);
   assert.equal(plan?.id,entry.id,`${entry.id} actual room entry`);
   assert([plan.floorY,plan.origin.x,plan.origin.z,plan.origin.yaw].every(Number.isFinite));
+  if(entry.type==='house'){
+    houseAudit.houseEntries++;houseAudit.plans++;
+    for(const collection of [plan.walls,plan.furniture,plan.details])for(const item of collection||[]){
+      assert([item.x,item.z,item.y,item.yaw,item.width,item.depth,item.height].every(Number.isFinite),`${entry.id} finite ${item.kind}`);
+      assert(item.width>0&&item.depth>0&&item.height>0,`${entry.id} positive shell/furniture dimensions`);
+    }
+    const building=map.buildings.find(b=>String(b.id)===String(entry.buildingId));
+    const stratum=`${building.source}:${building.type}:${building.points.length>8?'complex':'simple'}`;
+    if(houseAudit.plans%97===1||!sampledTypes.has(stratum)){
+      sampledTypes.add(stratum);assert(shellView.load(plan));houseAudit.renderedSamples++;
+      shellScene.traverse(mesh=>{
+        if(!mesh.isMesh)return;
+        for(const attribute of Object.values(mesh.geometry.attributes))assert(Array.from(attribute.array).every(Number.isFinite),`${entry.id} finite rendered shell attribute`);
+        houseAudit.geometryVertices+=mesh.geometry.attributes.position.count;
+      });
+      shellView.clear();
+    }
+  }
   assert(interiors.leave(actor),`${entry.id} room exit`);
   assert.equal(actor.x,expected.x);assert.equal(actor.z,expected.z);
 }
+shellView.dispose();
 assert(summary.entries>=stores.length,'mapped shop/public entrances are exercised');
 console.log(`PASS actual map feature sweep ${JSON.stringify(summary)}; exact detail paths/holes, search aliases/source pins, CSS projection and public/store mission entrance ties. Source closures/repeated vertices are retained; no native travel or surveyed geometry claim.`);
+if(worldObstacles)console.log('PASS actual generated house door/room sweep '+JSON.stringify({worldObstacles:worldObstacles.counts,houseAudit,exclusions:['Every admitted house plan entered/left through real lazy owner; sampled renderer geometry only.','House descriptor omission can reflect occupied mapped shop/public buildings; doors are not invented for absent source entries.','No exterior clearance, native input, room navigation/reachability or surveyed-floorplan claim.']}));
