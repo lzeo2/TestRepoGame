@@ -18,7 +18,7 @@ const personURL = dataURL((await read('../Games/Capital Drive/person-model.js'))
 const { appearanceForPerson, PERSON_MODEL } = await import(personURL);
 const actorURL = dataURL((await read('../Games/Capital Drive/actor-view.js'))
   .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL))
-  .replace("'../../assets/car-arcade/models.js'", JSON.stringify(modelsURL))
+  .replace("'./car-model.js'", JSON.stringify(modelsURL))
   .replace("'./person-model.js'", JSON.stringify(personURL))
   .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL)));
 const { createActorView } = await import(actorURL);

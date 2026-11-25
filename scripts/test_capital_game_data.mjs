@@ -54,6 +54,41 @@ async function assertFallback(options = {}, changeEnv = () => {}) {
   return test;
 }
 
+// A browser with six HTTP/1 connections cannot deliver later headers until
+// consumers start reading the earlier large map bodies.
+async function checkColdConnectionPressure() {
+  const waiting = [];
+  let open = 0;
+  function admit() {
+    while (open < 6 && waiting.length) {
+      const {url, resolve} = waiting.shift();
+      open++;
+      const stream = new ReadableStream({
+        pull(controller) {
+          controller.enqueue(new TextEncoder().encode(JSON.stringify({url})));
+          controller.close();
+          open--;
+          admit();
+        }
+      }, {highWaterMark: 0});
+      resolve(new Response(stream));
+    }
+  }
+  const fetch = url => new Promise(resolve => {
+    waiting.push({url, resolve});
+    admit();
+  });
+  const loading = loadGameData(urls, {baseURL, serviceWorker: null, fetch});
+  // All fixture IO is in-process. An undrained set cannot progress merely by
+  // waiting another turn of the event loop.
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(waiting.length, 0, 'cold boot releases slots for every district');
+  const bodies = await Promise.all((await loading).map(response => response.json()));
+  assert.deepEqual(bodies.map(body => body.url), resolved);
+  assert.equal(open, 0);
+}
+await checkColdConnectionPressure();
+
 const warm = fixture();
 const responses = await loadGameData(urls, warm.env);
 assert.equal(warm.fetches.length, 0, 'warm startup creates no fetch requests');

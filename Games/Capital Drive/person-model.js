@@ -13,11 +13,12 @@ export const PERSON_MODEL = Object.freeze({
   shapes: Object.freeze({ torso: 'capsule', head: 'sphere', hair: 'sphere', arms: 'capsule', legs: 'capsule', shoes: 'box', hands: 'sphere' }),
   torso: dimension(0, 1.12, 0, 0.23, 0.21, 0.15),
   head: dimension(0, 1.62, 0, 0.135, 0.17, 0.13),
-  hair: dimension(0, 1.72, 0.015, 0.139, 0.09, 0.13),
-  arms: dimension(0.29, 1.06, 0, 0.075, 0.19, 0.075),
-  legs: dimension(0.105, 0.43, 0, 0.085, 0.235, 0.085),
-  shoes: dimension(0.105, 0.055, -0.045, 0.17, 0.11, 0.28),
-  hands: dimension(0.3, 0.76, 0, 0.062, 0.075, 0.065)
+  // A shallow rear-set cap exposes the forehead while retaining the same roof fit.
+  hair: dimension(0, 1.735, 0.035, 0.139, 0.075, 0.12),
+  arms: dimension(0.31, 1.06, 0, 0.075, 0.19, 0.075),
+  legs: dimension(0.115, 0.43, 0, 0.085, 0.235, 0.085),
+  shoes: dimension(0.115, 0.055, -0.045, 0.17, 0.11, 0.28),
+  hands: dimension(0.32, 0.76, 0, 0.062, 0.075, 0.065)
 });
 
 const PLAYER_PRESETS = Object.freeze({
@@ -47,7 +48,25 @@ export function appearanceForPerson(id) {
 }
 
 export function createPersonGeometries() {
-  return { capsule: new THREE.CapsuleGeometry(1, 1, 2, 5), sphere: new THREE.SphereGeometry(1, 6, 4), box: new THREE.BoxGeometry(1, 1, 1) };
+  const capsule = new THREE.CapsuleGeometry(1, 1, 2, 5);
+  const sphere = new THREE.SphereGeometry(1, 6, 4);
+  // Sculpt the existing shared vertices once. Clothing narrows at the hem/cuff;
+  // heads have a narrower jaw and flatter forward face instead of a round bead.
+  // Hair and hands retain the same coherent rounded, tapered art vocabulary.
+  const clothing = capsule.attributes.position;
+  for (let i = 0; i < clothing.count; i++) {
+    const height = (clothing.getY(i) + 1.5) / 3;
+    clothing.setX(i, clothing.getX(i) * (0.7 + height * 0.3));
+    clothing.setZ(i, clothing.getZ(i) * (0.86 + height * 0.14));
+  }
+  const rounded = sphere.attributes.position;
+  for (let i = 0; i < rounded.count; i++) {
+    const jaw = 1 + Math.min(0, rounded.getY(i)) * 0.45;
+    rounded.setX(i, rounded.getX(i) * jaw);
+    rounded.setZ(i, Math.max(-0.7, rounded.getZ(i)) * (0.86 + jaw * 0.14));
+  }
+  capsule.computeVertexNormals(); sphere.computeVertexNormals();
+  return { capsule, sphere, box: new THREE.BoxGeometry(1, 1, 1) };
 }
 
 // The seated origin is the supplied vehicle eye anchor; negative Z faces forward.

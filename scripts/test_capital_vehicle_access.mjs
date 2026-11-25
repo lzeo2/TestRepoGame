@@ -1,0 +1,93 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { createGameplay } from '../Games/Capital Drive/gameplay.js';
+import { createSimulation } from '../Games/Capital Drive/simulation.js';
+import { CAMPUS_BARRIERS } from '../Games/Capital Drive/campus.js';
+const fenceX = x => ({ id: `fence-x:${x}`, points: [[x,-10],[x+.04,-10],[x+.04,10],[x,10]] });
+const fenceZ = z => ({ id: `fence-z:${z}`, points: [[-10,z],[10,z],[10,z+.04],[-10,z+.04]] });
+function fixture(barriers = [], options = {}) {
+  const map = { bounds: { minX: -100, maxX: 100, minZ: -100, maxZ: 100 },
+    roads: [], buildings: [], barriers, spawn: { x: 0, z: 0, yaw: 0 } };
+  const simulation = createSimulation(map, { trafficCount: 0, ...options });
+  const game = createGameplay(map, simulation, { sandbox: true, heightAt: options.actorHeightAt && ((x,z) => options.actorHeightAt({x,z})) });
+  return { simulation, game };
+}
+const open = fixture(), carBefore = { ...open.simulation.player };
+assert(open.game.interact(), 'ordinary clear-side exit works');
+assert(Math.abs(open.game.state.actor.x + 3.4) < 1e-9, 'retain the original successful exit distance and side');
+assert.deepEqual(open.simulation.player, carBefore, 'exit probes never mutate the car');
+assert(open.game.interact(), 'ordinary open-side reboarding works');
+const kerb = fixture([fenceX(-2.5)]);
+assert(kerb.game.interact());
+assert(kerb.game.state.actor.x < -1.3 && kerb.game.state.actor.x > -2.05,
+  'blocked long exit uses a clear short door-side exit before crossing to another lane');
+const fenced = fixture([fenceX(-1.5)]);
+assert(fenced.game.interact());
+assert(fenced.game.state.actor.x > 0, 'thin fence denies the first side and selects an open side');
+const boxed = fixture([fenceX(-1.5),fenceX(1.5),fenceZ(-2.8),fenceZ(2.8)]);
+const boxedActor = { ...boxed.game.state.actor }, boxedCar = { ...boxed.simulation.player };
+assert(!boxed.game.interact(), 'all sides blocked retains the seated player');
+assert.equal(boxed.game.state.mode, 'vehicle');
+assert.deepEqual(boxed.game.state.actor, boxedActor);
+assert.deepEqual(boxed.simulation.player, boxedCar);
+const boarding = fixture([fenceX(1.5)]);
+boarding.game.reset({ sandbox: true, onFoot: true, startPose: { x: 3.4, z: 0, yaw: 0 } });
+const boardActor = { ...boarding.game.state.actor };
+assert(!boarding.game.interact(), 'owned car cannot be boarded through a thin fence');
+assert.equal(boarding.game.state.mode, 'foot');
+assert.deepEqual(boarding.game.state.actor, boardActor, 'boarding access probes never move the real actor');
+const locked = fixture([fenceX(1.5)]);
+locked.simulation.player.x = 50;
+locked.simulation.setParkedCars([{ id:'locked',x:0,z:0,yaw:0,modelId:'lantern' }]);
+locked.game.reset({sandbox:true,onFoot:true,startPose:{x:3.4,z:0,yaw:0}});
+assert(!locked.game.interact());
+assert.equal(locked.game.state.carjacking, null, 'an unreachable parked car cannot start an unlock challenge');
+const vehicleWall = fixture();
+vehicleWall.simulation.setExternalVehicles([{id:'blocking-car',x:-2.1,z:0,yaw:0,length:4,width:1}]);
+assert(vehicleWall.game.interact());
+assert(vehicleWall.game.state.actor.x > 0, 'selected hull exemption does not ignore other vehicles');
+const levels = fixture([], { vehicleHeightAt: () => 0, actorHeightAt: () => 0 });
+levels.game.reset({sandbox:true,onFoot:true,startPose:{x:3.4,z:0,yaw:0}});
+levels.simulation.player.y = 5;
+assert(!levels.game.interact(), 'vertically disjoint explicit vehicle cannot be boarded from below');
+levels.simulation.player.y = .18;
+assert(levels.game.interact(), 'same-level ordinary boarding remains available');
+const slope = fixture([], { vehicleHeightAt: () => 0, actorHeightAt: () => .7 });
+slope.game.reset({sandbox:true,onFoot:true,startPose:{x:3.4,z:0,yaw:0}});
+assert(slope.game.interact(), 'a modest parking slope remains within the step-in tolerance');
+const occupied = fixture();
+occupied.simulation.player.x = 50;
+occupied.simulation.traffic.push({id:'driver-car',x:0,z:0,yaw:0,modelId:'lantern',active:true,health:100,speed:0});
+occupied.game.reset({sandbox:true,onFoot:true,startPose:{x:3.4,z:0,yaw:0}});
+assert(occupied.game.interact(), 'a reachable stopped occupied car retains its ordinary transfer');
+assert.equal(occupied.game.state.mode, 'vehicle');
+const countdown = fixture();
+countdown.simulation.player.x = 50;
+countdown.simulation.setParkedCars([{id:'challenge-car',x:0,z:0,yaw:0,modelId:'lantern'}]);
+countdown.game.reset({sandbox:true,onFoot:true,startPose:{x:3.4,z:0,yaw:0}});
+assert(!countdown.game.interact());
+assert(countdown.game.state.carjacking, 'reachable locked car retains the challenge');
+let accessSweeps = 0;
+const moveActor = countdown.simulation.moveActor;
+countdown.simulation.moveActor = (...args) => { accessSweeps++; return moveActor(...args); };
+countdown.game.step(1/60);
+assert.equal(accessSweeps, 0, 'theft countdown does not run an access sweep each frame');
+countdown.simulation.moveActor = () => ({blocked:true});
+for(let i=0;i<1200&&countdown.game.state.carjacking;i++) {
+  const challenge=countdown.game.state.carjacking.challenge;
+  countdown.game.step(1/60,{challenge:challenge?.phase==='cue'?{[challenge.expectedKey]:true}:{}});
+}
+assert.equal(countdown.game.state.carjacking, null);
+assert.equal(countdown.game.state.mode, 'foot', 'newly blocked route denies the final unlocked transfer');
+assert(countdown.simulation.nearbyVehicles(0,0,0).some(car=>car.id==='challenge-car'), 'denied final transfer leaves the parked vehicle intact');
+// Retained source spawn and campus fence, staged only with the normal reset.
+const actual = JSON.parse(await readFile(new URL('../Games/Capital Drive/data/canberra.json',import.meta.url)));
+actual.barriers = [...(actual.barriers || []), ...CAMPUS_BARRIERS];
+const real = createSimulation(actual,{trafficCount:0}), game = createGameplay(actual,real);
+assert(game.interact(), 'source Telopea/Barton spawn retains a reachable exit');
+const probe = { ...real.player, id:real.player.id };
+const access = real.moveActor(probe,game.state.actor.x-probe.x,game.state.actor.z-probe.z,.45);
+assert(!access.blocked && Math.hypot(probe.x-game.state.actor.x,probe.z-game.state.actor.z)<1e-6,
+  'source spawn exit stays on a swept reachable side of the campus fence');
+assert(game.interact(), 'source spawn reboarding works on the accessible side');
+console.log('Capital vehicle access: PASS (source school spawn, thin fences, short/open/boxed exits, boarding reach, locked guard, other hulls, disjoint levels and detached probes)');

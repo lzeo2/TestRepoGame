@@ -356,10 +356,8 @@ export function createSimulation(map, options = {}) {
         person.x < bounds.minX - radius || person.x > bounds.maxX + radius ||
         person.z < bounds.minZ - radius || person.z > bounds.maxZ + radius) continue;
       const body = { id: person.id, x: person.x, z: person.z, radius };
-      if (options.stuntSupportAt) {
-        if (Number.isFinite(person.y)) body.y = person.y;
-        if (Number.isFinite(person.height) && person.height > 0) body.height = person.height;
-      }
+      if (Number.isFinite(person.y)) body.y = person.y;
+      if (Number.isFinite(person.height) && person.height > 0) body.height = person.height;
       peopleIndex.insert(body, body.x - radius, body.z - radius, body.x + radius, body.z + radius);
       count++;
     }
@@ -401,28 +399,35 @@ export function createSimulation(map, options = {}) {
     peopleStats.queries++; peopleStats.lastCandidates = people.size;
     peopleStats.maxCandidates = Math.max(peopleStats.maxCandidates,people.size);
     const stuntSweep = options.stuntSupportAt && options.vehicleHeightAt && (pose.stuntActive || fromPose?.stuntActive);
-    const startY = stuntSweep ? vehicleBase(fromPose || pose) : NaN;
-    const endY = stuntSweep ? vehicleBase(pose) : NaN;
+    let startY, endY, checkedPerson, checkedOverlap;
+    const overlapsLevel = person => {
+      if (person === checkedPerson) return checkedOverlap;
+      checkedPerson = person; checkedOverlap = true;
+      if (!options.vehicleHeightAt) return true;
+      const personY = Number.isFinite(person.y) ? person.y : options.actorHeightAt?.(person) ??
+        (stuntSweep ? options.vehicleHeightAt(person) : NaN);
+      if (!Number.isFinite(personY)) return true;
+      // Sample heights only once a planar contact is possible, and retain the
+      // entire sweep envelope so crossing a person's level cannot tunnel.
+      if (startY === undefined) {
+        startY = vehicleBase(fromPose || pose); endY = vehicleBase(pose);
+      }
+      if (!Number.isFinite(startY) || !Number.isFinite(endY)) return true;
+      const carTop = Math.max(startY,endY) + Math.max(vehicleBodyHeight(pose),vehicleBodyHeight(fromPose || pose));
+      return checkedOverlap = !(Math.min(startY,endY) > personY + (person.height || 1.8) || carTop < personY);
+    };
     for (const person of people) {
       if (person.id === ignorePersonId) continue;
-      if (stuntSweep && Number.isFinite(startY) && Number.isFinite(endY)) {
-        const personY = Number.isFinite(person.y) ? person.y : options.vehicleHeightAt(person);
-        const personTop = personY + (person.height || 1.8);
-        // Retain the full continuous vertical envelope. Any possible overlap
-        // keeps the existing adult swept-body narrow phase authoritative.
-        const carTop = Math.max(startY,endY) + Math.max(vehicleBodyHeight(pose),vehicleBodyHeight(fromPose || pose));
-        if (Number.isFinite(personY) && (Math.min(startY,endY) > personTop || carTop < personY)) continue;
-      }
       const end = personLocal(person,pose), endDepth = person.radius-boxDistance(end,width/2,length/2);
-      if (!fromPose) { if (endDepth > 1e-9) return blockedByPeople(); continue; }
+      if (!fromPose) { if (endDepth > 1e-9 && overlapsLevel(person)) return blockedByPeople(); continue; }
       const prior = personLocal(person,fromPose);
       let priorDepth = person.radius-boxDistance(prior,width/2,length/2);
       if (Math.abs(turn) < 1e-10) {
         if (priorDepth > 1e-9) {
           // Permit only travel directly out of an existing body contact, never through it.
           const epsilon = 1e-5, near = {x:prior.x+(end.x-prior.x)*epsilon,z:prior.z+(end.z-prior.z)*epsilon};
-          if (endDepth >= priorDepth-1e-9 || boxDistance(near,width/2,length/2) < boxDistance(prior,width/2,length/2)-1e-10) return blockedByPeople(person,onContact);
-        } else if (segmentBoxDistance(prior,end,width/2,length/2) < person.radius-1e-9) return blockedByPeople(person,onContact);
+          if ((endDepth >= priorDepth-1e-9 || boxDistance(near,width/2,length/2) < boxDistance(prior,width/2,length/2)-1e-10) && overlapsLevel(person)) return blockedByPeople(person,onContact);
+        } else if (segmentBoxDistance(prior,end,width/2,length/2) < person.radius-1e-9 && overlapsLevel(person)) return blockedByPeople(person,onContact);
         continue;
       }
       // Bound each swept corner arc to 2cm. The inflated clear-body test covers
@@ -432,7 +437,7 @@ export function createSimulation(map, options = {}) {
       for (let i=1;i<=steps;i++) {
         const t=i/steps, sample = {x:fromPose.x+(pose.x-fromPose.x)*t,z:fromPose.z+(pose.z-fromPose.z)*t,yaw:fromPose.yaw+turn*t};
         const local=personLocal(person,sample), depth=person.radius-boxDistance(local,width/2,length/2);
-        if (Math.max(priorDepth,depth)+margin > 1e-9) return blockedByPeople(person,onContact);
+        if (Math.max(priorDepth,depth)+margin > 1e-9 && overlapsLevel(person)) return blockedByPeople(person,onContact);
         priorDepth=depth;
       }
     }
@@ -525,6 +530,7 @@ export function createSimulation(map, options = {}) {
     for (let i = 0; i < steps; i++) {
       const pose = { x: vehicle.x + dx / steps, z: vehicle.z + dz / steps, yaw: vehicle.yaw,
         edge:vehicle.edge,modelId:vehicle.modelId,height:vehicle.height,y:vehicle.stuntActive?vehicle.stuntY:vehicle.y,
+        supportY:vehicle.supportY,supportX:vehicle.supportX,supportZ:vehicle.supportZ,
         ...(vehicle.stuntActive?{stuntActive:true}:{}) };
       if (!vehicleClear(pose, { length, width, ignoreId: vehicle.id, fromPose: vehicle },onContact)) { blocked = true; break; }
       vehicle.x = pose.x; vehicle.z = pose.z;
@@ -543,7 +549,7 @@ export function createSimulation(map, options = {}) {
       if (!Number.isFinite(car.x) || !Number.isFinite(car.z)) continue;
       const parked = { ...car, id: car.id ?? `parked:${count}`, x: car.x, z: car.z, yaw: Number.isFinite(car.yaw) ? car.yaw : 0,
         modelId: car.modelId || 'lantern', color: car.color ?? 0xd4d7d3, active: car.active !== false };
-      if (typeof car.suv === 'boolean') {
+      if (!BY_ID[car.modelId] && typeof car.suv === 'boolean') {
         parked.length = car.length ?? (car.suv ? 4.5 : 4.7);
         parked.width = car.width ?? (car.suv ? 1.98 : 1.85);
       }
@@ -583,6 +589,17 @@ export function createSimulation(map, options = {}) {
     car.edge = edge; car.position = position;
     Object.assign(car, pointOnLane(edge, position));
   }
+  function refreshPlayerSupport(source = player, relocated = false) {
+    if (!options.preserveVehicleSupport || !options.vehicleHeightAt) return;
+    if (!relocated && Number.isFinite(player.supportY) &&
+        player.supportX === player.x && player.supportZ === player.z) return;
+    // A teleport can move between decks at identical X/Z. Vehicle changes
+    // inherit the acquired car's support, including its directed road.
+    if (relocated) player.supportY = undefined;
+    player.supportY = options.vehicleHeightAt(source, source.edge?.road);
+    player.supportX = player.x;
+    player.supportZ = player.z;
+  }
   function reset(spawn = map.spawn) {
     flight?.clear(player);
     Object.assign(driving, createDrivingState());
@@ -590,6 +607,7 @@ export function createSimulation(map, options = {}) {
     const target = spawn || fallback;
     Object.assign(player, { x: target.x, z: target.z, yaw: target.yaw || 0, speed: 0, vx: 0, vz: 0, steer: 0,
       odometer: 0, crashes: 0, lastImpactSpeed:0, offroad: false });
+    refreshPlayerSupport(player, true);
     crashCooldown = 0; stopRequests.clear(); vehicleImpacts.length=0; trafficLights.reset();
   }
   // Placement previews use the same clearance and heading as teleport.
@@ -606,7 +624,7 @@ export function createSimulation(map, options = {}) {
     const insideBounds = candidate => ({ x: clamp(candidate.x, bounds.minX + marginX, bounds.maxX - marginX),
       z: clamp(candidate.z, bounds.minZ + marginZ, bounds.maxZ - marginZ) });
     const origin = insideBounds(point);
-    const clearVehicle = candidate => vehicleClear({ ...player, ...candidate, yaw }, { ignorePersonId:'player-body' });
+    const clearVehicle = candidate => vehicleClear({ ...player, ...candidate, yaw, supportY:undefined }, { ignorePersonId:'player-body' });
     function blockerAt(candidate) {
       for (const [index, reason] of [[buildingIndex, 'building'], [barrierIndex, 'fence'], [waterIndex, 'water']]) {
         for (const polygon of index.query(candidate.x, candidate.z, 1.8)) {
@@ -678,6 +696,7 @@ export function createSimulation(map, options = {}) {
     Object.assign(driving, createDrivingState(), { nitroFuel: driving.nitroFuel });
     Object.assign(player, { x, z, yaw, speed: 0, vx: 0, vz: 0, steer: 0,
       offroad: !road || road.distance > roadProfile(road.road).driveWidth * 0.5 + 1 });
+    refreshPlayerSupport(player, true);
     crashCooldown = 0;
     return result;
   }
@@ -933,6 +952,7 @@ export function createSimulation(map, options = {}) {
   }
   function resolveImpact(nx, nz, depth) {
     const correction = { x: player.x + nx * depth, z: player.z + nz * depth, yaw: player.yaw,
+      supportY:player.supportY,supportX:player.supportX,supportZ:player.supportZ,
       ...(player.stuntActive?{y:player.stuntY,stuntActive:true}:{}) };
     const body = vehicleSize(player);
     if (peopleVehicleClear(correction,body.length,body.width,player)) {
@@ -947,6 +967,7 @@ export function createSimulation(map, options = {}) {
   }
   function step(dt, input = {}, focus = player) {
     if (!Number.isFinite(dt) || dt <= 0) return;
+    refreshPlayerSupport();
     focusPoint = focus && Number.isFinite(focus.x) && Number.isFinite(focus.z) ? focus : player;
     dt = Math.min(dt, 0.05); elapsed += dt; crashCooldown -= dt;
     trafficLights.step(dt);
@@ -978,6 +999,7 @@ export function createSimulation(map, options = {}) {
     for (let turnStep = 0; turnStep < turnSteps && Math.abs(turn) > 0.000001; turnStep++) {
       const nextPose = { x: player.x, z: player.z, yaw: player.yaw + turn / turnSteps,
         modelId: player.modelId, length: player.length, width: player.width, edge:player.edge,height:player.height,
+        supportY:player.supportY,supportX:player.supportX,supportZ:player.supportZ,
         ...(player.stuntActive?{y:player.stuntY,stuntActive:true}:{}) };
       if (!canOccupy(nextPose, { ignoreId: player.id, fromPose: player })) break;
       player.yaw = nextPose.yaw;
@@ -1004,6 +1026,7 @@ export function createSimulation(map, options = {}) {
       if (gap < 3.55 && sameVehicleLevel(player,car)) resolveImpact(gap > 0.001 ? dx / gap : Math.cos(car.yaw),
         gap > 0.001 ? dz / gap : -Math.sin(car.yaw), 3.55 - gap + 0.01);
     }
+    refreshPlayerSupport();
     flight?.step(player,dt);
     updateTraffic(dt);
     for (const car of traffic) {
@@ -1054,7 +1077,8 @@ export function createSimulation(map, options = {}) {
     if (car.health === 0) return { ok: false, vehicle: null, stolen: false, reason: 'disabled' };
     if (Math.abs(car.speed || 0) > 5) return { ok: false, vehicle: null, stolen: false, reason: 'moving' };
     const prior = { id: `abandoned:${++abandonedSerial}`, x: player.x, z: player.z, yaw: player.yaw,
-      modelId: player.modelId, color: player.color, health: clamp(health, 0, 100), active: true };
+      modelId: player.modelId, color: player.color, health: clamp(health, 0, 100), active: true,
+      ...(options.vehicleHeightAt?{y:vehicleBase(player)}:{}) };
     if (abandonedCars.length >= 12) {
       const disposable = abandonedCars.findIndex(item => !item.active || Math.hypot(item.x - player.x, item.z - player.z) > 330);
       if (disposable < 0) return { ok: false, vehicle: null, stolen: false, reason: 'vehicle-limit' };
@@ -1067,6 +1091,7 @@ export function createSimulation(map, options = {}) {
     Object.assign(driving, createDrivingState(), { nitroFuel: driving.nitroFuel });
     Object.assign(player, { x: car.x, z: car.z, yaw: car.yaw, modelId: car.modelId, color: car.color,
       speed: 0, vx: 0, vz: 0, steer: 0 });
+    refreshPlayerSupport(car, true);
     return { ok: true, vehicle: { ...nearbyVehicles(player.x, player.z, 0).find(item => item.id === 'player'), health: car.health ?? 100 }, stolen, reason: 'claimed' };
   }
   function sweepActor(actor, dx, dz, radius, playerVehicle, allowSwimming) {
@@ -1096,6 +1121,23 @@ export function createSimulation(map, options = {}) {
         const across = Math.abs(Math.cos(yaw) * dx - Math.sin(yaw) * dz);
         const clearX=Math.max(0,along-size.length/2),clearZ=Math.max(0,across-size.width/2);
         if(clearX*clearX+clearZ*clearZ>=radius*radius) return false;
+        if(options.vehicleHeightAt) {
+          const actorY=Number.isFinite(actor.y)?actor.y:options.actorHeightAt?.(actor);
+          const nextY=Number.isFinite(actor.y)?actor.y:options.actorHeightAt?.({...actor,x,z});
+          if(Number.isFinite(actorY)&&Number.isFinite(nextY)) {
+            const carY=vehicleBase(car),height=Number.isFinite(actor.height)&&actor.height>0?actor.height:1.8;
+            if(Number.isFinite(carY)&&(Math.min(actorY,nextY)>carY+vehicleBodyHeight(car)||Math.max(actorY,nextY)+height<carY)) return false;
+          }
+        }
+        // A refreshed moving hull can already touch an actor. Permit only
+        // decreasing penetration, so small outward steps can leave that contact.
+        const prior=personLocal(actor,car),next=personLocal({x,z},car);
+        const priorDistance=boxDistance(prior,size.width/2,size.length/2);
+        const nextDistance=boxDistance(next,size.width/2,size.length/2);
+        if(priorDistance<radius-1e-9 && nextDistance>priorDistance+1e-9) {
+          const near={x:prior.x+(next.x-prior.x)*1e-5,z:prior.z+(next.z-prior.z)*1e-5};
+          if(boxDistance(near,size.width/2,size.length/2)>=priorDistance-1e-10) return false;
+        }
         return !nextWater || !options.vehicleHeightAt || vehicleBase(car)<=nextWater.y+.8;
       });
       if(blocked) return false;

@@ -11,7 +11,12 @@ const factoryURL = url((await read('../assets/car-arcade/models.js'))
   .replace("'./vendor/three.module.js'", JSON.stringify(threeURL))
   .replace("'./vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
   .replace("'./fleet.js'", JSON.stringify(fleetURL)));
-const { createCar, disposeCars } = await import(factoryURL);
+const bodyworkURL = url((await read('../Games/Capital Drive/car-model.js'))
+  .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL))
+  .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
+  .replace("'../../assets/car-arcade/models.js'", JSON.stringify(factoryURL)));
+const { createCarBodywork, disposeCars } = await import(bodyworkURL);
+const { createCar } = await import(factoryURL);
 const shadowURL = url((await read('../Games/Capital Drive/vehicle-contact-shadow.js'))
   .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL)));
 const { createTrafficView } = await import(url((await read('../Games/Capital Drive/traffic-view.js'))
@@ -19,9 +24,10 @@ const { createTrafficView } = await import(url((await read('../Games/Capital Dri
   .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
   .replace("'../../assets/car-arcade/models.js'", JSON.stringify(factoryURL))
   .replace("'../../assets/car-arcade/fleet.js'", JSON.stringify(fleetURL))
-  .replace("'./vehicle-contact-shadow.js'", JSON.stringify(shadowURL))));
+  .replace("'./vehicle-contact-shadow.js'", JSON.stringify(shadowURL))
+  .replace("'./car-model.js'", JSON.stringify(bodyworkURL))));
 const models = TRAFFIC_CAR_IDS;
-const batchCount=models.length*3+1;
+const batchCount=models.length*4+1;
 const colors = [0xd4d7d3, 0x777e84, 0x274d79, 0xa4463b, 0xd1c8b4, 0x555952, 0xc5b86e];
 const traffic = Array.from({ length: 40 }, (_, i) => ({ id: `traffic:${i}`, modelId: models[i % models.length], color: colors[i % 7], x: i, z: i * .2, yaw: i * .1, active: true }));
 const scene = new THREE.Scene(), heightAt = (x, z) => x * .02 + z * .01;
@@ -37,7 +43,7 @@ assert.equal(root.children.length, batchCount); assert.equal(view.stats.drawCall
 const resources = root.children.map(mesh => [mesh.geometry, mesh.material, mesh.instanceMatrix.array, mesh.instanceColor?.array]);
 for (const mesh of root.children) { assert.equal(mesh.instanceMatrix.count, 56); assert(!sharedGeometries.has(mesh.geometry)); assert(!sharedMaterials.has(mesh.material)); }
 for (const [i, id] of models.entries()) {
-  const meshes = root.children.filter(mesh => mesh.name.startsWith(`${id} `));
+  const meshes = root.children.filter(mesh => mesh.name.startsWith(`${id} `) && !mesh.name.endsWith('near bodywork'));
   const actualBounds = new THREE.Box3();
   let triangles = 0;
   for (const mesh of meshes) { mesh.geometry.computeBoundingBox(); actualBounds.union(mesh.geometry.boundingBox); triangles += mesh.geometry.index.count / 3; }
@@ -70,6 +76,22 @@ for (const id of models) {
   assert.equal(paint.count, matching.length);
   matching.forEach((car, i) => { const actual = new THREE.Color(); paint.getColorAt(i, actual); const expected = new THREE.Color(car.color); assert(Math.abs(actual.r - expected.r) + Math.abs(actual.g - expected.g) + Math.abs(actual.b - expected.b) < .000001); });
 }
+
+// Close detail uses the same template as the player, then disappears entirely
+// outside 65m while the original source car keeps rendering.
+for (const id of models) {
+  const near = root.children.find(mesh => mesh.name === `${id} near bodywork`);
+  assert.equal(near.geometry.index.count, createCarBodywork(createCar(id)).geometry.index.count);
+  assert(near.count > 0);
+}
+const farTraffic = traffic.map(car => ({...car}));
+traffic.forEach((car, i) => {car.x = 100 + i; car.z = 0;});
+view.update({x:0,z:0});
+assert.equal(view.stats.drawCalls, models.length * 3 + 1, 'distant draw budget unchanged');
+assert(root.children.filter(mesh => mesh.name.endsWith('near bodywork')).every(mesh => !mesh.visible && mesh.count === 0));
+assert.equal(view.stats.triangles, originals.reduce((sum, _, i) => sum + traffic.filter(c => c.modelId === models[i]).length * originals[i].userData.triangles, 80));
+traffic.splice(0, traffic.length, ...farTraffic); view.update({x:0,z:0});
+
 const matrix = new THREE.Matrix4(); root.children[0].getMatrixAt(0, matrix);
 assert(Math.abs(matrix.elements[13] - .18) < .000001);
 const expectedPose = new THREE.Object3D();

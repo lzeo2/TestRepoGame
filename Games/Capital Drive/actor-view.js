@@ -1,6 +1,6 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
-import { createCar } from '../../assets/car-arcade/models.js';
+import { createCar } from './car-model.js';
 import { appearanceForPerson, createPersonGeometries, PERSON_MODEL } from './person-model.js';
 
 const POLICE_LIMIT = 6, SHOT_LIMIT = 8, PLAYER_FLASH_LIMIT = 4, CULL_DISTANCE = 380;

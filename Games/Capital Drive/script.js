@@ -1,3 +1,4 @@
+import {createParkedCarsView} from './parked-cars-view.js';
 import {GAME_DATA_FILES,loadGameData} from './game-data.js';
 import {createTutorial} from './tutorial.js';
 import {createActivityUI} from './activity-ui.js';
@@ -49,7 +50,7 @@ import {createGraphicsDiagnostics} from './graphics-diagnostics.js';
 import {setupGameCache} from './cache-client.js';
 import {showGameStartupError} from './cache-launcher.js';
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
-import { createCar, disposeCars } from '../../assets/car-arcade/models.js';
+import { createCar, disposeCars } from './car-model.js';
 import {CAPITAL_BY_ID as BY_ID} from '../../assets/car-arcade/fleet.js';
 import { createSimulation, projectSegment } from './simulation.js';
 import { createWorldView } from './world-view.js';
@@ -476,7 +477,7 @@ let activities=createInteriorActivities(),roomPeople=createInteriorPeople(),room
 const miniKeys=new Set();
 const rentalHack=createVehicleChallenge();
 let rentalHackTarget=null;
-let parkedChunks = [], selectedCar = 'lantern', selectedPaint = '#e7e6df';
+let parkedView = null, selectedCar = 'lantern', selectedPaint = '#e7e6df';
 let quality = 'low', started = false, disposed = false, lastTime = 0, accumulator = 0, lastRender = 0, hudTime = 0;
 const graphicsPresets = ['realism', 'standard', 'low', 'performance'];
 const graphicsTest = createGraphicsDiagnostics(graphicsPresets.map(id => ({id, fps:renderProfile(id).fps})));
@@ -511,7 +512,6 @@ let mouseAim = false, mouseFire = false, lastJobTarget = '';
 const actionTouch = new Set(), abandonedMeshes = new Map();
 const touchHolds = new Map();
 let moveStick, lookStick;
-const parkedInstanceRecords = [];
 const parkedSourceCars = [];
 let carShadowGeometry, carShadowMaterial;
 let mapSelection = null, mapDrag = null, showBusRoutes = false;
@@ -2872,8 +2872,9 @@ function addCarShadow(mesh) {
   shadow.scale.copy(vehicleShadowScale(BY_ID[mesh.userData.carId]));
   mesh.add(shadow);
 }
-function applyPlayerVehicle(vehicle, {newVehicle=true}={}) {
+function applyPlayerVehicle(vehicle, {newVehicle=true, sourceId}={}) {
   if(newVehicle)playerCarKey++;
+  if(sourceId)parkedView?.hide(sourceId);
   selectedPaint = typeof vehicle.color === 'number' ? '#' + vehicle.color.toString(16).padStart(6, '0') : vehicle.color || '#e7e6df';
   if (gameplay?.state.mode === 'foot') {
     const actor = focus();
@@ -3533,48 +3534,14 @@ function populatePlaces() {
 }
 
 function createParkedCars() {
-  const chunks = new Map(), dummy = new THREE.Object3D(), color = new THREE.Color();
-  for(const car of generateParkedCars(map,{isClear:(x,z,radius,pose)=>simulation.canOccupy(pose,{length:4.8,width:2})})){
-    const key=`${Math.floor(car.x/300)},${Math.floor(car.z/300)}`;
-    if(!chunks.has(key))chunks.set(key,[]);chunks.get(key).push(car);
-  }
-  const geometry = new THREE.BoxGeometry(1, 1, 1), material = new THREE.MeshLambertMaterial({ color: 0xffffff });
-  parkedResources.push(geometry, material);
-  parkedSourceCars.push(...[...chunks.values()].flat()); simulation.setParkedCars(parkedSourceCars);
-  for (const cars of chunks.values()) {
-    if (!cars.length) continue;
-    const group = new THREE.Group();
-    const pieces = [new THREE.InstancedMesh(geometry, material, cars.length), new THREE.InstancedMesh(geometry, material, cars.length), new THREE.InstancedMesh(geometry, material, cars.length * 4)];
-    cars.forEach((car, index) => {
-      const matrices = [];
-      const y = world.vehicleHeightAt(car,car.edge?.road), height = car.suv ? .88 : .62;
-      dummy.position.set(car.x, y + .36 + height / 2, car.z); dummy.rotation.set(0, car.yaw, 0); dummy.scale.set(car.suv ? 1.98 : 1.85, height, car.suv ? 4.5 : 4.7); dummy.updateMatrix();
-      pieces[0].setMatrixAt(index, dummy.matrix); pieces[0].setColorAt(index, color.set(car.color));
-      matrices.push(dummy.matrix.clone());
-      dummy.position.y += height / 2 + .26; dummy.scale.set(1.58, .65, car.suv ? 2.7 : car.modelId === 'orchard' ? 3.3 : 2.3); dummy.updateMatrix(); pieces[1].setMatrixAt(index, dummy.matrix); pieces[1].setColorAt(index, color.set(0x43565a));
-      matrices.push(dummy.matrix.clone());
-      for (let wheel = 0; wheel < 4; wheel++) {
-        const x = wheel % 2 ? .96 : -.96, z = wheel < 2 ? -1.45 : 1.45;
-        dummy.position.set(car.x + Math.cos(car.yaw) * x + Math.sin(car.yaw) * z, y + .35, car.z - Math.sin(car.yaw) * x + Math.cos(car.yaw) * z);
-        dummy.scale.set(.22, .6, .6); dummy.updateMatrix(); pieces[2].setMatrixAt(index * 4 + wheel, dummy.matrix); pieces[2].setColorAt(index * 4 + wheel, color.set(0x252b2b));
-        matrices.push(dummy.matrix.clone());
-      }
-      parkedInstanceRecords.push({ id: car.id, pieces, index, matrices, hidden: false });
-    });
-    for (const mesh of pieces) { mesh.computeBoundingSphere(); group.add(mesh); }
-    scene.add(group); parkedChunks.push({ group, x: cars[0].x, z: cars[0].z });
-  }
+  parkedSourceCars.push(...generateParkedCars(map,{isClear:(_x,_z,_radius,pose)=>simulation.canOccupy(pose)}));
+  simulation.setParkedCars(parkedSourceCars);
+  parkedView = createParkedCarsView(scene, parkedSourceCars, car=>world.vehicleHeightAt(car,car.edge?.road));
 }
 function restoreParkedCars() {
   vehicleFires.reset();
   simulation.setParkedCars(parkedSourceCars); simulation.abandonedCars.length = 0;
-  for (const record of parkedInstanceRecords) {
-    if (!record.hidden) continue;
-    record.pieces[0].setMatrixAt(record.index, record.matrices[0]); record.pieces[1].setMatrixAt(record.index, record.matrices[1]);
-    for (let wheel = 0; wheel < 4; wheel++) record.pieces[2].setMatrixAt(record.index * 4 + wheel, record.matrices[wheel + 2]);
-    for (const piece of record.pieces) piece.instanceMatrix.needsUpdate = true;
-    record.hidden = false;
-  }
+  parkedView?.restore();
 }
 function resize() {
   clearInput();
@@ -3749,18 +3716,6 @@ function placeCar(mesh, car, dt) {
   const pitch = Math.atan2(world.vehicleHeightAt({...car,x:car.x+fx*2,z:car.z+fz*2},car.edge?.road) - world.vehicleHeightAt({...car,x:car.x-fx*2,z:car.z-fz*2},car.edge?.road), 4);
   mesh.position.set(car.x, y + .18, car.z); mesh.rotation.set(pitch, car.yaw, 0, 'YXZ');
   for (const wheel of mesh.userData.wheels) wheel.rotation.x -= car.speed * dt / .34;
-}
-function syncParkedVisibility() {
-  const states = new Map(simulation.parkedCars.map(car => [car.id, car]));
-  const empty = new THREE.Matrix4().makeScale(0, 0, 0);
-  for (const record of parkedInstanceRecords) {
-    if (record.hidden || states.get(record.id)?.active !== false) continue;
-    record.pieces[0].setMatrixAt(record.index, empty);
-    record.pieces[1].setMatrixAt(record.index, empty);
-    for (let wheel = 0; wheel < 4; wheel++) record.pieces[2].setMatrixAt(record.index * 4 + wheel, empty);
-    for (const piece of record.pieces) piece.instanceMatrix.needsUpdate = true;
-    record.hidden = true;
-  }
 }
 function updateAbandonedMeshes(p, dt) {
   const active = new Set();
@@ -4046,8 +4001,7 @@ function animate(time) {
     neighbourhood?.update(p); landmarkView?.update(p, time / 1000);storefrontsView?.update(p);shoppingView?.update(p);campusView?.update(p);civicView?.update(p);civicExtrasView?.update(p);
     streetAssetsView?.update(p);highwayBarriersView?.update(p);localDetailsView?.update(p);
     rentalStorefrontsView?.update(p);
-    syncParkedVisibility();
-    for (const chunk of parkedChunks) chunk.group.visible = Math.hypot(chunk.x - p.x, chunk.z - p.z) < 600;
+    parkedView?.cull(p);
   }
   }
   const onFoot = gameplay.state.mode === 'foot'&&!gameplay.state.passenger;
@@ -4255,7 +4209,11 @@ async function boot() {
   map.barriers.push(...(neighbourhood.backyardBarriers||[]));
   const groundVehicleHeightAt=compatibility?surfaceAt:terrainSampler.vehicleHeightAt;
   stuntsView=compatibility?emptyView():createStuntRampsView(scene,stunts);
-  simulation=createSimulation(map,{isOnBridge:terrainSampler.isOnBridge,groundHeightAt:terrainSampler.groundHeightAt,vehicleHeightAt:groundVehicleHeightAt,stuntSupportAt:stunts.supportAt,nitroAutoRecharge:false,onTrafficHorn:soundTrafficHorn,vehicleMods:()=>!isSandbox()&&gameplay?progression.vehicleMods(gameplay.state.vehicle):{},powerModifiers:()=>heroPowers.modifiers(powerContext()),waterExemption:skylineYardWaterExempt});
+  simulation=createSimulation(map,{
+    isOnBridge:terrainSampler.isOnBridge,groundHeightAt:terrainSampler.groundHeightAt,
+    vehicleHeightAt:groundVehicleHeightAt,preserveVehicleSupport:!compatibility,
+    actorHeightAt:body=>world?.heightAt(body.x,body.z)??surfaceAt(body.x,body.z),
+    stuntSupportAt:stunts.supportAt,nitroAutoRecharge:false,onTrafficHorn:soundTrafficHorn,vehicleMods:()=>!isSandbox()&&gameplay?progression.vehicleMods(gameplay.state.vehicle):{},powerModifiers:()=>heroPowers.modifiers(powerContext()),waterExemption:skylineYardWaterExempt});
   const nitroStations=createNitroStations(FUEL_STATIONS,simulation),nitroById=new Map(nitroStations.map(site=>[site.id,site]));
   stationDamage=createNitroStationDamage(nitroStations,{groundHeightAt:terrainSampler.heightAt});
   const forecourts=buildPetrolForecourts(nitroStations,FUEL_STATIONS,simulation,terrainSampler.heightAt,map.buildings);
@@ -4646,6 +4604,7 @@ window.addEventListener('pagehide', event => {
   warMemorialView?.dispose();birdsView?.dispose();
   aircraft?.reset();aircraftView?.dispose();jetpack?.reset(gameplay?.state);jetpackView?.dispose();ordnance?.reset();ordnanceView?.dispose();indoorOrdnanceView?.dispose();atmosphereView?.dispose();airportView?.dispose();defenceDepotView?.dispose();policeStationView?.dispose();vehicleDamageView?.dispose();
   if (audio) { audio.engine.dispose(); audio.context.close().catch(error => console.warn('Could not release audio:', error.message)); }
+  parkedView?.dispose(); parkedView = null;
   for (const resource of parkedResources) resource.dispose();
   activityUI.dispose();streetUI?.dispose(); actorView?.dispose(); landmarkView?.dispose();busView?.dispose();occupantsView?.dispose();servicesView?.dispose();trafficView?.dispose();storefrontsView?.dispose();
   dealerView?.dispose();rideView?.dispose();resetDelivery();rideService?.reset();signalsView?.dispose();roadGuidanceView?.dispose();equipmentView?.dispose();equipment?.reset();

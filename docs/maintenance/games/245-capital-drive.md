@@ -19,6 +19,56 @@ Lyneham, Acton and the western lake. The regional expansion connects Belconnen
 and Bruce, Watson and Gungahlin, and Woden through Greenway. No GTA code,
 artwork or branded vehicle assets are used.
 
+## Road-level contacts and street models
+
+At the Flynn Drive and Commonwealth Avenue crossing a driver can turn under the
+deck and stay on the lower road. The player carries the last local support height
+through steering and collision checks. Teleporting resolves support at the
+destination and changing cars takes the acquired vehicle's level. Feet and
+vehicle bodies use their vertical spans when a horizontal sweep would otherwise
+hit. At the same level an actor caught partway into a car can step back out.
+A zero-distance placement probe still rejects the occupied space.
+
+Boarding and exiting check that a person can travel between the seat and the
+standing position. At the Telopea fence a shorter step out beside the door
+keeps the player on the reachable side. A fully boxed-in car requires a new
+parking position. On build `a624393012bf`, a Chromium Free roam playtest at
+the initial spawn exited the Saloon, held movement against its door, backed
+away and reboarded with E. The actor's centre stayed 1.393 m from the car's
+centreline through five consecutive contact samples. The car stayed still.
+The test ran with software WebGL.
+
+The release also fixes cold startup on origins with a small connection pool.
+The loader drains each response into a Blob as its headers arrive and parses
+the map files in their original order. A six-connection regression covers the
+17-file import. The browser build check on `beba51a7091e` booted normally,
+saved the local assets, and travelled from Free roam to the depot.
+
+Parked saloons, wagons and SUVs now use their fleet dimensions in placement and
+collision. They share three templates with sloping windscreens, divided side
+windows, wheel hubs and lamps. A parked car costs one instance in its 300 m cell.
+Taking it hides that instance by ID. A fixture with 3,000 parked cars used
+303,240 bytes of geometry and GPU instance attributes. This count excludes scene
+objects and driver overhead.
+
+Street people and seated occupants share a tapered clothing shape and face
+profile. The close car trim adds 168 triangles to each of the 19 drivable
+models with the same draw count. Moving traffic shows that detail within
+65 metres, with at most one additional instanced draw per nearby model.
+
+Run the focused regressions from the repository root.
+
+```sh
+node scripts/test_capital_bridge_support_selection.mjs
+node scripts/test_capital_contact_levels.mjs
+node scripts/test_capital_actor_vehicle_escape.mjs
+node scripts/test_capital_vehicle_access.mjs
+node scripts/test_capital_vehicle_contacts.mjs
+node scripts/test_capital_parked_cars_view.mjs
+node scripts/test_capital_car_model.mjs
+node scripts/test_capital_person_model.mjs
+```
+
 ## Implementation map
 
 The [regional expansion](../../capital-drive-regional-sources.md) adds connected

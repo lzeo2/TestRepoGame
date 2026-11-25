@@ -8,10 +8,14 @@ const threeURL = dataURL(await read('../assets/car-arcade/vendor/three.module.js
 const THREE = await import(threeURL);
 const utilsURL = dataURL((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace("'./three.module.js'", JSON.stringify(threeURL)));
 const fleetURL = dataURL(await read('../assets/car-arcade/fleet.js'));
-const modelsURL = dataURL((await read('../assets/car-arcade/models.js'))
+const baseModelsURL = dataURL((await read('../assets/car-arcade/models.js'))
   .replace("'./vendor/three.module.js'", JSON.stringify(threeURL))
   .replace("'./vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
   .replace("'./fleet.js'", JSON.stringify(fleetURL)));
+const modelsURL = dataURL((await read('../Games/Capital Drive/car-model.js'))
+  .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL))
+  .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
+  .replace("'../../assets/car-arcade/models.js'", JSON.stringify(baseModelsURL)));
 const { createCar, disposeCars } = await import(modelsURL);
 const actorModelsURL = dataURL(`import { createCar as factory } from ${JSON.stringify(modelsURL)};
   let calls = 0; export function createCar(...args) { calls++; return factory(...args); }
@@ -22,7 +26,7 @@ const personURL = dataURL((await read('../Games/Capital Drive/person-model.js'))
 const { appearanceForPerson, PERSON_MODEL, createPersonGeometries } = await import(personURL);
 const actorURL = dataURL((await read('../Games/Capital Drive/actor-view.js'))
   .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL))
-  .replace("'../../assets/car-arcade/models.js'", JSON.stringify(actorModelsURL))
+  .replace("'./car-model.js'", JSON.stringify(actorModelsURL))
   .replace("'./person-model.js'", JSON.stringify(personURL))
   .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL)));
 const { createActorView } = await import(actorURL);

@@ -1,4 +1,5 @@
 import { createPolice } from './police.js';
+import { CAPITAL_BY_ID } from '../../assets/car-arcade/fleet.js';
 import { createVehicleChallenge } from './vehicle-challenges.js';
 import { WEAPONS, weaponById, normalizeAmmoInventory } from './weapons.js';
 import { createShotRays, resolveShotRay, MAX_AIM_PITCH } from './ballistics.js';
@@ -18,6 +19,7 @@ const freeze = value => {
 };
 const MAX_SHOT_TRACES = 16;
 const SWIM_SPEED=1.65, FAST_SWIM_SPEED=2.45;
+const MAX_VEHICLE_ACCESS_STEP=1.2;
 
 export function createGameplay(map, simulation, options = {}) {
   const state = { mode: 'vehicle', actor: { x: 0, z: 0, yaw: 0, speed: 0, jumpHeight: 0, aimPitch: 0, crouching: false,
@@ -101,6 +103,17 @@ export function createGameplay(map, simulation, options = {}) {
     emit('offence', `Reported: ${kind}`, { offence: kind, wanted: state.wanted });
     return true;
   }
+  function vehicleAccess(car, destination) {
+    const feetY=Number.isFinite(destination.y)?destination.y:options.heightAt?.(destination.x,destination.z);
+    const carY=Number.isFinite(car.y)?car.y:Number.isFinite(car.supportY)?car.supportY+.18:NaN;
+    if(Number.isFinite(feetY)&&Number.isFinite(carY)&&Math.abs(feetY-(carY-.18))>MAX_VEHICLE_ACCESS_STEP)return false;
+    // Start at the seat, exempting only this hull. A detached probe cannot move
+    // either authoritative body or slide around an obstacle to grant access.
+    const probe={id:car.id,x:car.x,z:car.z,yaw:car.yaw,
+      ...(Number.isFinite(carY)?{y:carY-.18}:{})};
+    const result=simulation.moveActor(probe,destination.x-car.x,destination.z-car.z,.45);
+    return !result.blocked&&distance(probe,destination)<1e-6;
+  }
   function interact() {
     if (state.recovery || state.carjacking || state.passenger || state.actor.impactTime > 0 || state.actor.swimming) return false;
     if (state.mode === 'vehicle') {
@@ -109,20 +122,25 @@ export function createGameplay(map, simulation, options = {}) {
         emit('stop', 'Stopped. Press E again to step out.'); return false;
       }
       const car = simulation.player;
+      const width=Number.isFinite(car.width)&&car.width>0?car.width:(CAPITAL_BY_ID[car.modelId]?.width??1.776)+.024;
+      const shortSide=width/2+.45+.15;
       for (const angle of [Math.PI / 2, -Math.PI / 2, Math.PI, 0]) {
-        const candidate = { x: car.x, z: car.z, yaw: car.yaw, speed: 0, jumpHeight: 0 };
-        const dx = -Math.sin(car.yaw + angle) * 3.4, dz = -Math.cos(car.yaw + angle) * 3.4;
-        candidate.x += dx; candidate.z += dz;
-        const placement = simulation.moveActor(candidate, 0, 0, 0.45);
-        if (!placement.blocked && visible(car, candidate)) {
-          Object.assign(state.actor, candidate); state.mode = 'foot';
-          emit('exit', 'On foot. E enters a nearby car.'); return true;
+        const reaches=Math.abs(angle)===Math.PI/2&&shortSide<3.4?[3.4,shortSide]:[3.4];
+        for(const reach of reaches) {
+          const candidate = { x: car.x, z: car.z, yaw: car.yaw, speed: 0, jumpHeight: 0 };
+          const dx = -Math.sin(car.yaw + angle) * reach, dz = -Math.cos(car.yaw + angle) * reach;
+          candidate.x += dx; candidate.z += dz;
+          const placement = simulation.moveActor(candidate, 0, 0, 0.45);
+          if (!placement.blocked && visible(car, candidate) && vehicleAccess(car,candidate)) {
+            Object.assign(state.actor, candidate); state.mode = 'foot';
+            emit('exit', 'On foot. E enters a nearby car.'); return true;
+          }
         }
       }
       emit('blocked', 'No clear place to step out.'); return false;
     }
     const target = simulation.nearbyVehicles(state.actor.x, state.actor.z, 7)
-      .filter(v => visible(state.actor, v)).sort((a, b) => distance(a, state.actor) - distance(b, state.actor))[0];
+      .filter(v => visible(state.actor, v) && vehicleAccess(v,state.actor)).sort((a, b) => distance(a, state.actor) - distance(b, state.actor))[0];
     if (!target) { emit('no-vehicle', 'Move closer to a car.'); return false; }
     if (target.id !== 'player' && state.vehicle.rented) {
       emit('blocked', 'Return your rental before switching cars.'); return false;
@@ -142,6 +160,9 @@ export function createGameplay(map, simulation, options = {}) {
     return enterVehicle(target);
   }
   function enterVehicle(target) {
+    if(distance(target,state.actor)>7 || !visible(state.actor,target) || !vehicleAccess(target,state.actor)) {
+      emit('blocked','No clear route to the car.');return false;
+    }
     const result = simulation.claimVehicle(target.id, { health: state.vehicleHealth });
     if (!result.ok) { emit('blocked', result.reason || 'Car unavailable.'); return false; }
     state.mode = 'vehicle'; state.actor.speed = 0; state.actor.jumpHeight = 0; state.actor.crouching = false; jumpVelocity = 0;
@@ -150,7 +171,7 @@ export function createGameplay(map, simulation, options = {}) {
       ...(target.id === 'player' && state.vehicle.rented ? {rented:true} : {}) };
     state.vehicleHealth = target.id === 'player' ? state.vehicleHealth : (result.vehicle.health ?? 100);
     previousCrashes = simulation.player.crashes || 0;
-    options.onVehicleChanged?.({ ...state.vehicle }, { newVehicle: target.id !== 'player' });
+    options.onVehicleChanged?.({ ...state.vehicle }, { newVehicle: target.id !== 'player', sourceId: target.id });
     if (result.stolen) reportOffence('vehicle theft', 1, {witnessed:target.occupied?true:undefined});
     emit('enter', result.stolen ? 'Vehicle taken.' : 'Back behind the wheel.'); return true;
   }
@@ -158,7 +179,7 @@ export function createGameplay(map, simulation, options = {}) {
     const yaw=target.yaw||0,sideX=Math.cos(yaw)*2,sideZ=-Math.sin(yaw)*2;
     for (const side of [1,-1]) {
       const driver={id:`exit:${target.id}`,personId:target.personId??target.id,x:target.x+sideX*side,z:target.z+sideZ*side,yaw};
-      if (simulation.moveActor(driver,0,0,.45).blocked || !visible(target,driver)) continue;
+      if (simulation.moveActor(driver,0,0,.45).blocked || !visible(target,driver) || !vehicleAccess(target,driver)) continue;
       if (!enterVehicle(target)) return false;
       options.onCarjacked?.(driver);
       return true;

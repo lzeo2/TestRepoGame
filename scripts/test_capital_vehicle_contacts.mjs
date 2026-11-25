@@ -61,6 +61,23 @@ for (const source of ['player', 'traffic', 'parked', 'abandoned', 'bus', 'yoober
   assert(!simulation.moveActor(local(car, 0, length / 2 + .2), 0, 0, .45).blocked, `${source} inactive hidden body does not create a ghost obstacle`);
 }
 
+// Generated kerbside cars carry both a model ID and the old SUV display flag.
+// Their contact shell must follow the same model admission and geometry as a live car.
+for (const modelId of ['lantern', 'orchard', 'gravel']) {
+  const sim = create(), car = {id:'kerbside', modelId, x:0, z:0, yaw:.7};
+  sim.setParkedCars([car]);
+  const points = [];
+  for (let cm = -10; cm <= 10; cm++) {
+    const size = visual.get(modelId);
+    points.push(local(car, size.width / 2 + .45 + cm / 100, 0),
+      local(car, 0, size.length / 2 + .45 + cm / 100));
+  }
+  const blocked = point => sim.moveActor({...point}, 0, 0, .45).blocked;
+  const expected = points.map(blocked);
+  sim.setParkedCars([{...car, suv:modelId === 'gravel'}]);
+  assert.deepEqual(points.map(blocked), expected, modelId + ' keeps its parked shell');
+}
+
 const driving = create();
 driving.setParkedCars([{ id: 'atlas-obstacle', modelId: 'atlas', x: 0, z: 0, yaw: 0 }]);
 const moving = { id: 'driving-lantern', modelId: 'lantern', x: 0, z: 10, yaw: 0 };

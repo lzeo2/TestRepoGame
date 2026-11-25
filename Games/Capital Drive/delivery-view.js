@@ -1,6 +1,6 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
-import { createCar } from '../../assets/car-arcade/models.js';
+import { createCar } from './car-model.js';
 import { PERSON_MODEL, appearanceForPerson, createPersonGeometries, emitPersonParts } from './person-model.js';
 
 // One factory van and one shared human-model driver. All resources are owned here.
