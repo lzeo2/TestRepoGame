@@ -38,6 +38,12 @@ away and reboarded with E. The actor's centre stayed 1.393 m from the car's
 centreline through five consecutive contact samples. The car stayed still.
 The test ran with software WebGL.
 
+The release also fixes cold startup on origins with a small connection pool.
+The loader drains each response into a Blob as its headers arrive and parses
+the map files in their original order. A six-connection regression covers the
+17-file import. The browser build check on `beba51a7091e` booted normally,
+saved the local assets, and travelled from Free roam to the depot.
+
 Parked saloons, wagons and SUVs now use their fleet dimensions in placement and
 collision. They share three templates with sloping windscreens, divided side
 windows, wheel hubs and lamps. A parked car costs one instance in its 300 m cell.

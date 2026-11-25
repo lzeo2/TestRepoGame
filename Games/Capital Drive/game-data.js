@@ -22,7 +22,13 @@ export async function loadGameData(urls, {
 } = {}) {
   const base = new URL('./', baseURL);
   const resolved = urls.map(url => new URL(url, base).href);
-  const fallback = () => Promise.all(resolved.map(url => fetchFile(url)));
+  // Drain each cold response as its headers arrive. Large unread bodies can
+  // fill every HTTP/1 connection while the remaining districts wait for one.
+  const fallback = () => Promise.all(resolved.map(async url => {
+    const response = await fetchFile(url);
+    if (!response.ok) throw new Error('Local map or address data could not be loaded.');
+    return new Response(await response.blob(), { headers: response.headers, status: response.status });
+  }));
   const controller = serviceWorker?.controller;
   const allowed = new Set(GAME_DATA_FILES.map(url => new URL(url, base).href));
   if (!controller || controller.scriptURL !== new URL('service-worker.js', base).href ||
