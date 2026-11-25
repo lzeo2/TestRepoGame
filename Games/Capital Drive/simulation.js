@@ -234,23 +234,23 @@ export function createSimulation(map, options = {}) {
   for (const segment of graph.segments) roadIndex.insert(segment,
     Math.min(segment.a[0], segment.b[0]), Math.min(segment.a[1], segment.b[1]),
     Math.max(segment.a[0], segment.b[0]), Math.max(segment.a[1], segment.b[1]));
-  // Guardrails can omit bridge tags even when their retained road owner is a deck.
+  // Guardrails and generated parapets retain their confirmed bridge road owner.
   // Resolve only confirmed bridge owners; ordinary fences retain their planar contact.
-  const bridgeRailOwners = new Map();
+  const bridgeBarrierOwners = new Map();
   const roadsById = new Map((map.roads || []).map(road => [road.id, road]));
   for (const barrier of map.barriers || []) {
     const owner = roadsById.get(barrier.roadContext?.id);
-    if (barrier.id?.startsWith('osm-guard-rail-') && owner?.sourceTags?.bridge && owner.sourceTags.bridge !== 'no') bridgeRailOwners.set(barrier, owner);
+    if ((barrier.id?.startsWith('osm-guard-rail-') || barrier.kind === 'bridge-parapet') && owner?.sourceTags?.bridge && owner.sourceTags.bridge !== 'no') bridgeBarrierOwners.set(barrier, owner);
   }
-  function railOverlapsBody(barrier, x, z, base, height) {
-    const owner = bridgeRailOwners.get(barrier);
+  function bridgeBarrierOverlapsBody(barrier, x, z, base, height) {
+    const owner = bridgeBarrierOwners.get(barrier);
     if (!owner || !options.vehicleHeightAt || !Number.isFinite(base)) return true;
     const railBase = options.vehicleHeightAt({ x, z }, owner);
     if (!Number.isFinite(railBase)) return true;
     return !(base + height + .1 < railBase || base > railBase + (barrier.height || .75) + .1);
   }
-  function railOverlapsVehicle(barrier, x, z, pose) {
-    return !options.vehicleHeightAt || railOverlapsBody(barrier, x, z, vehicleBase(pose), vehicleBodyHeight(pose));
+  function bridgeBarrierOverlapsVehicle(barrier, x, z, pose) {
+    return !options.vehicleHeightAt || bridgeBarrierOverlapsBody(barrier, x, z, vehicleBase(pose), vehicleBodyHeight(pose));
   }
   const passage = coveredCentrePassage(map);
   for (const building of (map.buildings || []).flatMap(b => b === passage?.building ? passage.groundParts : [b])) {
@@ -520,7 +520,7 @@ export function createSimulation(map, options = {}) {
         if (index === waterIndex && waterExemption?.(x, z)) continue;
         const box = index.extents.get(polygon);
         if (box.maxX < x - radius || box.minX > x + radius || box.maxZ < z - radius || box.minZ > z + radius) continue;
-        if (index === barrierIndex && bridgeRailOwners.has(polygon) && !railOverlapsVehicle(polygon, x, z, pose)) continue;
+        if (index === barrierIndex && bridgeBarrierOwners.has(polygon) && !bridgeBarrierOverlapsVehicle(polygon, x, z, pose)) continue;
         const occupied = index !== waterIndex && !polygon.innerRings?.length
           ? polygonIntersectsCircle(x,z,polygon.points,radius)
           : physicalContact(index,polygon,x,z,radius);
@@ -1127,7 +1127,7 @@ export function createSimulation(map, options = {}) {
       for (const index of [buildingIndex, barrierIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
         if(allowSwimming && index===waterIndex && waterSurfaces.has(polygon)) continue;
         if(index===waterIndex && waterExemption?.(x,z)) continue;
-        if (index === barrierIndex && bridgeRailOwners.has(polygon) && !railOverlapsBody(polygon, x, z,
+        if (index === barrierIndex && bridgeBarrierOwners.has(polygon) && !bridgeBarrierOverlapsBody(polygon, x, z,
           Number.isFinite(actor.y) ? actor.y : options.actorHeightAt?.({ ...actor, x, z }), actor.height || 1.8)) continue;
         if (physicalContact(index,polygon,x,z,radius)) return false;
       }

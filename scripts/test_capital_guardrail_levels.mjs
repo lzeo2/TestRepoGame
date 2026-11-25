@@ -27,3 +27,26 @@ assert.equal(simulation.canOccupy({ ...car, y: groundY + .18 }, { ignoreId: 'pla
 assert.equal(simulation.moveActor({ x, z, y: groundY, height: 1.8 }, 0, 0, .4).blocked, false, 'walker passes below rail');
 assert.equal(simulation.moveActor({ x, z, y: upperY, height: 1.8 }, 0, 0, .4).blocked, true, 'upper deck walker still hits rail');
 console.log('PASS Kings Avenue guardrail preserves upper contacts and lower Bowen Drive passage');
+
+const { addCapitalWorldObstacles } = await import('./capital-world-obstacles-fixture.mjs');
+const world = addCapitalWorldObstacles(map, terrain);
+for (const id of ['31345303-0', '4844798-0', '673080483-0', '5640616-north-0']) {
+  const formerlyBlocked = id === '31345303-0' ? [4, 5, 6] : id === '4844798-0' ? [0, 1] : id === '673080483-0' ? [1] : [13];
+  for (const edge of world.simulation.graph.edges.filter(e => e.road.id === id && formerlyBlocked.includes(e.segment.index))) {
+    for (const t of [.1, .5, .9]) {
+      const pose = { ...world.simulation.player, ...pointOnLane(edge, edge.length * t), edge, y: undefined, supportY: undefined };
+      assert(world.simulation.canOccupy(pose, { ignoreId: 'player' }), `production ${id}:${edge.segment.index}:${edge.direction}:${t} clears elevated parapets`);
+    }
+  }
+}
+const parapet = map.barriers.find(b => b.id === 'civic-parapet-1');
+assert(parapet?.roadContext?.id, 'generated parapet retains exact road owner');
+const deck = map.roads.find(r => r.id === parapet.roadContext.id);
+const a = parapet.points[0], b = parapet.points[1], px = (a[0] + b[0]) / 2, pz = (a[1] + b[1]) / 2;
+const py = terrain.roadHeightAt(deck, px, pz), gy = terrain.groundHeightAt(px, pz);
+const parapetCar = { ...world.simulation.player, x: px, z: pz, yaw: Math.atan2(-(b[0] - a[0]), -(b[1] - a[1])), y: py + .18, edge: { road: deck } };
+assert.equal(world.simulation.canOccupy(parapetCar, { ignoreId: 'player' }), false, 'generated upper deck parapet still blocks car');
+assert.equal(world.simulation.canOccupy({ ...parapetCar, y: gy + .18 }, { ignoreId: 'player' }), true, 'same generated parapet clears lower car');
+assert.equal(world.simulation.moveActor({ x: px, z: pz, y: py, height: 1.8 }, 0, 0, .4).blocked, true, 'generated upper deck parapet still blocks walker');
+assert.equal(world.simulation.moveActor({ x: px, z: pz, y: gy, height: 1.8 }, 0, 0, .4).blocked, false, 'same generated parapet clears lower walker');
+console.log('PASS production parapets retain upper contacts and clear Bowen/Flynn lower lane probes');
