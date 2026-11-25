@@ -71,6 +71,49 @@ def main():
             card.locator('.game-card__info').click()
             assert page.locator('.ux-detail__desc').inner_text().strip()
             page.keyboard.press('Escape')
+            assert card.locator('.game-card__info').evaluate('el => el === document.activeElement')
+            # Real DOM/modal lifecycle checks: preserve an already-inert sibling,
+            # isolate late siblings, wrap native Tab and restore focus on every exit.
+            page.evaluate('''() => {
+              const existing = document.createElement('section');
+              existing.id = 'existing-inert'; existing.inert = true;
+              document.body.append(existing);
+            }''')
+            for exit_path in ['close', 'backdrop', 'escape', 'route', 'back', 'close']:
+                card.focus()
+                page.keyboard.press('i')
+                page.wait_for_selector('.ux-detail')
+                assert page.locator('.ux-detail__play').evaluate('el => el === document.activeElement')
+                assert page.evaluate('''() => [...document.body.children].every(el =>
+                  el.matches('.ux-detail') ? !el.inert : el.inert)''')
+                page.evaluate('''() => { const el=document.createElement('button');
+                  el.id='late-background'; el.textContent='Background fixture'; document.body.append(el); }''')
+                page.wait_for_function("document.getElementById('late-background').inert")
+                page.keyboard.press('Shift+Tab')
+                assert page.locator('.ux-detail__close').evaluate('el => el === document.activeElement')
+                page.keyboard.press('Tab')
+                assert page.locator('.ux-detail__play').evaluate('el => el === document.activeElement')
+                if exit_path == 'close':
+                    page.keyboard.press('Tab')
+                    page.keyboard.press('Enter')
+                elif exit_path == 'backdrop':
+                    page.locator('.ux-detail__backdrop').click(position={'x': 5, 'y': 5})
+                elif exit_path == 'escape':
+                    page.keyboard.press('Escape')
+                elif exit_path == 'route':
+                    page.evaluate("location.hash = 'detail-route-fixture'")
+                else:
+                    page.evaluate("history.pushState({}, '', '#detail-back-fixture'); history.back()")
+                page.wait_for_selector('.ux-detail', state='detached')
+                assert card.locator('.game-card__info').evaluate('el => el === document.activeElement')
+                assert page.locator('#existing-inert').evaluate('el => el.inert')
+                assert page.locator('#late-background').evaluate('el => !el.inert')
+                assert page.locator('#root').evaluate('el => !el.inert')
+                page.evaluate("document.getElementById('late-background').remove()")
+                page.keyboard.press('Tab')
+                assert not page.locator('.ux-detail').count()
+            page.evaluate("document.getElementById('existing-inert').remove()")
+            print('PASS detail modal: native keyboard, Tab wrap, repeated close/reopen, backdrop/Escape/route exits, focus and inert restoration')
             page.route('**/Games/Snake/index.html', lambda route: route.fulfill(body='<!doctype html><title>Portal route fixture</title>', content_type='text/html'))
             card.locator('.game-card__play').click()
             page.wait_for_selector('.ux-player[open]')

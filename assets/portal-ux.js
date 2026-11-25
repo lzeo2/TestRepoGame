@@ -1263,6 +1263,7 @@
   var netBannerDismissed = false;
   var detailDialog = null;
   var detailOpener = null;
+  var disposeDetailModal = null;
   var RECENT_KEY = 'unblockmath_recent';
   var RECENT_MAX = 8;
 
@@ -1819,34 +1820,41 @@
     detailDialog.appendChild(panel);
     document.body.appendChild(detailDialog);
 
-    requestAnimationFrame(function() {
-      trapDetailFocus();
-      playBtn.focus();
-    });
+    trapDetailFocus();
+    playBtn.focus();
 
     if (trigger) trigger.setAttribute('aria-pressed', 'true');
   }
 
   function closeDetailPanel() {
     if (!detailDialog) return;
+    if (disposeDetailModal) { disposeDetailModal(); disposeDetailModal = null; }
     $$('.game-card__info').forEach(function(b) { b.setAttribute('aria-pressed', 'false'); });
     if (detailDialog.parentNode) detailDialog.parentNode.removeChild(detailDialog);
     detailDialog = null;
-    if (detailOpener && detailOpener.focus) detailOpener.focus();
+    if (detailOpener && detailOpener.isConnected && !detailOpener.closest('[inert]')) detailOpener.focus();
     detailOpener = null;
   }
 
   function trapDetailFocus() {
     if (!detailDialog) return;
+    var dialog = detailDialog;
+    var inerted = [];
+    function isolateBackground() {
+      Array.prototype.forEach.call(document.body.children, function(node) {
+        if (node === dialog || node.inert) return;
+        node.inert = true;
+        inerted.push(node);
+      });
+    }
+    isolateBackground();
+    var backgroundObserver = new MutationObserver(isolateBackground);
+    backgroundObserver.observe(document.body, { childList: true });
     function handler(e) {
-      if (!detailDialog) {
-        window.removeEventListener('keydown', handler, true);
-        return;
-      }
       if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopImmediatePropagation();
         closeDetailPanel();
-        window.removeEventListener('keydown', handler, true);
         return;
       }
       if (e.key !== 'Tab') return;
@@ -1865,7 +1873,21 @@
         if (idx >= focusables.length - 1 || idx === -1) { e.preventDefault(); focusables[0].focus(); }
       }
     }
+    function containFocus(e) {
+      if (!dialog.contains(e.target)) $('.ux-detail__play', dialog).focus();
+    }
     window.addEventListener('keydown', handler, true);
+    document.addEventListener('focusin', containFocus, true);
+    window.addEventListener('popstate', closeDetailPanel);
+    window.addEventListener('hashchange', closeDetailPanel);
+    disposeDetailModal = function() {
+      window.removeEventListener('keydown', handler, true);
+      document.removeEventListener('focusin', containFocus, true);
+      window.removeEventListener('popstate', closeDetailPanel);
+      window.removeEventListener('hashchange', closeDetailPanel);
+      backgroundObserver.disconnect();
+      inerted.forEach(function(node) { node.inert = false; });
+    };
   }
 
   function initDetailKey() {
