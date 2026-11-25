@@ -9,7 +9,7 @@ Operator-authorized original Canberra open-world preview, catalog 245, static en
 three fictional adult protagonists, two opening missions each, a shared Kingston
 meeting and seventeen assigned shared chapters, including reconnaissance and prepared heists.
 The final two chapters establish who ran the invoice scheme and get the evidence out.
-An optional aviation chapter uses the airport helicopter and jets.
+An optional aviation chapter uses the depot helicopter and airport jets.
 Seven original stealth contracts have their own planning board within Campaign.
 **Street Life** has jobs, cash, a
 garage, foot combat and police; **Free roam** has all cars, local address search
@@ -170,7 +170,7 @@ physical cover. Nearby explosions briefly shake the camera unless reduced
 motion is enabled.
 
 During pursuits, officers can react to a visible drone or nearby blast.
-Police and player drones and police helicopters have
+Police and player drones, police helicopters and the depot helicopter have
 distinct icons on both maps. Simulated security cameras report visible
 offences and display an alert. An owned police scanner unlocks **Camera pulse**
 under Phone → Gear, which marks cameras in the player's current space for a
@@ -371,9 +371,12 @@ vehicle bodies meet. They use a shared per-driver horn cooldown for close
 cut-ins and queues. Enable Sound to hear nearby horns. Parallel traffic,
 different bridge levels and red signal approaches keep their existing rules.
 
-The original anchor
-aircraft can be removed by theft. Distinct airport loan aircraft keep the
-optional aviation chapter available after that.
+Search for **Capital Defence Depot** or **military base** to find the fictional
+airport-area depot. Its gateway leads to hangars, a helipad and a checked
+interceptor runway. Press E next to the tank to take it. Use WASD to drive and
+Space to brake. The interceptor and helicopter use their aircraft lock cues.
+Distinct airport loan aircraft keep the optional aviation chapter available
+when an original aircraft is removed by theft.
 
 The 21 November recovery update routes an ordinary medical transfer to the
 nearest usable owned safehouse. Milo's mapped home provides a fallback.
@@ -717,17 +720,17 @@ DOM writes, queries or element creation. Active cues/progress still follow the
 actual activity snapshot. The paired profile receipt distinguishes these DOM
 savings from graphics/process CPU; N100 hardware remains unmeasured.
 
-### Crew catch-up, latest15 November2026
+### Crew catch-up
 
-The owner requested companions teleport to the player. Shared-mission crew now
-recruit near the actual player and catch up when over35m away, including during
-driving/transit, or after about3active seconds stuck over10m away. Bounded local
-landing checks avoid physical obstructions and other adults; failed placement
-retains the crew for a throttled retry. Health, identity and cooldowns survive;
-dead companions stay down. Normal nearby following and combat still use physical
-sweeps. Objective changes alone do not relocate the crew. Indoor hiding and the
-fixed Kingston meeting remain. See the [story contract](../../capital-drive-story-and-streaming-contract.md)
-and [fresh receipt](../../verification/capital-drive-crew-catchup-2026-11-15.md).
+Living campaign companions and hired crew regroup behind the player's heading
+when more than 28 m away, including during driving or transit. On foot, a member
+who stays stuck beyond 6 m can regroup after three active seconds. The search
+alternates shoulders and checks a fixed rear fan for roads, doorways, physical
+obstacles and other people. If the rear is blocked, the crew continues following
+from its current position and retries after 1.25 seconds. Health, identity and
+cooldowns survive. Nearby following uses physical sweeps, and seats and pickup
+trays retain their own boarding rules. The older receipt documents the original
+distance and placement rules. [Story contract](../../capital-drive-story-and-streaming-contract.md) · [Previous verification](../../verification/capital-drive-crew-catchup-2026-11-15.md)
 
 ### Campaign boarding and simulation probes, 24 November 2026
 
@@ -745,6 +748,41 @@ water suites and the source-domain profile show the measured improvement
 Campaign stage guidance gained a data-driven assertion: every chapter stage
 must yield a non-null concrete-action label and a marker point unless the
 objective is deliberately roaming or escaping.
+
+### Western map coverage and playability, 25 November 2026
+
+Molonglo Valley adds Coppins Crossing, Coombs, Wright and Denman Prospect.
+West Belconnen adds roads and searchable places around Higgins, Latham,
+Charnwood and Kippax. Both overlays retain real source-node joins and separate
+ACT contour grids. The combined map has 27,417 road runs, 42,406 building
+outlines and 448 bridge-tagged road runs. This run count includes separate
+carriageways and source segments of a single structure.
+
+Belconnen, north and south gain 16,448 checked OSM residential outlines. The
+addition uses the old terrain and road owners and the existing streamed chunk
+budget. Housing coverage follows those mapped extents and explicit residential
+source tags. The terrain models estimate elevation between samples, and source
+building footprints supply exterior outlines. [Residential source report](../../capital-drive-residential-sources.md)
+
+Five overpass sites use modeled five-metre crossing clearance, including
+Gungahlin Drive at Barton Highway and Ginninderra Drive, Kent Street at
+Adelaide Avenue, Barry Drive at Frith Road and Carruthers Street at Yarra Glen.
+Source-connected ramps blend onto the raised road decks. These elevations
+are gameplay estimates. Long directed service routes use distance-guided
+search with a graph-sized bound so the larger road network can reach valid
+destinations. `test_capital_canberra_coverage.mjs` checks the combined assets.
+
+Skylark displays the current objective once and uses the interaction hint for
+nearby actions. The campaign displays countdowns for timed missions. Rowan's
+Lambzhou objective explains how the marked counter advances the scene, and
+Armed getaway and Shelf life give longer driving windows of 12 and 22 minutes.
+The Crew panel explains where hiring is available and shows the current career
+balance alongside prices. Free roam map arrivals check the full current car
+against live vehicle bodies, including the depot tank, and find a nearby clear
+position when a selected point is occupied. The vehicle HUD names the depot
+tank when you board it.
+Completing or skipping a campaign intro returns keyboard focus to the game
+view as soon as the overlay closes.
 
 ### Indoor pursuit, driving starts and direct stored maps, latest15 November2026
 

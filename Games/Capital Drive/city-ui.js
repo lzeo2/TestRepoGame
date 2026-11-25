@@ -119,6 +119,11 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
     }
     if (tab === 'crew') {
       title.textContent = 'Crew';
+      if(state.sandbox){
+        make('p','Hire crew in Street Life or Campaign.',body);
+        return;
+      }
+      make('p',`Cash available · $${state.cash.toLocaleString('en-AU')}`,body);
       for (const offer of state.crewOffers || []) {
         const row = make('section', undefined, body); row.className = 'city-row';
         const hired = state.hiredCrew?.includes(offer.id);
@@ -127,9 +132,9 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
         if (hired && person?.health <= 0 && (state.crewRenewals?.[offer.id] || 0) > (person.renewalSerial || 0)) {
           make('p', 'Returning', row);
         } else if (hired && person?.health <= 0) {
-          button(row, `Rehire · $${offer.price.toLocaleString()}`, () => act('rehire', offer.id), `city-rehire-${offer.id}`);
+          button(row, `Rehire · $${offer.price.toLocaleString()}`, () => act('rehire', offer.id), `city-rehire-${offer.id}`).disabled=state.cash<offer.price;
         } else if (!hired) {
-          button(row, `Hire · $${offer.price.toLocaleString()}`, () => act('hire', offer.id), `city-hire-${offer.id}`);
+          button(row, `Hire · $${offer.price.toLocaleString()}`, () => act('hire', offer.id), `city-hire-${offer.id}`).disabled=state.cash<offer.price;
         } else make('p', 'Hired', row);
         if (hired) button(row, 'Dismiss', () => act('dismiss', offer.id), `city-dismiss-${offer.id}`);
       }

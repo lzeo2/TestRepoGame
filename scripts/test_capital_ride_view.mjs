@@ -70,8 +70,9 @@ for (const model of CARS) {
   view.update({car:{...car,active:false},passenger:false},{focus:car,playerCar,job:{...job,stage:1,passenger:true},dt:0});
   assert.equal(view.stats.farePassenger,true); assert.equal(view.stats.waiting,0); assert.equal(view.stats.passengers,1);
   const factory = createCar(model.id), eye = factory.userData.cockpit.eye;
+  assert(eye[0]>0,`${model.id} driver occupies the right-hand seat`);
   fare.getMatrixAt(0,matrix); position.setFromMatrixPosition(matrix);
-  assert(Math.abs(position.x-playerCar.x+eye[0])<1e-5 && position.x>playerCar.x,'passenger mirrors inherited left driver seat');
+  assert(Math.abs(position.x-playerCar.x+eye[0])<1e-5 && position.x<playerCar.x,'passenger mirrors the right-hand driver seat into the left seat');
   assert(Math.abs(position.z-playerCar.z-eye[2])<1e-5,'passenger shares cockpit fore/aft alignment');
   assert(position.y+fare.geometry.boundingBox.max.y < 12.18+factory.userData.dimensions.height+.02,'head below roof');
   playerCar.yaw = Math.PI/2;

@@ -146,3 +146,17 @@ intro.playCampaignIntro(); env.cutscenes.skip(); intro.renderCutscene(0);
 assert.deepEqual(launched, [optional.id, null], 'the primary campaign introduction still launches its own story');
 assert.equal(screens.at(-1), false);
 console.log('Capital intro controller: exact optional identity, skip, cancel, completion guard and main story PASS');
+
+const visibilityStart=runtime.indexOf('function setCutsceneVisible(');
+const visibilitySource=runtime.slice(visibilityStart,runtime.indexOf('\n}',visibilityStart)+2);
+const layer={},world={inert:false};
+const focused=[];
+const fields={'cutscene-dialog':layer,'cutscene-skip':{focus:()=>focused.push('skip')},game:{children:[world,layer]}};
+const documentStub={body:{classList:{toggle(){}}}};
+const canvas={focus(){assert.equal(world.inert,false);focused.push('world');}};
+const setVisible=Function('$','document','renderer',`${visibilitySource};return setCutsceneVisible;`)(id=>fields[id],documentStub,{domElement:canvas});
+setVisible(true);
+assert(world.inert&&!layer.hidden);
+setVisible(false);
+assert(layer.hidden&&!world.inert);
+assert.deepEqual(focused,['skip','world'],'leaving an intro immediately restores keyboard focus to the world');

@@ -152,6 +152,15 @@ class ManifestTests(unittest.TestCase):
         files=build_manifest(self.root)['files']
         self.assertTrue(any(file['url']=='data.json' for file in files))
 
+    def test_shared_frozen_map_inventory_is_available_offline(self):
+        (self.game / 'script.js').write_text("import {GAME_DATA_FILES} from './game-data.js'; loadGameData(GAME_DATA_FILES);")
+        (self.game / 'game-data.js').write_text("export const GAME_DATA_FILES = Object.freeze(['./data.json']);")
+        urls = {entry['url'] for entry in build_manifest(self.root)['files']}
+        self.assertIn('data.json', urls)
+        (self.game / 'game-data.js').write_text('export const GAME_DATA_FILES = Object.freeze(source);')
+        with self.assertRaisesRegex(ManifestError, 'frozen array of literal URLs'):
+            build_manifest(self.root)
+
     def test_missing_file_fails(self):
         (self.game / 'shared.js').unlink()
         with self.assertRaisesRegex(ManifestError, 'missing asset'):

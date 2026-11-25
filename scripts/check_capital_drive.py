@@ -27,13 +27,14 @@ MODULES = (
     'water-contact.js', 'watercraft.js', 'watercraft-view.js',
     'light-rail.js', 'light-rail-source.js', 'light-rail-view.js', 'heist-sites.js', 'heist-sites-view.js', 'heist-activities.js',
     'war-memorial.js', 'war-memorial-data.js', 'war-memorial-view.js', 'birds-view.js',
-    'regional-expansion.js', 'regional-landmarks-view.js', 'anu-campus-data.js', 'anu-campus.js', 'anu-campus-view.js', 'macquarie-shops-view.js',
+    'regional-expansion.js', 'residential-expansion.js', 'regional-landmarks-view.js',
+    'anu-campus-data.js', 'anu-campus.js', 'anu-campus-view.js', 'macquarie-shops-view.js',
     'skyline-job.js', 'skyline-opponents.js', 'skyline-site-view.js', 'skyline-cover.js', 'skyline-atv.js', 'skyline-atv-view.js',
     'skyline-pressure.js', 'skyline-pressure-view.js', 'skyline-support.js', 'skyline-backup.js',
-    'campaign-world.js', 'campaign-aftermath.js', 'career-reset.js', 'free-roam-gear.js',
+    'campaign-world.js', 'campaign-aftermath.js', 'career-reset.js', 'free-roam-gear.js', 'depot-tank.js',
     'ballistics.js', 'shot-obstacles.js', 'recon.js', 'camera-control.js', 'foot-motion.js', 'safehouse-recovery.js',
     'aircraft.js', 'aircraft-view.js', 'stealth-contracts.js', 'stealth-contracts-view.js',
-    'hero-powers.js', 'ordnance.js', 'ordnance-view.js', 'atmosphere.js', 'atmosphere-view.js', 'airport.js', 'airport-view.js', 'vehicle-damage.js', 'vehicle-damage-view.js',
+    'hero-powers.js', 'ordnance.js', 'ordnance-view.js', 'atmosphere.js', 'atmosphere-view.js', 'airport.js', 'airport-view.js', 'defence-depot.js', 'defence-depot-view.js', 'vehicle-damage.js', 'vehicle-damage-view.js',
     'touch-joystick.js',
     'tutorial.js', 'activity-ui.js',
     'script.js', 'game-data.js', 'dev-missions.js', 'interior-navigation.js', 'police-rooms.js', 'cache-launcher.js', 'cache-client.js', 'cache-manifest.js', 'service-worker.js', 'protagonist-state.js', 'render-gate.js', 'graphics-diagnostics.js', 'cutscenes.js', 'mission-locations.js', 'simulation.js', 'navigation.js', 'map-projection.js', 'navigation-guidance.js', 'road-guidance-view.js', 'traffic-lights.js', 'traffic-lights-view.js', 'equipment.js', 'equipment-view.js',
@@ -52,7 +53,7 @@ SUITES = (
     'test_capital_war_memorial.mjs', 'test_capital_birds_view.mjs', 'test_capital_bus_passenger_service.mjs',
     'test_capital_campaign_resolution.mjs', 'test_capital_interior_styles.mjs', 'test_capital_stealth_retry.mjs',
     'test_capital_vehicle_variety.mjs',
-    'test_capital_driving_dynamics.mjs', 'test_capital_car_camera.mjs', 'test_capital_driving_shake.mjs', 'test_capital_foot_motion.mjs', 'test_capital_jetpack.mjs', 'test_capital_nitro_stations.mjs',
+    'test_capital_driving_dynamics.mjs', 'test_capital_car_camera.mjs', 'test_capital_driving_shake.mjs', 'test_capital_foot_motion.mjs', 'test_capital_jetpack.mjs', 'test_capital_nitro_stations.mjs', 'test_capital_defence_depot.mjs',
     'test_capital_nitro_view.mjs', 'test_capital_car_rental.mjs', 'test_capital_rental_storefronts.mjs', 'test_capital_service_map_icons.mjs',
     'test_capital_delivery_actual.mjs', 'test_capital_job_cargo.mjs', 'test_capital_burglary_session.mjs', 'test_capital_jobs_rest.mjs', 'test_capital_delivery_service.mjs', 'test_capital_delivery_transactions.mjs', 'test_capital_house_stations.mjs', 'test_capital_house_controller.mjs', 'test_capital_static_occupancy.mjs', 'test_capital_airport_terrain.mjs', 'test_capital_stunt_ramps.mjs', 'test_capital_airport_details.mjs', 'test_capital_vehicle_flight.mjs',
     'test_capital_escape_objectives.mjs', 'test_capital_escape_navigation.mjs', 'test_capital_static_body_queries.mjs', 'test_capital_vehicle_overlap_scalars.mjs', 'test_capital_fast_pursuit.mjs', 'test_capital_yard_fit.mjs',
@@ -74,7 +75,9 @@ SUITES = (
     'test_capital_skyline_cover.mjs', 'test_capital_skyline_atv.mjs',
     'test_capital_skyline_pressure.mjs', 'test_capital_skyline_pressure_view.mjs',
     'test_capital_skyline_support.mjs', 'test_capital_skyline_backup.mjs',
-    'test_capital_heist_sites.mjs', 'test_capital_heist_activities.mjs', 'test_capital_hostage_activities.mjs', 'test_capital_tower_heist.mjs', 'test_capital_heist_interiors.mjs', 'test_capital_traffic_cut_in.mjs',
+    'test_capital_residential.mjs', 'test_capital_bridge_clearance.mjs', 'test_capital_canberra_coverage.mjs',
+    'test_capital_molonglo.mjs', 'test_capital_west_belconnen.mjs',
+    'test_capital_heist_sites.mjs', 'test_capital_heist_activities.mjs', 'test_capital_hostage_activities.mjs', 'test_capital_tower_heist.mjs', 'test_capital_heist_interiors.mjs', 'test_capital_depot_aircraft.mjs', 'test_capital_traffic_cut_in.mjs',
     'test_capital_local_recovery.mjs', 'test_capital_safehouse_recovery.mjs', 'test_capital_campaign_retry.mjs', 'test_capital_campaign_retry_checkpoints.mjs', 'test_capital_mission_steps.mjs', 'test_capital_retry_controller.mjs', 'test_capital_water_contact.mjs',
     'test_capital_collision_cache.mjs', 'test_capital_ballistics.mjs', 'test_capital_recon.mjs', 'test_capital_recon_heists.mjs',
     'test_capital_pink_victory.mjs', 'test_capital_adult_shot_targets.mjs', 'test_capital_combat_presentation.mjs',
@@ -102,6 +105,8 @@ SUITES = (
     'test_capital_campaign.mjs','test_capital_north.mjs','test_capital_terrain.mjs','test_capital_civic.mjs','test_capital_crossings.mjs','test_capital_noodle_shop.mjs','test_capital_interior_people.mjs','test_capital_interior_activities.mjs','test_capital_micromobility.mjs','test_capital_civic_extras.mjs','test_capital_work_jobs.mjs','test_capital_skate_opening.mjs','test_capital_dev_codes.mjs','test_capital_vehicle_challenges.mjs','test_capital_car_theft.mjs','test_capital_scooter_hack.mjs','test_capital_weapons.mjs','test_capital_weapon_economy.mjs','test_capital_weapon_art.mjs','test_capital_street_dealers.mjs','test_capital_npc_routines.mjs','test_capital_traffic_queues.mjs','test_capital_junction_queues.mjs',
 )
 DATA = ('airport-terrain.json', 'canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json','shopping-precincts.json','canberra-north.json','north-terrain.json','north-west.json','north-west-terrain.json','civic-extras.json','traffic-signals.json','street-assets.json','highway-barriers.json','airport.json')
+DATA += ('region-belconnen.json','region-north.json','region-south.json','region-molonglo.json',
+         'region-west-belconnen.json','residential-supplement.json')
 SUPPORT_SCRIPTS = ('capital-campaign-fixture.mjs', 'capital-gallery-fixture.mjs', 'capital-crime-playability.mjs', 'capital-collision-baseline.mjs', 'profile_capital_simulation.mjs', 'profile_capital_collision.mjs')
 
 

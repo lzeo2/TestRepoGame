@@ -143,7 +143,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
     text('job-description',activity?(crimePhase||progression.services.find(s=>s.id===activity.serviceId)?.name||''):[active?.target.label,cargoHint].filter(Boolean).join(' · '));
     const job = !mission&&active&&progression.jobs.find(item=>item.id===active.id);
     const missionTime=mission?Math.ceil(mission.remaining):0;
-    text('job-progress',mission?(missionTime<=60?`${missionTime}s left`:''):activity?`${Math.round(activity.progress*100)}%`:active ? `Stage ${active.stage + 1}/${job?.stages.length || 1} · ${Math.ceil(active.remaining)}s · ${money(active.reward)}` : '');
+    text('job-progress',mission?(!mission.advisoryTime&&missionTime<=60?`${missionTime}s left`:''):activity?`${Math.round(activity.progress*100)}%`:active ? `Stage ${active.stage + 1}/${job?.stages.length || 1} · ${Math.ceil(active.remaining)}s · ${money(active.reward)}` : '');
     const jobHud = byId('job-hud'); if (jobHud) jobHud.hidden = sandbox()||(!active&&!activity);
     let hint;
     if (state.mode === 'vehicle') hint = Math.abs(simulation.player.speed) > 1.2 ? 'E stop · WASD drive · Shift boost' : 'E step out · WASD drive';
@@ -155,7 +155,9 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
     }
     if(state.mode==='vehicle'&&state.vehicleHealth<=0)hint='Vehicle disabled · E to step out';
     if(state.mode==='foot'&&!state.passenger&&!state.recovery&&(sandbox()||progression.state.gear?.flares>0))hint+=` · B throw flare${sandbox()?'':` (${progression.state.gear.flares})`}`;
-    text('interaction-hint', interactionHint()||hint);
+    const actionHint=interactionHint(),hintElement=byId('interaction-hint');
+    text('interaction-hint',actionHint??hint);
+    if(hintElement)hintElement.hidden=actionHint==='';
     const recovery=state.recovery,screen=byId('recovery-screen');
     if(screen){screen.hidden=!recovery;if(recovery){
       screen.style.backgroundColor=`rgba(10,15,18,${recovery.phase==='out'?Math.min(.96,recovery.elapsed/1.8):Math.max(.12,.96-(recovery.elapsed-1.8)*.5)})`;

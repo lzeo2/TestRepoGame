@@ -79,6 +79,11 @@ const tickSeconds = (campaign, context, seconds) => { for (let n = 0; n < second
     'the advisory lunch clock can reach zero without failing the mission');
   assert.equal(campaign.state.failed, false);
   assert.equal(campaign.state.active.remaining, 0);
+  const target=campaign.state.active.target;
+  tickSeconds(campaign,{...base,interior:{roomId:'lunch-room',storeId:target.storeId,atCounter:false}},2);
+  assert.equal(campaign.state.active.stage,0,'entering the restaurant alone does not reach the counter checkpoint');
+  tickSeconds(campaign,{...base,interior:{roomId:'lunch-room',storeId:target.storeId,atCounter:true}},2);
+  assert.equal(campaign.state.active.stage,1,'standing at the counter advances lunch without an invented order receipt');
 }
 {
   const campaign = createCampaign(map);
@@ -164,9 +169,25 @@ for (const frontWidth of [6.2, 7.5, 9]) {
   campaign.selectCharacter('corporate', base);
   const lunch = campaign.chapters.find(chapter => chapter.id === 'corporate-lunch-breakpoint');
   assert(lunch.stages[0].label.includes('service counter') && lunch.stages[0].label.includes('press E'));
+  assert.match(lunch.stages[0].label,/stand beside.*counter.*until the booth objective appears/);
+  assert(!/press E (there|at the service counter).*order/i.test(lunch.briefing+' '+lunch.stages[0].label),'counter guidance matches its reach-and-hold authority');
   assert(lunch.stages[1].label.includes('press F to punch') && lunch.stages[1].label.includes('Dot'));
   assert(lunch.stages[1].label.toLowerCase().includes('step back'));
   assert(lunch.briefing.includes('never fails you'), 'the lunch briefing states its own no-fail clock');
   assert(lunch.briefing.includes('Lambzhou 1919') && lunch.briefing.includes('Bunda Street'));
+}
+
+// Longer driving budgets retain the same chapter order and ordinary failing
+// clocks. Preview and normal launch both read the chapter's single time value.
+{
+  const campaign=createCampaign(map,{version:1,completed:[]});
+  const shared=campaign.chapters;
+  for(const [id,seconds,routeMetres,actionSeconds]of [['quiet-streets',720,7175.800888,2],['shelf-life',1320,13162.525083,6.2]]){
+    const index=shared.findIndex(chapter=>chapter.id===id),normal=createCampaign(map,{version:1,completed:shared.slice(0,index).map(chapter=>chapter.id)});
+    assert.equal(normal.current().id,id);assert.equal(normal.current().time,seconds);
+    assert(normal.start(base).ok);assert.equal(normal.state.active.remaining,seconds);assert.equal(normal.state.active.advisoryTime,false);
+    assert(seconds-routeMetres/12-actionSeconds>100,'authored driving budget leaves over100s at the audited optimistic12m/s route estimate');
+    const preview=createCampaign(map);assert(preview.startDeveloper(id,{...base,developer:true}).ok);assert.equal(preview.current().time,seconds);assert.equal(preview.state.active.remaining,seconds);
+  }
 }
 console.log('PASS capital lunch hand-holding: trivial tutorial fight damage with single-hit victory and intact CASES rematch, advisory-only lunch clock, enlarged 7.2-8.5 x 16 Lambzhou with clear aisle/entrance/rear booth/reachable counter, and instructional briefings and stage labels across all 24 story chapters plus the optional flight');

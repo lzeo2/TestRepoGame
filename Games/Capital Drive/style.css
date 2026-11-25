@@ -297,6 +297,10 @@ body.passenger.boating #touch-controls #touch-move{visibility:visible;}
 body.passenger.boating #touch-actions>button#touch-jump{display:block;}
 body.boating #touch-jump .car-action,body.boating #touch-jump .foot-action{display:none;}
 body.boating #touch-jump .boat-action{display:inline;}
+body.passenger.tanking #touch-controls #touch-move{visibility:visible;}
+body.passenger.tanking #touch-actions>button#touch-jump{display:block;}
+body.tanking #touch-jump .car-action,body.tanking #touch-jump .foot-action{display:none;}
+body.tanking #touch-jump .boat-action{display:inline;}
 #clear-progress-text{display:block;margin:6px 0 12px;width:100%;min-height:44px;padding:8px 10px;background:var(--panel);color:var(--ink);border:1px solid var(--line);font:inherit;}
 #heist-notice{position:absolute;top:calc(var(--hud-top) + 10px);left:50%;width:min(340px,calc(100% - 450px));margin:0;padding:10px 12px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;font-size:12px;line-height:1.4;transform:translateX(-50%);}
 .intro-open #heist-notice,.in-cutscene #heist-notice{display:none;}

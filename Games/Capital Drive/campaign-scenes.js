@@ -13,7 +13,9 @@ const suppliedHiredHealth = (ctx,id) => {
 const hiredRoster = ctx => [...new Set((Array.isArray(ctx.hiredMembers)?ctx.hiredMembers:[]).map(member=>member?.id).filter(id=>Object.hasOwn(HIRED,id)))].slice(0,2);
 const EMPTY = Object.freeze([]), RADIUS = .32;
 const ALLY_RANGE = 28, ALLY_DAMAGE = 12, ALLY_COOLDOWN = 1.1, SHOT_LIMIT = 4;
-const CATCHUP_DISTANCE = 35, STUCK_DISTANCE = 10, STUCK_SECONDS = 3, CATCHUP_RETRY = 1.25;
+const CATCHUP_DISTANCE = 28, STUCK_DISTANCE = 6, STUCK_SECONDS = 3, CATCHUP_RETRY = 1.25;
+const REAR_ANGLES = [Math.PI/6,-Math.PI/6,Math.PI/3,-Math.PI/3,0,5*Math.PI/12,-5*Math.PI/12];
+const ARRIVAL_ANGLES = [...REAR_ANGLES,Math.PI];
 const SEAT_RETRY = .5, BOARD_RANGE = 8, SEAT_PATH_LIMIT = 9;
 export function campaignPassengerCapacity(modelId) {
   const model=BY_ID[modelId];
@@ -109,13 +111,14 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
       if((doors.get(`${x},${z}`)||EMPTY).some(door=>gap(p,door)<1.4))return true;
     return false;
   }
-  function nearbyLanding(pose,id,index) {
+  function nearbyLanding(pose,id,index,{behind=false}={}) {
     const yaw=Number.isFinite(pose.yaw)?pose.yaw:0;
-    // Three rings, eight directions: a fixed local budget shared by recruitment
-    // and catch-up, with enough spacing for cars, the player and both adults.
+    // Alternate shoulders so the crew have distinct landing positions. Catch-up
+    // stays in the rear half-plane, even when the nearest position is blocked.
+    const side=index%2===0?-1:1,angles=behind?REAR_ANGLES:ARRIVAL_ANGLES;
     const road=simulation.nearestRoad?.(pose.x,pose.z), outer=road?Math.max(6,roadProfile(road.road).driveWidth/2+2):6;
-    for(const radius of [2.5,4,outer])for(let i=0;i<8;i++) {
-      const angle=yaw+(i+(index===0?0:4))*Math.PI/4;
+    for(const radius of [2.5,4,outer])for(const offset of angles) {
+      const angle=yaw+side*offset;
       const p={x:pose.x+Math.sin(angle)*radius,z:pose.z+Math.cos(angle)*radius,yaw};
       const nearest=simulation.nearestRoad?.(p.x,p.z);
       if(nearest&&!['footway','path','pedestrian','cycleway','steps'].includes(nearest.road.type)&&nearest.distance<roadProfile(nearest.road).driveWidth/2+RADIUS+.15)continue;
@@ -132,7 +135,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
     return null;
   }
   function relocate(ally,pose,index) {
-    const landing=nearbyLanding(pose,ally.id,index);
+    const landing=nearbyLanding(pose,ally.id,index,{behind:true});
     if(!landing)return false;
     Object.assign(ally,landing,{speed:0,mode:'following',shot:null,followTime:0,followStartDistance:0,stuck:false});
     events=events.filter(event=>event.actorId!==ally.id);

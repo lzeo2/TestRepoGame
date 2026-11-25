@@ -24,6 +24,8 @@ const env = { campaign, heists: null, reportCampaignIncident() {}, gameMode: 'ca
   focus: () => context.pose, interiors: { active: null }, roomPeople: { snapshot: () => [] },
   gameplay: { state: { wanted: 2 }, reportOffence() {} }, progression: { state: { activeJob: null, garage: { x: 7, z: 8 } }, drainEvents: () => [] },
   rideService: { drainEvents: () => [] }, notify() {}, finishDeveloperPreview() {}, restoreFailedMission() {}, acceptMissionCheckpoint() {}, missionCheckpoint: null,
+  // This campaign fixture has no active Skylark job overriding its objective.
+  skylineObjective: () => null,
   isSandbox: () => false, lastJobTarget: '', destination: null, route: [],
   routeTo(target) { calls.push(target); env.destination = target; env.route = [[0, 0], [target.x, target.z]]; } };
 vm.createContext(env);
@@ -46,7 +48,10 @@ context.wanted = 2; env.gameplay.state.wanted = 2;
 env.interiors.active = { id: 'fixture-room', name: 'the room', exit: { x: 1, z: 2 } };
 campaign.update(.1, { ...context, interior: env.interiors.active });
 assert.equal(campaign.snapshot().active.escapeReached, false, 'overlapping indoor coordinates cannot arrive outside');
-assert(env.campaignNavigationTarget(), 'before leaving, actual guide still directs an exit');
+const exitGuide = env.missionLocations.guide(campaign.state.active, { pose: context.pose, plan: env.interiors.active });
+assert(exitGuide?.indoors, 'before leaving, actual guide still directs an exit');
+assert.deepEqual(exitGuide.point, env.interiors.active.exit, 'indoor cue retains the actual exit position');
+assert.equal(env.campaignNavigationTarget(), null, 'indoor exit cue does not restore an outdoor world route');
 env.interiors.active = null;
 campaign.update(.1, context);
 assert.equal(campaign.snapshot().active.escapeReached, true);

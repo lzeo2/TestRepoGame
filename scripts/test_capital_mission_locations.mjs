@@ -62,6 +62,8 @@ assert.match(dto.instruction, /press E or Q/);
 assert.deepEqual(guide(target('robbery', { storeId: 'coals' }), { pose, plan }).point, plan.counter);
 assert.match(guide(target('robbery', { storeId: 'coals' }), { plan }).instruction, /press E/);
 assert.deepEqual(guide(target('interior', { storeId: 'coals' }), { plan }).point, plan.counter);
+assert.match(guide(target('interior',{storeId:'coals'}),{plan}).instruction,/stand beside it until the next objective appears/);
+assert(!/press E/.test(guide(target('interior',{storeId:'coals'}),{plan}).instruction),'indoor counter checkpoint does not invent an interaction requirement');
 const wrongRoom = { ...plan, id: 'wrong' };
 assert.equal(guide(target('work', { storeId: 'coals' }), { plan: wrongRoom }).indoors, false);
 assert.equal(guide(target('work', { roomId: 'missing', storeId: 'coals' }), { plan }).instruction, 'Original objective');

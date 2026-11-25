@@ -140,7 +140,8 @@ assert(waterArrival.ok && waterArrival.adjusted && waterArrival.reason === 'wate
 assert(waterArrival.x <= -161.8 || waterArrival.x >= -78.2 || waterArrival.z <= -161.8 || waterArrival.z >= -78.2,
   'water interior moves onto land with clearance');
 const clippedArrival = travel.teleport({ x: 900, z: -900 });
-assert.deepEqual([clippedArrival.x, clippedArrival.z, clippedArrival.reason], [498, -498, 'bounds'], 'out-of-bounds request clamps two metres inside map');
+assert(clippedArrival.x >497 && clippedArrival.x<=498 && clippedArrival.z===-498 && clippedArrival.reason==='bounds');
+assert(travel.canOccupy(travel.player),'the current car and heading fit at the clamped map edge');
 const blockedBoundary = travel.teleport({ x: 490, z: 0 });
 assert(blockedBoundary.ok && blockedBoundary.x <= 498 && blockedBoundary.z >= -498 && blockedBoundary.z <= 498);
 assert(blockedBoundary.x <= 478.2 || Math.abs(blockedBoundary.z) >= 21.8, 'blocked map edge finds nearby clear land inside bounds');
@@ -149,6 +150,12 @@ const occupiedArrival = travel.teleport({ x: -300, z: 250 });
 assert(occupiedArrival.ok && occupiedArrival.reason === 'parked-car' && occupiedArrival.distance >= 3.8,
   'teleport avoids parked-car occupancy as well as mapped polygons');
 travel.setParkedCars();
+const tank={id:'depot-tank',x:-300,z:250,yaw:0,length:6.6,width:4,active:true};
+travel.setExternalVehicles([tank]);
+const tankArrival=travel.teleport({...tank,yaw:.7});
+assert(tankArrival.ok&&tankArrival.adjusted&&tankArrival.reason==='occupied-space');
+assert(travel.canOccupy(travel.player),'map arrival fits the actual car beside an externally registered tank');
+travel.setExternalVehicles([]);
 const beforeInvalid = { ...travel.player };
 for (const point of [{ x: NaN, z: 0 }, { x: 0, z: Infinity }, { x: 0, z: 0, yaw: NaN }, null]) {
   const rejected = travel.teleport(point);

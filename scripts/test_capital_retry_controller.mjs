@@ -49,7 +49,7 @@ const write = [], notices = [], initialDestination = { id: 'private-route', x: 7
 let obstructed = true, placementChecks = 0, hadWeapon = false;
 const env = {
   started: true, clearingProgress:false, gameMode: 'campaign', careerError: '', missionCheckpoint: null, developerReturn: null,
-  campaignWorld:null,streetWorld:null,campaignAftermath:null,heists:null,lightRail:null,
+  campaignWorld:null,streetWorld:null,campaignAftermath:null,heists:null,depotTank:null,lightRail:null,
   inquiryOfficer:null,inquiryHarm:false,policeStations:null,shotObstacles:null,
   campaign, progression, simulation, interiors, map, PROTAGONIST_IDS,
   createProtagonistState: (saved, { bounds }) => createProtagonistState(saved, { bounds }),

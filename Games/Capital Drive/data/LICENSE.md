@@ -28,6 +28,12 @@ See [OpenStreetMap copyright and attribution](https://www.openstreetmap.org/copy
 The OSM-derived database layers in `canberra.json` remain available under ODbL;
 the separately attributed ACT and terrain layers retain their source terms.
 
+`residential-supplement.json` contains ODbL residential outlines from the pinned
+OpenStreetMap regional tiles. Its metadata retains source way identifiers,
+versions, timestamps and tile hashes. The Molonglo and West Belconnen overlays
+retain OSM source records and separately attributed ACT 2020 contour grids
+under CC BY 4.0. [Residential coverage and reproduction](../../../docs/capital-drive-residential-sources.md)
+
 Source: the official OpenStreetMap v0.6 map API,
 `https://api.openstreetmap.org/api/0.6/map.json`, downloaded as eighteen adaptive
 bounding-box tiles and unioned by object type and ID. The enclosing extent is

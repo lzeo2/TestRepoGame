@@ -125,7 +125,7 @@ export function createMissionGuide(entries, storyHomes = {}) {
     if (!point(plan.counter)) return fallback();
     const instruction = goal.kind === 'robbery' ?
       'Stand near the employee, aim your pistol to threaten them, then press E to demand the till handover.' :
-      `Walk down the aisle to the service counter inside ${location} and stand beside it.`;
+      `Walk down the aisle to the service counter inside ${location} and stand beside it until the next objective appears.`;
     return result(instruction, location, plan.counter, true, entry.id);
   }
   return Object.freeze({ guide });
