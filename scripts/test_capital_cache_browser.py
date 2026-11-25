@@ -192,7 +192,7 @@ def main():
             page.reload(wait_until='load', timeout=60000)
         else:
             page.goto(game_url, wait_until='load', timeout=60000)
-        page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=60000)
+        page.wait_for_function('() => window.capitalDriveSnapshot?.().ready', timeout=60000)
         check(not snapshot(page)['rendering']['compatibility'], 'Actual full game boots with software WebGL')
 
     def start_and_drive(page):
@@ -423,7 +423,7 @@ def main():
                 manifest = json.loads(manifest_source[manifest_source.index('{'):].rstrip().removesuffix(';'))
                 expected = manifest['build']
                 check(page.locator('#build-version').text_content() == expected, 'Actual full-game corner badge matches generated manifest build')
-                page.wait_for_function('document.querySelector("#cache-status").textContent.includes("Saved for faster starts")', timeout=60000)
+                page.wait_for_function('() => document.querySelector("#cache-status").textContent.includes("Saved for faster starts")', timeout=60000)
                 observations.append({'label':'actual build menu','build':expected,'state':snapshot(page),
                     'sourceSHA256':{name:hashlib.sha256((GAME/name).read_bytes()).hexdigest() for name in ['index.html','style.css','script.js','cache-client.js','cache-launcher.js','service-worker.js','cache-manifest.js']}})
                 page.screenshot(path=str(output/'build-menu-desktop.png'))
