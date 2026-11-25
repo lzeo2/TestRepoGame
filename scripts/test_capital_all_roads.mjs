@@ -33,7 +33,9 @@ if (failures.length) {
 }
 const terrain = createTerrainSampler(map);
 const raw = buildRoadGraph(map.roads);
-const simulation = createSimulation(map, {
+const worldObstacles = process.argv.includes('--world-obstacles')
+  ? (await import('./capital-world-obstacles-fixture.mjs')).addCapitalWorldObstacles(map, terrain) : null;
+const simulation = worldObstacles?.simulation || createSimulation(map, {
   trafficCount: 0, isOnBridge: terrain.isOnBridge,
   groundHeightAt: terrain.groundHeightAt, vehicleHeightAt: terrain.vehicleHeightAt,
 });
@@ -125,6 +127,7 @@ const result = {
   scope: 'All composed roads, all consecutive source segments, all legal graph directions; static saloon lane probes at 10%, 50%, 90% of every traffic-eligible directed edge.',
   counts: { roads: map.roads.length, sourceSegments, shortSegments, graphNodes: graph.nodes.size, directedEdges: graph.edges.length, graphSegments: graph.segments.length, collapsedSourceSegments: sourceSegments - raw.segments.length, eligibleDirectedEdges: eligibleEdges.length, directedSinkNodes: sinkNodes.length, excludedSegments, directionChecks, supportChecks, clearanceChecks, blockedProbes: blockers.reduce((n, r) => n + r.probes, 0), blockedRoads: blockers.length, trafficIneligibleRoads: ineligible.size, nonmotorRoads: nonmotor.length, allComponents: allComponents.length, carComponents: carComponents.length, steepSegments: excessiveGrades.length },
   byType, byRegion, failures,
+  worldObstacles: worldObstacles ? { enabled: true, counts: worldObstacles.counts, exclusions: worldObstacles.exclusions } : { enabled: false, staticBarriers: map.barriers.length },
   limitations: ['PASS gates structure, finite support and legal edge directions; clearance findings fail only with --strict-clearance.', 'Weak disconnected source components are classified, not silently connected; weak connectivity does not establish directed reachability.', 'Static occupancy includes fixture buildings, water and barriers, excludes spawned traffic, people, later mission obstacles and native input. Probe failures do not identify the responsible collider.', 'Three finite lane probes cannot prove swept turn clearance, continuous support, vehicle-specific clearance, or mission reachability. Grades above 35% are findings, not surveyed-road defects.'],
   clearance: { status: blockers.length ? 'FINDINGS' : 'PASS', byType: blockedByType, roads: blockers },
   topology: { all: allComponents, trafficEligible: carComponents, directedSinkNodeIds: sinkNodes, trafficIneligibleRoadIds: [...ineligible].sort(), nonmotorRoadIds: nonmotor.sort() },
@@ -134,6 +137,7 @@ if (process.argv.includes('--json')) console.log(JSON.stringify(result, null, 2)
 else {
   console.log(`${result.status} Capital Drive all-road structural audit`);
   console.log(JSON.stringify(result.counts));
+  if (worldObstacles) console.log(`Production static obstacles: ${JSON.stringify(worldObstacles.counts)}`);
   console.log(`Static clearance: ${result.clearance.status}; ${blockers.length} roads with occupied probes. Use --json for every road/component ID and --strict-clearance to gate these findings.`);
   for (const row of blockers.slice(0, 12)) console.log(`CLEARANCE ${row.id} ${row.name}: ${row.probes} occupied probes (${row.segments.length} segments)`);
   for (const failure of failures) console.log(`FAIL ${failure.id}: ${failure.problem}`);
