@@ -44,14 +44,14 @@ assert.equal(terrain.vehicleHeightAt(sim.player),ground,'ordinary reset establis
 assert.equal(sim.player.y,undefined,'support hint does not replace body or flight Y');
 // A staged low-speed steering sequence drives the production step/turn/sweep.
 Object.assign(sim.player,{yaw:pose.yaw,vx:-Math.sin(pose.yaw)*2,vz:-Math.cos(pose.yaw)*2});
-sim.setExternalVehicles([{id:'overhead',...pose,y:deck+.18,modelId:'lantern',active:true}]);
+assert.equal(sim.setExternalVehicles([{id:'overhead',...pose,y:deck+.18,modelId:'lantern',length:4.5,width:1.8,active:true}]),1,'production external hull admitted');
 for(let i=0;i<8;i++) {
   sim.step(.05,{throttle:.1,steer:.4});
   assert.equal(terrain.vehicleHeightAt(sim.player),terrain.roadHeightAt(lower,sim.player.x,sim.player.z),'ordinary moving/turning player remains underneath');
 }
 assert(Math.hypot(sim.player.x-pose.x,sim.player.z-pose.z)>.5,'upper car cannot block lower movement');
 assert.notEqual(sim.player.yaw,pose.yaw,'production steering actually rotates the body');
-sim.setExternalVehicles([{...sim.player,id:'same-lower',active:true}]);
+assert.equal(sim.setExternalVehicles([{...sim.player,id:'same-lower',length:4.5,width:1.8,active:true}]),1);
 assert(!sim.canOccupy(sim.player),'same-level cars still block the supported ordinary player');
 sim.setExternalVehicles([]);
 assert(sim.teleport(pose).ok);
@@ -61,7 +61,7 @@ const stale={...pose,supportY:ground,supportX:pose.x+100,supportZ:pose.z};
 assert.equal(terrain.vehicleHeightAt(stale),deck,'stale support from remote direct placement is ignored');
 console.log('Capital ordinary player bridge support: PASS (production step/turn/sweep, overhead hull, teleport/reset and stale hint)');
 
-sim.setParkedCars([{id:'upper-parked',...pose,y:deck+.18,modelId:'lantern',active:true}]);
+sim.setParkedCars([{id:'upper-parked',...pose,y:deck+.18,modelId:'lantern',length:4.5,width:1.8,active:true}]);
 assert(sim.claimVehicle('upper-parked').ok);
 assert.equal(terrain.vehicleHeightAt(sim.player),deck,'claim takes parked car support rather than previous player level');
 const abandoned=sim.nearbyVehicles(pose.x,pose.z,10).find(car=>car.id.startsWith('abandoned:'));
