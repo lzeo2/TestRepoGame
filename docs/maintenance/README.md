@@ -6,8 +6,8 @@ is a source-grounded audit and maintenance guide, not a claim that every legacy
 game meets today's standards. Some engines are compiled, some rights are
 unverified, and some native interactions remain held.
 
-The catalog contains **134 registered games**. The latest Git inventory records **140 game projects**
-plus the shared `Games/_emulatorjs` runtime. Capital Drive: Canberra (245) is the owner-authorized original inner-south driving preview using real OSM roads, ACT building outlines and sampled terrain, with left-hand traffic, walking pedestrians and procedural street detail; see its [source record](../capital-drive-sources.md). Lane Run (242), Gap Glide (243) and Courtyard Cast (244) are original Schoolyard Trio prototypes published for hosted testing at the operator's explicit request. Private likeness models and photos are excluded; their native/device checks remain open. Below the Obvious (235), operator-named on 2026-10-21, is the original offline solo rare-answer trivia game with Battle gated for phase 2; see the [branch handover](../dive-trivia-handover.md). Its targeted smoke does not replace the full fleet gate. JANKOLOCK (240) is the operator-authorized original arena translation; its indexed manual and [targeted build receipt](../jankolock-release.md) record native play, software-only portrait rendering and remaining full-fleet/hardware holds. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. Steal a Basketballer (246) is the owner-authorized original basketball preview, now listed after the owner reported its missing portal card. The six unregistered projects are
+The generated [Git inventory](inventory.json) records current catalog/project counts,
+registration, hashes and the separate shared `Games/_emulatorjs` runtime. Capital Drive: Canberra (245) is the owner-authorized original inner-south driving preview using real OSM roads, ACT building outlines and sampled terrain, with left-hand traffic, walking pedestrians and procedural street detail; see its [source record](../capital-drive-sources.md). Lane Run (242), Gap Glide (243) and Courtyard Cast (244) are original Schoolyard Trio prototypes published for hosted testing at the operator's explicit request. Private likeness models and photos are excluded; their native/device checks remain open. Below the Obvious (235), operator-named on 2026-10-21, is the original offline solo rare-answer trivia game with Battle gated for phase 2; see the [branch handover](../dive-trivia-handover.md). Its targeted smoke does not replace the full fleet gate. JANKOLOCK (240) is the operator-authorized original arena translation; its indexed manual and [targeted build receipt](../jankolock-release.md) record native play, software-only portrait rendering and remaining full-fleet/hardware holds. Steal a Footballer is the owner-authorized solo adaptation registered as 227; the owner stopped game testing and explicitly requested this source release without a completed smoke gate. Steal a Basketballer (246) is the owner-authorized original basketball preview, now listed after the owner reported its missing portal card. The six unregistered projects are
 2048, Garage Borough, Hextris, Jankolock, QWOP and Slope. CITISTEN is already
 registered as241 with `Games/Citisten3D/index.html`; its canonical manual retains
 its source and held acceptance limits. This factual catalog reconciliation is
@@ -26,15 +26,15 @@ records fitted hair, 12 signature skills, persistent rival development and
 dribbling animations, plus the complete Dot model wishlist. The owner explicitly
 requested the localhost test server to remain available for personal testing.
 
-## Current fleet handover (2026-10-17)
+## Historical fleet handover (2026-10-17)
 
 The [Wings continuation receipt](audits/wings-continuation-20261017.md) records
 the fresh unchanged full catalog gate at `bfbc564`: **125/125, exit 0**, in
 1,591.93 seconds. All 125 visits completed without retained errors or failed
 requests under the existing filters. Sparse/config bytes restored exactly;
 protected hashes remained unchanged. This is a loading gate, not complete native
-gameplay, offline, hardware or rights acceptance. Current inventory remains
-125 registered / 130 projects. Source repair, native Windows flight and bounded
+gameplay, offline, hardware or rights acceptance. That dated inventory was
+125 registered / 130 projects; use [inventory](inventory.json) for current counts. Source repair, native Windows flight and bounded
 UI evidence are linked from the [Wings verification section](games/232-wings.md#verification).
 No push or publication is authorized by these checks.
 The earlier [repair baseline](audits/wings-repair-20261017.md) retains its own
@@ -141,7 +141,7 @@ analytics or target-device performance.
 - [Reviewed previews](previews.md): seven real fresh-run captures with Main's
   visual judgment and remaining readability limits.
 - [Refurbishment plan](REFURBISHMENT.md): small waves, acceptance criteria and
-  future-agent task contracts, not 115 speculative redesigns.
+  future-agent task contracts, not speculative redesigns.
 - [3D expansion outlook](3d-outlook.md): source-verified research and conditional
   slots for a few additional lightweight experiences over four weeks.
 - [Static tree audit](audits/static-tree.md), [complexity review](audits/complexity.md),

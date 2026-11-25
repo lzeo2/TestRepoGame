@@ -4,13 +4,13 @@ import * as THREE from '../assets/car-arcade/vendor/three.module.js';
 import { CARS, BY_ID } from '../assets/car-arcade/fleet.js';
 import { createCar, disposeCars } from '../assets/car-arcade/models.js';
 
-// Original16 reference: revision 470156bd, independently generated from its
-// SHA256-pinned historical factory (models.js 57d65ecb57e545a0cf521106ddaca62ed
-// de1edb966f920b35d046c63ca4f00b8) and unchanged pinned Three.js/helper sources.
-// The old raw-byte receipt does not reproduce even on that exact source here.
-// Freeze normalized geometry instead; this check needs no Git history/network.
-const referenceRevision='470156bd';
-const expectedFingerprint='df9a5aa6953adbd794a7077f4f28f0b9bd60ef6d3cb424afed32ab43b4adbf9f';
+// Original16 reference: main 21a5a15f, factory 62ca8f32. The earlier
+// 470156bd golden was df9a5aa6953adbd794a7077f4f28f0b9bd60ef6d3cb424afed32ab43b4adbf9f.
+// 4069e5d0 deliberately moved steering/gauges and cockpit eye to the right;
+// 62ca8f32 added immutable pickup-bed metadata without changing geometry.
+// Independently reproduced this exact fingerprint from isolated main files.
+const referenceRevision='62ca8f32';
+const expectedFingerprint='f574fa00cfe36c95141f1c856e233f394df0d1cb215ddb7f9c7603198a2040f3';
 
 // Exact topology; float geometry/transform/material values rounded to 1e-5.
 // Integer quantization avoids signed-zero and last-bit trig/runtime differences.
@@ -50,7 +50,9 @@ for (let cycle = 0; cycle < 3; cycle++) {
     assert.equal(a.userData.carId,car.id); assert.equal(a.userData.wheels.length,4);
     assert(Object.isFrozen(a.userData) && Object.isFrozen(a.userData.dimensions) && Object.isFrozen(a.userData.profile));
     assert.equal(a.userData.profile.forward,'-Z'); assert.equal(a.userData.profile.wheelAxis,'X');
-    assert.deepEqual(Object.keys(a.userData).sort(), ['carId','cockpit','dimensions','drawCalls','profile','triangles','wheels']);
+    assert.deepEqual(Object.keys(a.userData).sort(), ['bed','carId','cockpit','dimensions','drawCalls','profile','triangles','wheels']);
+    if(car.id==='atlas'){assert(Object.isFrozen(a.userData.bed));assert.equal(a.userData.bed.form,'pickup');}
+    else assert.equal(a.userData.bed,null);
     const cockpit = a.userData.cockpit, {eye,target} = cockpit;
     assert.deepEqual(Object.keys(cockpit), ['eye','target']);
     for (const value of [cockpit,eye,target]) assert(Object.isFrozen(value));
@@ -66,7 +68,7 @@ for (let cycle = 0; cycle < 3; cycle++) {
     previousCockpits.set(car.id,cockpit);
     const [cowl,rf,rr,belt,roofWidth] = cabins[ids.indexOf(car.id)];
     const w=car.width/2, l=car.length, h=car.height, y=h*belt;
-    assert.equal(eye[0],-w*.4); assert(Math.abs(eye[0])<w*roofWidth*.92);
+    assert.equal(eye[0],w*.4); assert(Math.abs(eye[0])<w*roofWidth*.92);
     assert(eye[1]>y+.11 && eye[1]<h-.09, `${car.id}: above dashboard/belt, below roof`);
     assert(eye[2]>rf*l && eye[2]<rr*l, `${car.id}: inside cabin length`);
     assert(eye[2]>cowl*l+.25+.133 && eye[2]<l*.15-.07 && eye[2]<l*.16-.04, `${car.id}: behind steering, ahead of seat back/headrest`);

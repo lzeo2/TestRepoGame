@@ -375,3 +375,18 @@ h3{font-size:15px;line-height:1.35;}
  body{--footer-height:calc(52px + env(safe-area-inset-bottom,0px))}.topbar{padding:calc(6px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 6px max(12px,env(safe-area-inset-left,0px));min-height:56px}#touch-controls{bottom:calc(var(--footer-height) + 24px)}.touch-stick{width:90px;height:90px}body:not(.intro-open) #touch-actions{left:50%;right:auto;bottom:calc(var(--footer-height) + 14px);transform:translateX(-50%);grid-template-columns:repeat(5,44px);gap:5px}.minimap-wrap{left:116px;bottom:calc(var(--footer-height) + 14px);width:110px}#minimap-button{height:80px}.map-footer{display:none}.driving-hud{right:116px;bottom:calc(var(--footer-height) + 14px);width:105px;padding:7px}#speed{font-size:34px}.driving-hud .trip{font-size:8px}.speed-meter{margin:5px 0}.interaction-hint{bottom:170px;max-width:45vw;padding:7px}.toast,body.learning .toast{top:calc(70px + env(safe-area-inset-top,0px));bottom:auto;max-width:36vw;font-size:11px}.tutorial-coach{top:calc(70px + env(safe-area-inset-top,0px));bottom:auto;width:min(350px,calc(100% - 320px));max-height:calc(100dvh - 252px);overflow:auto;padding:10px}.tutorial-coach h2{font-size:16px}.tutorial-coach p{font-size:12px}#career-hud{top:calc(70px + env(safe-area-inset-top,0px));right:12px;width:140px;padding:7px}#career-hud p{font-size:9px;margin:3px 0}#career-hud #wanted-level{font-size:16px}#cash-value{font-size:14px}.location{top:calc(70px + env(safe-area-inset-top,0px));left:12px;max-width:190px;padding:6px 8px}.location h2{font-size:14px}.location p{display:none}#job-hud{top:calc(132px + env(safe-area-inset-top,0px));left:12px;width:190px;padding:7px}#navigation-hud{top:calc(70px + env(safe-area-inset-top,0px));right:162px;width:145px}.credits{display:flex;min-height:var(--footer-height)}.credits>span{max-width:40%;font-size:8px}.credit-tools{gap:6px}.build-label{font-size:8px}#activity-panel{top:calc(70px + env(safe-area-inset-top,0px));bottom:auto;max-height:calc(100dvh - 126px);overflow:auto;z-index:7}#recon-hud,#fight-hud{left:50%;right:auto;top:calc(70px + env(safe-area-inset-top,0px));width:min(320px,calc(100% - 320px));transform:translateX(-50%);max-height:120px;overflow:auto;font-size:11px;padding:9px}#heist-notice{top:calc(70px + env(safe-area-inset-top,0px));bottom:auto;width:36vw}.intro{top:calc(70px + env(safe-area-inset-top,0px));max-height:calc(100dvh - 130px)}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* Career training and practical safehouse controls in the phone dialog. */
+#city-dialog .city-training-tabs { display:flex; gap:8px; margin-bottom:16px; }
+#city-dialog .city-training-tabs button { flex:1; min-height:44px; }
+#city-dialog .city-training-tabs [aria-selected="true"] { background:#111; color:#fff; border:2px solid currentColor; }
+#city-dialog .city-training-branch { margin-block:18px; }
+#city-dialog .city-training-branch > h3 { border-bottom:2px solid currentColor; padding-bottom:8px; }
+#city-dialog .city-skill h4, #city-dialog .city-home-upgrades h4 { margin:12px 0 6px; font-size:1rem; }
+#city-dialog .city-skill p, #city-dialog .city-home-upgrades p { line-height:1.5; }
+#city-dialog .city-home-upgrades button { min-height:44px; margin:4px 8px 4px 0; }
+#city-dialog button:focus-visible { outline:3px solid #d48618; outline-offset:3px; }
+#city-dialog .city-training-panel { min-width:0; }
+@media (max-width:520px) {
+  #city-dialog .city-skill button, #city-dialog .city-home-upgrades button { width:100%; margin-inline:0; white-space:normal; }
+}

@@ -138,6 +138,10 @@ def main():
             wait_count(page, 1)
             page.locator('.category-filter__btn[data-cat-id="sports"]').click()
             wait_count(page, 1)
+            # The visible count is already one before React rerenders this chip.
+            # Wait for the authored 80ms reconciliation to restore its query too.
+            page.wait_for_function("document.querySelector('.search-bar__input').value === 'sccrrndm'")
+            assert titles(page) == ['Soccer Random']
             assert search.input_value() == 'sccrrndm'
             page.locator('.ux-tag-filter__pill[data-tag="hacked"]').click()
             wait_count(page, 0)

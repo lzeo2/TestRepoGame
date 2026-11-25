@@ -44,6 +44,12 @@ export function createHouseController({burglary,activities,progression,getPlan,s
     }
     pendingRest=null;burglary.leave();return result;
   }
+  function usePantry(roomId,ctx){
+    if(!liveRoom(roomId,ctx))return {ok:false,message:'Eat inside your safehouse.'};
+    const result=progression.useHomePantry(roomId,ctx);
+    if(result.ok){heal(result.heal);save();}
+    return result;
+  }
   function reset(){pendingRest=null;}
-  return {recordActivity,takeRestReceipt,afterExit,reset};
+  return {recordActivity,takeRestReceipt,afterExit,usePantry,reset};
 }

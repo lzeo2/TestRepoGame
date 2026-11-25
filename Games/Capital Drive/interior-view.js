@@ -1,6 +1,8 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 import { mergeGeometries } from '../../assets/car-arcade/vendor/BufferGeometryUtils.js';
 
+import { domesticPalette, furnishDomestic, dressDomestic } from './interior-domestic-view.js';
+
 const SHOP_GLYPHS={
   A:'010 101 111 101 101',B:'110 101 110 101 110',C:'011 100 100 100 011',D:'110 101 101 101 110',E:'111 100 110 100 111',
   F:'111 100 110 100 100',G:'011 100 101 101 011',I:'111 010 010 010 111',K:'101 101 110 101 101',L:'100 100 100 100 111',
@@ -14,12 +16,28 @@ export function createInteriorView(scene) {
   const root = new THREE.Group(); root.name = 'Active original interior'; scene.add(root);
   const material = new THREE.MeshLambertMaterial({ vertexColors: true });
   const lootMaterial = new THREE.MeshLambertMaterial({ color: 0xeec964 });
-  let disposed = false, current = null, lootMarker = null, roomTriangles = 0;
+  let disposed = false, current = null, lootMarker = null, roomTriangles = 0, homePalette = null, homeStatusKey = '';
   const stats = { active: 0, meshes: 0, draws: 0, triangles: 0, furniture: 0 };
   function clear() {
     for (const mesh of [...root.children]) { root.remove(mesh); mesh.geometry.dispose(); }
-    current = null; lootMarker = null; roomTriangles = 0;
+    current = null; lootMarker = null; roomTriangles = 0; homePalette = null; homeStatusKey = '';
     Object.assign(stats, { active: 0, meshes: 0, draws: 0, triangles: 0, furniture: 0 });
+  }
+  function setHomeStatus(status) {
+    if (!homePalette || !current) return false;
+    const key = `${Number(status?.comfort === true)}${Number(status?.pantry === true)}`;
+    if (key === homeStatusKey) return true;
+    const colors = root.children[0].geometry.attributes.color;
+    const previous = homeStatusKey || '00';
+    // Upgrade feedback edits the existing colour buffer; no extra meshes or room rebuild.
+    for (const [field, bit, upgrade] of [['fabric', 0, 0x839590], ['linen', 0, 0xeee5d0], ['accent', 1, 0xb89760]]) {
+      const from = new THREE.Color(previous[bit] === '1' ? upgrade : homePalette[field]);
+      const to = new THREE.Color(key[bit] === '1' ? upgrade : homePalette[field]);
+      if (from.equals(to)) continue;
+      for (let i = 0; i < colors.count; i++) if (Math.abs(colors.getX(i)-from.r)<1e-6 &&
+        Math.abs(colors.getY(i)-from.g)<1e-6 && Math.abs(colors.getZ(i)-from.b)<1e-6) colors.setXYZ(i,to.r,to.g,to.b);
+    }
+    colors.needsUpdate = true; homeStatusKey = key; return true;
   }
   function setHeistLootActive(active) {
     if (!lootMarker) return false;
@@ -53,6 +71,7 @@ export function createInteriorView(scene) {
       box(item.x + c * x + s * z, item.y + y, item.z - s * x + c * z,
         width, height, depth, item.yaw, color);
     }
+    const palette = plan.type === 'house' ? domesticPalette(plan.homeStyle) : null;
     const o = plan.origin, c = Math.cos(o.yaw), s = Math.sin(o.yaw);
     if (plan.footprint) {
       const contour = plan.footprint.map(p => new THREE.Vector2(p.x, p.z));
@@ -67,7 +86,7 @@ export function createInteriorView(scene) {
       floor.computeVertexNormals();
       // Match the box batches' attribute schema for the one-draw merge.
       floor.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(positions.length / 3 * 2), 2));
-      addGeometry(floor, 0xa88e70);
+      addGeometry(floor, palette?.floor ?? 0xa88e70);
     } else box(o.x + s * plan.depth / 2, plan.floorY - 0.08, o.z + c * plan.depth / 2,
       plan.width, 0.16, plan.depth, o.yaw, plan.type === 'house' ? 0xa88e70 : 0xb3b1a0);
     for (const room of plan.rooms || []) {
@@ -77,12 +96,13 @@ export function createInteriorView(scene) {
       box(room.x, plan.floorY + 0.006, room.z, room.width - 0.12, 0.012, room.depth - 0.12, o.yaw, color);
     }
     for (const wall of plan.walls) {
-      box(wall.x, wall.y + wall.height / 2, wall.z, wall.width, wall.height, wall.depth, wall.yaw, wall.color);
+      box(wall.x, wall.y + wall.height / 2, wall.z, wall.width, wall.height, wall.depth, wall.yaw, palette?.wall ?? wall.color);
       // Skirting follows the same collision solids and leaves every doorway clear.
       box(wall.x, wall.y + 0.065, wall.z, wall.width + 0.025, 0.13, wall.depth + 0.025, wall.yaw, 0x84765f);
     }
     for (const item of plan.furniture) {
       const { width: w, depth: d, height: h, color } = item;
+      if (palette && furnishDomestic(item, palette, detail, addGeometry)) continue;
       if (item.kind === 'jewellery-case' || item.kind==='exhibition-case') {
         detail(item, 0, .32, 0, w, .64, d, color);
         detail(item, 0, .69, 0, w * .88, .07, d * .9, 0x34313d);
@@ -284,6 +304,7 @@ export function createInteriorView(scene) {
         detail(item, 0, h * 0.78, d / 2 + 0.015, w * 0.8, h * 0.6, 0.025, 0x6f8580);
       }
     }
+    if (palette) dressDomestic(plan, palette, detail);
     for (const item of plan.details || []) {
       if(item.kind==='release-console') {
         detail(item,0,.07,0,item.width,.14,item.depth,0x35434a);
@@ -424,8 +445,8 @@ export function createInteriorView(scene) {
       lootMarker.position.set(plan.heist.loot.x, plan.floorY + .38, plan.heist.loot.z);
       lootMarker.visible = false; root.add(lootMarker); stats.meshes++;
     }
-    current = plan; return true;
+    current = plan; homePalette = palette; homeStatusKey = '00'; return true;
   }
-  return { load, clear, setHeistLootActive, setHeistTarget, stats,
+  return { load, clear, setHomeStatus, setHeistLootActive, setHeistTarget, stats,
     dispose() { if (disposed) return; clear(); material.dispose(); lootMaterial.dispose(); scene.remove(root); disposed = true; } };
 }

@@ -14,7 +14,7 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
   const status = make('p', '', null, 'city-action-status');
   status.setAttribute('role', 'status');
   const phone = document.getElementById('phone-dialog');
-  const section = make('section', undefined, phone);
+  const section = document.getElementById('city-services') || make('section', undefined, phone, 'city-services');
   section.className = 'phone-service';
   make('h3', 'Services', section);
   let disposed = false;
@@ -37,11 +37,12 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
   dialog.addEventListener('close', () => onClose?.());
   const body = make('div', undefined, dialog); body.className = 'city-panel';
   dialog.append(status);
-  let tab = 'properties', deliveryMethod = 'legal';
+  let tab = 'properties', deliveryMethod = 'legal', trainingTrack = 'player';
   function open(next) {
     tab = next; status.textContent = ''; onOpen?.(); render(); dialog.showModal();
   }
   button(section, 'Safehouses', () => open('properties'), 'city-properties-open');
+  button(section, 'Training', () => open('training'), 'city-training-open');
   button(section, 'Crew', () => open('crew'), 'city-crew-open');
   button(section, 'Drone', () => open('drone'), 'city-drone-open');
   button(section, 'Gear', () => open('gear'), 'city-gear-open');
@@ -53,9 +54,48 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
     return input;
   };
   function render() {
+    if(disposed)return;
+    const focused=document.activeElement?.id;
+    renderContent();
+    if(focused){const next=document.getElementById(focused);if(next&&!next.disabled)next.focus?.();}
+  }
+  function renderContent() {
     if (disposed) return;
     const state = getState();
     body.replaceChildren();
+    if(tab==='training'){
+      title.textContent='Training';
+      if(state.sandbox){make('p','Training points and skills belong to Street Life and Campaign. Free roam keeps its practice equipment without career training.',body);return;}
+      const tabs=make('div',undefined,body);tabs.className='city-training-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Training track');
+      for(const track of ['player','crew']){
+        const control=button(tabs,track==='player'?'Player':'Crew',()=>{trainingTrack=track;render();document.getElementById(`city-training-${track}`)?.focus?.();},`city-training-${track}`);
+        control.setAttribute('role','tab');control.setAttribute('aria-selected',String(track===trainingTrack));control.setAttribute('aria-controls','city-training-panel');control.tabIndex=track===trainingTrack?0:-1;
+        control.addEventListener('keydown',event=>{
+          if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+          event.preventDefault();trainingTrack=event.key==='Home'?'player':event.key==='End'?'crew':trainingTrack==='player'?'crew':'player';render();document.getElementById(`city-training-${trainingTrack}`)?.focus?.();
+        });
+      }
+      const panel=make('section',undefined,body,'city-training-panel');panel.className='city-training-panel';panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',`city-training-${trainingTrack}`);
+      const tree=state.training?.[trainingTrack];
+      if(!tree){make('p',state.trainingLocked||'Training is unavailable right now.',panel);return;}
+      make('p',`${tree.points} training ${tree.points===1?'point':'points'} available`,panel,'city-training-points');
+      make('p',trainingTrack==='crew'?'Complete jobs and activities with a nearby hired crew member to earn crew points.':'Complete jobs, missions and activities to earn player points.',panel);
+      if(state.trainingLocked)make('p',state.trainingLocked,panel,'city-training-locked');
+      const nodes=tree.nodes||[],branches=[...new Set(nodes.map(node=>node.branch))];
+      for(const branch of branches){
+        const group=make('section',undefined,panel);group.className='city-training-branch';make('h3',branch,group);
+        for(const node of nodes.filter(node=>node.branch===branch)){
+          const row=make('section',undefined,group);row.className='city-row city-skill';
+          make('h4',node.name,row);make('p',node.description,row);
+          const names=(node.requires||[]).map(id=>nodes.find(item=>item.id===id)?.name||id);
+          make('p',`${node.cost} ${node.cost===1?'point':'points'} · Requires: ${names.length?names.join(', '):'None'}`,row,`city-skill-help-${node.id}`);
+          const learn=button(row,node.unlocked?'Learned':`Learn ${node.name}`,()=>act('learn-skill',{track:trainingTrack,id:node.id}),`city-learn-${node.id}`);
+          learn.disabled=!!state.trainingLocked||node.unlocked||!node.available;learn.setAttribute('aria-describedby',`city-skill-help-${node.id}`);
+          if(!node.unlocked&&!node.available)make('p',names.some((name,index)=>!nodes.find(item=>item.id===node.requires[index])?.unlocked)?'Learn the required skill first.':'Earn more training points.',row);
+        }
+      }
+      return;
+    }
     if(tab==='gear'){
       title.textContent='Gear';
       const gear=state.gear||{};
@@ -66,7 +106,7 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
         const item=UTILITY_GEAR[kind],count=gear[item.field]??0,availability=state.utilityAvailability?.[kind];
         const row=make('section',undefined,body);row.className='city-row';
         make('h3',`${item.name} · ${count}/${item.capacity}`,row,`city-${kind}-count`);
-        make('p',kind==='medkit'?`+${item.amount} health · on foot`:kind==='repair-kit'?`+${item.amount} car condition · beside your stopped car outdoors`:'Jams nearby working cameras temporarily.',row);
+        make('p',kind==='medkit'?`+${item.amount} health · on foot`:kind==='repair-kit'?`+${item.amount+(state.repairKitBonus||0)} car condition · beside your stopped car outdoors`:'Jams nearby working cameras temporarily.',row);
         const use=button(row,'Use',()=>act('use-utility',kind),`city-use-${kind}`);
         use.setAttribute('aria-label',`Use ${item.name.toLowerCase()}`);
         use.disabled=count<1||availability?.ok!==true;
@@ -163,6 +203,21 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
       return;
     }
     title.textContent = 'Safehouses & storage';
+    if(state.sandbox){make('p','Safehouse purchases, improvements and storage are available in Street Life and Campaign.',body);return;}
+    if(state.homeStatus){
+      const home=state.homeStatus,row=make('section',undefined,body);row.className='city-row city-home-upgrades';
+      make('h3',state.homeName||'Your safehouse',row);make('p',`Cash available · $${state.cash.toLocaleString('en-AU')}`,row);
+      make('h4','Comfortable bed',row);make('p',home.comfort?'Installed. Completed rests at this home are free.':'Completed rests at this home become free. Use the bed to rest.',row);
+      const comfort=button(row,home.comfort?'Comfort installed':`Install comfort · $${home.comfortPrice}`,()=>act('home-upgrade','comfort'),'city-buy-comfort');comfort.disabled=home.comfort||state.cash<home.comfortPrice;
+      make('h4','Pantry',row);make('p',home.pantry?`${home.meals}/3 meals stored. Each meal restores up to 30 health.`:'Install a pantry with three meals. Each meal restores up to 30 health.',row);
+      if(!home.pantry){const buy=button(row,`Install pantry · $${home.pantryPrice}`,()=>act('home-upgrade','pantry'),'city-buy-pantry');buy.disabled=state.cash<home.pantryPrice;}
+      else{
+        const eat=button(row,'Eat meal · +30 health',()=>act('home-meal'),'city-eat-meal');eat.disabled=home.meals<1||!Number.isFinite(state.health)||state.health>=100;
+        const refill=button(row,`Restock 3 meals · $${home.refillPrice}`,()=>act('home-upgrade','refill'),'city-refill-pantry');refill.disabled=home.meals>0||state.cash<home.refillPrice;
+        if(home.meals>0)make('p','Use all stored meals before restocking.',row);
+      }
+      make('p','Improvements and meals stay with this home in the current mode.',row);
+    }
     if(!state.stash)for (const offer of state.properties || []) {
       const row = make('section', undefined, body); row.className = 'city-row';
       make('h3', offer.label || offer.name, row);

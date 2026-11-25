@@ -245,6 +245,9 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
     const storyHome = entry.type === 'house' && home?.roomId === entry.id &&
       String(home.buildingId) === String(entry.buildingId) ? home : null;
     const origin = { x: entry.x, z: entry.z, yaw: entry.yaw };
+    // Stable domestic character is resolved with the lazy plan, never at city boot.
+    const homeStyle = entry.type === 'house' ? (storyHome ? 'safehouse' :
+      ['timber', 'brick', 'garden'][[...entry.id].reduce((hash, ch) => (hash * 31 + ch.charCodeAt(0)) >>> 0, 0) % 3]) : null;
     const source = entry.type === 'house' ? buildings.get(String(entry.buildingId)) : null;
     const footprint = source?.points?.map(([x, z]) => localPoint(origin, { x, z }));
     if (footprint?.length > 3 && distance(footprint[0], footprint.at(-1)) < 1e-7) footprint.pop();
@@ -642,7 +645,7 @@ export function createInteriors(map, { heightAt = () => 0, stores = [], publicEn
     }
     return freeze({ id: entry.id, buildingId: entry.buildingId, ...(['mall', 'gym', 'school'].includes(entry.type) ? {} : { storeId: entry.storeId || null }),
       ...(entry.serviceId ? { serviceId: entry.serviceId } : {}), ...(entry.heistSiteId ? { heistSiteId: entry.heistSiteId, heist } : {}), ...(entry.schoolId ? { schoolId: entry.schoolId } : {}),
-      type: entry.type, ...(entry.variant ? { variant: entry.variant } : {}), ...(footprint ? { footprint, bounds } : {}), name: typeof storyHome?.name === 'string' && storyHome.name.trim() ? storyHome.name : entry.name, origin, width, depth, floorY, spawn, exit, counter,
+      type: entry.type, ...(homeStyle ? { homeStyle } : {}), ...(entry.variant ? { variant: entry.variant } : {}), ...(footprint ? { footprint, bounds } : {}), name: typeof storyHome?.name === 'string' && storyHome.name.trim() ? storyHome.name : entry.name, origin, width, depth, floorY, spawn, exit, counter,
       walls, doors, furniture, rooms, activities, ...(noodleCook ? { noodleCook, boothGuest } : {}),
       ...(entry.type === 'mall' ? { levels: [{ y: floorY, label: 'Ground floor' }], sourceExtent: entry.sourceExtent, reference: 'Monaro Mall 1963 materials; original partial ground-floor wing. Tenancies and corridors are interpreted.' } : {}), ...(exercise ? { exercise } : {}), ...(details.length ? { details } : {}), layoutNote: footprint ? 'Source exterior footprint at original scale; original procedural rooms, not a surveyed interior.' : 'Original plausible layout; not a surveyed interior.' });
   }

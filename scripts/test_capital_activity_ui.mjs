@@ -76,7 +76,7 @@ ui.render({ interior, nearest, sandbox: true });
 assert.equal(n.start.textContent, 'Practice');
 for (const [kind, pay] of [['noodle', 60], ['stock', 45]]) {
   const input = { interior: { storeId: 'shop' }, nearest: { kind, label: kind } };
-  ui.render(input); assert.equal(n.start.textContent, `Work · +$${pay}`);
+  ui.render(input); assert.equal(n.start.textContent, `Work · $${pay} base`);
   ui.render({ ...input, sandbox: true }); assert.equal(n.start.textContent, 'Play');
 }
 

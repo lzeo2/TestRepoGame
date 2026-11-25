@@ -5,7 +5,7 @@ export const CAPITAL_PROGRESS_KEYS = Object.freeze([SAVE_KEY, TUTORIAL_KEY, CARE
 
 export function parseCareerSave(raw) {
   if (raw === null) return null;
-  if (typeof raw !== 'string' || raw.length > 16000) throw new Error('Invalid saved career size.');
+  if (typeof raw !== 'string' || raw.length > 32_000) throw new Error('Invalid saved career size.');
   const value = JSON.parse(raw);
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid saved career.');
   return value;

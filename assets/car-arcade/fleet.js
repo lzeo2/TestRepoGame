@@ -26,7 +26,11 @@ const capitalAdditions = [
   ['flux', 'Flux Borough EV', 12500, 36, 8.1, 4.1, 102, 'compact', '#769b98', 3.88, 1.81, 1.53],
   ['rill', 'Rill Workmate', 17500, 34, 6.4, 3.2, 138, 'utility', '#bcbba3', 4.38, 1.88, 1.66],
   ['gather', 'Gather Shuttle', 24000, 33, 6.1, 2.8, 144, 'utility', '#a48d70', 4.98, 1.98, 2.03],
+  ['banksia', 'Banksia Cross', 19500, 38, 7.3, 3.7, 132, 'utility', '#a86142', 4.52, 1.94, 1.78],
+  ['swiftlet', 'Swiftlet City', 7800, 31, 7.0, 4.5, 91, 'compact', '#d5c375', 3.46, 1.70, 1.49],
+  ['courier', 'Courier Highroof', 16500, 29, 5.3, 2.6, 152, 'utility', '#c7cfca', 4.78, 1.96, 2.21],
+  ['wattle', 'Wattle Hybrid', 28500, 42, 8.0, 3.9, 117, 'touring', '#596f91', 4.71, 1.87, 1.44],
 ].map(([id,name,price,speed,acceleration,handling,toughness,style,color,length,width,height])=>Object.freeze({id,name,price,speed,acceleration,handling,toughness,style,color,length,width,height}));
 export const CAPITAL_CARS=Object.freeze([...CARS,...capitalAdditions]);
 export const CAPITAL_BY_ID=Object.freeze(Object.assign(Object.create(null),Object.fromEntries(CAPITAL_CARS.map(car=>[car.id,car]))));
-export const TRAFFIC_CAR_IDS=Object.freeze(['lantern','flux','orchard','rill','gravel','gather','relay','atlas','finch']);
+export const TRAFFIC_CAR_IDS=Object.freeze(['lantern','flux','orchard','rill','gravel','gather','relay','atlas','finch','banksia','swiftlet','courier','wattle']);

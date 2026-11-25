@@ -169,9 +169,9 @@ assert.equal(covered.teleport({ x: 0, z: 0 }).reason, 'no-clear-position', 'full
 assert.deepEqual(covered.player, beforeImpossible);
 console.log('PASS teleport exact off-road arrival, building/water/edge safety, invalid rejection and preserved trip statistics');
 
-const fleet = createSimulation(map, { seed: 17, trafficCount: 12 });
-const repeat = createSimulation(map, { seed: 17, trafficCount: 12 });
-assert.equal(fleet.traffic.length, 12);
+const fleet = createSimulation(map, { seed: 17, trafficCount: Math.max(12, TRAFFIC_CAR_IDS.length) });
+const repeat = createSimulation(map, { seed: 17, trafficCount: Math.max(12, TRAFFIC_CAR_IDS.length) });
+assert.equal(fleet.traffic.length, Math.max(12, TRAFFIC_CAR_IDS.length));
 assert.deepEqual(fleet.traffic.map(car => [car.x, car.z, car.modelId]), repeat.traffic.map(car => [car.x, car.z, car.modelId]));
 const edgeVisits = new Map(fleet.traffic.map(car => [car.id, new Set([car.edge.id])]));
 for (let i = 0; i < 120 * 60; i++) {

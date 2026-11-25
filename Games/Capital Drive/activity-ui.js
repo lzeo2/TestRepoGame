@@ -22,7 +22,7 @@ export function createActivityUI({ document = globalThis.document } = {}) {
   function toggle(node, name, enabled) {
     if (node.classList.contains(name) !== enabled) { node.classList.toggle(name, enabled); counts.writes++; }
   }
-  function render({ street = null, state = EMPTY_STATE, nearest = null, interior = null, safehouse = false, sandbox = false, fitnessLevel = 0, gymPrice = 120 } = {}) {
+  function render({ street = null, state = EMPTY_STATE, nearest = null, interior = null, safehouse = false, restFree = false, sandbox = false, fitnessLevel = 0, gymPrice = 120 } = {}) {
     if (disposed) return;
     counts.renders++;
     // A retained terminal snapshot must not leave live controls after leaving its room.
@@ -59,8 +59,8 @@ export function createActivityUI({ document = globalThis.document } = {}) {
     set(nodes.progress, 'hidden', !!street);
     set(nodes.progress, 'value', state.progress || 0);
     text(nodes.score, street ? (state.options ? 'Choose the parcel matching both clues.' : sequence.length ? `${index}/${sequence.length} · ${state.mistakes || 0}/${state.maxMistakes || 2} mistakes` : '') : state.kind ? `${state.score} points${isWorkoutKind(state.kind) ? ` · ${state.reps}/${state.kind === 'treadmill' ? 12 : 6} reps` : ''}` : '');
-    let startText = !sandbox && interior?.storeId && ['noodle', 'stock'].includes(nearest?.kind) ? `Work · +$${nearest.kind === 'noodle' ? 60 : 45}` : 'Play';
-    if(nearest?.kind==='rest')startText=sandbox?'Practice rest':safehouse?'Rest · $80':'Owned safehouse required';
+    let startText = !sandbox && interior?.storeId && ['noodle', 'stock'].includes(nearest?.kind) ? `Work · $${nearest.kind === 'noodle' ? 60 : 45} base` : 'Play';
+    if(nearest?.kind==='rest')startText=sandbox?'Practice rest':safehouse?(restFree?'Rest · Free':'Rest · $80'):'Owned safehouse required';
     if (isWorkoutKind(nearest?.kind)) startText = sandbox || fitnessLevel >= 3 ? 'Practice' : `Train · $${(gymPrice || 120) * (fitnessLevel + 1)}`;
     text(nodes.start, startText);
     set(nodes.start, 'hidden', active);

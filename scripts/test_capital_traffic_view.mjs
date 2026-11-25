@@ -68,7 +68,33 @@ for (const [i, id] of models.entries()) {
   assert(glass.material.forceSinglePass, 'transparent glass keeps seated driver visible with one pass');
   assert(originals[i].userData.cockpit.eye[0] > 0, `${id} retains the source right-hand driver cockpit`);
 }
+// Match r160 WebGLAttributes: versions gate uploads and scalar updateRanges
+// are consumed/cleared after bufferSubData. Initial bufferData remains full size.
+const attributes=root.children.flatMap(mesh=>[mesh.instanceMatrix,...(mesh.instanceColor?[mesh.instanceColor]:[])]);
+const versions=new Map(attributes.map(attribute=>[attribute,attribute.version])),retainedRanges=new Map();
+const oldUploadScalars=attributes.reduce((sum,attribute)=>sum+attribute.array.length,0);
+function consumeUploads(){
+ let scalars=0;
+ for(const attribute of attributes){
+  if(attribute.version!==versions.get(attribute)){
+   assert.equal(attribute.updateRanges.length,1,'one live contiguous upload');
+   const range=attribute.updateRanges[0];assert.equal(range.start,0);
+   if(retainedRanges.has(attribute))assert.equal(range,retainedRanges.get(attribute),'range object reused after renderer clears it');
+   retainedRanges.set(attribute,range);scalars+=range.count;
+   assert(range.count>0&&range.count<=attribute.array.length);
+  }else assert.equal(attribute.updateRanges.length,0,'hidden attribute is not dirtied');
+  versions.set(attribute,attribute.version);attribute.clearUpdateRanges();
+ }
+ return scalars;
+}
 view.update({ x: 0, z: 0 });
+const liveUploadScalars=consumeUploads();
+assert.equal(liveUploadScalars,40*(4*16+3+16));
+assert.equal(oldUploadScalars,56*((models.length*4+1)*16+models.length*3));
+view.update({x:10000,z:10000});assert.equal(consumeUploads(),0,'empty frame uploads no instance data');
+view.update({x:10000,z:10000});assert.equal(consumeUploads(),0,'repeated hidden frame stays clean');
+view.update({x:0,z:0});assert.equal(consumeUploads(),liveUploadScalars,'reappearing batches upload complete live prefixes');
+assert(liveUploadScalars<oldUploadScalars*.1,'live upload below ten percent of capacity upload');
 assert.equal(view.stats.visible, 40); assert.equal(view.stats.drawCalls, batchCount); assert.equal(view.stats.sourceDrawCalls, 320);
 assert.equal(view.stats.geometries, batchCount); assert.equal(view.stats.materials, 4);
 for (const id of models) {
@@ -141,5 +167,6 @@ root.children.at(-1).material.map.addEventListener('dispose', () => textureDispo
 view.dispose(); view.dispose(); view.update({ x: 0, z: 0 });
 assert.equal(scene.children.length, 0); assert.equal(geometryDisposals, batchCount); assert.equal(materialDisposals, 4); assert.equal(instanceDisposals, batchCount); assert.equal(textureDisposals, 1); assert.equal(sharedDisposals, 0);
 assert(view.stats.disposed); assert.equal(view.stats.drawCalls, 0);
+console.log(`PASS instance uploads: ${oldUploadScalars} -> ${liveUploadScalars} scalars/40-car update; empty0; reusable ranges and full reappearance`);
 console.log(`PASS traffic: 40 authored cars 320 draws -> ${batchCount} draws; ${models.length} exact silhouettes, ${sharedGeometries.size} factory geometries -> ${batchCount} owned templates; ${view.stats.templateTriangles} template triangles; paints/glass/cockpit, terrain, claim hiding, 220/300m culling, 56 capacity, stable buffers and exact disposal`);
 disposeCars();

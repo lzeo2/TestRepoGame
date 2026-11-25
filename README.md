@@ -6,7 +6,7 @@ A static browser-games portal. Netlify publishes the repository root (`publish =
 
 Read [AGENTS.md](AGENTS.md), [code quality](docs/CODE_QUALITY.md) and the [maintenance contract](docs/maintenance/SCOPE.md) before editing. The [maintenance manual](docs/maintenance/README.md) is the entry point for individual game pages, site features, audit findings and the refurbishment plan.
 
-At audited source `8c8a055`, there are **115 registered games, 120 game directories and one shared runtime directory** (`Games/_emulatorjs`). These are Git-tree counts, not assertions that all Games files exist in the sparse workspace. The five unregistered games are 2048, Foldwild, Hextris, QWOP and Slope. Do not register them merely to reconcile historical counts.
+Use the generated [maintenance inventory](docs/maintenance/inventory.json) for current catalog/project counts, registered status, entry hashes and manual paths. It separates the shared `Games/_emulatorjs` runtime from game projects. These are Git-tree records, not assertions that all Games files exist in the sparse workspace. Do not register projects merely to reconcile historical counts.
 
 - [Architecture](docs/ARCHITECTURE.md): entry files, ownership and data flow.
 - [Portal](docs/maintenance/site/portal.md): search, categories, tags, launch and detail panels.
@@ -23,7 +23,7 @@ Default scope is existing games. Additions require explicit operator approval, v
 
 `Games/Character AI/` is read-only. Its catalog title is Character Alsen; the existing documentation describes a scripted local chatbot, not a hosted LLM. This portal documentation pass did not inspect or modify the protected implementation. Preserve Eaglercraft's component licensing/ownership requirements if present; do not restore a removed game. `/bare/*` stays disabled without security sign-off.
 
-Game maintenance needs source-backed controls, a working start/play path, meaningful progress, appropriate outcome and restart/reset. Preserve open-ended upstream mechanics rather than inventing a win screen. Keep keyboard/touch access and actual desktop/mobile checks. Foldwild is an unregistered held prototype; its presence is not a claim of completed trainer-party/save or native gameplay verification.
+Game maintenance needs source-backed controls, a working start/play path, meaningful progress, appropriate outcome and restart/reset. Preserve open-ended upstream mechanics rather than inventing a win screen. Keep keyboard/touch access and actual desktop/mobile checks. Foldwild is a registered Story preview; its presence is not a claim of completed trainer-party/save or native gameplay verification.
 
 ## Catalog contract
 
@@ -41,7 +41,7 @@ Seven fields are required; optional fields are allowed, not discarded:
 | `tags` | Optional array; UX normalizes `2-player` to `2p`, `co-op` to `coop`. Supported chips are `2p`, `coop`, `hacked`. |
 | `players`, `howto` | Optional detail metadata. Neither field proves engine capabilities or working input. |
 
-At the audited source, 86 entries have tags and six each have players/howto. Unknown controls belong in maintenance findings, not guessed catalog copy.
+Optional metadata coverage changes with the catalog. Consult `games.json` and the dated [repository review](docs/verification/arcade-repository-review-2026-11-26.md) for its measured baseline. Unknown controls belong in maintenance findings, not guessed catalog copy.
 
 ## Sparse-safe validation
 
@@ -67,6 +67,6 @@ node --check < assets/portal-ux.js
 git diff --check
 ```
 
-A local HTTP server is necessary for JSON/module loading; opening `index.html` as `file:` is not the supported launch path. Local dependency closure is the offline policy, not a cold-offline guarantee: the root portal registers no cache service worker or PWA manifest. Bungee and Atkinson Hyperlegible are local OFL fonts, not remote font loads. See [font evidence](docs/portal-font-sources.md).
+A local HTTP server is necessary for JSON/module loading; opening `index.html` as `file:` is not the supported launch path. Local dependency closure is the offline policy, not a cold-offline guarantee: the root portal links an install manifest but registers no cache service worker. Bungee and Atkinson Hyperlegible are local OFL fonts, not remote font loads. See [font evidence](docs/portal-font-sources.md).
 
 Before any release/push, Main must run the unchanged **full** browser gate, `xvfb-run python3 scripts/smoke_test_games.py`, or the operator-approved serial sparse wrapper executing that same all-games gate. A targeted portal pass is not a substitute. Commit explicit owned paths, never `git add -A`; no unrequested push. The current maintenance run adds documentation, not games or publication permission.
