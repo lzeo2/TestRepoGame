@@ -46,6 +46,22 @@ The Player and Crew tabs showed their prerequisites and disabled unaffordable
 skills. All 11 assertions passed with zero page errors. The session loaded
 build `560e63659260` and reloaded `057ab10fa2c9`.
 
+The final build `9a7dc5a99a0d` passed eight additional Chromium checks covering
+WebGL startup, the visible badge at desktop and 390 px width, starting Free
+roam and travelling to the depot using the in-game map. At the Telopea spawn
+there were 11 visible traffic cars across 28 draws. The distant depot had
+zero visible traffic cars and zero traffic draws. Client source hashes were
+stable throughout. The browser recorded zero uncaught errors and external
+runtime requests.
+
+A second 1280 × 800 session started with an explicit fixture of three prior
+Street Life points in each track. Phone purchases of Steady stride and Keep
+pace each reduced the corresponding balance to two. Both skills and balances
+survived a reload. Switching to Campaign showed zero points and neither
+skill. All 16 checks passed with zero page errors on build `9a7dc5a99a0d`.
+The vehicle and training previews use game-rendered models and the actual
+training UI. The uploaded images were compressed for the repository.
+
 ## Reproducing the checks
 
 Run from the repository root. Choose a fresh external output directory for
@@ -60,7 +76,8 @@ node scripts/test_capital_training_integration.mjs
 node scripts/test_capital_city_training_ui.mjs
 python3 -B scripts/check_capital_drive.py
 python3 -B scripts/test_portal_discovery.py
-python3 -B scripts/test_capital_home_training_browser.py --help
+python3 -B scripts/test_capital_home_training_browser.py --build 9a7dc5a99a0d --output <fresh-home-directory>
+python3 -B scripts/test_capital_training_purchase_browser.py --build 9a7dc5a99a0d --output <fresh-training-directory>
 python3 -B scripts/test_capital_cache_browser.py --scenario build --output <fresh-directory>
 ```
 

@@ -14,6 +14,13 @@ emulator runtime. All 135 catalog IDs, titles and entry paths were checked
 against the Git tree, including sparse-excluded paths. Six unlisted projects
 were left in their existing registration state.
 
+A second sweep parsed 134 registered HTML entry files directly from Git.
+All 418 literal script sources and stylesheet links resolved to tracked files.
+The protected Character AI entry was excluded from this source inspection.
+URLs constructed by JavaScript, Unity manifests, worker requests and CSS
+resources need separate runtime checks. The sweep is repeatable with
+[`audit_arcade_entry_assets.py`](../../scripts/audit_arcade_entry_assets.py).
+
 The source review sampled native canvas, Unity and Ruffle entry paths and
 inspected the portal shell, authored scripts and styles, shared assets, hosting
 and proxy configuration, Capital Drive and the maintenance tooling. This was
@@ -94,6 +101,7 @@ inside mapped footprints. [Glazing](https://www.yourhome.gov.au/passive-design/g
 git ls-tree -rlz HEAD > /tmp/arcade-tree.z
 python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/generate_sitemap.py --check
+python3 -B scripts/audit_arcade_entry_assets.py
 python3 -B scripts/test_portal_refurbishment.py
 python3 -B scripts/test_portal_discovery.py
 ```
