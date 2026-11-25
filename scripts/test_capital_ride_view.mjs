@@ -9,17 +9,21 @@ const utilsURL = url((await read('../assets/car-arcade/vendor/BufferGeometryUtil
 const personURL = url((await read('../Games/Capital Drive/person-model.js')).replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL)));
 const { appearanceForPerson } = await import(personURL);
 const fleetURL = url(await read('../assets/car-arcade/fleet.js'));
-const modelsURL = url((await read('../assets/car-arcade/models.js'))
+const baseModelsURL = url((await read('../assets/car-arcade/models.js'))
   .replace("'./vendor/three.module.js'",JSON.stringify(threeURL))
   .replace("'./vendor/BufferGeometryUtils.js'",JSON.stringify(utilsURL))
   .replace("'./fleet.js'",JSON.stringify(fleetURL)));
+const modelsURL = url((await read('../Games/Capital Drive/car-model.js'))
+  .replace("'../../assets/car-arcade/vendor/three.module.js'", JSON.stringify(threeURL))
+  .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'", JSON.stringify(utilsURL))
+  .replace("'../../assets/car-arcade/models.js'", JSON.stringify(baseModelsURL)));
 const {createCar,disposeCars} = await import(modelsURL), {CARS} = await import(fleetURL);
 const source = await read('../Games/Capital Drive/ride-service-view.js');
 const {createRideServiceView} = await import(url(source
   .replace("'../../assets/car-arcade/vendor/three.module.js'",JSON.stringify(threeURL))
   .replace("'../../assets/car-arcade/vendor/BufferGeometryUtils.js'",JSON.stringify(utilsURL))
   .replace("'./person-model.js'",JSON.stringify(personURL))
-  .replace("'../../assets/car-arcade/models.js'",JSON.stringify(modelsURL))
+  .replace("'./car-model.js'",JSON.stringify(modelsURL))
   .replace("'../../assets/car-arcade/fleet.js'",JSON.stringify(fleetURL))));
 const scene = new THREE.Scene(), heightAt = () => 12;
 const view = createRideServiceView(scene,heightAt), root = scene.children[0];
