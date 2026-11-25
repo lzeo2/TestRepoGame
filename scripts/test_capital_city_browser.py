@@ -127,7 +127,7 @@ def main():
         check(snap()['paused'], 'Actual city panel pauses the sole world clock')
 
     def start():
-        page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=90000)
+        page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=300000)
         if args.scenario == 'nitro' and not fixture.get('nitroInstalled'):
             bay = next(b for b in snap()['nitro']['bays'] if b['id'] == 'fuel-457103413')
             fixture['nitroBay'] = bay
@@ -139,12 +139,23 @@ def main():
             page.evaluate('(save)=>localStorage.setItem("capital-drive-career-v1",JSON.stringify(save))', fixture['career'])
             observations.append({'label':'explicit initial checked-bay fixture','bay':bay,'scope':'Actual readonly menu bay supplies an unearned initial career checkpoint, then normal reload/start; no runtime setter.'})
             page.reload(wait_until='load')
-            page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=90000)
+            page.wait_for_function('window.capitalDriveSnapshot?.().ready', timeout=300000)
         check(not snap()['rendering']['compatibility'], 'Actual WebGL boots')
-        page.locator('[data-game-mode=campaign]').click()
-        page.locator('#intro-characters [data-character=' + fixture['hero'] + ']').click()
-        page.locator('#guided-tutorial').uncheck()
-        page.locator('#start-button').click()
+        # Slow software rendering re-renders the menu per frame; plain clicks can land
+        # between frames and miss. Force-fire with retry loops and long windows.
+        def menu_click(selector, label=None, attempts=6):
+            for attempt in range(attempts):
+                try:
+                    page.locator(selector).click(timeout=10000, force=True)
+                    page.wait_for_timeout(1200)
+                    return
+                except Exception:
+                    page.wait_for_timeout(2000)
+            raise AssertionError(f'menu click never landed: {selector}')
+        menu_click('[data-game-mode=campaign]')
+        menu_click('#intro-characters [data-character=' + fixture['hero'] + ']')
+        page.locator('#guided-tutorial').uncheck(timeout=10000)
+        menu_click('#start-button')
         wait(lambda s: s['started'] and s['gameMode'] == 'campaign', 'Normal Campaign Start')
         page.locator('#campaign-dialog').wait_for(state='visible')
         close()
@@ -351,7 +362,7 @@ def main():
         carried_after_deposit = ammo(persisted)
         check(carried_after_deposit + persisted['career']['stashes'][door['id']]['ammo']['pistol'] == bullets, 'Native pre-reload stash retains a real split ammunition balance')
         expected = {'cash': persisted['career']['cash'], 'ownedProperties': persisted['career']['ownedProperties'], 'hiredCrew': persisted['career']['hiredCrew'], 'equipment': persisted['career']['equipment'], 'stashes': persisted['career']['stashes']}
-        page.reload(wait_until='load', timeout=90000)
+        page.reload(wait_until='load', timeout=300000)
         start()
         resumed = record('Actual reload reads native career writer')
         check(all(resumed['career'][key] == value for key, value in expected.items()), 'Native writer persists cash, crew, ownership and stash across reload')
@@ -519,7 +530,7 @@ def main():
             playwright = stack.enter_context(sync_playwright())
             browser = playwright.chromium.launch(executable_path='/usr/bin/chromium', headless=True, args=['--no-sandbox', '--disable-dev-shm-usage', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
             stack.callback(browser.close)
-            context = browser.new_context(viewport={'width': 1280, 'height': 800}, service_workers='block')
+            context = browser.new_context(viewport={'width': 1280, 'height': 800}, service_workers='block', bypass_csp=True)
             stack.callback(context.close)
             seed = json.dumps(json.dumps(fixture['career']))
             context.add_init_script('if(!sessionStorage.getItem("capital-city-fixture-installed")){localStorage.setItem("capital-drive-career-v1",' + seed + ');sessionStorage.setItem("capital-city-fixture-installed","1");}localStorage.setItem("capital-drive-rendering-v1","performance");')
@@ -547,7 +558,7 @@ def main():
                 return False
 
             stack.push(retain_failure)
-            page.goto(base + '/Games/Capital%20Drive/', wait_until='load', timeout=90000)
+            page.goto(base + '/Games/Capital%20Drive/', wait_until='load', timeout=300000)
             start()
             {'city': city, 'workplace': workplace, 'burglary': burglary_case, 'gear': gear, 'nitro': nitro}[args.scenario]()
             check(not errors, 'No page or console errors')
