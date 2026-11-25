@@ -119,9 +119,12 @@ profile. The close car trim adds 168 triangles to each of the 19 drivable
 models with the same draw count. Moving traffic shows that detail within
 65 metres, with at most one additional instanced draw per nearby model.
 
+Night streetlights now line the retained suburban and city streets. A road-anchored data module (streetlights.js) samples the live road network at load time, the same runtime pattern as nitro bays: eligible residential through primary ways share a cap of 220 lamps, spaced about 115 m apart on alternating pavement edges, and every placement clears the live water, bridge, airport and street-geometry checks. The view (streetlights-view.js) follows the headlight render contract: dark grey poles, arms and heads in one instanced draw, plus a second bounded additive decal pass (ground cone and head sprite) that stays at zero draws while daylight is above .45 and fades in with the atmosphere smooth night signal, for at most two added draws at night. No real lights are introduced.
+
 Run the focused regressions from the repository root.
 
 ```sh
+node scripts/test_capital_streetlights.mjs
 node scripts/test_capital_bridge_support_selection.mjs
 node scripts/test_capital_contact_levels.mjs
 node scripts/test_capital_actor_vehicle_escape.mjs

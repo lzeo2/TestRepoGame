@@ -115,6 +115,8 @@ import {GENERIC_SERVICES,SOURCE_GYM_SERVICES} from './services.js';
 import {createWildlifeView} from './wildlife-view.js';
 import {createStreetAssetsView} from './street-assets-view.js';
 import {BUS_STOPS,FUEL_STATIONS} from './street-assets.js';
+import {createStreetlights} from './streetlights.js';
+import {createStreetlightsView} from './streetlights-view.js';
 import {createNitroStations,createNitroStationDamage} from './nitro-stations.js';
 import {buildPetrolForecourts} from './petrol-forecourts.js';
 import {buildRentalStorefronts} from './rental-storefronts.js';
@@ -201,7 +203,7 @@ let lightRail,lightRailView,heists,heistSitesView,railHeistMarker,campaignAfterm
 let depotTank,depotTankView;
 let inquiryHarm=false;
 const stealthPlans=new Map();
-let gymEntries=[],wildlifeView,birdsView,warMemorialView,streetAssetsView,highwayBarriersView,localDetailsView;
+let gymEntries=[],wildlifeView,birdsView,warMemorialView,streetAssetsView,streetlightsView,highwayBarriersView,localDetailsView;
 let campaignScenes,campaignScenesView,indoorCampaignScenesView,headlightsView,policeSupportView;
 let headlightsOverride=null,activeCrewEntry=null;
 let drone,droneView,droneActive=false,securityCameras,securityCamerasView,indoorSecurityCamerasView,cityUI,cameraCrimeSerial=0,cameraRoomPlan=null;
@@ -4003,7 +4005,9 @@ function animate(time) {
   const cockpit=cockpitCamera&&cockpitAvailable();
   if(!cockpit)cockpitCamera=false;
   const droneState=drone.snapshot();
-  atmosphereView?.update(atmosphere.snapshot(),p,{interior:!!interiors.active,quality,nightVision:droneActive&&droneState.nightVision});
+  const atmosphereNight=atmosphere.snapshot();
+  atmosphereView?.update(atmosphereNight,p,{interior:!!interiors.active,quality,nightVision:droneActive&&droneState.nightVision});
+  streetlightsView?.update(p,{night:1-atmosphereNight.daylight,hour:atmosphereNight.hour});
   droneView?.update(droneState,{firstPerson:droneActive});
   const roomId=interiors.active?.id||null;
   (roomId?indoorSecurityCamerasView:securityCamerasView)?.update(securityCameras.snapshot(),p,roomId);
@@ -4354,6 +4358,7 @@ async function boot() {
   wildlifeView=compatibility?emptyView():createWildlifeView(scene,map,terrainSampler.heightAt);
   birdsView=compatibility?null:createBirdsView(scene,{sites:map.landmarks.filter(site=>BIRD_SITES.has(site.id)),heightAt:terrainSampler.groundHeightAt});
   streetAssetsView=compatibility?emptyView():createStreetAssetsView(scene,terrainSampler.heightAt,{nitroStations,petrolForecourts:forecourts.sites});
+  streetlightsView=compatibility?emptyView():createStreetlightsView(scene,createStreetlights(map.roads,{waterAt:simulation.waterAt,isOnBridge:terrainSampler.isOnBridge,canOccupy:simulation.canOccupy,nearestRoad:simulation.nearestRoad}),terrainSampler.heightAt);
   rentalStorefrontsView=compatibility?emptyView():createRentalStorefrontsView(scene,terrainSampler.heightAt,carRentalSites);
   nitroView=compatibility?emptyView():createNitroView(scene);
   highwayBarriersView=compatibility?emptyView():createHighwayBarriersView(scene,terrainSampler.heightAt);
@@ -4606,7 +4611,7 @@ async function boot() {
     guidance:guidance.snapshot(),rideTracking:freezeCopy(rideTracking()),courierTracking:freezeCopy({...delivery.tracking(),following:followCourier}),signals:freezeCopy({elapsed:simulation.trafficLights.elapsed,sourceCount:map.trafficSignals.signals.length,groupCount:simulation.trafficLights.groups.length,heads:simulation.trafficLights.heads,view:signalsView.stats}),equipment:freezeCopy({flares:equipment.snapshot(),view:equipmentView.stats}),busPassenger:!!buses.passenger,
     roadGuidance:freezeCopy(roadGuidanceView.stats),
     places: Object.freeze(map.landmarks.map(place => Object.freeze({ ...place }))), addressCount: addressData.addresses.length,
-    camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch,footYaw:footCameraYaw,footPitch:footLookPitch,viewMode:cockpitCamera&&cockpitAvailable()?'cockpit':'chase' }),recon:reconnaissance.snapshot(),evidence:freezeCopy(evidenceOutcome),combatAudioVoices:audio?.voices?.size||0,vehicleWrecks:freezeCopy({police:gameplay.policeWrecks,meshes:abandonedMeshes.size,capacity:18}),drone:freezeCopy({state:drone.snapshot(),view:droneView.stats}),securityCameras:freezeCopy(securityCameras.snapshot()),headlights:freezeCopy({enabled:headlightsEnabled(atmosphere.snapshot().hour),override:headlightsOverride,view:headlightsView.stats}),policeSupport:freezeCopy({people:gameplay.policeSupport(),view:policeSupportView.stats}),
+    camera: Object.freeze({ x: camera.position.x, y: camera.position.y, z: camera.position.z, orbit, lookPitch,footYaw:footCameraYaw,footPitch:footLookPitch,viewMode:cockpitCamera&&cockpitAvailable()?'cockpit':'chase' }),recon:reconnaissance.snapshot(),evidence:freezeCopy(evidenceOutcome),combatAudioVoices:audio?.voices?.size||0,vehicleWrecks:freezeCopy({police:gameplay.policeWrecks,meshes:abandonedMeshes.size,capacity:18}),drone:freezeCopy({state:drone.snapshot(),view:droneView.stats}),securityCameras:freezeCopy(securityCameras.snapshot()),headlights:freezeCopy({enabled:headlightsEnabled(atmosphere.snapshot().hour),override:headlightsOverride,view:headlightsView.stats}),streetlights:freezeCopy(streetlightsView.stats),policeSupport:freezeCopy({people:gameplay.policeSupport(),view:policeSupportView.stats}),
     discovered: Object.freeze([...discovered]), roadCount: map.roads.length, buildings: map.buildings.length, traffic: simulation.traffic.length,
     visibleTraffic: trafficView.stats.visible||0,trafficView:Object.freeze({...trafficView.stats}), destination: destination?.id ?? null, routePoints: route.length,routePath:freezeCopy(route.map(p=>({x:p[0],z:p[1]}))),streetDealers:freezeCopy({services:streetDealers.services,people:streetDealers.snapshot(),view:dealerView.stats}),
     mapSelection: mapSelection ? Object.freeze({ ...mapSelection }) : null,
@@ -4653,7 +4658,7 @@ window.addEventListener('pagehide', event => {
   policeRooms.clear();cutscenes.cancel();pendingCutscene=null;missionRing?.geometry.dispose();missionRing?.material.dispose();
   stopMini();roomPeopleView?.dispose();microView?.dispose();civicExtrasView?.dispose();
   shoppingView?.dispose();campusView?.dispose();civicView?.dispose();noodleShopView?.dispose();interiorView?.dispose();indoorActorView?.dispose();
-  wildlifeView?.dispose();streetAssetsView?.dispose();highwayBarriersView?.dispose();localDetailsView?.dispose();
+  wildlifeView?.dispose();streetAssetsView?.dispose();streetlightsView?.dispose();highwayBarriersView?.dispose();localDetailsView?.dispose();
   campaignScenes?.clear();campaignScenesView?.dispose();contractTarget?.clear();assassinationSiteView?.dispose();indoorCampaignScenesView?.dispose();headlightsView?.dispose();policeSupportView?.dispose();
   pedestrians?.dispose(); neighbourhood?.dispose(); world?.dispose(); disposeCars(); renderer?.dispose();
 });
