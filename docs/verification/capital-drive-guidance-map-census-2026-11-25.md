@@ -24,6 +24,27 @@ in dome caps, tapered ramp skirts, capsule poles and Civic clipping. These
 contribute no visible surface. It also distinguishes pooled geometry that was
 deliberately nulled for culling.
 
+## Native play
+
+In fresh Chromium profiles, keyboard and mouse inputs opened the gallery case,
+produced a wrong-symbol response and advanced the corrected sequence to the
+exit objective. On build `8e37de493dd5`, the opening of Milo’s campaign led
+the player around the parked car and through the house door. Q selected the
+marked case even with the television in range. Completing the symbols
+produced one packed-case receipt and advanced the mission to Step 2 of 4.
+That run reached the title screen in 72.7 seconds using software WebGL.
+The measured time includes loading the game on the shared cloud machine.
+
+[Mission plan](capital-drive-guidance-2026-11-25/mission-plan.png) · [Case activity](capital-drive-guidance-2026-11-25/case-symbols.png)
+
+The native regression uses a fresh directory outside the checkout and checks
+the displayed build. The worker is disabled in this scenario to isolate
+gameplay. Cache installation has its own browser scenario.
+
+```sh
+python3 -B scripts/test_capital_mission_guide_browser.py --build 8e37de493dd5 --output /tmp/capital-campaign-guide-run
+```
+
 ## Open road findings
 
 The [305-row clearance list](capital-drive-road-clearance-2026-11-25.csv)
