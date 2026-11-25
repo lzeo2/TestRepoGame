@@ -31,6 +31,16 @@ for (let i = 0; i < 12; i++) {
   assert.deepEqual(cachedPlanner.findEdges('13', '11'), [], 'cached routes preserve direction');
 }
 assert.equal(profileReads, 1, 'route calls never reread road access profiles');
+// A reachable route may require more settlements than the former fixed cap.
+// Use the production graph builder and real Euclidean edge weights.
+{
+  const count=100002,points=Array.from({length:count},(_,i)=>[i,0]),ids=Array.from({length:count},(_,i)=>i);
+  const expanded=createRoutePlanner(buildRoadGraph([road('expanded-chain',points,ids)]));
+  const path=expanded.findEdges('0',String(count-1));
+  assert.equal(path.length,count-1,'expanded source graphs cannot silently truncate a reachable directed route at100000visits');
+  assert.equal(path[0].from.id,'0');assert.equal(path.at(-1).to.id,String(count-1));
+  assert.deepEqual(expanded.findEdges(String(count-1),'0'),[],'larger search bounds cannot bypass one-way source directions');
+}
 const sourceMap = { roads }, before = JSON.stringify(sourceMap);
 const annotated = applyRoadProfiles(sourceMap, { roads: { a: { service: 'driveway', width: '3' } } });
 assert.equal(JSON.stringify(sourceMap), before);

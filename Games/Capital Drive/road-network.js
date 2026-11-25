@@ -83,7 +83,10 @@ export function createRoutePlanner(graph) {
     network.eligible.clear();
   }
   profiles.clear();
-  const limit = Math.min(100000, Math.max(1, graph.edges.length * 2 + nodes.length));
+  // A consistent Euclidean lower bound settles each node once; successful
+  // relaxations (including stale heap entries) are bounded by graph edges.
+  // Keep the finite graph-derived bound without truncating expanded cities.
+  const limit = Math.max(1, graph.edges.length + nodes.length + 1);
   function findEdges(start, goal, { kind = 'car' } = {}) {
     const network = networks[kind === 'bus' ? 'bus' : 'car'];
     function resolve(point) {
@@ -100,10 +103,11 @@ export function createRoutePlanner(graph) {
     }
     const from = resolve(start), target = resolve(goal);
     if (!from || !target || from === target) return [];
-    const costs = new Map([[from, 0]]), previous = new Map(), heap = [{ node: from, cost: 0 }];
+    const estimate=node=>Math.hypot(node.x-target.x,node.z-target.z);
+    const costs = new Map([[from, 0]]), previous = new Map(), heap = [{ node: from, cost: 0, priority:estimate(from) }];
     function push(entry) {
       let i = heap.length; heap.push(entry);
-      while (i > 0) { const p = (i - 1) >> 1; if (heap[p].cost <= entry.cost) break; heap[i] = heap[p]; i = p; }
+      while (i > 0) { const p = (i - 1) >> 1; if (heap[p].priority <= entry.priority) break; heap[i] = heap[p]; i = p; }
       heap[i] = entry;
     }
     function pop() {
@@ -112,8 +116,8 @@ export function createRoutePlanner(graph) {
         let i = 0;
         while (i * 2 + 1 < heap.length) {
           let c = i * 2 + 1;
-          if (c + 1 < heap.length && heap[c + 1].cost < heap[c].cost) c++;
-          if (last.cost <= heap[c].cost) break;
+          if (c + 1 < heap.length && heap[c + 1].priority < heap[c].priority) c++;
+          if (last.priority <= heap[c].priority) break;
           heap[i] = heap[c]; i = c;
         }
         heap[i] = last;
@@ -130,7 +134,7 @@ export function createRoutePlanner(graph) {
       }
       for (const edge of network.outgoing.get(node) || []) {
         const next = cost + edge.length;
-        if (next < (costs.get(edge.to) ?? Infinity)) { costs.set(edge.to, next); previous.set(edge.to, edge); push({ node: edge.to, cost: next }); }
+        if (next < (costs.get(edge.to) ?? Infinity)) { costs.set(edge.to, next); previous.set(edge.to, edge); push({ node: edge.to, cost: next, priority:next+estimate(edge.to) }); }
       }
     }
     return [];
