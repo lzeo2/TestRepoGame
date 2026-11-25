@@ -23,7 +23,7 @@ function fixture({ occupied = false, sandbox = false } = {}) {
   simulation.requestVehicleStop = (...args) => { stats.stops++; return stop(...args); };
   const game = createGameplay(map, simulation, { sandbox, hasPistol: () => true,
     pedestrians: { snapshot: () => [{ x: 4, z: 0, health: 100 }], strike: () => { stats.strikes++; return { hits: 0 }; } },
-    onCarjacked: adult => stats.exits.push(adult), onVehicleChanged: car => stats.changes.push(car), onEvent: event => stats.events.push(event) });
+    onCarjacked: adult => stats.exits.push(adult), onVehicleChanged: (car, change) => stats.changes.push({car, change}), onEvent: event => stats.events.push(event) });
   assert(game.interact()); Object.assign(game.state.actor, { x: 6, z: 0 });
   return { simulation, game, source, stats };
 }
@@ -56,6 +56,7 @@ function complete(f) {
   assert.equal(f.game.state.mode, 'vehicle'); assert.equal(f.stats.claims, 1); assert.equal(f.source.active, false);
   assert.equal(f.game.state.vehicle.modelId, 'relay'); assert.equal(f.game.state.vehicle.color, 0x123456);
   assert.equal(f.game.state.vehicle.stolen, true); assert.equal(f.stats.changes.length, 1);
+  assert.equal(f.stats.changes[0].change.sourceId, f.source.id);
   assert.equal(f.stats.events.filter(event => event.offence === 'vehicle theft').length, 1);
   assert.equal(f.stats.exits.length, 0);
   tick(f, 3); assert.equal(f.stats.claims, 1); assert.equal(f.stats.exits.length, 0);

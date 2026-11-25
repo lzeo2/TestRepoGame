@@ -68,7 +68,8 @@ export function createTrafficView(scene, heightAt, traffic, { vehicleHeightAt = 
       if (stats.visible >= CAPACITY) break;
       const batch = batches.get(car.modelId);
       if (!batch || car.active === false || !Number.isFinite(car.x) || !Number.isFinite(car.z) || !Number.isFinite(car.yaw)) continue;
-      if ((car.x - focus.x) ** 2 + (car.z - focus.z) ** 2 >= radiusSquared) continue;
+      const distanceSquared = (car.x - focus.x) ** 2 + (car.z - focus.z) ** 2;
+      if (distanceSquared >= radiusSquared) continue;
       const fx = -Math.sin(car.yaw), fz = -Math.cos(car.yaw);
       heightPose.x=car.x;heightPose.z=car.z;heightPose.yaw=car.yaw;
       heightRoad=car.edge?.road||null;
@@ -77,7 +78,7 @@ export function createTrafficView(scene, heightAt, traffic, { vehicleHeightAt = 
       pose.position.set(car.x, y + .18, car.z); pose.rotation.set(Math.atan2(front - rear, 4), car.yaw, 0, 'YXZ'); pose.updateMatrix();
       for (const mesh of batch.meshes) mesh.setMatrixAt(batch.count, pose.matrix);
       batch.paint.setColorAt(batch.count, color.set(car.color));
-      if ((car.x - focus.x) ** 2 + (car.z - focus.z) ** 2 < 65 ** 2) {
+      if (distanceSquared < 65 ** 2) {
         batch.near.setMatrixAt(batch.nearCount++, pose.matrix);
         stats.triangles += batch.near.geometry.index.count / 3;
       }

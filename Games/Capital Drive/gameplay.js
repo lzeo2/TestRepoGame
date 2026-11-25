@@ -150,7 +150,7 @@ export function createGameplay(map, simulation, options = {}) {
       ...(target.id === 'player' && state.vehicle.rented ? {rented:true} : {}) };
     state.vehicleHealth = target.id === 'player' ? state.vehicleHealth : (result.vehicle.health ?? 100);
     previousCrashes = simulation.player.crashes || 0;
-    options.onVehicleChanged?.({ ...state.vehicle }, { newVehicle: target.id !== 'player' });
+    options.onVehicleChanged?.({ ...state.vehicle }, { newVehicle: target.id !== 'player', sourceId: target.id });
     if (result.stolen) reportOffence('vehicle theft', 1, {witnessed:target.occupied?true:undefined});
     emit('enter', result.stolen ? 'Vehicle taken.' : 'Back behind the wheel.'); return true;
   }
