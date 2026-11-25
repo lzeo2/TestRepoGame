@@ -2134,7 +2134,7 @@ function openCampaign(){
 }
 function openNpcDialogue(person){
   const lunch=gameMode==='campaign'&&currentHero()?.id==='corporate'&&campaign.state.active?.id==='corporate-lunch-breakpoint';
-  if(lunch&&campaign.state.active.stage===0){notify('Visit the counter before speaking to the booth guest.');return;}
+  if(lunch&&campaign.state.active.stage===0){notify('Order first: walk down the aisle to the marked service counter and press E there. Dot talks after that.');return;}
   const goal=campaign.state.active?.target,victoryRequired=gameMode==='campaign'&&goal?.victory===true&&['encounter','fight'].includes(goal.kind);
   const scriptedFight=lunch&&campaign.state.active.target.kind==='encounter';
   const result=roomPeople.startDialogue(person.id,{actor:focus(),hasLineOfSight:visible,scriptedFight:scriptedFight||victoryRequired,victoryRequired,missionId:victoryRequired?campaign.state.active.id:null});

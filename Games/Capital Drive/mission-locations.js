@@ -74,25 +74,25 @@ export function createMissionGuide(entries, storyHomes = {}) {
     }
     if(goal.kind==='escape' && active.escapeReached===true)return Object.freeze({
       instruction: goal.aftermath && context.aftermathResolved === false && !plan ?
-        'Speak to the officer or leave the area.' : context.wanted>0?'Location reached. Lose the police.':'Location reached. Stay clear of the police.',
+        'Walk out (E leaves) and speak to the officer outside, or simply leave the area.' : context.wanted>0?'Location reached. Keep moving until the police search bar empties.':'Location reached. Stay clear of the police.',
       location:'Escape the police',point:null,distance:null,indoors:false,entryId:null,stationId:null,escaping:true});
     const findVehicle = goal.kind === 'stolen' && goal.anywhere;
     if (goal.kind==='stealth-contract' && goal.roomId) {
       const entry = byId.get(goal.roomId);
       if (!entry) return null;
       if (plan?.id===entry.id) return result(name(goal.label),entry.name,goal,true,entry.id);
-      if (!plan) return result(`Enter ${entry.name} at the marked door.`,entry.name,entry.approach,false,entry.id);
+      if (!plan) return result(`Walk to the marked door of ${entry.name} and press E to go inside.`,entry.name,entry.approach,false,entry.id);
     }
-    if((findVehicle||goal.kind==='escape'||goal.kind==='stealth-contract')&&plan&&point(plan.exit))return result('Leave the building through the marked exit.',name(plan.name,'the building'),plan.exit,true,plan.id);
+    if((findVehicle||goal.kind==='escape'||goal.kind==='stealth-contract')&&plan&&point(plan.exit))return result('Walk to the marked exit door and press E to leave the building.',name(plan.name,'the building'),plan.exit,true,plan.id);
     if(findVehicle)return Object.freeze({
-      instruction:name(goal.label, 'Steal a nearby street vehicle.'),location:'Find a vehicle',
+      instruction:'Find any parked street vehicle, walk to its door and press E to get in.',location:'Find a vehicle',
       point:null,distance:null,indoors:false,entryId:null,stationId:null,roaming:true});
     const fallback = () => result(name(goal.label), name(goal.location, name(goal.label)), goal);
     if (goal.kind === 'recon') {
       const entry = byStore.get(goal.storeId);
       const subject = entry ? (goal.subject === 'departure' ? entry.approach : { x: entry.x - Math.sin(entry.yaw) * .25, z: entry.z - Math.cos(entry.yaw) * .25 }) : goal;
       if (!point(subject) || typeof goal.targetId !== 'string') return fallback();
-      const directions = result(`${name(goal.label)}. Stand 2 to 18m away, hold a steady view, then press I or SCAN.`, entry?.name || name(goal.location, goal.label), subject);
+      const directions = result(name(goal.label), entry?.name || name(goal.location, goal.label), subject);
       const hold = goal.settleSeconds ?? 1.1;
       return Object.freeze({ ...directions, recon: Object.freeze({ targetId: goal.targetId, x: subject.x, z: subject.z, y: 1.6, space: null, minDistance: 2, maxDistance: 18, hold }) });
     }
@@ -102,7 +102,7 @@ export function createMissionGuide(entries, storyHomes = {}) {
     const home = homes.get(entry.id);
     const location = home ? `${home.name}${home.street ? ` on ${home.street}` : ''}` : entry.name;
     const matchingRoom = plan?.id === entry.id && (!identity(goal.storeId) || plan.storeId === goal.storeId);
-    if (!matchingRoom) return result(`Enter ${location} at the marked door.`, location,
+    if (!matchingRoom) return result(`Walk to the marked door of ${location} and press E to go inside.`, location,
       home?.approach || entry.approach, false, entry.id);
 
     const stationKind = goal.kind === 'work' && goal.stationKind === 'noodle' ? 'noodle' : STATION_KINDS[goal.kind];
@@ -112,7 +112,7 @@ export function createMissionGuide(entries, storyHomes = {}) {
       const station = (Array.isArray(plan.activities) ? plan.activities : []).find(s => point(s) &&
         s.kind === stationKind && (stationId === null || s.id === stationId));
       if (!station || !identity(station.id)) return fallback();
-      return result(`Press E or Q at ${name(station.label, 'the marked station')}.`, location,
+      return result(`Walk to the marked station (${name(station.label, 'the marked station')}) and press E or Q to start it.`, location,
         station, true, entry.id, station.id);
     }
     if (goal.kind === 'encounter' || goal.kind === 'fight') {
@@ -120,12 +120,12 @@ export function createMissionGuide(entries, storyHomes = {}) {
         p.character === 'booth-guest' && Number.isFinite(p.health) && (p.health > 0 || (goal.victory === true && p.health === 0)) &&
         (!identity(goal.storeId) || p.storeId === goal.storeId));
       if (!guest) return fallback();
-      return result(goal.kind === 'fight' ? `Challenge Pink Earmuffs at the marked booth in ${location}, then win the fight.` : `Speak to Dot at the marked booth in ${location}.`, location, guest, true, entry.id);
+      return result(goal.kind === 'fight' ? `Walk to the marked booth inside ${location} and press E to talk to Pink Earmuffs, choose Fight, dodge her bowl, then press F to punch her down.` : `Walk to Dot's marked corner booth inside ${location} and press E to talk. She throws her bowl and attacks: dodge it, press F to punch, and step back when she winds up.`, location, guest, true, entry.id);
     }
     if (!point(plan.counter)) return fallback();
     const instruction = goal.kind === 'robbery' ?
-      'Threaten the employee, then press E to demand the till handover.' :
-      `Reach the service counter in ${location}.`;
+      'Stand near the employee, aim your pistol to threaten them, then press E to demand the till handover.' :
+      `Walk down the aisle to the service counter inside ${location} and stand beside it.`;
     return result(instruction, location, plan.counter, true, entry.id);
   }
   return Object.freeze({ guide });

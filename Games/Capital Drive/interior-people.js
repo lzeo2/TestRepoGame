@@ -3,6 +3,9 @@ import {rayTargetDistance} from './ballistics.js';
 import {createInteriorCollider} from './interior-navigation.js';
 const LIMIT = 16, BODY_RADIUS = .28, THROW_WINDUP = .75, THROW_FLIGHT = .55;
 const FIGHT_WINDUP=.65, FIGHT_RECOVER=.85;
+// ponytail: per-mission scripted-fight tuning; add ids here if more tutorial fights are ordered.
+const FIGHT_TUNING = Object.freeze({ 'corporate-lunch-breakpoint': Object.freeze({ damage: 1, minHits: 1 }) });
+const fightTuning = missionId => FIGHT_TUNING[missionId] || Object.freeze({ damage: 7, minHits: 2 });
 const finite = n => Number.isFinite(n);
 const point = p => p && finite(p.x) && finite(p.z);
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -197,7 +200,7 @@ export function createInteriorPeople() {
     if(p.fightPhase==='windup') {
       p.fightTime=Math.max(0,p.fightTime-step);encounterState.phase='windup';
       if(p.fightTime>1e-6)return;
-      if(distance<=1.65&&visible)emit({type:'retaliation',kind:'melee',x:p.x,z:p.z,personId:p.id,targetId:'player',damage:7});
+      if(distance<=1.65&&visible)emit({type:'retaliation',kind:'melee',x:p.x,z:p.z,personId:p.id,targetId:'player',damage:fightTuning(encounterState.missionId).damage});
       p.attackSerial++;p.attackTimer=.65;p.fightPhase='recover';p.fightTime=FIGHT_RECOVER;encounterState.phase='recover';return;
     }
     if(p.fightPhase==='recover') {
@@ -403,10 +406,10 @@ export function createInteriorPeople() {
     const validMelee=offenderId==='player'&&kind==='melee'&&encounterState.throwEmitted&&sameRoomActor(source)&&visible;
     if(validMelee)encounterState.meleeHits++;
     if(p.health===0) {
-      if(validMelee&&encounterState.meleeHits>=2&&p.knockdown>0) {
+      if(validMelee&&encounterState.meleeHits>=fightTuning(encounterState.missionId).minHits&&p.knockdown>0) {
         encounterState.victory=true;encounterState.fightActive=false;p.fightPhase='down';
         completeEncounter('noodle-victory');
-      } else if(encounterState.victoryRequired)retryFight(p,'No win yet. Land at least two fist hits after the bowl throw. Talk to Dot and choose Rematch.');
+      } else if(encounterState.victoryRequired)retryFight(p,`No win yet. Land at least ${fightTuning(encounterState.missionId).minHits} fist hit${fightTuning(encounterState.missionId).minHits>1?'s':''} after the bowl throw. Talk to Dot and choose Rematch.`);
     } else if(encounterState.victoryRequired && (gun||kind==='explosion'||!validMelee)) {
       retryFight(p,'Fists only for this fight. Talk to Dot and choose Rematch.');
     }
