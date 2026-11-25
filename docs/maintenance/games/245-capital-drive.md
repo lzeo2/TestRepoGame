@@ -19,6 +19,48 @@ Lyneham, Acton and the western lake. The regional expansion connects Belconnen
 and Bruce, Watson and Gungahlin, and Woden through Greenway. No GTA code,
 artwork or branded vehicle assets are used.
 
+## Homes, cars and training
+
+At the Crescent garage, **Swiftlet City** is a $1,100 two-tone hatchback,
+**Courier Highroof** a $2,000 delivery van, **Banksia Cross** a $2,400 crossover,
+and **Wattle Hybrid** a $3,500 sedan. All four also appear in road traffic.
+The fleet contains 23 models. Traffic chooses from 13 and draws repeated
+cars from the existing pool. Distinct silhouettes add rendering work when
+more types are visible in the same frame.
+
+Houses still open from their mapped door and use their source footprint.
+Timber, brick, garden and safehouse styles furnish those plans with sofas,
+bedding, cabinets and kitchen fittings. The game builds one merged room on
+entry and disposes of it on exit. The furnishings are authored interpretations
+of domestic rooms.
+
+Inside an owned house, open **Phone → Safehouses**. The $450 bed improvement
+makes a completed rest free. A $180 pantry stocks three meals. Each meal heals
+up to 30 health and a $30 refill restocks an empty pantry. Improvements apply
+to that property in the current career mode.
+
+Open **Phone → Training** in Street Life or Campaign. The first completed job,
+paid shift, workout or campaign mission with a distinct ID earns a player
+point. A living companion within 25 metres in the same interior or outside
+earns a crew point. A later completion with crew can earn its first credit
+even if the player completed the job solo. Each track has six earnable points.
+An opening skill costs one and its follow-up costs two.
+
+| Track | Branch | First skill | Follow-up |
+| --- | --- | --- | --- |
+| Player | Fitness | Walk and sprint 5% faster | Medical recovery takes 20% less time |
+| Player | Practical work | Repair kits restore 10 extra condition | Paid shifts earn 20% more |
+| Crew | Regroup | Companions follow 15% faster | Blocked companions retry regrouping 30% sooner |
+| Crew | Teamwork | Companions follow in 25% tighter formation | Earn 15% more on a shift finished with nearby crew |
+
+Street Life and Campaign save independent training and home improvements.
+Free roam is for practice. Purchases and awards wait until an active mission
+finishes. The training panels show points, prerequisites and the effect of
+each purchase. Use the arrow keys to switch between the two tabs.
+
+See the [release measurements and previews](../../verification/capital-drive-homes-fleet-training-2026-11-26.md)
+for checking room disposal, purchases, credits, fleet size and the offline build.
+
 ## Guided missions and map coverage
 
 Press **J** to review the mission plan before starting or between objectives. The
@@ -1439,7 +1481,7 @@ vulnerable. Phone lists crew and up to eight sourced safehouses; the original tw
 property IDs/order/prices remain valid. House purchase requires its actual clear
 door, and storage requires being inside the owned room. Injured players can pay
 $80 for a full heal only after the real nearby safehouse bed's completed X-hold
-session; a fresh matching room receipt prevents repeated charges or healing.
+session. The upgraded bed waives the charge. A fresh matching room receipt prevents repeated charges or healing.
 Phone food/weapon orders dispatch one physical courier. Progression escrows the
 catalogue price plus $50; actual stopped exterior E-handover grants the item once,
 while cancellation/failure refunds it. Pending orders are transient and the v1

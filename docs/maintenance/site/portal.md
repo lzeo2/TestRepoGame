@@ -152,3 +152,16 @@ This narrow inspection does not accept those games' complete gameplay or
 multiplayer behavior. The Footballer portal Info panel was opened using the
 card's `i` key: its new controls and solo count rendered, initial focus was
 Play, Tab reached Close, and Escape restored its Info button focus. No game was launched.
+
+## Game details and keyboard focus
+
+Press **I** on a focused game card to open Info. Tab and Shift+Tab stay within
+the dialog. Close, Escape, clicking the backdrop and browser history navigation
+dispose of the dialog handlers and restore the previous focus target when it
+still exists. While the dialog is open its background is inert, including page
+elements added later. Elements that were already inert retain their prior state.
+
+The [repository review](../../verification/arcade-repository-review-2026-11-26.md)
+records the remaining discovery and accessibility work. Run
+`python3 -B scripts/test_portal_discovery.py` for repeated open and close
+cycles, keyboard navigation, catalog retry and the six theme/viewport captures.
