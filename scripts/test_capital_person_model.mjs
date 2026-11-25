@@ -21,7 +21,17 @@ assert(Object.isFrozen(PERSON_MODEL) && Object.values(PERSON_MODEL).filter(v => 
 const geometries = createPersonGeometries();
 const expected = { capsule: new THREE.CapsuleGeometry(1, 1, 2, 5), sphere: new THREE.SphereGeometry(1, 6, 4), box: new THREE.BoxGeometry(1, 1, 1) };
 for (const kind of Object.keys(expected)) {
-  assert.deepEqual(geometries[kind].attributes.position.array, expected[kind].attributes.position.array, `${kind} preserves the established rounded geometry`);
+  assert.equal(geometries[kind].attributes.position.count, expected[kind].attributes.position.count, `${kind} retains its shared vertex budget`);
+  if (kind === 'box') assert.deepEqual(geometries[kind].attributes.position.array, expected[kind].attributes.position.array);
+  else {
+    assert.notDeepEqual(geometries[kind].attributes.position.array, expected[kind].attributes.position.array, `${kind} has actual sculpted vertices`);
+    const p = geometries[kind].attributes.position;
+    const maxWidth = upper => Math.max(...Array.from({ length: p.count }, (_, i) =>
+      (upper ? p.getY(i) > 0.4 : p.getY(i) < -0.4) ? Math.abs(p.getX(i)) : 0));
+    assert(maxWidth(false) < maxWidth(true) * 0.91, `${kind} has a narrower lower silhouette`);
+    assert([...geometries[kind].attributes.normal.array].every(Number.isFinite), 'sculpting preserves finite lighting normals');
+    if (kind === 'sphere') assert(Math.min(...Array.from({ length: p.count }, (_, i) => p.getZ(i))) >= -0.701, 'front face is flattened');
+  }
   assert.deepEqual(geometries[kind].index.array, expected[kind].index.array);
   geometries[kind].dispose(); expected[kind].dispose();
 }
@@ -50,7 +60,7 @@ for (const seated of [driver, passenger]) {
   assert(seated.filter(p => ['torso', 'arms', 'legs', 'hands', 'shoes'].includes(p.name)).every(p => p.y < -0.3));
 }
 assert.notEqual(driver.find(p => p.name === 'arms').rotationX, passenger.find(p => p.name === 'arms').rotationX);
-console.log('PASS shared deterministic immutable appearances, diversity, original rounded geometry and eleven-part standing/seated proportions');
+console.log('PASS shared deterministic immutable appearances, diversity, sculpted rounded geometry with unchanged topology and eleven-part standing/seated proportions');
 
 const scene = new THREE.Scene();
 const map = { bounds: { minX: -500, maxX: 500, minZ: -500, maxZ: 500 }, spawn: { x: 0, z: 0, yaw: 0 },
@@ -61,7 +71,16 @@ assert.equal(pedestrians.stats.capacity, 64);
 assert.equal(scene.children[0].children.length, 10);
 const before = pedestrians.snapshot();
 assert(before.every(p => Object.isFrozen(p.appearance) && p.appearanceKey === appearanceForPerson(p.id).key));
-const headMesh = scene.children[0].children.find(mesh => mesh.name === 'Pedestrian head');
+const batches = Object.fromEntries(scene.children[0].children.map(mesh => [mesh.name.replace('Pedestrian ', ''), mesh]));
+const headMesh = batches.head;
+assert.equal(batches.head.geometry, batches.hair.geometry, 'head and hair borrow one sculpted rounded geometry');
+assert.equal(batches.head.geometry, batches.hands.geometry, 'near-detail hands reuse the same geometry');
+assert.equal(batches.torso.geometry, batches.arms.geometry);
+assert.equal(batches.torso.geometry, batches.legs.geometry, 'all clothing uses one sculpted capsule');
+const referenceShapes = createPersonGeometries();
+assert.deepEqual(batches.head.geometry.attributes.position.array, referenceShapes.sphere.attributes.position.array, 'live pedestrian instances render the sculpted face');
+assert.deepEqual(batches.torso.geometry.attributes.position.array, referenceShapes.capsule.attributes.position.array, 'live pedestrian instances render the tailored torso');
+Object.values(referenceShapes).forEach(geometry => geometry.dispose());
 const visible = before.filter(p => Math.hypot(p.x, p.z) < 180).sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z));
 for (let i = 0; i < visible.length; i++) {
   const matrix = new THREE.Matrix4(); headMesh.getMatrixAt(i, matrix);
