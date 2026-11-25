@@ -41,7 +41,7 @@ function helper(name) {
 }
 function owner(names, context) {
   const scope = vm.createContext({ droneActive:false,delivery:null,houseController:null,aircraft:null,watercraft:null,interactWatercraft:()=>false,policeStations:null,
-    lightRail:null,depotTank:null,heists:null,campaign:null,campaignWorld:null,streetWorld:null,gameMode:'street',developerReturn:null,gearForMode,
+    lightRail:null,heists:null,campaign:null,campaignWorld:null,streetWorld:null,gameMode:'street',developerReturn:null,gearForMode,
     securityCameras:null,interiors:{active:null},burglaryContext:()=>({}),...context });
   vm.runInContext(names.map(helper).join('\n'), scope);
   return scope;
@@ -49,7 +49,7 @@ function owner(names, context) {
 const room = { id: 'house-1' }, car = { id: 'parked:1' }, ray = { x: 0, z: 0, range: 30 };
 const traceCalls = [];
 const shots = owner(['shotVehicles', 'traceWorldShot', 'tracePlayerShot'], {
-  interiors: { active: null }, simulation: { nearbyVehicles: () => [car] }, buses: { vehicles: [] }, rideService: { vehicles: [] },
+  interiors: { active: null }, simulation: { nearbyVehicles: () => [car] }, buses: { vehicles: [] }, rideService: { vehicles: [] }, skylineAtv: null, stationDamage: { near: () => [] },
   gameplay: { state: { police: [] } }, aircraft: { snapshot: () => ({ planes: [] }) },
   shotObstacles: { trace: (...args) => { traceCalls.push(args); return 4; }, traceHit: (...args) => { traceCalls.push(args); return { distance: 4, vehicleId: car.id }; } },
 });
@@ -84,7 +84,7 @@ const calls = [];
 const plan = { id: 'house-1', floorY: 2, name: 'Fixture house' }, entry = { id: plan.id };
 const outside = { x: 5, z: 8, yaw: 0 };
 const rooms = owner(['enterInterior', 'leaveInterior'], {
-  burglary:{leave:()=>{}},
+  burglary:{leave:()=>{}}, campaign: { state: { active: null } },
   gameplay: { state: { actor: { ...outside }, wanted: 0, police: [] } },
   interiors: { active: plan, exteriorPose: outside, enter: () => plan, leave: () => true },
   map: { storyHomes: {} }, CAMPUS_GATES: [], compatibility: true,
@@ -124,7 +124,7 @@ commerce.state.equipment.pistol=true;game.addAmmo(24,'pistol');
 let writes=0,menuPaused=true;
 const visionButton={hidden:true,setAttribute(name,value){this[name]=value;}};
 const control=owner(['cityAction','currentGear','recallDrone','refreshDroneNightVision','toggleDroneNightVision','stepDrone','canCrewAttack','canPlayerAttack','walkingInput','input','interact'],{
-  jetpack:null,compatibility:false,$:()=>visionButton,
+  jetpack:null,compatibility:false,$:()=>visionButton,skylineAirPose:null,
   developerReturn:null,progression:commerce,gameplay:game,interiors:{active:null},campaignScenes:{people:[]},
   careerContext:()=>({pose:{x:game.state.actor.x,z:game.state.actor.z},onFoot:true,health:game.state.health,vehicleHealth:100,wanted:0,respawnSerial:0,interior:control.interiors.active?{roomId:home.id}:null}),
   saveCareer:()=>writes++,clearInput:()=>{},notify:()=>{},cityUI:{render:()=>{}},
@@ -237,7 +237,7 @@ const reports=[],sightings=[];
 const surveillance=owner(['recordCameraCrime','stepSecurityCameras','shotTargets'],{
   securityCameras:hardware,cameraCrimeSerial:0,cameraRoomPlan:null,interiors:{active:null},isSandbox:()=>false,focus:()=>({x:0,z:-10}),
   gameplay:{state:{wanted:0},reportOffence:(...args)=>reports.push(args),reportSighting:event=>sightings.push(event)},
-  pedestrians:{shotTargets:()=>[]},streetDealers:{shotTargets:()=>[]},rideService:{shotTargets:()=>[]},contractTarget:null,
+  pedestrians:{shotTargets:()=>[]},streetDealers:{shotTargets:()=>[]},rideService:{shotTargets:()=>[]},contractTarget:null,skylineOpponents:null,skylinePressure:null,
 });
 surveillance.stepSecurityCameras(1);assert.equal(reports.length,0,'ordinary visible walking supplies no crime receipt or stars');
 surveillance.recordCameraCrime('gunfire');surveillance.stepSecurityCameras(.5);
@@ -274,7 +274,7 @@ const patrol={id:'police:test',modelId:'relay',x:30,z:30,yaw:0,active:true,healt
 carGameplay.state.police.push({id:'officer:test',health:100,mode:'vehicle',car:patrol});
 let colliders;
 const damage=owner(['activeWorldRecord','damageWorldVehicle','damageExplosionVehicles','vehicleForGunfire','hitWorldVehicle','shotVehicles','syncExternalVehicles','updateAbandonedMeshes'],{
-  simulation:carSimulation,gameplay:carGameplay,buses:actualBus,rideService:actualRide,delivery:actualDelivery,aircraft:{snapshot:()=>({planes:[]})},
+  simulation:carSimulation,gameplay:carGameplay,buses:actualBus,rideService:actualRide,delivery:actualDelivery,aircraft:{snapshot:()=>({planes:[]})},skylineAtv:null,stationDamage:{near:()=>[]},
   aircraftObstacles:()=>[],BY_ID,handledVehicleBlasts:new WeakSet(),validExplosion,
   world:{heightAt:()=>0,vehicleHeightAt:()=>0},shotObstacles:createShotObstacles(vehicleMap,{heightAt:()=>0}),
   abandonedMeshes:new Map(),createCar:(modelId,{color})=>({modelId,color,visible:false}),addCarShadow:()=>{},
@@ -361,6 +361,7 @@ const canvasContext = new Proxy({
 }, {get:(object,key)=>key in object?object[key]:()=>{}});
 let courierTracking={car:{x:100,z:0,yaw:0},dropoff:{x:50,z:0},distance:50,eta:9,phase:'approaching'};
 const mini=owner(['drawMap'],{
+  minimapZoomed:false,skylineLease:null,skylineObjective:()=>null,navigationFlightPose:()=>null,
   mapImage:{},map:{bounds:{minX:-10000,maxX:10000,minZ:-10000,maxZ:10000},landmarks:[]},
   focus:()=>({x:0,z:0,yaw:0}),mapView:{zoom:1,x:null,z:null},
   createMapProjection:()=>({scale:1,cx:0,cz:0}),route:[],destination:{},
@@ -382,15 +383,15 @@ assert(!paint.some(item=>item.color==='#a16a19'),'terminal orders remove courier
 mini.gameplay.policeSupport=()=>[
   {kind:'drone',x:10,z:20},{kind:'helicopter',x:55,z:90},{kind:'drone',x:5000,z:0},
 ];
-mini.aircraft={snapshot:()=>({planes:[{kind:'helicopter',wrecked:false,x:-30,z:45,name:'Depot'},
+mini.aircraft={snapshot:()=>({planes:[{kind:'helicopter',wrecked:false,x:-30,z:45,name:'Airport'},
   {kind:'helicopter',wrecked:true,x:15,z:90,name:'Wreck'},{kind:'jet',x:11,z:10}]})};
-mini.droneActive=true;mini.drone={snapshot:()=>({x:-10,z:20})};
+mini.droneActive=true;mini.drone={snapshot:()=>({x:-10,z:20})};mini.minimapZoomed=true;
 const activePulse=createSecurityCameras([{id:'pulse',x:20,z:15,yaw:0},{id:'offmap',x:5000,z:0,yaw:0}]);
 mini.securityCameras=activePulse;
 assert.equal(activePulse.markNearby({x:0,z:0}),1);
 activePulse.jamNearby({x:20,z:15});
 paint.length=0;mini.drawMap(canvas,false);
-assert.deepEqual(airIcons.map(icon=>icon.kind),['police-drone','helicopter','depot-helicopter','player-drone']);
+assert.deepEqual(airIcons.map(icon=>icon.kind),['police-drone','helicopter','airport-helicopter','player-drone']);
 assert(airIcons.every(icon=>icon.x>=0&&icon.x<=canvas.width&&icon.y>=0&&icon.y<=canvas.height),'wrecked/out-of-range planes are omitted');
 assert(paint.some(item=>item.color==='#8b5011'),'a marked jammed camera is amber on the actual minimap');
 activePulse.step(12);paint.length=0;mini.drawMap(canvas,false);

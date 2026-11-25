@@ -2,7 +2,7 @@ import { createVehicleChallenge } from './vehicle-challenges.js';
 
 const LENGTH = 10, SPAN = 9, ENTRY_RANGE = 3.5, MAX_SPEED = 68;
 export const JET_TAKEOFF_SPEED = 28;
-export const CAMPAIGN_AIRCRAFT_IDS = Object.freeze(['jet:1', 'jet:2', 'helicopter:1', 'jet:depot']);
+export const CAMPAIGN_AIRCRAFT_IDS = Object.freeze(['jet:1', 'jet:2', 'helicopter:1']);
 const ROTOR_LENGTH = 8, ROTOR_SPAN = 10;
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 const finitePose = p => p && [p.x, p.z].every(Number.isFinite);
@@ -27,7 +27,7 @@ function offset(pose, side, forward) {
 const entry = plane => offset(plane, 2.1, 1.3);
 const copy = plane => Object.freeze({ ...plane });
 
-// Original jets on sourced airport aprons and the fictional depot strip.
+// Original jets on sourced airport aprons.
 // The controller alone translates the returned theft/impact events into crimes
 // and player damage. This module has no wallet, storage or wall-clock authority.
 export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
@@ -124,7 +124,6 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
     const door=entry(rotor);
     return simulation.canOccupy({...door,yaw:rotor.yaw},{length:1,width:.9})&&simulation.hasLineOfSight(door,rotor)?rotor:null;
   }
-  const depotPad=map.defenceDepot?.helipad;
   function airportRotor(id, separation) {
     for(const candidate of candidates){
       if(!clearOfRoads(candidate))continue;
@@ -133,23 +132,8 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
     }
     return null;
   }
-  const depotRotor=rotorStand(depotPad);
-  if(depotRotor)depotRotor.depot=true;
-  const rotor=depotRotor||airportRotor();
+  const rotor=airportRotor();
   if(rotor)planes.push(rotor);
-  const jetStand=map.defenceDepot?.jetStand;
-  if(finitePose(jetStand)&&Number.isFinite(jetStand.yaw)&&jetStand.runLength===76){
-    const jet={...jetStand,id:CAMPAIGN_AIRCRAFT_IDS[3],kind:'jet',model:1,name:'Depot interceptor',depot:true,
-      y:heightAt(jetStand.x,jetStand.z),speed:0,verticalSpeed:0,pitch:0,bank:0,throttle:0,takeoffRoll:0,
-      length:LENGTH,width:SPAN,airborne:false,stolen:false,wrecked:false,active:true};
-    const door={...entry(jet),yaw:jet.yaw};
-    let clear=Number.isFinite(jet.y)&&simulation.canOccupy(door,{length:1,width:.9});
-    for(let d=0;clear&&d<=jet.runLength;d+=2){
-      const pose={...jet,...offset(jet,0,d)};
-      clear=groundClear(pose)&&(!rotor||distance(rotor,pose)>14);
-    }
-    if(clear)planes.push(jet);
-  }
   const initial = planes.map(p => ({ ...p }));
   let loanRotor=null;
   const jobHelicopterIds=new Set();
@@ -418,8 +402,8 @@ export function createAircraft(map, simulation, { heightAt = () => 0 } = {}) {
       challenge: lock, prompt: lock.active ? lock.prompt.replace('CAR LOCK',`${lock.aircraftKind.toUpperCase()} LOCK`) : plane ?
         (plane.wrecked?'Aircraft damaged. Land and stop to exit.':plane.kind==='helicopter'?
           'W/S move · A/D turn · Space rise · Shift land · E exit':plane.airborne?
-          'W/S throttle · A/D turn · Space climb · Shift descend':plane.depot?
-          'Follow the marked strip · Hold W and Space to take off':'Align with runway · Hold W to 101 km/h · Space lift') : '' });
+          'W/S throttle · A/D turn · Space climb · Shift descend':
+          'Align with runway · Hold W to 101 km/h · Space lift') : '' });
   }
   return { nearest, interact, step, snapshot, captureCheckpoint, canRestoreCheckpoint, restoreCheckpoint,addJobHelicopter,releaseJobHelicopter,
     get active() { return flightCopy(activePlane()); },

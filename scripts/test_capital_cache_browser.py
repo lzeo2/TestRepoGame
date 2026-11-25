@@ -441,17 +441,6 @@ def main():
                 state = observe(page,'actual current build Telopea Free roam')
                 check(state['gameMode'] == 'free' and not state['rendering']['compatibility'] and state['rendering']['quality'] == 'performance' and page.locator('#build-version').text_content() == expected, 'Current full-game build starts actual WebGL Free roam with visible badge')
                 page.screenshot(path=str(output/'build-telopea-performance.png'))
-                page.locator('#map-button').click()
-                page.locator('#map-search').fill('Capital Defence Depot')
-                page.locator('#map-search-form button[type=submit]').click()
-                page.locator('#search-results button').first.click()
-                page.locator('#teleport-button').click()
-                page.locator('#map-dialog').wait_for(state='hidden')
-                page.wait_for_timeout(1500)
-                depot=observe(page,'official Free-roam depot arrival')
-                place=next(place for place in depot['places'] if place['id']=='capital-defence-depot')
-                check(math.hypot(depot['player']['x']-place['x'],depot['player']['z']-place['z'])<150 and depot.get('defenceDepot'), 'Actual search and official Free-roam teleport reach rendered fictional depot')
-                page.screenshot(path=str(output/'build-defence-depot.png'))
                 context.close()
 
             if args.scenario in ('fixture', 'all'):

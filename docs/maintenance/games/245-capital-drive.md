@@ -9,7 +9,7 @@ Operator-authorized original Canberra open-world preview, catalog 245, static en
 three fictional adult protagonists, two opening missions each, a shared Kingston
 meeting and seventeen assigned shared chapters, including reconnaissance and prepared heists.
 The final two chapters establish who ran the invoice scheme and get the evidence out.
-An optional aviation chapter uses the depot helicopter and airport jets.
+An optional aviation chapter uses the airport helicopter and jets.
 Seven original stealth contracts have their own planning board within Campaign.
 **Street Life** has jobs, cash, a
 garage, foot combat and police; **Free roam** has all cars, local address search
@@ -170,7 +170,7 @@ physical cover. Nearby explosions briefly shake the camera unless reduced
 motion is enabled.
 
 During pursuits, officers can react to a visible drone or nearby blast.
-Police and player drones, police helicopters and the depot helicopter have
+Police and player drones and police helicopters have
 distinct icons on both maps. Simulated security cameras report visible
 offences and display an alert. An owned police scanner unlocks **Camera pulse**
 under Phone → Gear, which marks cameras in the player's current space for a
@@ -371,19 +371,9 @@ vehicle bodies meet. They use a shared per-driver horn cooldown for close
 cut-ins and queues. Enable Sound to hear nearby horns. Parallel traffic,
 different bridge levels and red signal approaches keep their existing rules.
 
-The depot now has a drivable tank and Depot interceptor. Use E on foot to
-take the tank, WASD to drive and Space to brake. The interceptor uses the
-existing console cues and a checked rollout strip. The original anchor
+The original anchor
 aircraft can be removed by theft. Distinct airport loan aircraft keep the
 optional aviation chapter available after that.
-
-The fictional Capital Defence Depot sits on an airport-area service spur.
-Search for military base to route to its open vehicle gateway. The yard has
-hangars, a guardhouse, side aprons, physical fencing, two parked tanks, a
-display aircraft and a working helipad. The exterior takes one streamed
-draw with 705 triangles and releases its geometry when distant. A stealable
-helicopter can lift vertically and land back on the pad. Jets require a
-ground roll aligned with the runway and at least 101 km/h before they can lift.
 
 The 21 November recovery update routes an ordinary medical transfer to the
 nearest usable owned safehouse. Milo's mapped home provides a fallback.

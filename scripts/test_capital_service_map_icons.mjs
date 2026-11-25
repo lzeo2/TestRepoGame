@@ -23,7 +23,7 @@ const document = {
 
 const icons = createServiceMapIcons(document);
 assert.equal(canvases.length, 9, 'one cached raster per service or aircraft badge');
-const [petrol, rental, ownDrone, policeDrone, policeHelicopter, depotHelicopter, boatShop, tram, heist] = canvases;
+const [petrol, rental, ownDrone, policeDrone, policeHelicopter, airportHelicopter, boatShop, tram, heist] = canvases;
 for (const raster of canvases) {
   assert.equal(raster.width, raster.height);
   assert(raster.width >= 40, 'render beyond typical map and button display sizes');
@@ -36,7 +36,7 @@ assert.notEqual(petrol.ctx.calls.find(call => call.method === 'fill').fill, rent
 assert(petrol.ctx.calls.some(call => call.method === 'quadraticCurveTo'), 'petrol is distinguished by a hose');
 assert(rental.ctx.calls.some(call => call.method === 'closePath'), 'rental is distinguished by a car silhouette');
 assert.notEqual(ownDrone.ctx.calls.find(call => call.method === 'fill').fill, policeDrone.ctx.calls.find(call => call.method === 'fill').fill);
-assert.notEqual(policeHelicopter.ctx.calls.find(call => call.method === 'fill').fill, depotHelicopter.ctx.calls.find(call => call.method === 'fill').fill);
+assert.notEqual(policeHelicopter.ctx.calls.find(call => call.method === 'fill').fill, airportHelicopter.ctx.calls.find(call => call.method === 'fill').fill);
 assert(ownDrone.ctx.calls.some(call => call.method === 'lineTo'), 'drone glyph has diagonal arms');
 assert(policeHelicopter.ctx.calls.some(call => call.method === 'fillRect' && call.args[2] === 15), 'helicopter glyph has one main rotor');
 assert(boatShop.ctx.calls.some(call => call.method === 'quadraticCurveTo'), 'boat shop glyph includes a waterline');

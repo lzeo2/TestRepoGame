@@ -7,7 +7,6 @@ import { createSimulation } from '../Games/Capital Drive/simulation.js';
 import { createProgression } from '../Games/Capital Drive/progression.js';
 import { createPolice } from '../Games/Capital Drive/police.js';
 import { applyAirport } from '../Games/Capital Drive/airport.js';
-import { applyDefenceDepot } from '../Games/Capital Drive/defence-depot.js';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
 import { BY_ID } from '../assets/car-arcade/fleet.js';
@@ -35,7 +34,7 @@ const env = { burglary:{snapshot:()=>({active:false})},droneActive: false, aircr
   activities: { snapshot: () => ({ active: false }) }, rentalHack: { snapshot: () => ({ active: false }) },
   micromobility: { snapshot: () => ({ active: false }) }, rideService: null, buses: null, cutscenes: { snapshot: () => ({ active: false }) },
   developerReturn: null, gameMode:'campaign', campaignWorld:createCampaignWorld(), streetWorld:null, saveCareer:()=>saves++, heists:null,
-  depotTank:null, lightRail:null,
+  skylineLease:null, lightRail:null,
   jetpack:null, watercraft:null, aircraftRescueHealth:null, cameraReady: true, footCameraYaw: 0, heroPowers: { cancelActive() {} },
   clearInput() { env.keys.clear(); env.miniKeys.clear(); env.touch.clear(); }, notify: text => notifications.push(text) };
 const controls = new Map(); env.$ = id => { if (!controls.has(id)) controls.set(id, {}); return controls.get(id); };
@@ -128,13 +127,13 @@ console.log('Capital aircraft controller: actual eight-cue theft, cancellation/a
 // Reproduce the native failure: map search retains arbitrary car yaw. A marker
 // at the jet door parked that car under the wing and prevented every taxi step.
 const data = async name => JSON.parse(await readFile(new URL(`../Games/Capital Drive/data/${name}.json`, import.meta.url)));
-const airportMap = applyDefenceDepot(applyAirport(applyMapExpansion(await data('canberra'), await data('canberra-north')), await data('airport')));
-airportMap.barriers=[...airportMap.defenceDepot.fences,...airportMap.defenceDepot.vehicleBarriers];
+const airportMap = applyAirport(applyMapExpansion(await data('canberra'), await data('canberra-north')), await data('airport'));
+airportMap.barriers=[];
 const terrain = createTerrainSampler(airportMap), airportSim = createSimulation(airportMap, { trafficCount: 0, isOnBridge: terrain.isOnBridge });
 const airportJets = createAircraft(airportMap, airportSim, { heightAt: terrain.heightAt });
 const parkingFor = Function('env', `with(env){${extract('aircraftStandParking')};return aircraftStandParking;}`)({ aircraft: airportJets, simulation: airportSim });
-const depotRotor=airportJets.snapshot().planes.find(plane=>plane.kind==='helicopter');
-assert(depotRotor?.depot && parkingFor(depotRotor),'the marked depot pad admits its own helicopter and checked arrival parking');
+const rotor=airportJets.snapshot().planes.find(plane=>plane.kind==='helicopter');
+assert(rotor && !rotor.depot && rotor.id==='helicopter:1' && parkingFor(rotor),'the airport apron admits the Wattle helicopter and checked arrival parking');
 const airportGame = createGameplay(airportMap, airportSim);
 let parkingCases = 0;
 for (const id of ['lantern', 'orchard', 'gravel', 'relay', 'atlas', 'finch']) for (const standIndex of [0, 1]) {

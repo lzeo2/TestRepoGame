@@ -5,7 +5,6 @@ import { buildRoadGraph } from '../Games/Capital Drive/simulation.js';
 import { applyRoadProfiles, createRoutePlanner, roadProfile } from '../Games/Capital Drive/road-network.js';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { applyAirport } from '../Games/Capital Drive/airport.js';
-import { applyDefenceDepot } from '../Games/Capital Drive/defence-depot.js';
 import { applyNorthWest } from '../Games/Capital Drive/north-west.js';
 import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
 
@@ -60,7 +59,7 @@ assert(sources.get('giant-spray').raw.length < 80_000);
 const civic = applyMapExpansion(applyRoadProfiles(data('canberra'), data('road-profiles')), data('canberra-north'));
 const terrain = data('north-west-terrain');
 assert.equal(terrain.terrain.giantSpraySidecarSha256,sources.get('giant-spray').hash);
-const prior = applyDefenceDepot(applyAirport(civic, data('airport'), data('airport-terrain')));
+const prior = applyAirport(civic, data('airport'), data('airport-terrain'));
 const merged = applyNorthWest(prior,data('north-west'),terrain,overlay);
 assert.equal(merged.giantSpray,site);
 const sampler=createTerrainSampler(merged);

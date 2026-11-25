@@ -6,7 +6,6 @@ import { LIGHT_RAIL_SOURCE } from '../Games/Capital Drive/light-rail-source.js';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { applyNorthWest } from '../Games/Capital Drive/north-west.js';
 import { applyAirport } from '../Games/Capital Drive/airport.js';
-import { applyDefenceDepot } from '../Games/Capital Drive/defence-depot.js';
 import { applyRegionalExpansion } from '../Games/Capital Drive/regional-expansion.js';
 import { applyRoadProfiles, createRoutePlanner, roadProfile } from '../Games/Capital Drive/road-network.js';
 import { applyStreetAssetRoofs } from '../Games/Capital Drive/street-assets.js';
@@ -24,11 +23,11 @@ const data = new Map(await Promise.all(['canberra', 'canberra-north', 'road-prof
 const get = name => data.get(name);
 const civic = applyStreetAssetRoofs(applyMapExpansion(applyRoadProfiles(get('canberra'), get('road-profiles')), get('canberra-north')));
 civic.terrainTiles = [get('north-terrain').terrain];
-const prior = applyNorthWest(applyDefenceDepot(applyAirport(civic, get('airport'), get('airport-terrain'))), get('north-west'), get('north-west-terrain'), get('giant-spray'));
+const prior = applyNorthWest(applyAirport(civic, get('airport'), get('airport-terrain')), get('north-west'), get('north-west-terrain'), get('giant-spray'));
 const map = applyRegionalExpansion(prior, ['region-belconnen', 'region-north', 'region-south'].map(get));
 assert.equal(map.regionalExpansion.length, 3, 'exercise all three integrated regional packs');
 map.lakeWaterLevel = 5.93;
-map.barriers = [...(map.defenceDepot?.fences || []), ...(map.defenceDepot?.vehicleBarriers || []), ...POOL_BARRIERS, ...CAMPUS_BARRIERS,
+map.barriers = [...POOL_BARRIERS, ...CAMPUS_BARRIERS,
   ...SKATE_BARRIERS.map(b => {
     const dx = b.b[0]-b.a[0], dz = b.b[1]-b.a[1], length = Math.hypot(dx,dz)||1, nx = -dz/length*b.width/2, nz = dx/length*b.width/2;
     return {...b,points:[[b.a[0]+nx,b.a[1]+nz],[b.b[0]+nx,b.b[1]+nz],[b.b[0]-nx,b.b[1]-nz],[b.a[0]-nx,b.a[1]-nz]]};
