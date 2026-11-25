@@ -160,7 +160,7 @@ crewSim.setParkedCars([{id:'fixture-car',x:1,z:9,yaw:Math.PI/2,active:true,lengt
 let moved=0;
 for(let i=0;i<100;i++){
  const prior=crew.people;crewSim.setExternalPeople([...prior,obstacle]);
- crew.update({...fc,pose:{x:15,z:5,yaw:0}},.1);
+ crew.update({...fc,pose:{x:9.5,z:5,yaw:0}},.1);
  for(let j=0;j<2;j++){
   const ally=crew.people[j],travel=Math.hypot(ally.x-prior[j].x,ally.z-prior[j].z);moved+=travel;
   assert(travel<=.381,'supplied dt bounds each foot sweep');
@@ -227,7 +227,7 @@ for(let i=0;i<2;i++) {
 shotCrew.dispose();
 
 // The wall spans the entire local fan. Actual failed foot progress for three
-// seconds permits a checked landing on the player's side, below the 35m trigger.
+// seconds permits a checked landing on the player's side, below the 28m trigger.
 const stuckSim=createSimulation(travelMap,{trafficCount:0}),stuckCrew=createCampaignScenes(travelMap,stuckSim);
 const stuckCtx={...travelCtx,pose:{x:-12,z:10,yaw:0}};stuckCrew.update(stuckCtx,.1);
 const across={...stuckCtx,pose:{x:12,z:10,yaw:0}};let caughtAcross=false;
@@ -237,7 +237,7 @@ for(let tick=0;tick<110;tick++) {
   const ally=stuckCrew.people[i],distance=Math.hypot(ally.x-prior[i].x,ally.z-prior[i].z);
   if(distance>.381) {
    assert(tick>=30,'stuck catch-up requires actual attempted following time');
-   assert(Math.hypot(prior[i].x-across.pose.x,prior[i].z-across.pose.z)<35,'this exercises stuck rather than distant catch-up');
+   assert(Math.hypot(prior[i].x-across.pose.x,prior[i].z-across.pose.z)<28,'this exercises stuck rather than distant catch-up');
    assert(ally.x>1&&Math.hypot(ally.x-12,ally.z-10)<=6);assert(stuckSim.canOccupy(ally,{length:1,width:.8,ignorePersonId:ally.id}));caughtAcross=true;
   } else assert(!(ally.x>-.52&&ally.x<.52),'ordinary foot movement cannot cross the wall');
  }
@@ -273,6 +273,62 @@ assert.equal(recruitQueries,failedRecruitQueries,'initially blocked recruitment 
 admitRecruit=true;blockedRecruit.update(travelCtx,.1);assert.equal(blockedRecruit.people.length,2,'missing identities recruit when the fan becomes clear');
 for(const ally of blockedRecruit.people)assert(Math.hypot(ally.x+50,ally.z-12.5)>=1.4,'public entry descriptors supplied by the controller stay clear');
 blockedRecruit.dispose();
+// Relocation is rear-only for every heading, with separate shoulders. Initial
+// recruitment still has a front fallback when no safe rear location exists.
+const rearMap={bounds:{minX:-200,maxX:200,minZ:-200,maxZ:200},spawn:{x:-150,z:-150,yaw:0},landmarks:[],roads:[],buildings:[],areas:[]};
+const rearDot=(ally,pose)=>(ally.x-pose.x)*Math.sin(pose.yaw)+(ally.z-pose.z)*Math.cos(pose.yaw);
+for(const yaw of [0,Math.PI/2,-Math.PI/2,Math.PI-.02,-Math.PI+.02]){
+ const sim=createSimulation(rearMap,{trafficCount:0}),cast=createCampaignScenes(rearMap,sim);
+ const origin={...fc,pose:{x:-70,z:-70,yaw:0},playerMode:'foot'};cast.update(origin,.1);
+ const wounded=cast.people[0];assert(cast.receiveHit({kind:'shot',targetId:wounded.id,from:{x:wounded.x+1,z:wounded.z},to:wounded,damage:13}));
+ const identities=cast.people.map(p=>({id:p.id,appearanceId:p.appearanceId,health:p.health,armed:p.armed,cooldown:p.cooldown}));
+ sim.setExternalPeople(cast.people);
+ const destination={...origin,pose:{x:60,z:50,yaw},playerMode:'passenger'};cast.update(destination,.1);
+ assert.equal(cast.people.length,2);
+ for(const [i,ally]of cast.people.entries()){
+  assert(rearDot(ally,destination.pose)>0,'living companions relocate behind the current player heading');
+  assert(Math.hypot(ally.x-60,ally.z-50)<=6);
+  for(const key of ['id','appearanceId','health','armed'])assert.equal(ally[key],identities[i][key]);
+  assert.equal(ally.cooldown,Math.max(0,identities[i].cooldown-.1));
+  assert.equal(ally.shot,null);assert(sim.canOccupy(ally,{length:1,width:.8,ignorePersonId:ally.id}));
+ }
+ const lateral=ally=>(ally.x-60)*Math.cos(yaw)-(ally.z-50)*Math.sin(yaw);
+ assert(lateral(cast.people[0])*lateral(cast.people[1])<0,'crew use alternating rear shoulders');
+ assert(Math.hypot(cast.people[0].x-cast.people[1].x,cast.people[0].z-cast.people[1].z)>=1.2);
+ assert.equal(cast.drainEvents().length,0);cast.dispose();
+}
+const rearBlockedMap={...rearMap,buildings:[{id:'blocked-rear-only',points:[[42,50.3],[58,50.3],[58,59],[42,59]],height:3}]};
+const rearBlockedSim=createSimulation(rearBlockedMap,{trafficCount:0});let rearQueries=0;
+const rearBlocked=createCampaignScenes(rearBlockedMap,{...rearBlockedSim,nearestRoad(x,z){rearQueries++;return rearBlockedSim.nearestRoad(x,z);}});
+const rearOrigin={...fc,pose:{x:-50,z:-50,yaw:0},playerMode:'passenger'},frontOnly={...rearOrigin,pose:{x:50,z:50,yaw:0}};
+rearBlocked.update(rearOrigin,.1);assert.equal(rearBlocked.people.length,2);rearQueries=0;
+const oldRear=rearBlocked.people.map(p=>[p.id,p.x,p.z,p.health]);
+assert(rearBlockedSim.canOccupy({x:50,z:47.5,yaw:0},{length:1,width:.8}),'front is physically clear in the blocked rear fixture');
+rearBlocked.update(frontOnly,.1);assert(rearQueries>0&&rearQueries<=44,'rear retry uses only two bounded three-ring/seven-angle searches');
+assert.deepEqual(rearBlocked.people.map(p=>[p.id,p.x,p.z,p.health]),oldRear,'a clear front cannot substitute for blocked rear teleport positions');
+const rearAttemptQueries=rearQueries;for(let i=0;i<12;i++)rearBlocked.update(frontOnly,.1);
+assert.equal(rearQueries,rearAttemptQueries,'rear-only failure keeps the existing supplied-time retry cooldown');
+rearBlocked.update(frontOnly,.1);assert(rearQueries>rearAttemptQueries&&rearQueries-rearAttemptQueries<=44);rearBlocked.dispose();
+const frontRecruit=createCampaignScenes(rearBlockedMap,rearBlockedSim);frontRecruit.update(frontOnly,.1);
+assert.equal(frontRecruit.people.length,2,'recruitment retains a checked front fallback when the rear is blocked');
+assert(frontRecruit.people.every(p=>rearDot(p,frontOnly.pose)<0));frontRecruit.dispose();
+
+// An actual wall can strand a nearby companion 6–10m away: this now qualifies
+// after failed walking progress, without using the far-distance trigger.
+const closeSim=createSimulation(travelMap,{trafficCount:0}),closeCrew=createCampaignScenes(travelMap,closeSim);
+const closeStart={...travelCtx,pose:{x:-2,z:10,yaw:0},playerMode:'foot'},closePlayer={...closeStart,pose:{x:7,z:10,yaw:0}};
+closeCrew.update(closeStart,.1);assert.equal(closeCrew.people.length,2);let nearbyCaught=false;
+for(let tick=0;tick<110;tick++){
+ const prior=closeCrew.people;closeSim.setExternalPeople(prior);closeCrew.update(closePlayer,.1);
+ for(const [i,ally]of closeCrew.people.entries())if(Math.hypot(ally.x-prior[i].x,ally.z-prior[i].z)>.381){
+  const previousGap=Math.hypot(prior[i].x-closePlayer.pose.x,prior[i].z-closePlayer.pose.z);
+  assert(previousGap>6&&previousGap<10,'nearby stuck relocation exercises the newly admitted distance band');
+  assert(tick>=30,'nearby stuck placement still requires actual attempted following time');
+  assert(rearDot(ally,closePlayer.pose)>0);assert(closeSim.canOccupy(ally,{length:1,width:.8,ignorePersonId:ally.id}));nearbyCaught=true;
+ }
+}
+assert(nearbyCaught,'nearby companions recover from a real wall without moving the player farther away');closeCrew.dispose();
+console.log('PASS rear-only catch-up: five headings, alternating shoulders, unchanged identities/health/cooldowns, blocked-rear/front-clear rejection, bounded retries, safe recruitment fallback and real nearby stuck recovery');
 console.log('PASS bounded crew catch-up: actual merged-map travel, safe local fan, source doors/walls/cars/water/adults, stuck3s, passenger/driving cooldown, blocked retry query bound, pause/zero dt, indoor return and no healing/resurrection');
 
 // Crew seats are transient attachments to the actual manual car, with checked
