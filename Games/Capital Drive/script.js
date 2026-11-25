@@ -117,7 +117,7 @@ import {GENERIC_SERVICES,SOURCE_GYM_SERVICES} from './services.js';
 import {createWildlifeView} from './wildlife-view.js';
 import {createStreetAssetsView} from './street-assets-view.js';
 import {BUS_STOPS,FUEL_STATIONS,applyStreetAssetRoofs} from './street-assets.js';
-import {createNitroStations} from './nitro-stations.js';
+import {createNitroStations,createNitroStationDamage} from './nitro-stations.js';
 import {buildPetrolForecourts} from './petrol-forecourts.js';
 import {buildRentalStorefronts} from './rental-storefronts.js';
 import {createRentalStorefrontsView} from './rental-storefronts-view.js';
@@ -453,8 +453,10 @@ function pulseCameras(){
 }
 let ordnance,ordnanceView,indoorOrdnanceView,atmosphereView,airportView,defenceDepotView,vehicleDamageView,playerCarKey=0,fireWarningKey=null;
 const heroPowers=createHeroPowers(),atmosphere=createAtmosphere(),vehicleDamage=createVehicleDamage();
-const vehicleFires=createVehicleFires({resolve:vehicleForGunfire,damage:damageWorldVehicle,
-  heightAt:car=>world.vehicleHeightAt(car,car.edge?.road)});
+let stationDamage=null;
+const vehicleFires=createVehicleFires({resolve:vehicleForGunfire,
+  damage:(id,amount)=>typeof id==='string'&&id.startsWith('pump:')?stationDamage?.burn(id,amount)===true:damageWorldVehicle(id,amount),
+  heightAt:car=>car.pump?car.y:world.vehicleHeightAt(car,car.edge?.road)});
 let presentationOutcome={serial:0,roomId:null,outcome:null},workCompletion={serial:0,storeId:null};
 let schoolEntry,schoolAlarmOutcome={serial:0,roomId:null,outcome:null},heistOutcome={serial:0,storeId:null,kind:null};
 const cutscenes=createCutscenes(),renderGate=createRenderGate();
@@ -1537,7 +1539,10 @@ function refillCarNitro(){
     Object.assign(simulation.player,{speed:0,vx:0,vz:0});clearInput();
     notify('Stopped at the nitro bay. Press E or USE again to refill.');return true;
   }
-  if(!offer.ok)return false;
+  if(!offer.ok){
+    if(offer.station&&stationDamage?.outOfService(offer.station.id)){notify('The petrol station is burning.');return true;}
+    return false;
+  }
   const result=progression.refillNitro(simulation.driving,context);
   if(result.ok&&!isSandbox())saveCareer();
   notify(result.message);streetUI.refresh();return true;
@@ -2262,6 +2267,7 @@ function shotVehicles(ray,room){
   const atv=skylineAtv?.vehicle;
   const vehicles=room?[]:[...simulation.nearbyVehicles(ray.x,ray.z,ray.range+12),...(lightRail?.vehicles||[]),...(depotTank?.vehicle?[depotTank.vehicle]:[]),...(atv?[atv]:[]),...(buses?.vehicles||[]),...(rideService?.vehicles||[]),...(delivery?.vehicles||[]),
     ...gameplay.state.police.filter(unit=>unit.health>0&&unit.car).map(unit=>unit.car),...(gameplay.policeWrecks||[]),
+    ...(stationDamage?.near(ray.x,ray.z,ray.range+12)||[]),
     ...(aircraft?.snapshot().planes||[]).map(plane=>({...plane,kind:'aircraft',width:plane.kind==='helicopter'?3.4:4}))];
   return vehicles;
 }
@@ -2269,10 +2275,12 @@ function traceWorldShot(ray,room=interiors.active){return shotObstacles.trace(ra
 function tracePlayerShot(ray){const room=interiors.active;return shotObstacles.traceHit(ray,room,shotVehicles(ray,room));}
 function damageWorldVehicle(id,amount){
   if(typeof id!=='string'||!Number.isFinite(amount)||amount<=0)return false;
+  if(id.startsWith('pump:'))return stationDamage?.damage(id,amount)===true;
   if(id==='player')return gameplay.damageVehicle(amount)===true;
   return simulation.damageVehicle(id,amount)===true||gameplay.damagePoliceVehicle(id,amount)===true||rideService?.damageVehicle(id,amount)===true||buses?.damageVehicle(id,amount)===true||delivery?.damageVehicle(id,amount)===true;
 }
 function vehicleForGunfire(id){
+  if(typeof id==='string'&&id.startsWith('pump:'))return stationDamage?.pumpFor(id)||null;
   return simulation.vehicleForDamage(id)||gameplay.state.police.find(unit=>unit.car?.id===id)?.car||
     gameplay.policeWrecks.find(car=>car.id===id)||rideService?.vehicles.find(car=>car.id===id)||
     buses?.vehicles.find(car=>car.id===id)||delivery?.vehicles.find(car=>car.id===id);
@@ -2280,7 +2288,7 @@ function vehicleForGunfire(id){
 function hitWorldVehicle({vehicleId,damage}){
   const car=vehicleId==='player'?null:vehicleForGunfire(vehicleId),previousHealth=car?.health??100;
   const hit=damageWorldVehicle(vehicleId,damage);
-  if(hit&&car)vehicleFires.recordShot(car,previousHealth);
+  if(hit&&car&&vehicleFires.recordShot(car,previousHealth)&&car.pump)stationDamage?.markBurning(vehicleId);
   return hit;
 }
 function damageExplosionVehicles(event){
@@ -2311,7 +2319,11 @@ function damageExplosionVehicles(event){
       const ray={x:event.x,y:sourceY,z:event.z,dx:vx/distance,dy:vy/distance,dz:vz/distance,range:distance,interiorId:null,ignoreVehicleIds:[car.id]};
       if(shotObstacles.trace(ray,null,vehicles)<distance-.001)continue;
     }
-    if(damageWorldVehicle(car.id,event.maxDamage*(1-distance/event.radius)))hits++;
+    const previousHealth=car.health;
+    if(damageWorldVehicle(car.id,event.maxDamage*(1-distance/event.radius))){
+      hits++;
+      if(car.pump&&vehicleFires.recordShot(car,previousHealth))stationDamage?.markBurning(car.id);
+    }
   }
   return hits;
 }
@@ -4241,6 +4253,7 @@ async function boot() {
   stuntsView=compatibility?emptyView():createStuntRampsView(scene,stunts);
   simulation=createSimulation(map,{isOnBridge:terrainSampler.isOnBridge,groundHeightAt:terrainSampler.groundHeightAt,vehicleHeightAt:groundVehicleHeightAt,stuntSupportAt:stunts.supportAt,nitroAutoRecharge:false,onTrafficHorn:soundTrafficHorn,vehicleMods:()=>!isSandbox()&&gameplay?progression.vehicleMods(gameplay.state.vehicle):{},powerModifiers:()=>heroPowers.modifiers(powerContext()),waterExemption:skylineYardWaterExempt});
   const nitroStations=createNitroStations(FUEL_STATIONS,simulation),nitroById=new Map(nitroStations.map(site=>[site.id,site]));
+  stationDamage=createNitroStationDamage(nitroStations,{groundHeightAt:terrainSampler.heightAt});
   const forecourts=buildPetrolForecourts(nitroStations,FUEL_STATIONS,simulation,terrainSampler.heightAt,map.buildings);
   const rentals=buildRentalStorefronts(simulation,terrainSampler.heightAt);
   carRentalSites=rentals.sites;
@@ -4405,7 +4418,7 @@ async function boot() {
   const indoorSun=new THREE.DirectionalLight(0xfff1d4,1.1);indoorSun.position.set(-2,5,3);interiorScene.add(indoorSun);
   interiorView=compatibility?{load(){},clear(){},dispose(){},stats:{}}:createInteriorView(interiorScene);
   roomPeopleView=compatibility?{load(){},update(){},clear(){},dispose(){},stats:{}}:createInteriorPeopleView(interiorScene,()=>interiors.active?.floorY||0);
-  const careerOptions={nitroStations,isStoryRobbery:id=>gameMode==='campaign'&&campaign?.isStoryRobbery(id),watercraftDock:()=>watercraftDock,takeSafehouseRest:(roomId,ctx)=>houseController?.takeRestReceipt(roomId,ctx),deliveryOrder:()=>delivery?.busy?delivery.snapshot().order:null,takeDeliveryReceipt:orderId=>{const receipt=deliveryReceipts.get(orderId);deliveryReceipts.delete(orderId);return receipt;},takeHouseLoot:(roomId,ctx)=>burglary.takeHouseLoot(roomId,ctx),homes:interiors.entries.filter(entry=>entry.type==='house'),extraServices:streetDealers.services,workSession:()=>({plan:interiors.active,session:activities.snapshot()}),interactiveWorkouts:true,interactiveRobbery:true,crimeTarget,robberyTarget,hasLineOfSight:visible,servicePosition:servicePosition,canUseService:site=>site.dealer?!interiors.active&&streetDealers.canTrade(site.id):site.type==='gym'?interiors.active?.serviceId===site.id:!site.buildingId||interiors.active?.storeId===site.id};
+  const careerOptions={nitroStations,isNitroStationDestroyed:id=>stationDamage.outOfService(id),isStoryRobbery:id=>gameMode==='campaign'&&campaign?.isStoryRobbery(id),watercraftDock:()=>watercraftDock,takeSafehouseRest:(roomId,ctx)=>houseController?.takeRestReceipt(roomId,ctx),deliveryOrder:()=>delivery?.busy?delivery.snapshot().order:null,takeDeliveryReceipt:orderId=>{const receipt=deliveryReceipts.get(orderId);deliveryReceipts.delete(orderId);return receipt;},takeHouseLoot:(roomId,ctx)=>burglary.takeHouseLoot(roomId,ctx),homes:interiors.entries.filter(entry=>entry.type==='house'),extraServices:streetDealers.services,workSession:()=>({plan:interiors.active,session:activities.snapshot()}),interactiveWorkouts:true,interactiveRobbery:true,crimeTarget,robberyTarget,hasLineOfSight:visible,servicePosition:servicePosition,canUseService:site=>site.dealer?!interiors.active&&streetDealers.canTrade(site.id):site.type==='gym'?interiors.active?.serviceId===site.id:!site.buildingId||interiors.active?.storeId===site.id};
   const memorialSite=heistSites.sites.find(site=>site.kind==='memorial');
   const memorialEntry=memorialSite&&interiors.entries.find(entry=>entry.heistSiteId===memorialSite.id);
   const gallery=memorialEntry&&{roomId:memorialEntry.id,

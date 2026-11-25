@@ -124,6 +124,10 @@ exhaust use at most two draws.
 Petrol and rental symbols share artwork across the full map, minimap,
 shortcuts and search results. All twelve
 nitro bays have canopies, pumps and roadside fuel signs by mapped stations.
+Pumps are destroyable fixtures: two damaging strikes reach the shared
+ignition band, the vehicle-damage fire machinery burns them to one
+explosion and a lasting wreck, and burned stations refuse refills for the
+rest of the session.
 Five use retained mapped roofs and seven have original fitted structures.
 Paving follows the terrain and leaves public lanes clear. Columns and fixtures
 use shared simulation collision while leaving the refill bay and approach open.

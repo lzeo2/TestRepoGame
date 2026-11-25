@@ -836,7 +836,7 @@ export function createProgression(map, saved = null, options = {}) {
   }
   function nitroOffer(driving, ctx) {
     if (!options.nitroStations?.length || !validContext(ctx)) return null;
-    return nitroRefillQuote(options.nitroStations, driving, ctx, state.cash, options.hasLineOfSight);
+    return nitroRefillQuote(options.nitroStations, driving, ctx, state.cash, options.hasLineOfSight, options.isNitroStationDestroyed);
   }
   function refillNitro(driving, ctx) {
     const offer = nitroOffer(driving, ctx);

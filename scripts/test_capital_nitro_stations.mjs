@@ -7,7 +7,8 @@ import { applyAirport } from '../Games/Capital Drive/airport.js';
 import { applyRoadProfiles, roadProfile } from '../Games/Capital Drive/road-network.js';
 import { FUEL_STATIONS, applyStreetAssetRoofs, selectStreetAssets } from '../Games/Capital Drive/street-assets.js';
 import { createStreetAssetsView } from '../Games/Capital Drive/street-assets-view.js';
-import { createNitroStations, NITRO_REFILL_COST } from '../Games/Capital Drive/nitro-stations.js';
+import { createNitroStations, createNitroStationDamage, nitroRefillQuote, NITRO_REFILL_COST, PUMP_DAMAGE_SCALE, PUMP_FIRE_HEALTH } from '../Games/Capital Drive/nitro-stations.js';
+import { createVehicleFires } from '../Games/Capital Drive/vehicle-damage.js';
 import { buildPetrolForecourts } from '../Games/Capital Drive/petrol-forecourts.js';
 import { createProgression } from '../Games/Capital Drive/progression.js';
 
@@ -140,4 +141,55 @@ assert.equal(courts.stats.petrolCanopies + courts.stats.petrolPylons, 0);
 courts.dispose();
 assert.equal(courtScene.children.length, 0);
 marked.dispose(); original.dispose();
-console.log(`PASS ${nitroStations.length} checked petrol bays, actual refill guards, cyan paint, pylon and supported canopy geometry in one bounded draw`);
+
+const stationDamage = createNitroStationDamage(nitroStations, { groundHeightAt: () => 2 });
+const pump = stationDamage.pumpFor(`pump:${kingston.id}`);
+assert(pump && pump.health === PUMP_FIRE_HEALTH && !stationDamage.outOfService(kingston.id));
+assert(stationDamage.near(kingston.x, kingston.z, 12).some(entry => entry.id === pump.id));
+assert(!stationDamage.near(kingston.x + 500, kingston.z, 12).some(entry => entry.id === pump.id));
+const stationFires = createVehicleFires({ resolve: id => stationDamage.pumpFor(id),
+  damage: (id, amount) => stationDamage.burn(id, amount), heightAt: car => car.y });
+const strike = amount => {
+  const previous = pump.health;
+  if (!stationDamage.damage(pump.id, amount)) return false;
+  const ignited = stationFires.recordShot(pump, previous);
+  if (ignited) stationDamage.markBurning(pump.id);
+  return ignited;
+};
+assert(!strike(55), 'a single pistol round only wounds the small pump fixture');
+assert.equal(pump.health, PUMP_FIRE_HEALTH - 55 * PUMP_DAMAGE_SCALE);
+assert(strike(55), 'a second sustained round reaches the shared ignition band');
+assert(stationDamage.outOfService(kingston.id));
+stationFires.step(.1);
+const pool = stationFires.snapshot({ x: pump.x, z: pump.z });
+assert.equal(pool.length, 1, 'a burning station claims exactly one shared fire pool slot');
+assert.equal(pool[0].fire, 1); assert.equal(pool[0].length, pump.length); assert.equal(pool[0].y, 2);
+for (let step = 0; step < 60; step++) stationFires.step(.1);
+assert.equal(pump.health, 0, 'the shared burn tick consumes the pump budget');
+const blasts = stationFires.drainExplosions();
+assert.equal(blasts.length, 1); assert.equal(blasts[0].kind, 'vehicle-fire');
+assert.equal(blasts[0].sourceVehicleId, pump.id);
+assert(Math.abs(blasts[0].x - kingston.x) < .01 && Math.abs(blasts[0].z - kingston.z) < .01);
+assert(Number.isFinite(blasts[0].y));
+for (let step = 0; step < 80; step++) stationFires.step(.1);
+assert.equal(stationFires.tracked, 0, 'wreck smoke expires exactly like wrecked vehicles');
+assert(stationDamage.outOfService(kingston.id), 'a burned pump stays out of service for the session');
+assert(!stationFires.recordShot(pump, pump.health), 'wrecked pumps never reignite');
+tank.nitroFuel = .25;
+const closedQuote = nitroRefillQuote(nitroStations, tank, context, 500, () => true, id => stationDamage.outOfService(id));
+assert(!closedQuote.ok && closedQuote.reason === 'The petrol station is burning.' && closedQuote.station.id === kingston.id);
+const burningCareer = createProgression(map, null, {
+  nitroStations,
+  hasLineOfSight: (car, bay) => visible && simulation.hasLineOfSight(car, bay),
+  isNitroStationDestroyed: id => stationDamage.outOfService(id),
+});
+const beforeCash = burningCareer.state.cash;
+const refusal = burningCareer.refillNitro(tank, context);
+assert(!refusal.ok && refusal.message === 'The petrol station is burning.');
+assert.equal(tank.nitroFuel, .25); assert.equal(burningCareer.state.cash, beforeCash);
+const otherBays = createNitroStationDamage(nitroStations, { groundHeightAt: () => 0 });
+for (const bay of nitroStations) if (bay.id !== kingston.id) otherBays.pumpFor(`pump:${bay.id}`).burning = true;
+assert(nitroRefillQuote(nitroStations, tank, context, 500, () => true, id => otherBays.outOfService(id)).ok,
+  'an intact bay still refills while every other station burns');
+
+console.log(`PASS ${nitroStations.length} checked petrol bays, actual refill guards, cyan paint, pylon and supported canopy geometry in one bounded draw, destroyable pumps with gunfire ignition, session refusal and one bounded fire pool slot`);
