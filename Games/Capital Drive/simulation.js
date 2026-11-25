@@ -1096,6 +1096,15 @@ export function createSimulation(map, options = {}) {
         const across = Math.abs(Math.cos(yaw) * dx - Math.sin(yaw) * dz);
         const clearX=Math.max(0,along-size.length/2),clearZ=Math.max(0,across-size.width/2);
         if(clearX*clearX+clearZ*clearZ>=radius*radius) return false;
+        // A refreshed moving hull can already touch an actor. Permit only
+        // decreasing penetration, so small outward steps can leave that contact.
+        const prior=personLocal(actor,car),next=personLocal({x,z},car);
+        const priorDistance=boxDistance(prior,size.width/2,size.length/2);
+        const nextDistance=boxDistance(next,size.width/2,size.length/2);
+        if(priorDistance<radius-1e-9 && nextDistance>priorDistance+1e-9) {
+          const near={x:prior.x+(next.x-prior.x)*1e-5,z:prior.z+(next.z-prior.z)*1e-5};
+          if(boxDistance(near,size.width/2,size.length/2)>=priorDistance-1e-10) return false;
+        }
         return !nextWater || !options.vehicleHeightAt || vehicleBase(car)<=nextWater.y+.8;
       });
       if(blocked) return false;
