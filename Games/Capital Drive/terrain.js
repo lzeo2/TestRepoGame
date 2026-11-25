@@ -431,15 +431,24 @@ export function createTerrainSampler(map) {
   }
   function vehicleHeightAt(pose,road=null) {
     if(road)return roadHeightAt(road,pose.x,pose.z);
-    let best=Infinity,owner=null;
+    const supportY=Number.isFinite(pose.supportY)&&Number.isFinite(pose.supportX)&&Number.isFinite(pose.supportZ)&&
+      Math.hypot(pose.x-pose.supportX,pose.z-pose.supportZ)<=8?pose.supportY:pose.y;
+    let best=Infinity,owner=null,supportedBest=Infinity,supportedOwner=null;
     for(const segment of vehicleCells.get(`${Math.floor(pose.x/cellSize)},${Math.floor(pose.z/cellSize)}`)||[]) {
       const p=project(pose.x,pose.z,segment.a,segment.b);
       if(p.distance>segment.padding)continue;
       const alignment=Number.isFinite(pose.yaw)?Math.abs((-Math.sin(pose.yaw)*p.dx-Math.cos(pose.yaw)*p.dz)/Math.sqrt(p.lengthSquared||1)):1;
       const score=p.distance+4*(1-alignment);
       if(score<best){best=score;owner=segment.road;}
+      // A live unowned pose can turn underneath an overhead road. Preserve
+      // its current support level instead of snapping to the road it faces.
+      // Allow the body-base offset and local slopes; poses without nearby
+      // vertical support retain the ordinary horizontal spawn/fall lookup.
+      if(Number.isFinite(supportY)&&score<supportedBest&&Math.abs(supportY-roadHeightAt(segment.road,pose.x,pose.z))<=1.5){
+        supportedBest=score;supportedOwner=segment.road;
+      }
     }
-    return roadHeightAt(owner,pose.x,pose.z);
+    return roadHeightAt(supportedOwner||owner,pose.x,pose.z);
   }
 
   function bridgeHeightAt(x, z) {
