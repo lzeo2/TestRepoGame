@@ -51,7 +51,7 @@ for(let i=0;i<8;i++) {
 }
 assert(Math.hypot(sim.player.x-pose.x,sim.player.z-pose.z)>.5,'upper car cannot block lower movement');
 assert.notEqual(sim.player.yaw,pose.yaw,'production steering actually rotates the body');
-sim.setExternalVehicles([{id:'same-lower',...sim.player,active:true}]);
+sim.setExternalVehicles([{...sim.player,id:'same-lower',active:true}]);
 assert(!sim.canOccupy(sim.player),'same-level cars still block the supported ordinary player');
 sim.setExternalVehicles([]);
 assert(sim.teleport(pose).ok);
