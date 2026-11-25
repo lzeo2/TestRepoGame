@@ -29,7 +29,7 @@ for(const approach of chapter.approaches)for(const exit of chapter.exits) {
   assert.equal(planned.stages.at(-1).roomId,undefined);assert.equal(planned.stages.at(-1).x,exit.x);
   assert(planned.stages.slice(0,-1).every(goal=>goal.roomId===plan.id&&goal.y===plan.floorY));
   const entry=guide.guide({target:planned.stages[0]});
-  assert.equal(entry.entryId,plan.id);assert.equal(entry.indoors,false);assert.match(entry.instruction,/Enter.*Gallery/);
+  assert.equal(entry.entryId,plan.id);assert.equal(entry.indoors,false);assert.match(entry.instruction,/marked door of.*Gallery.*press E/);
   assert.deepEqual(guide.guide({target:planned.stages[0]},{plan}).point,{x:planned.stages[0].x,z:planned.stages[0].z});
   assert.equal(guide.guide({target:planned.stages.at(-1)},{plan}).indoors,true,'extraction routes from the interior exit first');
   let latest=null;

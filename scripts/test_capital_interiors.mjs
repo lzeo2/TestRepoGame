@@ -263,7 +263,7 @@ assertActivitiesReachable(restaurant, noodlePlan);
 assert.equal(noodlePlan.activities[0].kind, 'noodle');
 assert.equal(noodlePlan.type, 'shop'); assert.equal(noodlePlan.variant, 'noodles');
 assert.equal(noodlePlan.storeId, noodleStore.id); assert(noodlePlan.counter);
-assert.equal(noodlePlan.depth, 12); assert(noodlePlan.width >= 6.2 && noodlePlan.width <= 7);
+assert.equal(noodlePlan.depth, 16); assert(noodlePlan.width >= 7.2 && noodlePlan.width <= 8.5);
 assert.equal(noodlePlan.exit.width, 2);
 const noodleLocal = p => ({ x: nc * (p.x - noodleEntry.x) - ns * (p.z - noodleEntry.z), z: ns * (p.x - noodleEntry.x) + nc * (p.z - noodleEntry.z) });
 for (const f of noodlePlan.furniture) {
@@ -284,7 +284,7 @@ assert(Math.hypot(noodlePlan.activities[0].x - noodlePlan.counter.x, noodlePlan.
 for (const kind of ['banquette', 'noodle-table', 'padded-chair', 'communal-table', 'stool', 'kitchen-pass', 'noodle-station', 'prep-bench']) {
   assert(noodlePlan.furniture.some(f => f.kind === kind), `restaurant includes ${kind}`);
 }
-for (const kind of ['noodle-bowl', 'chopsticks', 'condiments']) assert.equal(noodlePlan.details.filter(d => d.kind === kind).length, 4);
+for (const kind of ['noodle-bowl', 'chopsticks', 'condiments']) assert(noodlePlan.details.filter(d => d.kind === kind).length >= 4, 'enlarged dining floor keeps its detailed place settings');
 assert.equal(noodlePlan.furniture.filter(f => f.kind === 'shelves').length, 0, 'restaurant is distinct from a generic shop');
 assert(restaurant.hasLineOfSight(diner, noodlePlan.counter));
 function walkDiner(x, z) {

@@ -572,6 +572,16 @@ Occupied drivers must stop first; remain close and visible throughout. Cars you
 have already driven stay unlocked for immediate re-entry. **E** cancels an attempt.
 **1–5** chooses fists/pistol/shotgun/SMG/carbine; buy owned weapons at supplies or fictional street contacts first;
 hold Z or right mouse to aim, move the mouse to aim up/down; Page Up/Down and the touch LOOK stick also change elevation. Left mouse attacks/fires, F melees and R reloads on foot. Recon missions require a steady marked view and a fresh I or SCAN press; evidence cases use X/Y and ↑. Pink victory stages require fists after her noodle throw, then a real knockout.
+Every campaign mission now reads as a first-time tutorial: briefings and stage
+labels name the actual door, counter or booth, the real street or landmark, and
+the exact key (E enter/interact, Q station tasks, F punches, I scans). The Lunch
+breakpoint mission (Rowan, Lambzhou 1919) is deliberately hard to fail: its 540 s
+clock is advisory and never expires the mission, Dot's scripted fight deals trivial
+damage, and a single clean post-bowl knockout wins it; the separate Pink Earmuffs
+rematch keeps its real two-hit fight and full damage. Lambzhou 1919's floor is
+enlarged (width clamped 7.2 to 8.5 m, depth 16 m) with dining rows re-spaced so
+the central 2.1 m aisle, the clear first 2 m and the rear-right Dot booth survive;
+only the noodles interior variant changed.
 **Q** starts the nearby interior mini-game or paid shop task; **T** opens the
 Yoober/Lemon phone. Book outside on foot, walk beside the stopped Yoober and E
 boards; E exits at the destination or requests a stop during travel. Drive for

@@ -105,7 +105,7 @@ for(const yaw of [.7,-1.2]) {
   ordinary.load(plan);
   const guest=ordinary.snapshot().find(p=>p.character==='booth-guest'),actor={...plan.spawn};
   const world=(x,z)=>({x:plan.origin.x+Math.cos(yaw)*x+Math.sin(yaw)*z,z:plan.origin.z-Math.sin(yaw)*x+Math.cos(yaw)*z});
-  for(const target of [world(0,10.6),world(.55,10.6)]) {
+  for(const target of [world(0,2.2),world(0,plan.depth-3.6),world(2,plan.depth-2.65)]) {
     const dx=target.x-actor.x,dz=target.z-actor.z,steps=Math.ceil(Math.hypot(dx,dz)/.15);
     for(let i=0;i<steps;i++) {
       const move=ordinary.clipMovement(actor,dx/steps,dz/steps,.45);
