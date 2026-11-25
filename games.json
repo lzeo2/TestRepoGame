@@ -49,7 +49,9 @@
     "desc": "Fast-paced parkour platformer with slick movements.",
     "url": "Games/Ovo/1.4.5/index.html",
     "featured": true,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Left/right arrows move; Up jumps; Down slides on the ground or smashes downward in the air. Jump while sliding to dive, or while on a wall to wall jump."
   },
   {
     "id": 8,
@@ -59,7 +61,9 @@
     "desc": "Endless space runner through 3D tunnels.",
     "url": "Games/Run3/tn6pS9dCf37xAhkJv/index.html",
     "featured": true,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Left/right arrows steer and rotate around the tunnel; hold Up for a longer jump or tap it for a short jump. Choose Explore Mode for levels or Infinite Mode for an endless run."
   },
   {
     "id": 9,
@@ -1250,7 +1254,9 @@
     "icon": "SF",
     "desc": "Solo browser adaptation of lzeo2's original Roblox game. Recruit 125 footballer identities, steal from NPC rivals and play squad matches. Saves in this browser.",
     "url": "Games/StealFootballer/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "WASD/arrows move; E interacts; Space jumps outside matches. Drag the mouse to look and scroll to zoom. Use SHOP to recruit and BATTLE for squad matches; F uses a ready ability during a match. Escape closes panels. Touch movement, jump and interaction controls are available."
   },
   {
     "id": 229,

@@ -134,3 +134,21 @@ that click and could return before React reset the input and the authored 80ms
 observer restored it. Exact query and Soccer Random assertions remain; the check
 uses a condition rather than a fixed delay. The same old immediate-read failure
 was reproduced against unchanged HEAD portal source before adjusting the test.
+
+### Verified controls metadata addendum (delegation 5)
+
+Added `players: "1"` and `howto` to **Ovo**, **Run 3** and **Steal a Footballer
+for Your Team**. Both missing-field counts fall from **124/135 to 121/135**;
+no entries, IDs or existing fields changed. Capital Drive: Canberra (Preview),
+Steal a Basketballer (Preview) and Chess Workshop already had both fields and
+were preserved. These are simultaneous local player counts, not squad sizes.
+
+Evidence inspected: Ovo's tracked `Games/Ovo/1.4.5/data.js` tutorial strings
+("Use arrow keys to move", Up to jump, Down to slide, air smash, wall jump and
+slide dive); `Games/Run3/README.md` instructions (left/right tunnel rotation,
+Up jump duration, Explore/Infinite modes); Footballer's `index.html` start
+controls and `js/app.js` key/pointer/touch handlers and solo settings copy.
+This narrow inspection does not accept those games' complete gameplay or
+multiplayer behavior. The Footballer portal Info panel was opened using the
+card's `i` key: its new controls and solo count rendered, initial focus was
+Play, Tab reached Close, and Escape restored its Info button focus. No game was launched.
