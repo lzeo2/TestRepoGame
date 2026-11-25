@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {createCareerTraining} from '../Games/Capital Drive/career-training.js';
 import {createProgression} from '../Games/Capital Drive/progression.js';
 const moduleURL=async url=>{
   let source=await readFile(url,'utf8');
@@ -77,13 +78,13 @@ assert.equal(controller.selectCampaignCharacter('basement').ok,false);assert.dee
 // Mission/pagehide saves retain the last resumable checkpoint, and legacy is never captured as a normal hero.
 const stored=env.protagonists.serialize();campaign.state.active={};gameplay.state.actor.x=99;controller.captureActiveProtagonist();assert.deepEqual(env.protagonists.serialize(),stored);
 campaign.state.active=null;campaign.state.character='legacy';controller.captureActiveProtagonist();assert.deepEqual(env.protagonists.serialize(),stored);
-let written;Object.assign(env,{clearingProgress:false,careerError:'',campaignWorld:null,streetWorld:null,campaignAftermath:null,isSandbox:()=>false,CAREER_KEY:'fixture',localStorage:{setItem(key,value){written=JSON.parse(value);}},$:()=>({}),notify(){}});
+let written;Object.assign(env,{training:createCareerTraining(),clearingProgress:false,careerError:'',campaignWorld:null,streetWorld:null,campaignAftermath:null,isSandbox:()=>false,CAREER_KEY:'fixture',localStorage:{setItem(key,value){written=JSON.parse(value);}},$:()=>({}),notify(){}});
 simulation.driving.nitroFuel=.35;
 env.progression.state.ownedVehicles=[];env.progression.serialize=()=>({cash:env.progression.state.cash});campaign.serialize=()=>({version:2,character:campaign.state.character});
 const saveCareer=Function('env',`with(env){${source.slice(source.indexOf('function saveCareer() {'),source.indexOf('function routeTo(point) {'))};return saveCareer;}`)(Object.assign(env,controller));
 saveCareer();
 assert.equal(written.cash,cash);assert.deepEqual(written.protagonists,stored);assert.equal(written.campaign.version,2);
-const {campaign:storedCampaign,protagonists:storedHeroes,nitroFuel,...careerRecord}=written;assert.deepEqual(careerRecord,{cash});assert.equal(nitroFuel,.35);assert.equal(storedCampaign.version,2);assert.deepEqual(createProtagonistState(storedHeroes,{bounds:map.bounds}).serialize(),stored);
+const {campaign:storedCampaign,protagonists:storedHeroes,nitroFuel,trainingProfiles,...careerRecord}=written;assert.deepEqual(trainingProfiles,env.training.serialize());assert.deepEqual(careerRecord,{cash});assert.equal(nitroFuel,.35);assert.equal(storedCampaign.version,2);assert.deepEqual(createProtagonistState(storedHeroes,{bounds:map.bounds}).serialize(),stored);
 const worldRecords = { campaignWorld: { version: 1 }, streetWorld: { version: 1 }, campaignAftermath: { version: 1 } };
 Object.assign(env,{campaignWorld:{snapshot:()=>worldRecords.campaignWorld},streetWorld:{snapshot:()=>worldRecords.streetWorld},campaignAftermath:{serialize:()=>worldRecords.campaignAftermath}});
 saveCareer();
@@ -92,7 +93,7 @@ env.clearingProgress=true;
 written=null;saveCareer();
 assert.equal(written,null,'an in-progress profile clear cannot save over itself');
 env.clearingProgress=false;
-assert(source.includes('protagonists:savedProtagonists,nitroFuel:savedNitro,campaignWorld:savedWorld,streetWorld:savedStreetWorld,campaignAftermath:savedAftermath,...careerSave'),'outer optional records are removed before strict career validation');
+assert(source.includes('protagonists:savedProtagonists,nitroFuel:savedNitro,campaignWorld:savedWorld,streetWorld:savedStreetWorld,campaignAftermath:savedAftermath,trainingProfiles:savedTraining,...careerSave'),'outer optional records are removed before strict career validation');
 assert(source.includes('!isSandbox()&&!heroCheckpoint'),'resume does not replay starter ammunition');
 assert(!body.includes('applyPlayerVehicle('),'restore only refreshes the mesh, preserving parked car placement');
 assert(source.includes("button.disabled=choice.id==='fight'&&protectedWork()"),'dialog pause cannot disable Fight');

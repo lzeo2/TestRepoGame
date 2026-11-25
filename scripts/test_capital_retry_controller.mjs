@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import {createCareerTraining} from '../Games/Capital Drive/career-training.js';
 import { createCampaign } from '../Games/Capital Drive/campaign.js';
 import { createProgression } from '../Games/Capital Drive/progression.js';
 import { createProtagonistState, PROTAGONIST_IDS } from '../Games/Capital Drive/protagonist-state.js';
@@ -51,6 +52,7 @@ const env = {
   started: true, clearingProgress:false, gameMode: 'campaign', careerError: '', missionCheckpoint: null, developerReturn: null,
   campaignWorld:null,streetWorld:null,campaignAftermath:null,heists:null,depotTank:null,lightRail:null,
   inquiryOfficer:null,inquiryHarm:false,policeStations:null,shotObstacles:null,
+  training:createCareerTraining(),
   campaign, progression, simulation, interiors, map, PROTAGONIST_IDS,
   createProtagonistState: (saved, { bounds }) => createProtagonistState(saved, { bounds }),
   protagonists: createProtagonistState(null, { bounds: map.bounds }),
@@ -106,6 +108,7 @@ const env = {
 };
 vm.createContext(env);
 vm.runInContext([
+  'crewAtPlayer','trainingContext','trainingCredit',
   'missionLaunchReason', 'startCampaignMission', 'reportCampaignIncident', 'captureMissionPosition', 'rememberMissionStep', 'advanceCampaign',
   'activeWorldRecord', 'resetCampaignWorld', 'acceptMissionCheckpoint', 'prepareFailedMissionReturn',
   'restoreMissionRoom', 'restoreFailedMission', 'endCampaignAttempt', 'saveCareer', 'updateCareer',
@@ -119,6 +122,7 @@ env.startCampaignMission();
 assert(campaign.state.active);
 assert.equal(write.length, 1);
 const before = write[0];
+assert.deepEqual(before.trainingProfiles,env.training.serialize(),'actual training records are saved with career');
 const startedBody = env.missionCheckpoint.body;
 assert.equal(startedBody.health, 71);
 assert.equal(startedBody.wanted, 2);
@@ -179,13 +183,18 @@ env.startCampaignMission();
 assert(campaign.state.active);
 progression.state.cash = 999;
 campaign.state.active = null;
+env.missionCheckpoint.completionCrewPresent=true;
 const actualDrain = campaign.drainEvents;
-campaign.drainEvents = () => [{ type: 'complete', reward: 120, message: 'Completed' }];
+campaign.drainEvents = () => [{ type: 'complete', id:'student-paper-chase', reward: 120, message: 'Completed' }];
 env.updateCareer(.02);
 campaign.drainEvents = actualDrain;
 assert.equal(env.missionCheckpoint, null);
 assert.equal(progression.state.cash, 1119);
 assert.equal(write.at(-1).cash, 1119);
+assert.equal(write.at(-1).trainingProfiles.campaign.player.earned,1,'committed completion persists a real training credit');
+assert.equal(write.at(-1).trainingProfiles.campaign.crew.earned,1,'terminal crew presence survives scene teardown before event drain');
+assert.equal(write.at(-1).trainingProfiles.street.player.earned,0,'campaign commit does not train Street Life');
+assert.equal(createCareerTraining(write.at(-1).trainingProfiles).describe('campaign').player.earned,1);
 assert.equal(placementChecks, 3);
 const completedWrites = write.length;
 env.clearingProgress = true;
