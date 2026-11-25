@@ -39,8 +39,10 @@ for(let i=0;i<20;i++) {
   compare(.1,1,square,.5);
 }
 distances=0;
-assert.equal(occupied(-.1,2,[[0,0],[4,0],[4,4],[0,4]],1),true);
-assert.equal(distances,1,'a close first edge ends boolean feasibility immediately');
+const firstEdgeOnly=[[0,0],[4,0],[4,4],[0,4]];
+Object.defineProperty(firstEdgeOnly,1,{get(){assert.fail('a close first edge must end boolean feasibility immediately');}});
+assert.equal(occupied(-.1,2,firstEdgeOnly,1),true);
+assert.equal(distances,0,'boolean feasibility uses squared distance');
 console.log(`Capital static occupancy: ${probes} exact contact-presence comparisons passed; live geometry, strict boundary and early exit passed`);
 
 // Compare the real static feasibility owner against its original contact path.

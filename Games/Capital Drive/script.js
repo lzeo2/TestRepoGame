@@ -1,4 +1,4 @@
-import {loadGameData} from './game-data.js';
+import {GAME_DATA_FILES,loadGameData} from './game-data.js';
 import {createTutorial} from './tutorial.js';
 import {createActivityUI} from './activity-ui.js';
 import {createTouchJoystick} from './touch-joystick.js';
@@ -136,6 +136,7 @@ import {planSafehouseReturn} from './safehouse-recovery.js';
 import {applyMapExpansion,expansionPlaces} from './map-expansion.js';
 import {applyNorthWest} from './north-west.js';
 import {applyRegionalExpansion} from './regional-expansion.js';
+import {applyResidentialExpansion} from './residential-expansion.js';
 import {applyAnuCampus,anuBridgeHeightAt} from './anu-campus.js';
 import {createAnuCampusView} from './anu-campus-view.js';
 import {createMacquarieShopsView,MACQUARIE_SHOPS_REFERENCE} from './macquarie-shops-view.js';
@@ -1667,15 +1668,14 @@ function interactWatercraft(){
 }
 function interiorHint(){
   if(skylineLease){
-    const {stage,objective}=skylineJob.snapshot();
+    const {stage,marker}=skylineJob.snapshot(),pose=focus();
     if(stage==='freefall')return 'WASD steer · Release over the ring';
-    if(stage==='flare')return 'Stay inside the landing ring';
+    if(stage==='flare')return '';
     if(stage==='flight')return aircraft.snapshot().prompt;
     if(skylineAtv.seatPose)return 'WASD drive ATV · E / USE hop off when stopped';
-    const marker=skylineJob.snapshot().marker;
-    const usable=['search','capture','safe-approach','loot','helipad','boarding'].includes(stage);
-    if(usable&&marker&&Math.hypot(marker.x-focus().x,marker.z-focus().z)<=marker.radius)return `E / USE · ${objective}`;
-    return nearbySkylineAtv(focus())?'E / USE · Ride the ATV':objective;
+    const action={search:'Activate cache',capture:'Capture cache','safe-approach':'Open safe',loot:'Collect case',helipad:'Board helicopter',boarding:'Board helicopter'}[stage];
+    if(action&&marker&&Math.hypot(marker.x-pose.x,marker.z-pose.z)<=marker.radius)return `E / USE · ${action}`;
+    return nearbySkylineAtv(pose)?'E / USE · Ride the ATV':'';
   }
   if(jetpack?.active)return 'SPACE rise · SHIFT descend · U land · Z aim';
   if(inquiryOfficer&&!interiors.active&&campaignAftermath.canSpeak(focus()))return 'E / USE · Speak to the investigating officer';
@@ -2134,7 +2134,7 @@ function openCampaign(){
 }
 function openNpcDialogue(person){
   const lunch=gameMode==='campaign'&&currentHero()?.id==='corporate'&&campaign.state.active?.id==='corporate-lunch-breakpoint';
-  if(lunch&&campaign.state.active.stage===0){notify('Order first: walk down the aisle to the marked service counter and press E there. Dot talks after that.');return;}
+  if(lunch&&campaign.state.active.stage===0){notify('Stand beside the marked service counter until the booth objective appears.');return;}
   const goal=campaign.state.active?.target,victoryRequired=gameMode==='campaign'&&goal?.victory===true&&['encounter','fight'].includes(goal.kind);
   const scriptedFight=lunch&&campaign.state.active.target.kind==='encounter';
   const result=roomPeople.startDialogue(person.id,{actor:focus(),hasLineOfSight:visible,scriptedFight:scriptedFight||victoryRequired,victoryRequired,missionId:victoryRequired?campaign.state.active.id:null});
@@ -2186,7 +2186,8 @@ function renderMissionGuide(){
     const metres=Number.isFinite(missionGuideState.distance)?` · ${Math.round(missionGuideState.distance)} m`:'';
     const stealth=active?.assassination?contractTarget?.snapshot()?.stealth:null;
     const status=stealth?.alerted?' · Alerted':stealth?.guard?.suspicion>.25||stealth?.suspicion>.25?' · Suspicious':stealth?.disguised?' · Disguised':'';
-    $('job-description').textContent=`${missionGuideState.instruction}${metres}${status}`;
+    const description=$('job-description'),line=`${missionGuideState.instruction}${metres}${status}`;
+    if(description.textContent!==line)description.textContent=line;
   }
   if(indoorObjective){
     indoorObjective.visible=!!(interiors.active&&missionGuideState?.indoors);
@@ -3833,7 +3834,7 @@ function syncExternalPeople(){
   for(const person of pedestrians.writeContacts(pedestrianContacts))externalPeopleContacts.push(person);
   for(const person of streetDealers.snapshot())add(person,.34);
   for(const person of rideService?.people||[])if(person.active)add(person,.38);
-  for(const person of campaignScenes?.people||[])if(!person.seated&&!person.interiorId)add(person,.32);
+  for(const person of campaignScenes?.people||[])if(!person.seated&&!person.bedRider&&!person.interiorId)add(person,.32);
   if(contractTarget?.body?.health>0)add(contractTarget.body,.34);
   if(contractTarget?.guardBody?.health>0)add(contractTarget.guardBody,.34);
   if(skylineLease){
@@ -4182,14 +4183,15 @@ function animate(time) {
   if (hudTime > .18) { renderBurglaryHUD();updateHud(); if(!missionFailureTitle)streetUI.refresh();renderMissionGuide(); hudTime = 0; }
 }
 async function boot() {
-  const responses = await loadGameData(['./data/canberra.json','./data/addresses.json','./data/road-profiles.json','./data/canberra-north.json','./data/north-terrain.json','./data/traffic-signals.json','./data/airport.json','./data/airport-terrain.json','./data/north-west.json','./data/north-west-terrain.json','./data/giant-spray.json','./data/region-belconnen.json','./data/region-north.json','./data/region-south.json']);
+  const responses = await loadGameData(GAME_DATA_FILES);
   if (responses.some(response=>!response.ok)) throw new Error('Local map or address data could not be loaded.');
-  const [response,addressResponse,profileResponse,northResponse,terrainResponse,signalResponse,airportResponse,airportTerrainResponse,northWestResponse,northWestTerrainResponse,giantSprayResponse,...regionResponses] = responses;
+  const [response,addressResponse,profileResponse,northResponse,terrainResponse,signalResponse,airportResponse,airportTerrainResponse,northWestResponse,northWestTerrainResponse,giantSprayResponse,residentialResponse,...regionResponses] = responses;
   map = applyStreetAssetRoofs(applyMapExpansion(applyRoadProfiles(await response.json(),await profileResponse.json()),await northResponse.json()));
   map.terrainTiles=[(await terrainResponse.json()).terrain];
   map=applyDefenceDepot(applyAirport(map,await airportResponse.json(),await airportTerrainResponse.json()));
   map=applyNorthWest(map,await northWestResponse.json(),await northWestTerrainResponse.json(),await giantSprayResponse.json());
   map=applyRegionalExpansion(map,await Promise.all(regionResponses.map(response=>response.json())));
+  map=applyResidentialExpansion(map,await residentialResponse.json());
   map=applyAnuCampus(map);
   const {id:shopsId,name:shopsName,x:shopsX,z:shopsZ,radius:shopsRadius}=MACQUARIE_SHOPS_REFERENCE;
   map.landmarks.push({id:shopsId,name:shopsName,x:shopsX,z:shopsZ,radius:shopsRadius,aliases:['Macquarie Place','Macquarie shops']});

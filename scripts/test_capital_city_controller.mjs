@@ -111,7 +111,7 @@ assert(source.includes('onVehicleShot:hitWorldVehicle,onVehicleExplosion:damageE
 assert(source.includes("if(event.code==='KeyL'&&!paused()){activatePower();return;}"));
 assert.match(source,/event\.code==='KeyN'&&!paused\(\)\)\{\s*if\(droneActive\)toggleDroneNightVision\(\);\s*else toggleHeadlights\(\);/);
 assert(source.includes('attacksAllowed:canCrewAttack()'));
-assert(source.includes('if(!person.seated&&!person.interiorId)add(person,.32)'));
+assert(source.includes('if(!person.seated&&!person.bedRider&&!person.interiorId)add(person,.32)'), 'crew riding in the cab or tray never creates a pedestrian contact on the car');
 console.log('PASS city controller helpers: numeric/identity shot separation, indoor exclusion, pose-aware bridge pitch, night/manual headlights, actual room hooks/disposal and preserved power key');
 
 const tinyMap={bounds:{minX:-500,maxX:500,minZ:-500,maxZ:500},roads:[{id:'main',name:'Example Street',points:[[-400,0],[400,0]],nodes:[1,2],width:12,speed:40}],buildings:[],spawn:{x:0,z:0,yaw:0},landmarks:[]};

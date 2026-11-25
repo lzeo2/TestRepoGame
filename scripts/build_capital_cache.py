@@ -62,9 +62,9 @@ def js_references(source):
     tokens = js_tokens(source)
     references = []
     for i, (kind, value) in enumerate(tokens):
-        if kind != 'token' or value not in ('import', 'export', 'fetch', 'new', 'loadGameData'):
+        if kind != 'token' or value not in ('import', 'export', 'fetch', 'new', 'loadGameData', 'GAME_DATA_FILES'):
             continue
-        following = tokens[i + 1:] if value in ('import', 'export', 'loadGameData') else tokens[i + 1:i + 5]
+        following = tokens[i + 1:] if value in ('import', 'export', 'loadGameData', 'GAME_DATA_FILES') else tokens[i + 1:i + 5]
         if value == 'export' and (not following or following[0][1] not in ('*', '{')):
             continue
         if value in ('import', 'export'):
@@ -85,8 +85,15 @@ def js_references(source):
                             raise ManifestError('module imports must use a literal URL')
                         references.append(following[j + 1][1])
                         break
+        map_literals = None
         if value == 'loadGameData' and len(following) > 2 and following[0][1] == '(' and following[1][1] == '[':
-            for item_kind, item in following[2:]:
+            map_literals = following[2:]
+        if value == 'GAME_DATA_FILES' and i and tokens[i - 1] == ('token', 'const'):
+            if [token[1] for token in following[:6]] != ['=', 'Object', '.', 'freeze', '(', '[']:
+                raise ManifestError('GAME_DATA_FILES must be a frozen array of literal URLs')
+            map_literals = following[6:]
+        if map_literals is not None:
+            for item_kind, item in map_literals:
                 if item == ']':
                     break
                 if item_kind == 'string':

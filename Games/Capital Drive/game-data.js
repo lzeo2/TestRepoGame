@@ -1,10 +1,12 @@
 // Read the active worker's complete map revision without creating fetch requests.
-const DATA_FILES = new Set([
+export const GAME_DATA_FILES = Object.freeze([
   'data/canberra.json', 'data/addresses.json', 'data/road-profiles.json',
   'data/canberra-north.json', 'data/north-terrain.json', 'data/traffic-signals.json',
   'data/airport.json','data/airport-terrain.json',
   'data/north-west.json','data/north-west-terrain.json','data/giant-spray.json',
+  'data/residential-supplement.json',
   'data/region-belconnen.json','data/region-north.json','data/region-south.json',
+  'data/region-molonglo.json','data/region-west-belconnen.json',
 ]);
 const MESSAGE_TYPE = 'CAPITAL_CACHE_FILES';
 
@@ -22,10 +24,10 @@ export async function loadGameData(urls, {
   const resolved = urls.map(url => new URL(url, base).href);
   const fallback = () => Promise.all(resolved.map(url => fetchFile(url)));
   const controller = serviceWorker?.controller;
-  const allowed = new Set([...DATA_FILES].map(url => new URL(url, base).href));
+  const allowed = new Set(GAME_DATA_FILES.map(url => new URL(url, base).href));
   if (!controller || controller.scriptURL !== new URL('service-worker.js', base).href ||
       !cacheStorage?.match || !Channel ||
-      resolved.length !== DATA_FILES.size || new Set(resolved).size !== DATA_FILES.size ||
+      resolved.length !== allowed.size || new Set(resolved).size !== allowed.size ||
       resolved.some(url => !allowed.has(url))) return fallback();
 
   let channel, timer;
