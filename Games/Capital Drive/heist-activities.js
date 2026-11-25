@@ -10,7 +10,8 @@ const VAULT = Object.freeze({ ...RULES.bank, lootName:'Vault cash', label:'Vault
 const BUTTONS = Object.freeze({ x: 'X', y: 'Y', up: '↑' });
 const KEYS = Object.freeze(Object.keys(BUTTONS));
 const PARCELS = Object.freeze({ x:'Blue circle', y:'Blue triangle', up:'Gold circle' });
-const DISPATCH_NOTE = 'Dispatch note: choose the blue parcel with a triangle label.';
+const DISPATCH_KEYS = Object.freeze(['y','up','x']);
+const dispatchNote = key => `Dispatch note: choose the parcel labelled ${PARCELS[key].toLowerCase()}.`;
 const EMPTY = Object.freeze({ active: false, site: null, phase: null, guidance: '', target: null,
   indoorTarget: null, employeeId: null, challenge: null, hostage: null, remaining: 0,
   nextAction: '', substep: 0, stepCount: 0, feedback: '' });
@@ -55,7 +56,7 @@ function loadSites(sites) {
 
 export function createHeistActivities({ sites = [], onHeat, onReward, canSee = () => true } = {}) {
   const locations = loadSites(sites), cooldowns = new Map();
-  let current = null, clock = 0, serial = 0;
+  let current = null, clock = 0, serial = 0, dispatchSerial = 0;
 
   function nearby(pose) {
     if (!isPoint(pose)) return null;
@@ -202,9 +203,10 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
       // Capture actual arrival once, so a departing tram does not erase the selection.
       current.pickupReceipt = Object.freeze({ stopId:ctx.railStopId, point:toPoint(ctx.pose) });
       current.phase = 'dispatch';
+      current.dispatchKey = DISPATCH_KEYS[dispatchSerial++ % DISPATCH_KEYS.length];
       current.armed = false;
       current.feedback = '';
-      return message(true, DISPATCH_NOTE);
+      return message(true, dispatchNote(current.dispatchKey));
     }
     if (ctx.indoors) {
       const site = indoorSite(ctx);
@@ -296,12 +298,12 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
       if (!held.length) { attempt.armed = true; return null; }
       if (!attempt.armed) return null;
       attempt.armed = false;
-      if (held.length === 1 && held[0] === 'y') {
+      if (held.length === 1 && held[0] === attempt.dispatchKey) {
         beginPuzzle(attempt);
-        attempt.feedback = 'Blue triangle matched the dispatch note. Now copy the parcel seal symbols.';
+        attempt.feedback = `${PARCELS[attempt.dispatchKey]} matched the dispatch note. Now copy the parcel seal symbols.`;
         return message(true, attempt.feedback);
       }
-      attempt.feedback = 'Try again: the note asks for BOTH blue and triangle. Choose Y: Blue triangle. Release the buttons first.';
+      attempt.feedback = `Try again: match both the colour and shape in the note. Choose ${BUTTONS[attempt.dispatchKey]}: ${PARCELS[attempt.dispatchKey]}. Release the buttons first.`;
       return message(false, attempt.feedback);
     }
 
@@ -357,10 +359,10 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     } else if (phase === 'dispatch') {
       substep=3; nextAction='Identify the parcel from the dispatch note';
       feedback=current.feedback || '';
-      guidance=`${DISPATCH_NOTE} X: Blue circle. Y: Blue triangle. ↑: Gold circle. ${feedback}`;
+      guidance=`${dispatchNote(current.dispatchKey)} X: Blue circle. Y: Blue triangle. ↑: Gold circle. ${feedback}`;
       challenge=Object.freeze({ active:true, kind:'heist', phase:'dispatch', acceptsInput:true,
         label:`Parcel dispatch · Step 3/${stepCount}`, sequence:KEYS, options:PARCELS,
-        instruction:DISPATCH_NOTE, guidance:`${feedback || 'Press X, Y or ↑, or tap its labelled button. Release between choices.'} E / USE cancels.` });
+        instruction:dispatchNote(current.dispatchKey), guidance:`${feedback || 'Press X, Y or ↑, or tap its labelled button. Release between choices.'} E / USE cancels.` });
     } else if (phase === 'puzzle') {
       substep = site.kind === 'rail' ? 4 : site.kind === 'bank' ? 2 : 1;
       nextAction = `Match symbol ${index + 1} of ${sequence.length}`;
