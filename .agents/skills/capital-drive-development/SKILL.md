@@ -1,302 +1,113 @@
 ---
 name: capital-drive-development
-description: Develop or verify the existing offline Capital Drive Canberra game, including Street Life rules, free roam, source-derived geography, original landmarks and bounded test evidence.
+description: Develop, debug, verify and profile the existing offline Capital Drive Canberra game. Use for its feature owners, campaign and NPC mechanics, sourced map/terrain imports, procedural houses and streaming, offline cache and bounded release evidence.
 ---
 
-Use this skill for changes to the existing `Games/Capital Drive/` project, catalog 245.
-It does not authorize another game, registration, publication or a push.
+Use this skill for the existing `Games/Capital Drive/` project, catalog 245.
+It supplies a development procedure, not authorization for a new game, source
+acquisition, registration, publication, credentials, deployment or push. The
+current user instruction controls the authorized work.
 
-Read repository `AGENTS.md`, `docs/CODE_QUALITY.md`,
-`docs/maintenance/README.md`, `docs/maintenance/games/245-capital-drive.md`,
-`docs/maintenance/inventory.json`, `docs/capital-drive-street-life-contract.md`
-`docs/capital-drive-expansion-contract.md` and
-`docs/capital-drive-stores-pool-contract.md`,
-`docs/capital-drive-precinct-character-contract.md` and
+## Start with the actual checkout
+
+Read `AGENTS.md`, `docs/CODE_QUALITY.md`, `docs/maintenance/README.md`,
+`docs/maintenance/games/245-capital-drive.md` and the relevant entry in
+`docs/maintenance/inventory.json`. Inspect current source and callers before
+trusting an old receipt or this skill's example counts. Read the topic contracts
+linked by the manual; distinguish their dated evidence from current acceptance.
+
+From the repository root:
+
+```sh
+git status --short
+git branch --show-current
+git rev-parse HEAD
+df -h /
+git ls-files 'Games/Capital Drive/*' '.agents/skills/capital-drive-development/*'
+```
+
+When sparse checkout is enabled, record its selection and inspect missing files
+with `git show HEAD:'Games/Capital Drive/<file>'`. Expand only necessary paths,
+then restore the original selection. Keep at least 2 GiB free before downloads,
+exports or checkout growth. Preserve other people's changes. Use explicit owned
+paths and bounded disjoint tasks if delegation is authorized; coordinate the
+controller, data files, cache stamps and Git index with their owners.
+
+## Choose the reference for the work
+
+- [Architecture and verification](references/architecture-and-verification.md):
+  owner map, feature admission, campaign/receipt/retry/NPC invariants, focused
+  test selection, offline cache and review/release handoff.
+- [Source maps and performance](references/source-maps-and-performance.md):
+  reproducible geographic imports, region and housing coverage, terrain support,
+  bridge/floor levels, lazy houses/streaming, attribution and measured profiling.
+- [Detailed topic recipes](references/workflow.md): existing feature-specific
+  procedures and historical continuations. Consult the section for the touched
+  subsystem; check its paths, counts and controls against current code. Do not
+  turn a historical browser receipt into a fresh result.
+
+Common contracts are `docs/capital-drive-street-life-contract.md`,
+`docs/capital-drive-story-and-streaming-contract.md`,
+`docs/capital-drive-cache-and-performance-contract.md`,
+`docs/capital-drive-city-systems-contract.md` and the manual's latest source and
+verification links. Geographic work also reads `docs/capital-drive-sources.md`,
 `docs/capital-drive-district-sources.md`,
-`docs/capital-drive-living-interiors-contract.md` and
-`docs/capital-drive-living-sources.md` and
-`docs/capital-drive-unlock-contract.md` and
-`docs/capital-drive-arms-and-streets-contract.md` and
-`docs/capital-drive-yoober-contract.md` and
-`docs/capital-drive-signals-transport-crime-contract.md`.
-Shared street/vehicle character work also reads `docs/capital-drive-people-contract.md`.
-Three-character, gym, indoor encounter and sourced street-detail work also reads
-`docs/capital-drive-canberra-life-contract.md` and
-`docs/capital-drive-canberra-life-sources.md` and
-`docs/capital-drive-story-and-streaming-contract.md` and
-`docs/capital-drive-cache-and-performance-contract.md`.
-Indoor police, driving starts, wanted jobs, stored-map reads and mission-preview
-work also reads `docs/capital-drive-indoor-pursuit-contract.md`.
-Vehicle launches and player ragdolls also read
-`docs/capital-drive-vehicle-impact-contract.md`.
-Tutorial, interface and activity presentation changes also read
-`docs/capital-drive-tutorial-and-ui-contract.md`.
-Mobile controls, crew boarding/switching, powers, throwables, garage modifications,
-airport, backyards, weather and car damage also read
-`docs/capital-drive-crew-and-city-contract.md` and its linked airport sources.
-Vertical shooting, camera feedback, deliberate recon, evidence tasks and modern
-Pink Earmuffs fights also read `docs/capital-drive-combat-and-recon-contract.md`
-and its linked verification receipt.
-Sustained bridge stalls, medical placement, automatic mission retry and all-mission
-audits also read `docs/verification/capital-drive-sustained-bridges-2026-11-16.md`
-and `docs/verification/capital-drive-campaign-playability-2026-11-16.md` alongside
-the cache/performance contract. Normal domain-chain completion is not native
-travel, survival or human difficulty evidence.
-City commerce, high-wanted checkpoints, player/police drones, camera reporting,
-vehicle bullet damage, house break-ins, source-footprint rooms and bridge-level support also read
-`docs/capital-drive-city-systems-contract.md` and its current verification receipt.
-Then follow [the concrete workflow](references/workflow.md). Check current source
-against those records; historical test counts are dated evidence.
+`docs/capital-drive-regional-sources.md` and the relevant sidecar attribution.
+House work also reads the living-interiors and vehicle-impact contracts. Combat,
+recon, crew, transport and aircraft changes read their respective topic contracts.
 
-The repository root is the static document root. There is no build or package
-installation step. Use existing Node and Python; keep optional browser/geodata
-packages and raw downloads outside the repository. Runtime imports stay local.
+## Implement through the owner
 
-Before editing, identify each affected state owner and its callers. Keep module
-ownership explicit. If delegating under an authorized multi-agent task, use
-disjoint files, bounded tasks and exclusive staging windows. Never edit the
-protected Character AI tree, bundled portal JavaScript or disabled proxy backend.
-Check disk and sparse selection before expanding any checkout; retain at least
-2 GiB free. Never infer absence from a sparse-excluded path.
+This is a static site with local ES modules and no application build step or npm
+installation. Serve the repository root when a browser is needed: the game uses
+shared local assets outside its own directory. Keep raw data, optional developer
+packages, exact source exports and evidence outside the checkout.
 
-The controller owns the sole loop, input, modes, storage and UI. Pure modules
-accept injected context and supplied dt. Street Life cannot teleport or earn from
-sandbox travel. Invalid/denied career saves remain unwritten. Source observations
-must be recorded honestly; proprietary reference imagery is never bundled.
+`script.js` owns the sole loop, live input/context, mode transitions, storage and
+integration. Feature modules own supplied-time state or pooled presentation.
+Identify the authoritative owner, its caller and its regression before changing
+anything. Keep cash, items, offences, completion and receipts with their existing
+owners. A view, caller boolean, menu click or elapsed caption cannot grant them.
 
-Run the bounded authored check runner from the repository root:
+Preserve Campaign, Street Life and Free roam separation; save schema/migration
+and denied-storage handling; exact source geometry and source IDs; shared actor,
+vehicle, room, shot-cover and terrain ownership; bounded allocation and disposal.
+Do not add remote runtime requests/assets, another RAF or a second timer owner.
+Do not touch protected games, bundled portal JavaScript or the disabled proxy.
+
+For a feature, describe the trigger and resulting behavior, patch the smallest
+owner boundary, and leave a meaningful focused regression with negative cases.
+Test the actual domain modules and adapters. Label detached fixtures, setup
+teleports and synthetic wallets as such. Read-only diagnostics are for evidence,
+not positive proof of naturally earned progression.
+
+## Verify at the right scope
+
+Run touched JS syntax checks and the focused suites listed in the architecture
+reference first. Use the authored runner to inspect the larger plan:
 
 ```sh
 python3 -B scripts/check_capital_drive.py --help
 python3 -B scripts/check_capital_drive.py --dry-run
-python3 -B scripts/check_capital_drive.py
 ```
 
-The paths in examples assume the repository root. The runner itself resolves that
-root from its own file. It requires all documented modules/suites and fails on a
-missing file or failed command. It installs nothing and runs no full-fleet test,
-regeneration, maintenance refresh, save reset or push.
+`python3 -B scripts/check_capital_drive.py` is the bounded whole-game source gate,
+not the default loop for each tiny edit. Run it for an integration milestone or
+when the requested scope requires it. It checks required files, syntax, suites,
+cache and whitespace, stops at failure and has a 900-second overall budget.
+Do not weaken its assertions, timeouts or missing-file checks to get green.
+A full-fleet `smoke_test_games.py` run is reserved for an explicit push/release
+order under repository rules. A source pass does not prove native play or FPS.
 
-For fresh combat/recon evidence, use the standalone native command in the
-combat/recon contract. Earlier browser flows require review against current
-controls and encounter semantics before serving as current acceptance.
-For other explicitly needed browser evidence, choose a fresh directory outside
-the repository and pass it with `--browser --output`. Browser checks use a temporary
-localhost server and terminate it. The default is the district/campaign suite. Earlier store/pool runs are retained as dated evidence.
-`--expansion-browser` and `--classic-browser` retain the earlier suites. Normal
-E first stops a moving car and a second E exits; the harness must respect that.
-Browser closure must run before leaving the Playwright context (ExitStack/LIFO),
-so cleanup errors cannot mask results. Retain failed runs and their cause.
-Record actual results and limitations; a pure
-pass does not establish native gameplay, visual quality or N100 performance.
-Commit only owned paths. Update maintenance prose/inventory after the source
-commit, run its checker, and hand off exact commits, commands, results and holds.
+Only the designated integration owner regenerates the offline closure after the
+last runtime change. A documentation-only skill edit does not require a cache
+stamp. For requested native evidence, choose the relevant existing bounded
+harness, a fresh external output directory and one coordinated browser slot.
+Review current arguments/controls; terminate its temporary server/browser and
+retain failed evidence. Do not manufacture progress, bypass collision or filter
+unexpected errors out of the result.
 
-
-Mapped store names are original parodies; real source names stay in provenance
-and search aliases, with parody labels displayed. Use the pinned stores builder
-and exact source footprints; inferred frontages are not observed entrances.
-Retired shop cooldown IDs remain valid in v1 saves. Pool physical barriers and
-water come from the same exported geometry as rendering. Keep the gate passable.
-
-When profiling lag, preserve the instanced traffic adapter and local parked-car
-queries. Do not restore a separate full model for every traffic car. Medical
-recovery is character-health based; a wrecked car must allow exit. Ordinary
-road travel and foot movement must not generate reckless vehicle reports.
-
-Campaign is a third mode with three separately ordered introductions, a shared
-meeting and seventeen shared chapters. Its strict v2 save preserves v1 progress;
-permit switching between any missions while preserving independent partial intro
-prefixes. Lock switching only during an active mission (plus invalid/recovery
-context guards). Restore that hero’s own checked location/health/car/ammo, without
-replaying rewards. Interior checkpoints use the captured exterior return pose.
-Only a first visit to a hero uses character-start.js and checked separate car/foot
-poses; later visits restore that hero’s validated checkpoint.
-Its completion and rewards
-share the career save write; active missions remain transient. No sandbox travel
-may advance a chapter. House/shop/Centre room plans and meshes are generated only
-on entry and discarded on leave. Counter actions require the matching active room.
-Use the rendered door descriptors, never an independent drifting entrance estimate.
-North map/terrain live in separate local sidecars. Apply the source overlap guards,
-retain lake island holes, and use the same indexed bridge corridor for visible
-deck height and water exemptions. Compact lighting attributes have bounded errors;
-never infer whole-device performance from a buffer-byte comparison.
-
-The priority-shop browser option reuses the bounded harness for the sourced noodle
-restaurant. Its two official interior photo references inform original geometry;
-reference photos/logos/murals stay outside runtime assets. Both source caches are
-required for a reproducible21-store build; five Civic extras are rebuilt separately from their pinned OSM/ACT caches.
-
-
-Living-room changes also require the `--browser --living-browser --output` flow
-when normal-input evidence is needed. It uses a temporary localhost server and
-retains failed runs. Wait for native dialog-close events to settle before held
-exercise input; steer around the player's parked car rather than walking through
-it. A harness failure is retained and corrected without weakening collision.
-
-Interior activities own supplied-dt scoring and exactly-once completion events.
-Bench, treadmill, curls and rowing have different cue/hold/release rules and
-equipment-linked participant poses. Start the activity before paid admission;
-finish requires its real matching terminal session, never a caller boolean.
-Progression owns all paid shift and rental cash, validates the live matching room,
-station and session, and writes through the existing career save. No passive
-workout timer or Free-roam activity may bank progression. X+Y held with timed
-ArrowUp presses controls the six-rep bench. Q starts the nearby task; T opens
-the hire phone. The active room's people and geometry must dispose on leave.
-
-
-Vehicle unlock changes use `vehicle-challenges.js` for supplied clocks/edges and
-the normal gameplay/controller owners for admission, claims and offences. Run
-the focused `--browser --theft-browser --output` flow for visible cues and actual
-scooter/car inputs. `--dev-browser` retains a bounded pause-entry regression; do
-not publish configured inputs in UI/help/receipts. The full source runner includes
-the new challenge, car and scooter-controller authority suites.
-
-
-Weapon changes use the shared weapons catalogue, independent Gameplay ammo pools
-and Progression's strict legacy ownership/cash owner. Use the bounded
-`--browser --store-browser --output` flow for actual career purchasing and
-`--browser --dealers-browser --output` for free equipment/contact input. Store disabled reasons must match location/ownership/funds/cap/mode guards;
-never style a denied action as loading. Street contacts are fictional, not real
-people or allegations attached to source POIs. New parking must pass whole-body
-clearance against the same traffic lanes and be used for both art and physics.
-
-Yoober uses one transient external car on the directed public-road graph. Bookings
-are free; the stopped boarding action debits its authoritative quote once through
-Progression and the existing writer. Passenger focus follows the live car, without
-foot movement, attacks or ordinary claiming; exit uses the shared physical sweep.
-Driver fares require actual legal owned cars and contiguous stopped pickup/drop-off.
-Use --browser --yoober-browser --output for normal-input proof, or the focused
-script's separate passenger/driver scenarios. Keep failed attempts and no-grant
-evidence. Wanted stars alone now permit ordinary purchasing; actual contact panic
-and all other stock/reach/ownership rules remain.
-
-Low world/neighbourhood constructors retain geography, physical surfaces and door
-descriptors while simplifying presentation detail. Run the paired
-test_capital_low_detail.mjs --actual comparison before claiming savings. Geometry
-bytes/triangles and software WebGL observations never establish N100 FPS.
-
-Signals use the pinned local sidecar and Simulation's sole clock. Retain actual
-stop-distance travel caps for traffic/buses/Yoober, and manual player control.
-GPS uses along-route geometry; live map follow advances the world only with player
-input frozen. Hidden tabs pause. Source data rebuilds from explicit external caches.
-
-Vehicle contacts must match model bodies, including walking ends/corners, checked
-steering and rotated parked indexing. Keep bounded spatial queries. Historical
-4.5×1.8 captures retain explicit old dimensions; obsolete invisible circles are
-not the new body contract. Avoid impossible ambient lanes using static admission,
-without changing source geography, bypassing collision or teleporting visible cars.
-
-Bus boarding uses the actual public door and clear stopped sweeps. Mini-game
-cancellation/rental dismount takes priority over nearby boarding. Flare placement
-cannot consume inventory on failure; Free-roam preview never writes career state.
-Hold-ups bind live NPC callbacks and matching room/store, never caller-provided
-threat/reward facts. Owned guns or recent attributed punches permit demands;
-dead/remote/cancelled/recovery targets cannot pay. NPC views animate authoritative
-phases; the existing writer banks one handover and strict cooldowns. Use the native
-signals harness for map/transport and crime harness for normal career cash proof.
-
-The road-guidance view is presentation only: use the current route and live manual
-driver pose, shared terrain and checked left-lane placement. Hide on foot/indoors/
-passenger/arrival/off-route; never mutate the route, vehicle or career. Keep three
-pooled world arrows/two draws and test actual forward poses plus native framing.
-
-Street and vehicle people use person-model.js for rounded shapes, dimensions and
-deterministic appearances. Keep personId separate from vehicle/exit IDs and
-capture it before a claim; player, police and Yoober identities are supplied by
-the controller. Retain bounded instancing and cockpit fits, with no frame-time
-geometry creation or factory-resource mutation. The --people-browser flow
-separates actual Free-roam input from labelled component art evidence; never
-describe the component's addExit action as a native carjacking completion.
-
-Moving cars must also test current adult bodies: refresh Simulation's bounded
-setExternalPeople index before vehicle movement and after foot movement before
-external transport. Keep explicit passenger/driver self exemptions limited to
-foot-clearance probes, never car movement. Test both directions, continuous
-translation/turns, existing-contact escape, live descriptor refresh and local
-query bounds. Coffee routines must not create detached chairs along arbitrary
-sidewalks; actual cafe/interior furniture retains its own sourced geometry.
-
-
-Exterior performance work preserves source/collision/navigation metadata while
-streaming actual nearby geometry allocations. Hidden meshes alone do not reduce
-resident buffers. Use the actual-map world/neighbourhood streaming regressions,
-compare every rebuilt attribute and door descriptor, and check bounded idle queues,
-eviction and disposal. Report buffer bytes separately from RAM and device FPS.
-Mission guides target the same door/station descriptors as collision and rendering.
-New school, home and robbery outcomes require the matching live terminal owner and
-fresh serial; no caller boolean, stale receipt or caption timer grants completion.
-Living allies use checked ordinary-room entry and limited stopped-car boarding. The owner
-explicitly requested companion catch-up: bounded checked relocation to the
-actual player is allowed for distant/stuck living crew. Preserve health, identity,
-cooldowns, pause and blocked-placement retries; never teleport the player,
-revive a downed ally or relocate merely because a mission target changed.
-
-
-The game worker stores only the generated local asset closure. After final runtime
-edits run `python3 -B scripts/build_capital_cache.py --write`, then `--check` and
-its regression. Do not skipWaiting into live sessions, widen scope or clear other
-caches/career storage. Hash verification/version changes and unchanged-file reuse
-must remain tested. Browser caching does not cache live GPU objects.
-For CPU reports use the bounded `profile_capital_drive.py` on exact source exports.
-Distinguish ScriptDuration, sampled self/inclusive time, process CPU seconds, RAF
-callbacks and actual renders. Compare collisions against the pinned pre-optimization
-implementation, with unchanged trajectories and contacts. Never gain speed by
-removing collision or silently dropping traffic. Static paused views render once;
-queued geometry, settings changes, caption scenes and live tracking still refresh.
-
-For a repeat-bridge report use `profile_capital_sustained.py` on exact exports.
-Keep the same source pose, camera, quality and viewport. Record actual profile /
-Performance durations because an8-second timer can overrun under load. The
-streaming fixture uses official map clicks, not natural travel; separate wall
-time from supplied simulation time, transition construction and paused forced GC.
-Weak GL balance counters are logical objects, not bytes or device RAM. Preserve
-water contact/trajectory equivalence and bridge openings when indexing source
-shorelines. Run one CPU-heavy browser, source gate or benchmark at a time.
-
-Campaign retries are transient failed attempts, not saved completion or world
-rollback. Recovery must finish first; clear old activity/recon/crew state and use
-fresh receipt baselines. Cancel/mode/hero changes stop retry. Keep costs, timeout
-health/ammo and completed progress with their real owners. Medical placement uses
-the captured actual exterior/seat location and checked nearby roads, not a fixed
-distant district. For all-mission audits retain normal prefix fixtures, actual
-domain action inputs, route/clearance holds and explicit police/travel assumptions.
-Never turn source-domain passes or assumed-speed margins into22native wins.
-
-
-For the current flamegraph, engine replay, escape-arrival and fitted-yard workflow,
-read `docs/verification/capital-drive-flame-escape-2026-11-17.md` and the
-[profiling procedure](references/workflow.md#flamegraphs-and-paired-engine-replays).
-Use `analyse_capital_profile.py` on retained raw CPU profiles and
-`profile_capital_collision.mjs` against exact source exports. Keep paired harness
-bytes/options equal and compare complete state checksums before claiming speedups.
-Allocation sampling is a separate continuation after CPU/timing capture, not a
-live-heap total or leak verdict. Engine-only supplied time is not native driving
-or rendered performance; preserve the browser sustained-driving gate and CPU/GPU
-limitations. Static body broad-phase reductions must retain every original body
-sample, inclusive per-sample bounds, live polygon reads and pure bridge exemption.
-
-Escape arrival is transient attempt/stage state: reach the actual target under
-its mode/health/stop guards, then clear the real search and satisfy its hold. Reset
-arrival on stage advance/retry; never turn a stale receipt or cleared wanted level
-alone into completion. Fitted rear gardens remain procedural inference around
-source footprints, not observed cadastral boundaries. Preserve source geometry,
-physical fences, real door approaches, deterministic regeneration and bounded cost.
-
-For airport contour rebuilds, physical courier orders, multi-cache house searches,
-paid bed rest, stunt flight, the cockpit and jetpack, follow the
-[current continuation procedure](references/workflow.md#terrain-couriers-house-sessions-and-motion).
-Use `build_capital_airport_terrain.py` with the pinned external ACT archive; retain
-its digest, CRS/datum and numerical-validation limits. Courier owner/transaction
-fixtures and source-map travel checks are distinct from native earned purchases.
-The native courier and terrain harnesses run phone handovers, stunt driving,
-airport streaming and the new controls. Use the workflow's commands and keep
-separate records for measured results and fixture setup.
-
-Keep transient delivery escrow with Progression's cash/save owner and require the
-matching physical terminal receipt for effects or one refund. Multi-cache loot
-stays carried until a checked physical exit; noise/alarm and globally fresh activity
-sessions belong to Burglary. Paid safehouse rest requires the matching live bed
-terminal receipt, rather than a menu click or caller boolean. Views blend only
-local joints with supplied dt; Simulation owns stunt support, vertical travel and
-swept contacts. Preserve root authority, pause, bounded resources and disposal.
+Finish with exact changed paths, commands and actual outcomes, source revision
+or hashes, and remaining native/hardware/source holds. Reconcile the maintenance
+manual/inventory when runtime changes require it, through the assigned owner.
+Stage/commit/push only within current authorization; this skill grants none.

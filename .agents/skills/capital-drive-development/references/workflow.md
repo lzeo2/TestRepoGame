@@ -1,5 +1,12 @@
 # Capital Drive development workflow
 
+For the current task-routing entrypoint, owner/test matrix, regional import and
+coverage recipes, see [SKILL.md](../SKILL.md),
+[architecture and verification](architecture-and-verification.md), and
+[source maps and performance](source-maps-and-performance.md). This file retains
+feature-specific continuation recipes; dated counts and receipts need comparison
+with current source before use.
+
 ## Establish the working boundary
 
 1. Read the files listed in SKILL.md, then inspect current Git status, branch,
