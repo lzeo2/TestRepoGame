@@ -225,7 +225,21 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     if (!batch) return;
     edgeAB.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
     edgeAC.set(c[0] - a[0], c[1] - a[1], c[2] - a[2]);
-    normal.crossVectors(edgeAB, edgeAC).normalize();
+    normal.crossVectors(edgeAB, edgeAC);
+    const intendedX = normal.x, intendedY = normal.y, intendedZ = normal.z;
+    // World coordinates are uploaded as float32. Thin source roof facets can
+    // collapse or reverse at that precision, so validate the submitted face.
+    a = a.map(Math.fround); b = b.map(Math.fround); c = c.map(Math.fround);
+    edgeAB.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    edgeAC.set(c[0] - a[0], c[1] - a[1], c[2] - a[2]);
+    normal.crossVectors(edgeAB, edgeAC);
+    if (normal.lengthSq() === 0) return false;
+    if (normal.x * intendedX + normal.y * intendedY + normal.z * intendedZ < 0) {
+      [b, c] = [c, b];
+      normal.negate();
+      if (uv) uv = [...uv.slice(0, 2), ...uv.slice(4, 6), ...uv.slice(2, 4)];
+    }
+    normal.normalize();
     setTint(tint);
     for (const p of [a, b, c]) {
       batch.positions.push(...p);
@@ -234,6 +248,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     }
     if (uv) batch.uvs.push(...uv);
     counters.triangles++;
+    return true;
   }
 
   function quad(batch, a, b, c, d, tint, uv) {
@@ -244,8 +259,9 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
   function surfaceTriangle(x, z, a, b, c, tint, kind, uv) {
     const batch = batchAt(x, z, 'surface');
     if (!batch) return;
-    triangle(batch, a, b, c, tint, uv || [a[0] / 3, a[2] / 3, b[0] / 3, b[2] / 3, c[0] / 3, c[2] / 3]);
+    if (!triangle(batch, a, b, c, tint, uv || [a[0] / 3, a[2] / 3, b[0] / 3, b[2] / 3, c[0] / 3, c[2] / 3])) return false;
     batch.kinds.push(kind, kind, kind);
+    return true;
   }
   function softShadow(x, z, rx, rz, strength = 0.12) {
     if (lowGraphics) return;
@@ -971,7 +987,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       const vertices = [a, b, c].map(p => [p[0], roofHeight(p), p[1]]);
       const cross = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
       if (cross > 0) vertices.reverse();
-      surfaceTriangle(x, z, ...vertices, roofColor, 2); counters.roofFacets++;
+      if (surfaceTriangle(x, z, ...vertices, roofColor, 2)) counters.roofFacets++;
     }
     for (const f of faces) roofTriangle(points[f[0]], points[f[1]], points[f[2]], pitched ? simpleFacade ? 1 : points.length <= 10 ? 2 : 1 : 0);
     if (!simpleFacade && residential && !utility && index % 3 === 0) {
