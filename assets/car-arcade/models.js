@@ -23,6 +23,10 @@ const profiles = {
   flux: [-.34,-.23,.27,.42,.55,.84,.91,.83,.65,'electric'],
   rill: [-.30,-.21,.015,.11,.53,.90,.97,.83,.68,'runabout'],
   gather: [-.40,-.32,.34,.44,.47,.93,.98,.90,.70,'shuttle'],
+  banksia: [-.29,-.18,.26,.38,.55,.88,.94,.85,.67,'cross'],
+  swiftlet: [-.32,-.19,.24,.39,.53,.78,.91,.78,.63,'city'],
+  courier: [-.39,-.30,.37,.44,.44,.92,.98,.90,.69,'delivery'],
+  wattle: [-.24,-.10,.15,.34,.57,.82,.91,.76,.67,'hybrid'],
   sunray: [-.20, -.02, .17, .32, .57, .63, .83, .65, .69, 'halo'],
 };
 const prototypes = new Map();
@@ -240,6 +244,36 @@ function build(car) {
       box(details,metal,side*w*.945,y-.12,l*.25,.025,.035,.22);
       box(details,dark,side*w*.94,.36,l*.04,.045,.07,l*.65);
     }
+  }
+  if(form==='cross'){
+    for(const side of [-1,1]){
+      box(details,dark,side*w*.94,.34,0,.035,.13,l*.62);
+      beam(details,metal,[side*w*.62,h-.025,rf*l+.10],[side*w*.62,h-.025,rr*l-.10],.027);
+      for(const z of [-wheelZ,wheelZ])box(details,dark,side*w*.94,r*1.85,z,.035,.055,.42);
+    }
+    box(details,metal,0,.31,-l*.46,w*1.18,.055,.13);
+  }
+  if(form==='city'){
+    box(details,'#e7dcc2',0,h-.045,(rf+rr)*l/2,w*roofWidth*1.94,.035,(rr-rf)*l);
+    for(const side of [-1,1]){
+      box(details,dark,side*w*.935,y-.08,l*.07,.025,.10,.17);
+      box(details,'#fff1c0',side*w*.65,y*.82,-l/2-.013,.12,.15,.018);
+    }
+  }
+  if(form==='delivery'){
+    for(const side of [-1,1]){
+      box(paint,'#ffffff',side*w*.835,(y+h)/2,l*.22,.045,(h-y)*.77,l*.31);
+      box(details,dark,side*w*.863,y+.035,l*.05,.018,.025,l*.54);
+      box(details,metal,side*w*.865,y+.14,l*.13,.022,.045,.19);
+    }
+    box(details,dark,0,(y+h)*.47,l*.441,.022,(h-y)*.82,.022);
+    box(details,dark,0,.31,l*.46,w*1.65,.07,.13);
+  }
+  if(form==='hybrid'){
+    box(details,dark,0,y*.68,-l/2-.006,w*1.45,.12,.025);
+    box(details,'#e9eee2',0,y*.85,-l/2-.014,w*1.51,.026,.019);
+    box(details,'#ba4535',0,y*.85,l/2+.008,w*1.52,.025,.012);
+    for(const side of [-1,1])box(details,metal,side*w*.94,y-.09,l*.22,.024,.032,.16);
   }
   // Right front seat (right-hand-drive Canberra), ahead of the headrest and behind the wheel. Keep short
   // pickup cabins under their actual roof rather than behind its rear edge.
