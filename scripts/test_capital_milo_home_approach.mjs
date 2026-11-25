@@ -13,9 +13,13 @@ Object.assign(simulation.player, origin, { yaw: road.yaw, speed: 0, y: undefined
 const gameplay = createGameplay(map, simulation, { sandbox: true, heightAt: terrain.heightAt });
 assert(gameplay.interact(), 'native interaction exits opening car');
 const actor = gameplay.state.actor, start = { ...actor }, target = { x: 449.158, z: -134.290 };
-const direct = { ...start };
-assert(simulation.moveActor(direct, target.x - start.x, target.z - start.z, .45).blocked,
-  'direct diagonal from driver door encounters local obstacles');
+const direct = { ...start }, diagonalLength = Math.hypot(target.x - start.x, target.z - start.z);
+const dx = (target.x - start.x) / diagonalLength * 7, dz = (target.z - start.z) / diagonalLength * 7;
+assert(simulation.moveActor(direct, dx, dz, .45).blocked,
+  'direct diagonal from driver door encounters owned vehicle');
+const withoutCar = { ...start };
+assert(!simulation.moveActor(withoutCar, dx, dz, .45, { active: false }).blocked,
+  'same bounded diagonal clears static obstacles when owned car is excluded');
 const waypoints = [{ x: start.x, z: -137.49552864640572 }, { x: 448.8410464140123, z: -134.99552864640572 }, target];
 let distance = 0;
 for (const point of waypoints) {
