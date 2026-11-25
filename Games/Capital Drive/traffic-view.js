@@ -14,7 +14,16 @@ export function createTrafficView(scene, heightAt, traffic, { vehicleHeightAt = 
   const root = new THREE.Group(); root.name = 'Instanced road traffic'; scene.add(root);
   const geometries = new Set(), materials = new Set(), materialCopies = new Map(), batches = new Map();
   const pose = new THREE.Object3D(), color = new THREE.Color(), heightPose = {x:0,z:0,yaw:0};
-  const shadowMatrix = new THREE.Matrix4();
+  const shadowMatrix = new THREE.Matrix4(), uploadRanges = new WeakMap();
+  function prepareUpload(attribute) { uploadRanges.set(attribute, { start: 0, count: 0 }); }
+  // Three r160 clears updateRanges after bufferSubData. Reinsert one retained
+  // scalar range per live attribute; unused capacity never needs a GPU upload.
+  function upload(attribute, count) {
+    attribute.clearUpdateRanges();
+    if (!count) return;
+    const range = uploadRanges.get(attribute); range.count = count * attribute.itemSize;
+    attribute.updateRanges.push(range); attribute.needsUpdate = true;
+  }
   let disposed = false, heightRoad = null;
   function sampleVehicleHeight(x,z) {
     if(!vehicleHeightAt)return heightAt(x,z);
@@ -33,7 +42,7 @@ export function createTrafficView(scene, heightAt, traffic, { vehicleHeightAt = 
     geometries.add(geometry);
     const mesh = new THREE.InstancedMesh(geometry, material, CAPACITY);
     mesh.name = name; mesh.count = 0; mesh.frustumCulled = false;
-    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); root.add(mesh); return mesh;
+    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); prepareUpload(mesh.instanceMatrix); root.add(mesh); return mesh;
   }
   for (const id of MODELS) {
     const source = createCar(id, { color: '#ffffff' }); source.updateMatrixWorld(true);
@@ -49,7 +58,7 @@ export function createTrafficView(scene, heightAt, traffic, { vehicleHeightAt = 
     const paint = meshes.find(mesh => mesh.name === `${id} body`);
     // Allocate color storage before rendering; later updates only reuse it.
     for (let i = 0; i < CAPACITY; i++) paint.setColorAt(i, color.setHex(0xffffff));
-    paint.instanceColor.setUsage(THREE.DynamicDrawUsage);
+    paint.instanceColor.setUsage(THREE.DynamicDrawUsage); prepareUpload(paint.instanceColor);
     const bodywork = createCarBodywork(source);
     const near = instance(bodywork.geometry.clone(), ownMaterial(bodywork.material), `${id} near bodywork`);
     batches.set(id, { meshes, paint, near, nearCount: 0, count: 0, triangles: source.userData.triangles, shadowScale: vehicleShadowScale(BY_ID[id]) });
@@ -86,13 +95,13 @@ export function createTrafficView(scene, heightAt, traffic, { vehicleHeightAt = 
       batch.count++; stats.visible++; stats.triangles += batch.triangles + 2;
     }
     for (const batch of batches.values()) {
-      for (const mesh of batch.meshes) { mesh.count = batch.count; mesh.visible = batch.count > 0; mesh.instanceMatrix.needsUpdate = true; }
-      batch.near.count = batch.nearCount; batch.near.visible = batch.nearCount > 0; batch.near.instanceMatrix.needsUpdate = true;
+      for (const mesh of batch.meshes) { mesh.count = batch.count; mesh.visible = batch.count > 0; upload(mesh.instanceMatrix, batch.count); }
+      batch.near.count = batch.nearCount; batch.near.visible = batch.nearCount > 0; upload(batch.near.instanceMatrix, batch.nearCount);
       if (batch.nearCount) stats.drawCalls++;
-      batch.paint.instanceColor.needsUpdate = true;
+      upload(batch.paint.instanceColor, batch.count);
       if (batch.count) stats.drawCalls += batch.meshes.length;
     }
-    shadows.count = stats.visible; shadows.visible = stats.visible > 0; shadows.instanceMatrix.needsUpdate = true;
+    shadows.count = stats.visible; shadows.visible = stats.visible > 0; upload(shadows.instanceMatrix, stats.visible);
     if (stats.visible) stats.drawCalls++;
     stats.sourceDrawCalls = stats.visible * 8;
   }
