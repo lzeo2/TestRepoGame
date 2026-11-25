@@ -221,6 +221,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     return chunk.batches.get(kind);
   }
 
+  const roundedA = [0, 0, 0], roundedB = [0, 0, 0], roundedC = [0, 0, 0];
   function triangle(batch, a, b, c, tint, uv) {
     if (!batch) return;
     edgeAB.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
@@ -229,7 +230,10 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     const intendedX = normal.x, intendedY = normal.y, intendedZ = normal.z;
     // World coordinates are uploaded as float32. Thin source roof facets can
     // collapse or reverse at that precision, so validate the submitted face.
-    a = a.map(Math.fround); b = b.map(Math.fround); c = c.map(Math.fround);
+    for (let i = 0; i < 3; i++) {
+      roundedA[i] = Math.fround(a[i]); roundedB[i] = Math.fround(b[i]); roundedC[i] = Math.fround(c[i]);
+    }
+    a = roundedA; b = roundedB; c = roundedC;
     edgeAB.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
     edgeAC.set(c[0] - a[0], c[1] - a[1], c[2] - a[2]);
     normal.crossVectors(edgeAB, edgeAC);
