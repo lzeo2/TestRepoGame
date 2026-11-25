@@ -356,6 +356,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
       state.active.stealth=true;state.active.stealthPlan=clone(chapter.stealthPlan);
       state.active.stealthSerial=serial(ctx.stealthOutcome);
     }
+    state.active.prompt = objectivePrompt(state.active, ctx);
     events.push({ type: 'started', id: chapter.id, incident: Boolean(chapter.incident), wantedLevel: chapter.wantedLevel || 0 });
     return { ok: true, message: chapter.name };
   }
@@ -452,12 +453,13 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
   const heroNames = { student: 'Kit', corporate: 'Rowan', basement: 'Milo' };
   function objectivePrompt(active, ctx) {
     const goal = active.target;
-    const speaker = heroNames[state.character] || 'Crew';
+    const speaker = heroNames[active.character || state.character] || 'Crew';
     const purpose = chapterPurpose[active.id] || 'Finish the marked objective.';
     let next = goal.label;
-    if (goal.clear && ctx.wanted > 0) next = 'This handover needs the current search resolved before it can finish.';
+    const atGoal = goal.anywhere || distance(ctx.pose, goal) <= goal.radius;
+    if (goal.clear && (atGoal || active.escapeReached) && ctx.wanted > 0) next = 'This handover needs the current search resolved before it can finish.';
     else if (goal.kind === 'drive' && ctx.onFoot) next = 'Press E beside your car to board, then follow the marker.';
-    else if (goal.stop && !ctx.onFoot && !isVehicleStopped(ctx.pose, PARKING_MAX_SPEED)) next = 'Come to a full stop at the marked approach.';
+    else if (atGoal && goal.stop && !ctx.onFoot && !isVehicleStopped(ctx.pose, PARKING_MAX_SPEED)) next = 'Come to a full stop at the marked approach.';
     else if (['work', 'home-action', 'evidence', 'presentation'].includes(goal.kind) && !ctx.interior) next = `${goal.label} Enter through the marked door with E.`;
     else if (goal.kind === 'foot' && !ctx.onFoot) next = 'Stop safely, press E to step out, then walk to the marker.';
     else if (goal.kind === 'foot' && ctx.interior) next = 'Press E at the marked exit, then walk to the outdoor marker.';
