@@ -60,7 +60,7 @@ for (const [i, id] of models.entries()) {
   const glass = meshes.find(mesh => mesh.name.endsWith('glazing'));
   assert.equal(glass.material.opacity, .38); assert(glass.material.transparent); assert.equal(glass.material.depthWrite, false);
   assert(glass.material.forceSinglePass, 'transparent glass keeps seated driver visible with one pass');
-  assert(originals[i].userData.cockpit.eye[0] < 0, 'source left-side cockpit unchanged');
+  assert(originals[i].userData.cockpit.eye[0] > 0, `${id} retains the source right-hand driver cockpit`);
 }
 view.update({ x: 0, z: 0 });
 assert.equal(view.stats.visible, 40); assert.equal(view.stats.drawCalls, batchCount); assert.equal(view.stats.sourceDrawCalls, 320);
