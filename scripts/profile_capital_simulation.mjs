@@ -10,6 +10,7 @@ import { createSimulation, pointOnLane } from '../Games/Capital Drive/simulation
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { applyRoadProfiles, roadProfile } from '../Games/Capital Drive/road-network.js';
 import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
+import { CAPITAL_COLLISION_REPLACEMENTS } from '../Games/Capital Drive/map-source.js';
 import { findRoute } from '../Games/Capital Drive/navigation.js';
 
 const args = process.argv.slice(2);
@@ -43,10 +44,6 @@ async function hashModule(relative) {
 for (const relative of ['scripts/profile_capital_simulation.mjs', 'Games/Capital Drive/simulation.js',
   'Games/Capital Drive/map-expansion.js', 'Games/Capital Drive/road-network.js',
   'Games/Capital Drive/terrain.js', 'Games/Capital Drive/navigation.js']) await hashModule(relative);
-// Controller bytes identify the replacement-ID source; do not import the browser boot.
-const controllerPath = 'Games/Capital Drive/script.js';
-const controller = await readFile(path.join(root, controllerPath));
-hashes[controllerPath] = { sha256: sha256(controller), bytes: controller.length };
 async function json(name) {
   const relative = `Games/Capital Drive/data/${name}.json`;
   const bytes = await readFile(path.join(root, relative));
@@ -56,9 +53,7 @@ async function json(name) {
 const map = applyMapExpansion(applyRoadProfiles(await json('canberra'), await json('road-profiles')), await json('canberra-north'));
 map.terrainTiles = [(await json('north-terrain')).terrain];
 map.lakeWaterLevel = 5.93;
-const replacements = controller.toString().match(/map\.collisionReplacedBuildingIds=\[([^\]]+)\]/);
-assert(replacements, 'Controller replacement identities must be explicit');
-map.collisionReplacedBuildingIds = [...replacements[1].matchAll(/'([^']+)'/g)].map(match => match[1]);
+map.collisionReplacedBuildingIds = [...CAPITAL_COLLISION_REPLACEMENTS];
 assert(map.collisionReplacedBuildingIds.length, 'Missing replacement IDs');
 const terrain = createTerrainSampler(map);
 const started = performance.now();

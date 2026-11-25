@@ -145,3 +145,12 @@ assert.equal(indoorContract.indoors, true);
 assert.equal(indoorContract.entryId, escapeRoom.id);
 assert.deepEqual(guide(contract, { pose, plan:{ ...escapeRoom, exit:null } }).point, extraction.point);
 console.log('PASS contract guidance uses the planned exterior objective and current room exit.');
+
+const otherRoom={...wrongRoom,exit:{x:14,z:8}};
+const leaving=guide(target('work',{storeId:'coals'}),{plan:otherRoom});
+assert.deepEqual(leaving.point,otherRoom.exit);
+assert.equal(leaving.indoors,true,'guide exits current room before pointing across the city');
+const board=target('drive',{anywhere:true});
+assert.deepEqual(guide(board,{plan:otherRoom}).point,otherRoom.exit);
+assert.deepEqual(guide(board,{vehicle:pose}).point,pose,'use the actual car instead of map spawn');
+assert.equal(guide(board,{}).roaming,true);

@@ -488,3 +488,15 @@ for(const kind of ['noodle','stock'])for(const wanted of [NaN,-1,6]){
   assert.equal(game.start(kind,context(kind,{wanted})),false,'work requires valid wanted level');
 }
 console.log('PASS wanted interior work: noodle and stock start and finish at every valid wanted level.');
+
+// Milo can see both the television and the marked case from this position.
+const overlap=createInteriorActivities();
+overlap.load({id:'home',activities:[
+  {id:'case',kind:'stock',x:451.655575,z:-133.13055,radius:1.8},
+  {id:'television',kind:'tv',x:451.956912,z:-131.415008,radius:1.8}
+]});
+const betweenStations={x:451.956912,z:-132.273005};
+assert.equal(overlap.nearest(betweenStations).id,'television');
+assert.equal(overlap.nearest(betweenStations,null,'case').id,'case');
+assert.equal(overlap.nearest(betweenStations,s=>s.id!=='case','case').id,'television');
+assert.equal(overlap.nearest({x:451.956912,z:-131},null,'case').id,'television');

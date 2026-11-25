@@ -192,7 +192,14 @@ def main():
             page.reload(wait_until='load', timeout=60000)
         else:
             page.goto(game_url, wait_until='load', timeout=60000)
-        page.wait_for_function('() => window.capitalDriveSnapshot?.().ready', timeout=60000)
+        # The controller installs the snapshot function at the end of boot. Poll
+        # its presence without serializing the entire world on every frame.
+        page.wait_for_function('''() => typeof window.capitalDriveSnapshot === 'function'
+            || document.querySelector('#loading[role=alert]')''', polling=250, timeout=180000)
+        error = page.locator('#loading[role=alert]')
+        if error.count():
+            raise AssertionError(error.text_content())
+        observations.append({'label':'ready after navigation', 'elapsedSeconds':round(time.monotonic() - started, 2)})
         check(not snapshot(page)['rendering']['compatibility'], 'Actual full game boots with software WebGL')
 
     def start_and_drive(page):

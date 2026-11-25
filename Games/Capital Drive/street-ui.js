@@ -128,7 +128,7 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
     syncPaint();
     text('garage-description', sandbox() ? 'All cars and paint are free.' : `Buy and service vehicles at ${progression.garage.name}.`);
   }
-  function refresh() {
+  function refresh(missionLine) {
     const state = gameplay.state, mission=isCampaign()?campaign?.state.active:null,active = mission||progression.state.activeJob,activity=progression.state.activity;
     text('cash-value', sandbox() ? 'Free roam' : money(progression.state.cash));
     text('health-value', Math.ceil(state.health)); text('car-health-value', Math.ceil(state.vehicleHealth));
@@ -140,10 +140,11 @@ export function createStreetUI({ gameplay, progression, simulation, vehicles, no
     text('job-title', activity?.name||active?.name||'');
     const crimePhase=activity?.interactive?({intimidation:'Stay close and keep the threat',emptying:activity.type==='robbery'?'Employee is emptying the till':'Pedestrian is finding cash',handover:'Wait for the handover'}[activity.phase]||''):'';
     const cargo=active?.cargo,cargoHint=cargo?.kind==='food'?`Freshness ${Math.round(cargo.quality)}%`:cargo?`Cargo damage ${Math.round(cargo.damage)}/${cargo.limit}`:'';
-    text('job-description',activity?(crimePhase||progression.services.find(s=>s.id===activity.serviceId)?.name||''):[active?.target.label,cargoHint].filter(Boolean).join(' · '));
+    text('job-description',mission && missionLine ? missionLine : activity?(crimePhase||progression.services.find(s=>s.id===activity.serviceId)?.name||''):[active?.target.label,cargoHint].filter(Boolean).join(' · '));
     const job = !mission&&active&&progression.jobs.find(item=>item.id===active.id);
     const missionTime=mission?Math.ceil(mission.remaining):0;
-    text('job-progress',mission?(!mission.advisoryTime&&missionTime<=60?`${missionTime}s left`:''):activity?`${Math.round(activity.progress*100)}%`:active ? `Stage ${active.stage + 1}/${job?.stages.length || 1} · ${Math.ceil(active.remaining)}s · ${money(active.reward)}` : '');
+    const missionStep=mission?`Step ${mission.stage+1}/${mission.stageCount}`:'';
+    text('job-progress',mission?(missionStep+(!mission.advisoryTime&&missionTime<=60?` · ${missionTime}s left`:'')):activity?`${Math.round(activity.progress*100)}%`:active ? `Stage ${active.stage + 1}/${job?.stages.length || 1} · ${Math.ceil(active.remaining)}s · ${money(active.reward)}` : '');
     const jobHud = byId('job-hud'); if (jobHud) jobHud.hidden = sandbox()||(!active&&!activity);
     let hint;
     if (state.mode === 'vehicle') hint = Math.abs(simulation.player.speed) > 1.2 ? 'E stop · WASD drive · Shift boost' : 'E step out · WASD drive';

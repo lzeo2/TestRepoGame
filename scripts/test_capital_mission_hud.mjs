@@ -11,13 +11,14 @@ const env={campaign,isCampaign:()=>true,gameplay:{state},progression:{state:{cas
  sandbox:()=>false,money:n=>'$'+n,weaponById:()=>null,text:(id,value)=>output.set(id,String(value)),byId:()=>null,
  simulation:{player:{speed:0}},interactionHint:()=>null};
 const source=await readFile(new URL('../Games/Capital Drive/street-ui.js',import.meta.url),'utf8');
-const body=source.slice(source.indexOf('  function refresh() {'),source.indexOf('  function renderServices(){'));
+const body=source.slice(source.indexOf('  function refresh('),source.indexOf('  function renderServices(){'));
 const refresh=Function('env',`with(env){${body};return refresh;}`)(env);
-refresh();assert.equal(output.get('job-progress'),'','campaign HUD omits stage, reward and long countdown');
+refresh();assert.equal(output.get('job-progress'),`Step 1/${campaign.state.active.stageCount}`,'campaign HUD shows the current step without an advisory timer');
 assert.equal(output.get('job-description'),campaign.state.active.target.label);
+refresh('Walk to the marked door · 22 m');assert.equal(output.get('job-description'),'Walk to the marked door · 22 m');
 assert(output.get('job-title').includes('Split the score'));assert.equal(output.get('cash-value'),'$1000');
 campaign.cancel();refresh();assert.equal(output.get('job-progress'),'');
 assert.equal(output.get('job-title'),'');assert.equal(output.get('job-description'),'');
-assert(campaign.start(ctx).ok);refresh();assert.equal(output.get('job-progress'),'','campaign HUD omits stage, reward and long countdown');
+assert(campaign.start(ctx).ok);refresh();assert.equal(output.get('job-progress'),`Step 1/${campaign.state.active.stageCount}`,'campaign HUD shows the current step without an advisory timer');
 assert.equal(output.get('job-description'),campaign.state.active.target.label);
 console.log('PASS actual mission HUD: locked cross-character preview, normal chapter, compact objective text, final-minute countdown boundaries, actual stage transition, cancellation and unchanged cash');
