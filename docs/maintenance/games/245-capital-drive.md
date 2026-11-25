@@ -32,7 +32,11 @@ A zero-distance placement probe still rejects the occupied space.
 Boarding and exiting check that a person can travel between the seat and the
 standing position. At the Telopea fence a shorter step out beside the door
 keeps the player on the reachable side. A fully boxed-in car requires a new
-parking position.
+parking position. On build `a624393012bf`, a Chromium Free roam playtest at
+the initial spawn exited the Saloon, held movement against its door, backed
+away and reboarded with E. The actor's centre stayed 1.393 m from the car's
+centreline through five consecutive contact samples. The car stayed still.
+The test ran with software WebGL.
 
 Parked saloons, wagons and SUVs now use their fleet dimensions in placement and
 collision. They share three templates with sloping windscreens, divided side
