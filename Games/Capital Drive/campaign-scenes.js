@@ -54,6 +54,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
   const decaySeatRetry=id=>{const failures=(seatFailures.get(id)||0)+1;seatFailures.set(id,failures);seatRetries.set(id,Math.max(.12,SEAT_RETRY/failures));};
   let crewRoom=null;
   const hiredHistory=new Map();
+  let crewPace=1,crewFormation=1,crewRetry=1;
   function clear(){people=EMPTY;dialogueLines=EMPTY;signature='';elapsed=0;allies=[];events=[];active=false;catchupRetry=0;crewRoom=null;attachments.clear();seatRetries.clear();seatFailures.clear();leaders.clear();}
   function enterInterior(plan,entry,outside) {
     if(!plan?.id||entry?.id!==plan.id||!point(entry)||!point(outside)||!point(plan.spawn)||!point(plan.exit))return false;
@@ -72,7 +73,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
     return null;
   }
   function moveRoomAlly(ally,goal,step,stopping=1.6) {
-    const distance=gap(ally,goal),amount=Math.min(Math.max(0,distance-stopping),3.8*step);ally.speed=0;
+    const distance=gap(ally,goal),amount=Math.min(Math.max(0,distance-stopping),3.8*step*crewPace);ally.speed=0;
     if(amount<=0)return;
     const next=crewRoom.nav.nextWaypoint(ally,goal,ally.id);if(!next)return;
     const d=gap(ally,next);if(d<1e-8)return;
@@ -151,7 +152,7 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
     return point(a)&&point(b)&&typeof test==='function'&&test(a,b)===true;
   }
   function moveAlly(ally,goal,step,stopping=1.6) {
-    const distance=gap(ally,goal), amount=Math.min(Math.max(0,distance-stopping),3.8*step);
+    const distance=gap(ally,goal), amount=Math.min(Math.max(0,distance-stopping),3.8*step*crewPace);
     ally.speed=0;
     if(amount<=0)return;
     const heading=Math.atan2(goal.z-ally.z,goal.x-ally.x), before={...ally};
@@ -332,6 +333,10 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
     if(ctx.interior&&!crewRoom){events=[];publishAllies(true);active=false;return;}
     if(!active)return;
     active=true;
+    const training=ctx.mode==='free'||ctx.sandbox?null:ctx.skillEffects;
+    crewPace=Number.isFinite(training?.crewRegroup)?Math.max(1,Math.min(1.15,training.crewRegroup)):1;
+    crewFormation=Number.isFinite(training?.crewFormation)?Math.max(.75,Math.min(1,training.crewFormation)):1;
+    crewRetry=Number.isFinite(training?.crewRetry)?Math.max(.7,Math.min(1,training.crewRetry)):1;
     const step=Math.min(.1,dt);elapsed+=step;catchupRetry=Math.max(0,catchupRetry-step);
     const canRetry=catchupRetry===0;let attemptedCatchup=false;
     if(canRetry&&allies.length<wanted.length) {
@@ -399,14 +404,14 @@ export function createCampaignScenes(map, simulation, {entrances=map.interiorEnt
               if(!ally.stuck)ally.followTime=0;
             }
           } else {ally.followTime=0;ally.stuck=false;}
-          const goal={x:ctx.pose.x+Math.sin(yaw)*2+Math.cos(yaw)*side*1.2,z:ctx.pose.z+Math.cos(yaw)*2-Math.sin(yaw)*side*1.2};
+          const goal={x:ctx.pose.x+(Math.sin(yaw)*2+Math.cos(yaw)*side*1.2)*crewFormation,z:ctx.pose.z+(Math.cos(yaw)*2-Math.sin(yaw)*side*1.2)*crewFormation};
           if(ally.interiorId)moveRoomAlly(ally,crewRoom.nav.canOccupy(goal,RADIUS)?goal:ctx.pose,step);
           else moveAlly(ally,goal,step);
         } else {ally.speed=0;ally.followTime=0;ally.stuck=false;}
       }
     }
     if(crewRoom&&!crewRoom.entering&&!allies.some(ally=>ally.interiorId===crewRoom.plan.id&&ally.health>0))crewRoom=null;
-    if(attemptedCatchup)catchupRetry=CATCHUP_RETRY;
+    if(attemptedCatchup)catchupRetry=CATCHUP_RETRY*crewRetry;
     publishAllies();
   }
   function receiveHit(event) {

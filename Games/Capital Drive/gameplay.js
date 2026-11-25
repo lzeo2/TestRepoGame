@@ -22,6 +22,7 @@ const SWIM_SPEED=1.65, FAST_SWIM_SPEED=2.45;
 const MAX_VEHICLE_ACCESS_STEP=1.2;
 
 export function createGameplay(map, simulation, options = {}) {
+  const skillFactor=(key,low,high)=>{const value=options.skillEffects?.()?.[key];return Number.isFinite(value)?clamp(value,low,high):1;};
   const state = { mode: 'vehicle', actor: { x: 0, z: 0, yaw: 0, speed: 0, jumpHeight: 0, aimPitch: 0, crouching: false,
     swimming: false, swimSurfaceY: null, impactTime: 0, impactDuration: 0, impactStrength: 0, impactYaw: 0, impactSerial: 0 },
     health: 100, vehicleHealth: 100, weapon: 'unarmed', ammo: 0, reserveAmmo: 0,
@@ -372,7 +373,7 @@ export function createGameplay(map, simulation, options = {}) {
     const origin = recoveryOrigin();
     cancelCarjacking('recovery'); state.reloading = 0; state.aiming = false; state.actor.speed = 0; state.attackTimer = 0;
     clearVehicleImpact(); state.actor.jumpHeight = 0; state.actor.crouching = false; jumpVelocity = 0;
-    state.recovery = { reason, origin, phase: 'out', elapsed: 0, duration: 3.4, progress: 0 };
+    state.recovery = { reason, origin, phase: 'out', elapsed: 0, duration: 3.4*skillFactor('recoveryDuration',.8,1), progress: 0 };
     if (deliverySeizure) state.recovery.deliverySeizure = true;
     simulation.player.speed = 0; simulation.player.vx = 0; simulation.player.vz = 0;
     emit('recovery', reason === 'arrest' ? 'Being taken to the station.' : 'Medical help is arriving.', { reason });
@@ -539,7 +540,7 @@ export function createGameplay(map, simulation, options = {}) {
     if (state.recovery) {
       const recovery = state.recovery; recovery.elapsed += dt;
       recovery.progress = clamp(recovery.elapsed / recovery.duration, 0, 1);
-      if (recovery.phase === 'out' && recovery.elapsed >= 1.8) {
+      if (recovery.phase === 'out' && recovery.elapsed >= recovery.duration*(1.8/3.4)) {
         respawn(recovery.reason); recovery.phase = 'in';
       }
       if (recovery.elapsed >= recovery.duration) state.recovery = null;
@@ -583,7 +584,7 @@ export function createGameplay(map, simulation, options = {}) {
       const crouching = state.actor.crouching = Boolean(input.crouch && !struck && !externalFlight && !wasSwimming && state.actor.jumpHeight === 0);
       const waterSpeed=input.sprint?FAST_SWIM_SPEED:SWIM_SPEED;
       const speed = wasSwimming ? waterSpeed :
-        (crouching ? 1.65 : input.sprint ? 6.8 + clamp(finite(options.fitness?.()), 0, 3) * 0.6 : 3.6) * powerFactor('footSpeed');
+        (crouching ? 1.65 : input.sprint ? 6.8 + clamp(finite(options.fitness?.()), 0, 3) * 0.6 : 3.6) * powerFactor('footSpeed') * skillFactor('footSpeed',1,1.05);
       if (struck) {
         const result = simulation.moveActor(state.actor, impactX * dt, impactZ * dt, .45);
         // Shared actor sweeps include walls, vehicles and the controller's adults.
