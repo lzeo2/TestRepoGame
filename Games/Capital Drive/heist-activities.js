@@ -10,7 +10,8 @@ const VAULT = Object.freeze({ ...RULES.bank, lootName:'Vault cash', label:'Vault
 const BUTTONS = Object.freeze({ x: 'X', y: 'Y', up: '↑' });
 const KEYS = Object.keys(BUTTONS);
 const EMPTY = Object.freeze({ active: false, site: null, phase: null, guidance: '', target: null,
-  indoorTarget: null, employeeId: null, challenge: null, hostage: null, remaining: 0 });
+  indoorTarget: null, employeeId: null, challenge: null, hostage: null, remaining: 0,
+  nextAction: '', substep: 0, stepCount: 0, feedback: '' });
 const THREAT_RANGE = 3.2;
 const HOSTAGE_SECONDS = 12;
 const THREAT_DOT = Math.cos(Math.PI / 4);
@@ -97,6 +98,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     attempt.index = 0;
     attempt.mistakes = 0;
     attempt.armed = false;
+    attempt.feedback = 'Release the symbol buttons, then copy the highlighted symbol.';
   }
 
   function startAvailability(site, ctx, sandbox, allowWanted = false) {
@@ -283,11 +285,13 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
       attempt.armed = false;
       if (held.length === 1 && held[0] === attempt.sequence[attempt.index]) {
         attempt.index++;
+        attempt.feedback = `Symbol ${attempt.index} of ${attempt.sequence.length} matched. Release the button before the next symbol.`;
         return attempt.index === attempt.sequence.length ? (attempt.site.kind==='bank'?unlockCash(attempt):collect(attempt, ctx.pose)) : null;
       }
       attempt.index = 0;
       if (++attempt.mistakes >= 3) return cancel('Pattern missed. Press E at the marker to retry.');
-      return message(false, 'Wrong symbol. Match the sequence again.');
+      attempt.feedback = `Wrong symbol. Pattern reset to symbol 1. ${3 - attempt.mistakes} attempts left. Release all buttons, then press ${BUTTONS[attempt.sequence[0]]}.`;
+      return message(false, attempt.feedback);
     }
 
     if (ctx.wanted > 0) attempt.heatSeen = true;
@@ -309,30 +313,42 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     if (!current) return EMPTY;
     const { site, phase, sequence, index, mistakes, rules, remaining } = current;
     let target = null, indoorTarget = null, challenge = null, guidance = '';
+    const stepCount = site.kind === 'rail' ? 4 : site.kind === 'bank' ? 4 : 2;
+    let substep = 1, nextAction = '', feedback = '';
     if (phase === 'board') {
       target = { ...(site.boarding || site), name: 'Board light rail' };
-      guidance = 'Board the light rail at the marked stop.';
+      guidance = 'Walk to the marked boarding stop. Press E / USE when the train boarding prompt appears.';
+      nextAction = 'Board at the marked stop';
     } else if (phase === 'ride') {
       if (site.pickup) target = { ...site.pickup, name: 'Parcel pickup stop' };
-      guidance = 'At the pickup stop, press E on board to collect the parcel.';
+      guidance = 'Stay on board until the marked parcel pickup stop. When stopped there, press E / USE to open the symbol challenge.';
+      substep = 2; nextAction = 'Ride to the parcel pickup stop';
     } else if (phase === 'puzzle') {
-      guidance = 'Match the displayed symbols. Release each key before pressing the next.';
+      substep = site.kind === 'rail' ? 3 : site.kind === 'bank' ? 2 : 1;
+      nextAction = `Match symbol ${index + 1} of ${sequence.length}`;
+      feedback = current.feedback || '';
+      guidance = `Copy the highlighted game symbol ${index + 1}/${sequence.length}: press ${BUTTONS[sequence[index]]} on the keyboard or tap the matching symbol button. Release each button before the next. ${feedback}`;
       challenge = Object.freeze({ active: true, kind: 'heist', phase: 'cue', label: rules.label, sequence, index, mistakes,
-        maxMistakes: 3, expectedKey: sequence[index], instruction: `PRESS ${BUTTONS[sequence[index]]}`, guidance: `${guidance} E cancels.` });
+        maxMistakes: 3, expectedKey: sequence[index], instruction: `${index + 1}/${sequence.length} · PRESS ${BUTTONS[sequence[index]]}`, guidance: `${guidance} E / USE cancels this attempt.` });
     } else if (phase === 'surrender') {
       indoorTarget = current.console||current.loot;
+      nextAction = site.kind === 'bank' ? 'Use the marked game console' : 'Collect the marked pickup';
       guidance = site.kind==='bank'?(site.vaultPuzzle?'E / USE at the marked vault console.':'E / USE at the cash release console.'):`E / USE to take the ${rules.loot}.`;
     } else if(phase==='release'){
-      indoorTarget=current.console;guidance=`Stay at the release console · ${Math.ceil(current.releaseRemaining)}s`;
+      indoorTarget=current.console; substep=2; nextAction='Wait for the game release meter';
+      guidance=`Stay at the marked release console until the meter fills · ${Math.ceil(current.releaseRemaining)}s. No extra button press is needed. Leaving cancels this attempt.`;
     } else if(phase==='loot'){
-      indoorTarget=current.loot;guidance='Cash unlocked. Walk to the marked cash pickup · E / USE collects.';
+      indoorTarget=current.loot; substep=3; nextAction='Collect the marked cash pickup';
+      guidance='Cash unlocked. Walk to the separate marked cash pickup and press E / USE. The console does not collect it.';
     } else {
-      guidance = current.awaitingDismount ? 'Leave the train at a stop.' :
+      substep=stepCount; nextAction='Finish the game escape objective';
+      guidance = current.awaitingDismount ? 'Leave the train at a stop using E / USE when the exit prompt appears, then follow the distance objective.' :
         current.awaitingExit ? 'Exit the building, then leave the area and lose any wanted stars.' :
         current.escapeRemaining > 0 ? `Get ${current.escapeRemaining} m farther from the pickup and lose any wanted stars.` :
           'Lose your wanted stars to complete the heist.';
     }
-    return Object.freeze({ active: true, site, phase, guidance, target: target && Object.freeze(target),
+    guidance = `Step ${substep}/${stepCount} · ${guidance}`;
+    return Object.freeze({ active: true, site, phase, guidance, nextAction, substep, stepCount, feedback, target: target && Object.freeze(target),
       indoorTarget, employeeId:current.employeeId ?? null, challenge,
       progress:phase==='release'?1-current.releaseRemaining/rules.releaseSeconds:null,
       hostage:current.hostage ? Object.freeze({roomId:current.hostage.roomId,employeeId:current.hostage.employeeId,remaining:current.hostage.remaining}) : null, remaining: Math.max(0, remaining) });
