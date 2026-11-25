@@ -43,7 +43,7 @@ for(const model of CARS)for(const yaw of [0,.7,Math.PI/2]) {
  assert.equal(batches.shoes.count,4,'seated crew have two shoes each, without gun, cup or tracer');
  for(const [name,mesh]of Object.entries(batches))assert.equal(mesh.count,['torso','head','hair'].includes(name)?2:4);
  const eye=createCar(model.id).userData.cockpit.eye,fit=Math.min(1,(model.height-eye[1]-.025)/PERSON_MODEL.seatedHeadTop);
- assert(eye[0]<0,'original driver remains at negative X');
+ assert(eye[0]>0,'driver sits on the right (right-hand-drive seating, 4069e5d0)');
  body.position.set(3,heightAt(3,4)+.18,4);
  const sin=Math.sin(yaw),cos=Math.cos(yaw);
  body.rotation.set(Math.atan2(heightAt(3-sin*2,4-cos*2)-heightAt(3+sin*2,4+cos*2),4),yaw,0,'YXZ');body.updateMatrix();
@@ -64,7 +64,7 @@ for(const model of CARS)for(const yaw of [0,.7,Math.PI/2]) {
    const mesh=batches[name];mesh.getMatrixAt(personIndex,matrix);local.multiplyMatrices(inverseBody,matrix);
    mesh.geometry.computeBoundingBox();const bounds=mesh.geometry.boundingBox.clone().applyMatrix4(local);
    assert(bounds.max.y<model.height-.02,'rounded head stays below actual car roof plane');
-   assert(bounds.getCenter(point).x>0,'passengers sit opposite the original driver');
+   assert(bounds.getCenter(point).x<0,'crew sit opposite the right-hand driver');
   }
  }
 }

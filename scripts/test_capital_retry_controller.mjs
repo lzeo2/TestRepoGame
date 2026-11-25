@@ -61,6 +61,8 @@ const env = {
   previousActorMode: 'foot', aircraftRescueHealth: null, followYoober: false, fireWarningKey: null,
   aircraft: { active: null, reset() {}, snapshot: () => ({planes:[]}) }, delivery: { busy: true },
   jetpack: null, buses: null, micromobility: null, equipment: null, ordnance: null,
+  skylineLease: null, MISSION_FAILURE_HOLD: 1.6, MISSION_FAILURE_FADE: .8, missionFailureTitle: null,
+  beginMissionFailureTitle: () => {}, updateMissionFailureTitle: () => {}, clearMissionFailureTitle: () => {},
   gameplay: {
     state, setWeapon(id) { state.weapon = id; },
     missionRecoverySnapshot: () => ({ wanted: state.wanted, offencePressure: state.offencePressure, heat: state.heat, pursuit: state.pursuit, equipped: ['pistol'] }),
