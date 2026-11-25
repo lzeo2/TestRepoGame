@@ -19,6 +19,27 @@ Lyneham, Acton and the western lake. The regional expansion connects Belconnen
 and Bruce, Watson and Gungahlin, and Woden through Greenway. No GTA code,
 artwork or branded vehicle assets are used.
 
+## Guided missions and map coverage
+
+Press **J** to review the mission plan before starting or between objectives. The
+campaign HUD shows the current step and distance. Inside the wrong building,
+the marker leads to its exit before sending the player across town. Personal
+vehicle objectives track the active car. On foot, a near-door ring can guide
+the player around a parked car. When two interior activities overlap, E or Q
+prefers the marked mission station while it is within normal reach. *Signed for* begins with preparing a
+parcel on a paid stock shift. *Carbon copy* uses the crew's car, and *Terminal
+transfer* begins by packing the case at home.
+
+Repeatable heists show the current phase and its controls. On the Metro Parcel
+Run, the pickup stop opens a dispatch note. Match the written colour and shape
+using the keyboard or labelled touch buttons, then enter the seal symbols.
+A missed dispatch choice can be retried after the tram departs. Practice mode
+uses the same steps and keeps the career wallet separate.
+
+The [map and campaign verification report](../../verification/capital-drive-guidance-map-census-2026-11-25.md)
+covers source road segments, both graphics modes, public rooms, generated houses
+and the remaining lane obstructions.
+
 ## Road-level contacts and street models
 
 At the Flynn Drive and Commonwealth Avenue crossing a driver can turn under the

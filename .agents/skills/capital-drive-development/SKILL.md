@@ -81,6 +81,16 @@ Test the actual domain modules and adapters. Label detached fixtures, setup
 teleports and synthetic wallets as such. Read-only diagnostics are for evidence,
 not positive proof of naturally earned progression.
 
+## Run the map census
+
+Use `python3 -B scripts/check_capital_drive.py --map-census` from the repository
+root for the full regression and map pass. For a narrow geometry change run
+the relevant command from the [census recipe](../../../docs/verification/capital-drive-guidance-map-census-2026-11-25.md).
+Capture the road report both before and after a collider change. Use
+`--world-obstacles` to include generated parapets and yards. For a bridge
+claim, check upper and lower car and pedestrian contact at the same map point.
+Keep occupied lane probes in the report even when structural checks pass.
+
 ## Verify at the right scope
 
 Run touched JS syntax checks and the focused suites listed in the architecture
