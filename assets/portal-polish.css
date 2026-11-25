@@ -148,7 +148,7 @@ html[data-theme] .game-card--featured::before,
 html[data-theme] .game-card--featured::after,
 html[data-theme] .game-card__glow { display: none !important; }
 html[data-theme] .bento-grid .game-card__thumb {
-  aspect-ratio: 2 / 1 !important; background: var(--tile) !important;
+  aspect-ratio: 16 / 9 !important; background: var(--tile) !important;
   position: relative; overflow: hidden; min-width: 0;
 }
 html[data-theme] .game-card__icon {
@@ -165,17 +165,25 @@ html[data-theme] .game-card__thumb-img {
   color: var(--text); line-height: 1; text-shadow: none;
 }
 html[data-theme] .game-card__body {
-  padding: 12px; gap: 8px; min-width: 0; flex: 1;
+  padding: 16px; gap: 12px; min-width: 0; flex: 1;
 }
 html[data-theme] .game-card__header { display: block; min-width: 0; }
 html[data-theme] .game-card__title {
   font-family: var(--sans); font-size: 18px !important; font-weight: 700 !important;
   line-height: 1.25; color: var(--text) !important;
-  min-height: 45px; min-width: 0; width: 100%; margin: 0;
+  min-height: 0; min-width: 0; width: 100%; margin: 0;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   white-space: normal; overflow: hidden; overflow-wrap: break-word;
 }
-html[data-theme] .game-card__desc { display: none; }
+html[data-theme] .game-card__desc {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; margin: 0; min-height: 42px; font-size: 15px;
+  line-height: 21px; color: var(--text-muted) !important;
+}
+/* Keep the search shortcut discoverable without adding another control. */
+.ux-search-key { color: var(--text-muted); border: 1px solid var(--border);
+  padding: 2px 7px; border-radius: 3px; font: 14px var(--sans); }
+@media (pointer: coarse) { .ux-search-key { display: none; } }
 html[data-theme] .game-card__category {
   position: absolute; top: 8px; left: 8px; max-width: calc(100% - 16px); z-index: 3;
   background: var(--bg-card) !important; color: var(--text-muted) !important;
@@ -320,7 +328,10 @@ html[data-theme] :is(button, a, select, textarea, [tabindex]):focus-visible {
   .game-card__icon:not(:has(img))::after { font-size: 48px; }
   .game-card:has(.game-card__tag--hacked) .game-card__icon:not(:has(img))::after { transform: translateY(16px); }
   html[data-theme] .game-card__body { padding: 8px; gap: 8px; }
-  html[data-theme] .game-card__title { font-size: 16px !important; line-height: 20px; min-height: 40px; }
+  html[data-theme] .game-card__title { font-size: 17px !important; line-height: 21px; min-height: 0; }
+  html[data-theme] .game-card__desc { font-size: 14px; line-height: 19px; min-height: 38px; }
+  html[data-theme] .bento-grid .game-card { grid-template-columns: 88px minmax(0, 1fr); }
+  html[data-theme] .game-card__body { padding: 12px; }
   html[data-theme] .game-card__category { left: 4px; top: 4px; padding: 4px !important; max-width: calc(100% - 8px); }
   html[data-theme] .bento-grid .game-card__tags { left: 4px; top: 4px; }
   html[data-theme] .game-card__actions { gap: 4px; }
@@ -328,4 +339,15 @@ html[data-theme] :is(button, a, select, textarea, [tabindex]):focus-visible {
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* Recoverable catalog metadata failure, separate from normal result feedback. */
+html[data-theme] .ux-catalog-error {
+  grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap;
+  gap: 12px; padding: 16px; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text);
+}
+html[data-theme] .ux-catalog-error button {
+  min-height: 44px; padding: 8px 16px; border: 1px solid var(--border);
+  background: #000; color: #fff; border-radius: var(--radius); cursor: pointer;
 }

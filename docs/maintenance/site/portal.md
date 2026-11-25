@@ -101,3 +101,36 @@ for capture guards, final counts and known local-source gaps. The [shipping rece
 Smallest fixes belong in authored UX shared helpers: search routing, recent validation, catalog retry/status and DOM reconciliation. Keep bundle DOM class contracts and preserve title/ID identity separately. Do not hand-edit compiled React or replace working game menus. Density controls, copy-link/share actions, deep-link query state, custom scroll-spy and account features were **not found** in the audited authored portal/application tail. `portal-share.png` is metadata imagery, not a share widget. Motion-library IntersectionObserver code is not proof of an active portal scroll feature.
 
 Historical focused browser result: `portal review checks passed` from `scripts/test_portal_review.py`. Delegation 73 also ran `scripts/test_portal_refurbishment.py`: native fuzzy/empty search, Clear/Escape, favorite/tag/category combinations, persisted-sort restoration, negative recent-storage fixtures and normal UI launch recording passed. Its read-only idle probe observed zero mutations across counts/status/recent for 1200ms after settling. At that historical baseline neither runner proved random launch, popup denial, trusted OS IME, target-hardware CPU/FPS or gameplay. Current launch tests target native fullscreen and actual policy denial rather than popup behavior; original popup receipts remain historical. Recommended next native steps: type a fuzzy query and a no-result query, Escape/Clear, switch bundle/extra categories with combined tags/favorites, inspect details with keyboard, exercise popup allowed/blocked paths and all sort modes. Main must review screenshots and accessibility judgment; the worker does not label source-only flows as working. Full release gate remains separate.
+
+## Discovery and catalog recovery (25 November 2026, delegation 5)
+
+The authored shelf now shows a two-line catalog description on every card,
+including standard cards for which the compiled application supplies no paragraph.
+Descriptions are assigned with `textContent`; the full text remains available in
+Info. Existing local cover art uses 16:9 desktop tiles, with natural title height,
+16px card padding and compact illustrated rows below 480px. Existing title order,
+filters, stars, history and launch routes remain authoritative. The search field
+shows its existing `/` shortcut on fine-pointer devices and exposes
+`aria-keyshortcuts`. No assets, network services or game registrations were added.
+
+A failed authored catalog request now produces a visible **Retry catalog** action.
+Failure is remembered until explicit retry, preventing observer-driven request
+storms. Retry clears both catalog and title-to-URL promises; recovery rebuilds
+metadata and launch lookup. If the compiled application itself shows its initial
+catalog error, successful retry reloads the page because that bundle owns its
+failed render state. `/bare/*` remains disabled. Static deployment still publishes
+the repository root; there is no bundle rebuild step.
+
+Run `python3 -B scripts/test_portal_discovery.py` for 1440/390/320 layouts in
+both themes, all-card summaries, action target sizes, the native search shortcut
+and a labeled transient authored-fetch fixture. The fixture checks one failed
+request without automatic retries, explicit recovery, Info, card launch and
+random launch against local HTML route fixtures; it does not accept game play.
+Screenshots are emitted to the temporary `portal-discovery` directory.
+
+`test_portal_refurbishment.py` now waits for the search query as well as the
+visible count after the Sports chip changes. The count was already one before
+that click and could return before React reset the input and the authored 80ms
+observer restored it. Exact query and Soccer Random assertions remain; the check
+uses a condition rather than a fixed delay. The same old immediate-read failure
+was reproduced against unchanged HEAD portal source before adjusting the test.

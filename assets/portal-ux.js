@@ -298,6 +298,13 @@
         var gData = findGameData(title);
         if (gData) {
           card.setAttribute('data-tags', (gData.tags || []).join(','));
+          var body = $('.game-card__body', card);
+          if (body && actions && !$('.game-card__desc', card) && gData.desc) {
+            var description = document.createElement('p');
+            description.className = 'game-card__desc';
+            description.textContent = gData.desc;
+            body.insertBefore(description, actions);
+          }
         }
       }
     });
@@ -308,16 +315,19 @@
   var _gameCachePromise = null;
   var _gamesList = [];
   var _gamesPromise = null;
+  var catalogFailed = false;
 
   function fetchGames() {
     if (_gamesPromise) return _gamesPromise;
+    if (catalogFailed) return Promise.resolve([]);
     _gamesPromise = fetch('./games.json')
       .then(function (r) {
         if (!r.ok) throw new Error('Catalog request failed');
         return r.json();
       })
       .then(function (games) {
-        _gamesList = (Array.isArray(games) ? games : []).map(function (game) {
+        if (!Array.isArray(games)) throw new Error('Invalid catalog');
+        _gamesList = games.map(function (game) {
           if (!game || !Array.isArray(game.tags)) return game;
           var seen = {};
           game.tags = game.tags.map(function (tag) {
@@ -329,13 +339,57 @@
           });
           return game;
         });
+        catalogFailed = false;
+        var notice = $('.ux-catalog-error');
+        if (notice) notice.remove();
         return _gamesList;
       })
       .catch(function () {
+        catalogFailed = true;
+        _gamesPromise = null;
+        _gameCachePromise = null;
+        _gameUrlCache = null;
         _gamesList = [];
+        showCatalogRetry();
         return _gamesList;
       });
     return _gamesPromise;
+  }
+
+  function showCatalogRetry() {
+    var main = $('.app__main');
+    if (!main || $('.ux-catalog-error')) return;
+    var notice = document.createElement('div');
+    notice.className = 'ux-catalog-error';
+    notice.setAttribute('role', 'status');
+    var message = document.createElement('span');
+    message.textContent = 'Game details could not load. Check your connection and retry.';
+    var retry = document.createElement('button');
+    retry.type = 'button';
+    retry.textContent = 'Retry catalog';
+    retry.addEventListener('click', function () {
+      retry.disabled = true;
+      retry.textContent = 'Retrying…';
+      catalogFailed = false;
+      _gamesPromise = null;
+      _gameCachePromise = null;
+      _gameUrlCache = null;
+      fetchGames().then(function () {
+        if (catalogFailed) {
+          retry.disabled = false;
+          retry.textContent = 'Retry catalog';
+        } else if ($('.app__error')) {
+          window.location.reload(); // React owns its failed initial catalog state.
+        } else {
+          var search = $('.search-bar__input');
+          if (search) search.focus({ preventScroll: true });
+          onMutations();
+        }
+      });
+    });
+    notice.appendChild(message);
+    notice.appendChild(retry);
+    main.prepend(notice);
   }
 
   function fetchGameUrlCache() {
@@ -878,6 +932,19 @@
     }
   }
 
+  function ensureSearchHint() {
+    var search = $('.search-bar');
+    if (!search || $('.ux-search-key', search)) return;
+    var hint = document.createElement('kbd');
+    hint.className = 'ux-search-key';
+    hint.textContent = '/';
+    hint.setAttribute('aria-hidden', 'true');
+    hint.title = 'Press / to search';
+    search.appendChild(hint);
+    var input = $('.search-bar__input', search);
+    if (input) input.setAttribute('aria-keyshortcuts', '/');
+  }
+
   var moTimer = null;
   function onMutations() {
     if (moTimer) return;
@@ -885,6 +952,8 @@
       moTimer = null;
       ensureSkipLink();
       ensureMainTarget();
+      ensureSearchHint();
+      if (catalogFailed) showCatalogRetry();
       applyCardMetadata();
       applyFilterMetadata();
       injectUxCatChips();
