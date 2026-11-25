@@ -14,7 +14,7 @@ function roomFor(site) {
   const employee = { id:`${id}-employee`, roomId:id, storeId:site.id, kind:'employee', health:100, x:401, z:498 };
   const loot = { id:`${id}-loot`, x:site.kind==='bank'?406:403, z:500, radius:1.4 };
   const console = {id:`${id}-console`,x:403,z:500,radius:1.2};
-  const room = { id, storeId:site.id, heistSiteId:site.id, employeeId:employee.id, loot,...(site.kind==='bank'?{console}:{}) };
+  const room = { id, storeId:site.id, heistSiteId:site.id, employeeId:employee.id, exit:{x:399,z:498}, loot,...(site.kind==='bank'?{console}:{}) };
   const entry = onFoot({x:401,z:500}, { indoors:true, room, employee, armed:true, aiming:true, aimYaw:0 });
   const counter = { ...entry, pose:site.kind==='bank'?{x:console.x,z:console.z}:{x:loot.x,z:loot.z}, armed:false, aiming:false };
   return { room, employee, entry, counter, pickup:{...counter,pose:{x:loot.x,z:loot.z}} };
@@ -41,7 +41,7 @@ function playSequence(heists, ctx) {
   assert.match(heists.interact(entry).message,/vault console/i);
   assert.equal(heists.interact(roomFor(bank).counter),null,'the other branch cannot open this vault');
   assert(heists.interact(counter).ok);
-  assert.equal(heists.snapshot().challenge.label,'Vault symbols');
+  assert.equal(heists.snapshot().challenge.label,'Vault symbols · Step 2/4');
   assert.equal(heat.length,0,'starting the vault puzzle does not collect cash');
   assert.equal(heists.step(.05,{...counter,pose:{x:410,z:500}}).ok,false,'leaving console reach interrupts the challenge');
   assert.deepEqual(rewards,[]);
@@ -51,6 +51,7 @@ function playSequence(heists, ctx) {
   assert.equal(heat.length,0);assert.deepEqual(rewards,[]);
   assert.equal(heists.interact(counter),null,'console is not the separate cash pickup');
   assert(heists.interact(pickup).ok);assert.equal(heists.snapshot().phase,'escape');assert.equal(heat.length,1);
+  assert.deepEqual(heists.snapshot().indoorTarget,{...entry.room.exit,interiorId:entry.room.id,name:'Exit'});
   heists.step(.05,onFoot({x:403,z:500},{wanted:3}));
   heists.step(.05,onFoot({x:490,z:500}));
   heists.step(.05,onFoot({x:490,z:500}));
@@ -182,6 +183,9 @@ function playSequence(heists, ctx) {
   assert.equal(heists.interact(aboard(rail.pickup)), null, 'pickup cannot start between stops');
   assert.equal(heists.interact(aboard(rail.pickup, rail.arrivalStopId)).ok, true);
   const ride = aboard(rail.pickup);
+  assert.equal(heists.snapshot().phase,'dispatch');
+  heists.step(.01,ride);heists.step(.01,ride,{y:true});
+  assert.equal(heists.snapshot().phase,'puzzle');
   assert.deepEqual(heists.snapshot().challenge.sequence,['up','y','x']);
   heists.step(1/60, ride, {up:true});
   assert.equal(heists.snapshot().challenge.index, 0, 'input held at admission cannot count');

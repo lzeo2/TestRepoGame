@@ -8,7 +8,9 @@ const RULES = Object.freeze({
 });
 const VAULT = Object.freeze({ ...RULES.bank, lootName:'Vault cash', label:'Vault symbols', cues:['x','up','y','x'], reward:3100 });
 const BUTTONS = Object.freeze({ x: 'X', y: 'Y', up: '↑' });
-const KEYS = Object.keys(BUTTONS);
+const KEYS = Object.freeze(Object.keys(BUTTONS));
+const PARCELS = Object.freeze({ x:'Blue circle', y:'Blue triangle', up:'Gold circle' });
+const DISPATCH_NOTE = 'Dispatch note: choose the blue parcel with a triangle label.';
 const EMPTY = Object.freeze({ active: false, site: null, phase: null, guidance: '', target: null,
   indoorTarget: null, employeeId: null, challenge: null, hostage: null, remaining: 0,
   nextAction: '', substep: 0, stepCount: 0, feedback: '' });
@@ -111,13 +113,17 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     return distance(ctx.pose, loot) <= Math.min(2, loot.radius) && canSeeInside(ctx.pose, loot, roomId);
   }
 
+  function exitMarker(room) {
+    return isPoint(room.exit) ? Object.freeze({ ...toPoint(room.exit), interiorId: room.id, name: 'Exit' }) : null;
+  }
+
   function openExhibitionCase(ctx, site, sandbox) {
     const { loot, id:roomId } = ctx.room;
     if (!caseWithinReach(ctx, loot, roomId)) return null;
     const unavailable = startAvailability(site, ctx, sandbox);
     if (unavailable) return unavailable;
     const rules = RULES[site.kind];
-    current = { site, rules, sandbox, roomId, loot, remaining:rules.time, heatSeen:false };
+    current = { site, rules, sandbox, roomId, loot, exit:exitMarker(ctx.room), remaining:rules.time, heatSeen:false };
     beginPuzzle(current);
     return message(true, 'Match the exhibition case symbols.');
   }
@@ -137,7 +143,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     const rules = site.vaultPuzzle ? VAULT : RULES[site.kind];
     const loot = Object.freeze({ id:room.loot.id, ...toPoint(room.loot), radius:Math.min(2, room.loot.radius),
       name:rules.lootName || (rules.loot === 'cash' ? 'Cash' : 'Jewellery'), interiorId:room.id });
-    current = { site, rules, sandbox, loot, roomId:room.id, employeeId:employee.id,
+    current = { site, rules, sandbox, loot, exit:exitMarker(room), roomId:room.id, employeeId:employee.id,
       console:site.kind==='bank'?Object.freeze({id:room.console.id,...toPoint(room.console),radius:Math.min(2,room.console.radius),name:site.vaultPuzzle?'Vault console':'Cash release console',interiorId:room.id}):null,
       roomCrime:Object.freeze({ type:'robbery', targetId:employee.id, phase:'handover' }),
       remaining:rules.time, phase:'surrender', heatSeen:false, origin:null, hostage:null, hostageUsed:false };
@@ -190,11 +196,15 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
         if(indoorSite(ctx)!==current.site||ctx.room.id!==current.roomId||!caseWithinReach(ctx,current.loot,current.roomId))return null;
         return collect(current,current.site);
       }
-      if (current.phase === 'puzzle') return cancel();
+      if (current.phase === 'puzzle' || current.phase === 'dispatch') return cancel();
       if (current.phase !== 'ride' || !ctx.railPassenger || !ctx.railStopId || ctx.railStopId === current.site.stopId ||
           (current.site.arrivalStopId && ctx.railStopId !== current.site.arrivalStopId) || ctx.indoors) return null;
-      beginPuzzle(current);
-      return message(true, 'Match the parcel symbols.');
+      // Capture actual arrival once, so a departing tram does not erase the selection.
+      current.pickupReceipt = Object.freeze({ stopId:ctx.railStopId, point:toPoint(ctx.pose) });
+      current.phase = 'dispatch';
+      current.armed = false;
+      current.feedback = '';
+      return message(true, DISPATCH_NOTE);
     }
     if (ctx.indoors) {
       const site = indoorSite(ctx);
@@ -229,6 +239,12 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
   function unlockCash(attempt){
     attempt.phase='loot';
     return message(true,'Cash unlocked. Walk to the marked cash pickup and press E / USE.');
+  }
+
+  function railPickupReachable(attempt, ctx) {
+    return !!attempt.pickupReceipt && !ctx.indoors && (ctx.railPassenger === true ||
+      (onFoot(ctx) && (distance(ctx.pose, attempt.pickupReceipt.point) <= 6 ||
+        (attempt.site.pickup && distance(ctx.pose, attempt.site.pickup) <= 6))));
   }
 
   function step(dt, ctx = {}, input = {}) {
@@ -274,10 +290,25 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
       return null;
     }
 
+    if (attempt.phase === 'dispatch') {
+      if (!railPickupReachable(attempt, ctx)) return cancel('Return to the parcel pickup stop to retry.');
+      const held = KEYS.filter(key => input?.[key] === true);
+      if (!held.length) { attempt.armed = true; return null; }
+      if (!attempt.armed) return null;
+      attempt.armed = false;
+      if (held.length === 1 && held[0] === 'y') {
+        beginPuzzle(attempt);
+        attempt.feedback = 'Blue triangle matched the dispatch note. Now copy the parcel seal symbols.';
+        return message(true, attempt.feedback);
+      }
+      attempt.feedback = 'Try again: the note asks for BOTH blue and triangle. Choose Y: Blue triangle. Release the buttons first.';
+      return message(false, attempt.feedback);
+    }
+
     if (attempt.phase === 'puzzle') {
       const reachable = attempt.roomId
         ? indoorSite(ctx) === attempt.site && ctx.room.id === attempt.roomId && caseWithinReach(ctx, attempt.console||attempt.loot, attempt.roomId)
-        : ctx.railPassenger && !ctx.indoors;
+        : railPickupReachable(attempt, ctx);
       if (!reachable) return cancel('Move back to the heist marker to retry.');
       const held = KEYS.filter(key => input?.[key] === true);
       if (!held.length) { attempt.armed = true; return null; }
@@ -286,7 +317,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
       if (held.length === 1 && held[0] === attempt.sequence[attempt.index]) {
         attempt.index++;
         attempt.feedback = `Symbol ${attempt.index} of ${attempt.sequence.length} matched. Release the button before the next symbol.`;
-        return attempt.index === attempt.sequence.length ? (attempt.site.kind==='bank'?unlockCash(attempt):collect(attempt, ctx.pose)) : null;
+        return attempt.index === attempt.sequence.length ? (attempt.site.kind==='bank'?unlockCash(attempt):collect(attempt, attempt.pickupReceipt?.point || ctx.pose)) : null;
       }
       attempt.index = 0;
       if (++attempt.mistakes >= 3) return cancel('Pattern missed. Press E at the marker to retry.');
@@ -313,7 +344,7 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
     if (!current) return EMPTY;
     const { site, phase, sequence, index, mistakes, rules, remaining } = current;
     let target = null, indoorTarget = null, challenge = null, guidance = '';
-    const stepCount = site.kind === 'rail' ? 4 : site.kind === 'bank' ? 4 : 2;
+    const stepCount = site.kind === 'rail' ? 5 : site.kind === 'bank' ? 4 : 2;
     let substep = 1, nextAction = '', feedback = '';
     if (phase === 'board') {
       target = { ...(site.boarding || site), name: 'Board light rail' };
@@ -321,15 +352,22 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
       nextAction = 'Board at the marked stop';
     } else if (phase === 'ride') {
       if (site.pickup) target = { ...site.pickup, name: 'Parcel pickup stop' };
-      guidance = 'Stay on board until the marked parcel pickup stop. When stopped there, press E / USE to open the symbol challenge.';
+      guidance = 'Stay on board until the marked parcel pickup stop. When stopped there, press E / USE to read the dispatch note and identify the parcel.';
       substep = 2; nextAction = 'Ride to the parcel pickup stop';
+    } else if (phase === 'dispatch') {
+      substep=3; nextAction='Identify the parcel from the dispatch note';
+      feedback=current.feedback || '';
+      guidance=`${DISPATCH_NOTE} X: Blue circle. Y: Blue triangle. ↑: Gold circle. ${feedback}`;
+      challenge=Object.freeze({ active:true, kind:'heist', phase:'dispatch', acceptsInput:true,
+        label:`Parcel dispatch · Step 3/${stepCount}`, sequence:KEYS, options:PARCELS,
+        instruction:DISPATCH_NOTE, guidance:`${feedback || 'Press X, Y or ↑, or tap its labelled button. Release between choices.'} E / USE cancels.` });
     } else if (phase === 'puzzle') {
-      substep = site.kind === 'rail' ? 3 : site.kind === 'bank' ? 2 : 1;
+      substep = site.kind === 'rail' ? 4 : site.kind === 'bank' ? 2 : 1;
       nextAction = `Match symbol ${index + 1} of ${sequence.length}`;
       feedback = current.feedback || '';
       guidance = `Copy the highlighted game symbol ${index + 1}/${sequence.length}: press ${BUTTONS[sequence[index]]} on the keyboard or tap the matching symbol button. Release each button before the next. ${feedback}`;
-      challenge = Object.freeze({ active: true, kind: 'heist', phase: 'cue', label: rules.label, sequence, index, mistakes,
-        maxMistakes: 3, expectedKey: sequence[index], instruction: `${index + 1}/${sequence.length} · PRESS ${BUTTONS[sequence[index]]}`, guidance: `${guidance} E / USE cancels this attempt.` });
+      challenge = Object.freeze({ active: true, kind: 'heist', phase: 'cue', label: `${rules.label} · Step ${substep}/${stepCount}`, sequence, index, mistakes,
+        maxMistakes: 3, expectedKey: sequence[index], instruction: `${index + 1}/${sequence.length} · PRESS ${BUTTONS[sequence[index]]}`, guidance: `${feedback} E / USE cancels this attempt.` });
     } else if (phase === 'surrender') {
       indoorTarget = current.console||current.loot;
       nextAction = site.kind === 'bank' ? 'Use the marked game console' : 'Collect the marked pickup';
@@ -341,10 +379,11 @@ export function createHeistActivities({ sites = [], onHeat, onReward, canSee = (
       indoorTarget=current.loot; substep=3; nextAction='Collect the marked cash pickup';
       guidance='Cash unlocked. Walk to the separate marked cash pickup and press E / USE. The console does not collect it.';
     } else {
-      substep=stepCount; nextAction='Finish the game escape objective';
+      if (current.awaitingExit) indoorTarget = current.exit;
+      substep=stepCount; nextAction='Leave the pickup area';
       guidance = current.awaitingDismount ? 'Leave the train at a stop using E / USE when the exit prompt appears, then follow the distance objective.' :
-        current.awaitingExit ? 'Exit the building, then leave the area and lose any wanted stars.' :
-        current.escapeRemaining > 0 ? `Get ${current.escapeRemaining} m farther from the pickup and lose any wanted stars.` :
+        current.awaitingExit ? (indoorTarget ? 'Follow the exit marker. Press E / USE at the door to exit the building.' : 'Press E / USE at the door to exit the building.') :
+        current.escapeRemaining > 0 ? `Move ${current.escapeRemaining} m farther from the pickup.` :
           'Lose your wanted stars to complete the heist.';
     }
     guidance = `Step ${substep}/${stepCount} · ${guidance}`;

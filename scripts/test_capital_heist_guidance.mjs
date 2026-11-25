@@ -20,6 +20,17 @@ assert.equal(owner.snapshot().substep,2,'a wrong stop cannot advance the guide')
 const pickup={...ride,railStopId:'pickup',pose:site.pickup};
 owner.interact(pickup);
 assert.equal(owner.snapshot().substep,3);
+assert.match(owner.snapshot().challenge.instruction,/blue.*triangle/);
+assert.deepEqual(owner.snapshot().challenge.options,{x:'Blue circle',y:'Blue triangle',up:'Gold circle'});
+const dispatchPaused=owner.snapshot();
+owner.step(1,{...pickup,paused:true},{y:true});
+assert.deepEqual(owner.snapshot(),dispatchPaused);
+owner.step(.1,pickup);
+assert.equal(owner.step(.1,pickup,{x:true}).ok,false);
+assert.match(owner.snapshot().feedback,/BOTH blue and triangle/);
+const departed={...pickup,railStopId:null,pose:{x:60,z:0}};
+owner.step(.1,departed);owner.step(.1,departed,{y:true});
+assert.equal(owner.snapshot().substep,4,'correct selection still works after the same tram departs');
 assert.match(owner.snapshot().challenge.instruction,/1\/3/);
 owner.step(.1,pickup);
 const wrong=owner.snapshot().challenge.expectedKey==='x'?'y':'x';
@@ -31,11 +42,11 @@ owner.step(1,{...pickup,paused:true},{up:true});
 assert.deepEqual(owner.snapshot(),paused);
 const sequence=owner.snapshot().challenge.sequence;
 for(const key of sequence){
-  owner.step(.1,pickup);
-  owner.step(.1,pickup,{[key]:true});
+  owner.step(.1,departed);
+  owner.step(.1,departed,{[key]:true});
   if(owner.snapshot().challenge)assert.match(owner.snapshot().feedback,/matched.*Release/);
 }
-assert.equal(owner.snapshot().substep,4);
+assert.equal(owner.snapshot().substep,5);
 assert.equal(owner.snapshot().feedback,'','symbol feedback does not leak into the escape step');
 assert.match(owner.snapshot().guidance,/Leave the train/);
 assert.equal(owner.step(.1,{...foot,pose:{x:100,z:0}}).message,'Practice heist complete.');
@@ -43,6 +54,7 @@ assert.deepEqual(heat,[]);assert.deepEqual(rewards,[]);
 owner.interact(foot);
 owner.step(.1,ride);
 owner.interact(pickup);
+owner.step(.1,pickup);owner.step(.1,pickup,{y:true});
 assert.equal(owner.snapshot().challenge.mistakes,0);
 assert.doesNotMatch(owner.snapshot().feedback,/Wrong symbol/,'repeat attempts start with fresh guidance');
 for(let i=0;i<3;i++){
@@ -53,4 +65,18 @@ for(let i=0;i<3;i++){
 }
 assert.equal(owner.active,false,'three mistakes retain the existing failure guard');
 assert.deepEqual(rewards,[]);
+// A stopped pickup receipt also permits finishing beside that same platform.
+owner.interact(foot);owner.step(.1,ride);owner.interact(pickup);
+const platform={...foot,pose:site.pickup};
+owner.step(.1,platform);owner.step(.1,platform,{y:true});
+assert.equal(owner.snapshot().phase,'puzzle');
+owner.step(.1,{...platform,pose:{x:100,z:0}});
+assert.equal(owner.active,false,'the stop receipt does not authorize a remote foot pickup');
+for(const phase of ['dispatch','puzzle']) {
+  owner.interact(foot);owner.step(.1,ride);owner.interact(pickup);
+  if(phase==='puzzle'){owner.step(.1,pickup);owner.step(.1,pickup,{y:true});}
+  assert.equal(owner.snapshot().phase,phase);
+  assert.equal(owner.step(.1,{...platform,indoors:true,room:{id:'unrelated-room'}}).ok,false);
+  assert.equal(owner.active,false,'an unrelated room cannot consume the frozen pickup receipt');
+}
 console.log('PASS heist guidance: numbered rail substeps, button cues, mistakes, pause, fresh retries and practice authority.');

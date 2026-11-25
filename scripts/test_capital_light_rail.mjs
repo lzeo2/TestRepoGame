@@ -150,6 +150,12 @@ while(rail.passengerStopId!==elouera.id&&civicTravel<70){rail.step(.25);civicTra
 assert.equal(rail.passengerStopId,elouera.id);assert(heists.interact(aboard()).ok,'actual stopped Elouera receipt admits pickup');
 denyPlatform=true;assert(!rail.interact({}).ok&&rail.passenger,'blocked exit keeps the passenger attached');denyPlatform=false;
 const civicExit=rail.interact({});assert(civicExit.exited&&canStand(civicExit.exitPose));
+const parcelPlatform={pose:civicExit.exitPose,onFoot:true,wanted:0};
+heists.step(.1,parcelPlatform);
+assert.equal(heists.snapshot().phase,'dispatch','same-stop normal exit retains admitted parcel selection');
+assert.equal(heists.step(.1,parcelPlatform,{x:true}).ok,false);
+heists.step(.1,parcelPlatform);heists.step(.1,parcelPlatform,{y:true});
+assert.equal(heists.snapshot().phase,'puzzle','normal platform exit needs no second tram wait after a wrong choice');
 rail.reset();
 // Select an actually empty station: scheduled trains are now distributed over
 // the full line, so Macarthur need not be empty under a legitimate schedule.
