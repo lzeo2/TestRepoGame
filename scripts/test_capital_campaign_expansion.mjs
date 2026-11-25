@@ -41,8 +41,8 @@ const definitions = owners.map((hero, index) => {
 assert.deepEqual(definitions.map(chapter => chapter.stages.map(goal => goal.kind)), [
   ['drive', 'work', 'drive', 'work', 'escape'],
   ['drive', 'robbery', 'drive', 'robbery', 'escape'],
-  ['home-action', 'stolen', 'drive', 'work', 'drive', 'foot'],
-], 'the continuation combines distinct multi-stage preparation, work, theft, robbery and escape chains');
+  ['home-action', 'drive', 'drive', 'work', 'drive', 'foot'],
+], 'the continuation combines distinct multi-stage preparation, work, transport, robbery and escape chains');
 for (const chapter of definitions) {
   assert.equal(chapter.companions.length, 2);
   assert(!chapter.companions.includes(chapter.character));
