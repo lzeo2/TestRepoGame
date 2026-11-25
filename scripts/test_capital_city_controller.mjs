@@ -8,7 +8,9 @@ import { createShotObstacles } from '../Games/Capital Drive/shot-obstacles.js';
 import { createProgression } from '../Games/Capital Drive/progression.js';
 import { createGameplay } from '../Games/Capital Drive/gameplay.js';
 import { createSimulation } from '../Games/Capital Drive/simulation.js';
-import { weaponById } from '../Games/Capital Drive/weapons.js';
+import { createCareerTraining } from '../Games/Capital Drive/career-training.js';
+import { emptyStash } from '../Games/Capital Drive/safehouse-storage.js';
+import { WEAPON_IDS, weaponById } from '../Games/Capital Drive/weapons.js';
 import { createBuses } from '../Games/Capital Drive/buses.js';
 import { createDeliveryService } from '../Games/Capital Drive/delivery-service.js';
 import { createRideService } from '../Games/Capital Drive/ride-service.js';
@@ -81,22 +83,24 @@ assert.equal(lights.headlightsOverride, true);
 assert.equal(lights.viewRevision, 2);
 
 const calls = [];
-const plan = { id: 'house-1', floorY: 2, name: 'Fixture house' }, entry = { id: plan.id };
+const plan = { id: 'house-1', type:'house', floorY: 2, name: 'Fixture house' }, entry = { id: plan.id };
 const outside = { x: 5, z: 8, yaw: 0 };
-const rooms = owner(['enterInterior', 'leaveInterior'], {
+const furnitureUpdates=[];
+const rooms = owner(['enterInterior', 'leaveInterior', 'refreshHomeFurnishings'], {
   burglary:{leave:()=>{}},
   gameplay: { state: { actor: { ...outside }, wanted: 0, police: [] } },
   interiors: { active: plan, exteriorPose: outside, enter: () => plan, leave: () => true },
   map: { storyHomes: {} }, CAMPUS_GATES: [], compatibility: true,
   policeRooms: { enter: () => {}, leave: () => {}, prune: () => {} },
-  interiorView: { load: () => {}, clear: () => {} }, activities: { load: () => {}, clear: () => {} },
+  interiorView: { load: () => {}, clear: () => {}, setHomeStatus:value=>furnitureUpdates.push(value) }, activities: { load: () => {}, clear: () => {} },
   roomPeople: { load: () => {}, clear: () => {} }, roomPeopleView: { load: () => {}, clear: () => {} },
   campaignScenes: { enterInterior: (...args) => calls.push(['enter', ...args]), leaveInterior: () => calls.push(['leave']) },
   indoorCampaignScenesView: { dispose: () => calls.push(['dispose']) }, indoorActorView: null,
   recallDrone: () => {}, syncPlayerAppearance: () => {}, clearInput: () => {}, notify: () => {}, stopMini: () => {},
-  progression: { cancelActivity: () => {}, isSafehouse: () => false }, cameraReady: true, activeCrewEntry: null,
+  progression: { cancelActivity: () => {}, isSafehouse: () => false, homeStatus:(id,mode)=>({roomId:id,mode,comfort:true}) }, cameraReady: true, activeCrewEntry: null,
 });
 rooms.enterInterior(entry);
+assert.deepEqual(furnitureUpdates,[{roomId:plan.id,mode:'street',comfort:true}],'entry forwards actual room and mode to home furnishings');
 assert.equal(calls[0][0], 'enter');
 assert.equal(calls[0][1], plan);
 assert.equal(calls[0][2], entry);
@@ -510,3 +514,27 @@ assert.deepEqual(resetShotBarriers,[[post,true],[post,false],[post,false],[post,
 assert.deepEqual(storyWorld.snapshot().absentAircraft,[storyPlane]);
 assert.deepEqual(openWorld.snapshot().absentAircraft,[streetPlane]);
 console.log('PASS city persistence controller: Campaign and Street Life rehydrate different aircraft/posts; Free roam and developer previews start from the untouched world.');
+
+// The phone reads the same active mode and property as the live room adapter.
+const training=createCareerTraining();
+training.award({type:'job-complete',jobId:'fixture'},{mode:'street',crewPresent:false});
+const phoneOwner=owner(['cityState','currentGear','utilityContext','crewAtPlayer','trainingContext','refreshHomeFurnishings'],{
+  progression:commerce,gameplay:game,training,missionCheckpoint:null,skylineLease:null,
+  interiors:{active:home},interiorView:{setHomeStatus:value=>furnitureUpdates.push(value)},
+  simulation:{player:{},nearestRoad:()=>({road:{name:'Fixture Street'}})},
+  streetDealers:{services:[]},focus:()=>game.state.actor,careerContext:()=>({}),
+  campaignScenes:{people:[]},isSandbox:()=>false,deliveryCatalog:[],drone:{snapshot:()=>({active:false})},
+  emptyStash,WEAPON_IDS,weaponById,
+});
+let phoneState=phoneOwner.cityState();
+assert.equal(phoneState.training.player.points,1);
+assert.equal(phoneState.training.crew.points,0);
+assert.equal(phoneState.homeName,home.name);
+assert.equal(phoneState.homeStatus.comfort,false);
+phoneOwner.gameMode='campaign';phoneState=phoneOwner.cityState();
+assert.equal(phoneState.training.player.points,0,'phone switches to independent Campaign training');
+phoneOwner.missionCheckpoint={};
+assert.match(phoneOwner.cityState().trainingLocked,/mission or recovery/);
+phoneOwner.interiors.active=null;phoneState=phoneOwner.cityState();
+assert.equal(phoneState.homeStatus,null);assert.equal(phoneState.stash,null);
+console.log('PASS city phone adapter: active room furnishings, mode-specific training and home state, mission lock explanation and exterior storage exclusion');
