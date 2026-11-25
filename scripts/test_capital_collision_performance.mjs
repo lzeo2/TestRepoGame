@@ -11,7 +11,7 @@ import {withCurrentFleet} from './capital-collision-baseline.mjs';
 
 const sourceURL = new URL('../Games/Capital Drive/simulation.js', import.meta.url);
 const source = await readFile(sourceURL, 'utf8');
-const gridSource = source.slice(source.indexOf('class SpatialGrid {'), source.indexOf('// Shared OSM node IDs'));
+const gridSource = source.slice(source.indexOf('const cellKey ='), source.indexOf('// Shared OSM node IDs'));
 const Grid = vm.runInNewContext(`${gridSource}\nSpatialGrid`);
 const grid = new Grid(48), rectangles = [];
 for (let i = 0; i < 600; i++) {

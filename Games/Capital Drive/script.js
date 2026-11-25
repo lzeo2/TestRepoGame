@@ -3664,6 +3664,7 @@ function updateHud() {
   const car=simulation.player,speed=manual?Math.hypot(car.vx,car.vz):Math.abs(p.speed);
   const bus=buses?.tracking();
   const tram=lightRail?.passenger;
+  const tank=depotTank?.isActive;
   const atv=skylineAtv?.seatPose;
   $('speed').textContent = String(Math.round(speed * 3.6));
   refreshAircraftRescue();
@@ -3672,7 +3673,7 @@ function updateHud() {
   const busDistance=bus?.currentStop?'AT PLATFORM':bus?.distanceToNextStop!=null?`${bus.distanceToNextStop} M TO STOP`:null;
   $('distance').textContent = tram?(lightRail.passengerStopId?'AT PLATFORM':'EN ROUTE'):busDistance||(watercraft?.isActive?'LAKE BURLEY GRIFFIN':aircraft?.active?`${Math.round(aircraftAltitude())} M AGL`:`${(simulation.player.odometer / 1000).toFixed(1)} KM`);
   const carLabel=vehicles.find(v=>v.id===selectedCar)?.label||selectedCar.toUpperCase();
-  $('car-label').textContent = atv?'SKYLARK ATV':tram?'CAPITAL LINE':aircraft?.active?(aircraft.active.kind==='helicopter'?'HELICOPTER':'JET'):bus?`BUS · ${bus.routeName.toUpperCase()}`:rideService?.passenger?'YOOBER':gameplay?.state.mode==='foot'?'ON FOOT':gameplay.state.vehicle.rented?`RENTAL · ${carLabel}`:carLabel;
+  $('car-label').textContent = tank?'DEPOT TANK':atv?'SKYLARK ATV':tram?'CAPITAL LINE':aircraft?.active?(aircraft.active.kind==='helicopter'?'HELICOPTER':'JET'):bus?`BUS · ${bus.routeName.toUpperCase()}`:rideService?.passenger?'YOOBER':gameplay?.state.mode==='foot'?'ON FOOT':gameplay.state.vehicle.rented?`RENTAL · ${carLabel}`:carLabel;
   $('street').textContent = interiors?.active?.name||nearby?.road.name || 'Canberra backstreets';
   const districtPlaces=map.landmarks.filter(place=>place.sourceTags?.place==='suburb'||[
     'telopea','manuka','kingston','foreshore','redhill','griffith','narrabundah','canberra-centre','canberra-airport',
@@ -3729,7 +3730,7 @@ function updateHud() {
   if(power)$('hero-power-status').textContent=`${power.name}: ${power.active?`${Math.ceil(power.remaining)}s active`:power.cooldown>0?`${Math.ceil(power.cooldown)}s recharge`:'ready · L'}`;
   if(droneActive)$('driving-hint').textContent=`WASD move · SPACE/SHIFT altitude · N night vision · O recall${gear.droneStrike?' · R strike below':''}`;
   if(lightRail?.passenger)$('driving-hint').textContent='Capital Line · E requests an exit at the next platform';
-  if(depotTank?.isActive)$('driving-hint').textContent='WASD drive tank · Space brake · E exits when stopped';
+  if(tank)$('driving-hint').textContent='WASD drive tank · Space brake · E exits when stopped';
   const stealthGoal=!droneActive&&!jetpack.active&&nearbyStealthObjective(p);
   if(stealthGoal)$('driving-hint').textContent=stealthGoal.crouch?'Hold X / DUCK, then E / USE':'E / USE · Contract objective';
   if(watercraft?.isActive)$('driving-hint').textContent='SPACE brake · E exit when stopped';

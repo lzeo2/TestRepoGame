@@ -136,12 +136,16 @@ function polygonContact(x, z, points, radius) {
     const t = clamp(((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1), 0, 1);
     const px = a[0] + dx * t, pz = a[1] + dz * t;
     const ex = x - px, ez = z - pz, distanceSq = ex * ex + ez * ez;
-    if (!hasClosest || distanceSq < closestSq) {
+    // Very close distances can round differently after squaring. Use the
+    // original distance comparison for ties so symmetric corners keep their normal.
+    const nearlyEqual = hasClosest && Math.abs(distanceSq - closestSq) <= 4 * Number.EPSILON * Math.max(distanceSq, closestSq);
+    const closer = nearlyEqual ? Math.hypot(ex, ez) < Math.hypot(x - closestX, z - closestZ) : distanceSq < closestSq;
+    if (!hasClosest || closer) {
       hasClosest = true; closestSq = distanceSq; closestX = px; closestZ = pz; closestDX = dx; closestDZ = dz;
     }
   }
   if (!hasClosest) return null;
-  // One real distance for the chosen edge; depth math stays bit-identical.
+  // Resolve depth only for the chosen edge.
   const closestDistance = Math.hypot(x - closestX, z - closestZ);
   if (!inside && closestDistance >= radius) return null;
   let nx = x - closestX, nz = z - closestZ;
@@ -594,11 +598,15 @@ export function createSimulation(map, options = {}) {
       adjusted: false, reason, distance: 0 });
     if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.z) ||
       (point.yaw !== undefined && !Number.isFinite(point.yaw))) return rejected('invalid-coordinate');
-    const marginX = Math.min(2, (bounds.maxX - bounds.minX) / 2);
-    const marginZ = Math.min(2, (bounds.maxZ - bounds.minZ) / 2);
+    const yaw = point.yaw === undefined ? (Number.isFinite(player.yaw) ? player.yaw : 0)
+      : Math.atan2(Math.sin(point.yaw), Math.cos(point.yaw));
+    const {length,width} = vehicleSize(player), radius = width / 2, span = Math.max(0,length / 2 - radius);
+    const marginX = Math.min(Math.max(2,radius + span * Math.abs(Math.sin(yaw))), (bounds.maxX - bounds.minX) / 2);
+    const marginZ = Math.min(Math.max(2,radius + span * Math.abs(Math.cos(yaw))), (bounds.maxZ - bounds.minZ) / 2);
     const insideBounds = candidate => ({ x: clamp(candidate.x, bounds.minX + marginX, bounds.maxX - marginX),
       z: clamp(candidate.z, bounds.minZ + marginZ, bounds.maxZ - marginZ) });
     const origin = insideBounds(point);
+    const clearVehicle = candidate => vehicleClear({ ...player, ...candidate, yaw }, { ignorePersonId:'player-body' });
     function blockerAt(candidate) {
       for (const [index, reason] of [[buildingIndex, 'building'], [barrierIndex, 'fence'], [waterIndex, 'water']]) {
         for (const polygon of index.query(candidate.x, candidate.z, 1.8)) {
@@ -621,20 +629,24 @@ export function createSimulation(map, options = {}) {
       return null;
     }
     const initialBlocker = blockerAt(origin);
-    let target = initialBlocker ? null : origin;
-    let reason = initialBlocker?.reason || (origin.x !== point.x || origin.z !== point.z ? 'bounds' : 'exact');
+    let target = !initialBlocker && clearVehicle(origin) ? origin : null;
+    let reason = initialBlocker?.reason || (!target ? 'occupied-space' : origin.x !== point.x || origin.z !== point.z ? 'bounds' : 'exact');
     if (!target) {
       // The closest polygon edge handles even large footprints/lakes without a road snap.
       let projected = origin;
+      let escapeDirection = initialBlocker;
       for (let attempt = 0; attempt < 12; attempt++) {
         const contact = blockerAt(projected);
-        if (!contact) { target = projected; break; }
-        const next = insideBounds({ x: projected.x + contact.nx * (contact.depth + 0.05),
-          z: projected.z + contact.nz * (contact.depth + 0.05) });
+        if (!contact && clearVehicle(projected)) { target = projected; break; }
+        if (contact) escapeDirection = contact;
+        if (!escapeDirection) break;
+        const step = contact ? contact.depth + 0.05 : 0.4;
+        const next = insideBounds({ x: projected.x + escapeDirection.nx * step,
+          z: projected.z + escapeDirection.nz * step });
         if (Math.hypot(next.x - projected.x, next.z - projected.z) < 0.001) break;
         projected = next;
       }
-      if (!target && !blockerAt(projected)) target = projected;
+      if (!target && !blockerAt(projected) && clearVehicle(projected)) target = projected;
       // Nearby clear land takes priority over a longer projection or any road fallback.
       const projectedDistance = target ? Math.hypot(target.x - origin.x, target.z - origin.z) : Infinity;
       search: for (const radius of [2, 4, 8, 12, 20, 32, 48, 64, 96, 128]) {
@@ -642,7 +654,7 @@ export function createSimulation(map, options = {}) {
         for (let i = 0; i < 32; i++) {
           const angle = i / 32 * TAU;
           const candidate = insideBounds({ x: origin.x + Math.cos(angle) * radius, z: origin.z + Math.sin(angle) * radius });
-          if (!blockerAt(candidate)) { target = candidate; break search; }
+          if (!blockerAt(candidate) && clearVehicle(candidate)) { target = candidate; break search; }
         }
       }
     }
@@ -650,12 +662,10 @@ export function createSimulation(map, options = {}) {
       const road = nearestRoad(origin.x, origin.z);
       if (road) {
         const candidate = insideBounds(road);
-        if (!blockerAt(candidate)) { target = candidate; reason = 'road-fallback'; }
+        if (!blockerAt(candidate) && clearVehicle(candidate)) { target = candidate; reason = 'road-fallback'; }
       }
     }
     if (!target) return rejected('no-clear-position');
-    const yaw = point.yaw === undefined ? (Number.isFinite(player.yaw) ? player.yaw : 0)
-      : Math.atan2(Math.sin(point.yaw), Math.cos(point.yaw));
     const distance = Math.hypot(target.x - point.x, target.z - point.z);
     return { ok: true, x: target.x, z: target.z, yaw, adjusted: distance > 0.000001, reason, distance };
   }
