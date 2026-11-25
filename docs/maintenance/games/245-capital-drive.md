@@ -781,6 +781,8 @@ balance alongside prices. Free roam map arrivals check the full current car
 against live vehicle bodies, including the depot tank, and find a nearby clear
 position when a selected point is occupied. The vehicle HUD names the depot
 tank when you board it.
+Completing or skipping a campaign intro returns keyboard focus to the game
+view as soon as the overlay closes.
 
 ### Indoor pursuit, driving starts and direct stored maps, latest15 November2026
 

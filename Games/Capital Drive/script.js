@@ -2071,6 +2071,7 @@ function setCutsceneVisible(show){
   $('cutscene-dialog').hidden=!show;document.body.classList.toggle('in-cutscene',show);
   for(const element of $('game').children)if(element!==$('cutscene-dialog'))element.inert=show;
   if(show)$('cutscene-skip').focus();
+  else renderer?.domElement.focus();
 }
 function renderCutscene(dt){
   if(!pendingCutscene&&!cutscenes.snapshot().active)return;
