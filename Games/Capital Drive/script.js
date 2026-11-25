@@ -62,6 +62,7 @@ import { createPedestrians } from './pedestrians.js';
 import { createNeighbourhoodDetails } from './neighbourhood.js';
 import { createMapProjection, drawMapDetail, mapPointFromClient } from './map-projection.js';
 import { createGameplay } from './gameplay.js';
+import {createCareerTraining} from './career-training.js';
 import { createProgression, JETPACK_OFFER } from './progression.js';
 import { createActorView } from './actor-view.js';
 import { createStreetUI } from './street-ui.js';
@@ -214,18 +215,50 @@ function utilityContext(){
   return {...context,preview:!!developerReturn,vehiclePose:simulation.player,jammerPoint,jammerTargets:securityCameras?.jammerTargets(jammerPoint)||0};
 }
 function currentGear(){return gearForMode(progression.state.gear,isSandbox());}
+function crewAtPlayer(){
+  if(!campaignScenes || !gameplay)return false;
+  const pose=focus(),room=interiors.active?.id ?? null;
+  return campaignScenes.people.some(person=>(person.hired || person.id.startsWith('campaign-ally:')) &&
+    person.health>0 && person.active!==false && (person.interiorId ?? null)===room &&
+    Math.hypot(person.x-pose.x,person.z-pose.z)<=25);
+}
+function trainingContext(crewPresent=crewAtPlayer()){
+  return {mode:gameMode,preview:!!developerReturn,practice:isSandbox(),recovering:!!gameplay?.state.recovery,
+    inMission:!!(missionCheckpoint || campaign?.state.active || skylineLease),crewPresent};
+}
+function trainingCredit(event,crewPresent){
+  return training.award(event,trainingContext(crewPresent))?' Training earned · Phone → Training.':'';
+}
+function refreshHomeFurnishings(){
+  const plan=interiors.active;
+  if(plan?.type==='house')interiorView.setHomeStatus?.(progression.homeStatus(plan.id,gameMode));
+}
 function cityState(){
   const roomId=interiors.active?.id,stash=roomId&&progression.isSafehouse(roomId)?progression.state.stashes[roomId]||emptyStash():null;
   const properties=progression.propertyOffers.map(offer=>({...offer,label:'House near '+(simulation.nearestRoad(offer.x,offer.z)?.road.name||'local street')}));
   const droneDealer=streetDealers.services.reduce((nearest,site)=>!nearest||Math.hypot(site.x-focus().x,site.z-focus().z)<Math.hypot(nearest.x-focus().x,nearest.z-focus().z)?site:nearest,null);
   const gearContext=utilityContext(),utilityAvailability=Object.fromEntries(['medkit','repair-kit','jammer'].map(item=>[item,progression.utilityAvailability(item,gearContext)]));
   const gear=currentGear();
-  return {droneStrikeOwned:gear.droneStrike===true,cash:progression.state.cash,crewOffers:progression.crewOffers,hiredCrew:progression.state.hiredCrew,crew:campaignScenes.people,crewRenewals:Object.fromEntries(progression.crewOffers.map(offer=>[offer.id,progression.crewRenewalSerial(offer.id)])),properties,ownedProperties:progression.ownedProperties,stash,
+  const trainingState=trainingContext();
+  return {training:training.describe(gameMode),trainingLocked:trainingState.inMission||trainingState.preview||trainingState.recovering?'Finish the current mission or recovery to train.':'',
+    homeStatus:roomId?progression.homeStatus(roomId,gameMode):null,homeName:interiors.active?.name,health:gameplay.state.health,
+    droneStrikeOwned:gear.droneStrike===true,cash:progression.state.cash,crewOffers:progression.crewOffers,hiredCrew:progression.state.hiredCrew,crew:campaignScenes.people,crewRenewals:Object.fromEntries(progression.crewOffers.map(offer=>[offer.id,progression.crewRenewalSerial(offer.id)])),properties,ownedProperties:progression.ownedProperties,stash,
     delivery:delivery?.snapshot(),deliveryOffers:deliveryCatalog.map(site=>({...site,items:(site.kind==='food'?['food']:site.weaponIds||[]).map(itemId=>({itemId,name:site.kind==='food'?'Meal':weaponById(itemId)?.name||itemId,...progression.quoteDelivery({sourceId:site.id,kind:site.kind,itemId},careerContext())}))})),
-    weapons:WEAPON_IDS.map(weaponById),equipment:progression.state.equipment,gear,utilityAvailability,drone:drone.snapshot(),droneOwned:gear.drone===true,sandbox:isSandbox(),droneDealer};
+    repairKitBonus:training.effects(gameMode,!!developerReturn).repairAmount,weapons:WEAPON_IDS.map(weaponById),equipment:progression.state.equipment,gear,utilityAvailability,drone:drone.snapshot(),droneOwned:gear.drone===true,sandbox:isSandbox(),droneDealer};
 }
 function cityAction(action,value){
   const ctx={...careerContext(),sandbox:isSandbox()||!!developerReturn};let result={ok:false,message:'Action unavailable.'};
+  if(action==='learn-skill'){
+    result=training.purchase(value?.track,value?.id,trainingContext());
+    if(result.ok)saveCareer();
+    return result;
+  }
+  if(action==='home-upgrade'||action==='home-meal'){
+    const roomId=interiors.active?.id, homeContext={...ctx,mode:gameMode,preview:!!developerReturn,busy:!!(missionCheckpoint||campaign.state.active||skylineLease)};
+    result=action==='home-meal'?houseController.usePantry(roomId,homeContext):progression.buyHomeUpgrade(roomId,value,homeContext);
+    if(result.ok){refreshHomeFurnishings();if(action==='home-upgrade')saveCareer();}
+    return result;
+  }
   if(action==='order-delivery')return orderDelivery(value);
   if(action==='track-delivery')return trackCourier();
   if(action==='camera-pulse')return pulseCameras();
@@ -486,6 +519,7 @@ let cameraReady = false, raf = 0, frameCount = 0;
 let compatibility = false;
 const parkedResources = [];
 let pedestrians, neighbourhood;
+let training=createCareerTraining();
 let gameplay, progression, actorView, landmarkView, northPlacesView, regionalLandmarksView, streetUI, addressSearch;
 let anuCampusView,macquarieShopsView;
 let skylineJob,skylineOpponents,skylineSiteView,skylineLease=null,skylineAirPose=null,skylineHelicopter=null;
@@ -641,7 +675,7 @@ function throwEquipment(kind){
 }
 function careerContext() {
   const state = gameplay.state;
-  return { pose: focus(), onFoot: state.mode === 'foot'&&!state.passenger&&!jetpack?.active&&!state.actor.swimming, vehicleKey:playerCarKey,vehicle: { ...state.vehicle },
+  return { mode:gameMode,pose: focus(), onFoot: state.mode === 'foot'&&!state.passenger&&!jetpack?.active&&!state.actor.swimming, vehicleKey:playerCarKey,vehicle: { ...state.vehicle },
     wanted: state.wanted, vehicleHealth: state.vehicleHealth, respawnSerial: state.respawnSerial, aircraft:aircraft?.active||null,
     health:state.health,weapon:state.weapon,reserveAmmo:state.reserveAmmo,ammunition:Object.fromEntries(WEAPONS.map(w=>[w.id,gameplay.getAmmo(w.id)])),planId:interiors.active?.id,passenger:!!state.passenger,recovering:!!state.recovery,sandbox:isSandbox(),campaign:gameMode==='campaign',interior:interiorContext(),presentation:presentationOutcome,workCompletion,schoolAlarm:schoolAlarmOutcome,heist:heistOutcome,homeAction:homeActionOutcome,encounter:roomPeople?.encounter,recon:reconOutcome,evidence:evidenceOutcome,stealthOutcome,
     assassinationOutcome,aftermathResolved:!developerReturn&&campaignAftermath?.isCase(campaign.state.active?.id)?campaignAftermath.recorded(campaign.state.active.id):undefined };
@@ -836,7 +870,7 @@ function beginMini(id){
   const station=id?interiors.active.activities.find(s=>s.id===id):nearbyActivityStation(focus());
   if(station&&burglary.hasSearched(station.id)){notify('Already searched. Find another cabinet or leave through the door.');return;}
   if(station?.kind==='rest'&&!isSandbox()){
-    const reason=!progression.isSafehouse(interiors.active.id)?'Rest at an owned safehouse.':gameplay.state.health>=100?'Health is already full.':progression.state.cash<80?'Rest costs $80.':progression.state.activeJob?'Finish your current job before resting.':null;
+    const reason=!progression.isSafehouse(interiors.active.id)?'Rest at an owned safehouse.':gameplay.state.health>=100?'Health is already full.':!progression.homeStatus(interiors.active.id,gameMode)?.comfort&&progression.state.cash<80?'Rest costs $80.':progression.state.activeJob?'Finish your current job before resting.':null;
     if(reason){notify(reason);return;}
   }
   if(!station){notify('Walk to an activity station.');return;}
@@ -1322,7 +1356,7 @@ function updateMini(){
   if(!previous.active&&previous.kind&&previous.station&&interiors.active&&Math.hypot(focus().x-previous.station.x,focus().z-previous.station.z)>previous.station.radius+1){activities.load(interiors.active);previous=activities.snapshot();}
   const street=streetChallenge(),state=street||previous,nearest=interiors?.active&&nearbyActivityStation(focus());
   const gym=isWorkoutKind(nearest?.kind)?progression.services.find(site=>site.id===interiors.active.serviceId):null;
-  activityUI.render({street,state,nearest,interior:interiors?.active,safehouse:!!interiors.active&&progression.isSafehouse(interiors.active.id),sandbox:isSandbox(),fitnessLevel:progression.state.fitnessLevel,gymPrice:gym?.price||120});
+  activityUI.render({street,state,nearest,interior:interiors?.active,safehouse:!!interiors.active&&progression.isSafehouse(interiors.active.id),restFree:nearest?.kind==='rest'&&!!progression.homeStatus(interiors.active.id,gameMode)?.comfort,sandbox:isSandbox(),fitnessLevel:progression.state.fitnessLevel,gymPrice:gym?.price||120});
 }
 $('activity-start').addEventListener('click',()=>{renderer.domElement.focus();beginMini();});
 $('activity-cancel').addEventListener('click',stopMini);
@@ -1486,7 +1520,7 @@ function enterInterior(entry){
   const gate=CAMPUS_GATES.find(gate=>gate.id===entry.gateId);
   const approach=gate?[gate.outside,{x:gate.x,z:gate.z},gate.inside].map(p=>Array.isArray(p)?{x:p[0],z:p[1]}:p):[];
   policeRooms.enter(plan,entry,{outside:interiors.exteriorPose||outside,safehouse,known,units:gameplay.state.police,approach});
-  interiorView.load(plan);activities.load(plan);roomPeople.load(plan);roomPeopleView?.load(plan);
+  interiorView.load(plan);refreshHomeFurnishings();activities.load(plan);roomPeople.load(plan);roomPeopleView?.load(plan);
   activeCrewEntry=entry;campaignScenes?.enterInterior(plan,entry,interiors.exteriorPose||outside);
   indoorCampaignScenesView?.dispose();indoorCampaignScenesView=null;
   if(!compatibility)indoorActorView=createActorView(interiorScene,()=>plan.floorY,{policeLimit:safehouse?0:6,policeCars:false});
@@ -1853,6 +1887,9 @@ function advanceCampaign(dt){
   const before=campaign.state.active?.stage;
   campaign.update(dt,careerContext());
   if(campaign.state.active&&campaign.state.active.stage!==before)rememberMissionStep();
+  // The next fixed step can dismiss story companions before the frame drains events.
+  if(before!=null&&!campaign.state.active&&!campaign.state.failed&&missionCheckpoint)
+    missionCheckpoint.completionCrewPresent=crewAtPlayer();
 }
 function contractPlanSelection(){
   return {approachId:$('contract-approach').value,exitId:$('contract-exit').value};
@@ -2562,7 +2599,7 @@ function saveCareer() {
   if (clearingProgress || careerError || isSandbox() || !started || missionCheckpoint || skylineLease) return;
   const owned = progression.state.ownedVehicles.find(car => car.id === gameplay.state.vehicle.modelId);
   if (owned && !gameplay.state.vehicle.stolen&&!gameplay.state.vehicle.rented&&!developerReturn) { owned.health = gameplay.state.vehicleHealth; owned.color = selectedPaint; }
-  try { captureCareerInventory();captureActiveProtagonist();localStorage.setItem(CAREER_KEY, JSON.stringify({...progression.serialize(),campaign:developerReturn?.campaign||campaign.serialize(),protagonists:protagonists.serialize(),nitroFuel:simulation.driving.nitroFuel,
+  try { captureCareerInventory();captureActiveProtagonist();localStorage.setItem(CAREER_KEY, JSON.stringify({...progression.serialize(),trainingProfiles:training.serialize(),campaign:developerReturn?.campaign||campaign.serialize(),protagonists:protagonists.serialize(),nitroFuel:simulation.driving.nitroFuel,
     ...(campaignWorld?{campaignWorld:campaignWorld.snapshot()}:{}),...(streetWorld?{streetWorld:streetWorld.snapshot()}:{}),
     ...(campaignAftermath?{campaignAftermath:campaignAftermath.serialize()}:{})})); }
   catch (error) { careerError = `Career could not be saved: ${error.message}`; $('save-status').textContent = careerError; notify('Career storage is unavailable. You can keep playing.'); }
@@ -3752,10 +3789,12 @@ function updateCareer(dt=0) {
   for(const event of campaign.drainEvents()){
     if(event.type==='started')reportCampaignIncident(event);
     if(event.type==='complete'){
+      const crewPresent=missionCheckpoint?.completionCrewPresent;
       acceptMissionCheckpoint();
       clearInput();
+      const credit=trainingCredit(event,crewPresent);
       progression.state.cash=Math.min(1000000000,progression.state.cash+event.reward);saveCareer();syncPlayerAppearance();
-      notify(`${event.message} +$${event.reward}. J opens Campaign.`);
+      notify(`${event.message} +$${event.reward}. J opens Campaign.${credit}`);
     }else if(event.type==='failed'&&missionCheckpoint){
       const previous=Math.max(0,event.stage-1);
       missionCheckpoint.retryStep=missionCheckpoint.steps.findLast(step=>step.attempt.id===event.id&&step.attempt.stage<=previous)||null;
@@ -3780,9 +3819,10 @@ function updateCareer(dt=0) {
         if(simulation.canOccupy(pose,{length:1,width:.8})&&simulation.hasLineOfSight(road,pose)){job.waitingPose=pose;break;}
       }
     }
-    if (['job-stage','job-complete','job-failed','penalty','robbery-complete','mugging-complete','workout-complete','work-started','work-complete','activity-ended'].includes(event.type)) notify(event.message);
+    const credit=['job-complete','work-complete','workout-complete'].includes(event.type)?trainingCredit(event):'';
+    if (['job-stage','job-complete','job-failed','penalty','robbery-complete','mugging-complete','workout-complete','work-started','work-complete','activity-ended'].includes(event.type)) notify(event.message+credit);
     recordCameraWorkEvent(event);
-    if (['job-complete','penalty','robbery-complete','mugging-complete','workout-complete'].includes(event.type)) saveCareer();
+    if (credit || ['job-complete','penalty','robbery-complete','mugging-complete','workout-complete'].includes(event.type)) saveCareer();
   }
   finishDeveloperPreview();
   if (isSandbox()&&!heists?.active&&!lastJobTarget) return;
@@ -3864,7 +3904,7 @@ function animate(time) {
       for(const event of ordnance.drainEvents())if(event.type==='explosion')applyWorldExplosion(event);
       const walking = gameplay.state.mode === 'foot';
       if(interiors.active&&activeCrewEntry&&campaignScenes.roomStats?.id!==interiors.active.id)campaignScenes?.enterInterior(interiors.active,activeCrewEntry,interiors.exteriorPose);
-      campaignScenes?.update({hiredMembers:(progression.state.hiredCrew||[]).filter(id=>['merc-river','merc-stone'].includes(id)).map(id=>({id,armed:true})),rehireSerial:Object.fromEntries(['merc-river','merc-stone'].map(id=>[id,progression.crewRenewalSerial?.(id)??0])),hiredHealth:Object.fromEntries(progression.state.hiredCrew.map(id=>[id,progression.getCrewHealth(id)])),attacksAllowed:canCrewAttack(),mission:campaign.state.active,character:currentHero()?.id||campaign.state.character,mode:gameMode,pose:{...focus(),interiorId:interiors.active?.id||null},health:gameplay.state.health,playerMode:gameplay.state.passenger?'passenger':gameplay.state.mode,hostiles:gameplay.state.police,paused:false,recovering:!!gameplay.state.recovery,interior:!!interiors.active,car:simulation.player,carKey:playerCarKey,hasLOS:visible},1/60);
+      campaignScenes?.update({skillEffects:training.effects(gameMode,!!developerReturn),hiredMembers:(progression.state.hiredCrew||[]).filter(id=>['merc-river','merc-stone'].includes(id)).map(id=>({id,armed:true})),rehireSerial:Object.fromEntries(['merc-river','merc-stone'].map(id=>[id,progression.crewRenewalSerial?.(id)??0])),hiredHealth:Object.fromEntries(progression.state.hiredCrew.map(id=>[id,progression.getCrewHealth(id)])),attacksAllowed:canCrewAttack(),mission:campaign.state.active,character:currentHero()?.id||campaign.state.character,mode:gameMode,pose:{...focus(),interiorId:interiors.active?.id||null},health:gameplay.state.health,playerMode:gameplay.state.passenger?'passenger':gameplay.state.mode,hostiles:gameplay.state.police,paused:false,recovering:!!gameplay.state.recovery,interior:!!interiors.active,car:simulation.player,carKey:playerCarKey,hasLOS:visible},1/60);
       for(const event of campaignScenes.drainEvents())if(event.type==='ally-shot')gameplay.strikePolice(event);
       updateContractTarget(1/60);
       syncExternalVehicles();
@@ -4380,7 +4420,7 @@ async function boot() {
   const indoorSun=new THREE.DirectionalLight(0xfff1d4,1.1);indoorSun.position.set(-2,5,3);interiorScene.add(indoorSun);
   interiorView=compatibility?{load(){},clear(){},dispose(){},stats:{}}:createInteriorView(interiorScene);
   roomPeopleView=compatibility?{load(){},update(){},clear(){},dispose(){},stats:{}}:createInteriorPeopleView(interiorScene,()=>interiors.active?.floorY||0);
-  const careerOptions={nitroStations,isNitroStationDestroyed:id=>stationDamage.outOfService(id),isStoryRobbery:id=>gameMode==='campaign'&&campaign?.isStoryRobbery(id),watercraftDock:()=>watercraftDock,takeSafehouseRest:(roomId,ctx)=>houseController?.takeRestReceipt(roomId,ctx),deliveryOrder:()=>delivery?.busy?delivery.snapshot().order:null,takeDeliveryReceipt:orderId=>{const receipt=deliveryReceipts.get(orderId);deliveryReceipts.delete(orderId);return receipt;},takeHouseLoot:(roomId,ctx)=>burglary.takeHouseLoot(roomId,ctx),homes:interiors.entries.filter(entry=>entry.type==='house'),extraServices:streetDealers.services,workSession:()=>({plan:interiors.active,session:activities.snapshot()}),interactiveWorkouts:true,interactiveRobbery:true,crimeTarget,robberyTarget,hasLineOfSight:visible,servicePosition:servicePosition,canUseService:site=>site.dealer?!interiors.active&&streetDealers.canTrade(site.id):site.type==='gym'?interiors.active?.serviceId===site.id:!site.buildingId||interiors.active?.storeId===site.id};
+  const careerOptions={skillEffects:()=>training.effects(gameMode,!!developerReturn,crewAtPlayer()),nitroStations,isNitroStationDestroyed:id=>stationDamage.outOfService(id),isStoryRobbery:id=>gameMode==='campaign'&&campaign?.isStoryRobbery(id),watercraftDock:()=>watercraftDock,takeSafehouseRest:(roomId,ctx)=>houseController?.takeRestReceipt(roomId,ctx),deliveryOrder:()=>delivery?.busy?delivery.snapshot().order:null,takeDeliveryReceipt:orderId=>{const receipt=deliveryReceipts.get(orderId);deliveryReceipts.delete(orderId);return receipt;},takeHouseLoot:(roomId,ctx)=>burglary.takeHouseLoot(roomId,ctx),homes:interiors.entries.filter(entry=>entry.type==='house'),extraServices:streetDealers.services,workSession:()=>({plan:interiors.active,session:activities.snapshot()}),interactiveWorkouts:true,interactiveRobbery:true,crimeTarget,robberyTarget,hasLineOfSight:visible,servicePosition:servicePosition,canUseService:site=>site.dealer?!interiors.active&&streetDealers.canTrade(site.id):site.type==='gym'?interiors.active?.serviceId===site.id:!site.buildingId||interiors.active?.storeId===site.id};
   const memorialSite=heistSites.sites.find(site=>site.kind==='memorial');
   const memorialEntry=memorialSite&&interiors.entries.find(entry=>entry.heistSiteId===memorialSite.id);
   const gallery=memorialEntry&&{roomId:memorialEntry.id,
@@ -4391,12 +4431,13 @@ async function boot() {
   const campaignOptions={meetingPoint:campaignScenes.meetingPoint||undefined,stealthContracts,assassinationMission};
   try {
     const saved=parseCareerSave(localStorage.getItem(CAREER_KEY));
-    const {campaign:savedCampaign,protagonists:savedProtagonists,nitroFuel:savedNitro,campaignWorld:savedWorld,streetWorld:savedStreetWorld,campaignAftermath:savedAftermath,...careerSave}=saved||{};
+    const {campaign:savedCampaign,protagonists:savedProtagonists,nitroFuel:savedNitro,campaignWorld:savedWorld,streetWorld:savedStreetWorld,campaignAftermath:savedAftermath,trainingProfiles:savedTraining,...careerSave}=saved||{};
     if(savedNitro!==undefined&&(!Number.isFinite(savedNitro)||savedNitro<0||savedNitro>1))throw new Error('Invalid saved nitro level.');
     protagonists=createProtagonistState(savedProtagonists===undefined?null:savedProtagonists,{bounds:map.bounds});
     campaign=createCampaign(map,savedCampaign===undefined?null:savedCampaign,campaignOptions);
     campaignWorld=createCampaignWorld(savedWorld);streetWorld=createCampaignWorld(savedStreetWorld);campaignAftermath=createCampaignAftermath(savedAftermath);
     progression = createProgression(map, saved ? careerSave : null,careerOptions);
+    training=createCareerTraining(savedTraining);
     simulation.driving.nitroFuel=savedNitro??1;
   } catch (error) {
     protagonists=createProtagonistState(null,{bounds:map.bounds});
@@ -4429,7 +4470,7 @@ async function boot() {
     findEntry:pose=>interiors.findEntry(pose,{exteriorPreview:true}),
   });
   let recoveryPlan=null;
-  gameplay = createGameplay(map, actorSimulation, { pedestrians:witnesses, heightAt:(x,z)=>interiors.active?.floorY??anuBridgeHeightAt(x,z,surfaceAt)??world.heightAt(x,z),
+  gameplay = createGameplay(map, actorSimulation, { skillEffects:()=>training.effects(gameMode,!!developerReturn),pedestrians:witnesses, heightAt:(x,z)=>interiors.active?.floorY??anuBridgeHeightAt(x,z,surfaceAt)??world.heightAt(x,z),
     absorbArmour:damage=>!isSandbox()&&!developerReturn?progression.absorbArmour(damage):damage,
     godMode:()=>godMode,getResponseLoss:()=>policeStations?.responseLoss()||0,
     getPatrolStations:()=>policeStations?.patrolStations()||[],
@@ -4585,6 +4626,7 @@ async function boot() {
     watercraft:freezeCopy({...watercraft.snapshot(),view:watercraftView.stats}),
     lightRail:freezeCopy({...lightRail.snapshot(),view:lightRailView.stats}),depotTank:freezeCopy(depotTank.snapshot()),
     heists:freezeCopy(heists.snapshot()),skyline:freezeCopy(skylineJob.snapshot()),skylineView:freezeCopy(skylineSiteView?.stats()||null),skylineAtv:freezeCopy(skylineAtv.snapshot()),flightGuide:freezeCopy(airGuideState),minimapZoomed,northPlaces:freezeCopy(northPlacesView?.stats()||null),regionalLandmarks:freezeCopy(regionalLandmarksView?.stats||null),anuCampus:freezeCopy(anuCampusView?.stats()||null),regions:freezeCopy(map.regionalExpansion),memorial:freezeCopy(warMemorialView?.stats||null),birds:freezeCopy(birdsView?.stats()||null),campaignWorld:campaignWorld.snapshot(),streetWorld:streetWorld.snapshot(),
+    training:freezeCopy(training.describe(gameMode)),
     aftermath:freezeCopy({case:campaignAftermath.current(),history:campaignAftermath.serialize()}),
     skylinePressure:skylinePressure.snapshot(),skylineSupport:skylineSupport.snapshot(),skylineBackup:freezeCopy(skylineBackup.snapshot()),
     trafficSample: freezeCopy(simulation.traffic.slice(0, 8).map(({ id, x, z, speed, active, behaviour, honkCount }) => ({ id, x, z, speed, active, behaviour, honkCount }))) });

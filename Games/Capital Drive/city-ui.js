@@ -106,7 +106,7 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
         const item=UTILITY_GEAR[kind],count=gear[item.field]??0,availability=state.utilityAvailability?.[kind];
         const row=make('section',undefined,body);row.className='city-row';
         make('h3',`${item.name} · ${count}/${item.capacity}`,row,`city-${kind}-count`);
-        make('p',kind==='medkit'?`+${item.amount} health · on foot`:kind==='repair-kit'?`+${item.amount} car condition · beside your stopped car outdoors`:'Jams nearby working cameras temporarily.',row);
+        make('p',kind==='medkit'?`+${item.amount} health · on foot`:kind==='repair-kit'?`+${item.amount+(state.repairKitBonus||0)} car condition · beside your stopped car outdoors`:'Jams nearby working cameras temporarily.',row);
         const use=button(row,'Use',()=>act('use-utility',kind),`city-use-${kind}`);
         use.setAttribute('aria-label',`Use ${item.name.toLowerCase()}`);
         use.disabled=count<1||availability?.ok!==true;

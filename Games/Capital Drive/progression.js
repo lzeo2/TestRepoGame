@@ -985,7 +985,7 @@ export function createProgression(map, saved = null, options = {}) {
     const reward=work.station.kind==='noodle'?60:45;
     state.activity={type:'work',serviceId,name:work.station.kind==='noodle'?'Noodle shift':'Stock shift',reward,progress:0,
       station:Object.freeze({...work.station}),planId:work.plan.id,sessionId:work.session.sessionId,respawnSerial:ctx.respawnSerial};
-    return result(true,`Shift started. Complete the task to earn $${reward}.`,{serviceId,reward},'work-started');
+    return result(true,`Shift started. Base pay is $${reward}.`,{serviceId,reward},'work-started');
   }
   function finishShift(ctx,success){
     const active=state.activity;

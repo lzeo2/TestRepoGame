@@ -19,6 +19,9 @@ const preferences = {'capital-drive-rendering-v1':'performance', 'capital-drive-
 const all = {...progress, ...preferences};
 assert.equal(parseCareerSave(null), null);
 assert.equal(parseCareerSave(all[CAREER_KEY]).cash, 4700);
+const nearLegacyLimit = {existing:'x'.repeat(15_900), trainingProfiles:{campaign:{credit:'y'.repeat(500)}}};
+assert.deepEqual(parseCareerSave(JSON.stringify(nearLegacyLimit)), nearLegacyLimit);
+assert.throws(() => parseCareerSave(JSON.stringify({padding:'x'.repeat(32_000)})), /size/);
 for (const value of ['null', 'false', '0', '""', '[]', 'true', '3', '', '{', ' '.repeat(16001)]) {
   assert.throws(() => parseCareerSave(value), `invalid stored record is surfaced: ${JSON.stringify(value.slice(0, 16))}`);
 }
