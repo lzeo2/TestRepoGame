@@ -3,6 +3,7 @@ import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {performance} from 'node:perf_hooks';
 import {applyAirport} from '../Games/Capital Drive/airport.js';
+import {applyDefenceDepot} from '../Games/Capital Drive/defence-depot.js';
 import {applyMapExpansion} from '../Games/Capital Drive/map-expansion.js';
 import {applyNorthWest} from '../Games/Capital Drive/north-west.js';
 import {applyRegionalExpansion} from '../Games/Capital Drive/regional-expansion.js';
@@ -27,7 +28,7 @@ const inputs=new Map(await Promise.all(names.map(async name=>{
 const data=name=>inputs.get(name).data,regions=['belconnen','north','south'].map(id=>data(`region-${id}`));
 const civic=applyStreetAssetRoofs(applyMapExpansion(applyRoadProfiles(data('canberra'),data('road-profiles')),data('canberra-north')));
 civic.terrainTiles=[data('north-terrain').terrain];
-const prior=prepareWarMemorial(applyNorthWest(applyAirport(civic,data('airport'),data('airport-terrain')),
+const prior=prepareWarMemorial(applyNorthWest(applyDefenceDepot(applyAirport(civic,data('airport'),data('airport-terrain'))),
   data('north-west'),data('north-west-terrain'),data('giant-spray')));
 prior.lakeWaterLevel=5.93;
 const previousDigest=sha(JSON.stringify(prior.roads)),map=applyRegionalExpansion(prior,regions);

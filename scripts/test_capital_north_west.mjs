@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { applyAirport } from '../Games/Capital Drive/airport.js';
+import { applyDefenceDepot } from '../Games/Capital Drive/defence-depot.js';
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { createMapProjection, mapPointFromClient } from '../Games/Capital Drive/map-projection.js';
 import { findRoute } from '../Games/Capital Drive/navigation.js';
@@ -28,7 +29,7 @@ for (const { file, sha256 } of overlay.meta.existingSnapshots) {
 
 const civic = applyMapExpansion(applyRoadProfiles(data('canberra'), data('road-profiles')), data('canberra-north'));
 civic.terrainTiles = [data('north-terrain').terrain];
-const prior = applyAirport(civic, data('airport'), data('airport-terrain'));
+const prior = applyDefenceDepot(applyAirport(civic, data('airport'), data('airport-terrain')));
 const map = applyNorthWest(prior, overlay, elevation);
 assert.equal(map.mapExpansion, prior.mapExpansion);
 assert.deepEqual(map.terrainTiles.slice(0, -1), prior.terrainTiles);

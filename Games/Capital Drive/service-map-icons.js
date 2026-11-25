@@ -1,7 +1,7 @@
 const LOGICAL_SIZE = 24;
 const RASTER_SIZE = LOGICAL_SIZE * 2;
 const WHITE = '#fff';
-const COLORS = { petrol: '#075d73', rental: '#483781', 'player-drone': '#166756', 'police-drone': '#943a3d', helicopter: '#794237', 'airport-helicopter': '#435874', 'boat-shop': '#235f83', rail: '#943a3d', heist: '#805122' };
+const COLORS = { petrol: '#075d73', rental: '#483781', 'player-drone': '#166756', 'police-drone': '#943a3d', helicopter: '#794237', 'depot-helicopter': '#435874', 'boat-shop': '#235f83', rail: '#943a3d', heist: '#805122' };
 
 function pump(ctx, background) {
   ctx.fillStyle = WHITE;
@@ -118,7 +118,7 @@ function heist(ctx, background) {
   ctx.fillRect(11, 11.5, 2, 2.7);
 }
 
-const GLYPHS = { petrol: pump, rental: car, 'player-drone': drone, 'police-drone': drone, helicopter, 'airport-helicopter': helicopter, 'boat-shop': boat, rail, heist };
+const GLYPHS = { petrol: pump, rental: car, 'player-drone': drone, 'police-drone': drone, helicopter, 'depot-helicopter': helicopter, 'boat-shop': boat, rail, heist };
 
 export function createServiceMapIcons(document) {
   const rasters = new Map();

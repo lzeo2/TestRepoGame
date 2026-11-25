@@ -168,7 +168,7 @@ campaign.start=()=>{campaign.state.active={id:'normal',combat:true};return {ok:t
 campaign.startOptional=id=>{campaign.state.active={id,combat:true};return {ok:true};};
 campaign.drainEvents=()=>[];
 campaign.captureRetry=()=>Object.freeze({id:campaign.state.active.id,stage:0});
-Object.assign(env,{watercraft:null,jetpack:null,micromobility:null,heists:null});
+Object.assign(env,{watercraft:null,depotTank:null,jetpack:null,micromobility:null,heists:null});
 const startHere=Function('env',`with(env){${source.slice(source.indexOf('function startCampaignMission('),source.indexOf('function contractPlanSelection('))};return startCampaignMission;}`)(env);
 for(const optionalId of [null,'optional-location-fixture']) {
   env.missionCheckpoint=null;campaign.state.active=null;
