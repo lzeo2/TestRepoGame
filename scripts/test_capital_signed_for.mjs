@@ -25,7 +25,7 @@ const fixtureGoal = createCampaign(fixture, saved).current().stages[1];
 assert.deepEqual([fixtureGoal.x, fixtureGoal.z], [10, 0], 'delivery excludes footways and private roads');
 const campaign = createCampaign(map, saved), chapter = campaign.current();
 assert.equal(chapter.id, 'basement-first-delivery');
-assert.deepEqual(chapter.stages.map(goal => goal.kind), ['foot', 'drive', 'foot']);
+assert.deepEqual(chapter.stages.map(goal => goal.kind), ['work', 'drive', 'foot']);
 const [pickup, drive, handover] = chapter.stages;
 const route = findRoute(sim.graph, pickup, drive), endpoint = route.at(-1);
 assert.ok(endpoint, 'actual Coals-to-Kingston road route exists');
@@ -41,10 +41,25 @@ const foot = [-1, 1].map(side => ({ x: node.x + edge.dz * (edge.road.width / 2 +
   .find(pose => Math.hypot(pose.x - handover.x, pose.z - handover.z) <= handover.radius && sim.canOccupy(pose, { length: 1, width: .8 }));
 assert.ok(foot, 'the same arrival has a clear foot handover beside the road');
 const ctx = { pose: { ...pickup, speed: 0 }, onFoot: true, vehicle: { stolen: false }, vehicleHealth: 100,
-  wanted: 0, respawnSerial: 0, campaign: true, sandbox: false };
+  wanted: 0, respawnSerial: 0, campaign: true, sandbox: false, workCompletion: { serial: 7, storeId: pickup.storeId } };
 const tick = (context, count = 22) => { for (let i = 0; i < count; i++) campaign.update(.1, context); };
 assert.equal(campaign.start(ctx).ok, true);
-tick(ctx); assert.equal(campaign.state.active.stage, 1);
+assert.equal(chapter.combat, false, 'parcel preparation is a paid nonviolent shift');
+tick(ctx); assert.equal(campaign.state.active.stage, 0, 'waiting outside cannot prepare the parcel');
+for (const invalid of [
+  { interior: { storeId: pickup.storeId } },
+  { interior: { storeId: pickup.storeId }, workCompletion: null },
+  { interior: { storeId: 'wrong-store' }, workCompletion: { serial: 8, storeId: pickup.storeId } },
+  { interior: { storeId: pickup.storeId }, workCompletion: { serial: 8, storeId: 'wrong-store' } },
+  { interior: { storeId: pickup.storeId }, workCompletion: { serial: 8, storeId: pickup.storeId }, onFoot: false },
+]) {
+  tick({ ...ctx, ...invalid });
+  assert.equal(campaign.state.active.stage, 0, 'parcel requires fresh shift completion in the matching live store');
+}
+// Matching work-owner receipt is a domain fixture; the campaign playability suite
+// separately earns it through the actual activity/progression/controller owners.
+tick({ ...ctx, interior: { storeId: pickup.storeId }, workCompletion: { serial: 8, storeId: pickup.storeId } });
+assert.equal(campaign.state.active.stage, 1);
 for (const invalid of [{ onFoot: true }, { vehicleHealth: 0 }, { sandbox: true }, { campaign: false }, { pose: { ...car, speed: 4 } }, { pose: { ...pickup, speed: 0 } }]) {
   tick({ ...ctx, pose: car, onFoot: false, ...invalid });
   assert.equal(campaign.state.active.stage, 1, 'stage 2 still requires actual stopped driving at the arrival');
@@ -62,4 +77,4 @@ assert.deepEqual(campaign.state.intros.basement, ['basement-touch-grass', 'basem
 assert.deepEqual(campaign.drainEvents().filter(event => event.type === 'complete').map(event => [event.id, event.reward]), [['basement-first-delivery', 150]]);
 tick(ctx); assert.equal(campaign.drainEvents().length, 0, 'completion cannot replay a reward');
 assert.deepEqual(createCampaign(map, campaign.serialize()).serialize(), campaign.serialize(), 'existing v2 save format retains completed delivery');
-console.log(`PASS Signed for: actual-map GPS arrival ${edge.road.name}, saloon/foot clearance, ordered stopped drive and exterior handover, single reward and reload`);
+console.log(`PASS Signed for: fresh stock-shift guards, actual-map GPS arrival ${edge.road.name}, saloon/foot clearance, ordered stopped drive and exterior handover, single reward and reload`);

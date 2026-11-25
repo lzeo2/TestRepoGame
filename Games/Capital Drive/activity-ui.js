@@ -58,7 +58,7 @@ export function createActivityUI({ document = globalThis.document } = {}) {
     text(nodes.prompt, street ? (state.guidance || (sequence.length ? 'Release between presses. E cancels.' : state.prompt)) : state.kind ? (state.instruction || state.prompt) : 'E, Q or Play starts this activity.');
     set(nodes.progress, 'hidden', !!street);
     set(nodes.progress, 'value', state.progress || 0);
-    text(nodes.score, street ? (sequence.length ? `${index}/${sequence.length} · ${state.mistakes || 0}/${state.maxMistakes || 2} mistakes` : '') : state.kind ? `${state.score} points${isWorkoutKind(state.kind) ? ` · ${state.reps}/${state.kind === 'treadmill' ? 12 : 6} reps` : ''}` : '');
+    text(nodes.score, street ? (state.options ? 'Choose the parcel matching both clues.' : sequence.length ? `${index}/${sequence.length} · ${state.mistakes || 0}/${state.maxMistakes || 2} mistakes` : '') : state.kind ? `${state.score} points${isWorkoutKind(state.kind) ? ` · ${state.reps}/${state.kind === 'treadmill' ? 12 : 6} reps` : ''}` : '');
     let startText = !sandbox && interior?.storeId && ['noodle', 'stock'].includes(nearest?.kind) ? `Work · +$${nearest.kind === 'noodle' ? 60 : 45}` : 'Play';
     if(nearest?.kind==='rest')startText=sandbox?'Practice rest':safehouse?'Rest · $80':'Owned safehouse required';
     if (isWorkoutKind(nearest?.kind)) startText = sandbox || fitnessLevel >= 3 ? 'Practice' : `Train · $${(gymPrice || 120) * (fitnessLevel + 1)}`;
@@ -66,7 +66,11 @@ export function createActivityUI({ document = globalThis.document } = {}) {
     set(nodes.start, 'hidden', active);
     set(nodes.start, 'disabled', !nearest);
     set(nodes.cancel, 'hidden', !active);
-    for (const button of buttons) {
+    for (const [i, button] of buttons.entries()) {
+      const key = button.getAttribute('data-mini') || ['x','y','up'][i];
+      const label = state.options?.[key] ? `${KEY_LABEL[key]} · ${state.options[key]}` : KEY_LABEL[key];
+      text(button,label);
+      attribute(button,'aria-label',label);
       set(button,'hidden',waiting);
       set(button,'disabled',!active||waiting);
     }

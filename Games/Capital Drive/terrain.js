@@ -361,7 +361,9 @@ export function createTerrainSampler(map) {
     if(ownedDecks.has(road.id))continue;
     for(const point of [road.points[0],road.points.at(-1)]) {
       const node=nodes.get(keyOf(point));
-      if(node?.neighbours.size!==1)continue;
+      // A source abutment can branch into parallel deck ways. Its road
+      // approach still meets their shared joint even when deck degree is two.
+      if(!node || !jointHeights.has(keyOf(point)))continue;
       if(!approaches.has(road.id))approaches.set(road.id,[]);
       const points=point===road.points[0]?road.points:[...road.points].reverse();
       const segments=[];let distance=0;

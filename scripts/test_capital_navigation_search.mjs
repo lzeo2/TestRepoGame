@@ -1,3 +1,4 @@
+import {CAPITAL_COLLISION_REPLACEMENTS} from '../Games/Capital Drive/map-source.js';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
@@ -69,9 +70,8 @@ for (let i = 0; i < 100; i++) compare(lattice,
 const json = async name => JSON.parse(await readFile(new URL(`../Games/Capital Drive/data/${name}.json`, import.meta.url), 'utf8'));
 const map = applyMapExpansion(applyRoadProfiles(await json('canberra'), await json('road-profiles')), await json('canberra-north'));
 const controller = await readFile(new URL('../Games/Capital Drive/script.js', import.meta.url), 'utf8');
-const replacement = controller.match(/map\.collisionReplacedBuildingIds=\[([^\]]+)\]/);
-assert(replacement, 'Use the current controller replacement identities');
-map.collisionReplacedBuildingIds = [...replacement[1].matchAll(/'([^']+)'/g)].map(match => match[1]);
+assert(controller.includes('composeCapitalMap(sourcePacks)'), 'boot uses canonical replacement setup');
+map.collisionReplacedBuildingIds = [...CAPITAL_COLLISION_REPLACEMENTS];
 const graph = createSimulation(map, { trafficCount: 0 }).graph;
 const places = ['telopea', 'canberra-centre', 'kingston', 'manuka'].map(id => {
   const place = map.landmarks.find(item => item.id === id); assert(place, id); return place;

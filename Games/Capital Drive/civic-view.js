@@ -126,7 +126,7 @@ export function createCivicView(scene,map,heightAt,{roadHeightAt=(road,x,z)=>hei
       wall(bridges,edgeA,edgeB,edgeY0-.35,edgeY1-.35,edgeY0+.14,edgeY1+.14,0x98998f);
       wall(bridges,q[0],q[1],ya,yb,ya+1.05,yb+1.05,0xb9b5a7);wall(bridges,q[3],q[2],ya,yb,ya+1.05,yb+1.05,0xb9b5a7);
       quad(bridges,[q[0][0],ya+1.05,q[0][1]],[q[1][0],yb+1.05,q[1][1]],[q[2][0],yb+1.05,q[2][1]],[q[3][0],ya+1.05,q[3][1]],0xd7d0bb);
-      barriers.push(Object.freeze({id:`civic-parapet-${barriers.length}`,sourceId:segment.road.sourceId,kind:'bridge-parapet',height:1.05,points:Object.freeze(q.map(p=>Object.freeze(p)))}));
+      barriers.push(Object.freeze({id:`civic-parapet-${barriers.length}`,sourceId:segment.road.sourceId,roadContext:Object.freeze({id:segment.road.id}),kind:'bridge-parapet',height:1.05,points:Object.freeze(q.map(p=>Object.freeze(p)))}));
     }
   }
   const makeMesh=(batch,material,name)=>{

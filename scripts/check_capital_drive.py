@@ -17,7 +17,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 GAME = Path('Games/Capital Drive')
 MODULES = (
-    'car-model.js', 'parked-cars-view.js', 'driving-dynamics.js', 'car-camera.js', 'jetpack.js', 'jetpack-view.js', 'nitro-stations.js', 'nitro-view.js',
+    'map-source.js', 'car-model.js', 'parked-cars-view.js', 'driving-dynamics.js', 'car-camera.js', 'jetpack.js', 'jetpack-view.js', 'nitro-stations.js', 'nitro-view.js',
     'petrol-forecourts.js', 'car-rental.js', 'rental-storefronts.js', 'rental-storefronts-view.js', 'service-map-icons.js',
     'house-controller.js', 'delivery-service.js', 'delivery-view.js', 'vehicle-flight.js', 'stunt-ramps.js', 'stunt-ramps-view.js', 'airport-road-details.js',
     'burglary.js',
@@ -37,7 +37,7 @@ MODULES = (
     'hero-powers.js', 'ordnance.js', 'ordnance-view.js', 'atmosphere.js', 'atmosphere-view.js', 'airport.js', 'airport-view.js', 'defence-depot.js', 'defence-depot-view.js', 'vehicle-damage.js', 'vehicle-damage-view.js',
     'touch-joystick.js',
     'tutorial.js', 'activity-ui.js',
-    'script.js', 'game-data.js', 'dev-missions.js', 'interior-navigation.js', 'police-rooms.js', 'cache-launcher.js', 'cache-client.js', 'cache-manifest.js', 'service-worker.js', 'protagonist-state.js', 'render-gate.js', 'graphics-diagnostics.js', 'cutscenes.js', 'mission-locations.js', 'simulation.js', 'navigation.js', 'map-projection.js', 'navigation-guidance.js', 'road-guidance-view.js', 'traffic-lights.js', 'traffic-lights-view.js', 'equipment.js', 'equipment-view.js',
+    'script.js', 'game-data.js', 'dev-missions.js', 'interior-navigation.js', 'police-rooms.js', 'cache-launcher.js', 'cache-client.js', 'cache-manifest.js', 'service-worker.js', 'protagonist-state.js', 'render-gate.js', 'graphics-diagnostics.js', 'cutscenes.js', 'mission-locations.js', 'mission-footpath.js', 'simulation.js', 'navigation.js', 'map-projection.js', 'navigation-guidance.js', 'road-guidance-view.js', 'traffic-lights.js', 'traffic-lights-view.js', 'equipment.js', 'equipment-view.js',
     'world-view.js', 'foliage-placement.js', 'exterior-materials.js', 'neighbourhood.js', 'person-model.js', 'wildlife-view.js', 'street-assets.js', 'street-assets-view.js', 'highway-barriers.js', 'highway-barriers-view.js', 'local-details-view.js', 'character-start.js', 'campaign-scenes.js', 'campaign-scenes-view.js', 'assassination-mission.js', 'assassination-site-view.js', 'contract-target.js', 'contract-stealth.js', 'pedestrians.js', 'gameplay.js', 'ride-service.js', 'ride-service-view.js',
     'progression.js', 'actor-view.js', 'landmarks.js', 'landmarks-view.js',
     'address-search.js', 'street-ui.js', 'road-network.js', 'police.js',
@@ -47,6 +47,7 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','north-west.js', 'north-places-view.js', 'drive-audio.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
+    'test_capital_mission_footpath.mjs', 'test_capital_guardrail_levels.mjs', 'test_capital_campaign_pacing.mjs', 'test_capital_heist_guidance.mjs', 'test_capital_map_source.mjs',
     'test_capital_parked_cars_view.mjs', 'test_capital_contact_levels.mjs', 'test_capital_vehicle_access.mjs',
     'test_capital_bridge_support_selection.mjs', 'test_capital_actor_vehicle_escape.mjs', 'test_capital_car_model.mjs',
     'test_capital_regional_expansion.mjs', 'test_capital_regional_landmarks_view.mjs',
@@ -109,7 +110,11 @@ SUITES = (
 DATA = ('airport-terrain.json', 'canberra.json', 'geodata-validation.json', 'addresses.json', 'road-profiles.json', 'stores.json','shopping-precincts.json','canberra-north.json','north-terrain.json','north-west.json','north-west-terrain.json','civic-extras.json','traffic-signals.json','street-assets.json','highway-barriers.json','airport.json')
 DATA += ('region-belconnen.json','region-north.json','region-south.json','region-molonglo.json',
          'region-west-belconnen.json','residential-supplement.json')
-SUPPORT_SCRIPTS = ('capital-campaign-fixture.mjs', 'capital-gallery-fixture.mjs', 'capital-crime-playability.mjs', 'capital-collision-baseline.mjs', 'profile_capital_simulation.mjs', 'profile_capital_collision.mjs')
+MAP_CENSUS = ('test_capital_all_roads.mjs', 'test_capital_map_features.mjs',
+              'test_capital_map_infrastructure.mjs', 'test_capital_all_facets.mjs',
+              'test_capital_exterior_meshes.mjs', 'test_capital_milo_home_approach.mjs',
+              'test_capital_triangle_precision.mjs')
+SUPPORT_SCRIPTS = ('capital-world-obstacles-fixture.mjs', 'capital-map-fixture.mjs', 'capital-campaign-fixture.mjs', 'capital-gallery-fixture.mjs', 'capital-crime-playability.mjs', 'capital-collision-baseline.mjs', 'profile_capital_simulation.mjs', 'profile_capital_collision.mjs')
 
 
 def run_command(command, timeout):
@@ -156,6 +161,7 @@ def main():
     parser.add_argument('--crime-browser',action='store_true',help='Use the normal-input career mugging and shop employee hold-up flow with --browser.')
     parser.add_argument('--life-browser',action='store_true',help='Use the three-character and city-life browser flow with --browser.')
     parser.add_argument('--people-browser',action='store_true',help='Use native loading/input and shared-person component evidence with --browser.')
+    parser.add_argument('--map-census', action='store_true', help='Also check the full source map, road lanes, infrastructure and every streamed world mesh in both modes.')
     parser.add_argument('--dry-run', action='store_true', help='List required files and exact commands without running them or creating directories.')
     args = parser.parse_args()
     if sum([args.classic_browser,args.expansion_browser,args.priority_shop_browser,args.living_browser,args.dev_browser,args.theft_browser,args.dealers_browser,args.store_browser,args.yoober_browser,args.signals_browser,args.crime_browser,args.people_browser,args.life_browser])>1:parser.error('Choose one browser flow')
@@ -185,6 +191,13 @@ def main():
     if args.browser:
         suite = browser_suite
         commands.append(([sys.executable, '-B', suite, '--output', str(output)]+(['--priority-shop'] if args.priority_shop_browser else ['--scenario','career'] if args.store_browser else ['--scenario','free'] if args.dealers_browser else []), 600))
+    if args.map_census:
+        required.extend(Path('scripts') / name for name in MAP_CENSUS)
+        commands.append((['node', 'scripts/test_capital_mission_footpath.mjs', '--actual'], 120))
+        for name in MAP_CENSUS:
+            commands.append((['node', str(Path('scripts') / name)], 600))
+            if name in ('test_capital_all_roads.mjs', 'test_capital_map_features.mjs'):
+                commands.append((['node', str(Path('scripts') / name), '--world-obstacles'], 600))
     missing = [str(path) for path in required if not (ROOT / path).is_file()]
     if missing:
         for path in missing:
@@ -198,12 +211,13 @@ def main():
         return 0
     if output:
         output.mkdir(parents=True, exist_ok=True)
-    deadline = time.monotonic() + 900
+    budget = 1500 if args.map_census else 900
+    deadline = time.monotonic() + budget
     records = []
     for command, limit in commands:
         remaining = deadline - time.monotonic()
         if remaining <= 0:
-            print('FAIL overall 900 second budget exhausted.')
+            print(f'FAIL overall {budget} second budget exhausted.')
             records.append(dict(command=command, exitCode=124, timedOut=True, output='Overall budget exhausted.', seconds=0))
             break
         print(f'RUN {shlex.join(command)}', flush=True)

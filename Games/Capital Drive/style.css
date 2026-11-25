@@ -176,6 +176,11 @@ body.intro-open #recovery-screen{display:none;}
 .campaign-chapters{padding-left:20px;line-height:1.5;font-size:13px;}
 .campaign-chapters [aria-current="step"]{font-weight:800;color:var(--ink);}
 #campaign-status{font-weight:700;}
+#campaign-itinerary summary{cursor:pointer;font-weight:700}
+#campaign-steps{padding-left:1.6rem;line-height:1.45}
+#campaign-steps li{margin:.5rem 0;padding-left:.25rem}
+#campaign-steps [aria-current="step"]{font-weight:700}
+#campaign-steps .completed-step{color:var(--muted);text-decoration:line-through}
 .contract-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:8px;margin:0;padding:0;list-style:none;}
 .contract-list button{width:100%;text-align:left;font-size:13px;}
 .contract-plan{margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:4px;}

@@ -4,6 +4,7 @@ import {applyMapExpansion} from '../Games/Capital Drive/map-expansion.js';
 import {createSimulation,projectSegment} from '../Games/Capital Drive/simulation.js';
 import {POOL_BARRIERS} from '../Games/Capital Drive/landmarks.js';
 import {CAMPUS_BARRIERS} from '../Games/Capital Drive/campus.js';
+import {applyCapitalStaticObstacles} from '../Games/Capital Drive/map-source.js';
 import {SKATE_BUILDING_OPENING,SKATEPARK,RAMP_SURFACES,BARRIERS as SKATE_BARRIERS,
   skateLocalPoint,skateHeightOffset,pointInSkateOpening,carveSkatePolygon,splitSkateSegment} from '../Games/Capital Drive/civic-extras.js';
 
@@ -17,12 +18,9 @@ assert.equal(building.id,'osm-584970594');
 assert.equal(building.sourceId,'way/584970594');
 assert.deepEqual(SKATE_BUILDING_OPENING.polygon,SKATEPARK.polygon);
 
-// Execute the production boot's actual barrier/opening assignments, so removing
-// its wiring cannot leave a green physics test that only checks a copied fixture.
-const assignments=boot.match(/^  map\.barriers=.*\n  map\.buildings=.*$/m)?.[0];
-assert(assignments,'root boot must initialize barriers and the building opening');
-const {initialize}=await import(moduleURL(`export function initialize(map,{POOL_BARRIERS,CAMPUS_BARRIERS,SKATE_BARRIERS,SKATE_BUILDING_OPENING}) {${assignments}\nreturn map;}`));
-const runtime=initialize({...expanded},{POOL_BARRIERS,CAMPUS_BARRIERS,SKATE_BARRIERS,SKATE_BUILDING_OPENING});
+// Exercise the production static setup owner, and verify boot uses that owner.
+assert(boot.includes('composeCapitalMap(sourcePacks)'), 'boot uses canonical source composition');
+const runtime=applyCapitalStaticObstacles({...expanded});
 const physicalBuilding=runtime.buildings.find(b=>b.id===building.id);
 assert.deepEqual(physicalBuilding.innerRings,[{points:SKATE_BUILDING_OPENING.polygon}]);
 assert(!runtime.collisionReplacedBuildingIds.includes(building.id),'the rest of the source body remains physical');

@@ -84,14 +84,19 @@ for (const id of escapeIds) {
   tick(campaign, { ...far, wanted: 2 });
   assert.equal(campaign.state.active.held, 0, 'search must clear before hold');
   const hold = campaign.state.active.target.hold;
-  campaign.update(20, far);
-  assert.equal(campaign.state.active.held, .1, 'large dt retains supplied-step cap');
-  tick(campaign, far, Math.max(0, Math.round(hold * 10) - 2));
-  assert(campaign.state.active, 'hold cannot finish early');
-  tick(campaign, { ...far, wanted: 1 }, 1);
-  assert.equal(campaign.state.active.held, 0, 'new search resets clear hold');
-  tick(campaign, far);
-  assert.equal(campaign.state.active, null, `${id}: clear anywhere after arrival completes`);
+  const remaining = campaign.state.active.remaining;
+  campaign.update(20, { ...far, wanted: 2 });
+  assert(Math.abs(campaign.state.active.remaining - (remaining - .1)) < 1e-8, 'large dt retains supplied-step cap while search blocks completion');
+  campaign.update(.1, far);
+  if (hold > 0) {
+    assert.equal(campaign.state.active.held, .1, 'authored clear dwell begins only after search resolves');
+    tick(campaign, far, Math.max(0, Math.round(hold * 10) - 2));
+    assert(campaign.state.active, 'authored clear dwell cannot finish early');
+    tick(campaign, { ...far, wanted: 1 }, 1);
+    assert.equal(campaign.state.active.held, 0, 'new search resets authored clear dwell');
+    tick(campaign, far);
+  }
+  assert.equal(campaign.state.active, null, `${id}: clear anywhere after arrival completes without added marker waiting`);
   const completions = campaign.drainEvents().filter(event => event.type === 'complete');
   assert.equal(completions.length, 1);
   assert(completions[0].reward > 0);
@@ -99,11 +104,17 @@ for (const id of escapeIds) {
   assert.equal(campaign.drainEvents().length, 0, 'reward never replays');
 
   const clearArrival = opening(id), point = contextFor(clearArrival);
+  const immediateDeparture = clearArrival.state.active.target.requireWanted === false && clearArrival.state.active.target.hold === 0;
   clearArrival.update(.1, point);
-  assert.equal(clearArrival.snapshot().active.escapeReached, true, 'arrival while clear also sticks');
-  tick(clearArrival, { ...point, pose: far.pose, wanted: 2 }, 1);
-  tick(clearArrival, { ...point, pose: far.pose });
-  assert.equal(clearArrival.state.active, null, 'later chase can clear away from initial arrival');
+  if (immediateDeparture) {
+    assert.equal(clearArrival.state.active, null, 'already-clear optional departure completes on arrival');
+    assert.equal(clearArrival.drainEvents().filter(event => event.type === 'complete').length, 1);
+  } else {
+    assert.equal(clearArrival.snapshot().active.escapeReached, true, 'arrival while clear also sticks');
+    tick(clearArrival, { ...point, pose: far.pose, wanted: 2 }, 1);
+    tick(clearArrival, { ...point, pose: far.pose });
+    assert.equal(clearArrival.state.active, null, 'later search can clear away from initial arrival');
+  }
 
   const quiet = opening(id), quietPoint = contextFor(quiet), optionalSearch = quiet.state.active.target.requireWanted === false;
   quiet.update(.1, quietPoint);
@@ -128,4 +139,4 @@ for (const id of ['carbon-copy', 'terminal-transfer']) {
   assert(deliveries.length > 0);
   assert(deliveries.every(stage => stage.kind !== 'escape'), `${id}: physical deliveries and handovers retain location requirements`);
 }
-console.log(`PASS escape objectives: all 24 definitions audited, ${escapeIds.length} real escape stages, sticky arrival, exterior/context/dt guards, clear holds, retry reset and once-only rewards`);
+console.log(`PASS escape objectives: all 24 definitions audited, ${escapeIds.length} real escape stages, sticky arrival, exterior/context/dt guards, responsive departures, authored dwell reset, retry reset and once-only rewards`);

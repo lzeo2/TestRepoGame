@@ -37,10 +37,13 @@ function fixture(kind = 'noodle', options = {}) {
 }
 
 const controllerSource=await readFile(new URL('../Games/Capital Drive/script.js',import.meta.url),'utf8');
+const pickStation=controllerSource.slice(controllerSource.indexOf('function nearbyActivityStation('),controllerSource.indexOf('function beginMini('));
 const startFunction=controllerSource.match(/function beginMini\(id\)\{[\s\S]*?\n\}/)?.[0];
 assert(startFunction,'production activity controller is present');
 const {bind}=await import('data:text/javascript;base64,'+Buffer.from(`export function bind(env){
   const {interiors,activities,progression,paused,focus,careerContext,isSandbox,notify,clearInput,isWorkoutKind,visible,burglary,availableHouseStation,jetpack}=env;
+  const gameMode='street';
+  ${pickStation}
   ${startFunction}
  return beginMini;}`).toString('base64'));
 for(const kind of ['noodle','stock'])for(let wanted=0;wanted<=5;wanted++){

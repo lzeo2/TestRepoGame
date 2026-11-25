@@ -141,6 +141,18 @@ for (const kind of ['car', 'scooter']) {
   assert.equal(n.prompt.textContent, 'Release between presses. E cancels.');
   stable(f, { street, state: street });
 }
+const dispatch={active:true,kind:'heist',phase:'dispatch',acceptsInput:true,sequence:['x','y','up'],
+  options:{x:'Blue circle',y:'Blue triangle',up:'Gold circle'},instruction:'Dispatch note: blue triangle',guidance:'Release between choices.'};
+ui.render({street:dispatch,state:dispatch});
+assert.deepEqual(buttons.map(b=>b.textContent),['X · Blue circle','Y · Blue triangle','↑ · Gold circle']);
+assert.deepEqual(buttons.map(b=>b.getAttribute('aria-label')),buttons.map(b=>b.textContent));
+assert(buttons.every(b=>!b.hidden&&!b.disabled));
+assert.equal(n.cue.getAttribute('data-ready'),'true');
+assert.match(n.score.textContent,/both clues/);
+stable(f,{street:dispatch,state:dispatch});
+ui.render(activeInput);
+assert.deepEqual(buttons.map(b=>b.textContent),['X','Y','↑']);
+assert.deepEqual(buttons.map(b=>b.getAttribute('aria-label')),['X','Y','↑']);
 const waitingCar = { active: true, kind: 'car', prompt: 'Stay beside the car.' };
 ui.render({ street: waitingCar, state: waitingCar });
 assert.equal(n.prompt.textContent, 'Stay beside the car.');

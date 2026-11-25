@@ -72,6 +72,15 @@ export function createMissionGuide(entries, storyHomes = {}) {
         distance: Number.isFinite(distance) ? distance : null,
         indoors, entryId, stationId });
     }
+    const destination = identity(goal.roomId) ? byId.get(goal.roomId) : byStore.get(goal.storeId);
+    if(plan && point(plan.exit) && (INTERIOR_KINDS.has(goal.kind) ? destination && plan.id!==destination.id :
+      goal.kind!=='stealth-contract' || plan.id!==goal.roomId)){
+      return result('Walk to the marked exit door and press E to leave the building.',name(plan.name,'the building'),plan.exit,true,plan.id);
+    }
+    if(goal.kind==='drive' && goal.anywhere){
+      if(point(context?.vehicle))return result('Walk to your marked car and press E to get in.','Your car',context.vehicle);
+      return Object.freeze({instruction:'Walk to a car and press E to get in.',location:'Find a car',point:null,distance:null,indoors:false,roaming:true});
+    }
     if(goal.kind==='escape' && active.escapeReached===true)return Object.freeze({
       instruction: goal.aftermath && context.aftermathResolved === false && !plan ?
         'Walk out (E leaves) and speak to the officer outside, or simply leave the area.' : context.wanted>0?'Location reached. Keep moving until the police search bar empties.':'Location reached. Stay clear of the police.',
@@ -83,7 +92,6 @@ export function createMissionGuide(entries, storyHomes = {}) {
       if (plan?.id===entry.id) return result(name(goal.label),entry.name,goal,true,entry.id);
       if (!plan) return result(`Walk to the marked door of ${entry.name} and press E to go inside.`,entry.name,entry.approach,false,entry.id);
     }
-    if((findVehicle||goal.kind==='escape'||goal.kind==='stealth-contract')&&plan&&point(plan.exit))return result('Walk to the marked exit door and press E to leave the building.',name(plan.name,'the building'),plan.exit,true,plan.id);
     if(findVehicle)return Object.freeze({
       instruction:'Find any parked street vehicle, walk to its door and press E to get in.',location:'Find a vehicle',
       point:null,distance:null,indoors:false,entryId:null,stationId:null,roaming:true});

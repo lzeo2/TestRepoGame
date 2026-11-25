@@ -57,12 +57,13 @@ export function createInteriorActivities() {
     session = null; previous = heldKeys(null);
     return stations.length;
   }
-  function nearest(pose,allow) {
+  function nearest(pose,allow,preferredId) {
     if (!finitePoint(pose)) return null;
     let best = null, bestDistance = Infinity;
     for (const station of stations) {
       if(allow && !allow(station))continue;
       const d = distance(pose, station);
+      if (station.id===preferredId && d<=station.radius) return { ...station };
       if (d <= station.radius && d < bestDistance) { best = station; bestDistance = d; }
     }
     return best ? { ...best } : null;

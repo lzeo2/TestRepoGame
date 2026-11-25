@@ -626,7 +626,7 @@ assert.equal(homeCampaign.drainEvents().filter(event => event.type === 'complete
 const miloSaved=homeCampaign.serialize(),miloReload=createCampaign(homeMap,miloSaved);
 assert.deepEqual(miloReload.serialize(),miloSaved,'existing v2 prefixes retain the same mission IDs');
 assert.equal(miloReload.current().id,'basement-first-delivery');assert.equal(miloReload.drainEvents().length,0,'reload never awards a car, cash or mission payment');
-assert.deepEqual(miloReload.current().stages.map(goal=>goal.kind),['foot','drive','foot'],'Signed for retains its actual drive delivery');
+assert.deepEqual(miloReload.current().stages.map(goal=>goal.kind),['work','drive','foot'],'Signed for prepares a real parcel shift before its actual drive delivery');
 assert.match(miloReload.current().briefing,/Press E beside your car to get in/);
 
 const finale = createCampaign(homeMap, { ...meetingSave, character: 'basement', meeting: true, completed: legacyIds.slice(0, 5) });

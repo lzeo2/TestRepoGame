@@ -4,6 +4,7 @@ import { buildRoadGraph, createSimulation, pointOnLane } from '../Games/Capital 
 import { applyMapExpansion } from '../Games/Capital Drive/map-expansion.js';
 import { applyRoadProfiles } from '../Games/Capital Drive/road-network.js';
 import { findRoute } from '../Games/Capital Drive/navigation.js';
+import { CAPITAL_COLLISION_REPLACEMENTS } from '../Games/Capital Drive/map-source.js';
 const road = { id:'covered',sourceId:'way/347384260',name:'Bunda Street',type:'living_street',width:7.5,
   sourceTags:{covered:'yes'},points:[[-20,0],[20,0]],nodes:['a','b'] };
 const building = {id:'osm-46081156',type:'commercial',points:[[-5,-5],[5,-5],[5,5],[-5,5]],height:9.6};
@@ -31,10 +32,7 @@ const json = async name => JSON.parse(await readFile(new URL(`../Games/Capital D
 const map = applyMapExpansion(applyRoadProfiles(await json('canberra'),await json('road-profiles')),await json('canberra-north'));
 // Match the controller's retained-building replacement identities. Otherwise
 // Petrie is falsely tested against the old solid footprint replaced at boot.
-const controller=await readFile(new URL('../Games/Capital Drive/script.js',import.meta.url),'utf8');
-const replacement=controller.match(/map\.collisionReplacedBuildingIds=\[([^\]]+)\]/);
-assert(replacement,'actual controller collision replacement identities exist');
-map.collisionReplacedBuildingIds=[...replacement[1].matchAll(/'([^']+)'/g)].map(match=>match[1]);
+map.collisionReplacedBuildingIds=[...CAPITAL_COLLISION_REPLACEMENTS];
 assert.deepEqual(map.collisionReplacedBuildingIds,['act-75267-0','osm-584970595'],'fixture follows exact current controller replacement identities');
 const simulation = createSimulation(map,{trafficCount:0}), original = buildRoadGraph(map.roads);
 const covered = simulation.graph.segments.filter(s=>s.road.sourceId==='way/347384260');
