@@ -302,6 +302,7 @@ reserved by appearing here.
 | 245 | [Capital Drive: Canberra (Preview)](games/245-capital-drive.md) | `Games/Capital Drive/index.html` |
 | 246 | [Steal a Basketballer (Preview)](games/246-stealbasketballer.md) | `Games/StealBasketballer/index.html` |
 | 247 | [Chess Workshop](games/247-chess-workshop.md) | `Games/Chess Workshop/index.html` |
+| 248 | [Tanks and Soldiers (Preview)](games/248-tanks-and-soldiers.md) | `Games/Tanks and Soldiers/index.html` |
 | Unregistered | [2048](games/unregistered-2048.md) | `Games/2048/index.html` |
 | Unregistered | [Garage Borough](games/unregistered-garage-borough.md) | `Games/Garage Borough/index.html` |
 | Unregistered | [Hextris](games/unregistered-hextris.md) | `Games/Hextris/index.html` |

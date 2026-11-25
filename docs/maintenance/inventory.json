@@ -1,5 +1,5 @@
 {
-  "catalog_entries": 135,
+  "catalog_entries": 136,
   "games": [
     {
       "directory": "Games/2048",
@@ -1512,6 +1512,18 @@
       "files": 20,
       "bytes": 74840,
       "document": "docs/maintenance/games/223-tag-relay.md"
+    },
+    {
+      "directory": "Games/Tanks and Soldiers",
+      "id": 248,
+      "title": "Tanks and Soldiers (Preview)",
+      "registered": true,
+      "entry": "Games/Tanks and Soldiers/index.html",
+      "entry_blob": "eacd39860edbf77ae3d42722fbf6235a12266bb8",
+      "tree": "ec25a2fc54749a295c6d9a3c9967c117f13dee61",
+      "files": 24,
+      "bytes": 4691172,
+      "document": "docs/maintenance/games/248-tanks-and-soldiers.md"
     },
     {
       "directory": "Games/TempleRun2",

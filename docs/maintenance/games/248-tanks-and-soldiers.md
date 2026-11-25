@@ -45,3 +45,11 @@ game, not a new ingestion.
   or release.
 - Model integration receipt, engine licenses and provenance notes travel with
   the copied `vendor/` directory; staging receipts stay in staging.
+
+## Future outlook
+
+Open items, not blockers for the preview: rendered appearance on physical
+GPUs is unverified; the touch slice needs actual-device admission; supplied
+audio, long-session balance and vehicle station depth remain future work.
+Registration does not change those holds.
+
