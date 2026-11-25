@@ -110,7 +110,8 @@ const THREE = await import(threeURL);
 const utilsURL = moduleURL((await read('../assets/car-arcade/vendor/BufferGeometryUtils.js')).replace('./three.module.js', threeURL));
 const { createInteriorView } = await import(moduleURL((await read('../Games/Capital Drive/interior-view.js'))
   .replace('../../assets/car-arcade/vendor/three.module.js', threeURL)
-  .replace('../../assets/car-arcade/vendor/BufferGeometryUtils.js', utilsURL)));
+  .replace('../../assets/car-arcade/vendor/BufferGeometryUtils.js', utilsURL)
+  .replace('./interior-domestic-view.js', new URL('../Games/Capital Drive/interior-domestic-view.js', import.meta.url).href)));
 const scene = new THREE.Scene(), view = createInteriorView(scene);
 assert.equal(view.stats.meshes, 0, 'view starts without interior geometry');
 view.load(secondHouse);
