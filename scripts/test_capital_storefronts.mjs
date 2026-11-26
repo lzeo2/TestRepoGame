@@ -34,7 +34,11 @@ const tenancies=solidMesh.geometry.userData.tenancies;
 assert.deepEqual(tenancies.map(t=>t.id),MAPPED_STORES.map(s=>s.id));
 assert.equal(solidMesh.material.map,textMesh.material.map,'the shop displays reuse the lettering atlas');
 const displayTypes=new Set(MAPPED_STORES.map(s=>frontageProfile(s).display));
-assert(displayTypes.size>=5,'the displays distinguish the shop trades');
+assert(displayTypes.size>=7,'the displays distinguish the shop trades');
+const profiles=MAPPED_STORES.map(frontageProfile);
+assert(new Set(profiles.map(p=>p.form)).size>=9,'the facade geometry covers multiple observed forms');
+assert(new Set(profiles.map(p=>p.layout.depth)).size>=6,'shelters have different projections');
+assert(profiles.some(p=>p.layout.bias<0)&&profiles.some(p=>p.layout.bias>0),'entries shift within their mapped bays');
 for(let i=0;i<MAPPED_STORES.length;i++) {
   const store=MAPPED_STORES[i],f=store.frontage;
   view.update(store);assert(view.stats.visible>=1);assert.equal(view.stats.drawCalls,2);

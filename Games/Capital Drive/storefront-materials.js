@@ -8,7 +8,40 @@ const COVERS = [0x9a755a,0x879392,0x637580,0xb4966a,0xae826a,0x8b6f67];
 const PRODUCE = [0xbb9c58,0xa46d54,0x87945f,0xbf8654,0x8b8462];
 
 const TAKEAWAY = new Set(['MacDawdles','Thrilld','Sombreroll','You Sushi']);
+// Form describes the public facade treatment at the mapped unit. Distances are
+// bounded visual estimates. Interactive doorways and source footprints stay put.
+const FORMS={
+  market:{depth:.74,door:1.54,bias:.04,sill:.22,piers:2,canopy:'flat'},
+  books:{depth:.35,door:.97,bias:-.18,sill:.36,piers:3,canopy:'band'},
+  arcade:{depth:.82,door:1.24,bias:.13,sill:.13,piers:1,canopy:'flat'},
+  shop:{depth:.73,door:1.0,bias:.10,sill:.48,piers:1,canopy:'flat'},
+  timber:{depth:.61,door:.95,bias:.15,sill:.59,piers:2,canopy:'band'},
+  counter:{depth:.55,door:1.19,bias:-.15,sill:.29,piers:1,canopy:'band'},
+  cafe:{depth:.86,door:1.05,bias:.13,sill:.20,piers:1,canopy:'fabric'},
+  grille:{depth:.50,door:1.03,bias:.18,sill:.23,piers:2,canopy:'band'},
+  chamfer:{depth:.86,door:1.16,bias:0,sill:.14,piers:2,canopy:'flat'},
+};
+const FORMS_BY_TENANT={
+  'Coals':'market','Paperback Chain':'books','Newsweak':'timber','Scoot Wholefoods':'timber',
+  'The Book Moo':'books','Toe Boots':'shop','Super Expressive':'market','MacDawdles':'counter',
+  'You Sushi':'counter','Kismaybe':'counter','Plink':'shop','El Torogoose':'cafe','Your Cafe':'cafe',
+  'Caps Lock':'arcade','Belloucies':'grille','Up Town Milk Bar':'chamfer','Thrilld':'counter',
+  'Receipt Cafe':'cafe','Patisseriously':'cafe','Sombreroll':'arcade','Lambzhou 1919':'arcade',
+  'Coals Dickson':'market','Dickson Oodle House':'arcade','Prawn Asian Grocery':'market',
+  'Supper Express':'market','Bake Pause':'shop','Till We Meet Cafe':'cafe',
+  "Iggy's O'Connor":'market','Braddon Suppermarket':'shop',
+};
 const SPECIAL_FRONTS = {
+  'The Book Moo': {surround:0xdaceb3,fascia:0x535859,edge:0x3c4346,soffit:0x9b9c8a},
+  'Scoot Wholefoods': {surround:0xa58563,fascia:0x5e6c5a,edge:0x524b3c,soffit:0xbfb299},
+  'Belloucies': {surround:0x33373b,fascia:0x3b403e,edge:0x323636,soffit:0x665849},
+  'Your Cafe': {surround:0xa07459,fascia:0x775c4b,edge:0x5b5146,soffit:0xe2dcce},
+  'Up Town Milk Bar': {surround:0xbabcb5,fascia:0x69706c,edge:0xc0c0b4,soffit:0xdcd7c5},
+  'Caps Lock': {surround:0x80634c,fascia:0x665040,edge:0x5b5045,soffit:0xc3a887},
+  'Thrilld': {surround:0x92785b,fascia:0x4f5248,edge:0x55574a,soffit:0xae9678},
+  'Bake Pause': {surround:0x443f3c,fascia:0x343837,edge:0x484841,soffit:0xc1b8a5},
+  'Sombreroll': {surround:0x5c605b,fascia:0x40554b,edge:0xc9c6b9,soffit:0xb59371},
+  'Coals Dickson': {surround:0x9c886c,fascia:0x555953,edge:0x434c47,soffit:0xaa8e72},
   'Super Expressive': {fascia:0xaa4948,edge:0xa84843,surround:0xa9a49b,soffit:0xcac3ae},
   'Braddon Suppermarket': {fascia:0x37496a,edge:0x39496a,surround:0xd6d2bb,soffit:0xbabdb2},
   "Iggy's O'Connor": {fascia:0x405347,edge:0x34483d,surround:0xaa947c,soffit:0xb0a587},
@@ -27,7 +60,8 @@ export function frontageProfile(store) {
   if(store.district==='Kingston')architecture={surround:0xc1ab8e,fascia:0x495852,soffit:0xd1c7b6,edge:0x514b42};
   if(store.district==='Manuka')architecture={surround:0xd2c5ae,fascia:display==='books'?0x494e47:display==='produce'?0x755248:0x6f554b,soffit:0xd4c7aa,edge:0x403d38};
   if(store.district==='Dickson')architecture={surround:0xbbab98,fascia:0x4f6463,soffit:0xa58f73,edge:0x4b524e};
-  return {display,...architecture,...SPECIAL_FRONTS[store.name]};
+  const form=FORMS_BY_TENANT[store.name] || 'shop';
+  return {display,form,layout:FORMS[form],...architecture,...SPECIAL_FRONTS[store.name]};
 }
 
 const W=208,H=58;
@@ -112,6 +146,62 @@ export function paintShopWindow(pixels,atlasWidth,atlasHeight,store,index,side,d
       rect(x-3,42,9,2,0x8e795c);rect(x+24,42,8,2,0x8e795c);
     }
   }
+  if(store.name==='Scoot Wholefoods'){
+    for(let x=8;x<W-14;x+=19){
+      rect(x,16,15,24,0x8f795d);rect(x+2,17,11,14,0xb69f79);
+      rect(x+4,31,7,4,0xd8c5a5);rect(x+6,35,3,5,0x574e3f);
+    }
+  }
+  if(store.name==='Newsweak'||store.name==='The Book Moo'){
+    for(let row=0;row<2;row++)for(let j=0;j<9;j++){
+      const x=9+j*22,y=15+15*row;
+      rect(x,y,16,13,COVERS[(j+row+seed)%COVERS.length]);rect(x+2,y+2,12,2,0xd9cbb6);
+      rect(x+3,y+6,7,4,0x9d8163);rect(x,y+13,18,2,0x8b785d);
+    }
+  }
+  if(store.name==='Dickson Oodle House'){
+    for(let j=0;j<3;j++){
+      const x=14+j*33;
+      rect(x,11,25,14,0x594735);rect(x+2,13,21,10,0xc7bca0);
+      for(let y=15;y<22;y+=3)rect(x+4,y,13+(j+y)%5,1,0x807966);
+    }
+  }
+  if(store.name==='Prawn Asian Grocery'){
+    for(let tier=0;tier<2;tier++)for(let x=6,j=0;x<W-8;x+=11,j++){
+      const y=22+tier*15;
+      rect(x,y-7,8,7,CERAMICS[(j+tier)%CERAMICS.length]);rect(x+1,y-4,6,2,0xbcb284);
+      rect(x+2,y-8,5,1,0x827462);
+    }
+  }
+  if(store.name==='Plink'){
+    for(let j=0;j<3;j++)for(let x=5;x<W-9;x+=10){
+      const y=23+j*12;rect(x+3,y-8,3,3,0x5d5743);rect(x+1,y-5,7,6,0x706a45);
+      rect(x+2,y-3,5,2,0xc2ad83);rect(x,y+1,9,1,0xa48d6e);
+    }
+  }
+  if(store.name==='You Sushi'||store.name==='Sombreroll'||store.name==='Kismaybe'){
+    rect(4,29,W-8,14,0xa6b1a4);rect(6,31,W-12,8,0x736f61);
+    for(let x=9,j=0;x<W-10;x+=15,j++){
+      rect(x,33,12,4,PRODUCE[(j+seed)%PRODUCE.length]);rect(x+1,32,9,1,0xd6caa9);
+    }
+    rect(4,39,W-8,2,0xdacbb8);
+  }
+  if(store.name==='Caps Lock'||store.name==='Thrilld'||store.name==='Belloucies'){
+    for(let x=12;x<W-10;x+=37){
+      const metal=store.name==='Belloucies',upholstery=store.name==='Thrilld'?0x945b52:0xaa8662;
+      rect(x,39,14,3,metal?0xa3a29a:upholstery);rect(x+2,42,2,11,0x6f6c60);rect(x+11,42,2,11,0x6f6c60);
+      if(!metal)rect(x,30,3,10,upholstery);
+    }
+  }
+  if(store.name==='MacDawdles'||store.name==='Receipt Cafe'){
+    rect(14,25,39,13,0x757a73);rect(16,24,34,2,0xcfccc0);
+    for(const x of [18,27,37]){rect(x,32,5,6,0xcbbfa9);rect(x+1,30,3,2,0x48463e);}
+  }
+  if(store.name==='Patisseriously'){
+    for(let x=13;x<W-10;x+=26){
+      rect(x,34,15,4,0x986d50);rect(x+3,31,9,3,0xd9bd85);rect(x+6,29,4,2,0xa46659);
+    }
+  }
   if(store.name==='Till We Meet Cafe'){
     for(let j=0;j<3;j++){
       const x=10+j*70;
@@ -139,11 +229,12 @@ export function paintShopWindow(pixels,atlasWidth,atlasHeight,store,index,side,d
   }
   // Light reflected from sky/pavement sits in front of the room. Make the
   // glass brighter at the top and retain enough interior contrast at eye level.
+  const reflectedEdge=new Float32Array(W);
+  for(let x=0;x<W;x++)reflectedEdge[x]=12+3*Math.sin((x+seed)/19)+1.8*Math.sin(x/7);
   for(let y=0;y<H;y++){
     let i=colorAt(0,y);
     for(let x=0;x<W;x++,i+=4){
-      const skyline=12+3*Math.sin((x+seed)/19)+1.8*Math.sin(x/7);
-      const sky=y<skyline;
+      const sky=y<reflectedEdge[x];
       const t=sky?.39:.11;
       const light=sky?187:144;
       const value=(x+y*2+seed)%104;
