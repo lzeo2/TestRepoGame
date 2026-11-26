@@ -95,7 +95,7 @@ def summarize(inputs, observations=None):
         proof = next((r for _,r in reversed(history) if r['outcome']=='game-control-state-confirmed'),None)
         action = ''
         if proof:
-            inputs = [a for a in proof['inputs'] if a.startswith(('Click ', 'key:', 'drag:', 'fill:'))]
+            inputs = [a for a in proof['inputs'] if a.startswith(('Click ', 'key:', 'drag:', 'fill:', 'double:', 'hold:'))]
             action = ' + '.join(inputs)[:128] or proof.get('proof',{}).get('selector','')
         name = game['title'] + ('' if game['registered'] else ' (unlisted)')
         yield f'| {cell(name)} | {LABELS[row["outcome"]]} | {len(history)} | {cell(action)} |'

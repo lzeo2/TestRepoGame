@@ -48,13 +48,32 @@ table {
 }
 
 
-/* Center the container */
-#container {
-  height:320px;
-  width:480px;
+body {
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: #111;
+  color: #eee;
+  font: 14px/1.35 Arial, sans-serif;
 }
 
-/* Give canvas a background */
-canvas {
-  background-color:black;
+#hud { width: min(100%, 38rem); margin: 0 auto; padding: 8px 12px; box-sizing: border-box; }
+#hud h1 { font-size: 20px; font-weight: bold; }
+#hud p { color: #ccc; }
+#container { min-height: 0; display: flex; justify-content: center; align-items: center; }
+#game { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; background: black; }
+#direction-pad { display: none; justify-content: center; gap: 6px; padding: 6px; }
+#direction-pad button {
+  background: #243124;
+  color: white;
+  border: 1px solid #829682;
+  border-radius: 5px;
+  width: 50px;
+  min-height: 44px;
+  font-size: 22px;
+  touch-action: none;
+  user-select: none;
 }
+#direction-pad button:active { background: #416041; }
+@media (any-pointer: coarse) { #direction-pad { display: flex; } }

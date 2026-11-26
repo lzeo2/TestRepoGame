@@ -31,6 +31,8 @@ HEAVY = {7, 8, 47, 48, 49, 50, 55, 56, 59, 60, 64, 89, 111, 245}
 # these immediately before and after input, so opening a menu cannot pass.
 # Controls separated with | are sequential. key:... uses actual key events.
 PROBES = {
+    'SpiderSolitaire': ('double:.stock', '.stock__count'),
+    'Slipstream Borough': ('#cameraToggle', '#cameraToggle'),
     'TowerOfHanoi': ('#disk-1|#tower-b', '#step-counter'),
     'MiniGolf': ('key:ArrowLeft|key:Space', '#strokes'),
     'Sokoban': ('key:ArrowRight|key:ArrowLeft|key:ArrowDown|key:ArrowUp', '#msg'),
@@ -84,17 +86,51 @@ STATE_PROBES = {
     'BreakoutHacked': ('key:ArrowRight', 'typeof paddle === "undefined" ? null : paddle.x'),
     'Asteroids': ('key:Space|key:ArrowRight', 'window.Game?.ship?.rot'),
     'Archery': ('key:ArrowRight', 'typeof kbAngle === "undefined" ? null : kbAngle'),
-    'Borough Run': ('#pause', 'window.__gameDebug?.state'),
+    'Borough Run': ('key:p', 'window.__gameDebug?.state'),
+    'Night Shift': ('key:p', 'window.__gameDebug?.state'),
+    'Rhythm': ('hold:s', 'window.isHolding?.s'),
+    'ADarkRoom': ('#lightButton', 'window.$SM?.get("game.fire.value")'),
+    'Jankolock3D': ('#pause', 'document.querySelector("#resume")?.checkVisibility()'),
     'Tag Relay': ('key:d', 'window.tagRelaySnapshot?.red?.x'),
     'Spline Ride': ('#view', 'window.splineRideSnapshot?.view'),
-    'Jankolock3D': ('key:w', 'window.jank3dSnapshot?.().controller?.position'),
     'SchoolyardLaneRun': ('key:ArrowRight', 'window.schoolyardGame?.state.player.lane'),
 }
+
+# These two canvas games keep player coordinates private. Find the shipped
+# sprite's opaque green pixels in its starting lane and measure horizontal
+# movement after a real right-arrow press. Ignore the moving traffic above.
+def sprite_center(canvas, top, height, rgb):
+    return f"""(() => {{
+      const c = document.querySelector({json.dumps(canvas)});
+      const y = Math.round({top}), h = Math.round({height});
+      const data = c.getContext('2d').getImageData(0, y, c.width, h).data;
+      let count = 0, sum = 0;
+      for (let i = 0; i < data.length; i += 4) {{
+        if (data[i] === {rgb[0]} && data[i+1] === {rgb[1]} &&
+            data[i+2] === {rgb[2]} && data[i+3] > 200) {{
+          sum += (i / 4) % c.width;
+          count++;
+        }}
+      }}
+      return count >= 12 ? Math.round(sum / count) : null;
+    }})()"""
+
+
+SPRITE_PROBES = {
+    'Frogger': sprite_center('#game', 'c.height - 48', '48', (33, 222, 0)),
+    'SpaceInvaders': sprite_center('#gameview', 'SI.Sizes.bottomMargin - SI.Sizes.playerShipHeight',
+                                  'SI.Sizes.playerShipHeight', (0, 219, 0)),
+}
+for game, observation in SPRITE_PROBES.items():
+    STATE_PROBES[game] = ('key:ArrowRight', observation)
+
 
 START = {
     'Circuit Ward': '#startSolo', 'Tag Relay': '#start', 'Spline Ride': '#play',
     'Tanks and Soldiers': '#deploy', 'Jankolock3D': '#start',
     'Capital Drive': '#start-button', 'Foldwild': '#start', 'Below the Obvious': '#playBtn',
+    'Rhythm': '.btn--start', 'Slipstream Borough': '#start',
+    'ADarkRoom': 'div.button:text-is("disable audio")',
     'Nim': '#playBtn', 'DotsAndBoxes': '#playBtn', 'Mastermind': '#playBtn',
     'UltimateTicTacToe': '#playBtn', 'War': '#startBtn', 'WordLadder': '#startBtn',
     'WordSearch': '#startScreen .primary', 'StealFootballer': '#start',
@@ -288,10 +324,20 @@ async def trial(page, g, result, evidence, base):
                 return await controlled_value(page, selector)
         previous = await sample()
         inputs_before = len(result['inputs'])
+        held = []
         for step in steps.split('|'):
             if step.startswith('key:'):
                 await key(page, step[4:])
                 result['inputs'].append(step)
+            elif step.startswith('hold:'):
+                await page.keyboard.down(step[5:])
+                held.append(step[5:])
+                result['inputs'].append(step)
+            elif step.startswith('double:'):
+                control = await first_visible(page.locator(step[7:]))
+                if control:
+                    await control.dblclick(timeout=2200)
+                    result['inputs'].append(step)
             elif step.startswith('drag:'):
                 start_selector, end_selector = step[5:].split('>', 1)
                 src = await first_visible(page.locator(start_selector))
@@ -309,7 +355,12 @@ async def trial(page, g, result, evidence, base):
                 result['inputs'].append('Click '+step)
         await page.wait_for_timeout(180)
         current = await sample()
-        if len(result['inputs']) != inputs_before and current != previous:
+        for command in held:
+            await page.keyboard.up(command)
+        changed = current != previous
+        if directory in SPRITE_PROBES:
+            changed = isinstance(previous,int) and isinstance(current,int) and current - previous >= 2
+        if len(result['inputs']) != inputs_before and changed:
             proof = {'selector': selector}
             if isinstance(previous,list) and isinstance(current,list):
                 index = next((i for i,(a,b) in enumerate(zip(previous,current)) if a!=b),
