@@ -51,3 +51,7 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Rights and progress/centering fixes first. Next verify the loading-screen controls against actual engine input and make the shell readable without motion. Month work should prove failure/restart and hardware performance; touch controls require actual engine support and are deferred rather than promised.
+
+## Browser viewport repair, 26 November 2026
+
+The Unity wrapper now centres its canvas within the viewport at its original aspect ratio. Desktop Chromium at 1366 × 768 displayed the full 1229 × 768 game, while a 390 × 844 phone displayed 390 × 244. The 640 × 600 regression case now shows the entire 640 × 400 canvas at y=100.
