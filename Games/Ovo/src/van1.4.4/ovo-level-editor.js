@@ -271,7 +271,11 @@
   };
 
   let messageHandler = (event) => {
-    if (!event.data.isLevelEditor || !event.data.messageType) return;
+    // Level previews belong to the locally hosted editor.
+    if (!event.source || typeof event.source.postMessage !== "function" ||
+        event.origin === "null" || event.origin !== globalThis.location.origin) return;
+    if (!event.data || event.data.isLevelEditor !== true ||
+        typeof event.data.messageType !== "string") return;
     if (event.data.messageType.toLowerCase() === "isready") {
       event.source.postMessage(
         {
@@ -283,6 +287,7 @@
       );
     }
     if (event.data.messageType.toLowerCase() === "startlevel") {
+      if (!event.data.level || typeof event.data.level !== "object" || Array.isArray(event.data.level)) return;
       if (globalThis.ovoLevelEditor.hasOwnProperty("init")) {
         event.source.postMessage(
           {

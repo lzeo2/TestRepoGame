@@ -68,6 +68,13 @@
     return;
   }
 
+  if (!BACKEND_ENABLED) {
+    setLaunchDisabled(true);
+    if (formEl) formEl.addEventListener('submit', function (event) { event.preventDefault(); });
+    report('The proxy is unavailable because no backend is enabled on this deployment.', false);
+    return;
+  }
+
   // --- Service worker -----------------------------------------------------
   if (!('serviceWorker' in navigator)) {
     report(
@@ -94,15 +101,7 @@
 
   if (!formEl || !inputEl) return;
 
-  // --- Launch gate ----------------------------------------------------------
-  // The backend is disabled by default on this deployment, so keep the Launch
-  // button disabled (and block the submit handler) unless an operator has
-  // explicitly enabled the proxy (see BACKEND_ENABLED above / docs/proxy.md).
-  if (!BACKEND_ENABLED) {
-    setLaunchDisabled(true);
-  } else {
-    setLaunchDisabled(false);
-  }
+  setLaunchDisabled(false);
 
   // --- Input validation -----------------------------------------------------
   // Accept only http:// and https:// URLs. Anything else — javascript:,
@@ -120,15 +119,6 @@
   // --- Launch ---------------------------------------------------------------
   formEl.addEventListener('submit', function (event) {
     event.preventDefault();
-    if (!BACKEND_ENABLED) {
-      report(
-        'The proxy is not available on this deployment — no backend is ' +
-          'enabled. An operator must configure a controlled Bare endpoint ' +
-          'and set BACKEND_ENABLED in uv/index.js (see docs/proxy.md).',
-        true
-      );
-      return;
-    }
     var url = (inputEl.value || '').trim();
 
     // Reject control characters outright (C0 controls, DEL, C1 controls).
@@ -156,19 +146,5 @@
     window.location.assign(prefix + encode(url));
   });
 
-  if (BACKEND_ENABLED) {
-    report(
-      'Ready, and the proxy backend is enabled by an operator. Enter a URL ' +
-        'above to route it through the proxy.',
-      false
-    );
-  } else {
-    report(
-      'The proxy is not available on this deployment. The Ultraviolet ' +
-        'distribution files are not vendored here and no proxy backend is ' +
-        'enabled — an operator must configure a controlled Bare endpoint ' +
-        '(see docs/proxy.md).',
-      false
-    );
-  }
+  report('Ready. Enter a URL to use the configured proxy backend.', false);
 })();
