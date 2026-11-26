@@ -305,7 +305,11 @@ def main():
                 restored = observe(page, 'offline actual ready')
                 check(page.evaluate('(k)=>localStorage.getItem(k)', CAREER_KEY) == saved,
                       'Offline reload preserves the actual career save bytes')
-                career = {key: value for key, value in json.loads(saved).items() if key not in ('campaign', 'protagonists')}
+                # The save envelope also carries records restored by separate
+                # systems. The career snapshot exposes the progression record.
+                separate_records = {'trainingProfiles', 'campaign', 'protagonists', 'nitroFuel',
+                                    'campaignWorld', 'streetWorld', 'campaignAftermath'}
+                career = {key: value for key, value in json.loads(saved).items() if key not in separate_records}
                 check(restored['career'] == career, 'Offline full-game boot restores the native wallet, garage and completed-job state')
                 start_and_drive(page)
                 check(not (set(server.bodies(mark)) & essential), 'Offline actual driving requires no origin module or map bodies')

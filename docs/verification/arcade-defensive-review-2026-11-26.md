@@ -102,6 +102,10 @@ point-in-time comparisons for the same scanner and syntax modes.
   large files exceeded the 512 KiB structural parser budget and received
   chunk-pattern review only. This count is independent of native playtests.
 
+## Integrated release scan
+
+The final game source at `14c5f07f` contained 16,388 tracked files. The scanner read 4,295 source files (333,435,660 bytes), including 3,377 under Games. All 248 selected syntax checks passed. No credential pattern matched. Both external HTML references were canonical page metadata. Eight missing literal references remain in archived OvO and Wings material and the disabled proxy entry. All 419 literal assets in the 135 eligible registered game entries resolved. The protected chat entry remains read-only, and the binary and large-source inspection limits above still apply.
+
 ## Reproducing the defensive checks
 
 Use a fresh external location for the JSON report. The source scan reads the

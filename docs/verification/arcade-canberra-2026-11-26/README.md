@@ -46,6 +46,12 @@ python -B scripts/capture_capital_national_buildings.py --output docs/verificati
 
 The initial road check, before the additional Kippax Fair building was joined from its two map ways, covered 27,417 roads, 155,465 source segments and 639,234 static lane clearance probes. There were 1,465 occupied probes on 305 roads. A control run with all 191 park fixtures removed produced the same results. Individual occupied probes need case-by-case inspection. The run does not establish that every vehicle can drive every possible turn.
 
+## Release and offline play
+
+Chromium passed all eight build checks on `3b359ed1b628`. A separate cold, warm and offline session passed 20 checks. The real career wallet, garage, job progress and inventory survived a reload with the network disconnected, and W/D controls worked offline. On the warm start, the server sent zero game-module or map response bodies. The worker update fixture passed another 24 checks, including activation of a changed build and keeping a pre-existing save.
+
+The release inventory covers 136 listed games and six unlisted projects. The fleet test used 267 short runs plus game-specific checks. Native gameplay input was verified in 139 titles. The [per-game report](../arcade-fleet-playtest-2026-11-26.md) names the three exceptions and distinguishes a working control from completing a game.
+
 ## Pedestrian setup profile
 
 A Chromium CPU trace of the 3D startup and initial Free roam session exposed
