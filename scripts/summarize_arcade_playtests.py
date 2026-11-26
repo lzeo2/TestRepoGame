@@ -16,6 +16,7 @@ LABELS = {
     'input-sent-frame-unavailable': 'Frame unavailable',
     'protected-shell-observed': 'Protected shell',
     'entry-unavailable': 'Entry unavailable',
+    'unavailable-by-design': 'Unavailable by design',
     'harness-error': 'Test interrupted',
 }
 
@@ -38,6 +39,8 @@ def summarize(inputs, observations=None):
             # first runner used this field, which cannot isolate a flap.
             if row.get('proof',{}).get('selector') == 'window.schoolyardGame?.state.player.vy < 0':
                 row = dict(row, outcome='animated-surface-input-unconfirmed')
+            if row['directory']=='Slope' and 'unavailable offline' in row.get('initialText','').lower():
+                row = dict(row,outcome='unavailable-by-design')
             records[row['directory']].append((directory.name,row))
     missing = {g['directory'] for g in ordered}-records.keys()
     if missing:

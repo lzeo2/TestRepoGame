@@ -1,4 +1,9 @@
 {
+  "AchtungDieKurve": {
+    "observation": "Blue's live trail turned from 120° to 144° as its head moved. Gold continued on its original heading of 178°.",
+    "receipt": "more-classics/AchtungDieKurve/proof.json",
+    "status": "gameplay"
+  },
   "AdvanceWars": {
     "observation": "Played Field Training, mission 1, Troop Orders. On the battlefield, moved the hand cursor across tiles under native arrow input; pressing A on an unrequested unit/ground triggered Nell’s “No, not there” correction and another prompt. Unit travel and battle resolution remain unverified.",
     "receipt": "emulator-deep/116/proof.json",
@@ -44,6 +49,11 @@
     "receipt": "verified-seven-native/Bowling.json",
     "status": "gameplay"
   },
+  "BrainrotBoulevard": {
+    "observation": "The normal mobile start button entered the boulevard. Tapping pause from the running HUD opened the game menu.",
+    "receipt": "controls-deep/BrainrotBoulevard/proof.json",
+    "status": "gameplay"
+  },
   "BulletHell": {
     "observation": "The ship moved right from x=300 to x=308 while firing. Pressing C consumed one bomb (2 to 1).",
     "receipt": "more-classics/BulletHell/proof.json",
@@ -79,9 +89,24 @@
     "receipt": "originals-deep/241/proof.json",
     "status": "gameplay"
   },
+  "CookieClickerHacked": {
+    "observation": "The first normal cookie click changed the visible counter from zero to one.",
+    "receipt": "root-deep/CookieClickerHacked.json",
+    "status": "gameplay"
+  },
+  "CribbageClassic": {
+    "observation": "Picking a face-down card revealed the opening cut. The game awarded the first crib with the message “You drew the lower card! You get the first crib.”",
+    "receipt": "more-classics/CribbageClassic/proof.json",
+    "status": "gameplay"
+  },
   "Crossword": {
     "observation": "Submitted the matching answer for an across clue. The solved count increased from 0 of 16 to 1 of 16.",
     "receipt": "verified-seven-native/Crossword.json",
+    "status": "gameplay"
+  },
+  "CrushTheCastle": {
+    "observation": "Old renderer showed an unsupported Flash prompt and remained black after Run Anyway. The shared August 2026 Ruffle reached Play, New Game and Castle 1. Two pointer inputs started and released the first shot, changing the live camera from the emplacement to the castle and producing the reload prompt.",
+    "receipt": "classics-deep/123/proof.json",
     "status": "gameplay"
   },
   "CutTheRope": {
@@ -119,10 +144,15 @@
     "receipt": "emulator-deep/114/proof.json",
     "status": "gameplay"
   },
+  "DriftBoss": {
+    "observation": "Held Space through the driving tutorial. The car turned right and activated checkpoint two. Releasing the key registered the next steering direction.",
+    "receipt": "unity-deep/drift-display/checkpoint3.jpg, held-32.jpg, released-18.jpg",
+    "status": "gameplay"
+  },
   "DuckHunt": {
-    "observation": "Duck Hunt opened to a blank black page with no canvas. Chromium reported “Loading chunk 369 failed”; the local file contains only a placeholder comment.",
+    "observation": "A visible duck awarded points in normal Level 1. P paused the game and C opened the same-origin creator, whose form launched the named custom level.",
     "receipt": "more-classics/DuckHunt/proof.json",
-    "status": "blocked"
+    "status": "gameplay"
   },
   "FireboyAndWatergirl": {
     "observation": "Horizontal movement of real Phaser level character while holding the right arrow.",
@@ -164,9 +194,19 @@
     "receipt": "frogger-viewport/results.json",
     "status": "gameplay"
   },
+  "GeometryDashLite": {
+    "observation": "Selected Stereo Madness in Normal Mode and started Attempt 1. A native pointer press sent the cube into a rotating airborne pose. Esc opened the in-level pause menu and the game recorded a new 3% normal-mode best.",
+    "receipt": "classics-deep/66/proof.json",
+    "status": "gameplay"
+  },
   "Getaway": {
     "observation": "Pressed H during an active chase. The HUD changed to Engine off · dark and the pursuit clock and minimap advanced. This cloud GPU rendered the 3D world white.",
     "receipt": "verified-last-native/Getaway.json",
+    "status": "gameplay"
+  },
+  "Gladihoppers": {
+    "observation": "Entered the Trainer’s native Unity tutorial. Holding A completed its requested movement and opened the lesson on stances.",
+    "receipt": "unity-deep/verified-gladi/movement.jpg, trainer2.jpg",
     "status": "gameplay"
   },
   "HeartsClassic": {
@@ -177,6 +217,11 @@
   "Hextris": {
     "observation": "Started the round, rotated the main hex from lane 0 to 1 with Left, then returned to lane 0 with Right.",
     "receipt": "more-classics/Hextris/proof.json",
+    "status": "gameplay"
+  },
+  "Jankolock": {
+    "observation": "The active match changed the ability from “Receipt Rush / ready” to “Receipt Rush / 7.9s” and disabled it during cooldown.",
+    "receipt": "more-classics/Jankolock/proof.json",
     "status": "gameplay"
   },
   "Jankolock3D": {
@@ -195,9 +240,9 @@
     "status": "gameplay"
   },
   "JetpackJoyrideHacked": {
-    "observation": "The Phaser GamePlay scene mounted. A canvas tap and 600 ms hold completed with zero uncaught errors or failed requests. The observation did not measure the avatar’s altitude.",
-    "receipt": "scripts/test_arcade_legacy_startup.py",
-    "status": "entry"
+    "observation": "Held the flight control after starting the run. The player rose by more than five world units.",
+    "receipt": "controls-deep/JetpackJoyrideHacked/proof.json",
+    "status": "gameplay"
   },
   "Joust": {
     "observation": "ArrowRight moved the rider from x=100 to x=110.67. Space changed vertical velocity from +38.04 to −191.85.",
@@ -249,9 +294,19 @@
     "receipt": "more-classics/MissileCommand/proof.json",
     "status": "gameplay"
   },
+  "Ovo": {
+    "observation": "Native Right moved the registered OvO 1.4.5 player horizontally on level 1; its vertical coordinate stayed fixed.",
+    "receipt": "vendor-deep/7/proof.json",
+    "status": "gameplay"
+  },
   "Pacman": {
     "observation": "Started a round with N after audio initialization. Right-direction input moved the yellow player from x=115 to x=168.",
     "receipt": "verified-seven-native/Pacman.json",
+    "status": "gameplay"
+  },
+  "PapasPizzeria": {
+    "observation": "Created an empty-slot profile, skipped the intro, visited all four tutorial stations, and took Cooper’s order. The live game produced ticket 001 with four toppings, cut instructions and a bake time. Cooking and serving that order to completion were not tested.",
+    "receipt": "classics-deep/53/proof.json",
     "status": "gameplay"
   },
   "QWOP": {
@@ -294,10 +349,20 @@
     "receipt": "controls-deep/SchoolyardGapGlide/proof.json",
     "status": "gameplay"
   },
+  "ServerSurvival": {
+    "observation": "Clicked Sandbox Mode and placed a DNS service using the tools and grid. The service count increased from zero to one and the budget fell from $2,000 to $1,950.",
+    "receipt": "verified-last-native/ServerSurvival.json",
+    "status": "gameplay"
+  },
   "Slipstream Borough": {
     "observation": "Using the accelerator increased the live car speed in a race.",
     "receipt": "originals-deep/225/proof.json",
     "status": "gameplay"
+  },
+  "Slope": {
+    "observation": "The offline-unavailable notice returned to the arcade through its real Back to Arcade link. The game engine was intentionally removed from this unlisted entry.",
+    "receipt": "root-deep/Slope.json",
+    "status": "unavailable by design"
   },
   "Snake": {
     "observation": "Steered, toggled pause and resume with P, crashed and started a new game.",
@@ -359,6 +424,16 @@
     "receipt": "originals-deep/248/proof.json",
     "status": "gameplay"
   },
+  "TempleRun2": {
+    "observation": "Confirmed the in-run Restart action, including its confirmation panel: the displayed score and distance reset from 5,526 and 552 to zero. The first run also raised an undefined SelectedDefinition exception and displayed the runner over clouds; collision and jumping in that run remain unverified. The session also logged 1 page errors.",
+    "receipt": "vendor-deep/60/proof.json",
+    "status": "gameplay"
+  },
+  "TenMinutesTillDawn": {
+    "observation": "Selected Shana and the revolver, entered survival and held the left mouse button. Displayed ammunition fell from 006/006 to 005/006 as the timer counted down. One optional Steam wishlist navigation was blocked offline.",
+    "receipt": "verified-last-native/TenMinutesTillDawn.json",
+    "status": "gameplay"
+  },
   "TowerDefense": {
     "observation": "Selected the normal turret in the palette and clicked grid tile (4,2). The empty tile gained 262 green turret pixels.",
     "receipt": "verified-seven-native/TowerDefense.json",
@@ -367,6 +442,11 @@
   "TronLightCycles": {
     "observation": "Turned the blue light cycle downward with S. Its heading changed from [1, 0] to [0, 1] and its trail grew from 2 to 5 cells.",
     "receipt": "more-classics/TronLightCycles/proof.json",
+    "status": "gameplay"
+  },
+  "Vex7": {
+    "observation": "Holding D in the playable tutorial hub moved the character X -150 to -132. Horizontal speed rose from zero to 3.6 while the character stayed on the same platform.",
+    "receipt": "vendor-deep/64/proof.json",
     "status": "gameplay"
   },
   "VolleyRandom": {

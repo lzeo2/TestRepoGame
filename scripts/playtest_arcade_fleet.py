@@ -279,6 +279,13 @@ async def trial(page, g, result, evidence, base):
         await page.locator(START[directory]).wait_for(state='visible',timeout=60000)
         await page.wait_for_function('(selector)=>!document.querySelector(selector).disabled',arg=START[directory],timeout=60000)
     await page.wait_for_timeout(4800 if ident in HEAVY or ident in EMULATED else 1000)
+    if directory == 'Slope' and await page.get_by_role('heading',name='Slope is unavailable offline').count():
+        result['outcome'] = 'unavailable-by-design'
+        result['returnLink'] = await page.get_by_role('link',name='Back to Arcade').get_attribute('href')
+        captured = await screenshot(page)
+        if captured:
+            (evidence/'after.jpg').write_bytes(captured)
+        return
     if directory == 'Character AI':
         # Protected interactive chat. Inspect its visible shell without sending
         # a message, opening account UI or inspecting its implementation.
