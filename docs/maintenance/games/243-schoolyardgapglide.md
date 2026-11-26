@@ -24,6 +24,8 @@ Source projection tests constrain the moving silhouette to the original collisio
 Retain hitbox/render alignment, saved best score, keyboard/touch support and a nonblank fallback. Do not publish private models, import commercial look assets or alter unrelated site paths. Preserve the embedded upstream shader whitespace rather than rewriting third-party code.
 
 ## Verification
+
+The entry description now includes flapping and the 2D fallback. The fleet runner records the glider’s response to a native Space press. [November 2026 fleet results](../../verification/arcade-fleet-playtest-2026-11-26.md)
 The pinned source's `node tests/run.js` reached flyer engine regression (eight deterministic 40-gate runs), CPU-only silhouette projection and mock scene construction checks, but later timed out in the launcher-heavy aggregate after 100 seconds. This is not a full-suite PASS. The release HTML dependencies and touched JavaScript syntax were checked. The operator requested hosted testing without a fresh full-fleet smoke gate; keep that unrun gate explicit.
 
 ## Future outlook

@@ -24,6 +24,8 @@ Older levels include legacy circle or unsolved layouts. One historical mobile to
 Preserve real-input physics/collision, fictional-only teacher targets, authored progression, blocked-storage fallback and existing player saves. Do not publish likeness GLBs or reference photos without a separate explicit review. Keep actual hitboxes aligned with visible bodies and source-tested level recipes.
 
 ## Verification
+
+The entry description identifies the twenty draft levels and 2D fallback. In Chromium, pressing Space launched the current character and advanced the queue. [November 2026 fleet results](../../verification/arcade-fleet-playtest-2026-11-26.md)
 Before packaging, touched JavaScript syntax, catalog references and offline dependencies were checked. The pinned source's `node tests/run.js` timed out after 100 seconds in its launcher-heavy part; no full-suite success is claimed. The prior source-only and 2D fallback receipts are historical; no new hosted win/mobile/3D acceptance has run. Owner explicitly requested production testing without first completing the full-fleet smoke gate; retain this known risk and verify on the hosted snapshot.
 
 ## Future outlook

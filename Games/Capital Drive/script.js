@@ -4352,7 +4352,7 @@ async function boot() {
   map.landmarkTreeExclusions.push(...heistSites.sites.filter(site=>site.apron).map(site=>site.apron));
   heistSitesView=compatibility?emptyView():createHeistSitesView(scene,heistSites.sites);
   const towerFootprint=map.buildings.find(building=>building.id===tower?.buildingId)?.points;
-  northPlacesView=compatibility?null:createNorthPlacesView(scene,{tower,towerFootprint,waterpark:map.giantSpray,heightAt:surfaceAt});
+  northPlacesView=compatibility?null:createNorthPlacesView(scene,{map,tower,towerFootprint,waterpark:map.giantSpray,heightAt:surfaceAt});
   regionalLandmarksView=compatibility?null:createRegionalLandmarksView(scene,map,terrainSampler.groundHeightAt);
   if(regionalLandmarksView)map.landmarkBuildingIds.push(...regionalLandmarksView.managedBuildingIds);
   anuCampusView=compatibility?null:createAnuCampusView(scene,surfaceAt);
