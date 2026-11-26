@@ -103,6 +103,8 @@ import {createInteriorPeople} from './interior-people.js';
 import {createInteriorPeopleView} from './interior-people-view.js';
 import {createMicromobility} from './micromobility.js';
 import {WEAPONS,WEAPON_IDS,weaponById} from './weapons.js';
+import {createWeaponWheel} from './weapon-wheel.js';
+import {createWeaponWheelView} from './weapon-wheel-view.js';
 import {createStreetDealers} from './street-dealers.js';
 import {createStreetDealersView} from './street-dealers-view.js';
 import {generateParkedCars} from './parking-layout.js';
@@ -3064,6 +3066,9 @@ window.addEventListener('keydown', event => {
   }
   if(event.code==='F1'){event.preventDefault();if(!event.repeat)openHelp();return;}
   if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(event.target.tagName) && event.code !== 'Escape') return;
+  if (weaponWheel.isOpen() && ['Escape', 'KeyP', 'KeyM', 'KeyT', 'KeyG', 'KeyK', 'KeyJ', 'F1'].includes(event.code)) {
+    closeWeaponWheel(); if (event.code === 'Escape') return;
+  }
   const controls = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyX', 'KeyZ', 'KeyI', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight'];
   if (controls.includes(event.code)) event.preventDefault();
   if(event.code==='KeyF'&&started&&!paused()&&cockpitAvailable()){
@@ -3094,8 +3099,7 @@ window.addEventListener('keydown', event => {
     if (event.code === 'KeyG') { streetUI.renderGarage(); openDialog('garage-dialog'); return; }
     if (event.code === 'KeyK') { streetUI.renderServices(); openDialog('services-dialog'); return; }
     if (event.code === 'KeyE' && !paused()) { event.preventDefault(); interact(); return; }
-    if (event.code === 'Digit1' && !paused()) gameplay.setWeapon('unarmed');
-    if(!paused()){const weapon=WEAPONS.find(w=>event.code==='Digit'+w.key);if(weapon)gameplay.setWeapon(weapon.id);}
+    if (event.code === 'Tab' && !paused()) { event.preventDefault(); if (gameplay.state.mode === 'foot') openWeaponWheel(); return; }
     const utilityKind=matchUtilityKey(event.code);
     if(utilityKind&&!paused()){event.preventDefault();useUtilityDirect(utilityKind);return;}
     if (event.code === 'KeyR' && !paused()) { gameplay.state.mode === 'foot' ? gameplay.reload() : recover(); return; }
@@ -3103,8 +3107,8 @@ window.addEventListener('keydown', event => {
   }
   if (!paused()) keys.add(event.code);
 });
-window.addEventListener('keyup', event => keys.delete(event.code));
-window.addEventListener('blur', () => { windowFocused=false;clearInput(); if (started && !cutscenes.snapshot().active && !dialogs.some(d => d.open)) openDialog('pause-dialog'); });
+window.addEventListener('keyup', event => { keys.delete(event.code); if (event.code === 'Tab') selectWeaponWheel(); });
+window.addEventListener('blur', () => { windowFocused=false;clearInput();closeWeaponWheel(); if (started && !cutscenes.snapshot().active && !dialogs.some(d => d.open)) openDialog('pause-dialog'); });
 window.addEventListener('focus',()=>{windowFocused=true;});
 document.addEventListener('visibilitychange', () => {
   clearInput();
@@ -3199,11 +3203,16 @@ $('touch-smoke').addEventListener('click',()=>throwEquipment('smoke'));
 $('recon-scan').addEventListener('click',()=>{if(!paused()){scanHeld=true;renderer.domElement.focus();}});
 $('recon-phone-camera').addEventListener('click',()=>{closeDialogs();renderer.domElement.focus();notify('Frame the marked subject, then press I or SCAN.');});
 $('fight-retry').addEventListener('click',()=>{const person=roomPeople.snapshot().find(p=>p.character==='booth-guest');if(person)openNpcDialogue(person);});
-$('touch-weapon').addEventListener('click',()=>{if(paused())return;const owned=['unarmed',...WEAPONS.filter(w=>isSandbox()||progression.state.equipment[w.id]).map(w=>w.id)];gameplay.setWeapon(owned[(owned.indexOf(gameplay.state.weapon)+1)%owned.length]);});
+$('touch-weapon').addEventListener('click',()=>{if(!paused())openWeaponWheel();});
+const weaponWheel=createWeaponWheel({weapons:WEAPONS,ownedFor:()=>WEAPONS.filter(w=>isSandbox()||progression.state.equipment[w.id]).map(w=>w.id),ammoFor:id=>gameplay.getAmmo(id),currentFor:()=>gameplay.state.weapon});
+const weaponWheelView=createWeaponWheelView({wheel:weaponWheel,onSelect:id=>{gameplay.setWeapon(id);streetUI.refresh();}});
+function openWeaponWheel(){if(paused()||!started||gameplay.state.mode!=='foot')return;weaponWheel.open();weaponWheelView.show();}
+function closeWeaponWheel(){if(weaponWheel.isOpen())weaponWheel.close();weaponWheelView.hide();}
+function selectWeaponWheel(){if(!weaponWheel.isOpen())return;const id=weaponWheel.select();weaponWheelView.hide();if(id){gameplay.setWeapon(id);streetUI.refresh();}}
 for (const button of document.querySelectorAll('[data-action]')) bindTouchHold(button, actionTouch, button.dataset.action);
 function walkingInput() {
   if(droneActive||paused()||gameplay?.state.recovery||gameplay?.state.passenger||(streetChallenge()?.aircraft||streetChallenge()?.house)||(activities.active??activities.snapshot().active)||rentalHack.snapshot().active||(micromobility?.active??micromobility?.snapshot().active))return {};
-  const combat=canPlayerAttack();
+  const combat=canPlayerAttack(), wheelOpen=weaponWheel.isOpen();
   const stick = moveStick.snapshot();
   const vaultInput=skylineLease&&skylineJob.snapshot().stage==='safe';
   const forward = THREE.MathUtils.clamp(Number(keys.has('KeyW') || !vaultInput&&keys.has('ArrowUp')) - Number(keys.has('KeyS') || keys.has('ArrowDown')) - stick.y, -1, 1);
@@ -3213,7 +3222,7 @@ function walkingInput() {
     aimYaw: footCameraYaw, aimPitch:footLookPitch, sprint: keys.has('ShiftLeft') || keys.has('ShiftRight') || touch.has('boost'),
     crouch: keys.has('KeyX') || actionTouch.has('crouch'),
     jump: keys.has('Space') || touch.has('handbrake'), aim: combat&&(mouseAim || keys.has('KeyZ') || actionTouch.has('aim')),
-    fire: combat&&(mouseFire || actionTouch.has('fire')), melee: combat&&keys.has('KeyF') };
+    fire: combat&&!wheelOpen&&(mouseFire || actionTouch.has('fire')), melee: combat&&!wheelOpen&&keys.has('KeyF') };
 }
 function input() {
   if(droneActive)return {throttle:0,steer:0,handbrake:true,boost:false};
@@ -3770,7 +3779,7 @@ function updateHud() {
   const crouching=gameplay.state.mode==='foot'&&gameplay.state.actor.crouching&&!gameplay.state.passenger&&!droneActive;
   const stance=$('stance-status');stance.hidden=!crouching;
   if(crouching)stance.textContent=nearbyCrouchCover(gameplay.state.actor)?'Crouched · cover nearby':'Crouched';
-  $('driving-hint').textContent = aircraft?.active?aircraft.snapshot().prompt:buses?.passenger?'E request stop / leave bus':rideService?.passenger?'T phone · E exits when stopped':jetpack.active?'SPACE rise · SHIFT descend · U land':gameplay.state.mode==='foot'?'SHIFT sprint · SPACE jump · U jetpack':'SPACE drift · SHIFT nitro · F camera';
+  $('driving-hint').textContent = aircraft?.active?aircraft.snapshot().prompt:buses?.passenger?'E request stop / leave bus':rideService?.passenger?'T phone · E exits when stopped':jetpack.active?'SPACE rise · SHIFT descend · U land':gameplay.state.mode==='foot'?'SHIFT sprint · SPACE jump · TAB weapons · U jetpack':'SPACE drift · SHIFT nitro · F camera';
   const destinationLine=$('destination-line');
   destinationLine.hidden=!destination||!!destination.campaignObjective;
   if(!destinationLine.hidden)destinationLine.textContent=`${destination.name} · ${(Math.hypot(destination.x - p.x, destination.z - p.z) / 1000).toFixed(1)} km away`;

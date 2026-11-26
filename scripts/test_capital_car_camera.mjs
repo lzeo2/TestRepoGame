@@ -50,6 +50,7 @@ const actions=[],jetpack={active:false},keys=new Set();
 runInNewContext(source.slice(start,end),{
   window:{addEventListener:(name,handler)=>{assert.equal(name,'keydown');keydown=handler;}},
   WEAPONS,started:true,paused:()=>paused,cockpitAvailable:()=>driving,cutscenes:{snapshot:()=>({active:false})},jetpack,keys,
+  rebindKind:null,matchUtilityKey:()=>null,weaponWheel:{isOpen:()=>false},
   toggleCockpit:()=>actions.push('cockpit'),throwEquipment:kind=>actions.push(kind),
 });
 function press(code,repeat=false){

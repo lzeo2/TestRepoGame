@@ -295,8 +295,17 @@ operate entirely within the game simulation.
 
 Canalside Supplies sells $350 body armour, $120 medkits, $160 repair kits, a
 sniper rifle and an RPG. Armour absorbs some combat damage. Phone → Gear
-uses a medkit or repairs a nearby stopped car. Keys 6 and 7 equip the two
-weapons. The sniper uses a tighter view when aimed, and the RPG launches a
+uses a medkit or repairs a nearby stopped car. Weapons are now chosen from a
+radial weapon wheel instead of the number keys: hold Tab on keyboard or tap
+the touch EQUIP button, point or drag to a slot, then release Tab or tap the
+slot to equip. The wheel lists fists plus each owned weapon in catalogue
+order, capped at eight slots, opens highlighted on the current weapon, and
+dims entries whose magazine and reserve are both empty. Firing and melee are
+suppressed only while the wheel is open; movement and aim stay live, and any
+dialog key or Escape closes it. The wheel logic lives in
+`weapon-wheel.js` (deterministic, no timers; `script.js` drives it) with the
+flat-colour DOM overlay in `weapon-wheel-view.js`, styled in `style.css`.
+The sniper uses a tighter view when aimed, and the RPG launches a
 pooled projectile that detonates after a collision or at the end of its range.
 Older saves retain their weapon inventory and start with empty pools for new
 weapons. Hold X or the touch DUCK button to crouch. Walls and objects can then
