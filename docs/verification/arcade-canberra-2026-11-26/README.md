@@ -3,6 +3,8 @@
 | View | What was captured |
 | --- | --- |
 | [Franklin Street, Manuka](../../capital-drive-previews/landmark-studies/manuka-street.webp) · [Parliament Drive](../../capital-drive-previews/landmark-studies/parliament-street.webp) | Street-level views from the geographic renderer with actual roads, buildings, terrain and foliage. |
+| [Free roam at Telopea Park School](free-roam-telopea.webp) | Actual 1280 × 800 WebGL session using the Performance preset on build `385c082ce2af`. The normal startup, cache, mobile and desktop version badges, scene rendering, map search and Free roam teleport all passed. |
+| [Six arcade games in play](arcade-games.webp) | Actual browser sessions, including both Subway editions and Super Hot. Individual outcomes are in the fleet report. |
 | ![Six Canberra shops with distinct entrances, shelves and signage](shopfronts.webp) | Six isolated shopfronts rendered by the game. The models use parody names. [Tenant-by-tenant sources](../../capital-drive-shopfront-architecture.md) |
 | [Canberra landmarks](../../capital-drive-previews/landmark-studies/inner-and-west.webp) · [Northern and eastern landmarks](../../capital-drive-previews/landmark-studies/north-and-east.webp) | Eight model views from the game renderer. [Public references and model budgets](../../capital-drive-landmark-fidelity.md) |
 | ![Brick outdoor barbecue with two hotplates](park-barbecue.webp) | Standalone view of the model assigned to ACT register entry BBQ429. The tile is an original photographic material from Poly Haven. |
