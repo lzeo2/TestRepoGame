@@ -1,6 +1,6 @@
 # Capital Drive landmark exteriors
 
-The composed map currently contains 162 landmark records, 398 other searchable places and 88 regional place records. These sets overlap. They include suburbs, transit stops, parks and services as well as buildings. The five Inner South landmark models and 25 named regional building exteriors below can be checked independently against their geometry in the game.
+The composed map currently contains 162 landmark records, 398 other searchable places and 88 regional place records. These sets overlap. They include suburbs, transit stops, parks and services as well as buildings. The five Inner South landmark models and 34 named regional exteriors across 41 mapped building footprints can be checked independently against their geometry in the game.
 
 ## Individual public exteriors
 
@@ -18,14 +18,14 @@ The composed map currently contains 162 landmark records, 398 other searchable p
 
 ## Wider coverage
 
-The regional renderer draws the exterior walls and roofs on the mapped building rings, including concave outlines and courtyards. Each of its 25 named owners gets a glazed entrance, a projecting canopy where the wall is wide enough, framed window bands and sills with shaded returns. Six families divide the secondary details between libraries, campuses, arenas, shopping centres, hospitals and exhibition buildings. Decorative entrances and lettering are artistic interpretations.
+The regional renderer draws the exterior walls and roofs on the mapped building rings, including concave outlines and courtyards. The original 25 named buildings use framed window bands and sills with shaded returns, a glazed entrance and a projecting canopy where the wall is wide enough. A further nine named sites have individual treatments for their 16 mapped buildings. [Regional exterior references and model studies](capital-drive-regional-exteriors.md) Six families divide the secondary details between libraries, campuses, arenas, shopping centres, hospitals and exhibition buildings. Decorative entrances and lettering are artistic interpretations.
 
 | Area | Buildings in this renderer |
 | --- | --- |
 | Acton | ANU Chifley Library, ANU Menzies Library, School of Music / Llewellyn Hall, Marie Reay Teaching Centre, Di Riddell Building, Kambri Culture Centre |
-| North Canberra and Gungahlin | Dickson Library, Exhibition Park in Canberra, Gungahlin Leisure Centre, Gungahlin Public Library, Marketplace Gungahlin |
-| Belconnen, Bruce and outer west | AIS Arena, Belconnen Arts Centre, Belconnen Library, Canberra International Sports and Aquatic Centre, University of Canberra, Westfield Belconnen, Kippax Public Library, Latham Shopping Hub |
-| Woden, Tuggeranong and Molonglo | Canberra Hospital, Woden Library, South Point Tuggeranong, Tuggeranong Library, Coombs Shops, Denman Prospect Shops |
+| North Canberra and Gungahlin | Dickson Library, Exhibition Park in Canberra, Gungahlin Leisure Centre, Gungahlin Public Library, Marketplace Gungahlin, Hackett Shops, Watson Shops |
+| Belconnen, Bruce and outer west | AIS Arena, Belconnen Arts Centre, Belconnen Library, Canberra International Sports and Aquatic Centre, University of Canberra, Westfield Belconnen, Kippax Public Library, Latham Shopping Hub, GIO Stadium, University of Canberra Hospital, Charnwood Shops, Kippax Fair |
+| Woden, Tuggeranong and Molonglo | Canberra Hospital, Woden Library, South Point Tuggeranong, Tuggeranong Library, Coombs Shops, Denman Prospect Shops, Charles Weston School, Evelyn Scott School, Coombs Community Centre |
 
 ## Dedicated public exteriors elsewhere
 
@@ -80,6 +80,6 @@ node scripts/test_capital_civic.mjs
 node scripts/test_capital_campus.mjs
 ```
 
-The five fixed models use 14,186 triangles across all detail levels and two shared materials. The 25 regional building models together contain 19,124 triangles. A camera at each of the 25 source footprints submitted at most 3,434 triangles in two opaque draws. Site detail switches at 280 m and its shell at 650 m. Geometry positions, normals, colours and terrain samples remain static. An index prefix changes only when the set of visible buildings changes. Frame rate on an Intel N100 was not measured in this test.
+The five fixed models use 14,186 triangles across all detail levels and two shared materials. The 41 regional building models together contain 25,767 triangles. A camera at each of the 41 source footprints submitted at most 3,434 triangles in two opaque draws. Site detail switches at 280 m and its shell at 650 m. Geometry positions, normals, colours and terrain samples remain static. An index prefix changes only when the set of visible buildings changes. Frame rate on an Intel N100 was not measured in this test.
 
 The Memorial uses 7,789 triangles across two distance-limited draws. The skatepark/storefront batch uses 2,282 across one draw. The two lake bridge parapets share one draw. Batching adjacent rails at the same grade gives 1,384 triangles on the shipped terrain, including 92 shoulder triangles. All 160 physical parapet segments remain. ANU paving and lawn retain two draws and fewer than 100 triangles. Airport generation remains limited to two cells per update and 28 residents.
