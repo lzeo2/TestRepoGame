@@ -38,7 +38,7 @@ assert.equal(campaign.current(), chapter, 'chapter lookup stays bound to the run
 assert.equal(campaign.nextRequiredCharacter(), null);
 assert.deepEqual(campaign.serialize(), { ...progress, character: id }, 'shared and introduction progress remain unchanged');
 assert.deepEqual(campaign.drainEvents(), [], 'the handover emits no advancement, completion or reward');
-const atEscape = { ...context, wanted: 0, pose: { ...active.target, speed: 0 } };
+const atEscape = { ...context, onFoot: false, wanted: 0, pose: { x: active.target.x+500, z: active.target.z, speed: 8 } };
 tick(campaign, atEscape, 80);
 const completions = campaign.drainEvents().filter(event => event.type === 'complete');
 assert.equal(completions.length, 1);
@@ -60,7 +60,7 @@ assert.equal(foot.state.active.target.kind, 'home-action');
 assert.equal(foot.canSwitchCompanion(foot.state.active.companions[0], switchContext(foot)), false);
 tick(foot, { ...context, wanted: 0, interior: { roomId: foot.state.active.target.roomId }, homeAction: { serial: 1, roomId: foot.state.active.target.roomId, outcome: 'packed' } });
 assert.equal(foot.state.active.target.kind, 'escape');
-assert.equal(foot.state.active.target.foot, true, 'home departure remains an on-foot escape');
+assert.equal(foot.state.active.target.anywhere, true, 'home departure requires leaving the room and can then finish anywhere');
 assert.equal(foot.switchCompanion(foot.state.active.companions[0], switchContext(foot)).ok, true);
 
 const guarded = mission(3), guardedId = guarded.state.active.companions[0], valid = switchContext(guarded, guardedId);
