@@ -806,14 +806,12 @@
     "title": "Qix",
     "cat": "arcade",
     "icon": "",
-    "desc": "Claim territory by drawing lines from the border while a spike spiral roams the void.",
+    "desc": "Draw a trail across the field in this early JIX movement prototype, with a countdown and a faster dash.",
     "url": "Games/Qix/index.html",
     "featured": false,
-    "tags": [
-      "territory"
-    ],
+    "tags": [],
     "players": "1",
-    "howto": "Use the arrow keys or touch pad to trace a trail and claim territory. Hold Shift to dash."
+    "howto": "Use the arrow keys or touch pad to draw a trail. Hold Shift while moving to dash."
   },
   {
     "id": 162,
