@@ -8,6 +8,7 @@ import { prepareWaterRing } from './water-contact.js';
 import { roadProfile, roadMarkingOffsets, isLakeBridgeRoad, bridgeDeckEdges, BRIDGE_DECK_BOTTOM, BRIDGE_DECK_TOP } from './road-network.js';
 import { retailDistrict, facesRetailStreet } from './districts.js';
 import { suburbCharacter } from './suburb-character.js';
+import { disusedBridgeScenery } from './disused-bridge.js';
 import { ROAD_TEXTURE_SIZE, SURFACE_TEXTURE_SIZE, ATLAS_INSET, ATLAS_SPAN, createRoadPixels, createSurfacePixels } from './exterior-materials.js';
 
 // Metres, with east = +x and south = +z. All art is generated locally.
@@ -757,6 +758,12 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       if(bands)for(const band of bands)drawRoad(s,band);else drawRoad(s);
     }, [Math.min(s.a[0],s.b[0])-margin, Math.min(s.a[1],s.b[1])-margin, Math.max(s.a[0],s.b[0])+margin, Math.max(s.a[1],s.b[1])+margin]);
   }
+  const disusedBridge = disusedBridgeScenery(map, groundHeightAt);
+  if (disusedBridge) deferSource(disusedBridge.x, disusedBridge.z, () => {
+    for (const part of disusedBridge.parts) {
+      primitive(box, part.x, part.y, part.z, part.span, part.height, part.depth, part.color, part.yaw);
+    }
+  });
 
   function nodeSurfaces(node) {
     const surfaces=[];
@@ -1124,7 +1131,8 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       const xs = points.map(p => p[0]), zs = points.map(p => p[1]);
       indexBounds(exclusions, contains, Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs));
     }
-    for (const points of [...(map.landmarkTreeExclusions || []), ...(map.barriers || []).map(barrier => barrier.points)]) {
+    for (const points of [...(map.landmarkTreeExclusions || []), ...(map.barriers || []).map(barrier => barrier.points),
+      ...(disusedBridge ? [disusedBridge.outline] : [])]) {
       indexArea(points, (x, z) => inside(x, z, points));
     }
     for (const area of map.areas || []) {
