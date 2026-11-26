@@ -32,6 +32,7 @@ The following commands provide different kinds of evidence.
 ```sh
 python3 -B scripts/generate_sitemap.py --check
 python3 -B scripts/audit_arcade_entry_assets.py --check
+python3 -B scripts/audit_arcade_presentation.py
 python3 -B scripts/check_maintenance_docs.py
 python3 -B scripts/playtest_arcade_fleet.py --help
 python3 -B scripts/audit_site_tree.py --self-test

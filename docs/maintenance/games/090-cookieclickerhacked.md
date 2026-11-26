@@ -47,3 +47,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Resolve explicit rehosting restriction immediately. Then local mod validation, cheat reset/save consistency and keyboard accessibility. Later test minigame save compatibility and long idle sessions. Defer additional mods, remote updates and cosmetic reskins.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

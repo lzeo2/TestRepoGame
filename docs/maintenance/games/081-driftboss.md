@@ -54,3 +54,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 First resolve rights/privacy and reproduce the held menu-start issue. Next fix the small hint accessibility defect and validate save migration. Month work should profile dual-canvas hardware rendering and test pause/resume/reward lifecycle. New cars, ad services and broad engine refurbishment are deferred.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

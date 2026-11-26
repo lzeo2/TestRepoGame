@@ -47,3 +47,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Week 1: truthful control/fuel documentation and a single-owner outcome/reset design. Week 2: accessible touch controls and reachable replay with desktop/mobile review. Later: measured physics timing modernization. Fuel economy, levels, sounds and a complete engine rewrite remain deferred gameplay changes, not required to make this port maintainable.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

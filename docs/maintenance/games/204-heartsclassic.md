@@ -50,3 +50,5 @@ A future authorized focused browser run may extract only this directory with `gi
 ## Future outlook
 
 Week 1: worker disposal and plain-text names/settings guards. Week 2: card/pass keyboard semantics and valid shell CSS. Later: verify no-pass convention with upstream, first-trick penalties and simulator parity using bounded rule fixtures; profile search before adding stronger AI. Retain gameplay rather than redesigning the engine.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

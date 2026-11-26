@@ -47,3 +47,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Week-one work: rights evidence and single-loop ownership; leave one reset regression. Next repair powerup cooldown/reset and expose controls/focus. Later profile scaled touch coordinates and tilt permissions on actual hardware. Defer extra levels/multiball until the existing lifecycle works reliably.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

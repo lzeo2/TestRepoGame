@@ -47,3 +47,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Week 1: source/asset/dependency-notice and missing-chunk triage before polish. Week 2 only after boot works: accessible instructions/loading/error and replay semantics. Later: rebuild controller timing/input fixes from verified editable source. Level creator, new art and performance certification are deferred until permission and native evidence exist.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

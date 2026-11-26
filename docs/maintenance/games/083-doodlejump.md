@@ -46,3 +46,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 First harden saved-data reads and timer shutdown from verified source. Next make controls available after the transient hint, including shooting and a keyboard-reachable pause action. Later profile repeated-session CPU and real device tilt/audio; defer new skins, online scores and engine replacement until rights and source are established.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

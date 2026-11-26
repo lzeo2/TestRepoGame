@@ -47,3 +47,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Week 1: final-enemy crash/deletion indexing regressions and axis clamp. Week 2: reachable instructions/restart, focus-loss release and mobile resize review. Later: replace document-wide touch interception with canvas-scoped pointer input if measured testing warrants it. Campaign modes, new enemies and upstream art recoloring are deferred.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

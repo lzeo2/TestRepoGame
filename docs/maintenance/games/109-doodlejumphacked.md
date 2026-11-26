@@ -47,3 +47,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 First repair badge and lifecycle ownership; next harden saves and keep controls/help recoverable. Later profile repeated-state CPU and mobile sensor permissions. Defer stronger cheats, new artwork and source regeneration until provenance and rights are verified.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

@@ -51,3 +51,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Rights and a real choice/retry test first; viewport sizing and loading recovery next. Month work should verify ending persistence and keyboard accessibility of the wrapper without inventing movie controls. Emulator upgrade or shared-runtime consolidation waits for compatibility/save comparison and explicit approval.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

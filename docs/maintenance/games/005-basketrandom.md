@@ -47,3 +47,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 First resolve source/rights and dynamic requests. Next replace unreliable catalog control claims with native menu evidence and add accessible wrapper help only if needed. Then evaluate zoom, orientation and cache semantics. Defer new multiplayer services, physics redesign and extra content; this task adds none.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

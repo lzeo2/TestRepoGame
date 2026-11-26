@@ -41,3 +41,5 @@ Actually run engine Git blob through stdin `node --check`, exit 0; no browser/sc
 ## Future outlook
 
 First repair save isolation/import validation with one runnable regression. Next close missing warning routes and shared keyboard semantics. Later audit audio/translations and native long-progression save migration. Defer new narrative content and network/cloud save until explicitly requested and licensed.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

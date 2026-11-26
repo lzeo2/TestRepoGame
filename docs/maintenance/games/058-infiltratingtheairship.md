@@ -51,3 +51,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 First rights verification, then genuine branch/retry evidence. Next improve viewport fit and load-error recovery. Month work should compare saved ending state across reload and any proposed emulator update. No new story content, reconstructed engine or generated art is justified by this audit.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

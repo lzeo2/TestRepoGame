@@ -56,3 +56,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Week 1: guarded storage and reachable restart. Week 2: blur/input release and responsive HUD/mute semantics. Later: profile drawDistance, resolution and 200-car loop before changing defaults; document separate sprite/music rights. Preserve open-ended lap play; no fabricated victory screen.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).
