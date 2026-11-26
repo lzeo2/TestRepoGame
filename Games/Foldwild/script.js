@@ -1060,7 +1060,12 @@ byId('reset-confirm').addEventListener('click', () => {
   if (action) action();
 });
 byId('reset-cancel').addEventListener('click', () => byId('reset-dialog').close());
-byId('reset-dialog').addEventListener('close', () => { resetAction = null; clearInput(); resize(); });
+byId('reset-dialog').addEventListener('close', event => {
+  if (event.currentTarget.open) return;
+  resetAction = null;
+  clearInput();
+  resize();
+});
 byId('dialogue-start').addEventListener('click', beginBattle);
 byId('dialogue-cancel').addEventListener('click', () => byId('dialogue-dialog').close());
 byId('dialogue-dialog').addEventListener('close', () => {
@@ -1136,7 +1141,12 @@ byId('save-reload').addEventListener('click', () => {
   if (confirm('Reload the stored expedition? Unsaved progress in this tab will be lost. Export it first if needed.')) location.reload();
 });
 byId('save-cancel').addEventListener('click', () => byId('save-dialog').close());
-byId('save-dialog').addEventListener('close', () => { savePreview = null; clearInput(); });
+byId('save-dialog').addEventListener('close', event => {
+  // A native close event may arrive after a new preview has already opened.
+  if (event.currentTarget.open) return;
+  savePreview = null;
+  clearInput();
+});
 byId('save-confirm').addEventListener('click', async () => {
   const preview = savePreview;
   if (!preview) return;

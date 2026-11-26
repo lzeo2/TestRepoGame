@@ -8,11 +8,12 @@ from http.server import ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 from playwright.sync_api import sync_playwright
-from test_foldwild_core_v2 import Handler, snapshot, keyboard_to, walk
+from test_foldwild_core_v2 import Handler, snapshot, keyboard_to, walk, expand_markers
 from test_foldwild_milestone import ready, battle_start, source_hashes
 
 ROOT = Path(__file__).resolve().parents[1]
 ORIGIN = 'http://127.0.0.1:8823'
+VIEWPORT = {'width': 800, 'height': 520}
 
 
 def slots(page):
@@ -23,9 +24,35 @@ def saved(page):
     page.wait_for_function('document.querySelector("#save-state").textContent === "Progress saved on this device."')
 
 
+def open_settings(page):
+    section = page.locator('.expedition-options')
+    if not section.evaluate('(e) => e.open'):
+        section.locator('summary').click()
+
+
+def save_now(page):
+    open_settings(page)
+    page.locator('#save-now').click()
+
+
 def tools(page):
     if not page.locator('#save-tools details').evaluate('(e)=>e.open'):
         page.locator('#save-tools summary').click()
+
+
+def cancel_and_reopen(page, dialog_id, cancel_id, opener_id):
+    # Reopen through the real buttons before delivery of the native close event.
+    # Observing that event makes stale cleanup deterministic across frame rates.
+    page.evaluate("""([dialog, cancel, opener]) => new Promise(resolve => {
+        document.getElementById(dialog).addEventListener('close', () => resolve(), { once: true });
+        document.getElementById(cancel).click();
+        document.getElementById(opener).click();
+    })""", [dialog_id, cancel_id, opener_id])
+
+
+def wait_for_preview(page):
+    page.wait_for_function("""document.querySelector('#save-dialog').open &&
+        !document.querySelector('#save-confirm').disabled""")
 
 
 def upload(page, data, name='foldwild-save.json'):
@@ -61,12 +88,12 @@ def run():
                     page.wait_for_function('window.foldwildSnapshot?.phase === "menu"')
                     return page
 
-                context = browser.new_context(accept_downloads=True)
+                context = browser.new_context(accept_downloads=True, viewport=VIEWPORT)
                 page = page_for(context)
                 page.locator('#seed-input').fill('1')
                 page.locator('#start').click()
                 ready(page, 'world')
-                page.locator('#save-now').click()
+                save_now(page)
                 saved(page)
                 assert 'Progress saved' in page.locator('#message').inner_text()
                 assert json.loads(slots(page)[0])['seed'] == 1
@@ -76,16 +103,16 @@ def run():
                 saved(other)
                 page.bring_to_front()
                 keyboard_to(page, 0, 10)
-                page.locator('#save-now').click()
+                save_now(page)
                 saved(page)
                 newer = slots(page)
                 other.bring_to_front()
-                other.locator('#save-now').click()
+                save_now(other)
                 other.wait_for_function('document.querySelector("#save-state").textContent.includes("save conflict")')
                 assert other.locator('#save-state').is_visible()
                 assert 'Progress saved' not in other.locator('#message').inner_text()
                 assert slots(other) == newer
-                other.locator('#save-now').click()
+                save_now(other)
                 other.close(run_before_unload=True)
                 page.bring_to_front()
                 assert slots(page) == newer
@@ -129,12 +156,12 @@ def run():
                 next_battle = snapshot(page)['battle']
                 before = slots(page)
                 upload(page, payload)
-                page.wait_for_function('!document.querySelector("#save-confirm").disabled')
+                wait_for_preview(page)
                 assert page.locator('#save-primary-bytes').input_value() == before[0]
                 page.locator('#save-cancel').click()
                 assert slots(page) == before
                 upload(page, payload)
-                page.wait_for_function('!document.querySelector("#save-confirm").disabled')
+                wait_for_preview(page)
                 page.locator('#save-confirm').click()
                 page.wait_for_function('!document.querySelector("#save-dialog").open')
                 assert snapshot(page)['battle'] == pending
@@ -145,8 +172,10 @@ def run():
                 # Backup is the real earlier pending command, explicitly previewed and restored.
                 backup = slots(page)[1]
                 page.locator('#save-backup').click()
-                page.wait_for_function('!document.querySelector("#save-confirm").disabled')
+                wait_for_preview(page)
                 assert snapshot(page)['battle'] == next_battle
+                cancel_and_reopen(page, 'save-dialog', 'save-cancel', 'save-backup')
+                wait_for_preview(page)
                 page.locator('#save-confirm').click()
                 page.wait_for_function('!document.querySelector("#save-dialog").open')
                 assert snapshot(page)['battle'] == json.loads(backup)['pendingBattle']
@@ -163,7 +192,7 @@ def run():
                     print(f'PASS negative file fixture: {label}, both slots untouched', flush=True)
                 # A valid preview is not authority to overwrite a subsequently changed primary.
                 upload(page, payload)
-                page.wait_for_function('!document.querySelector("#save-confirm").disabled')
+                wait_for_preview(page)
                 peer = page_for(context)
                 peer.locator('#continue').click()
                 ready(peer, 'battle')
@@ -180,7 +209,7 @@ def run():
                 context.close()
 
                 # Negative platform fixtures, separately labeled; never progression acceptance.
-                fallback = browser.new_context()
+                fallback = browser.new_context(viewport=VIEWPORT)
                 fallback.add_init_script('''const get=HTMLCanvasElement.prototype.getContext;
                     HTMLCanvasElement.prototype.getContext=function(type,...args){
                     return /webgl/.test(type)?null:get.call(this,type,...args);};
@@ -189,23 +218,25 @@ def run():
                 p.locator('#start').click()
                 saved(p)
                 assert snapshot(p)['view'] is None
-                assert 'without 3D' in p.locator('#render-state').inner_text()
+                assert 'trail and battle controls without the 3D view' in p.locator('#render-state').inner_text()
                 assert p.locator('#render-state').is_visible()
                 tools(p)
-                assert 'not atomic' in p.locator('#save-coordination').inner_text()
+                assert 'cannot prevent simultaneous writes' in p.locator('#save-coordination').inner_text()
                 walk(p, 'camp', -4, 18)
+                expand_markers(p)
                 p.locator('#rest').click()
                 saved(p)
-                assert 'without 3D' in p.locator('#render-state').inner_text()
+                assert 'trail and battle controls without the 3D view' in p.locator('#render-state').inner_text()
                 old = slots(p)
                 p.evaluate('() => { Storage.prototype.setItem=function(){throw new DOMException("quota fixture","QuotaExceededError")}; }')
+                open_settings(p)
                 p.locator('#quality').select_option('standard')
                 p.wait_for_function('document.querySelector("#save-state").textContent.includes("quota fixture")')
                 assert slots(p) == old
                 print('PASS negative platform fixtures: initial WebGL denial live text controls, no-lock disclosure, quota-before-write both slots intact', flush=True)
                 fallback.close()
 
-                quota = browser.new_context()
+                quota = browser.new_context(viewport=VIEWPORT)
                 p = page_for(quota)
                 p.locator('#start').click()
                 ready(p, 'world')
@@ -214,6 +245,7 @@ def run():
                 p.evaluate('''() => { const set=Storage.prototype.setItem; Storage.prototype.setItem=function(key,value){
                     if(key==='foldwild-save-v1') throw new DOMException('primary quota fixture','QuotaExceededError');
                     return set.call(this,key,value); }; }''')
+                open_settings(p)
                 p.locator('#quality').select_option('standard')
                 p.wait_for_function('document.querySelector("#save-state").textContent.includes("primary quota fixture")')
                 assert slots(p) == [old[0], old[0]]
@@ -221,15 +253,14 @@ def run():
                 quota.close()
                 print('KNOWN NEGATIVE CEILING: primary-only quota preserves primary but backup rotation is not transactional', flush=True)
 
-                corrupt = browser.new_context()
+                corrupt = browser.new_context(viewport=VIEWPORT)
                 corrupt.add_init_script('localStorage.setItem("foldwild-save-v1", "{broken")')
                 p = page_for(corrupt)
                 p.locator('#start').click()
                 p.wait_for_function('!document.querySelector("#reset-confirm").disabled')
                 assert p.locator('#reset-primary-bytes').input_value() == '{broken'
-                p.locator('#reset-cancel').click()
+                cancel_and_reopen(p, 'reset-dialog', 'reset-cancel', 'start')
                 assert slots(p) == ['{broken', None]
-                p.locator('#start').click()
                 p.wait_for_function('!document.querySelector("#reset-confirm").disabled')
                 p.locator('#reset-confirm').click()
                 saved(p)
@@ -237,12 +268,12 @@ def run():
                 corrupt.close()
                 print('PASS negative corrupt slot: cancel preserves bytes; explicit consent backs up exact corrupt bytes', flush=True)
 
-                denied = browser.new_context()
+                denied = browser.new_context(viewport=VIEWPORT)
                 denied.add_init_script('Storage.prototype.getItem=function(){throw new DOMException("denied fixture","SecurityError")}')
                 p = page_for(denied, negative=True)
                 assert 'denied fixture' in p.locator('#save-state').inner_text()
                 p.locator('#start').click()
-                p.wait_for_function('document.querySelector("#reset-preview").textContent.includes("Replacement disabled")')
+                p.wait_for_function('document.querySelector("#reset-preview").textContent.includes("Replacement is disabled")')
                 assert p.locator('#reset-confirm').is_disabled()
                 denied.close()
                 print('PASS negative denied read: unknown raw never treated as absent or granted overwrite', flush=True)
@@ -255,7 +286,7 @@ def run():
         server.server_close()
         thread.join(timeout=3)
         print('CLEANUP: browser closed; loopback 8823 stopped', flush=True)
-    print('PASS focused save UX; original full M2, hardware and release gates remain held', flush=True)
+    print('PASS Foldwild save and cross-tab recovery in local Chromium', flush=True)
 
 
 if __name__ == '__main__':
