@@ -54,7 +54,8 @@ def summarize(inputs, observations=None):
     yield f'{len(ordered)} game projects, {sum(len(h) for h in records.values())} isolated browser attempts. '
     yield f'{len(direct)} titles had a verified game-control change in at least one fleet attempt. '
     if observations:
-        yield f'Combining that evidence with dedicated gameplay observations covers {len(direct | native)} distinct titles. '
+        yield (f'Combining that evidence with dedicated gameplay observations covers {len(direct | native)} distinct titles. '
+               f'The other {len(ordered)-len(direct | native)} have more limited evidence in these sessions.')
     yield ''
     yield '## Coverage\n'
     yield 'Chromium used real pointer and keyboard events against local game entry pages. '
@@ -87,8 +88,8 @@ def summarize(inputs, observations=None):
                 yield (f"| {cell(game['title'])} | {cell(observation['status'])} | "
                        f"{cell(observation['observation'])} | {cell(observation['receipt'])} |")
     yield '\n## Per-game observations\n'
-    yield 'The latest result is shown for each entry. The final column names the latest direct control proof from any listed run, when available.\n'
-    yield '| Game | Latest result | Attempts | Verified control or value |\n| --- | --- | ---: | --- |'
+    yield 'Each row distinguishes the latest quick fleet attempt from separate game-specific sessions. The last column identifies the direct fleet input when observed.\n'
+    yield '| Game | Latest fleet attempt | Fleet attempts | Dedicated session | Verified fleet input |\n| --- | --- | ---: | --- | --- |'
     for game in ordered:
         history = records[game['directory']]
         row = history[-1][1]
@@ -98,7 +99,8 @@ def summarize(inputs, observations=None):
             inputs = [a for a in proof['inputs'] if a.startswith(('Click ', 'key:', 'drag:', 'fill:', 'double:', 'hold:'))]
             action = ' + '.join(inputs)[:128] or proof.get('proof',{}).get('selector','')
         name = game['title'] + ('' if game['registered'] else ' (unlisted)')
-        yield f'| {cell(name)} | {LABELS[row["outcome"]]} | {len(history)} | {cell(action)} |'
+        scope = observations.get(game['directory'],{}).get('status','')
+        yield f'| {cell(name)} | {LABELS[row["outcome"]]} | {len(history)} | {cell(scope)} | {cell(action)} |'
     yield '\n## Reproduction\n'
     yield 'Run from a checkout with the game assets present and Python Playwright, Pillow and Chromium available.\n'
     yield '```sh\npython3 -B scripts/playtest_arcade_fleet.py --output <new-external-run-dir>\npython3 -B scripts/playtest_arcade_fleet.py --games 8,11 --output <new-retry-dir>\npython3 -B scripts/summarize_arcade_playtests.py <first-run-dir> <retry-dir> --observations docs/verification/arcade-native-controls-2026-11-26.json\n```'

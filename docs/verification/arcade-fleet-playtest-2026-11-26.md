@@ -1,8 +1,8 @@
 # Arcade fleet interaction results
 
-142 game projects, 251 isolated browser attempts.
+142 game projects, 254 isolated browser attempts.
 47 titles had a verified game-control change in at least one fleet attempt.
-Combining that evidence with dedicated gameplay observations covers 88 distinct titles.
+Combining that evidence with dedicated gameplay observations covers 118 distinct titles. The other 24 have more limited evidence in these sessions.
 
 ## Coverage
 
@@ -19,13 +19,13 @@ Protected chat coverage stops at its shell. These short sessions do not measure 
 | Outcome | Titles |
 | --- | ---: |
 | Game control verified | 47 |
-| Visible response | 26 |
+| Visible response | 27 |
 | Start control responded | 4 |
-| Animation only | 38 |
+| Animation only | 39 |
 | No visible change | 15 |
 | Frame unavailable | 6 |
 | Protected shell | 1 |
-| Test interrupted | 5 |
+| Test interrupted | 3 |
 
 ## Runs
 
@@ -45,6 +45,7 @@ Each run directory contains JSON observations and captured frames.
 | interaction-targeted-08 | `4ff80b644dca` | 2 |
 | interaction-targeted-09 | `eb6c78934ffc` | 3 |
 | interaction-targeted-10 | `c07dd9123ea8` | 4 |
+| interaction-targeted-11 | `f6b98a1dd5aa` | 3 |
 
 ## Dedicated native-input observations
 
@@ -59,13 +60,18 @@ Receipt paths refer to the external session folder or a tracked test script.
 | Run 3 | gameplay | Started Explore from the native character menu. The runner entered the tunnel, then received left, right and jump inputs. The play and steer frames show the live level. | run3-play.png, run3-steer.png |
 | Snake | gameplay | Steered, toggled pause and resume with P, crashed and started a new game. | root-deep/Snake.json |
 | Burrito Bison | gameplay | Advanced through the story, dragged the wrestler away from the ropes and released to launch. Clicked the in-flight slam prompt and reached the post-run mission panel. | unity-deep/bison-display/session.log, launch.jpg, smash.jpg |
+| BitLife | gameplay | Started a new life and aged twice. Closed the age-two flu event and opened Relationships, which displayed the parents and a pet. | unity-deep/bitlife/age-2.jpg, family.jpg |
 | Subway Surfers | gameplay | Cleared local onboarding, started a run with Space and tap, and used upward input. The score advanced from 5 to 35 to 44 while the player continued along the track. | unity-deep/subway-local/session.log, jump.jpg, checkpoint.jpg |
-| Stranded In Isekai | entry | Holding Space on the cover opened map 1 and instantiated its character. Movement and combat on that map need a longer session. | scripts/test_arcade_legacy_startup.py |
+| Stranded In Isekai | gameplay | Entered map 1 and moved the active character using an arrow key. | controls-deep/StrandedInIsekai/proof.json |
+| Retro Bowl | gameplay | Started an original Buffalo career, selected the favorite-team checkbox, skipped the introductory office tutorial, and entered the Week 18 match against New York J. Started the opening kickoff from Get Ready. Quarter clock, possession and score then advanced; a Buffalo field goal made it 3–0. This run did not verify a manual offensive pass. | classics-deep/54/proof.json |
 | Super Hot | gameplay | Advanced the introduction to the first 3D encounter. WASD and mouse input moved the camera in the scene with the opponent and reticle visible. | unity-deep/superhot-display/ |
+| Cut the Rope | gameplay | Clicked Play and dragged across the first rope. Om Nom received the candy with three stars. The result showed 5,439 points, then the Next button advanced. | unity-deep/rope-display/three-stars.jpg, solved.jpg, next.jpg |
+| Bloons TD | gameplay | Chose Bloons TD 1 through the hub and New Game. Selected the brown dart tower from Build Towers and placed it on the grass inside the bend. The tower appeared with a range circle and upgrade/sell controls, and money dropped from 650 to 400 while lives remained 40. | classics-deep/80/proof.json |
 | Doodle Jump | gameplay | Selected Play. ArrowRight moved the player horizontally while the avatar continued its automatic jump. | root-deep/DoodleJump.json |
-| Jetpack Joyride | entry | The Phaser GamePlay scene mounted. A canvas tap and 600 ms hold completed with zero uncaught errors or failed requests. The observation did not measure the avatar’s altitude. | scripts/test_arcade_legacy_startup.py |
+| Jetpack Joyride | gameplay | Held the flight control after starting the run. The player rose by more than five world units. | controls-deep/JetpackJoyride/proof.json |
 | Jetpack Joyride Hacked | entry | The Phaser GamePlay scene mounted. A canvas tap and 600 ms hold completed with zero uncaught errors or failed requests. The observation did not measure the avatar’s altitude. | scripts/test_arcade_legacy_startup.py |
 | Doge Miner | gameplay | Clicked through the four-stage introduction and mined once. The mined counter increased from 0 to 1. | scripts/test_arcade_legacy_startup.py |
+| Retro Bowl Hacked | gameplay | Set the favorite-team checkbox, started a new Buffalo franchise as coach Devonta Lumpkin, and entered Week 18 against New York J in the modified edition. Native input started the kickoff; the clock went from 2:00 to 1:50 as New York J began its possession. The modified banner was visible. A manually completed pass and the advertised credit/salary display were not tested. | classics-deep/89/proof.json |
 | Snake Hacked | gameplay | Steered, toggled pause and resume and crossed a wrapping boundary. | root-deep/SnakeHacked.json |
 | Subway Surfers Hacked | gameplay | Started a fresh run, steered against a barrier, then opened pause and observed the mission score of 44. | unity-deep/subway-hacked-fixed/pause.jpg, session.log |
 | Doodle Jump Hacked | gameplay | Selected Play. ArrowRight moved the player horizontally during the automatic jump. | root-deep/DoodleJumpHacked.json |
@@ -83,171 +89,196 @@ Receipt paths refer to the external session folder or a tracked test script.
 | Fireboy and Watergirl Hacked (Light Temple) | gameplay | Horizontal movement of real Phaser level character while holding the right arrow. | vendor-deep/131/proof.json |
 | Fireboy and Watergirl Forest Temple Hacked | gameplay | Horizontal movement of real Phaser level character while holding the right arrow. | vendor-deep/132/proof.json |
 | Fireboy and Watergirl Crystal Temple Hacked | gameplay | Horizontal movement of real Phaser level character while holding the right arrow. | vendor-deep/133/proof.json |
+| Merge Cats Defender | gameplay | Entered the first battle and placed a Tabby Gunner in a previously empty tower slot. | controls-deep/MergeCatsDefender/proof.json |
+| Merge Cats Defender Hacked | gameplay | Entered the first battle and placed a Tabby Gunner in a previously empty tower slot. | controls-deep/MergeCatsDefenderHacked/proof.json |
+| Backgammon | gameplay | Rolled 4 and 1 and moved a white checker from point 24 to the highlighted legal point 23. The board’s checker counts changed. | more-classics/Backgammon/proof.json |
+| Pacman | gameplay | Started a round with N after audio initialization. Right-direction input moved the yellow player from x=115 to x=168. | verified-seven-native/Pacman.json |
 | Qix | gameplay | ArrowUp moved the player from y=597 to y=592. The shipped game describes itself as a drawing prototype. | verified-seven-native/Qix.json |
 | Joust | gameplay | ArrowRight moved the rider from x=100 to x=110.67. Space changed vertical velocity from +38.04 to −191.85. | verified-seven-native/Joust.json |
+| Tron Light Cycles | gameplay | Turned the blue light cycle downward with S. Its heading changed from [1, 0] to [0, 1] and its trail grew from 2 to 5 cells. | more-classics/TronLightCycles/proof.json |
 | Checkers | gameplay | Moved the piece from square 40 to 33 and observed both board squares change. | root-deep/Checkers.json |
 | Mastermind | gameplay | Entered 1, 2, 3 and 4, then pressed Enter. The game advanced to guess 2 of 8. | root-deep/Mastermind.json |
+| Dominoes | gameplay | Selected the first domino and placed it in the empty first slot with native keyboard input. | controls-deep/Dominoes/proof.json |
+| Bowling | gameplay | Used the aim control to move the release position from 0 to 0.07, then pressed Space to begin the roll. | verified-seven-native/Bowling.json |
+| Hearts Classic | gameplay | Received a 13-card hand, picked three cards and confirmed the pass. Selected a legal card and clicked Go to play it. | verified-seven-native/HeartsClassic.json |
 | SameGame | gameplay | Clicked adjacent matching colours to select and remove the group. The board changed after the second click. | root-deep/SameGame.json |
+| Tower Defense | gameplay | Selected the normal turret in the palette and clicked grid tile (4,2). The empty tile gained 262 green turret pixels. | verified-seven-native/TowerDefense.json |
+| JavaScript Racer | gameplay | Held the accelerator. The dashboard speed reached 20 mph. | root-deep/JavaScriptRacer.json |
+| Bullet Hell | gameplay | The ship moved right from x=300 to x=308 while firing. Pressing C consumed one bomb (2 to 1). | more-classics/BulletHell/proof.json |
 | Crossword | gameplay | Submitted the matching answer for an across clue. The solved count increased from 0 of 16 to 1 of 16. | verified-seven-native/Crossword.json |
 | Frogger | gameplay | The full 320 × 480 board fit in three viewports. ArrowRight on desktop and one Hop right tap in portrait and landscape each moved the visible frog from x=159 to x=209. | frogger-viewport/results.json |
+| Missile Command | gameplay | Fired a countermeasure at a clear part of the sky. The white detonation at the clicked area increased from 0 to 570 bright pixels. | more-classics/MissileCommand/proof.json |
+| Lunar Lander | gameplay | Applied thrust and turned right. The lander and visible exhaust extended from 20 to 29 pixels high, shifted laterally and drew 111 inked pixels instead of 76. | more-classics/LunarLander/proof.json |
+| Duck Hunt | blocked | Duck Hunt opened to a blank black page with no canvas. Chromium reported “Loading chunk 369 failed”; the local file contains only a placeholder comment. | more-classics/DuckHunt/proof.json |
 | Balatro | gameplay | Started an Ante 1 Small Blind game with target 300, initial four hands/four discards and an eight-card hand. D-pad and Z lifted a chosen card, switched the blue/red hand preview to Hi-Card and played it into the scoring area. | emulator-deep/221/proof.json |
-| Circuit Ward | gameplay | Live player Z coordinate moved after holding W in a solo wave. Recorded inputs were Click #startSolo, Hold W. | originals-deep/222/proof.json |
+| Circuit Ward | gameplay | Live player Z coordinate moved after holding W in a solo wave. | originals-deep/222/proof.json |
+| Slipstream Borough: Police Chase (Preview) | gameplay | Using the accelerator increased the live car speed in a race. | originals-deep/225/proof.json |
 | Foldwild: Open-World RPG (Preview) | gameplay | Selected a starter, entered the world and focused the normal game canvas. Holding W moved the active player from z=16 to z=15.4. | root-deep/Foldwild.json |
-| Steal a Footballer for Your Team | gameplay | World avatar moved after W from a fresh profile. Recorded inputs were Click #start, Hold W. | originals-deep/227/proof.json |
-| Below the Obvious | gameplay | One valid entry in a daily round scored points and revealed the submitted answer. Recorded inputs were Click #playBtn, Keyboard answer "Barcelona" then Enter. | originals-deep/235/proof.json |
+| Steal a Footballer for Your Team | gameplay | World avatar moved after W from a fresh profile. | originals-deep/227/proof.json |
+| Blackout | match setup | Selected Capture the Flag and Office in the normal menu. The match HUD showed Office Tower, two flags, and a three-capture win condition. The software WebGPU run lost its GPU instance during shader compilation before weapon input could be verified. | originals-deep/230/proof.json |
+| Getaway | gameplay | Pressed H during an active chase. The HUD changed to Engine off · dark and the pursuit clock and minimap advanced. This cloud GPU rendered the 3D world white. | verified-last-native/Getaway.json |
+| Wings | gameplay | Clicking the flying F/A-18F fired one Vulcan round. Live magazine read 600 before and 599 immediately afterward. Chromium timed out on in-flight screenshot compositing; per-action diagnostic readings and menu screenshots are available. | originals-deep/232/proof.json |
+| Astray | gameplay | Held Right during active play. The simulated ball moved from x=1 to x=1.01229. | verified-last-native/Astray.json |
+| Below the Obvious | gameplay | One valid entry in a daily round scored points and revealed the submitted answer. | originals-deep/235/proof.json |
+| JANKOLOCK | gameplay | Normal free movement changed the live hero controller horizontal position. | originals-deep/240/proof.json |
+| CITISTEN | gameplay | Opening the active town menu with Escape paused the city simulation, changing its actual time multiplier from 1 to 0. | originals-deep/241/proof.json |
+| Gap Glide | gameplay | Space started flight from a stationary Ready state. The HUD switched to Gliding. | controls-deep/SchoolyardGapGlide/proof.json |
+| Courtyard Cast | gameplay | Space launched the next character from the normal court. The throw queue advanced. | controls-deep/SchoolyardCourtyardCast/proof.json |
 | Capital Drive: Canberra (Preview) | gameplay | The shipping 2D fallback accepted Campaign, Start, skip, and J. The player selected a direct radio route, Milo’s longer case-table handover, then the direct route. The test seeded six completed introductions and the initial position. Separately, the normal 3D Free roam entry reached started and unpaused with the player active. | canberra-park-detail/crew-radio-native-a4/results.json (sibling preview folder) |
-| Steal a Basketballer (Preview) | gameplay | World avatar moved after W from a fresh profile. Recorded inputs were Click #start, Hold W. | originals-deep/246/proof.json |
-| Chess Workshop | gameplay | The legal move and an independent Stockfish reply appeared in notation. Recorded inputs were Mouse drag e2 to e4. | originals-deep/247/proof.json |
-| Tanks and Soldiers (Preview) | gameplay | Live rifle ammunition count decreased after F. Recorded inputs were Select touch control mode, Click #deploy, Hold F to fire. | originals-deep/248/proof.json |
+| Steal a Basketballer (Preview) | gameplay | World avatar moved after W from a fresh profile. | originals-deep/246/proof.json |
+| Chess Workshop | gameplay | The legal move and an independent Stockfish reply appeared in notation. | originals-deep/247/proof.json |
+| Tanks and Soldiers (Preview) | gameplay | Live rifle ammunition count decreased after F. | originals-deep/248/proof.json |
+| Hextris | gameplay | Started the round, rotated the main hex from lane 0 to 1 with Left, then returned to lane 0 with Right. | more-classics/Hextris/proof.json |
+| QWOP | gameplay | The two left-leg controls changed the runner’s thigh angle from 1.57 to 1.35 radians. A completed race was not tested. | more-classics/QWOP/proof.json |
 
 ## Per-game observations
 
-The latest result is shown for each entry. The final column names the latest direct control proof from any listed run, when available.
+Each row distinguishes the latest quick fleet attempt from separate game-specific sessions. The last column identifies the direct fleet input when observed.
 
-| Game | Latest result | Attempts | Verified control or value |
-| --- | --- | ---: | --- |
-| Soccer Random | No visible change | 2 |  |
-| Basket Random | Visible response | 2 |  |
-| Volley Random | Visible response | 2 |  |
-| Ovo | Animation only | 3 |  |
-| Run 3 | Test interrupted | 2 |  |
-| Snake | Animation only | 3 |  |
-| Chrome Dino | Game control verified | 3 | key:Space |
-| Breakout | Game control verified | 2 | key:ArrowRight |
-| Character Alsen | Protected shell | 1 |  |
-| Gladihoppers | Animation only | 1 |  |
-| Burrito Bison | No visible change | 2 |  |
-| BitLife | Animation only | 1 |  |
-| Subway Surfers | Visible response | 1 |  |
-| A Dark Room | Game control verified | 4 | Click #lightButton |
-| Stranded In Isekai | Visible response | 2 |  |
-| Papa's Pizzeria | Animation only | 1 |  |
-| Retro Bowl | No visible change | 2 |  |
-| Super Hot | Animation only | 3 |  |
-| 10 Minutes Till Dawn | Visible response | 1 |  |
-| Fleeing the Complex | Animation only | 2 |  |
-| Infiltrating the Airship | Animation only | 2 |  |
-| Baldi's Basics | Animation only | 2 |  |
-| Temple Run 2 | Animation only | 1 |  |
-| Cut the Rope | Animation only | 3 |  |
-| Fancy Pants Adventure 3 | Test interrupted | 4 |  |
-| Vex 7 | Animation only | 2 |  |
-| Geometry Dash Lite | No visible change | 1 |  |
-| Cookie Clicker | Game control verified | 1 | Click #bigCookie + Click #bigCookie |
-| Bloons TD | Visible response | 1 |  |
-| Drift Boss | Animation only | 1 |  |
-| Doodle Jump | Animation only | 1 |  |
-| Chess | Game control verified | 2 | drag:.square-e2>.square-e4 |
-| Jetpack Joyride | Animation only | 2 |  |
-| Jetpack Joyride Hacked | Animation only | 2 |  |
-| Doge Miner | Animation only | 2 |  |
-| Retro Bowl Hacked | No visible change | 2 |  |
-| Cookie Clicker Hacked | Frame unavailable | 3 |  |
-| Breakout Hacked | Game control verified | 2 | key:ArrowRight |
-| Snake Hacked | Game control verified | 3 | Click #pause-btn |
-| Subway Surfers Hacked | No visible change | 1 |  |
-| Doodle Jump Hacked | Animation only | 1 |  |
-| Dr. Mario | Animation only | 1 |  |
-| Street Fighter II | Animation only | 1 |  |
-| Advance Wars | Visible response | 1 |  |
-| Mario Kart Super Circuit | Animation only | 1 |  |
-| Metroid Fusion | Animation only | 1 |  |
-| Mega Man Zero | Animation only | 1 |  |
-| Kirby Amazing Mirror | Visible response | 1 |  |
-| Sonic Advance | Visible response | 1 |  |
-| Crush the Castle | Visible response | 1 |  |
-| Fireboy and Watergirl | Animation only | 1 |  |
-| Fireboy & Watergirl 4: Crystal Temple | Animation only | 1 |  |
-| Fireboy & Watergirl: Forest Temple | Animation only | 1 |  |
-| Fireboy and Watergirl Hacked (Light Temple) | Animation only | 1 |  |
-| Fireboy and Watergirl Forest Temple Hacked | Animation only | 1 |  |
-| Fireboy and Watergirl Crystal Temple Hacked | Animation only | 1 |  |
-| Merge Cats Defender | Animation only | 2 |  |
-| Merge Cats Defender Hacked | Animation only | 1 |  |
-| Archery | Game control verified | 4 | key:ArrowRight |
-| Free Throw | Game control verified | 2 | key:Space |
-| Backgammon | Start control responded | 2 |  |
-| Pacman | No visible change | 1 |  |
-| Qix | Visible response | 1 |  |
-| Joust | Animation only | 2 |  |
-| Tron Light Cycles | No visible change | 1 |  |
-| Puzzle 15 | Game control verified | 1 | key:ArrowRight + key:ArrowLeft + key:ArrowDown + key:ArrowUp |
-| Peg Solitaire | Game control verified | 2 | Click [data-row="3"][data-col="1"] + Click [data-row="3"][data-col="3"] |
-| Checkers | Visible response | 2 |  |
-| Reversi | Game control verified | 2 | Click .square:has(.hint-b), .square:has(.hint-w) |
-| Mastermind | Visible response | 2 |  |
-| Nim | Game control verified | 1 | Click button.take[data-n="1"] |
-| Dots and Boxes | Game control verified | 1 | Click .hline |
-| Ultimate Tic-Tac-Toe | Game control verified | 1 | Click .active-board .cell, .small-board .cell |
-| Klondike Solitaire | Game control verified | 1 | Click #stock |
-| FreeCell | Game control verified | 2 | Click .cascade .card:last-child + Click .cell.empty |
-| Blackjack | Game control verified | 1 | Click .deal-action |
-| Video Poker | Game control verified | 1 | Click #deal-btn |
-| Yahtzee | Game control verified | 1 | Click #roll |
-| Go Fish | Game control verified | 1 | Click #yourCards .card |
-| War | Game control verified | 1 | Click #actionBtn |
-| Word Search | Game control verified | 2 | Click [data-x="0"][data-y="0"] |
-| Word Ladder | Game control verified | 2 | fill:#word:zzzz + Click #submitBtn |
-| Word Scramble | Game control verified | 1 | Click #reshuffleBtn |
-| Darts 501 | Game control verified | 1 | Click #throwBtn |
-| Mahjong Lite | Game control verified | 1 | Click #hintBtn |
-| Sokoban | Game control verified | 2 | key:ArrowRight + key:ArrowLeft + key:ArrowDown + key:ArrowUp |
-| Tower of Hanoi | Game control verified | 2 | Click #disk-1 + Click #tower-b |
-| Nonogram | Game control verified | 1 | Click .playable |
-| Battleship | Game control verified | 2 | Click #computer-board .cell |
-| Boggle | Game control verified | 1 | Click #new |
-| Achtung die Kurve | Visible response | 1 |  |
-| Dominoes | No visible change | 3 |  |
-| Mini Golf | Game control verified | 3 | key:ArrowLeft + key:Space |
-| Bowling | Visible response | 1 |  |
-| Hearts Classic | No visible change | 1 |  |
-| Spider Solitaire | Game control verified | 3 | double:.stock |
-| SameGame | Visible response | 1 |  |
-| Tower Defense | No visible change | 2 |  |
-| JavaScript Racer | Frame unavailable | 2 |  |
-| Rhythm | Game control verified | 2 | hold:s |
-| Bullet Hell | Frame unavailable | 2 |  |
-| Cribbage | Animation only | 1 |  |
-| Crossword | Visible response | 2 |  |
-| Gomoku | Game control verified | 2 | Click #board .cell |
-| Mancala | Game control verified | 3 | Click .pit.active |
-| Asteroids | Game control verified | 2 | key:Space + key:ArrowRight |
-| Frogger | Game control verified | 3 | key:ArrowRight |
-| Missile Command | Visible response | 1 |  |
-| Lunar Lander | No visible change | 1 |  |
-| Space Invaders | Game control verified | 3 | key:ArrowRight |
-| Duck Hunt | No visible change | 1 |  |
-| Balatro | Animation only | 2 |  |
-| Circuit Ward | Start control responded | 1 |  |
-| Tag Relay | Game control verified | 2 | key:d |
-| Spline Ride | Game control verified | 2 | Click #view |
-| Slipstream Borough: Police Chase (Preview) | Visible response | 3 |  |
-| Foldwild: Open-World RPG (Preview) | Visible response | 1 |  |
-| Steal a Footballer for Your Team | Frame unavailable | 2 |  |
-| Night Shift | Game control verified | 3 | key:j |
-| Borough Run | Game control verified | 4 | key:p |
-| Blackout | Visible response | 1 |  |
-| Getaway | No visible change | 1 |  |
-| Wings | Visible response | 1 |  |
-| Server Survival | Test interrupted | 3 |  |
-| Astray | Animation only | 1 |  |
-| Below the Obvious | Animation only | 2 |  |
-| JANKOLOCK | Animation only | 3 |  |
-| CITISTEN | Frame unavailable | 2 |  |
-| Lane Run | Game control verified | 2 | key:ArrowRight |
-| Gap Glide | Visible response | 3 |  |
-| Courtyard Cast | Visible response | 3 |  |
-| Brainrot Boulevard: After Dark | Test interrupted | 3 |  |
-| Capital Drive: Canberra (Preview) | Test interrupted | 2 |  |
-| Steal a Basketballer (Preview) | Frame unavailable | 2 |  |
-| Chess Workshop | Visible response | 2 |  |
-| Tanks and Soldiers (Preview) | Visible response | 2 |  |
-| 2048 (unlisted) | Game control verified | 2 | key:ArrowLeft + key:ArrowUp + key:ArrowRight + key:ArrowDown |
-| Garage Borough (unlisted) | Game control verified | 3 | Click #hire |
-| Hextris (unlisted) | Start control responded | 2 |  |
-| Jankolock (unlisted) | Start control responded | 2 |  |
-| QWOP (unlisted) | Animation only | 2 |  |
-| Slope (unlisted) | No visible change | 2 |  |
+| Game | Latest fleet attempt | Fleet attempts | Dedicated session | Verified fleet input |
+| --- | --- | ---: | --- | --- |
+| Soccer Random | No visible change | 2 | gameplay |  |
+| Basket Random | Visible response | 2 | gameplay |  |
+| Volley Random | Visible response | 2 | gameplay |  |
+| Ovo | Animation only | 3 |  |  |
+| Run 3 | Test interrupted | 2 | gameplay |  |
+| Snake | Animation only | 3 | gameplay |  |
+| Chrome Dino | Game control verified | 3 |  | key:Space |
+| Breakout | Game control verified | 2 |  | key:ArrowRight |
+| Character Alsen | Protected shell | 1 |  |  |
+| Gladihoppers | Animation only | 1 |  |  |
+| Burrito Bison | No visible change | 2 | gameplay |  |
+| BitLife | Animation only | 1 | gameplay |  |
+| Subway Surfers | Visible response | 1 | gameplay |  |
+| A Dark Room | Game control verified | 4 |  | Click #lightButton |
+| Stranded In Isekai | Visible response | 2 | gameplay |  |
+| Papa's Pizzeria | Animation only | 1 |  |  |
+| Retro Bowl | No visible change | 2 | gameplay |  |
+| Super Hot | Animation only | 3 | gameplay |  |
+| 10 Minutes Till Dawn | Visible response | 1 |  |  |
+| Fleeing the Complex | Animation only | 2 |  |  |
+| Infiltrating the Airship | Animation only | 2 |  |  |
+| Baldi's Basics | Animation only | 2 |  |  |
+| Temple Run 2 | Animation only | 1 |  |  |
+| Cut the Rope | Animation only | 3 | gameplay |  |
+| Fancy Pants Adventure 3 | Animation only | 5 |  |  |
+| Vex 7 | Animation only | 2 |  |  |
+| Geometry Dash Lite | No visible change | 1 |  |  |
+| Cookie Clicker | Game control verified | 1 |  | Click #bigCookie + Click #bigCookie |
+| Bloons TD | Visible response | 1 | gameplay |  |
+| Drift Boss | Animation only | 1 |  |  |
+| Doodle Jump | Animation only | 1 | gameplay |  |
+| Chess | Game control verified | 2 |  | drag:.square-e2>.square-e4 |
+| Jetpack Joyride | Animation only | 2 | gameplay |  |
+| Jetpack Joyride Hacked | Animation only | 2 | entry |  |
+| Doge Miner | Animation only | 2 | gameplay |  |
+| Retro Bowl Hacked | No visible change | 2 | gameplay |  |
+| Cookie Clicker Hacked | Frame unavailable | 3 |  |  |
+| Breakout Hacked | Game control verified | 2 |  | key:ArrowRight |
+| Snake Hacked | Game control verified | 3 | gameplay | Click #pause-btn |
+| Subway Surfers Hacked | No visible change | 1 | gameplay |  |
+| Doodle Jump Hacked | Animation only | 1 | gameplay |  |
+| Dr. Mario | Animation only | 1 | gameplay |  |
+| Street Fighter II | Animation only | 1 | gameplay |  |
+| Advance Wars | Visible response | 1 | gameplay |  |
+| Mario Kart Super Circuit | Animation only | 1 | gameplay |  |
+| Metroid Fusion | Animation only | 1 | gameplay |  |
+| Mega Man Zero | Animation only | 1 | gameplay |  |
+| Kirby Amazing Mirror | Visible response | 1 | gameplay |  |
+| Sonic Advance | Visible response | 1 | gameplay |  |
+| Crush the Castle | Visible response | 1 |  |  |
+| Fireboy and Watergirl | Animation only | 1 | gameplay |  |
+| Fireboy & Watergirl 4: Crystal Temple | Animation only | 1 | gameplay |  |
+| Fireboy & Watergirl: Forest Temple | Animation only | 1 | gameplay |  |
+| Fireboy and Watergirl Hacked (Light Temple) | Animation only | 1 | gameplay |  |
+| Fireboy and Watergirl Forest Temple Hacked | Animation only | 1 | gameplay |  |
+| Fireboy and Watergirl Crystal Temple Hacked | Animation only | 1 | gameplay |  |
+| Merge Cats Defender | Animation only | 2 | gameplay |  |
+| Merge Cats Defender Hacked | Animation only | 1 | gameplay |  |
+| Archery | Game control verified | 4 |  | key:ArrowRight |
+| Free Throw | Game control verified | 2 |  | key:Space |
+| Backgammon | Start control responded | 2 | gameplay |  |
+| Pacman | No visible change | 1 | gameplay |  |
+| Qix | Visible response | 1 | gameplay |  |
+| Joust | Animation only | 2 | gameplay |  |
+| Tron Light Cycles | No visible change | 1 | gameplay |  |
+| Puzzle 15 | Game control verified | 1 |  | key:ArrowRight + key:ArrowLeft + key:ArrowDown + key:ArrowUp |
+| Peg Solitaire | Game control verified | 2 |  | Click [data-row="3"][data-col="1"] + Click [data-row="3"][data-col="3"] |
+| Checkers | Visible response | 2 | gameplay |  |
+| Reversi | Game control verified | 2 |  | Click .square:has(.hint-b), .square:has(.hint-w) |
+| Mastermind | Visible response | 2 | gameplay |  |
+| Nim | Game control verified | 1 |  | Click button.take[data-n="1"] |
+| Dots and Boxes | Game control verified | 1 |  | Click .hline |
+| Ultimate Tic-Tac-Toe | Game control verified | 1 |  | Click .active-board .cell, .small-board .cell |
+| Klondike Solitaire | Game control verified | 1 |  | Click #stock |
+| FreeCell | Game control verified | 2 |  | Click .cascade .card:last-child + Click .cell.empty |
+| Blackjack | Game control verified | 1 |  | Click .deal-action |
+| Video Poker | Game control verified | 1 |  | Click #deal-btn |
+| Yahtzee | Game control verified | 1 |  | Click #roll |
+| Go Fish | Game control verified | 1 |  | Click #yourCards .card |
+| War | Game control verified | 1 |  | Click #actionBtn |
+| Word Search | Game control verified | 2 |  | Click [data-x="0"][data-y="0"] |
+| Word Ladder | Game control verified | 2 |  | fill:#word:zzzz + Click #submitBtn |
+| Word Scramble | Game control verified | 1 |  | Click #reshuffleBtn |
+| Darts 501 | Game control verified | 1 |  | Click #throwBtn |
+| Mahjong Lite | Game control verified | 1 |  | Click #hintBtn |
+| Sokoban | Game control verified | 2 |  | key:ArrowRight + key:ArrowLeft + key:ArrowDown + key:ArrowUp |
+| Tower of Hanoi | Game control verified | 2 |  | Click #disk-1 + Click #tower-b |
+| Nonogram | Game control verified | 1 |  | Click .playable |
+| Battleship | Game control verified | 2 |  | Click #computer-board .cell |
+| Boggle | Game control verified | 1 |  | Click #new |
+| Achtung die Kurve | Visible response | 1 |  |  |
+| Dominoes | No visible change | 3 | gameplay |  |
+| Mini Golf | Game control verified | 3 |  | key:ArrowLeft + key:Space |
+| Bowling | Visible response | 1 | gameplay |  |
+| Hearts Classic | No visible change | 1 | gameplay |  |
+| Spider Solitaire | Game control verified | 3 |  | double:.stock |
+| SameGame | Visible response | 1 | gameplay |  |
+| Tower Defense | No visible change | 2 | gameplay |  |
+| JavaScript Racer | Frame unavailable | 2 | gameplay |  |
+| Rhythm | Game control verified | 2 |  | hold:s |
+| Bullet Hell | Frame unavailable | 2 | gameplay |  |
+| Cribbage | Animation only | 1 |  |  |
+| Crossword | Visible response | 2 | gameplay |  |
+| Gomoku | Game control verified | 2 |  | Click #board .cell |
+| Mancala | Game control verified | 3 |  | Click .pit.active |
+| Asteroids | Game control verified | 2 |  | key:Space + key:ArrowRight |
+| Frogger | Game control verified | 3 | gameplay | key:ArrowRight |
+| Missile Command | Visible response | 1 | gameplay |  |
+| Lunar Lander | No visible change | 1 | gameplay |  |
+| Space Invaders | Game control verified | 3 |  | key:ArrowRight |
+| Duck Hunt | No visible change | 1 | blocked |  |
+| Balatro | Animation only | 2 | gameplay |  |
+| Circuit Ward | Start control responded | 1 | gameplay |  |
+| Tag Relay | Game control verified | 2 |  | key:d |
+| Spline Ride | Game control verified | 2 |  | Click #view |
+| Slipstream Borough: Police Chase (Preview) | Visible response | 3 | gameplay |  |
+| Foldwild: Open-World RPG (Preview) | Visible response | 1 | gameplay |  |
+| Steal a Footballer for Your Team | Frame unavailable | 2 | gameplay |  |
+| Night Shift | Game control verified | 3 |  | key:j |
+| Borough Run | Game control verified | 4 |  | key:p |
+| Blackout | Visible response | 1 | match setup |  |
+| Getaway | No visible change | 1 | gameplay |  |
+| Wings | Visible response | 1 | gameplay |  |
+| Server Survival | Visible response | 4 |  |  |
+| Astray | Animation only | 1 | gameplay |  |
+| Below the Obvious | Animation only | 2 | gameplay |  |
+| JANKOLOCK | Animation only | 3 | gameplay |  |
+| CITISTEN | Frame unavailable | 2 | gameplay |  |
+| Lane Run | Game control verified | 2 |  | key:ArrowRight |
+| Gap Glide | Visible response | 3 | gameplay |  |
+| Courtyard Cast | Visible response | 3 | gameplay |  |
+| Brainrot Boulevard: After Dark | Test interrupted | 4 |  |  |
+| Capital Drive: Canberra (Preview) | Test interrupted | 2 | gameplay |  |
+| Steal a Basketballer (Preview) | Frame unavailable | 2 | gameplay |  |
+| Chess Workshop | Visible response | 2 | gameplay |  |
+| Tanks and Soldiers (Preview) | Visible response | 2 | gameplay |  |
+| 2048 (unlisted) | Game control verified | 2 |  | key:ArrowLeft + key:ArrowUp + key:ArrowRight + key:ArrowDown |
+| Garage Borough (unlisted) | Game control verified | 3 |  | Click #hire |
+| Hextris (unlisted) | Start control responded | 2 | gameplay |  |
+| Jankolock (unlisted) | Start control responded | 2 |  |  |
+| QWOP (unlisted) | Animation only | 2 | gameplay |  |
+| Slope (unlisted) | No visible change | 2 |  |  |
 
 ## Reproduction
 

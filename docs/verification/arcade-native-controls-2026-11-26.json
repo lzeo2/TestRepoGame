@@ -4,6 +4,16 @@
     "receipt": "emulator-deep/116/proof.json",
     "status": "gameplay"
   },
+  "Astray": {
+    "observation": "Held Right during active play. The simulated ball moved from x=1 to x=1.01229.",
+    "receipt": "verified-last-native/Astray.json",
+    "status": "gameplay"
+  },
+  "Backgammon": {
+    "observation": "Rolled 4 and 1 and moved a white checker from point 24 to the highlighted legal point 23. The board’s checker counts changed.",
+    "receipt": "more-classics/Backgammon/proof.json",
+    "status": "gameplay"
+  },
   "Balatro": {
     "observation": "Started an Ante 1 Small Blind game with target 300, initial four hands/four discards and an eight-card hand. D-pad and Z lifted a chosen card, switched the blue/red hand preview to Hi-Card and played it into the scoring area.",
     "receipt": "emulator-deep/221/proof.json",
@@ -12,6 +22,31 @@
   "BasketRandom": {
     "observation": "Right team jumped after the native Up input. Default embedded ad cancellation and both menu clicks completed without a page error.",
     "receipt": "vendor-deep/5/proof.json",
+    "status": "gameplay"
+  },
+  "BitLife": {
+    "observation": "Started a new life and aged twice. Closed the age-two flu event and opened Relationships, which displayed the parents and a pet.",
+    "receipt": "unity-deep/bitlife/age-2.jpg, family.jpg",
+    "status": "gameplay"
+  },
+  "Blackout": {
+    "observation": "Selected Capture the Flag and Office in the normal menu. The match HUD showed Office Tower, two flags, and a three-capture win condition. The software WebGPU run lost its GPU instance during shader compilation before weapon input could be verified.",
+    "receipt": "originals-deep/230/proof.json",
+    "status": "match setup"
+  },
+  "BloonsTD": {
+    "observation": "Chose Bloons TD 1 through the hub and New Game. Selected the brown dart tower from Build Towers and placed it on the grass inside the bend. The tower appeared with a range circle and upgrade/sell controls, and money dropped from 650 to 400 while lives remained 40.",
+    "receipt": "classics-deep/80/proof.json",
+    "status": "gameplay"
+  },
+  "Bowling": {
+    "observation": "Used the aim control to move the release position from 0 to 0.07, then pressed Space to begin the roll.",
+    "receipt": "verified-seven-native/Bowling.json",
+    "status": "gameplay"
+  },
+  "BulletHell": {
+    "observation": "The ship moved right from x=300 to x=308 while firing. Pressing C consumed one bomb (2 to 1).",
+    "receipt": "more-classics/BulletHell/proof.json",
     "status": "gameplay"
   },
   "BurritoBison": {
@@ -30,13 +65,18 @@
     "status": "gameplay"
   },
   "Chess Workshop": {
-    "observation": "The legal move and an independent Stockfish reply appeared in notation. Recorded inputs were Mouse drag e2 to e4.",
+    "observation": "The legal move and an independent Stockfish reply appeared in notation.",
     "receipt": "originals-deep/247/proof.json",
     "status": "gameplay"
   },
   "Circuit Ward": {
-    "observation": "Live player Z coordinate moved after holding W in a solo wave. Recorded inputs were Click #startSolo, Hold W.",
+    "observation": "Live player Z coordinate moved after holding W in a solo wave.",
     "receipt": "originals-deep/222/proof.json",
+    "status": "gameplay"
+  },
+  "Citisten3D": {
+    "observation": "Opening the active town menu with Escape paused the city simulation, changing its actual time multiplier from 1 to 0.",
+    "receipt": "originals-deep/241/proof.json",
     "status": "gameplay"
   },
   "Crossword": {
@@ -44,14 +84,24 @@
     "receipt": "verified-seven-native/Crossword.json",
     "status": "gameplay"
   },
+  "CutTheRope": {
+    "observation": "Clicked Play and dragged across the first rope. Om Nom received the candy with three stars. The result showed 5,439 points, then the Next button advanced.",
+    "receipt": "unity-deep/rope-display/three-stars.jpg, solved.jpg, next.jpg",
+    "status": "gameplay"
+  },
   "Dive Trivia": {
-    "observation": "One valid entry in a daily round scored points and revealed the submitted answer. Recorded inputs were Click #playBtn, Keyboard answer \"Barcelona\" then Enter.",
+    "observation": "One valid entry in a daily round scored points and revealed the submitted answer.",
     "receipt": "originals-deep/235/proof.json",
     "status": "gameplay"
   },
   "DogeMiner": {
     "observation": "Clicked through the four-stage introduction and mined once. The mined counter increased from 0 to 1.",
     "receipt": "scripts/test_arcade_legacy_startup.py",
+    "status": "gameplay"
+  },
+  "Dominoes": {
+    "observation": "Selected the first domino and placed it in the empty first slot with native keyboard input.",
+    "receipt": "controls-deep/Dominoes/proof.json",
     "status": "gameplay"
   },
   "DoodleJump": {
@@ -68,6 +118,11 @@
     "observation": "A fresh one-player Level 00 bottle showed four viruses. Holding Right moved the active red capsule across the top of the bottle; Z rotated its orientation and pressing Down advanced the piece toward the viruses.",
     "receipt": "emulator-deep/114/proof.json",
     "status": "gameplay"
+  },
+  "DuckHunt": {
+    "observation": "Duck Hunt opened to a blank black page with no canvas. Chromium reported “Loading chunk 369 failed”; the local file contains only a placeholder comment.",
+    "receipt": "more-classics/DuckHunt/proof.json",
+    "status": "blocked"
   },
   "FireboyAndWatergirl": {
     "observation": "Horizontal movement of real Phaser level character while holding the right arrow.",
@@ -109,10 +164,35 @@
     "receipt": "frogger-viewport/results.json",
     "status": "gameplay"
   },
+  "Getaway": {
+    "observation": "Pressed H during an active chase. The HUD changed to Engine off · dark and the pursuit clock and minimap advanced. This cloud GPU rendered the 3D world white.",
+    "receipt": "verified-last-native/Getaway.json",
+    "status": "gameplay"
+  },
+  "HeartsClassic": {
+    "observation": "Received a 13-card hand, picked three cards and confirmed the pass. Selected a legal card and clicked Go to play it.",
+    "receipt": "verified-seven-native/HeartsClassic.json",
+    "status": "gameplay"
+  },
+  "Hextris": {
+    "observation": "Started the round, rotated the main hex from lane 0 to 1 with Left, then returned to lane 0 with Right.",
+    "receipt": "more-classics/Hextris/proof.json",
+    "status": "gameplay"
+  },
+  "Jankolock3D": {
+    "observation": "Normal free movement changed the live hero controller horizontal position.",
+    "receipt": "originals-deep/240/proof.json",
+    "status": "gameplay"
+  },
+  "JavaScriptRacer": {
+    "observation": "Held the accelerator. The dashboard speed reached 20 mph.",
+    "receipt": "root-deep/JavaScriptRacer.json",
+    "status": "gameplay"
+  },
   "JetpackJoyride": {
-    "observation": "The Phaser GamePlay scene mounted. A canvas tap and 600 ms hold completed with zero uncaught errors or failed requests. The observation did not measure the avatar’s altitude.",
-    "receipt": "scripts/test_arcade_legacy_startup.py",
-    "status": "entry"
+    "observation": "Held the flight control after starting the run. The player rose by more than five world units.",
+    "receipt": "controls-deep/JetpackJoyride/proof.json",
+    "status": "gameplay"
   },
   "JetpackJoyrideHacked": {
     "observation": "The Phaser GamePlay scene mounted. A canvas tap and 600 ms hold completed with zero uncaught errors or failed requests. The observation did not measure the avatar’s altitude.",
@@ -127,6 +207,11 @@
   "KirbyAmazingMirror": {
     "observation": "Entered File 1, reached the opening gate with the playable pink Kirby and three companions, and used Z to jump. The last image shows Kirby above the ground while the companions remain below.",
     "receipt": "emulator-deep/120/proof.json",
+    "status": "gameplay"
+  },
+  "LunarLander": {
+    "observation": "Applied thrust and turned right. The lander and visible exhaust extended from 20 to 29 pixels high, shifted laterally and drew 111 inked pixels instead of 76.",
+    "receipt": "more-classics/LunarLander/proof.json",
     "status": "gameplay"
   },
   "MarioKartSuperCircuit": {
@@ -144,14 +229,49 @@
     "receipt": "emulator-deep/119/proof.json",
     "status": "gameplay"
   },
+  "MergeCatsDefender": {
+    "observation": "Entered the first battle and placed a Tabby Gunner in a previously empty tower slot.",
+    "receipt": "controls-deep/MergeCatsDefender/proof.json",
+    "status": "gameplay"
+  },
+  "MergeCatsDefenderHacked": {
+    "observation": "Entered the first battle and placed a Tabby Gunner in a previously empty tower slot.",
+    "receipt": "controls-deep/MergeCatsDefenderHacked/proof.json",
+    "status": "gameplay"
+  },
   "MetroidFusion": {
     "observation": "Started File A, followed Samus through the X infection and BSL approach, and reached the live Quarantine Bay briefing. After dismissing that briefing, the HUD read Energy 99. Right turned/moved Samus right; the subsequent A raised her from the platform into a jump, then she landed.",
     "receipt": "emulator-deep/118/proof.json",
     "status": "gameplay"
   },
+  "MissileCommand": {
+    "observation": "Fired a countermeasure at a clear part of the sky. The white detonation at the clicked area increased from 0 to 570 bright pixels.",
+    "receipt": "more-classics/MissileCommand/proof.json",
+    "status": "gameplay"
+  },
+  "Pacman": {
+    "observation": "Started a round with N after audio initialization. Right-direction input moved the yellow player from x=115 to x=168.",
+    "receipt": "verified-seven-native/Pacman.json",
+    "status": "gameplay"
+  },
+  "QWOP": {
+    "observation": "The two left-leg controls changed the runner’s thigh angle from 1.57 to 1.35 radians. A completed race was not tested.",
+    "receipt": "more-classics/QWOP/proof.json",
+    "status": "gameplay"
+  },
   "Qix": {
     "observation": "ArrowUp moved the player from y=597 to y=592. The shipped game describes itself as a drawing prototype.",
     "receipt": "verified-seven-native/Qix.json",
+    "status": "gameplay"
+  },
+  "RetroBowl": {
+    "observation": "Started an original Buffalo career, selected the favorite-team checkbox, skipped the introductory office tutorial, and entered the Week 18 match against New York J. Started the opening kickoff from Get Ready. Quarter clock, possession and score then advanced; a Buffalo field goal made it 3–0. This run did not verify a manual offensive pass.",
+    "receipt": "classics-deep/54/proof.json",
+    "status": "gameplay"
+  },
+  "RetroBowlHacked": {
+    "observation": "Set the favorite-team checkbox, started a new Buffalo franchise as coach Devonta Lumpkin, and entered Week 18 against New York J in the modified edition. Native input started the kickoff; the clock went from 2:00 to 1:50 as New York J began its possession. The modified banner was visible. A manually completed pass and the advertised credit/salary display were not tested.",
+    "receipt": "classics-deep/89/proof.json",
     "status": "gameplay"
   },
   "Run3": {
@@ -162,6 +282,21 @@
   "SameGame": {
     "observation": "Clicked adjacent matching colours to select and remove the group. The board changed after the second click.",
     "receipt": "root-deep/SameGame.json",
+    "status": "gameplay"
+  },
+  "SchoolyardCourtyardCast": {
+    "observation": "Space launched the next character from the normal court. The throw queue advanced.",
+    "receipt": "controls-deep/SchoolyardCourtyardCast/proof.json",
+    "status": "gameplay"
+  },
+  "SchoolyardGapGlide": {
+    "observation": "Space started flight from a stationary Ready state. The HUD switched to Gliding.",
+    "receipt": "controls-deep/SchoolyardGapGlide/proof.json",
+    "status": "gameplay"
+  },
+  "Slipstream Borough": {
+    "observation": "Using the accelerator increased the live car speed in a race.",
+    "receipt": "originals-deep/225/proof.json",
     "status": "gameplay"
   },
   "Snake": {
@@ -185,19 +320,19 @@
     "status": "gameplay"
   },
   "StealBasketballer": {
-    "observation": "World avatar moved after W from a fresh profile. Recorded inputs were Click #start, Hold W.",
+    "observation": "World avatar moved after W from a fresh profile.",
     "receipt": "originals-deep/246/proof.json",
     "status": "gameplay"
   },
   "StealFootballer": {
-    "observation": "World avatar moved after W from a fresh profile. Recorded inputs were Click #start, Hold W.",
+    "observation": "World avatar moved after W from a fresh profile.",
     "receipt": "originals-deep/227/proof.json",
     "status": "gameplay"
   },
   "StrandedInIsekai": {
-    "observation": "Holding Space on the cover opened map 1 and instantiated its character. Movement and combat on that map need a longer session.",
-    "receipt": "scripts/test_arcade_legacy_startup.py",
-    "status": "entry"
+    "observation": "Entered map 1 and moved the active character using an arrow key.",
+    "receipt": "controls-deep/StrandedInIsekai/proof.json",
+    "status": "gameplay"
   },
   "StreetFighter2": {
     "observation": "Selected Arcade, Ryu and normal speed. The fight against Ken opened with both health bars and running clock. ArrowUp changed player Ryu from a grounded stance to an airborne pose. Follow-up directional and attack button inputs were accepted in that match.",
@@ -220,13 +355,28 @@
     "status": "gameplay"
   },
   "Tanks and Soldiers": {
-    "observation": "Live rifle ammunition count decreased after F. Recorded inputs were Select touch control mode, Click #deploy, Hold F to fire.",
+    "observation": "Live rifle ammunition count decreased after F.",
     "receipt": "originals-deep/248/proof.json",
+    "status": "gameplay"
+  },
+  "TowerDefense": {
+    "observation": "Selected the normal turret in the palette and clicked grid tile (4,2). The empty tile gained 262 green turret pixels.",
+    "receipt": "verified-seven-native/TowerDefense.json",
+    "status": "gameplay"
+  },
+  "TronLightCycles": {
+    "observation": "Turned the blue light cycle downward with S. Its heading changed from [1, 0] to [0, 1] and its trail grew from 2 to 5 cells.",
+    "receipt": "more-classics/TronLightCycles/proof.json",
     "status": "gameplay"
   },
   "VolleyRandom": {
     "observation": "Releasing the Up arrow after a hold lifted the right team’s players. The other pair stayed on the ground.",
     "receipt": "vendor-deep/6/proof.json",
+    "status": "gameplay"
+  },
+  "Wings": {
+    "observation": "Clicking the flying F/A-18F fired one Vulcan round. Live magazine read 600 before and 599 immediately afterward. Chromium timed out on in-flight screenshot compositing; per-action diagnostic readings and menu screenshots are available.",
+    "receipt": "originals-deep/232/proof.json",
     "status": "gameplay"
   }
 }
