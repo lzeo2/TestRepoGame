@@ -131,7 +131,7 @@ var Game = Game || {};
             }
         },
         updatePlayerList = function() {
-            if (players.length) {
+            if (game.playerManager.numberOfPlayers()) {
                 domPlayerListContainer.className = 'show';
 
                 scoreList = [];
@@ -144,13 +144,19 @@ var Game = Game || {};
 
                 sort(scoreList, 'points');
 
-                temporaryString = '';
-
+                var rows = document.createDocumentFragment();
                 for (i = 0; i < scoreList.length; i++) {
-                    temporaryString += '<li id="' + scoreList[i].ID + '" style="color:' + scoreList[i].color + ';"> ' + scoreList[i].name + ' - ' + scoreList[i].points + '  points <span>Remove</span></li>';
+                    var rider = scoreList[i];
+                    var row = document.createElement('li');
+                    row.id = rider.ID;
+                    row.style.color = rider.color;
+                    row.textContent = rider.name + ' - ' + rider.points + ' points ';
+                    var remove = document.createElement('span');
+                    remove.textContent = 'Remove';
+                    row.appendChild(remove);
+                    rows.appendChild(row);
                 }
-
-                domPlayerList.innerHTML = temporaryString;
+                domPlayerList.replaceChildren(rows);
             } else {
                 domPlayerListContainer.className = 'hide';
             }
@@ -167,6 +173,9 @@ var Game = Game || {};
             return numberOfUnusedControls;
         },
         checkPlayerLimit = function() {
+            if (!gameStarted) {
+                domStartGameContainer.className = game.playerManager.numberOfPlayers() > 1 ? 'show' : 'hide';
+            }
             if (getNumberOfUnusedControls()) {
                 domAddPlayerContainer.className = 'show';
             } else {
@@ -177,13 +186,15 @@ var Game = Game || {};
             player = {};
 
             player.ID = game.addPlayer(name);
+            // The engine may reuse a cancelled slot for a new rider.
+            game.playerManager.getPlayerByID(player.ID).ID = player.ID;
             player.name = name;
             player.color = game.playerManager.getPlayerColor(player.ID);
             player.controlID = controlID;
             player.points = 0;
             player.isPlaying = true;
 
-            players.push(player);
+            players[player.ID] = player;
 
             activateControls(player.ID, controlID);
             writePlayerControls();
@@ -191,9 +202,7 @@ var Game = Game || {};
             updatePlayerList();
             checkPlayerLimit();
 
-            if (players.length > 1 && domStartGameContainer.className == 'hide' && !gameStarted) {
-                domStartGameContainer.className = 'show';
-            }
+
         },
         handleAddPlayerClick = function() {
             if (domPlayerNameInput.value.length > minimalPlayerNameLength) {
@@ -215,7 +224,7 @@ var Game = Game || {};
         handleRoundEnd = function(statistics) {
             game.stop();
 
-            roundResult = statistics.rank;
+            roundResult = statistics.rank.filter(function(id) { return players[id] && players[id].isPlaying; });
 
             for (i = 0; i < players.length; i++) {
                 if (players[i].isPlaying) {
@@ -233,25 +242,24 @@ var Game = Game || {};
         removePlayer = function(playerID) {
             playerID = parseInt(playerID, 10);
 
-            game.removePlayer(playerID);
-            var index = -1;
-
-            for (i = 0; i < players.length; i++) {
-                if (players[i].ID == playerID) {
-                    index = i;
-                    break;
-                }
-            }
-
-            delete keysInUse[listOfControls[players[i].controlID].leftKeyCode];
-            delete keysInUse[listOfControls[players[i].controlID].rightKeyCode];
+            var rider = players[playerID];
+            if (!rider || !rider.isPlaying) return;
+            var controls = listOfControls[rider.controlID];
+            delete keysInUse[controls.leftKeyCode];
+            delete keysInUse[controls.rightKeyCode];
             delete currentDirections[playerID];
-            listOfControls[players[i].controlID].inUse = false;
+            controls.inUse = false;
+            rider.isPlaying = false;
 
-            players[index].isPlaying = false;
-
+            // A lobby has no round to end. The full game method fires the
+            // end-of-round callback immediately when one rider remains.
+            if (gameStarted) {
+                game.removePlayer(playerID);
+            } else {
+                game.playerManager.removePlayer(playerID);
+            }
             writePlayerControls();
-
+            checkPlayerLimit();
             updatePlayerList();
         },
         handleRemovePlayerClick = function(event) {
