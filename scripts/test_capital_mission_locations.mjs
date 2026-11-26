@@ -122,6 +122,7 @@ const notArrived={...escaped,escapeReached:false};
 assert.deepEqual(guide(notArrived,{pose:away,wanted:3}).point,{x:999,z:888},'arrival still needs its original destination');
 const escapeRoom={...plan,exit:{x:43,z:51}};
 assert.deepEqual(guide(notArrived,{pose,plan:escapeRoom,wanted:3}).point,escapeRoom.exit,'escape first guides through actual room exit');
+assert.equal(guide(escaped,{pose,plan:escapeRoom,wanted:3}).point,null,'a player who has already left can lose the search inside another building');
 const pending = { ...escaped, target: { ...escaped.target, aftermath: true } };
 assert.match(guide(pending, { wanted:3, inquiryPending:true }).instruction, /can also give a statement/);
 const unmarked = { ...notArrived, target: { ...notArrived.target, anywhere: true } };

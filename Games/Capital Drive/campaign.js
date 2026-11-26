@@ -478,7 +478,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     const purpose = chapterPurpose[active.id] || 'Finish the marked objective.';
     let next = goal.label;
     const atGoal = goal.anywhere || distance(ctx.pose, goal) <= goal.radius;
-    if (goal.kind === 'escape' && active.escapeReached && !ctx.interior && ctx.wanted > 0) next = 'Lose the police anywhere.';
+    if (goal.kind === 'escape' && active.escapeReached && ctx.wanted > 0) next = 'Lose the police anywhere.';
     else if (goal.clear && goal.kind !== 'escape' && atGoal && ctx.wanted > 0) next = 'This handover needs the current search resolved before it can finish.';
     else if (goal.kind === 'drive' && ctx.onFoot) next = 'Press E beside your car to board, then follow the marker.';
     else if (atGoal && goal.stop && !ctx.onFoot && !isVehicleStopped(ctx.pose, PARKING_MAX_SPEED)) next = 'Come to a full stop at the marked approach.';
@@ -535,7 +535,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
           (!goal.drive || (!ctx.onFoot && !ctx.passenger && !ctx.aircraft && ctx.vehicleHealth > 0)) &&
           (!goal.stolen || ctx.vehicle?.stolen === true) && parked) active.escapeReached = true;
       // Departure objectives may already be clear; authored pursuits still need a real search.
-      eligible = active.escapeReached && !ctx.interior && (goal.requireWanted === false || active.sawWanted) && ctx.wanted === 0;
+      eligible = active.escapeReached && (goal.requireWanted === false || active.sawWanted) && ctx.wanted === 0;
     }
     else eligible &&= !ctx.onFoot && ctx.vehicleHealth > 0;
     if (goal.foot) eligible &&= ctx.onFoot && !ctx.interior;

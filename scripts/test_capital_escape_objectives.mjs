@@ -98,7 +98,8 @@ for (const id of escapeIds) {
   const remaining = campaign.state.active.remaining;
   campaign.update(20, { ...far, wanted: 2 });
   assert(Math.abs(campaign.state.active.remaining - (remaining - .1)) < 1e-8, 'large dt retains supplied-step cap while search blocks completion');
-  campaign.update(.1, far);
+  const hiding = id === 'corporate-lunch-breakpoint' ? { ...far, interior: { roomId: 'another-building' } } : far;
+  campaign.update(.1, hiding);
   if (hold > 0) {
     assert.equal(campaign.state.active.held, .1, 'authored clear dwell begins only after search resolves');
     tick(campaign, far, Math.max(0, Math.round(hold * 10) - 2));

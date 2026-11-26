@@ -366,8 +366,8 @@ handovers take three seconds and use their own admission rules.
 
 After Lunch Breakpoint and the Pink Earmuffs rematch, an officer collects
 descriptions from surviving witnesses. Give a statement, decline to answer
-or leave the area. Once you are outside with no wanted stars, the mission
-finishes wherever you are. The Campaign briefing records an unfinished
+or leave the area. After leaving the restaurant, the mission finishes wherever
+you lose the police. The Campaign briefing records an unfinished
 interview as avoided, and the record can affect later attention. Clearing
 other searches also works anywhere, including after leaving a getaway car.
 Marked handovers and pickups still register once before their escape step.

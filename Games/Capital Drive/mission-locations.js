@@ -73,7 +73,8 @@ export function createMissionGuide(entries, storyHomes = {}) {
         indoors, entryId, stationId });
     }
     const destination = identity(goal.roomId) ? byId.get(goal.roomId) : byStore.get(goal.storeId);
-    if(plan && point(plan.exit) && (INTERIOR_KINDS.has(goal.kind) ? destination && plan.id!==destination.id :
+    const escaping = goal.kind === 'escape' && active.escapeReached;
+    if(!escaping && plan && point(plan.exit) && (INTERIOR_KINDS.has(goal.kind) ? destination && plan.id!==destination.id :
       goal.kind!=='stealth-contract' || plan.id!==goal.roomId)){
       return result('Walk to the marked exit door and press E to leave the building.',name(plan.name,'the building'),plan.exit,true,plan.id);
     }
@@ -81,7 +82,7 @@ export function createMissionGuide(entries, storyHomes = {}) {
       if(point(context?.vehicle))return result('Walk to your marked car and press E to get in.','Your car',context.vehicle);
       return Object.freeze({instruction:'Walk to a car and press E to get in.',location:'Find a car',point:null,distance:null,indoors:false,roaming:true});
     }
-    if (goal.kind === 'escape' && (active.escapeReached || goal.anywhere)) return Object.freeze({
+    if (goal.kind === 'escape' && (escaping || goal.anywhere)) return Object.freeze({
       instruction: goal.drive && !active.escapeReached ? goal.label : context.wanted > 0
         ? (goal.aftermath && context.inquiryPending ? 'Lose the police anywhere. You can also give a statement to the responding officer.' : 'Lose the police anywhere.')
         : 'Stay clear of the police.',

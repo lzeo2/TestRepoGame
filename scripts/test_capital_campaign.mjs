@@ -394,7 +394,7 @@ for (const invalid of [
 tick(schoolCampaign, { ...schoolContext, wanted: 1, schoolAlarm: { ...alarm, serial: 21 } });
 assert.equal(schoolCampaign.state.active.stage, 1);
 const schoolExit = { ...ctx, onFoot: false, pose: { x: 700, z: 300 } };
-for (const invalid of [{ ...schoolExit, wanted: 1 }, { ...schoolExit, interior: { roomId: alarm.roomId } }]) {
+for (const invalid of [{ ...schoolExit, interior: { roomId: alarm.roomId } }, { ...schoolExit, wanted: 1 }]) {
   tick(schoolCampaign, invalid, 40);
   assert.equal(schoolCampaign.state.active.stage, 1, 'escape requires leaving the building and clearing the search');
 }
@@ -647,7 +647,7 @@ assert.equal(finale.state.active.stage, 1, 'the intro home receipt cannot pack t
 tick(finale, { ...homeContext, homeAction: { ...homeAction, serial: 43 } });
 assert.equal(finale.state.active.stage, 2);
 assert.deepEqual(finale.state.completed, legacyIds.slice(0, 5));
-for (const invalid of [{ ...finalePark, onFoot: true, wanted: 1 }, { ...finalePark, onFoot: true, interior: { roomId: homeDescriptor.roomId } }]) {
+for (const invalid of [{ ...finalePark, onFoot: true, interior: { roomId: homeDescriptor.roomId } }, { ...finalePark, onFoot: true, wanted: 1 }]) {
   tick(finale, invalid, 40);
   assert.equal(finale.state.active.stage, 2, 'final split requires leaving the house and clearing the search');
 }
