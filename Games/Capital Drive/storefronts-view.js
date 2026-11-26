@@ -34,7 +34,7 @@ export function createStorefrontsView(scene,heightAt,{excludeIds=[]}={}) {
   const atlasWidth=1024,rowHeight=32;
   const atlasHeight=2**Math.ceil(Math.log2(Math.max(32,stores.length*2*rowHeight)));
   const pixels=new Uint8Array(atlasWidth*atlasHeight*4);
-  function writeText(label,row) {
+  function writeText(label,row,ink=0xfff9e0) {
     const upper=label.toUpperCase(),scale=Math.min(3,Math.floor((atlasWidth-16)/(upper.length*6)));
     const left=Math.floor((atlasWidth-(upper.length*6-1)*scale)/2),top=row*rowHeight+5;
     for(let n=0;n<upper.length;n++) {
@@ -43,7 +43,7 @@ export function createStorefrontsView(scene,heightAt,{excludeIds=[]}={}) {
       for(let y=0;y<7;y++) for(let x=0;x<5;x++) if(rows[y][x]==='1') {
         for(let dy=0;dy<scale;dy++) for(let dx=0;dx<scale;dx++) {
           const offset=((atlasHeight-1-top-y*scale-dy)*atlasWidth+left+n*6*scale+x*scale+dx)*4;
-          pixels[offset]=255;pixels[offset+1]=249;pixels[offset+2]=224;pixels[offset+3]=255;
+          pixels[offset]=ink>>16;pixels[offset+1]=(ink>>8)&255;pixels[offset+2]=ink&255;pixels[offset+3]=255;
         }
       }
     }
@@ -88,14 +88,31 @@ export function createStorefrontsView(scene,heightAt,{excludeIds=[]}={}) {
     const canopyDepth=layout.depth,fasciaY=form==='books'||form==='grille'?2.93:2.82;
     box(profile.surround,0,1.38,.075,width,2.76,.10);
     const badge=store.name==='Sombreroll'||store.name==='The Book Moo'||store.name==='Bake Pause';
-    const headerWidth=badge?width*.58:width+.12,signX=badge?-width*.14:0;
+    let headerWidth=badge?width*.58:width+.12,signX=badge?-width*.14:0;
     if(badge)box(store.name==='Sombreroll'?0xd9d7c8:profile.surround,0,2.82,.11,width+.12,.62,.09);
+    if(form==='galleria'){
+      // The upper band runs left of the restaurant plate in the signed arcade photo.
+      headerWidth=width*.52;
+      signX=(width-headerWidth)/2;
+      const section=(width-headerWidth)/6;
+      const glazed=[0x38734f,0xe9e6dc,0xaf4b4c];
+      box(profile.surround,0,fasciaY,.12,width,.55,.14);
+      for(let i=0;i<6;i++)panel(glazed[i%3],-width/2+(i+.5)*section,fasciaY,.2,section-.022,.46);
+    }
     box(profile.fascia,signX,fasciaY,.16,headerWidth,layout.canopy==='band'?.40:.53,.16);
     if(store.name==='The Book Moo'||store.name==='Bake Pause'){
       const x=width*.38;
       box(0x4b504a,x,2.24,.52,.052,.21,.52);
       box(0xc0bbac,x,2.36,.52,.065,.018,.54);
       box(0x666c63,x,2.40,.64,.03,.12,.03);
+    }
+    if(store.name==='You Sushi'){
+      // Suspended blade inside the sheltered Flinders Way parade.
+      const x=width*.33;
+      for(const z of [.35,.75])box(0x565754,x,2.33,z,.018,.18,.016);
+      box(0x50544f,x,2.15,.55,.056,.24,.62);
+      box(0xe3ded0,x,2.15,.55,.06,.20,.57);
+      box(0x97705e,x,2.15,.48,.065,.045,.24);
     }
     const cloth=layout.canopy==='fabric',lean=cloth?.22:0;
     const lip=2.44-Math.sin(lean)*canopyDepth/2;
@@ -132,6 +149,19 @@ export function createStorefrontsView(scene,heightAt,{excludeIds=[]}={}) {
     const paired=leafWidth>1.1;
     if(paired)panel(0xabb4ad,doorX,1.14,.231,.032,2.14);
     const handleX=doorX+(paired?.09:leafWidth*.29);
+    if(form==='galleria'){
+      box(0xc5c4af,doorX-.09,1.07,.247,.042,.36,.038);
+      // Narrow folded menu easel sits beside the doorway, clear of its opening.
+      const x=doorX-leafWidth/2-.40;
+      for(const side of [-1,1]){
+        const leg=new THREE.BoxGeometry(.027,.79,.035).rotateX(-.12);
+        finish(leg.translate(x+side*.16,.41,.50),0xa48260);
+      }
+      finish(new THREE.BoxGeometry(.033,.72,.032).rotateX(.26).translate(x,.37,.36),0x977351);
+      finish(new THREE.BoxGeometry(.38,.50,.040).rotateX(-.12).translate(x,.62,.48),0xb99468);
+      finish(new THREE.PlaneGeometry(.33,.45).rotateX(-.12).translate(x,.62,.505),0xe1dac6);
+      for(let line=0;line<4;line++)panel(0x837d6f,x,.73-line*.052,.50+line*.006,.23-line*.014,.010);
+    }
     box(0xc5c4af,handleX,1.07,.247,.042,.36,.038);
     for(const side of [-1,1]){
       const outer=side*(width/2-.13),inner=doorX+side*(leafWidth/2+.06);
@@ -154,8 +184,8 @@ export function createStorefrontsView(scene,heightAt,{excludeIds=[]}={}) {
       if(form==='timber')for(let j=1;j<=3;j++)panel(0x846b54,x,j*sill/4,.135,displayWidth,.018);
     }
     box(0x45524d,handleX,1.38,.232,.145,.080,.018);
-    function lettering(label,row,y,w,h,z,x=0) {
-      const inkFraction=writeText(label,row);
+    function lettering(label,row,y,w,h,z,x=0,ink) {
+      const inkFraction=writeText(label,row,ink);
       const aspect=(inkFraction+.018)*atlasWidth/rowHeight;
       const width=Math.min(w,h*aspect);
       const geometry=new THREE.PlaneGeometry(width,width/aspect).translate(x,y,z),uv=geometry.attributes.uv;
@@ -166,7 +196,7 @@ export function createStorefrontsView(scene,heightAt,{excludeIds=[]}={}) {
       }
       texts.push(place(geometry));
     }
-    lettering(store.name,index*2,fasciaY,headerWidth-.19,layout.canopy==='band'?.37:.45,.245,signX);
+    lettering(store.name,index*2,fasciaY,headerWidth-.19,layout.canopy==='band'?.37:.45,.245,signX,profile.signInk);
     lettering('PULL',index*2+1,1.38,.135,.072,.244,handleX);
     const solidCount=pieces.reduce((sum,g)=>sum+g.attributes.position.count,0);
     const indexCount=pieces.reduce((sum,g)=>sum+g.index.count,0);

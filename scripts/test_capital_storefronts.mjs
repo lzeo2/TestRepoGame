@@ -32,6 +32,27 @@ for(const tint of [0x526f79,0x94acb2,0x3a505c,0x303e45,0xc4d0c9]){
 }
 const tenancies=solidMesh.geometry.userData.tenancies;
 assert.deepEqual(tenancies.map(t=>t.id),MAPPED_STORES.map(s=>s.id));
+function verticesByColour(store,colour) {
+  const {vertexStart,vertexCount}=tenancies.find(t=>t.id===store.id);
+  const expected=new THREE.Color(colour),vertices=[];
+  const positions=solidMesh.geometry.attributes.position;
+  for(let i=vertexStart;i<vertexStart+vertexCount;i++){
+    if(Math.abs(glassColors.getX(i)-expected.r)<1e-6&&Math.abs(glassColors.getY(i)-expected.g)<1e-6&&Math.abs(glassColors.getZ(i)-expected.b)<1e-6){
+      vertices.push(new THREE.Vector3().fromBufferAttribute(positions,i));
+    }
+  }
+  return vertices;
+}
+const receipt=MAPPED_STORES.find(s=>s.name==='Receipt Cafe'),receiptGround=heightAt(receipt.frontage.x,receipt.frontage.z);
+assert(frontageProfile(receipt).layout.door>1.1,'the restaurant uses paired glass leaves');
+for(const tint of [0x38734f,0xe9e6dc,0xaf4b4c]){
+  const band=verticesByColour(receipt,tint);
+  assert.equal(band.length,8,'each transom colour repeats twice');
+  assert(band.every(p=>p.y-receiptGround>2.5),'tricolour glazing is above the doorway');
+}
+assert.equal(verticesByColour(receipt,0xe1dac6).length,4,'the easel has a visible menu face');
+const sushi=MAPPED_STORES.find(s=>s.name==='You Sushi');
+assert.equal(verticesByColour(sushi,0xe3ded0).length,24,'the sheltered walkway has a pale hanging blade');
 assert.equal(solidMesh.material.map,textMesh.material.map,'the shop displays reuse the lettering atlas');
 const displayTypes=new Set(MAPPED_STORES.map(s=>frontageProfile(s).display));
 assert(displayTypes.size>=7,'the displays distinguish the shop trades');

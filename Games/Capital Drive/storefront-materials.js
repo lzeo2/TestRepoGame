@@ -14,6 +14,7 @@ const FORMS={
   market:{depth:.74,door:1.54,bias:.04,sill:.22,piers:2,canopy:'flat'},
   books:{depth:.35,door:.97,bias:-.18,sill:.36,piers:3,canopy:'band'},
   arcade:{depth:.82,door:1.24,bias:.13,sill:.13,piers:1,canopy:'flat'},
+  galleria:{depth:.86,door:1.48,bias:.14,sill:.12,piers:2,canopy:'flat'},
   shop:{depth:.73,door:1.0,bias:.10,sill:.48,piers:1,canopy:'flat'},
   timber:{depth:.61,door:.95,bias:.15,sill:.59,piers:2,canopy:'band'},
   counter:{depth:.55,door:1.19,bias:-.15,sill:.29,piers:1,canopy:'band'},
@@ -24,9 +25,9 @@ const FORMS={
 const FORMS_BY_TENANT={
   'Coals':'market','Paperback Chain':'books','Newsweak':'timber','Scoot Wholefoods':'timber',
   'The Book Moo':'books','Toe Boots':'shop','Super Expressive':'market','MacDawdles':'counter',
-  'You Sushi':'counter','Kismaybe':'counter','Plink':'shop','El Torogoose':'cafe','Your Cafe':'cafe',
+  'You Sushi':'arcade','Kismaybe':'counter','Plink':'shop','El Torogoose':'cafe','Your Cafe':'cafe',
   'Caps Lock':'arcade','Belloucies':'grille','Up Town Milk Bar':'chamfer','Thrilld':'counter',
-  'Receipt Cafe':'cafe','Patisseriously':'cafe','Sombreroll':'arcade','Lambzhou 1919':'arcade',
+  'Receipt Cafe':'galleria','Patisseriously':'cafe','Sombreroll':'arcade','Lambzhou 1919':'arcade',
   'Coals Dickson':'market','Dickson Oodle House':'arcade','Prawn Asian Grocery':'market',
   'Supper Express':'market','Bake Pause':'shop','Till We Meet Cafe':'cafe',
   "Iggy's O'Connor":'market','Braddon Suppermarket':'shop',
@@ -36,6 +37,8 @@ const SPECIAL_FRONTS = {
   'Scoot Wholefoods': {surround:0xa58563,fascia:0x5e6c5a,edge:0x524b3c,soffit:0xbfb299},
   'Belloucies': {surround:0x33373b,fascia:0x3b403e,edge:0x323636,soffit:0x665849},
   'Your Cafe': {surround:0xa07459,fascia:0x775c4b,edge:0x5b5146,soffit:0xe2dcce},
+  'Receipt Cafe': {surround:0xaaafa8,fascia:0xd2d3c9,signInk:0x303737,edge:0xadb1aa,soffit:0xd9d7ce},
+  'You Sushi': {surround:0xaca79a,fascia:0x484d49,edge:0xb7afa0,soffit:0xbba78f},
   'Up Town Milk Bar': {surround:0xbabcb5,fascia:0x69706c,edge:0xc0c0b4,soffit:0xdcd7c5},
   'Caps Lock': {surround:0x80634c,fascia:0x665040,edge:0x5b5045,soffit:0xc3a887},
   'Thrilld': {surround:0x92785b,fascia:0x4f5248,edge:0x55574a,soffit:0xae9678},
@@ -135,7 +138,7 @@ export function paintShopWindow(pixels,atlasWidth,atlasHeight,store,index,side,d
       for(let k=1;k<14;k+=6)rect(x+k,36-k%2,6,4,0xc79b63);
     }
     rect(7,44,W-15,2,0xddcfb3);
-  }else{
+  }else if(store.name!=='Receipt Cafe'){
     // Tables, chair backs and pendant shades behind a restaurant window.
     for(let i=0;i<4;i++){
       const x=13+44*i+seed%9;
@@ -167,10 +170,24 @@ export function paintShopWindow(pixels,atlasWidth,atlasHeight,store,index,side,d
     }
   }
   if(store.name==='Prawn Asian Grocery'){
-    for(let tier=0;tier<2;tier++)for(let x=6,j=0;x<W-8;x+=11,j++){
-      const y=22+tier*15;
-      rect(x,y-7,8,7,CERAMICS[(j+tier)%CERAMICS.length]);rect(x+1,y-4,6,2,0xbcb284);
-      rect(x+2,y-8,5,1,0x827462);
+    if(side<0){
+      // Densely stocked noodles and narrow shelves recur in accounts of Swan.
+      rect(2,11,W-4,42,0x534e43);
+      for(let tier=0;tier<3;tier++){
+        const y=23+tier*13;
+        rect(2,y,W-4,2,0xa4947e);
+        for(let x=4,j=0;x<W-10;x+=11,j++){
+          const accent=COVERS[(j+tier+seed)%COVERS.length];
+          rect(x+1,y-10,8,10,0xd5c29a);rect(x,y-10,10,2,accent);
+          rect(x+1,y-6,8,3,accent);rect(x+3,y-3,4,2,0xbfa76f);
+        }
+      }
+    }else{
+      for(let tier=0;tier<2;tier++)for(let x=6,j=0;x<W-8;x+=11,j++){
+        const y=22+tier*15;
+        rect(x,y-7,8,7,CERAMICS[(j+tier)%CERAMICS.length]);rect(x+1,y-4,6,2,0xbcb284);
+        rect(x+2,y-8,5,1,0x827462);
+      }
     }
   }
   if(store.name==='Plink'){
@@ -193,9 +210,28 @@ export function paintShopWindow(pixels,atlasWidth,atlasHeight,store,index,side,d
       if(!metal)rect(x,30,3,10,upholstery);
     }
   }
-  if(store.name==='MacDawdles'||store.name==='Receipt Cafe'){
+  if(store.name==='MacDawdles'){
     rect(14,25,39,13,0x757a73);rect(16,24,34,2,0xcfccc0);
     for(const x of [18,27,37]){rect(x,32,5,6,0xcbbfa9);rect(x+1,30,3,2,0x48463e);}
+  }
+  if(store.name==='Receipt Cafe'){
+    // Woven chairs and pendant shades visible through the Palmerston Lane glazing.
+    for(let i=0;i<3;i++){
+      const x=13+66*i+seed%4;
+      rect(x+13,5,1,9,0x4e4036);
+      for(let row=0;row<8;row++){
+        const spread=Math.floor(row/2);
+        rect(x+9-spread,13+row,9+spread*2,1,0xd3a676);
+      }
+      for(let k=0;k<3;k++)rect(x+8+4*k,15,1,6,0x937150);
+      rect(x+8,39,33,2,0xd0bba2);rect(x+22,41,2,11,0x675c53);
+      for(const chair of [x,x+35]){
+        rect(chair+2,34,10,2,0xc9ae84);rect(chair,36,14,7,0x776956);
+        for(let k=2;k<13;k+=3)rect(chair+k,36,1,7,0xc7ad84);
+        rect(chair+1,43,12,2,0xbba07d);
+        rect(chair+2,45,1,7,0x776956);rect(chair+11,45,1,7,0x776956);
+      }
+    }
   }
   if(store.name==='Patisseriously'){
     for(let x=13;x<W-10;x+=26){

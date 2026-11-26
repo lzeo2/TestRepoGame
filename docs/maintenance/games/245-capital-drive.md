@@ -1516,7 +1516,10 @@ checks are not native collection/travel or device-performance evidence.
 
 ## Retail, landmarks and street life — 26 November 2026
 
-The 29 registered tenancies use documented frontage profiles. Source-tagged
+The 29 registered tenancies use documented frontage profiles. In Manuka,
+Receipt Cafe has a Palmerston Lane arcade entrance, and You Sushi has a
+suspended Flinders Way blade sign. In Dickson, closely stocked noodle shelves
+draw on accounts of Swan Asian Grocery. Source-tagged
 retail buildings elsewhere use broader ground-floor display glass on the side
 facing a nearby street. The landmark renderers now distinguish named structures
 including Parliament House, the Manuka Oval scoreboard, AIS Arena and Dickson
