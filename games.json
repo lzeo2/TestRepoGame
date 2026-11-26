@@ -124,7 +124,7 @@
     "tags": [
       "2p"
     ],
-    "players": "2",
+    "players": "1–2",
     "howto": "P1 and P2 pick WASD, Arrows, or gamepad in the pre-fight menu"
   },
   {
@@ -834,7 +834,7 @@
     "title": "Tron Light Cycles",
     "cat": "arcade",
     "icon": "",
-    "desc": "Steer a light cycle that leaves deadly walls behind; trap the AI or survive longer.",
+    "desc": "Two riders share the keyboard. Steer a light cycle to leave a wall behind and outlast the other rider.",
     "url": "Games/TronLightCycles/index.html",
     "featured": false,
     "tags": [
