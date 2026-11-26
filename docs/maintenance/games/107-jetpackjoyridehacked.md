@@ -25,7 +25,7 @@ No license/README/CREDITS/source pin exists in the assigned directory inventory.
 
 ## Audit findings
 
-- **HIGH triage**, `game3.js:6325-6333`, injected ad SDK boundary: three fresh follow-up boots reproduce `Unexpected token '<'`. The bundle creates `gamedistribution-jssdk` with `src='#'`, fetching this HTML entry as a script (HTTP 200, `text/html`), not a missing PNG or transient network failure. Run3 nevertheless reaches GamePlay, so this error alone is not proof of a permanent boot stall. Historical undefined-length failure was not reproduced. No authored safe repair was established; request legitimate source/a separately approved hook rather than suppressing the request or editing the bundle.
+- Resolved in the entry. The compiled game checks for `gamedistribution-jssdk` before injecting a script with `src="#"`. That URL returned the HTML entry and raised a parser error. The existing local, inert SDK adapter now identifies itself with the expected ID.
 - **MEDIUM**, `index.html`, `localStorage.setItem` override: page-wide substring matching may replace structured saves with a scalar and relies on overriding a Storage instance method. Identify exact keys and use game-specific numeric mutation at the real save boundary. Verify installation/storage contents; preserve intentional high coins.
 - **MEDIUM**, same file, `hookInterval` and scene update replacement: discovery is unbounded on failed boot; wrapper ownership and future-scene coverage are absent. Bound polling and tie wrappers to verified scene lifecycle instead of adding another timer.
 - **MEDIUM**, same file, `#hack-badge`/viewport/hint: perpetual pulse ignores reduced motion, zoom is disabled and instructions expire. Small authored CSS/help changes are sufficient.
@@ -36,12 +36,14 @@ Do not remove cheats as a supposed security repair. Change only verified wrapper
 
 ## Verification
 
+On 26 November 2026, a clean desktop Chromium session reached the active Phaser GamePlay scene and exercised click, hold and release on the canvas. The run recorded zero uncaught JavaScript errors, external requests or HTTP errors. The headless software audio device issued warnings, so sound quality remains unverified. Run `python3 scripts/test_arcade_legacy_startup.py --game JetpackJoyrideHacked`. [Local browser regression](../../../scripts/test_arcade_legacy_startup.py)
+
 2026-10-15 [full fleet gate](../audits/fleet-2026-10-15-lane6.md): this title
 failed with zero collected console errors and seven failed requests; the full
 run failed 122/125, exit 1. Only three request samples are retained, all reporting
 `net::ERR_NETWORK_CHANGED`; the other four reasons are unavailable. [Triage](../audits/fleet-2026-10-15-triage.md)
 confirmed those sampled assets exist in Git and the entry/tree still match the
-inventory. No fresh isolated Jetpack runtime rerun or confirmed fix occurred.
+inventory. That October fleet gate did not include an isolated rerun.
 Transport/environment cause remains suspected, not established; keep this failure
 held alongside existing save/rights findings. No smoke screenshots exist.
 
@@ -65,7 +67,7 @@ not verified 999999. No result/restart, spending/reload, denied/corrupt storage,
 mobile, hardware or theme acceptance follows. Twenty-two desktop diagnostic
 screenshots were captured; two representative menu/play images were reviewed.
 
-No retry code or regression fixture was justified/added. All requests finished;
+The October follow-up added no retry or regression fixture. All requests finished;
 a retry would not repair the injected-script error, local decoding, audio or
 cheat contracts. Smoke code/filters/timeouts remain unchanged. The static catalog
 schema/Git URL check passed for 125 entries, the three inline scripts and game3
@@ -77,4 +79,6 @@ Historical audit checks (before this follow-up): game3 Git blob through `node --
 
 ## Future outlook
 
-Resolve boot and provenance first. Then isolate cheat saves, bound discovery and remove unnecessary badge animation while retaining a clear variant label. Later profile load/CPU on actual hardware; defer new cheats and engine refurbishment until reliable play/source rights exist.
+Establish bundle and asset provenance. Then isolate cheat saves, bound discovery and remove unnecessary badge animation while retaining a clear variant label. Later profile load/CPU on actual hardware; defer new cheats and engine refurbishment until reliable play/source rights exist.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

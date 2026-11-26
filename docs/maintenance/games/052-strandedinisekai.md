@@ -4,11 +4,11 @@
 
 ## Identity and status
 
-Registered id 52, category `story`, entry `Games/StrandedInIsekai/index.html`. Baseline `8c8a055`: 46 files, 10,927,434 bytes. Indonesian-language RPG; this review documents the local source and a parser failure, not a freshly verified play pass.
+Registered id 52, category `story`, entry `Games/StrandedInIsekai/index.html`. Baseline `8c8a055`: 46 files, 10,927,434 bytes. Indonesian-language RPG. The November 2026 browser check started the game on map 1.
 
 ## Implementation map
 
-Source review coverage: complete entry/CSS/touch adapter, `dialog.js`, README; `flashRPG.js` header/first 220 lines; bounded obfuscated JS engine excerpts around keyboard, title, game loop and gameOver; map/quiz bootstrap excerpts. Remaining obfuscated battle/map logic and archival ActionScript were not fully human-reviewed. Entry loads `map-min.js`, `dialog.js`, `soal_db-min.js`, `jsRPG-min.js`, then `flashRPG.js`. Inline bootstrap resolves 960-by-640 `#scene`, creates `konten`, and calls `preload(fileGambar,fileSuara,setup)`. `setup()` activates keyboard and title, `startGame()` initializes character, `setMap(1,16,8)`, seven NPCs, then `jalankanGame()`. Important wrapper IDs: `game-wrap`, `scene`, `touch-controls`; buttons have `data-key`.
+Source review coverage: complete entry/CSS/touch adapter, `dialog.js`, README; `flashRPG.js` header/first 220 lines; bounded obfuscated JS engine excerpts around keyboard, title, game loop and gameOver; map/quiz bootstrap excerpts. Remaining obfuscated battle/map logic and archival ActionScript were not fully human-reviewed. Entry loads `map-min.js`, `dialog.js`, `soal_db-min.js`, and `jsRPG-min.js`. The ActionScript file `flashRPG.js` remains in the archive. Inline bootstrap resolves 960-by-640 `#scene`, creates `konten`, and calls `preload(fileGambar,fileSuara,setup)`. `setup()` activates keyboard and title, `startGame()` initializes character, `setMap(1,16,8)`, seven NPCs, then `jalankanGame()`. Important wrapper IDs: `game-wrap`, `scene`, `touch-controls`; buttons have `data-key`.
 
 ## Gameplay and controls
 
@@ -24,7 +24,7 @@ Local images and sounds, native Canvas/keyboard events. README credits Daffa Ahm
 
 ## Audit findings
 
-- HIGH parser finding, `flashRPG.js:1`, `import flash.display.MovieClip;`: ActionScript is loaded as a classic browser script. Actual stdin `node --check` exits 1 with `SyntaxError: Cannot use import statement outside a module`; typed declarations also are not JavaScript. Valid JS engine is loaded earlier, so this does not prove total unplayability. Minimal root fix, only when authorized: remove the erroneous runtime script tag, preserve archival source/notice, verify gameplay callers remain in `jsRPG-min.js`. Do not delete the file or relabel it ESM.
+- Resolved in the HTML entry. The browser used to parse archived ActionScript as JavaScript. Only the runtime script tag was removed.
 - MEDIUM, `index.html: #touch-controls aria-hidden="true"`: focusable buttons sit inside a permanently hidden accessibility subtree. Remove inappropriate hiding or synchronize it with actual display after keyboard/mobile review.
 - MEDIUM, touch `bind()/down/up`: no blur/visibility key release. Native repro recommended: hold a direction, switch tabs, return. Fix shared release path without editing every button separately.
 - MEDIUM content-review hold, `dialog.js: talk_3/item_2`: mature sexual references and insults exist in story content. Main/owner must judge age suitability; documentation does not authorize rewriting or removing upstream dialogue.
@@ -35,7 +35,9 @@ Patch wrapper dependency tag/input lifecycle first, preserving engine/data/art a
 
 ## Verification
 
-Actually run Git-blob checks: `jsRPG-min.js`, `map-min.js`, `soal_db-min.js` exit 0; `flashRPG.js` exit 1 as above. Zero native browser runs/screenshots. Reproduce `git show HEAD:Games/StrandedInIsekai/flashRPG.js | node --check`. Main narrow native lease should test title Space, walk, NPC interaction, shop/quiz battle, death/title restart, touch multi-button release, tab blur and local audio under denied network. Full catalog smoke must report the parser finding without weakening filters.
+On 26 November 2026, a clean local Chromium session pressed Space at the title screen and observed `mapID === 1` with the player sprite initialized. The browser recorded zero uncaught JavaScript errors, external requests or HTTP errors. Run `python3 scripts/test_arcade_legacy_startup.py --game StrandedInIsekai` to repeat. [Local browser regression](../../../scripts/test_arcade_legacy_startup.py)
+
+Earlier Git-blob audit: `jsRPG-min.js`, `map-min.js`, `soal_db-min.js` exit 0; `flashRPG.js` exit 1 as above. That earlier audit used static checks. Reproduce `git show HEAD:Games/StrandedInIsekai/flashRPG.js | node --check`. Main narrow native lease should test title Space, walk, NPC interaction, shop/quiz battle, death/title restart, touch multi-button release, tab blur and local audio under denied network. Full catalog smoke must report the parser finding without weakening filters.
 
 ### Static metadata receipt (2026-10-15)
 
@@ -45,4 +47,6 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 
 ## Future outlook
 
-First remove the erroneous bootstrap dependency if approved and establish play proof/asset terms. Next fix accessible touch semantics and key release with a tiny regression. Later document actual battle controls/content suitability. Defer new maps, translated story and save system until existing gameplay/provenance are verified.
+Document upstream asset terms. Next fix accessible touch semantics and key release with a tiny regression. Later document actual battle controls/content suitability. Defer new maps, translated story and save system until existing gameplay/provenance are verified.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

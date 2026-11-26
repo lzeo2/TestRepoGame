@@ -7,7 +7,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Doge Miner | Seraph</title>
         <link rel="icon" href="../../images/ico.ico" type="image/x-icon" />
-        <link rel="image_src" href="img/dogeminer_300x300.png" />
+        <link rel="image_src" href="../../assets/thumbs/dogeminer.jpg" />
         <link rel="stylesheet" href="css/main-v1-0-2-bs.css" />
 
         <link id="stylesheet" href="css/sunny/jquery-ui-1.10.4.custom.min.css" rel="stylesheet" />
@@ -19,8 +19,7 @@
                 window.dispatchEvent(new Event("load"));
             }, 10000);
         </script>
-        <script src="js/main.js"></script>
-    <meta name="description" content="Doge Miner: Dogecoin-themed mining game with helpers, upgrades and new locations. Current build has a known script startup blocker.">
+    <meta name="description" content="Doge Miner: Dogecoin-themed mining game with helpers, upgrades and new locations.">
 </head>
     <body style="background-color: #222222;">
         <div id="fb-root"></div>
@@ -513,9 +512,7 @@
                         </div>
                         <div id="howmanyclicksbro" class="small" style="position: absolute; right: 5px; top: 5px;"></div>
                         <div id="timeplayed" class="small" style="position: absolute; right: 5px; top: 20px;">00:00:00</div>
-                        <div id="volumeicon" class="small" style="position: absolute; right: 5px; top: 35px;">
-                            <a id="quickmute" href="javascript:;"><span id="muteicon" class="ui-icon ui-icon-volume-on"></span></a>
-                        </div>
+
                         <div class="byline">The Dogecoin Mining Simulator</div>
                     </header>
                     <div id="news" class="newsline"><span>&nbsp;</span></div>
@@ -791,15 +788,7 @@
                         <div class="help">
                             <a href="javascript:;" id="restartbutton">Reset game</a><br />
                             <br />
-                            <input id="music" type="checkbox" checked="checked" />
-                            <label for="music">Music</label><br />
-                            <br />
-                            <input id="sounds" type="checkbox" checked />
-                            <label for="sounds">Toggle All Sounds</label><br />
-                            <br />
-                            <input id="sounds2" type="checkbox" checked />
-                            <label for="sounds2">Toggle Pickaxe Sound</label><br />
-                            <br />
+                            <p>Music and sound effects are unavailable in this edition.</p>
                             <input id="clickeffects" type="checkbox" checked />
                             <label for="clickeffects">Toggle Click effects</label><br />
                             <br />
@@ -884,5 +873,7 @@
             }
         </script>
         <script src="js/plugins.js"></script>
+        <script src="js/offline-audio.js"></script>
+        <script src="js/main.js"></script>
     </body>
 </html>
