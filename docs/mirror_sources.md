@@ -323,11 +323,10 @@ Every dir below got a `Games/<Dir>/CREDITS.md` written with the same details.
 - Modifications: offline ingest, analytics stripped; only HTML head rewritten (viewport meta).
 
 ### Games/DuckHunt
-- Repo: https://github.com/MattSurabian/DuckHunt-JS (upstream ships the game as a webpack build; we ship its `dist/`)
-- License: MIT — Copyright (c) 2015 Matt Surabian
-- Commit: 5a28db7442ebc7dc8060342413df24c0319f4190 (2026-03-27)
-- Verification: `duckhunt.js`, `audio.json`, `sprites.json`, `audio.mp3`, `audio.ogg`, `sprites.png` byte-identical to upstream `dist/`; `LICENSE` byte-identical; index.html keeps upstream title "DuckHuntJS" and meta author "Matt Surabian".
-- Modifications: offline ingest, analytics stripped; only the prebuilt `dist/` runtime shipped (no build tooling).
+- Source is Matt Surabian's [DuckHunt-JS](https://github.com/MattSurabian/DuckHunt-JS/tree/5a28db7442ebc7dc8060342413df24c0319f4190) at revision `5a28db7442ebc7dc8060342413df24c0319f4190`.
+- The game source carries Matt Surabian's MIT notice. Bundled library notices and their specific licenses ship alongside it.
+- On 26 November 2026 the main and lazy renderer scripts were rebuilt from verified source and the pinned lockfile. The existing audio, atlas and source-license blobs match the pinned tree.
+- The [build recipe and local changes](../Games/DuckHunt/CREDITS.md) document creator routing, bounded custom-level parameters and per-wave pause accounting.
 
 Note: the candidate `github.com/Urshoulder/duckhunt` and the `duckHuntJS`-named repos (evKoval etc.) are unrelated; the authoritative match is `MattSurabian/DuckHunt-JS` (author matches the LICENSE copyright and the index.html meta author tag).
 
