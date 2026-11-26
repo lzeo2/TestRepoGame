@@ -19,8 +19,6 @@
 		<script>
 		// HACKED VERSION - Max coins + Invincibility
 		(function() {
-			// Wait for Phaser to load
-			var origGame = window.Phaser;
 			window.JJ_HACK = {
 				coins: 999999,
 				invincible: true
@@ -36,43 +34,37 @@
 				return origSetItem.call(localStorage, key, value);
 			};
 			
-			// Wait for game to initialize and hook into Phaser
-			var hookInterval = setInterval(function() {
-				if (window.game || window.phaserGame) {
-					clearInterval(hookInterval);
-					var g = window.game || window.phaserGame;
-					if (g && g.scene && g.scene.scenes) {
-						// Hook into scene update
-						g.scene.scenes.forEach(function(scene) {
-							if (scene && scene.update) {
-								var origUpdate = scene.update;
-								scene.update = function(time, delta) {
-									origUpdate.call(this, time, delta);
-									// Set max coins
-									if (this.coins !== undefined) this.coins = 999999;
-									if (this.totalCoin !== undefined) this.totalCoin = 999999;
-									if (this.textCoins && this.textCoins.setText) {
-										this.textCoins.setText('999999');
-								}
-									// Enable invincibility - remove collisions with obstacles
-									if (this.player && this.player.body) {
-										this.player.body.enable = false;
-									}
-									// Auto-collect coins
-									if (this.coinGroup) {
-										this.coinGroup.children.each(function(coin) {
-											if (coin && coin.active) {
-												coin.active = false;
-												coin.visible = false;
-											}
-									});
-								}
-								};
-							}
-						});
-					}
+			function applyEdition(scene) {
+				// Hazard callbacks consult this flag. The runner still needs its
+				// Arcade Physics body for thrust, gravity and landing.
+				if (scene.player && window.JJ_HACK.invincible) {
+					scene.player.invulnerable = true;
 				}
-			}, 100);
+				if (scene.coins !== undefined) scene.coins = 999999;
+				if (scene.totalCoin !== undefined) scene.totalCoin = 999999;
+				if (scene.textCoins && scene.textCoins.setText) scene.textCoins.setText('999999');
+				if (scene.coinGroup) {
+					scene.coinGroup.children.each(function(coin) {
+						if (coin && coin.active) {
+							coin.active = false;
+							coin.visible = false;
+						}
+					});
+				}
+			}
+
+			// Phaser captures scene.update during startup. A game-level pre-step
+			// survives scene restarts and runs before physics tests each frame.
+			var hookInterval = setInterval(function() {
+				var game = window.game || window.phaserGame;
+				if (!game || !game.events || !game.scene) return;
+				clearInterval(hookInterval);
+				game.events.on('prestep', function() {
+					game.scene.scenes.forEach(function(scene) {
+						if (scene.sys.isActive()) applyEdition(scene);
+					});
+				});
+			}, 250);
 		})();
 		</script>
 	</head>

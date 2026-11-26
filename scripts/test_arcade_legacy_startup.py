@@ -33,18 +33,23 @@ def explore(page):
 
 
 def fly(page):
-    # GamePlay also owns the game's tap-to-start overlay.
-    page.wait_for_function('window.game?.scene?.getScenes(true).some(s => s.sys.settings.key === "GamePlay")',
-                           timeout=180000)
+    scene = "window.game?.scene.getScene('GamePlay')"
+    page.wait_for_function(
+        f"{scene}?.touchToPlay?.visible && {scene}.touchToPlay.alpha > 0.5", timeout=180000)
     canvas = page.locator('canvas').first
     canvas.click()
+    page.wait_for_function(
+        f"Number({scene}?.activeScore?.map(digit => digit.text).join('')) > 3", timeout=150000)
+    initial_height = page.evaluate(f"{scene}.player.y")
     point = canvas.bounding_box()
     page.mouse.move(point['x'] + point['width'] / 2, point['y'] + point['height'] / 2)
     page.mouse.down()
     try:
-        page.wait_for_timeout(600)
+        page.wait_for_function(f"(start) => {scene}.player.y < start - 5", arg=initial_height, timeout=30000)
     finally:
         page.mouse.up()
+    if page.evaluate('Boolean(window.JJ_HACK?.invincible)'):
+        assert page.evaluate(f"{scene}.player.invulnerable && {scene}.player.body.enable")
     assert page.locator('#gamedistribution-jssdk').count() == 1
     assert page.locator('#gamedistribution-jssdk').get_attribute('src') is None
 
