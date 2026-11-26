@@ -19,3 +19,26 @@
 - [Streetlight locations and bounded rendering](../../capital-drive-streetlight-columns.md)
 
 The road check covered 27,417 roads, 155,465 source segments and 639,234 static lane clearance probes. There were 1,465 occupied probes on 305 roads. A control run with all 191 park fixtures removed produced the same results. Individual occupied probes need case-by-case inspection. The run does not establish that every vehicle can drive every possible turn.
+
+## Pedestrian setup profile
+
+A Chromium CPU trace of the 3D startup and initial Free roam session exposed
+repeated pavement checks against road segments and long shorelines. The
+distance calculation in the pedestrian module accounted for 82.9 seconds of
+self samples in the largest call branch. This trace used software WebGL on a
+shared four-core host. Its 275-second time to Ready describes that particular
+instrumented run. [Interactive flame graph](boot-flame.html)
+
+The pedestrian builder now indexes the edges of long polygons by horizontal
+band and checks segment bounds before computing distance. Sidewalks still
+use the original sample spacing, road offset and physical clearances.
+On the full composed map, pedestrian setup measured 44.7 CPU seconds before
+and 4.6 CPU seconds after. Both builds produced 29,563 paths, and the sampled
+actor positions after resets matched byte-for-byte across the spawn and four
+landmarks. This benchmark uses flat height sampling to isolate path construction.
+
+```sh
+node scripts/profile_capital_sidewalks.mjs
+node scripts/test_capital_pedestrians.mjs
+node --expose-gc scripts/profile_capital_shopping.mjs
+```

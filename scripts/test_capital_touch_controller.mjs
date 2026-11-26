@@ -12,7 +12,7 @@ function extract(name){
 }
 let move={x:0,y:0,active:false},look={x:0,y:0,active:false};
 const stick=(get,reset)=>({snapshot:get,clear:reset});
-const env={droneActive:false,skylineLease:null,skylineJob:{snapshot:()=>({stage:'safe'})},keys:new Set(),touch:new Set(),actionTouch:new Set(),miniKeys:new Set(),touchHolds:new Map(),
+const env={weaponWheel:{isOpen:()=>false},droneActive:false,skylineLease:null,skylineJob:{snapshot:()=>({stage:'safe'})},keys:new Set(),touch:new Set(),actionTouch:new Set(),miniKeys:new Set(),touchHolds:new Map(),
   moveStick:stick(()=>({...move}),()=>{move={x:0,y:0,active:false};}),
   lookStick:stick(()=>({...look}),()=>{look={x:0,y:0,active:false};}),
   THREE:{MathUtils:{clamp:(value,min,max)=>Math.max(min,Math.min(max,value))}},
