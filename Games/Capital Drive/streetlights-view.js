@@ -25,8 +25,10 @@ export function createStreetlightsView(scene, lamps = [], heightAt = () => 0) {
   poles.name='Streetlight columns, outreach arms and luminaires';
   const texture=glowTexture(), glowGeometry=new THREE.PlaneGeometry(1,1);
   glowGeometry.rotateX(-Math.PI/2);
+  // Flat additive glows need no front/back transparency sorting.
   const glowMaterial=new THREE.MeshBasicMaterial({color:0xffffff,map:texture,transparent:true,opacity:0,
-    blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2});
+    blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide,forceSinglePass:true,
+    toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2});
   const glow=new THREE.InstancedMesh(glowGeometry,glowMaterial,limits.maxGlowInstances);
   glow.name='Streetlight lenses and road illumination';
   for (const mesh of [poles,glow]) {
