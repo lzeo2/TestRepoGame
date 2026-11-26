@@ -76,9 +76,11 @@ try {
     }
     return true;
   }
-  for (const edgeId of [30759, 26813, 27083, 27079, 26248, 29460, 26000, 33036]) {
+  for (const edgeId of [30759, 26813, 27083, 27079, 26248, 29460, 26000]) {
     assert(!staticEdgeClear(simulation.graph.edges[edgeId]), `retained source geometry really obstructs edge ${edgeId}`);
   }
+  assert(staticEdgeClear(simulation.graph.edges[33036]),
+    'the lane that formerly inherited a ground obstacle now clears its tagged bridge');
   const buses = createBuses(map, simulation);
   simulation.setExternalVehicles(buses.vehicles);
   assert.equal(simulation.traffic.length, 40);
