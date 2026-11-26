@@ -6,6 +6,7 @@ import {createSimulation} from '../Games/Capital Drive/simulation.js';
 import {applyMapExpansion} from '../Games/Capital Drive/map-expansion.js';
 import {applyRoadProfiles} from '../Games/Capital Drive/road-network.js';
 import {coveredCentrePassage} from '../Games/Capital Drive/covered-passage.js';
+import {createGameplay} from '../Games/Capital Drive/gameplay.js';
 const json=async n=>JSON.parse(await readFile(new URL(`../Games/Capital Drive/data/${n}.json`,import.meta.url)));
 const map=applyMapExpansion(applyRoadProfiles(await json('canberra'),await json('road-profiles')),await json('canberra-north'));
 map.terrainTiles=[(await json('north-terrain')).terrain];map.lakeWaterLevel=5.93;
@@ -28,6 +29,14 @@ for(const [id,x,z]of [['23035340-north-0',-945.1485714285715,-2568.940857142857]
  sim.setExternalVehicles([{...car,id:'same-level'}]);assert(!sim.canOccupy(car),'same-level rotated body contact remains live');
  sim.setExternalVehicles([{...overhead,id:'same-upper-level'}]);assert(!sim.canOccupy(overhead),'cars on the same upper bridge retain normal physical contact');
  const flat=createSimulation(world,{trafficCount:0});flat.player.active=false;flat.setExternalVehicles([overhead]);assert(!flat.canOccupy(car),'default flat collision contract remains unchanged');
+ const walkers=createSimulation(world,{trafficCount:0,...samplers,bridgeHeightAt:terrain.bridgeHeightAt,
+   actorHeightAt:body=>terrain.heightAt(body.x,body.z),actorKeepsBridgeLayer:()=>true});
+ walkers.player.active=false;
+ walkers.setExternalVehicles([overhead]);
+ const walker={x:x-dx*2,z:z-dz*2,yaw:car.yaw};
+ walkers.setActorSupport(walker,terrain.roadHeightAt(road,walker.x,walker.z));
+ assert(!walkers.moveActor(walker,dx*4,dz*4).blocked,'tracked lower walker clears the real crossing under a deck vehicle');
+ assert(walkers.actorSupportAt(walker)<upper-1.8,'tracked actor stays at the real lower elevation');
  console.log(`${id}: actual lower car ${lower.toFixed(3)}m, foreign deck ${upper.toFixed(3)}m; live shot and swept layer separation PASS`);
 }
 const segment=terrain.bridgeSegments.find(s=>s.roadId==='4878920-north-0'&&Math.hypot((s.a[0]+s.b[0])/2+906,(s.a[1]+s.b[1])/2+2784)<60);
@@ -61,3 +70,49 @@ Object.assign(car,{active:true,edge,position:195,x:-5,z:-edge.laneOffset,yaw:Mat
 Object.assign(sim.player,{x:-4,z:car.z,y:10,vx:0,vz:0,speed:0});
 sim.step(.05,{});assert(car.speed>0,'ground traffic neither brakes for nor hits overhead player');
 console.log('Capital bridge vehicle intervals: PASS (post-step impact level filter, canonical live height and local traffic braking)');
+
+const bridgeRoad={id:'layered-bridge',type:'primary',width:10,points:[[-20,0],[20,0]],sourceTags:{bridge:'yes',layer:'1'}};
+const rail={id:'test-parapet',kind:'bridge-parapet',roadContext:{id:bridgeRoad.id},height:1,
+  points:[[-12,4.3],[12,4.3],[12,4.5],[-12,4.5]]};
+const crossing={...empty,roads:[bridgeRoad],barriers:[rail],spawn:{x:0,z:4.4,yaw:0}};
+const options={
+  trafficCount:0, bridgeHeightAt:(x,z)=>Math.abs(z)<=5?6:null, groundHeightAt:()=>0,
+  isOnBridge:(x,z,radius=0)=>Math.abs(z)+radius<=5,
+  vehicleHeightAt:(body,road)=>road===bridgeRoad?6:body.supportY??0,preserveVehicleSupport:true,
+  actorHeightAt:body=>Math.abs(body.z)<=5?6:0,actorKeepsBridgeLayer:()=>true,
+};
+const underpass=createSimulation(crossing,options);
+assert(underpass.canOccupy(underpass.player),'lower car has geometric clearance beneath the parapet');
+underpass.step(.05,{});
+assert.equal(underpass.player.z,4.4,'live post-step overlap pass does not eject a lower car beneath a parapet');
+underpass.player.supportY=6;
+assert(!underpass.canOccupy(underpass.player),'upper car still hits its own parapet');
+underpass.step(.05,{});
+assert.notEqual(underpass.player.z,4.4,'same-layer post-step contact still resolves');
+
+const foot=createSimulation({...crossing,spawn:{x:0,z:0,yaw:0}},options);
+const gameplay=createGameplay(crossing,foot,{heightAt:(x,z)=>options.actorHeightAt({x,z})});
+assert(gameplay.interact(),'can step out of a lower car underneath the deck');
+assert.equal(foot.actorSupportAt(gameplay.state.actor),0,'vehicle exit inherits the lower foot level');
+assert(gameplay.interact()&&gameplay.state.mode==='vehicle','can re-enter that lower car without snapping to the deck');
+foot.player.active=false;
+foot.setExternalVehicles([{id:'upper',x:0,z:0,y:6.18,yaw:0,active:true,modelId:'lantern'}]);
+const walker={x:0,z:7};
+assert(!foot.moveActor(walker,0,-7).blocked);
+assert.equal(foot.actorSupportAt(walker),0,'ordinary movement from the lower approach retains its ground');
+const upperWalker={x:0,z:3};
+assert(foot.moveActor(upperWalker,0,2).blocked,'upper walker still hits the deck rail');
+
+const wet={...crossing,barriers:[],areas:[{id:'sample-water',type:'water',surfaceY:1,
+  points:[[-20,-4],[20,-4],[20,4],[-20,4]]}]};
+const river=createSimulation(wet,options);
+river.player.active=false;
+const swimmer={x:5,z:7};
+const result=river.moveSwimmingActor(swimmer,0,-7);
+assert.equal(result.water?.y,1,'a person approaching from lower dry land enters water beneath the deck');
+assert(Math.abs(river.actorSupportAt(swimmer)-.15)<1e-9,'swimmer support follows the actual water level');
+const walkerOver={x:-5,z:0};river.setActorSupport(walkerOver,6);
+assert.equal(river.moveSwimmingActor(walkerOver,1,0).water,null,'upper deck stays dry at the same X/Z');
+assert(!river.canOccupy({x:0,z:0,yaw:0,supportY:0}),'car below the deck does not get a free road over water');
+assert(river.canOccupy({x:0,z:0,yaw:0,supportY:6}),'car on the upper deck clears submerged ground');
+console.log('Capital map layers: PASS (lower cars through overhead rails, lower exit and entry, sourced lower foot crossings, water below and dry deck above)');

@@ -956,7 +956,7 @@ function toggleJetpack(){
   if(!context.owned&&!jetpack?.active){notify(`Buy a jetpack for $${JETPACK_OFFER.price.toLocaleString('en-AU')} at ${JETPACK_OFFER.siteName}. Find it in Shops (K).`);return;}
   const actor=gameplay.state.actor;
   if(!jetpack.active){
-    context.feetY=world.heightAt(actor.x,actor.z);
+    context.feetY=simulation.actorSupportAt(actor);
     refreshJetpackBodies(actor);
   }
   if(!jetpack?.toggle(gameplay.state,context)){
@@ -3952,12 +3952,22 @@ function syncExternalPeople(){
     if(pose)add({id:'waiting-fare',x:pose.x,z:pose.z},.32);
   }
   if(!interiors.active&&!jetpack?.active&&gameplay.state.mode==='foot'&&!gameplay.state.passenger&&!gameplay.state.recovery&&!gameplay.state.actor.swimming){
-    playerContact.x=gameplay.state.actor.x;playerContact.z=gameplay.state.actor.z;
+    const actor=gameplay.state.actor;
+    playerContact.x=actor.x;playerContact.z=actor.z;
+    playerContact.y=simulation.actorSupportAt(actor)+actor.jumpHeight;
     externalPeopleContacts.push(playerContact);
   }
   simulation.setExternalPeople(externalPeopleContacts);
 }
 function pendingWorldChunks(){return interiors.active?0:(world.pendingChunks||0)+(neighbourhood.stats.queue||0)+(airportView?.stats.pendingChunks||0);}
+function playerFeetHeight(){
+  const actor=gameplay.state.actor;
+  if(skylineAirPose)return skylineAirPose.y;
+  if(jetpack.active)return jetpack.feetY;
+  if(actor.swimming)return actor.swimSurfaceY-.85;
+  const floor=interiors.active?.floorY??simulation.actorSupportAt(actor);
+  return floor+actor.jumpHeight;
+}
 function ordinaryFootPose(){
   const state=gameplay.state;
   if(state.mode!=='foot'||state.passenger||micromobility.active||state.recovery||jetpack?.active||skylineAirPose||
@@ -4014,6 +4024,10 @@ function animate(time) {
       if(flying)refreshJetpackBodies(gameplay.state.actor);
       if(flying||jetpack.chargeFraction<1)jetpack.step(1/60,{moveX:walk.moveX,moveZ:walk.moveZ,aiming:walk.aim||walk.fire,
         lift:Number(!!walk.jump)-Number(!!walk.sprint)},gameplay.state,jetpackContext());
+      if(flying&&!jetpack.active){
+        const actor=gameplay.state.actor;
+        simulation.setActorSupport(actor,world.groundHeightAt(actor.x,actor.z));
+      }
       let hiredCasualty=false;
       for(const event of gameplay.drainPoliceEvents()){
         if(campaignScenes.receiveHit(event)&&campaignScenes.people.some(person=>person.hired&&person.id===event.targetId&&person.health<=0))hiredCasualty=true;
@@ -4088,8 +4102,12 @@ function animate(time) {
   if(!renderGate.shouldRender({paused:paused()&&!graphicsTest.active,hidden:document.hidden,cinematic:cutscenes.snapshot().active,tracking,revision:viewRevision,pendingChunks:pendingWorldChunks()}))return;
   const renderDt = Math.min(.1, (time - (lastRender || time)) / 1000); lastRender = time;
   const p = focus(), activeDt = paused()&&!tracking ? 0 : renderDt;
-  const drawnActor=skylineAirPose?{...gameplay.state.actor,feetY:skylineAirPose.y,skydive:skylineAirPose.skydive}:jetpack.active?{...gameplay.state.actor,feetY:jetpack.feetY}:
-    footMotion.sample(ordinaryFootPose(),interiors.active,accumulator*60,!cameraReady)||gameplay.state.actor;
+  const liveActor=gameplay.state.actor;
+  let drawnActor=skylineAirPose?{...liveActor,feetY:skylineAirPose.y,skydive:skylineAirPose.skydive}:jetpack.active?{...liveActor,feetY:jetpack.feetY}:
+    footMotion.sample(ordinaryFootPose(),interiors.active,accumulator*60,!cameraReady)||liveActor;
+  const groundActor=gameplay.state.mode==='foot'&&!gameplay.state.passenger&&!interiors.active&&!jetpack.active&&!skylineAirPose&&!liveActor.swimming;
+  const actorGround=groundActor?simulation.actorSupportAt(liveActor,drawnActor.x,drawnActor.z):null;
+  if(groundActor)drawnActor={...drawnActor,feetY:actorGround+drawnActor.jumpHeight};
   const cameraPose=p===gameplay.state.actor?drawnActor:p;
   const cockpit=cockpitCamera&&cockpitAvailable();
   if(!cockpit)cockpitCamera=false;
@@ -4233,7 +4251,7 @@ function animate(time) {
     lookTarget.set(p.x-Math.sin(p.yaw)*4,p.y+Math.tan(lookPitch)*(distance+4),p.z-Math.cos(p.yaw)*4);
   } else if (onFoot) {
     const aiming=gameplay.state.aiming||reconCameraVisible(reconnaissance.snapshot());
-    const ground=gameplay.state.actor.swimming?gameplay.state.actor.swimSurfaceY-.85:world.heightAt(cameraPose.x,cameraPose.z);
+    const ground=liveActor.swimming?liveActor.swimSurfaceY-.85:actorGround??world.heightAt(cameraPose.x,cameraPose.z);
     const frame=footCameraFrame(cameraPose,{yaw:footCameraYaw,pitch:footLookPitch,ground,aiming,scoped});
     desiredCamera.set(frame.camera.x,frame.camera.y,frame.camera.z);
     lookTarget.set(frame.target.x,frame.target.y,frame.target.z);
@@ -4253,10 +4271,21 @@ function animate(time) {
     if(!visible(a,view))view={x:a.x+Math.sin(yaw)*.8,z:a.z+Math.cos(yaw)*.8};
     desiredCamera.set(view.x,ground+2.25,view.z);lookTarget.set(a.x,ground+1.25,a.z);
   }
-  if(!cockpit&&!interiors.active&&!droneActive){const floor=gameplay.state.mode==='vehicle'&&!aircraft?.active?world.vehicleHeightAt({...p,x:desiredCamera.x,z:desiredCamera.z},p.edge?.road):
-    jetpack.active?world.groundHeightAt(desiredCamera.x,desiredCamera.z):world.heightAt(desiredCamera.x,desiredCamera.z);desiredCamera.y=Math.max(desiredCamera.y,floor+.65);}
-  if(jetpack.active&&!scoped){
-    const {x,z,feetY}=drawnActor,y=feetY+1.45,dx=desiredCamera.x-x,dy=desiredCamera.y-y,dz=desiredCamera.z-z;
+  let underBridgeCamera=false,cameraSupport=null;
+  if(!cockpit&&!interiors.active&&!droneActive){
+    const {x,z}=desiredCamera, carCamera=gameplay.state.mode==='vehicle'&&!aircraft?.active;
+    const aquaticHeight=liveActor.swimming?liveActor.swimSurfaceY:watercraft?.isActive?p.y-.5:null;
+    cameraSupport=Number.isFinite(aquaticHeight)?aquaticHeight:carCamera?world.vehicleHeightAt(p,p.edge?.road):actorGround;
+    const underDeck=simulation.isBelowBridge(x,z,cameraSupport);
+    underBridgeCamera=underDeck||simulation.isBelowBridge(p.x,p.z,cameraSupport);
+    const floor=underDeck||jetpack.active?world.groundHeightAt(x,z):
+      carCamera?world.vehicleHeightAt({...p,x,z},p.edge?.road):world.heightAt(x,z);
+    desiredCamera.y=Math.max(desiredCamera.y,floor+.65);
+  }
+  if((jetpack.active||underBridgeCamera)&&!scoped){
+    const {x,z}=p;
+    const y=jetpack.active?drawnActor.feetY+1.45:cameraSupport+(liveActor.swimming ? .3 : 1.45);
+    const dx=desiredCamera.x-x,dy=desiredCamera.y-y,dz=desiredCamera.z-z;
     const range=Math.hypot(dx,dy,dz);
     if(range>.1){
       const clear=shotObstacles.trace({x,y,z,dx:dx/range,dy:dy/range,dz:dz/range,range});
@@ -4346,8 +4375,9 @@ async function boot() {
   stuntsView=compatibility?emptyView():createStuntRampsView(scene,stunts);
   simulation=createSimulation(map,{
     isOnBridge:terrainSampler.isOnBridge,groundHeightAt:terrainSampler.groundHeightAt,
+    bridgeHeightAt:compatibility?null:terrainSampler.bridgeHeightAt,actorKeepsBridgeLayer:body=>body===gameplay?.state.actor,
     vehicleHeightAt:groundVehicleHeightAt,preserveVehicleSupport:!compatibility,
-    actorHeightAt:body=>world?.heightAt(body.x,body.z)??surfaceAt(body.x,body.z),
+    actorHeightAt:body=>anuBridgeHeightAt(body.x,body.z,surfaceAt)??world?.heightAt(body.x,body.z)??surfaceAt(body.x,body.z),
     stuntSupportAt:stunts.supportAt,nitroAutoRecharge:false,onTrafficHorn:soundTrafficHorn,vehicleMods:()=>!isSandbox()&&gameplay?progression.vehicleMods(gameplay.state.vehicle):{},powerModifiers:()=>heroPowers.modifiers(powerContext()),waterExemption:skylineYardWaterExempt});
   const nitroStations=createNitroStations(FUEL_STATIONS,simulation),nitroById=new Map(nitroStations.map(site=>[site.id,site]));
   stationDamage=createNitroStationDamage(nitroStations,{groundHeightAt:terrainSampler.heightAt});
@@ -4582,7 +4612,7 @@ async function boot() {
     powerModifiers:()=>heroPowers.modifiers(powerContext()),onVehicleImpacts:(events,dt)=>pedestrians.applyVehicleImpacts(events,dt),hasBlastLineOfSight:(a,b)=>visible(a,b,true),
     getInterior:()=>policeRooms.current,getHostageRoomId:()=>heists?.hostageRoomId,resolveInterior:id=>policeRooms.resolve(id),
     canAttack:canPlayerAttack,canFireWeapon:()=>campaign.state.active?.target.victory!==true,getShotTargets:shotTargets,traceShot:tracePlayerShot,
-    playerFeetY:()=>skylineAirPose?.y??jetpack?.feetY,
+    playerFeetY:playerFeetHeight,
     launchRocket:ray=>ordnance?.launchRocket(ray),onVehicleShot:hitWorldVehicle,onVehicleExplosion:damageExplosionVehicles,policeShotClear,getAllies:()=>campaignScenes?.people||[],
     getSearchDuration:campaign.policeSearchDuration,
     passengerPose:()=>aircraft?.seatPose||skylineAtv?.seatPose||depotTank?.seatPose||watercraft?.seatPose||lightRail?.seatPose||rideService?.seatPose||buses?.seatPose,
@@ -4701,6 +4731,7 @@ async function boot() {
   renderCharacterChoices();
   // Read-only diagnostics for QA; no production state setters.
   window.capitalDriveSnapshot = () => Object.freeze({ ready: true, started, paused: paused(), gameMode,
+    actorFeetY:gameplay.state.mode==='foot'&&!gameplay.state.passenger?playerFeetHeight():null,
     player: Object.freeze({ ...simulation.player }), focus: Object.freeze({ ...focus() }),
     nitro:freezeCopy({bays:nitroStations,offer:nitroOfferForCar()}),
     deliveries:delivery?.snapshot(),stunts:stunts?.ramps,driving:freezeCopy(simulation.driving),jetpack:freezeCopy({...jetpack.snapshot(),altitude:jetpack.active?gameplay.state.actor.jumpHeight:0}),

@@ -252,6 +252,32 @@ export function createSimulation(map, options = {}) {
   function bridgeBarrierOverlapsVehicle(barrier, x, z, pose) {
     return !options.vehicleHeightAt || bridgeBarrierOverlapsBody(barrier, x, z, vehicleBase(pose), vehicleBodyHeight(pose));
   }
+  // A walker already on the lower level keeps it at overlapping X/Z.
+  // Transient ownership follows that actor only, without changing save poses.
+  const actorSupports = new WeakMap();
+  function isBelowBridge(x, z, y) {
+    if (!Number.isFinite(y)) return false;
+    const deck = options.bridgeHeightAt?.(x, z);
+    return Number.isFinite(deck) && y + .9 < deck;
+  }
+  function vehicleBelowBridge(pose, x, z) {
+    return options.bridgeHeightAt && options.vehicleHeightAt && isBelowBridge(x, z, vehicleBase(pose));
+  }
+  function setActorSupport(actor, y) {
+    if (options.bridgeHeightAt && Number.isFinite(y)) actorSupports.set(actor, { x: actor.x, z: actor.z, y });
+  }
+  function sampleActorSupport(actor, x, z, priorY) {
+    if (isBelowBridge(x, z, priorY)) return options.groundHeightAt?.(x, z);
+    return options.actorHeightAt?.(x === actor.x && z === actor.z ? actor : { ...actor, x, z });
+  }
+  function actorSupportAt(actor, x = actor.x, z = actor.z, referenceY) {
+    if (Number.isFinite(referenceY)) return sampleActorSupport(actor, x, z, referenceY);
+    const prior = actorSupports.get(actor);
+    const retained = prior?.x === actor.x && prior?.z === actor.z ? prior?.y : undefined;
+    const knownY = retained ?? (!options.actorKeepsBridgeLayer?.(actor) && Number.isFinite(actor.y) ? actor.y : undefined);
+    return x === actor.x && z === actor.z && Number.isFinite(knownY) ? knownY :
+      sampleActorSupport(actor, x, z, knownY);
+  }
   const passage = coveredCentrePassage(map);
   for (const building of (map.buildings || []).flatMap(b => b === passage?.building ? passage.groundParts : [b])) {
     if (!building.points?.length||building.type==='roof'||replacedColliders.has(building.id)) continue;
@@ -314,7 +340,7 @@ export function createSimulation(map, options = {}) {
     }
     return null;
   }
-  function physicalContact(index,polygon,x,z,radius){
+  function physicalContact(index,polygon,x,z,radius,belowBridge=false){
     if(index!==waterIndex){
       for(const hole of polygon.innerRings||[]){
         const ring=hole.points||hole;
@@ -332,7 +358,7 @@ export function createSimulation(map, options = {}) {
       }
       return polygonContact(x,z,polygon.points,radius);
     }
-    if(options.isOnBridge?.(x,z,radius))return null;
+    if(!belowBridge&&options.isOnBridge?.(x,z,radius))return null;
     const {outer,holes}=waterRings.get(polygon),mask=waterCell(polygon,x,z);
     if(mask==='land')return null;
     if(mask==='water')return {nx:1,nz:0,depth:radius};
@@ -523,7 +549,7 @@ export function createSimulation(map, options = {}) {
         if (index === barrierIndex && bridgeBarrierOwners.has(polygon) && !bridgeBarrierOverlapsVehicle(polygon, x, z, pose)) continue;
         const occupied = index !== waterIndex && !polygon.innerRings?.length
           ? polygonIntersectsCircle(x,z,polygon.points,radius)
-          : physicalContact(index,polygon,x,z,radius);
+          : physicalContact(index,polygon,x,z,radius,index===waterIndex&&vehicleBelowBridge(pose,x,z));
         if (occupied) return false;
       }
     }
@@ -1036,6 +1062,7 @@ export function createSimulation(map, options = {}) {
       player.vx *= 0.4; player.vz *= 0.4;
     }
     for (const building of [...buildingIndex.query(player.x, player.z, 2),...barrierIndex.query(player.x,player.z,2)]) {
+      if (bridgeBarrierOwners.has(building) && !bridgeBarrierOverlapsVehicle(building,player.x,player.z,player)) continue;
       const contact = physicalContact(buildingIndex,building,player.x,player.z,1.55);
       if (contact) resolveImpact(contact.nx, contact.nz, contact.depth + 0.02);
     }
@@ -1117,21 +1144,29 @@ export function createSimulation(map, options = {}) {
     if (!actor || ![actor.x, actor.z, dx, dz, radius].every(Number.isFinite) || radius <= 0) return { moved: false, blocked: true, distance: 0 };
     radius = clamp(radius, 0.1, 2);
     const startX = actor.x, startZ = actor.z;
-    let water=allowSwimming ? waterAt(startX,startZ,actor.swimming?underDeck:undefined) : null;
+    const trackSupport = options.bridgeHeightAt && (actorSupports.has(actor) || options.actorKeepsBridgeLayer?.(actor));
+    let previousSupport;
+    const priorY = () => previousSupport ??= actorSupportAt(actor);
+    const belowBridgeAt = (x,z) => trackSupport && isBelowBridge(x,z,priorY());
+    let water=allowSwimming ? waterAt(startX,startZ,actor.swimming||belowBridgeAt(startX,startZ)?underDeck:undefined) : null;
     // A bounded sweep prevents thin-wall tunnelling and never seeks a distant road.
     const length = Math.hypot(dx, dz), scale = length > 8 ? 8 / length : 1;
+    if (trackSupport && length > .00001) priorY();
     dx *= scale; dz *= scale;
     const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / Math.min(radius * 0.5, 0.2)));
     function moveIfClear(x, z) {
       if (x < bounds.minX + radius || x > bounds.maxX - radius || z < bounds.minZ + radius || z > bounds.maxZ - radius) return false;
+      let feetY;
+      const bodyY=()=>feetY??=water ? water.y-.85 : !trackSupport && Number.isFinite(actor.y) ? actor.y :
+        sampleActorSupport(actor,x,z,trackSupport?priorY():undefined)+(actor.jumpHeight||0);
       for (const index of [buildingIndex, barrierIndex, waterIndex]) for (const polygon of index.query(x, z, radius)) {
         if(allowSwimming && index===waterIndex && waterSurfaces.has(polygon)) continue;
         if(index===waterIndex && waterExemption?.(x,z)) continue;
         if (index === barrierIndex && bridgeBarrierOwners.has(polygon) && !bridgeBarrierOverlapsBody(polygon, x, z,
-          Number.isFinite(actor.y) ? actor.y : options.actorHeightAt?.({ ...actor, x, z }), actor.height || 1.8)) continue;
-        if (physicalContact(index,polygon,x,z,radius)) return false;
+          bodyY(), actor.height || 1.8)) continue;
+        if (physicalContact(index,polygon,x,z,radius,index===waterIndex&&belowBridgeAt(x,z))) return false;
       }
-      const nextWater=allowSwimming ? waterAt(x,z,water?underDeck:undefined) : null;
+      const nextWater=allowSwimming ? waterAt(x,z,water||belowBridgeAt(x,z)?underDeck:undefined) : null;
       if(water && !nextWater && options.groundHeightAt?.(x,z)>water.y+1.55) return false;
       const blocked=[playerVehicle, ...traffic, ...parkedIndex.query(x,z,radius+3), ...abandonedCars, ...externalVehicles].some(car => {
         if (!car || !Number.isFinite(car.x) || !Number.isFinite(car.z) || car === actor ||
@@ -1143,8 +1178,8 @@ export function createSimulation(map, options = {}) {
         const clearX=Math.max(0,along-size.length/2),clearZ=Math.max(0,across-size.width/2);
         if(clearX*clearX+clearZ*clearZ>=radius*radius) return false;
         if(options.vehicleHeightAt) {
-          const actorY=Number.isFinite(actor.y)?actor.y:options.actorHeightAt?.(actor);
-          const nextY=Number.isFinite(actor.y)?actor.y:options.actorHeightAt?.({...actor,x,z});
+          const actorY=water ? water.y-.85 : priorY()+(actor.jumpHeight||0);
+          const nextY=bodyY();
           if(Number.isFinite(actorY)&&Number.isFinite(nextY)) {
             const carY=vehicleBase(car),height=Number.isFinite(actor.height)&&actor.height>0?actor.height:1.8;
             if(Number.isFinite(carY)&&(Math.min(actorY,nextY)>carY+vehicleBodyHeight(car)||Math.max(actorY,nextY)+height<carY)) return false;
@@ -1171,6 +1206,9 @@ export function createSimulation(map, options = {}) {
       if (!moveIfClear(x,z)) { blocked=true; if(!moveIfClear(x,actor.z)) moveIfClear(actor.x,z); }
     }
     const distance = Math.hypot(actor.x - startX, actor.z - startZ);
+    if (trackSupport && (distance > .00001 || !actorSupports.has(actor))) {
+      setActorSupport(actor,water ? water.y-.85 : sampleActorSupport(actor,actor.x,actor.z,priorY()));
+    }
     const result={ moved: distance > 0.00001, blocked, distance, x: actor.x, z: actor.z };
     if(allowSwimming) result.water=water;
     return result;
@@ -1201,5 +1239,6 @@ export function createSimulation(map, options = {}) {
     registerStaticBarriers, unregisterStaticBarriers: barriers => barriers.forEach(part=>barrierIndex.remove(part)),
     setExternalVehicles, setExternalPeople, canOccupy, moveVehicle, requestVehicleStop, drainVehicleImpacts:()=>vehicleImpacts.splice(0),
     get peopleContacts() { return Object.freeze({ ...peopleStats }); },
-    setPlayerVehicle, nearbyVehicles, claimVehicle, vehicleForDamage, damageVehicle, moveActor, moveSwimmingActor, waterAt, hasLineOfSight, get elapsed() { return elapsed; } };
+    setPlayerVehicle, nearbyVehicles, claimVehicle, vehicleForDamage, damageVehicle, moveActor, moveSwimmingActor, waterAt,
+    actorSupportAt, setActorSupport, isBelowBridge, hasLineOfSight, get elapsed() { return elapsed; } };
 }
