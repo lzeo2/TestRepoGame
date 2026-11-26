@@ -1,4 +1,5 @@
 import { coveredCentrePassage } from './covered-passage.js';
+import { bridgeDeckEdges, BRIDGE_DECK_BOTTOM, BRIDGE_DECK_TOP } from './road-network.js';
 import { CAPITAL_BY_ID as BY_ID } from '../../assets/car-arcade/fleet.js';
 // One immutable broad phase for world solids. Rooms remain lazy, owned by interiors.
 const EPS = 1e-8;
@@ -75,13 +76,18 @@ export function createShotObstacles(map,{heightAt=()=>0,groundHeightAt=heightAt,
   }
   // The same prepared source deck profiles used for road rendering provide
   // overhead cover. A sloped local Y transform avoids flat stair-step hitboxes.
+  const deckIds=new Set(bridgeSegments.map(segment=>segment?.roadId));
+  const pavedEdges=new Map();
+  for(const road of map.roads||[])if(deckIds.has(road.id))pavedEdges.set(road.id,bridgeDeckEdges(road));
   for(const segment of bridgeSegments) {
     if(!segment?.a||!segment.b||![segment.y0,segment.y1,segment.radius].every(Number.isFinite))continue;
     const dx=segment.b[0]-segment.a[0],dz=segment.b[1]-segment.a[1],length=Math.hypot(dx,dz);
     if(length<=EPS)continue;
-    const nx=-dz/length*segment.radius,nz=dx/length*segment.radius,slope=(segment.y1-segment.y0)/(length*length);
-    insertSolid({points:[[segment.a[0]+nx,segment.a[1]+nz],[segment.b[0]+nx,segment.b[1]+nz],
-      [segment.b[0]-nx,segment.b[1]-nz],[segment.a[0]-nx,segment.a[1]-nz]],holes:[],bottom:-.35,top:.083,
+    const nx=-dz/length,nz=dx/length,slope=(segment.y1-segment.y0)/(length*length);
+    const {left,right}=pavedEdges.get(segment.roadId)||{left:-segment.radius,right:segment.radius};
+    const edge=(point,offset)=>[point[0]+nx*offset,point[1]+nz*offset];
+    insertSolid({points:[edge(segment.a,right),edge(segment.b,right),edge(segment.b,left),edge(segment.a,left)],
+      holes:[],bottom:BRIDGE_DECK_BOTTOM,top:BRIDGE_DECK_TOP,
       plane:{x:segment.a[0],z:segment.a[1],y:segment.y0,gx:dx*slope,gz:dz*slope}});
   }
   function traceHit(ray,room=null,vehicles=[]) {

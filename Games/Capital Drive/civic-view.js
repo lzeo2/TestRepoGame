@@ -1,6 +1,6 @@
 import {SKATE_BUILDING_OPENING,carveSkatePolygon,splitSkateSegment} from './civic-extras.js';
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
-import { roadProfile } from './road-network.js';
+import { roadProfile, isLakeBridgeRoad, BRIDGE_DECK_BOTTOM } from './road-network.js';
 
 export const CIVIC_BUILDING_IDS=Object.freeze(['osm-46081156','osm-584970594','osm-584970595']);
 const approachEdge=[[-231.17,-4135.75],[-266.14,-4209.99]];
@@ -21,8 +21,6 @@ export const CIVIC_LANDMARKS=Object.freeze([Object.freeze({
   sourceBuildingId:'osm-46081156',anchorType:'estimated public-facing exterior approach',
   description:'Civic shopping centre at Bunda Street. Original facades follow mapped footprints; rooms are approximate.',
 })]);
-// These source bridge ways cross the lake. Other tagged overpasses are not lake decks.
-const BRIDGE_IDS=new Set(['way/4878920','way/75247036','way/75247010','way/4878927','way/4878928']);
 const GLYPHS=['01110 10001 10001 11111 10001 10001 10001','11110 10001 10001 11110 10001 10001 11110','01111 10000 10000 10000 10000 10000 01111','11110 10001 10001 10001 10001 10001 11110','11111 10000 10000 11110 10000 10000 11111','11111 10000 10000 11110 10000 10000 10000','01111 10000 10000 10111 10001 10001 01111','10001 10001 10001 11111 10001 10001 10001','11111 00100 00100 00100 00100 00100 11111','00111 00010 00010 00010 10010 10010 01100','10001 10010 10100 11000 10100 10010 10001','10000 10000 10000 10000 10000 10000 11111','10001 11011 10101 10101 10001 10001 10001','10001 11001 10101 10011 10001 10001 10001','01110 10001 10001 10001 10001 10001 01110','11110 10001 10001 11110 10000 10000 10000','01110 10001 10001 10001 10101 10010 01101','11110 10001 10001 11110 10100 10010 10001','01111 10000 10000 01110 00001 00001 11110','11111 00100 00100 00100 00100 00100 00100','10001 10001 10001 10001 10001 10001 01110','10001 10001 10001 10001 10001 01010 00100','10001 10001 10001 10101 10101 10101 01010','10001 10001 01010 00100 01010 10001 10001','10001 10001 01010 00100 00100 00100 00100','11111 00001 00010 00100 01000 10000 11111'];
 const LABELS=['CAPITOL CENTRE','THREAD THEORY','BEAN THERE','BYTE BOUTIQUE'];
 function distance(x,z,a,b) {
@@ -35,7 +33,7 @@ export function createCivicView(scene,map,heightAt,{roadHeightAt=(road,x,z)=>hei
   const body={positions:[],colors:[]},glass={positions:[],colors:[]},bridges={positions:[],colors:[]},signs={positions:[],uvs:[]};
   const color=new THREE.Color(),ownedGeometry=[],ownedMaterials=[],ownedTextures=[],barriers=[];
   const buildings=(map.buildings||[]).filter(b=>CIVIC_BUILDING_IDS.includes(b.id));
-  const bridgeRoads=(map.roads||[]).filter(r=>BRIDGE_IDS.has(r.sourceId)&&r.sourceTags?.bridge==='yes');
+  const bridgeRoads=(map.roads||[]).filter(isLakeBridgeRoad);
   const segments=bridgeRoads.flatMap(r=>r.points.slice(1).map((b,i)=>({road:r,a:r.points[i],b,width:roadProfile(r).driveWidth})));
   const finiteHeight=(x,z)=>{const y=heightAt(x,z);if(!Number.isFinite(y))throw new Error('Civic view requires finite supplied terrain/deck height');return y;};
   const deckHeight=(road,p)=>{const y=roadHeightAt(road,...p);if(!Number.isFinite(y))throw new Error('Civic view requires finite supplied road height');return y;};
@@ -142,7 +140,7 @@ export function createCivicView(scene,map,heightAt,{roadHeightAt=(road,x,z)=>hei
       // Open steel balustrades preserve the lake view over each concrete edge.
       // The upper rail remains inside the existing 1.05m collision envelope.
       const plinth=commonwealth?.30:.44;
-      wall(bridges,edgeA,edgeB,edgeY0-.35,edgeY1-.35,ya+plinth,yb+plinth,0xb6b5aa);
+      wall(bridges,edgeA,edgeB,edgeY0+BRIDGE_DECK_BOTTOM,edgeY1+BRIDGE_DECK_BOTTOM,ya+plinth,yb+plinth,0xb6b5aa);
       const rail=(t,h,offset=0)=>[edgeA[0]+(edgeB[0]-edgeA[0])*t+nx*offset,ya+(yb-ya)*t+h,edgeA[1]+(edgeB[1]-edgeA[1])*t+nz*offset];
       railSides[side>0?1:0].push({j,ya,yb,rail});
       const stepLength=length/steps,posts=Math.max(1,Math.round(stepLength/6));
