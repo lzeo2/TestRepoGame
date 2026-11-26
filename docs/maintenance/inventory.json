@@ -19,10 +19,10 @@
       "title": "A Dark Room",
       "registered": true,
       "entry": "Games/ADarkRoom/index.html",
-      "entry_blob": "d425fb85f827f8863549d18dd032dea564d76c6e",
-      "tree": "786f193f75080abf09f0cccfe29989a8b8c903e0",
+      "entry_blob": "49e4fe08d9aa006d02200adc2c65d57a7ed608db",
+      "tree": "2f962d17685cf534d4254e25ceda9835e890e3b6",
       "files": 180,
-      "bytes": 7141869,
+      "bytes": 7141879,
       "document": "docs/maintenance/games/051-adarkroom.md"
     },
     {
@@ -32,9 +32,9 @@
       "registered": true,
       "entry": "Games/AchtungDieKurve/index.html",
       "entry_blob": "bf90c7f1aad910a6a43dba4ace602d735879c82c",
-      "tree": "09034393b86e572ca8a026edea0da38bf395a1af",
+      "tree": "fb2981874f4bc05b9aa84f6f5f5b6e7f9cc0f2c7",
       "files": 6,
-      "bytes": 28652,
+      "bytes": 29323,
       "document": "docs/maintenance/games/200-achtungdiekurve.md"
     },
     {
@@ -67,10 +67,10 @@
       "title": "Asteroids",
       "registered": true,
       "entry": "Games/Asteroids/index.html",
-      "entry_blob": "b690355b69daf26a1394ff9fb56f035010879e2b",
-      "tree": "a4d0f3152372e758bf0c2ebb9d4d0921d72c7915",
+      "entry_blob": "6f04df3c651db8ebf885ffc2daad4e795e3d494a",
+      "tree": "4e68e9bc1b84e46ebf63164a1f651094b9484565",
       "files": 9,
-      "bytes": 255785,
+      "bytes": 255795,
       "document": "docs/maintenance/games/215-asteroids.md"
     },
     {
@@ -115,10 +115,10 @@
       "title": "Baldi's Basics",
       "registered": true,
       "entry": "Games/BaldisBasics/index.html",
-      "entry_blob": "1c8959e3204bf4da442ad7151a4c420be137e076",
-      "tree": "dc5ef4aec8afc4b63eb5a3dfbac5ea9b3df4e592",
+      "entry_blob": "e1acb0e134ad2fe6ecde8ac11e3478f461ef6172",
+      "tree": "715dc911ccfdd9d0822bfaf8ecc11b7e2b66a51a",
       "files": 12,
-      "bytes": 37508313,
+      "bytes": 37508283,
       "document": "docs/maintenance/games/059-baldisbasics.md"
     },
     {
@@ -127,10 +127,10 @@
       "title": "Basket Random",
       "registered": true,
       "entry": "Games/BasketRandom/index.html",
-      "entry_blob": "1f3e28caf168d8c44bf158aa7f9ace751b42640c",
-      "tree": "e83d1b6466f22f1aaa8cfda179a62b62523beefc",
+      "entry_blob": "3fc7ebbc97a62b36f4254e2bb4f7ba67a9b04704",
+      "tree": "f1c27f4da2074460eb3f2e716303a4ffb3656d13",
       "files": 77,
-      "bytes": 3385145,
+      "bytes": 3385445,
       "document": "docs/maintenance/games/005-basketrandom.md"
     },
     {
@@ -187,10 +187,10 @@
       "title": "Bloons TD",
       "registered": true,
       "entry": "Games/BloonsTD/index.html",
-      "entry_blob": "c35bbf9cb6cedb3ab11062f0d000e009621defd8",
-      "tree": "cb803cd16c4bd542e64699192fffef5363f7a51b",
+      "entry_blob": "6e8fcbc768c3c073bd790461220d8f8f73429bdf",
+      "tree": "0ba26ba6993e1a3b5293f91a13a76ebd81e98d11",
       "files": 9,
-      "bytes": 5918324,
+      "bytes": 5918742,
       "document": "docs/maintenance/games/080-bloonstd.md"
     },
     {
@@ -247,10 +247,10 @@
       "title": "Breakout",
       "registered": true,
       "entry": "Games/BreakoutClassic/index.html",
-      "entry_blob": "d5717661bc6e9e95e365b0167bde48bf7244a0a0",
-      "tree": "d92938a06aca4948510315a27bc9e6a7c351660c",
+      "entry_blob": "5dfbb729eae04b24db8617b078882e7abd9d5d58",
+      "tree": "8e647866e391c5d32752e01219e3c9f90c786282",
       "files": 7,
-      "bytes": 40686,
+      "bytes": 40696,
       "document": "docs/maintenance/games/011-breakoutclassic.md"
     },
     {
@@ -259,10 +259,10 @@
       "title": "Breakout Hacked",
       "registered": true,
       "entry": "Games/BreakoutHacked/index.html",
-      "entry_blob": "137569fec985c7f5ddd3b0d116ad607c123a166a",
-      "tree": "9af0b4d09951eeaedbfd559799bdb3184aa7ac47",
+      "entry_blob": "a5467c8cd1f802e1f9355ef6daf62822360d2a5e",
+      "tree": "95e8908e51c0588fc7660f137fa3f045d6088021",
       "files": 7,
-      "bytes": 41491,
+      "bytes": 41501,
       "document": "docs/maintenance/games/094-breakouthacked.md"
     },
     {
@@ -284,9 +284,9 @@
       "registered": true,
       "entry": "Games/BurritoBison/index.html",
       "entry_blob": "8fe55124f84646ed9e3ff0eec6b6512e4327a189",
-      "tree": "40104c6a47a5fe3357895acf0ff01e815c8758af",
+      "tree": "6ad945dcfddd5f342e49d769b2f5124208d801ce",
       "files": 11,
-      "bytes": 33596180,
+      "bytes": 33596144,
       "document": "docs/maintenance/games/048-burritobison.md"
     },
     {
@@ -295,10 +295,10 @@
       "title": "Capital Drive: Canberra (Preview)",
       "registered": true,
       "entry": "Games/Capital Drive/index.html",
-      "entry_blob": "3ac26dcb49f68127bd3b28c7fd4e5504240753f2",
-      "tree": "25fcfe8c9a252c7be22162d3cbd9c76cf89179a4",
-      "files": 222,
-      "bytes": 38574808,
+      "entry_blob": "31d479926d114d36cd24daf3b0bee72f76cc419e",
+      "tree": "58f154fe09ed1c7fa93c86269d074f7a9da53a43",
+      "files": 235,
+      "bytes": 38891103,
       "document": "docs/maintenance/games/245-capital-drive.md"
     },
     {
@@ -355,10 +355,10 @@
       "title": "Chrome Dino",
       "registered": true,
       "entry": "Games/ChromeDino/dino.html",
-      "entry_blob": "1bd253181af09798b5fb0eeaafc67a03c960cbe0",
-      "tree": "3c4821a4f53bc3ff86d519e1cbabe8408a54dd04",
+      "entry_blob": "94df4af1c8e367f23528cb2b79a5c57155eeb3f0",
+      "tree": "2b515156c0ab7ed83dffab834b59c80edbf67733",
       "files": 3,
-      "bytes": 137175,
+      "bytes": 137249,
       "document": "docs/maintenance/games/010-chromedino.md"
     },
     {
@@ -391,10 +391,10 @@
       "title": "Cookie Clicker",
       "registered": true,
       "entry": "Games/CookieClicker/index.html",
-      "entry_blob": "47b3d6cd7d4be4847eca2daf6681d9591c7ada56",
-      "tree": "f1c5ddab8563ad6d0f397d8dcb97f5115be736ab",
+      "entry_blob": "e858f709dd7cf6de35483357ad21fcda642eafc8",
+      "tree": "1e96ccfcdf67e8cd99abab0272a0aa3814ed828d",
       "files": 336,
-      "bytes": 5801133,
+      "bytes": 5801143,
       "document": "docs/maintenance/games/079-cookieclicker.md"
     },
     {
@@ -403,10 +403,10 @@
       "title": "Cookie Clicker Hacked",
       "registered": true,
       "entry": "Games/CookieClickerHacked/index.html",
-      "entry_blob": "2137ad290b82a83a03151f0999a0babae615585b",
-      "tree": "afd7ea33352143af7e774198ad5805e8c6528a81",
+      "entry_blob": "0abd0a578437d279c86f9a65b9c791145e7de802",
+      "tree": "a1291227fe579beeabe2810b973d5b60d3d9dba5",
       "files": 336,
-      "bytes": 5802366,
+      "bytes": 5802376,
       "document": "docs/maintenance/games/090-cookieclickerhacked.md"
     },
     {
@@ -439,10 +439,10 @@
       "title": "Crush the Castle",
       "registered": true,
       "entry": "Games/CrushTheCastle/index.html",
-      "entry_blob": "9e383061bf56afaa7887ff7e917d5e6b3eff88a8",
-      "tree": "1dc3561e1947c1d97842affd4c5c53cd53e450b3",
+      "entry_blob": "25396c2c932b61d6d1e0ea277581d40548d5c9d5",
+      "tree": "2383ffdeb9d624c4d1645f4e50c211b81efa3b89",
       "files": 4,
-      "bytes": 9030183,
+      "bytes": 9030353,
       "document": "docs/maintenance/games/123-crushthecastle.md"
     },
     {
@@ -487,10 +487,10 @@
       "title": "Doge Miner",
       "registered": true,
       "entry": "Games/DogeMiner/index.html",
-      "entry_blob": "a5467cc2f5f360ee6652a38c4d48136447d561e6",
-      "tree": "76cfddcf17d7ae17d38bf04bd41797a946ea5c8e",
-      "files": 14,
-      "bytes": 4297746,
+      "entry_blob": "8cff56c2c0f85fe3e53b795bf4f183988b5334d3",
+      "tree": "c532ab538d0dc004065f713793e97981b6a8b724",
+      "files": 31,
+      "bytes": 4355090,
       "document": "docs/maintenance/games/087-dogeminer.md"
     },
     {
@@ -511,10 +511,10 @@
       "title": "Doodle Jump",
       "registered": true,
       "entry": "Games/DoodleJump/index.html",
-      "entry_blob": "b5c1f4b3f16f044d5fb7a66e3716b98211fe1de6",
-      "tree": "1f3fd8163b03155224ae7c11ef3cb24e33762909",
+      "entry_blob": "34b6623d382de9e1e6f5546ebaa41be92c0c6ca2",
+      "tree": "a1f6b3c6986cd3a816dc1538a773c9a54faf659f",
       "files": 45,
-      "bytes": 4096834,
+      "bytes": 4096844,
       "document": "docs/maintenance/games/083-doodlejump.md"
     },
     {
@@ -523,10 +523,10 @@
       "title": "Doodle Jump Hacked",
       "registered": true,
       "entry": "Games/DoodleJumpHacked/index.html",
-      "entry_blob": "5b55a507a4d40afe2bd11f0e26fb674f30234eec",
-      "tree": "b0c33933be00b64722b92cb7e1bd2dae20621e3e",
+      "entry_blob": "406fdc3a5f0db34645f299829579ff96040be7db",
+      "tree": "2e92b0824cbed6f1e99824fddef1e3047920ac60",
       "files": 45,
-      "bytes": 4097989,
+      "bytes": 4097999,
       "document": "docs/maintenance/games/109-doodlejumphacked.md"
     },
     {
@@ -559,10 +559,10 @@
       "title": "Drift Boss",
       "registered": true,
       "entry": "Games/DriftBoss/index.html",
-      "entry_blob": "8c1563ffbeecef8c83ff0856ee5340cebbd59890",
-      "tree": "f637b2fb141ed65613ab4008a5921202830df82f",
+      "entry_blob": "ec049b1d51574d55c043394913810381d4f86540",
+      "tree": "47e8de0a285486a801dfe4611c332601710183d2",
       "files": 97,
-      "bytes": 7539267,
+      "bytes": 7539618,
       "document": "docs/maintenance/games/081-driftboss.md"
     },
     {
@@ -571,10 +571,10 @@
       "title": "Duck Hunt",
       "registered": true,
       "entry": "Games/DuckHunt/index.html",
-      "entry_blob": "fd97e223172b75c9e3bf33016d6267b28f73c745",
-      "tree": "8b74fe11c695bf41e705ac469c7c57bd38adbf24",
-      "files": 11,
-      "bytes": 2023501,
+      "entry_blob": "7671d9c8ab3550601d88932923b7935d1611da49",
+      "tree": "efc9facc36ac14431e0661c26b3d98b93fcd277c",
+      "files": 21,
+      "bytes": 2321861,
       "document": "docs/maintenance/games/220-duckhunt.md"
     },
     {
@@ -583,10 +583,10 @@
       "title": "Fancy Pants Adventure 3",
       "registered": true,
       "entry": "Games/FancyPantsAdventure3/index.html",
-      "entry_blob": "d1f1bc2e76b669aefc6f870d4c0fa058950ee195",
-      "tree": "bb348cbf61cd50b7ae272f5e18810431f6c212fe",
+      "entry_blob": "53d7f72009ac651d697561199aa02e006e789ae0",
+      "tree": "6aebf5779e76944dd65e939684f06c3a8dc8fa64",
       "files": 4,
-      "bytes": 42038411,
+      "bytes": 42038589,
       "document": "docs/maintenance/games/063-fancypantsadventure3.md"
     },
     {
@@ -667,10 +667,10 @@
       "title": "Fleeing the Complex",
       "registered": true,
       "entry": "Games/FleeingTheComplex/index.html",
-      "entry_blob": "a3e623094003000f6c3419f4a6fa2d0a4ce9ada4",
-      "tree": "a3e1197af988071408383e9bc29822fe335d181b",
+      "entry_blob": "9f358eebaf8e71319c25d02173556aa13b84ef5a",
+      "tree": "793af273de35c641c5531aaf773ac898b58c4479",
       "files": 12,
-      "bytes": 60666838,
+      "bytes": 60667030,
       "document": "docs/maintenance/games/057-fleeingthecomplex.md"
     },
     {
@@ -680,9 +680,9 @@
       "registered": true,
       "entry": "Games/Foldwild/index.html",
       "entry_blob": "4dcedae6799cc392404e659482ebbf99d6a23e71",
-      "tree": "6929cd6f31b89841b1eafeb9e745e73aca002424",
+      "tree": "198b70b617919d3cb9f246edb762e7da3d550b67",
       "files": 97,
-      "bytes": 15381500,
+      "bytes": 15381673,
       "document": "docs/maintenance/games/226-foldwild.md"
     },
     {
@@ -715,10 +715,10 @@
       "title": "Frogger",
       "registered": true,
       "entry": "Games/Frogger/index.html",
-      "entry_blob": "1566505caf81d02d9ae6416e5d298a2f868ae00e",
-      "tree": "5a3dcd59f3586948d8996a28d087a36d56db3bfb",
+      "entry_blob": "dea5a158135dce6cf6828b01ac2cb2ad4197eb57",
+      "tree": "00238cb6beb615a63a8aa8b80f854aef65bf19b7",
       "files": 10,
-      "bytes": 68137,
+      "bytes": 66017,
       "document": "docs/maintenance/games/216-frogger.md"
     },
     {
@@ -799,10 +799,10 @@
       "title": "Hearts Classic",
       "registered": true,
       "entry": "Games/HeartsClassic/index.html",
-      "entry_blob": "f0450627361bd3861cff9ef0305633ba3102574f",
-      "tree": "7a88aac85017a94e4dcff90249a67f49a61a66a8",
+      "entry_blob": "4d9174c5e24dfbb6ad4d8304383d20456c8b6565",
+      "tree": "9942e7ee91298587e20a23eb6f3b8636113fb3b1",
       "files": 36,
-      "bytes": 213581,
+      "bytes": 210175,
       "document": "docs/maintenance/games/204-heartsclassic.md"
     },
     {
@@ -823,10 +823,10 @@
       "title": "Infiltrating the Airship",
       "registered": true,
       "entry": "Games/InfiltratingTheAirship/index.html",
-      "entry_blob": "012cf0087130ae8a5834d96415c2df5cd48941a3",
-      "tree": "e2ddb6653374297d379f04c2d9691e37d5445499",
+      "entry_blob": "98ca94634fdee1da09d92712194b31bdc3523d80",
+      "tree": "a0824531fb42f9d6853b58ad3134baac6bbd2534",
       "files": 12,
-      "bytes": 55919028,
+      "bytes": 55919220,
       "document": "docs/maintenance/games/058-infiltratingtheairship.md"
     },
     {
@@ -847,10 +847,10 @@
       "title": "JANKOLOCK",
       "registered": true,
       "entry": "Games/Jankolock3D/index.html",
-      "entry_blob": "5a024900dad00402ac642d90e8dc1dc3a646e864",
-      "tree": "ed17ed0f049af865f6ffee126c838c45193ef2ac",
+      "entry_blob": "7bac9ab3a751cf3f55f14f2ae2aaa40c30241175",
+      "tree": "2e8dcf304581d6badffd8eadab62a8f92ebc1f0f",
       "files": 440,
-      "bytes": 39040582,
+      "bytes": 39040811,
       "document": "docs/maintenance/games/240-jankolock3d.md"
     },
     {
@@ -859,10 +859,10 @@
       "title": "JavaScript Racer",
       "registered": true,
       "entry": "Games/JavaScriptRacer/index.html",
-      "entry_blob": "ab5ef0c460b64d8c1125fce5e55480791a4b951d",
-      "tree": "95876b276b9d852769d749eeafd8eb25fa000758",
+      "entry_blob": "acc7beb1c87c8bb3f9bbab74f27fb3c2ef781562",
+      "tree": "df66e7937f993254c576efac0e901631cb1e6f35",
       "files": 11,
-      "bytes": 8563834,
+      "bytes": 8563844,
       "document": "docs/maintenance/games/208-javascriptracer.md"
     },
     {
@@ -871,10 +871,10 @@
       "title": "Jetpack Joyride",
       "registered": true,
       "entry": "Games/JetpackJoyride/index.html",
-      "entry_blob": "6defbbec6352b8a47c7d343d9658d0342d365fa1",
-      "tree": "43a828ea99eceb6e068a036496a7a6bc2e6b0c40",
+      "entry_blob": "bc729d29b3a1e0faf6314b3bedadbe7976a26833",
+      "tree": "3376a1e57e9b8d3a43cb9643ce37b5e87ef08dd9",
       "files": 417,
-      "bytes": 16813733,
+      "bytes": 16813858,
       "document": "docs/maintenance/games/086-jetpackjoyride.md"
     },
     {
@@ -883,10 +883,10 @@
       "title": "Jetpack Joyride Hacked",
       "registered": true,
       "entry": "Games/JetpackJoyrideHacked/index.html",
-      "entry_blob": "a92ec2998b0b8e1ed8a6c8991358f2df9397a1db",
-      "tree": "c2060fe57873c07d5b5662e642e9b254fcfd7c39",
+      "entry_blob": "ac6346b5818e7e241fa5236427c95680c0258a15",
+      "tree": "8c1428f345e51fab41645b0b38afa484b9c41ee9",
       "files": 417,
-      "bytes": 16815927,
+      "bytes": 16815895,
       "document": "docs/maintenance/games/107-jetpackjoyridehacked.md"
     },
     {
@@ -931,10 +931,10 @@
       "title": "Lunar Lander",
       "registered": true,
       "entry": "Games/LunarLander/index.html",
-      "entry_blob": "c5936ca8d50b45b79706b94a869386e42c147bdb",
-      "tree": "b253bc45208780f9850c89ef7399c6c6e5b2ef04",
+      "entry_blob": "acd1819cdb6d0de579181f84dca6eb8549801859",
+      "tree": "1574f47be0564a92123b5e7eade71be50cdf276f",
       "files": 4,
-      "bytes": 11004,
+      "bytes": 11014,
       "document": "docs/maintenance/games/218-lunarlander.md"
     },
     {
@@ -1099,10 +1099,10 @@
       "title": "Ovo",
       "registered": true,
       "entry": "Games/Ovo/1.4.5/index.html",
-      "entry_blob": "9c95396d14b6bbe582a8272b0d7fb0d0993cbfda",
-      "tree": "7537015dec8f9de72493860ce3ade0678322bb7d",
+      "entry_blob": "0bc27621dd685c9cc9587b5979c3668bfe79fee0",
+      "tree": "009c0266edaee828c425cb39bf762169b278bdf8",
       "files": 6101,
-      "bytes": 616416444,
+      "bytes": 616416944,
       "document": "docs/maintenance/games/007-ovo.md"
     },
     {
@@ -1171,10 +1171,10 @@
       "title": "Qix",
       "registered": true,
       "entry": "Games/Qix/index.html",
-      "entry_blob": "31c970a8045b6c0932b9d416eb34be5def0be2db",
-      "tree": "784859f4e394846342ddf3c61b55741c191057f9",
+      "entry_blob": "bf379fa8587473227e0d4ad8ee43c53f8e27af74",
+      "tree": "b7b9cc56265cacf45acb7442c93c6b5a4430712a",
       "files": 7,
-      "bytes": 16667,
+      "bytes": 16600,
       "document": "docs/maintenance/games/161-qix.md"
     },
     {
@@ -1232,9 +1232,9 @@
       "registered": true,
       "entry": "Games/Run3/tn6pS9dCf37xAhkJv/index.html",
       "entry_blob": "d462a93efd3a8d168daa5b40e4046f0667c51c41",
-      "tree": "c638de581d899015f8dc994d048480ffc620d0cb",
+      "tree": "273417a4c209a51097b12c007874e6eac0e2844d",
       "files": 345,
-      "bytes": 18749761,
+      "bytes": 18750696,
       "document": "docs/maintenance/games/008-run3.md"
     },
     {
@@ -1255,10 +1255,10 @@
       "title": "Courtyard Cast",
       "registered": true,
       "entry": "Games/SchoolyardCourtyardCast/index.html",
-      "entry_blob": "10a26697f3f1f95c619c224cf9ce5a8b91b10983",
-      "tree": "7e0664e90637177bd83453a3641a329e0d88d878",
+      "entry_blob": "0defea795b6f857a3483e1c37245eed1987d0fe1",
+      "tree": "74ca474a254af141e56d0aba10bc030f48c87ab5",
       "files": 13,
-      "bytes": 831635,
+      "bytes": 831891,
       "document": "docs/maintenance/games/244-schoolyardcourtyardcast.md"
     },
     {
@@ -1267,10 +1267,10 @@
       "title": "Gap Glide",
       "registered": true,
       "entry": "Games/SchoolyardGapGlide/index.html",
-      "entry_blob": "689d536390a43799b7838d7795b0792d257af924",
-      "tree": "ddaa0ec2995667d2e638466a6d684555aea4d57f",
+      "entry_blob": "bd535968c4ca9109f9d77574b3e73a8f61889112",
+      "tree": "0f79d80763cca29fe5681ab803cdb9401d232d8b",
       "files": 8,
-      "bytes": 777162,
+      "bytes": 777350,
       "document": "docs/maintenance/games/243-schoolyardgapglide.md"
     },
     {
@@ -1279,10 +1279,10 @@
       "title": "Lane Run",
       "registered": true,
       "entry": "Games/SchoolyardLaneRun/index.html",
-      "entry_blob": "6cbd1d3bba8d1626bcd15e98940d7e56f312b4e2",
-      "tree": "14785da484c40756fd2ffca23c09ff0faefd7400",
+      "entry_blob": "5ac950b9ab3a3481dc13ae7690380ead713c7bb4",
+      "tree": "5a6e02f6eedaa9245d763234452359ff7e8bd301",
       "files": 8,
-      "bytes": 780417,
+      "bytes": 780624,
       "document": "docs/maintenance/games/242-schoolyardlanerun.md"
     },
     {
@@ -1327,10 +1327,10 @@
       "title": "Snake",
       "registered": true,
       "entry": "Games/Snake/index.html",
-      "entry_blob": "b8d6f3edc2822a54d13e05da52d22f5b3f0425f6",
-      "tree": "e6255960e969a21c68aed5e2011818f368186bdc",
+      "entry_blob": "39e96a0edfdd21c27b3a5335c5146ff6d23f0c8b",
+      "tree": "9aabeacbe6ad510a682ecbaa340da9cd0b2aadc8",
       "files": 8,
-      "bytes": 346041,
+      "bytes": 346347,
       "document": "docs/maintenance/games/009-snake.md"
     },
     {
@@ -1339,10 +1339,10 @@
       "title": "Snake Hacked",
       "registered": true,
       "entry": "Games/SnakeHacked/index.html",
-      "entry_blob": "931d3a8ae4f9052e44fd7bb1cb4f409abbeb4497",
-      "tree": "1f4c0b5060fc34369c88f745510cebccffd626dc",
+      "entry_blob": "1d05f681fa5937c82622f3f4b33a8d0c87db6ddd",
+      "tree": "26c7394e5af9bc9c5f188dd5d568301ad50f9d36",
       "files": 8,
-      "bytes": 346524,
+      "bytes": 346720,
       "document": "docs/maintenance/games/095-snakehacked.md"
     },
     {
@@ -1351,10 +1351,10 @@
       "title": "Soccer Random",
       "registered": true,
       "entry": "Games/SoccerRandom/index.html",
-      "entry_blob": "a1494c89e3ebf20fa6d862eb46099b6888a550ab",
-      "tree": "b00005521705672b93fe395a19497a348681f8c3",
+      "entry_blob": "936b020d5ced076de0154e675ea2a77f66ffdc06",
+      "tree": "efa8d1c1ce52695f0095349148f8a9078bf07da8",
       "files": 104,
-      "bytes": 6578398,
+      "bytes": 6578408,
       "document": "docs/maintenance/games/004-soccerrandom.md"
     },
     {
@@ -1387,10 +1387,10 @@
       "title": "Space Invaders",
       "registered": true,
       "entry": "Games/SpaceInvaders/index.html",
-      "entry_blob": "58bd1be8b4b29bf9b133ede55060c0e1779520da",
-      "tree": "da59e72186970c1623b2af498314c4f0cca45f8e",
+      "entry_blob": "9a1f565be26562c2e867a59e1803d2c609f3cdee",
+      "tree": "ec52e33c55c498dfd10fe99038bbf6f72fbda54e",
       "files": 15,
-      "bytes": 577852,
+      "bytes": 577862,
       "document": "docs/maintenance/games/219-spaceinvaders.md"
     },
     {
@@ -1447,10 +1447,10 @@
       "title": "Stranded In Isekai",
       "registered": true,
       "entry": "Games/StrandedInIsekai/index.html",
-      "entry_blob": "6b448a1ee82c0ad13fcb1b86cfde007d72b68fd5",
-      "tree": "974a4526694e905b8d46cdd689ce5abad10b0f88",
+      "entry_blob": "7675b61c98539493a62288fd7db097d431246858",
+      "tree": "5c8fdffecfce8b70a3a054f5be6826680592dca4",
       "files": 46,
-      "bytes": 10927625,
+      "bytes": 10927598,
       "document": "docs/maintenance/games/052-strandedinisekai.md"
     },
     {
@@ -1472,9 +1472,9 @@
       "registered": true,
       "entry": "Games/SubwaySurfers/index.html",
       "entry_blob": "1f79b901089e6588a5d6cec7acd0d5931ce815f3",
-      "tree": "bbaac3f3fd9a32b4bfa13652d533caff66197463",
+      "tree": "94ddd7f6a5fcdfdcf9dfa9deb6872fce25075c00",
       "files": 21,
-      "bytes": 144515568,
+      "bytes": 144514536,
       "document": "docs/maintenance/games/050-subwaysurfers.md"
     },
     {
@@ -1483,10 +1483,10 @@
       "title": "Subway Surfers Hacked",
       "registered": true,
       "entry": "Games/SubwaySurfersHacked/index.html",
-      "entry_blob": "28822b7c5c85aeef7797b3ae97a08bd7fb67d593",
-      "tree": "103206d71b6f880a020631c9e94287073d31cf54",
+      "entry_blob": "7c6fdeb390ffefe6aab3260160027f4997feab85",
+      "tree": "702c54c4777902d0529fe3ffc19936d068ca8145",
       "files": 21,
-      "bytes": 144518581,
+      "bytes": 144517262,
       "document": "docs/maintenance/games/111-subwaysurfershacked.md"
     },
     {
@@ -1495,10 +1495,10 @@
       "title": "Super Hot",
       "registered": true,
       "entry": "Games/Superhot/index.html",
-      "entry_blob": "7393c9f577db156afab13656fa363d5c16efa841",
-      "tree": "a9f18481f280b347030e8334e1e1db17308bdffe",
+      "entry_blob": "f06122c9fda0834f7a8ca052e10a22d0a17af019",
+      "tree": "62e0dd6e2a2a1cbd4f998322b7a95e27a092f2b5",
       "files": 8,
-      "bytes": 45537342,
+      "bytes": 45537963,
       "document": "docs/maintenance/games/055-superhot.md"
     },
     {
@@ -1519,10 +1519,10 @@
       "title": "Tanks and Soldiers (Preview)",
       "registered": true,
       "entry": "Games/Tanks and Soldiers/index.html",
-      "entry_blob": "eacd39860edbf77ae3d42722fbf6235a12266bb8",
-      "tree": "ec25a2fc54749a295c6d9a3c9967c117f13dee61",
+      "entry_blob": "35d1edc6c99ae9b0730fc9b2557a0911695c53ee",
+      "tree": "2dbfe8221ce914acfea465db8b3b8b6a6ff150b0",
       "files": 24,
-      "bytes": 4691172,
+      "bytes": 4691465,
       "document": "docs/maintenance/games/248-tanks-and-soldiers.md"
     },
     {
@@ -1627,10 +1627,10 @@
       "title": "Volley Random",
       "registered": true,
       "entry": "Games/VolleyRandom/index.html",
-      "entry_blob": "3e78ab3518ef3fbe7345aa79ec0ffb0eba13bff1",
-      "tree": "1b2a39915173f89c1e3e475e7417d65eb9b71eb2",
+      "entry_blob": "6009bc0720c4f9b4e2f5c92e7a0aa54177eff9f0",
+      "tree": "21baa6e9fcf5d96ae2d6dc3941d5c137d99420a6",
       "files": 119,
-      "bytes": 6474522,
+      "bytes": 6474532,
       "document": "docs/maintenance/games/006-volleyrandom.md"
     },
     {
@@ -1709,7 +1709,7 @@
   "shared_runtime": {
     "directory": "Games/_emulatorjs",
     "files": 75,
-    "bytes": 51334846,
-    "tree": "557dcf7b2e4a7fb27ec06b8ff9249b110da7db12"
+    "bytes": 51334428,
+    "tree": "0e558b812f6a28c7fff85e747adac28d4b15bac5"
   }
 }
