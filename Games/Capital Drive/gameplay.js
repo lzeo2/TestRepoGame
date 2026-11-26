@@ -105,7 +105,8 @@ export function createGameplay(map, simulation, options = {}) {
     return true;
   }
   function vehicleAccess(car, destination) {
-    const feetY=Number.isFinite(destination.y)?destination.y:options.heightAt?.(destination.x,destination.z);
+    const supportedY=simulation.actorSupportAt?.(destination);
+    const feetY=Number.isFinite(supportedY)?supportedY:Number.isFinite(destination.y)?destination.y:options.heightAt?.(destination.x,destination.z);
     const carY=Number.isFinite(car.y)?car.y:Number.isFinite(car.supportY)?car.supportY+.18:NaN;
     if(Number.isFinite(feetY)&&Number.isFinite(carY)&&Math.abs(feetY-(carY-.18))>MAX_VEHICLE_ACCESS_STEP)return false;
     // Start at the seat, exempting only this hull. A detached probe cannot move
@@ -123,6 +124,7 @@ export function createGameplay(map, simulation, options = {}) {
         emit('stop', 'Stopped. Press E again to step out.'); return false;
       }
       const car = simulation.player;
+      const carFloor = Number.isFinite(car.y) ? car.y-.18 : car.supportY;
       const width=Number.isFinite(car.width)&&car.width>0?car.width:(CAPITAL_BY_ID[car.modelId]?.width??1.776)+.024;
       const shortSide=width/2+.45+.15;
       for (const angle of [Math.PI / 2, -Math.PI / 2, Math.PI, 0]) {
@@ -131,9 +133,12 @@ export function createGameplay(map, simulation, options = {}) {
           const candidate = { x: car.x, z: car.z, yaw: car.yaw, speed: 0, jumpHeight: 0 };
           const dx = -Math.sin(car.yaw + angle) * reach, dz = -Math.cos(car.yaw + angle) * reach;
           candidate.x += dx; candidate.z += dz;
+          if(Number.isFinite(carFloor))simulation.setActorSupport?.(candidate,
+            simulation.actorSupportAt?.(candidate,candidate.x,candidate.z,carFloor));
           const placement = simulation.moveActor(candidate, 0, 0, 0.45);
           if (!placement.blocked && visible(car, candidate) && vehicleAccess(car,candidate)) {
             Object.assign(state.actor, candidate); state.mode = 'foot';
+            simulation.setActorSupport?.(state.actor,simulation.actorSupportAt?.(candidate));
             emit('exit', 'On foot. E enters a nearby car.'); return true;
           }
         }

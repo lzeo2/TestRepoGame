@@ -5,9 +5,10 @@ import { REGIONAL_ARCHITECTURE_IDS, emitRegionalArchitecture } from './regional-
 import { createTerrainSampler } from './terrain.js';
 import { placeFoliage } from './foliage-placement.js';
 import { prepareWaterRing } from './water-contact.js';
-import { roadProfile, roadMarkingOffsets } from './road-network.js';
+import { roadProfile, roadMarkingOffsets, isLakeBridgeRoad, bridgeDeckEdges, BRIDGE_DECK_BOTTOM, BRIDGE_DECK_TOP } from './road-network.js';
 import { retailDistrict, facesRetailStreet } from './districts.js';
 import { suburbCharacter } from './suburb-character.js';
+import { disusedBridgeScenery } from './disused-bridge.js';
 import { ROAD_TEXTURE_SIZE, SURFACE_TEXTURE_SIZE, ATLAS_INSET, ATLAS_SPAN, createRoadPixels, createSurfacePixels } from './exterior-materials.js';
 
 // Metres, with east = +x and south = +z. All art is generated locally.
@@ -23,8 +24,7 @@ const COLORS = {
 // Rendering ownership only: the source roads retain their traffic widths and IDs.
 // Near-coincident lake ways share a seam instead of drawing skins over each other.
 export function lakeBridgeRoadBands(segments) {
-  const sourceIds=new Set(['way/4878920','way/75247036','way/75247010','way/4878927','way/4878928']);
-  const lake = segments.filter(s => sourceIds.has(s.road.sourceId) && s.road.sourceTags?.bridge === 'yes');
+  const lake = segments.filter(s => isLakeBridgeRoad(s.road));
   const result = new Map();
   for (const s of lake) {
     const dx=(s.b[0]-s.a[0])/s.length,dz=(s.b[1]-s.a[1])/s.length,nx=-dz,nz=dx;
@@ -639,6 +639,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
 
   const bridgeBands=lakeBridgeRoadBands(roadSegments);
   const bridgeBandRoads=new Set([...bridgeBands.keys()].map(s=>s.road));
+  const deckRoadIds=new Set(terrainSampler.bridgeSegments?.map(segment=>segment.roadId));
 
   // Subdivide only where a road triangle would cut through a bilinear hill.
   function drapedTriangle(batch, a, b, c, tint, lift, sampleHeight = heightAt, depth = 0) {
@@ -658,7 +659,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     } else triangle(batch, a, b, c, tint);
   }
 
-  function ribbon(a, b, left, right, tint, lift, road) {
+  function ribbon(a, b, left, right, tint, lift, road, underside = false) {
     const sampleHeight = road ? (x,z)=>roadHeightAt(road,x,z) : heightAt;
     const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
     if (length < 0.1) return;
@@ -672,11 +673,45 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
         const d=typeof offset==='function'?offset(x,z):offset;
         return [x + nx * d, sampleHeight(x + nx * d, z + nz * d) + lift, z + nz * d];
       };
-      const batch = batchAt(x0, z0, tint === COLORS.asphalt ? 'road' : 'pavement');
+      const batch = batchAt(x0, z0, underside ? 'solid' : tint === COLORS.asphalt ? 'road' : 'pavement');
       if (!batch) continue;
       const pa = p(x0, z0, right), pb = p(x1, z1, right), pc = p(x1, z1, left), pd = p(x0, z0, left);
-      drapedTriangle(batch, pa, pb, pc, tint, lift, sampleHeight);
-      drapedTriangle(batch, pa, pc, pd, tint, lift, sampleHeight);
+      if (underside) {
+        drapedTriangle(batch, pa, pc, pb, tint, lift, sampleHeight);
+        drapedTriangle(batch, pa, pd, pc, tint, lift, sampleHeight);
+      } else {
+        drapedTriangle(batch, pa, pb, pc, tint, lift, sampleHeight);
+        drapedTriangle(batch, pa, pc, pd, tint, lift, sampleHeight);
+      }
+    }
+  }
+
+  function drawBridgeBody(segment, left, right, leftOuter, rightOuter) {
+    const { a, b, length, road, profile } = segment;
+    const edges = bridgeDeckEdges(road, profile);
+    const leftEdge = leftOuter ? () => edges.left : left;
+    const rightEdge = rightOuter ? () => edges.right : right;
+    // The concrete soffit is also the underside used by overhead cover.
+    ribbon(a, b, leftEdge, rightEdge, 0x9b998a, BRIDGE_DECK_BOTTOM, road, true);
+    if (isLakeBridgeRoad(road)) return; // The civic parapet supplies the outer fascia.
+    const nx = -(b[1] - a[1]) / length, nz = (b[0] - a[0]) / length;
+    const pieces = Math.max(1, Math.ceil(length / 12));
+    for (const [outside, edge, isLeft] of [[leftOuter, leftEdge, true], [rightOuter, rightEdge, false]]) {
+      if (!outside) continue;
+      function point(fraction) {
+        const x = THREE.MathUtils.lerp(a[0], b[0], fraction), z = THREE.MathUtils.lerp(a[1], b[1], fraction);
+        const offset = edge(x, z), px = x + nx * offset, pz = z + nz * offset;
+        return [px, roadHeightAt(road, px, pz), pz];
+      }
+      for (let i = 0; i < pieces; i++) {
+        const [ax, ay, az] = point(i / pieces), [bx, by, bz] = point((i + 1) / pieces);
+        const batch = batchAt(THREE.MathUtils.lerp(a[0], b[0], i / pieces), THREE.MathUtils.lerp(a[1], b[1], i / pieces));
+        if (!batch) continue;
+        const top = (isLeft ? profile.sidewalkLeft : profile.sidewalkRight) ? .045 : profile.hasKerb ? .065 : BRIDGE_DECK_TOP;
+        const wall = [[ax, ay + BRIDGE_DECK_BOTTOM, az], [bx, by + BRIDGE_DECK_BOTTOM, bz], [bx, by + top, bz], [ax, ay + top, az]];
+        if (isLeft) wall.reverse();
+        quad(batch, ...wall, 0xa9a79a);
+      }
     }
   }
   function drawRoad(s,band=null) {
@@ -685,6 +720,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     const half = s.width / 2;
     const left=band?.left||(()=>-half),right=band?.right||(()=>half);
     const at=(fraction,offset=0)=>(x,z)=>left(x,z)+(right(x,z)-left(x,z))*fraction+offset;
+    if (deckRoadIds.has(s.road.id)) drawBridgeBody(s,left,right,band?.leftOuter!==false,band?.rightOuter!==false);
     // Side strips avoid hidden duplicate pavement under the entire carriageway.
     const residentialPath = s.road.type === 'residential';
     const pathWidth = s.profile.pavementWidth;
@@ -697,7 +733,7 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       if(band?.leftOuter!==false)roadRibbon(s.a, s.b, -half - kerbWidth, -half, COLORS.kerb, 0.065);
       if(band?.rightOuter!==false)roadRibbon(s.a, s.b, half, half + kerbWidth, COLORS.kerb, 0.065);
     }
-    roadRibbon(s.a, s.b, left, right, COLORS.asphalt, 0.083);
+    roadRibbon(s.a, s.b, left, right, COLORS.asphalt, BRIDGE_DECK_TOP);
     const marked = s.profile.markings;
     const schoolAnchor = (map.landmarks || []).find(l => l.id === 'telopea');
     const schoolApproach = schoolAnchor && /New South Wales Crescent/i.test(s.road.name || '') && Math.hypot((s.a[0] + s.b[0]) / 2 - schoolAnchor.x, (s.a[1] + s.b[1]) / 2 - schoolAnchor.z) < 350;
@@ -722,6 +758,12 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       if(bands)for(const band of bands)drawRoad(s,band);else drawRoad(s);
     }, [Math.min(s.a[0],s.b[0])-margin, Math.min(s.a[1],s.b[1])-margin, Math.max(s.a[0],s.b[0])+margin, Math.max(s.a[1],s.b[1])+margin]);
   }
+  const disusedBridge = disusedBridgeScenery(map, groundHeightAt);
+  if (disusedBridge) deferSource(disusedBridge.x, disusedBridge.z, () => {
+    for (const part of disusedBridge.parts) {
+      primitive(box, part.x, part.y, part.z, part.span, part.height, part.depth, part.color, part.yaw);
+    }
+  });
 
   function nodeSurfaces(node) {
     const surfaces=[];
@@ -1089,7 +1131,8 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       const xs = points.map(p => p[0]), zs = points.map(p => p[1]);
       indexBounds(exclusions, contains, Math.min(...xs), Math.min(...zs), Math.max(...xs), Math.max(...zs));
     }
-    for (const points of [...(map.landmarkTreeExclusions || []), ...(map.barriers || []).map(barrier => barrier.points)]) {
+    for (const points of [...(map.landmarkTreeExclusions || []), ...(map.barriers || []).map(barrier => barrier.points),
+      ...(disusedBridge ? [disusedBridge.outline] : [])]) {
       indexArea(points, (x, z) => inside(x, z, points));
     }
     for (const area of map.areas || []) {

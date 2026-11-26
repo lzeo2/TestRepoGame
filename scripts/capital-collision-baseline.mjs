@@ -37,7 +37,8 @@ export function withCurrentRouting(historical, current) {
   const newGraph = between(current, graphStart, graphEnd);
   const guard = between(current, 'function coveredCentreRoutingGuard(', 'export function createSimulation(');
   const oldLine = 'const graph = buildRoadGraph(map.roads || []);';
-  const newLine = 'const graph = buildRoadGraph(map.roads || [], { excludeSegment: coveredCentreRoutingGuard(map) });';
+  const newLine = 'const motorRoads = (map.roads || []).filter(road => !road.standalonePath);\n' +
+    '  const graph = buildRoadGraph(motorRoads, { excludeSegment: coveredCentreRoutingGuard(map) });';
   assert.equal(historical.split(oldLine).length, 2, 'Exactly one historical graph constructor');
   assert(current.includes(newLine), 'Current graph constructor remains explicit');
   assert(!historical.includes('function coveredCentreRoutingGuard('), 'Pinned baseline has no route guard');

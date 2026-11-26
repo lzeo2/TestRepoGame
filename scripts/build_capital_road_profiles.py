@@ -33,7 +33,8 @@ def main():
     roads = mapped['roads']
     keys = ('service', 'access', 'vehicle', 'motor_vehicle', 'bus', 'width', 'lanes',
         'lanes:forward', 'lanes:backward', 'maxspeed', 'sidewalk', 'sidewalk:left', 'sidewalk:right',
-        'cycleway', 'cycleway:left', 'cycleway:right', 'barrier', 'guard_rail')
+        'cycleway', 'cycleway:left', 'cycleway:right', 'barrier', 'guard_rail',
+        'bridge', 'layer', 'tunnel', 'covered')
     profiles = {}
     matched = 0
     for road in roads:

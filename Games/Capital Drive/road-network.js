@@ -27,21 +27,43 @@ export function roadProfile(road = {}) {
   const tags = road.sourceTags || {}, service = tags.service || road.service || '';
   const access = tags.motor_vehicle || tags.vehicle || tags.access || road.access || '';
   const minor = ['driveway', 'parking_aisle', 'drive-through', 'emergency_access'].includes(service);
+  const standalonePath = /^(footway|cycleway|path|pedestrian|steps|bridleway)$/.test(road.type || '');
   const privateRoad = ['private', 'no'].includes(access);
   const taggedWidth = Number.parseFloat(tags.width);
   const base = Number.isFinite(taggedWidth) && taggedWidth > 0 ? taggedWidth : Number(road.width) || 8;
   const driveWidth = Math.max(2.5, Math.min(minor ? (service === 'parking_aisle' ? 4.2 : 3.2) : 24, base));
-  const trafficAllowed = !minor && !privateRoad;
+  const trafficAllowed = !minor && !privateRoad && !standalonePath;
   const taggedLanes = /^\d+$/.test(String(tags.lanes || '')) ? Number(tags.lanes) : null;
   const lanes = taggedLanes > 0 ? Math.min(8, taggedLanes) : road.oneway && driveWidth >= 7 ? Math.max(2, Math.min(4, Math.round(driveWidth / 3.6))) : driveWidth >= 5 ? 2 : 1;
   const motorway = /^(motorway|motorway_link)$/.test(road.type || '');
-  const pavementWidth = minor || motorway || tags.sidewalk === 'no' || tags.sidewalk === 'none' ? 0 : road.type === 'service' ? .75 : 1.65;
+  const pavementWidth = minor || motorway || standalonePath || tags.sidewalk === 'no' || tags.sidewalk === 'none' ? 0 : road.type === 'service' ? .75 : 1.65;
   return { driveWidth, pavementWidth, lanes, lanesFromSource: taggedLanes > 0,
     sidewalkLeft: pavementWidth > 0 && tags.sidewalk !== 'right' && tags['sidewalk:left'] !== 'no',
     sidewalkRight: pavementWidth > 0 && tags.sidewalk !== 'left' && tags['sidewalk:right'] !== 'no',
     major: /^(primary|trunk|motorway)(?:_link)?$/.test(road.type || ''),
-    hasKerb: !minor && !motorway, markings: !minor && road.type !== 'service' && driveWidth >= 5,
+    hasKerb: !minor && !motorway && !standalonePath, markings: !minor && !standalonePath && road.type !== 'service' && driveWidth >= 5,
     trafficAllowed, busAllowed: trafficAllowed && !['no', 'private'].includes(tags.bus) && road.type !== 'service' && driveWidth >= 4.5 };
+}
+
+export const BRIDGE_DECK_BOTTOM = -.35;
+export const BRIDGE_DECK_TOP = .083;
+const lakeBridgeSourceIds = new Set(['way/4878920','way/75247036','way/75247010','way/4878927','way/4878928']);
+
+export function isLakeBridgeRoad(road) {
+  return lakeBridgeSourceIds.has(road.sourceId) && road.sourceTags?.bridge === 'yes';
+}
+
+export function bridgeDeckEdges(road, profile = roadProfile(road)) {
+  if (isLakeBridgeRoad(road)) {
+    // The named lake spans have shoulders ending at the civic parapet face.
+    const edge = profile.driveWidth / 2 + 2.08;
+    return { left: -edge, right: edge };
+  }
+  const kerb = profile.hasKerb ? .18 : 0;
+  return {
+    left: -profile.driveWidth / 2 - kerb - (profile.sidewalkLeft ? profile.pavementWidth : 0),
+    right: profile.driveWidth / 2 + kerb + (profile.sidewalkRight ? profile.pavementWidth : 0),
+  };
 }
 
 export function roadMarkingOffsets(road, profile = roadProfile(road)) {

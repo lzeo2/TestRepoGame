@@ -14,8 +14,10 @@ function beamGeometry() {
   geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
   geometry.computeVertexNormals();geometry.computeBoundingSphere();return geometry;
 }
-export function createHighwayBarriersView(scene,heightAt) {
+export function createHighwayBarriersView(scene,heightAt,{roads=[],roadHeightAt}={}) {
   const limits=HIGHWAY_BARRIER_VIEW_LIMITS,beam=beamGeometry(),post=new THREE.BoxGeometry(0.1,0.75,0.1);
+  const ownerIds=new Set(HIGHWAY_BARRIERS.map(rail=>rail.roadContext?.id));
+  const owners=new Map(roads.filter(road=>ownerIds.has(road.id)).map(road=>[road.id,road]));
   const material=new THREE.MeshLambertMaterial({color:0xffffff,side:THREE.DoubleSide});
   const beams=new THREE.InstancedMesh(beam,material,limits.panels),posts=new THREE.InstancedMesh(post,material,limits.posts);
   beams.name='Source highway guard rails';posts.name='Source highway guard rail posts';
@@ -35,7 +37,9 @@ export function createHighwayBarriersView(scene,heightAt) {
     lastX=focus.x;lastZ=focus.z;stats.panels=stats.posts=0;
     const positions=new Set();
     for(const panel of selectHighwayBarrierPanels(focus)) {
-      const [a,b]=[panel.a,panel.b],ya=heightAt(...a),yb=heightAt(...b);
+      const [a,b]=[panel.a,panel.b],owner=owners.get(panel.rail.roadContext?.id);
+      const ya=owner&&roadHeightAt?roadHeightAt(owner,...a):heightAt(...a);
+      const yb=owner&&roadHeightAt?roadHeightAt(owner,...b):heightAt(...b);
       if(!Number.isFinite(ya)||!Number.isFinite(yb))continue;
       const dx=b[0]-a[0],dz=b[1]-a[1],length=Math.hypot(dx,dz);
       if(length<0.001)continue;
@@ -46,7 +50,7 @@ export function createHighwayBarriersView(scene,heightAt) {
       color.setHex(panel.rail.material==='wood'?0x8f8978:panel.rail.material==='concrete'?0xb8b6aa:0xa6aaa3);
       beams.setColorAt(stats.panels++,color);
       for(const [p,y] of [[a,ya],[b,yb]]) {
-        const key=`${p[0].toFixed(5)},${p[1].toFixed(5)}`;
+        const key=`${p[0].toFixed(5)},${p[1].toFixed(5)},${y.toFixed(4)}`;
         if(positions.has(key)||stats.posts>=limits.posts)continue;
         positions.add(key);matrix.makeTranslation(p[0],y+0.375,p[1]);posts.setMatrixAt(stats.posts,matrix);posts.setColorAt(stats.posts++,color);
       }

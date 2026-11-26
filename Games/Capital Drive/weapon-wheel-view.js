@@ -1,13 +1,15 @@
 // Weapon wheel DOM overlay. Flat colours, no gradients, 44px slot targets.
 
 export function createWeaponWheelView({ wheel, onSelect }) {
-  const RADIUS = 128;
   const root = document.createElement('div');
   root.id = 'weapon-wheel';
   root.hidden = true;
-  root.innerHTML = '<div class="wheel-plate" aria-hidden="true"></div>';
+  const plate = document.createElement('div');
+  plate.className = 'wheel-plate';
+  plate.setAttribute('role', 'group');
+  plate.setAttribute('aria-label', 'Weapon wheel');
+  root.append(plate);
   document.getElementById('game').appendChild(root);
-  const plate = root.querySelector('.wheel-plate');
   let buttons = [];
 
   const centerVector = event => {
@@ -28,8 +30,8 @@ export function createWeaponWheelView({ wheel, onSelect }) {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'wheel-slot' + (slot.available ? '' : ' empty');
-      button.style.left = `${Math.cos(angle) * RADIUS}px`;
-      button.style.top = `${Math.sin(angle) * RADIUS}px`;
+      button.style.left = `${50 + Math.cos(angle) * 40}%`;
+      button.style.top = `${50 + Math.sin(angle) * 40}%`;
       const ammo = slot.id === 'unarmed' ? null : slot.ammo;
       button.textContent = slot.id === 'unarmed' ? slot.name : `${slot.name} ${ammo.ammo}/${ammo.reserveAmmo}`;
       button.setAttribute('aria-label', slot.id === 'unarmed' ? 'Equip fists' :
@@ -54,12 +56,17 @@ export function createWeaponWheelView({ wheel, onSelect }) {
   };
 
   root.addEventListener('pointermove', event => { if (wheel.isOpen()) paint(wheel.move(centerVector(event))); });
-  root.addEventListener('click', event => { if (event.target === root) finish(); }); // outside the plate: close without selecting
+  root.addEventListener('click', event => {
+    if (event.target !== root && event.target !== plate) return;
+    wheel.close();
+    hide();
+  });
 
   function hide() { root.hidden = true; }
 
   return {
     show() { root.hidden = false; render(); },
+    step(direction) { paint(wheel.step(direction)); },
     hide,
     isOpen: () => !root.hidden
   };

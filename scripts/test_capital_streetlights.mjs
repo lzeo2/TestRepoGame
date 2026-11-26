@@ -64,6 +64,8 @@ const heightAt = (x, z) => x * .03 - z * .08;
 const view = createStreetlightsView(scene, lamps, heightAt);
 const [poles, glow] = scene.children;
 assert(scene.children.every(mesh => mesh.isInstancedMesh && !mesh.isLight && !mesh.castShadow));
+assert(glow.material.transparent&&glow.material.side===THREE.DoubleSide&&glow.material.forceSinglePass,
+  'Three must submit the flat two-sided glow in one GPU pass');
 assert.equal(view.stats.placedLamps,lamps.length);
 assert.equal(view.stats.sourceColumns,surveyed.length);
 assert.equal(view.stats.lamps,0,'no scenery drawn before receiving exterior camera focus');

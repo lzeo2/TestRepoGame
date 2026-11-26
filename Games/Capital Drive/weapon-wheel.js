@@ -1,4 +1,5 @@
 // Weapon wheel state machine. No DOM, no timers: the view and script.js drive it.
+export const WEAPON_WHEEL_KEY = 'Digit1';
 export const WHEEL_DEADZONE = .35;
 export const UNARMED = Object.freeze({ id: 'unarmed', name: 'Fists' });
 export const WHEEL_SLOT_CAP = 8;
@@ -28,6 +29,10 @@ export function createWeaponWheel({ weapons, ownedFor, ammoFor, currentFor }) {
       highlighted = ((Math.round(angle / step) % slots.length) + slots.length) % slots.length;
       return highlighted;
     },
+    step(direction) {
+      if (open && (direction === 1 || direction === -1)) highlighted = (highlighted + direction + slots.length) % slots.length;
+      return highlighted;
+    },
     select() {
       if (!open) return null;
       const chosen = slots[highlighted] || null;
@@ -35,7 +40,7 @@ export function createWeaponWheel({ weapons, ownedFor, ammoFor, currentFor }) {
       return chosen ? chosen.id : null;
     },
     snapshot() {
-      refreshSlots();
+      if (!open) refreshSlots();
       return {
         open, highlighted,
         slots: slots.map(slot => {

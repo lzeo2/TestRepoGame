@@ -1,3 +1,5 @@
+import { WEAPON_WHEEL_KEY } from './weapon-wheel.js';
+
 const STORAGE_KEY = 'capital-drive-utility-keys-v1';
 export const UTILITY_KINDS = ['medkit', 'repair-kit', 'jammer'];
 export const UTILITY_NAMES = { 'medkit': 'Medkit', 'repair-kit': 'Repair kit', 'jammer': 'Jammer' };
@@ -9,7 +11,8 @@ const CORE_CONTROL_CODES = new Set([
   'KeyN', 'KeyO', 'KeyR', 'KeyV', 'KeyC', 'KeyU', 'KeyT', 'KeyQ', 'KeyB', 'KeyM',
   'KeyP', 'KeyJ', 'KeyK', 'KeyE', 'KeyG', 'KeyH', 'Escape', 'Space', 'ShiftLeft',
   'ShiftRight', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'F1',
-  ...Array.from({ length: 7 }, (_, index) => 'Digit' + (index + 1)),
+  WEAPON_WHEEL_KEY,
+  ...Array.from({ length: 6 }, (_, index) => 'Digit' + (index + 2)),
 ]);
 
 const CODE_PATTERN = /^(Key[A-Z]|Digit[0-9]|Numpad[0-9]|F([1-9]|1[0-2])|Comma|Period|Slash|Semicolon|Quote|Backquote|BracketLeft|BracketRight|Minus|Equal|Backslash)$/;
@@ -20,19 +23,35 @@ function storage() { return typeof localStorage === 'undefined' ? null : localSt
 
 function validCode(code) { return typeof code === 'string' && CODE_PATTERN.test(code); }
 
+function normalizeKeys(saved) {
+  const result = {}, used = new Set();
+  for (const kind of UTILITY_KINDS) {
+    const code = saved?.[kind];
+    if (validCode(code) && !CORE_CONTROL_CODES.has(code) && !used.has(code)) {
+      result[kind] = code;
+      used.add(code);
+    }
+  }
+  const defaults = Object.values(DEFAULT_UTILITY_KEYS);
+  for (const kind of UTILITY_KINDS) {
+    if (result[kind]) continue;
+    const preferred = DEFAULT_UTILITY_KEYS[kind];
+    const code = used.has(preferred) ? defaults.find(value => !used.has(value)) : preferred;
+    result[kind] = code;
+    used.add(code);
+  }
+  return result;
+}
+
 export function loadUtilityKeys() {
-  keys = { ...DEFAULT_UTILITY_KEYS };
   let saved = null;
   try { saved = JSON.parse(storage()?.getItem(STORAGE_KEY) ?? 'null'); } catch { saved = null; }
-  if (saved && typeof saved === 'object') {
-    for (const kind of UTILITY_KINDS) if (validCode(saved[kind])) keys[kind] = saved[kind];
-  }
+  keys = normalizeKeys(saved);
   return { ...keys };
 }
 
 export function saveUtilityKeys(next) {
-  keys = { ...DEFAULT_UTILITY_KEYS };
-  for (const kind of UTILITY_KINDS) if (validCode(next?.[kind])) keys[kind] = next[kind];
+  keys = normalizeKeys(next);
   try { storage()?.setItem(STORAGE_KEY, JSON.stringify(keys)); } catch { /* settings stay for this session */ }
   return { ...keys };
 }

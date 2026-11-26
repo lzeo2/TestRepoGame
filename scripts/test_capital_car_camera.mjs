@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {carCockpitFrame} from '../Games/Capital Drive/car-camera.js';
 import {WEAPONS} from '../Games/Capital Drive/weapons.js';
+import {WEAPON_WHEEL_KEY} from '../Games/Capital Drive/weapon-wheel.js';
 import {createCar,disposeCars} from '../assets/car-arcade/models.js';
 import {CARS} from '../assets/car-arcade/fleet.js';
 import * as THREE from '../assets/car-arcade/vendor/three.module.js';
@@ -49,7 +50,7 @@ let keydown,paused=false,driving=true,prevented=0;
 const actions=[],jetpack={active:false},keys=new Set();
 runInNewContext(source.slice(start,end),{
   window:{addEventListener:(name,handler)=>{assert.equal(name,'keydown');keydown=handler;}},
-  WEAPONS,started:true,paused:()=>paused,cockpitAvailable:()=>driving,cutscenes:{snapshot:()=>({active:false})},jetpack,keys,
+  WEAPONS,WEAPON_WHEEL_KEY,started:true,paused:()=>paused,cockpitAvailable:()=>driving,cutscenes:{snapshot:()=>({active:false})},jetpack,keys,
   rebindKind:null,matchUtilityKey:()=>null,weaponWheel:{isOpen:()=>false},
   toggleCockpit:()=>actions.push('cockpit'),throwEquipment:kind=>actions.push(kind),
 });

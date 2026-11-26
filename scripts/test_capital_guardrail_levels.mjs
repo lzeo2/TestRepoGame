@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import { loadCapitalMap } from './capital-map-fixture.mjs';
 import { createSimulation, pointOnLane } from '../Games/Capital Drive/simulation.js';
 import { createTerrainSampler } from '../Games/Capital Drive/terrain.js';
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import { selectHighwayBarrierPanels } from '../Games/Capital Drive/highway-barriers.js';
+import { createHighwayBarriersView } from '../Games/Capital Drive/highway-barriers-view.js';
 
 const map = await loadCapitalMap(), terrain = createTerrainSampler(map);
 const simulation = createSimulation(map, { trafficCount: 0, isOnBridge: terrain.isOnBridge,
@@ -19,7 +22,29 @@ const owner = map.roads.find(r => r.id === rail.roadContext.id);
 const x = (rail.a[0] + rail.b[0]) / 2, z = (rail.a[1] + rail.b[1]) / 2;
 const upperY = terrain.roadHeightAt(owner, x, z), groundY = terrain.groundHeightAt(x, z);
 assert(upperY - groundY > 4, 'confirmed deck clearance');
-assert(Math.abs(terrain.heightAt(x, z) - upperY) < .5, 'rendered rail support matches its retained deck owner');
+const scene = new THREE.Scene();
+// Force the unowned fallback onto the lower level. A closer new pedestrian
+// deck can otherwise hide a view which accidentally ignores the road owner.
+const roadView = createHighwayBarriersView(scene,terrain.groundHeightAt,{roads:map.roads,roadHeightAt:terrain.roadHeightAt});
+const panels = selectHighwayBarrierPanels({x,z});
+roadView.update({x,z});
+const beams = scene.getObjectByName('Source highway guard rails');
+const matrix = new THREE.Matrix4(), vertex = new THREE.Vector3();
+let matched = 0;
+for (const [index,panel] of panels.entries()) {
+  if (panel.rail.id !== rail.id) continue;
+  assert(index < beams.count);
+  beams.getMatrixAt(index,matrix);
+  for (const [end,point] of [[-.5,panel.a],[.5,panel.b]]) {
+    vertex.set(end,0,0).applyMatrix4(matrix);
+    assert(Math.hypot(vertex.x-point[0],vertex.z-point[1])<.001);
+    assert(Math.abs(vertex.y-terrain.roadHeightAt(owner,...point)-rail.height+.14)<.001,
+      'rendered rail support matches the retained deck owner at both ends');
+  }
+  matched++;
+}
+assert(matched>0,'mapped rail appears in the rendered focus');
+roadView.dispose();
 const yaw = Math.atan2(-(rail.b[0] - rail.a[0]), -(rail.b[1] - rail.a[1]));
 const car = { ...simulation.player, x, z, yaw, y: upperY + .18, edge: { road: owner } };
 assert.equal(simulation.canOccupy(car, { ignoreId: 'player' }), false, 'upper deck car still hits rail');

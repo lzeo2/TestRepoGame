@@ -12,6 +12,8 @@ The composed-map fixture with static world obstacles placed 442 surveyed and 219
 
 A spatial index selects columns within 520 metres of the focus tile. The renderer caps visible columns at 220. Moving through all 661 fixture locations produced a peak of 123 visible columns, one instanced draw in daylight and two at night. The night draw combines the lens and a soft pool sampled against the road slope. A synthetic 300-column cluster stayed inside the same cap. Six hundred stationary updates while alternating daylight and night produced zero spatial queries and zero instance matrix writes. These are scene measurements from the software test, independent of hardware frame rate.
 
+A separate Chromium software WebGL fixture counted the actual draw calls at 15:00 and midnight. Three was drawing both sides of the transparent glow in separate passes. The single-pass material reduced nighttime calls for one lamp and a ground plane from four to three. The centre pixel had the same RGB value and 2,334 pixels cleared the brightness threshold in both runs. Daylight remained at two calls with the ground included.
+
 ## Reproduction
 
 Use an external path for the reviewed ArcGIS response. The importer checks its SHA-256 before generating the offline module. The game makes no online GIS requests.

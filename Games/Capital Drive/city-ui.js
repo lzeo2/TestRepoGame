@@ -102,11 +102,11 @@ export function createCityUI({ document, getState, onAction, onRoute, onOpen, on
       const armour=make('section',undefined,body);armour.className='city-row';
       make('h3',`${UTILITY_GEAR.armour.name} · ${gear.armour??0}/${UTILITY_GEAR.armour.capacity}`,armour,'city-armour-state');
       make('p',state.sandbox?'Unlimited supplies in Free roam.':'Reduces incoming damage. Refill at an equipment dealer.',armour);
-      for(const kind of ['medkit','repair-kit','jammer']){
+      for(const kind of ['repair-kit','jammer']){
         const item=UTILITY_GEAR[kind],count=gear[item.field]??0,availability=state.utilityAvailability?.[kind];
         const row=make('section',undefined,body);row.className='city-row';
         make('h3',`${item.name} · ${count}/${item.capacity}`,row,`city-${kind}-count`);
-        make('p',kind==='medkit'?`+${item.amount} health · on foot`:kind==='repair-kit'?`+${item.amount+(state.repairKitBonus||0)} car condition · beside your stopped car outdoors`:'Jams nearby working cameras temporarily.',row);
+        make('p',kind==='repair-kit'?`+${item.amount+(state.repairKitBonus||0)} car condition · beside your stopped car outdoors`:'Jams nearby working cameras temporarily.',row);
         const use=button(row,'Use',()=>act('use-utility',kind),`city-use-${kind}`);
         use.setAttribute('aria-label',`Use ${item.name.toLowerCase()}`);
         use.disabled=count<1||availability?.ok!==true;

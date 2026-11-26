@@ -36,6 +36,13 @@ assert.equal(full.move({ x: WHEEL_DEADZONE, y: 0 }), 0, 'exactly at the deadzone
 assert.equal(full.move({ x: 0, y: 0 }), 0, 'no vector keeps the highlight');
 assert.equal(full.move(), 0, 'missing vector keeps the highlight');
 
+// Reading view state must preserve pointer and keyboard highlights while open.
+assert.equal(full.step(1), 1);
+assert.equal(full.snapshot().highlighted, 1);
+assert.equal(full.step(-1), 0);
+assert.equal(full.step(-1), full.slotsLength - 1);
+assert.equal(full.snapshot().highlighted, full.slotsLength - 1);
+
 // select() returns the highlighted id and closes; select when closed returns null.
 full.move({ x: 0, y: -1 });
 assert.equal(full.select(), 'unarmed');
