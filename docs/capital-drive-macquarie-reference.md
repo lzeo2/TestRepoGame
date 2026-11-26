@@ -34,8 +34,10 @@ one shop site, rather than the planned random residential/arterial sample.
 
 `createMacquarieShopsView(scene,map,heightAt,{canStand})` returns
 `update(focus)`, `dispose()` and `stats`. `canStand` optionally applies the existing
-simulation's actor clearance. No colliders, rooms, loops, textures, remote requests
-or replacement building bodies are added. One merged Lambert mesh hides beyond
+simulation's actor clearance. The folded pale-metal fascia follows both mapped roof perimeters. Its repeating
+profile is generated locally in a 512-byte texture with mipmaps. The muted
+folds resolve smoothly as the player drives away. Other surfaces sample a
+flat strip in that same texture. One merged Lambert mesh hides beyond
 320m; the capped allocation is2200triangles. Exact current geometry and physical
 paving clearance are checked by:
 

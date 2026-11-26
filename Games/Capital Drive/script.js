@@ -64,10 +64,13 @@ import { createNeighbourhoodDetails } from './neighbourhood.js';
 import { createMapProjection, drawMapDetail, mapPointFromClient } from './map-projection.js';
 import { createGameplay } from './gameplay.js';
 import {createCareerTraining} from './career-training.js';
+import {createCampaignRadio} from './campaign-radio.js';
 import { createProgression, JETPACK_OFFER } from './progression.js';
 import { createActorView } from './actor-view.js';
 import { createStreetUI } from './street-ui.js';
 import { createAddressSearch } from './address-search.js';
+import { PARK_AMENITIES } from './park-amenities.js';
+import { createParkAmenitiesView } from './park-amenities-view.js';
 import { POOL_GATE_APPROACHES } from './landmarks.js';
 import { createLandmarksView } from './landmarks-view.js';
 import {createNorthPlacesView} from './north-places-view.js';
@@ -163,6 +166,7 @@ import {createWatercraftView} from './watercraft-view.js';
 
 const ALL_STORES=[...MAPPED_STORES,...EXTRA_STORES];
 const $ = id => document.getElementById(id);
+const campaignRadio=createCampaignRadio($('campaign-radio'));
 const fpsBadge=$('fps-count');
 const serviceMapIcons=createServiceMapIcons(document);
 const keys = new Set(), touch = new Set();
@@ -206,6 +210,7 @@ let lightRail,lightRailView,heists,heistSitesView,railHeistMarker,campaignAfterm
 let depotTank,depotTankView;
 let inquiryHarm=false;
 const stealthPlans=new Map();
+let parkAmenitiesView;
 let gymEntries=[],wildlifeView,birdsView,warMemorialView,streetAssetsView,streetlightsView,highwayBarriersView,localDetailsView;
 let campaignScenes,campaignScenesView,indoorCampaignScenesView,headlightsView,policeSupportView;
 let headlightsOverride=null,activeCrewEntry=null;
@@ -2136,9 +2141,20 @@ function renderCutscene(dt){
 $('cutscene-skip').addEventListener('click',()=>cutscenes.skip());
 $('cutscene-cancel').addEventListener('click',()=>cutscenes.cancel());
 
+for(const route of ['direct','backup']){
+  $('meeting-'+route).addEventListener('click',()=>{
+    const result=campaign.chooseMeetingRoute(route,careerContext());
+    if(result.ok){rememberMissionStep();closeDialogs();routeTo(campaignNavigationTarget());}
+    notify(result.message);
+  });
+}
 function openCampaign(){
   const chapter=campaign.current(),active=campaign.state.active,required=campaign.nextRequiredCharacter();
   const unlocked=campaign.optionalUnlocked(),journal=campaign.journal();
+  const canChoose=active?.id==='three-receipts'&&active.stage===1&&!active.developer;
+  $('meeting-routes').hidden=!canChoose;
+  if(canChoose)for(const route of ['direct','backup'])
+    $('meeting-'+route).setAttribute('aria-pressed',String((active.meetingRoute||'direct')===route));
   const story=campaign.state.legacy?journal.shared:[...journal.introductions.flatMap(item=>item.chapters),{complete:journal.meeting},...journal.shared];
   renderCharacterChoices();
   $('campaign-title').textContent=active?.name??chapter?.name??(required?`Switch to ${required.name}`:unlocked?'Story complete':'Campaign');
@@ -4018,6 +4034,8 @@ function animate(time) {
   } else {accumulator = 0;updateRecon(0);}
   if(tutorialRunning||tutorialVisible){if(tutorialRunning)tutorial.observe(tutorialContext(),dt);syncTutorial();}
   updateMini();updateCareer(dt);updateMissionFailureTitle(dt);
+  campaignRadio.update(dt,gameMode==='campaign'&&!developerReturn?campaign?.state.active:null,
+    {paused:paused()||!!gameplay?.state.recovery,wanted:gameplay?.state.wanted||0});
   if (audio) {
     const active=audio.enabled&&!paused()&&gameplay.state.mode==='vehicle'&&!gameplay.state.passenger&&gameplay.state.vehicleHealth>0;
     const car=simulation.player,driving=simulation.driving;
@@ -4106,6 +4124,7 @@ function animate(time) {
   if (world.pendingChunks || frameCount % 4 === 0) world.update(p, {maxLoads:1});
   if (frameCount % 8 === 0) {
     neighbourhood?.update(p); landmarkView?.update(p, time / 1000);storefrontsView?.update(p);shoppingView?.update(p);campusView?.update(p);civicView?.update(p);civicExtrasView?.update(p);
+    parkAmenitiesView?.update(p,{lowGraphics:quality==='low'||quality==='performance'});
     streetAssetsView?.update(p);highwayBarriersView?.update(p);localDetailsView?.update(p);
     rentalStorefrontsView?.update(p);
     parkedView?.cull(p);
@@ -4286,6 +4305,8 @@ async function boot() {
   noodleShopView=compatibility?emptyView():createNoodleShopView(scene,terrainSampler.heightAt);
   campusView=compatibility?emptyView():createCampusView(scene,map,terrainSampler.heightAt);
   localDetailsView=compatibility?emptyView():createLocalDetailsView(scene,map,terrainSampler.heightAt);
+  parkAmenitiesView=compatibility?emptyView():createParkAmenitiesView(scene,{entries:PARK_AMENITIES,heightAt:terrainSampler.heightAt});
+  if(parkAmenitiesView.obstacles)map.barriers.push(...parkAmenitiesView.obstacles);
   appendCapitalHighwayBarriers(map);
   map.barriers.push(...(campusView.obstacles||[]),...(localDetailsView.obstacles||[]));
   map.barriers.push(...(civicView.barriers||[]),...(noodleShopView.obstacles||[]));
@@ -4456,6 +4477,12 @@ async function boot() {
     map.searchPlaces.push({id:'stand:'+plane.id,name:helicopter?(plane.depot?'Depot helicopter':'Airport helicopter stand'):plane.depot?'Depot interceptor':'Airport jet stand',
       aliases:helicopter?['helicopter','helipad',plane.name]:['jet','plane',plane.name,...(plane.depot?['military jet','depot jet','interceptor']:[])],...parking,radius:12,
       description:`Checked parking beside a fictional ${plane.kind} stand`});
+  }
+  for(const site of PARK_AMENITIES){
+    const label=site.kind==='bbq'?'Barbecue':site.refill?'Bottle refill':'Drinking fountain';
+    map.searchPlaces.push({id:site.id,x:site.x,z:site.z,name:`${site.name} · ${label} ${site.id}`,
+      aliases:[site.suburb,site.id,site.kind==='bbq'?'bbq hotplate':'bubbler water drinking fountain'],
+      description:`${site.suburb} · ACT public park facility`});
   }
   addressSearch=createAddressSearch(map,addressData);
   campaignScenes=createCampaignScenes(map,simulation,{entrances:interiors.entries});
@@ -4663,7 +4690,7 @@ async function boot() {
     services:freezeCopy(progression.services),activity:freezeCopy(progression.state.activity),
     buses:freezeCopy(buses.snapshot()),busView:Object.freeze({...busView.stats}),occupants:Object.freeze({...occupantsView.stats}),peopleContacts:simulation.peopleContacts,
     playerAppearance:playerAppearanceId,storyHomes:freezeCopy(map.storyHomes),homeAction:freezeCopy(homeActionOutcome),missionGuide:freezeCopy(missionGuideState),gymEntries:freezeCopy(gymEntries),schoolEntry:freezeCopy(schoolEntry),schoolAlarm:freezeCopy(schoolAlarmOutcome),indoorActors:freezeCopy(indoorActorView?.stats||{officers:0,police:0}),policeRooms:policeRooms.snapshot(),heist:freezeCopy(heistOutcome),cutscene:cutscenes.snapshot(),combatAllowed:canPlayerAttack(),encounter:roomPeople.encounter,presentation:freezeCopy(presentationOutcome),workCompletion:freezeCopy(workCompletion),
-    wildlife:freezeCopy({...wildlifeView.stats,animals:wildlifeView.animals}),streetAssets:freezeCopy(streetAssetsView.stats),highwayBarriers:freezeCopy(highwayBarriersView.stats),localDetails:freezeCopy(localDetailsView.stats),
+    wildlife:freezeCopy({...wildlifeView.stats,animals:wildlifeView.animals}),streetAssets:freezeCopy(streetAssetsView.stats),parkAmenities:freezeCopy(parkAmenitiesView.stats),highwayBarriers:freezeCopy(highwayBarriersView.stats),localDetails:freezeCopy(localDetailsView.stats),
     campaignCast:freezeCopy({people:campaignScenes.people,lines:campaignScenes.dialogueLines,meetingPoint:campaignScenes.meetingPoint,view:campaignScenesView.stats}),
     serviceView:Object.freeze({...servicesView.stats}),storefronts:Object.freeze({...storefrontsView.stats}),poolGates:freezeCopy(POOL_GATE_APPROACHES),campus:freezeCopy(campusView.stats),campusGates:freezeCopy(CAMPUS_GATES),shopping:freezeCopy(shoppingView.stats),civic:freezeCopy(civicView.stats),civicExtras:freezeCopy(civicExtrasView.stats),noodleShop:freezeCopy(noodleShopView.stats),interiorView:freezeCopy(interiorView.stats),
     policeStations:freezeCopy(policeStations.snapshot()),policeStationView:freezeCopy(policeStationView.stats),
@@ -4699,7 +4726,7 @@ window.addEventListener('pagehide', event => {
   policeRooms.clear();cutscenes.cancel();pendingCutscene=null;missionRing?.geometry.dispose();missionRing?.material.dispose();
   stopMini();roomPeopleView?.dispose();microView?.dispose();civicExtrasView?.dispose();
   shoppingView?.dispose();campusView?.dispose();civicView?.dispose();noodleShopView?.dispose();interiorView?.dispose();indoorActorView?.dispose();
-  wildlifeView?.dispose();streetAssetsView?.dispose();streetlightsView?.dispose();highwayBarriersView?.dispose();localDetailsView?.dispose();
+  wildlifeView?.dispose();streetAssetsView?.dispose();parkAmenitiesView?.dispose();streetlightsView?.dispose();highwayBarriersView?.dispose();localDetailsView?.dispose();
   campaignScenes?.clear();campaignScenesView?.dispose();contractTarget?.clear();assassinationSiteView?.dispose();indoorCampaignScenesView?.dispose();headlightsView?.dispose();policeSupportView?.dispose();
   pedestrians?.dispose(); neighbourhood?.dispose(); world?.dispose(); disposeCars(); renderer?.dispose();
 });

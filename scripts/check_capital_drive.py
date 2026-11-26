@@ -37,6 +37,8 @@ MODULES = (
     'hero-powers.js', 'ordnance.js', 'ordnance-view.js', 'atmosphere.js', 'atmosphere-view.js', 'airport.js', 'airport-view.js', 'defence-depot.js', 'defence-depot-view.js', 'vehicle-damage.js', 'vehicle-damage-view.js',
     'touch-joystick.js',
     'tutorial.js', 'activity-ui.js',
+    'park-amenities.js', 'park-amenity-models.js', 'park-amenities-view.js', 'park-materials.js', 'storefront-materials.js',
+    'streetlights.js', 'streetlight-columns.js', 'streetlights-view.js', 'campaign-radio.js', 'weapon-wheel.js', 'weapon-wheel-view.js', 'utility-keys.js',
     'script.js', 'game-data.js', 'dev-missions.js', 'interior-navigation.js', 'police-rooms.js', 'cache-launcher.js', 'cache-client.js', 'cache-manifest.js', 'service-worker.js', 'protagonist-state.js', 'render-gate.js', 'graphics-diagnostics.js', 'cutscenes.js', 'mission-locations.js', 'mission-footpath.js', 'simulation.js', 'navigation.js', 'map-projection.js', 'navigation-guidance.js', 'road-guidance-view.js', 'traffic-lights.js', 'traffic-lights-view.js', 'equipment.js', 'equipment-view.js',
     'world-view.js', 'foliage-placement.js', 'exterior-materials.js', 'neighbourhood.js', 'person-model.js', 'wildlife-view.js', 'street-assets.js', 'street-assets-view.js', 'highway-barriers.js', 'highway-barriers-view.js', 'local-details-view.js', 'character-start.js', 'campaign-scenes.js', 'campaign-scenes-view.js', 'assassination-mission.js', 'assassination-site-view.js', 'contract-target.js', 'contract-stealth.js', 'pedestrians.js', 'gameplay.js', 'ride-service.js', 'ride-service-view.js',
     'progression.js', 'actor-view.js', 'landmarks.js', 'landmarks-view.js',
@@ -47,6 +49,8 @@ MODULES = (
     'interiors.js','interior-view.js','campaign.js','map-expansion.js','north-west.js', 'north-places-view.js', 'drive-audio.js','terrain.js','civic-view.js','noodle-shop-view.js','interior-people.js','interior-people-view.js','interior-activities.js','micromobility.js','micromobility-view.js','weapons.js','parking-layout.js','street-dealers.js','street-dealers-view.js','vehicle-challenges.js','civic-extras.js','civic-extras-view.js',
 )
 SUITES = (
+    'test_capital_park_amenity_models.mjs', 'test_capital_park_amenities_view.mjs',
+    'test_capital_campaign_radio.mjs', 'test_capital_streetlights.mjs', 'test_capital_weapon_wheel.mjs', 'test_capital_utility_keys.mjs',
     'test_capital_mission_footpath.mjs', 'test_capital_guardrail_levels.mjs', 'test_capital_campaign_pacing.mjs', 'test_capital_heist_guidance.mjs', 'test_capital_map_source.mjs',
     'test_capital_parked_cars_view.mjs', 'test_capital_contact_levels.mjs', 'test_capital_vehicle_access.mjs',
     'test_capital_bridge_support_selection.mjs', 'test_capital_actor_vehicle_escape.mjs', 'test_capital_car_model.mjs',

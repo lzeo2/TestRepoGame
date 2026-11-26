@@ -28,11 +28,11 @@ const segmentDistance=(x,z,a,b)=>{const dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,M
 
 export function createMacquarieShopsView(scene,map,heightAt,{canStand=()=>true}={}){
   const site=MACQUARIE_SHOPS_REFERENCE,buildings=site.buildingIds.map(id=>map.buildings?.find(b=>b.id===id)).filter(Boolean);
-  const stats={buildings:buildings.length,triangles:0,drawCalls:0,pavingJoints:0,shrubs:0,stonePieces:0};
+  const stats={buildings:buildings.length,triangles:0,drawCalls:0,pavingJoints:0,shrubs:0,stonePieces:0,ribbedFasciaMetres:0};
   const root=new THREE.Group();root.name='Macquarie source shops original detail';
-  const positions=[],colors=[],color=new THREE.Color();let disposed=false,geometry=null,material=null,mesh=null;
+  const positions=[],colors=[],uvs=[],color=new THREE.Color();let disposed=false,geometry=null,material=null,mesh=null,fasciaMap=null;
   const ground=(x,z)=>{const y=heightAt(x,z);if(!Number.isFinite(y))throw new Error('Macquarie detail requires finite terrain');return y;};
-  function tri(a,b,c,tint){color.setHex(tint);for(const p of[a,b,c]){positions.push(p[0]-site.x,p[1],p[2]-site.z);colors.push(color.r,color.g,color.b);}stats.triangles++;}
+  function tri(a,b,c,tint){color.setHex(tint);for(const p of[a,b,c]){positions.push(p[0]-site.x,p[1],p[2]-site.z);colors.push(color.r,color.g,color.b);uvs.push(p[3]??0,p[4]??.125);}stats.triangles++;}
   function quad(a,b,c,d,tint){tri(a,b,c,tint);tri(a,c,d,tint);}
   const roads=(map.roads||[]).filter(r=>r.points?.some(p=>Math.hypot(p[0]-site.x,p[1]-site.z)<180));
   const nearby=(map.buildings||[]).filter(b=>b.points?.some(p=>Math.hypot(p[0]-site.x,p[1]-site.z)<120));
@@ -58,7 +58,12 @@ export function createMacquarieShopsView(scene,map,heightAt,{canStand=()=>true}=
       const a=ring[i],b=ring[(i+1)%ring.length],length=Math.hypot(b[0]-a[0],b[1]-a[1]);if(length<3)continue;
       const tx=(b[0]-a[0])/length,tz=(b[1]-a[1])/length,nx=(area>0?tz:-tz),nz=(area>0?-tx:tx);
       const at=(u,y,offset=.028)=>[a[0]+tx*u+nx*offset,y,a[1]+tz*u+nz*offset];
-      quad(at(0,roof-.29,.05),at(length,roof-.29,.05),at(length,roof+.02,.05),at(0,roof+.02,.05),0xd7d6cc);
+      // The pale folded-metal shop fascia has fine vertical ribs. Physical
+      // spacing shares one texture across both source buildings. Mipmaps let
+      // distant ribbing resolve to a plain fascia without flicker.
+      const fascia=(u,y)=>[...at(u,y,.05),u/.105,.875];
+      quad(fascia(0,roof-.29),fascia(length,roof-.29),fascia(length,roof+.02),fascia(0,roof+.02),0xdad9d0);
+      stats.ribbedFasciaMetres+=length;
       // Shallow original mortar courses, preserving every existing door/window.
       for(let y=base+.22;y<Math.min(roof-.35,base+1.05);y+=.22)quad(at(0,y),at(length,y),at(length,y+.018),at(0,y+.018),0xb4a59a);
       for(let u=1;u<length-1;u+=1.8){
@@ -88,9 +93,19 @@ export function createMacquarieShopsView(scene,map,heightAt,{canStand=()=>true}=
   if(positions.length){
     geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
     geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geometry.computeVertexNormals();geometry.computeBoundingSphere();
-    material=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});mesh=new THREE.Mesh(geometry,material);mesh.visible=false;
+    geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
+    const pixels=new Uint8Array(16*8*4);
+    const fold=[222,229,238,246,252,255,255,254,252,250,248,241,231,211,197,203];
+    for(let y=0;y<8;y++)for(let x=0;x<16;x++){
+      const offset=(y*16+x)*4,shade=y<4?255:fold[x];
+      pixels.set([shade,shade,shade,255],offset);
+    }
+    fasciaMap=new THREE.DataTexture(pixels,16,8);
+    fasciaMap.wrapS=THREE.RepeatWrapping;fasciaMap.magFilter=THREE.LinearFilter;
+    fasciaMap.minFilter=THREE.LinearMipmapLinearFilter;fasciaMap.generateMipmaps=true;fasciaMap.needsUpdate=true;
+    material=new THREE.MeshLambertMaterial({vertexColors:true,map:fasciaMap,side:THREE.DoubleSide});mesh=new THREE.Mesh(geometry,material);mesh.visible=false;
     root.position.set(site.x,0,site.z);root.add(mesh);scene.add(root);
   }
   return{stats,update(focus){if(disposed||!mesh)return;mesh.visible=Number.isFinite(focus?.x)&&Number.isFinite(focus?.z)&&Math.hypot(focus.x-site.x,focus.z-site.z)<320;stats.drawCalls=Number(mesh.visible);},
-    dispose(){if(disposed)return;disposed=true;geometry?.dispose();material?.dispose();root.removeFromParent();stats.drawCalls=0;}};
+    dispose(){if(disposed)return;disposed=true;geometry?.dispose();material?.dispose();fasciaMap?.dispose();root.removeFromParent();stats.drawCalls=0;}};
 }
