@@ -3,7 +3,7 @@
 
 ## Identity and status
 
-Registered id **84**, category `strategy`, entry [index.html](../../../Games/Chess/index.html). Baseline `8c8a055`: 24 files, 365,048 bytes; entry blob `177b2ba649aeb74dd610a4117f8586a49298658c`. An authored minimax controller drives vendored chess rules and chessboard.js. Local `chess-worker.js` now owns iterative search; the controller applies only legal replies to the current game. The vendored rules engine is preserved.
+Registered id **84**, category `strategy`, entry [index.html](../../../Games/Chess/index.html). Current update `0135d983`: 25 files, 369,256 bytes; entry blob `681cb8e91148ec06e00a28e3a65a4f99ed5ed1d6`. An authored minimax controller drives vendored chess rules and chessboard.js. Local `chess-worker.js` now owns iterative search; the controller applies only legal replies to the current game. The vendored rules engine is preserved.
 
 ## Implementation map
 
