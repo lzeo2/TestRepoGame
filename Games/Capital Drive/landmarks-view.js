@@ -86,10 +86,28 @@ export function createLandmarksView(scene, map, heightAt) {
         const x=(u[0]+w[0])/2,z=(u[1]+w[1])/2;
         block(x,groundY(x,z)+3,z,Math.hypot(w[0]-u[0],w[1]-u[1])+0.2,6,3.5,MARBLE,-Math.atan2(w[1]-u[1],w[0]-u[0]));
       }
-      // Four stainless legs converge into the mast, 81 metres above its roof deck.
-      for (const x of [-19,19]) for (const z of [-19,19]) beam([x,18,z],[0,81,0],0.65,METAL);
-      beam([0,70,0],[0,99,0],0.55,METAL);
-      quad([0,96,0],[12.8,94.6,1.4],[12.8,88.2,1.4],[0,89.6,0],0x23395d);
+      // Four stainless triangular legs change from a broad rake into a vertical
+      // cluster below the flagstaff. The three differently lit faces stay legible at distance.
+      for (const sx of [-1,1]) for (const sz of [-1,1]) {
+        let previous;
+        for (const [x,y,z,r] of [[34,18,13,1.45],[18,34.5,8,1.22],[7.5,46,4.5,1],
+          [3.6,52,3,0.88],[2.7,57,2.5,.79],[2.7,67,2.5,.79],[1.35,76,1.4,.58]]) {
+          const section=[[sx*(x-r),y,sz*(z-r*.7)],[sx*(x+r),y,sz*(z-r*.7)],[sx*x,y,sz*(z+r)]];
+          if(previous)for(let j=0;j<3;j++)quad(previous[j],previous[(j+1)%3],section[(j+1)%3],section[j],
+            [0xe7e9df,0x9da9a9,0xb9c3c2][j]);
+          previous=section;
+        }
+      }
+      for(const level of [58,66]) {
+        for(const side of [-1,1]) {
+          block(0,level,side*2.5,5.4,.55,.63,0x929d9e);
+          block(side*2.7,level,0,.63,.55,5,0xb9c3c2);
+        }
+      }
+      beam([0,65,0],[0,99,0],0.49,METAL);
+      // A fold in the fly-end changes the flag outline without animate-time uploads.
+      const fly=(u,v)=>[u*12.8,96-u*1.4-v*6.4,1.4*u+(u<=.90?0:Math.sin((u-.90)*Math.PI*10)*.40)];
+      for(const [left,right] of [[0,.9],[.9,.95],[.95,1]])quad(fly(left,0),fly(right,0),fly(right,1),fly(left,1),0x23395d);
       // Original flat flag markings, offset towards the forecourt to avoid z-fighting.
       let flagLayer=0.035;
       const flagPoint = (u,v) => [u*12.8,96-u*1.4-v*6.4,u*1.4-flagLayer];
@@ -141,6 +159,21 @@ export function createLandmarksView(scene, map, heightAt) {
       for (let i=-3;i<=3;i++) block(i*4.8,7,-51,1,10,1.3,PALE);
       for (let i=0;i<7;i++) block(0,-1+i*0.3,-55-i*1.4,35+i*2,0.35,2,PALE);
       block(0,3,-51.5,6,5,0.3,0x716d58);
+      // The white stepped bays frame four arched bronze windows across the public facade.
+      for(const x of [-60,-34,34,60]) {
+        const z=Math.abs(x)>50?-48.62:-42.54, archY=6.8,r=2.3;
+        block(x,4.45,z,2*r,4.7,.1,0x536163);
+        for(let j=0;j<10;j++) {
+          const a=Math.PI*j/10,b=Math.PI*(j+1)/10;
+          const pt=(angle,radius)=>[x+Math.cos(angle)*radius,archY+Math.sin(angle)*radius,z-.064];
+          tri([x,archY,z-.064],pt(a,r),pt(b,r),0x536163);
+          quad(pt(a,r+.20),pt(b,r+.20),pt(b,r),pt(a,r),0xe8e6dc);
+        }
+        block(x,6.74,z-.086,4.6,.13,.12,0x645d50);
+        block(x,5.65,z-.10,.12,7.15,.13,0x645d50);
+        const upper=Math.abs(x)>50?11.05:8.05;
+        block(x,upper,z+.21,Math.abs(x)>50?23.6:17,.42,.72,0xf2eee2);
+      }
     } else if (site.id === 'manuka-oval') {
       // Oval is a ground surface, never the source footprint's solid ten-metre drum.
       const n=64;
@@ -165,6 +198,32 @@ export function createLandmarksView(scene, map, heightAt) {
         }
       }
       for (const side of [-1,1]) { block(side*88,5,0,17,13,74,0xb6b8ad); block(side*88,13,-3,24,2,80,0x697a76); }
+      // Jack Fingleton's traditional timber scoreboard reads as a dark face
+      // with cream number shutters from across the oval.
+      const scoreboard=map.buildings?.find(b=>b.id==='osm-1290130248');
+      if(scoreboard?.points?.length>=4) {
+        const corners=scoreboard.points.slice(0,4).map(([x,z])=>[x-site.x,z-site.z]);
+        const center=corners.reduce(([u,v],[x,z])=>[u+x/4,v+z/4],[0,0]);
+        const scoreY=groundY(...center),top=scoreY+8.4;
+        for(let i=0;i<4;i++) {
+          const [ax,az]=corners[i],[bx,bz]=corners[(i+1)%4];
+          quad([ax,scoreY+3,az],[bx,scoreY+3,bz],[bx,top,bz],[ax,top,az],0x4c5b4f);
+        }
+        quad(...corners.map(([x,z])=>[x,top+.07,z]),0xdddacc);
+        // The long side nearest the pitch faces the field, on the exact OSM way.
+        const sides=[[corners[0],corners[1]],[corners[2],corners[3]]];
+        const distance=([[x,z],[u,v]])=>Math.hypot(x+u,z+v);
+        const [a,b]=sides.sort((p,q)=>distance(p)-distance(q))[0];
+        const mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],nx=mid[0]-center[0],nz=mid[1]-center[1],n=Math.hypot(nx,nz);
+        const face=(u,h)=>[a[0]+(b[0]-a[0])*u+nx/n*.075,scoreY+h,a[1]+(b[1]-a[1])*u+nz/n*.075];
+        detail=true;
+        quad(face(.015,.6),face(.985,.6),face(.985,8.1),face(.015,8.1),0x364c41);
+        for(let row=0;row<4;row++)for(let col=0;col<8;col++) {
+          const x=.055+col*.118,y=1.5+row*1.5;
+          const shutter=(u,h)=>{const p=face(u,h);p[0]+=nx/n*.04;p[2]+=nz/n*.04;return p;};
+          quad(shutter(x,y),shutter(x+.065,y),shutter(x+.065,y+.66),shutter(x,y+.66),(col+row)%3?0xc8c8b3:0x657062);
+        }
+      }
       detail=true;
       block(0,0.32,0,3.2,0.1,24,0xb8a379);
       for(const side of [-1,1]) for(let i=0;i<5;i++) block(side*(77+i*2.3),2+i*1.6,0,2,0.6,68,0x647e86);
@@ -290,19 +349,27 @@ export function createLandmarksView(scene, map, heightAt) {
         }
       }
     } else {
-      block(0,4,0,28,16,50,0xa47553);
-      block(0,13,0,29,2,51,0x77796f);
-      // Contemporary glass chimney artwork on the historic demolished stack site.
-      primitive(cylinder,-3,11.5,44,2.1,23,2.1,0xb8caca);
+      const render=0xb9b4a6, roofSteel=0x7e8580;
+      block(0,4,0,28,16,50,render);
+      // The former engine and boiler bays have separate gables in a roughcast shell.
+      for(const x of [-7,7]){
+        for(const side of [-1,1])quad([x+side*7.25,12,-25.3],[x,16,-25.3],[x,16,25.3],[x+side*7.25,12,25.3],roofSteel);
+        for(const z of [-25.05,25.05])tri([x-7,12,z],[x,15.9,z],[x+7,12,z],render);
+      }
+      block(0,6.7,-25.15,10.8,14.8,.68,0xc4c0b4);
+      // The artist's published dimensions give a 23 m high, 2 m diameter glass column.
+      primitive(cylinder,-3,11.5,44,1,23,1,0xa3c7be);
       block(-3,0.6,44,6,2.5,6,0x91684b);
-      block(0,2.5,30,16,9,14,0xa47553);
+      block(0,2.5,30,16,9,14,render);
       detail=true;
       for(const side of [-1,1]) for(let i=0;i<7;i++) {
         block(side*14.1,7,-21+i*7,0.15,7,3.6,GLASS);
-        block(side*14.2,7,-21+i*7,0.2,0.2,3.8,PALE);
+        block(side*14.2,7,-21+i*7,0.2,0.16,3.8,0x565c55);
+        for(const dz of [-.90,.90])block(side*14.2,7,-21+i*7+dz,.14,6.9,.085,0x565c55);
       }
       windows(25,-25.1,6,5,2,4);
-      for(const side of [-1,1]) for(let i=0;i<8;i++) block(side*14.3,6,-24+i*7,0.7,13,0.8,0xc0966c);
+      for(const side of [-1,1]) for(let i=0;i<8;i++) block(side*14.3,6,-24+i*7,0.7,13,0.8,0xaaa698);
+      for(let y=2;y<23;y+=1.4)primitive(cylinder,-3,y,44,1.025,.075,1.025,0x69837d);
     }
     // Near includes the silhouette batch; far renders only that coarse geometry.
     const meshes=[];

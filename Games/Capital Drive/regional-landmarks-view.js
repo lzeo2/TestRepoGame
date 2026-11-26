@@ -1,6 +1,6 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
 
-const MAX_SITES=24,MAX_VERTICES=1024,MAX_DETAIL_TRIANGLES=1600,BODY_RANGE=650,DETAIL_RANGE=280;
+const MAX_SITES=25,MAX_VERTICES=1024,MAX_DETAIL_TRIANGLES=1600,BODY_RANGE=650,DETAIL_RANGE=280;
 const DESIGNS={
   arena:{wall:0xb7b8ac,roof:0x6e7778,trim:0xddd9c8,accent:0x344d63,glass:0x5b7884,spacing:11},
   mall:{wall:0xc4b39a,roof:0x85887e,trim:0xe5dac3,accent:0x705444,glass:0x54747b,spacing:15},
@@ -19,20 +19,34 @@ const ring=points=>{
 const signedArea=points=>points.reduce((n,p,i)=>{const q=points[(i+1)%points.length];return n+p[0]*q[1]-q[0]*p[1];},0)/2;
 
 // Interpretive facade architecture on exact mapped footprints and source heights.
-// No unsourced arena domes, exhibition spires, lake monuments or new colliders.
+// Silhouette additions and facade projections are visual only; physics keeps the source polygon.
 export function createRegionalLandmarksView(scene,map,heightAt){
   if(typeof heightAt!=='function')throw new TypeError('Regional landmarks require terrain heights');
   const root=new THREE.Group();root.name='Regional source-footprint landmarks';scene.add(root);
   const body={positions:[],colors:[]},detail={positions:[],colors:[]},sites=[],managed=[],used=new Set();
-  const buildings=new Map((map.buildings||[]).map(b=>[b.id,b]));
   const color=new THREE.Color();let disposed=false,rejected=0;
   function tri(batch,a,b,c,tint){color.setHex(tint);for(const p of [a,b,c]){batch.positions.push(...p);batch.colors.push(color.r,color.g,color.b);}}
   const quad=(batch,a,b,c,d,tint)=>{tri(batch,a,b,c,tint);tri(batch,a,c,d,tint);};
-  for(const place of map.regionalPlaces||[]){
+  const places=(map.regionalPlaces||[]).filter(place=>place.design).slice(0,24);
+  const dickson=map.landmarks?.find(place=>place.id==='dickson-library'&&place.sourceBuildingId==='osm-5124277');
+  if(dickson)places.push({...dickson,design:'library',buildingId:dickson.sourceBuildingId});
+  const requested=new Set(places.map(place=>place.buildingId)),buildings=new Map();
+  for(const building of map.buildings||[])if(requested.has(building.id)){
+    buildings.set(building.id,building);
+    if(buildings.size===requested.size)break;
+  }
+  let masts=0,stays=0;
+  for(const place of places){
     if(!place.design)continue;
     if(sites.length>=MAX_SITES)break;
     if(!Object.hasOwn(DESIGNS,place.design)){rejected++;continue;}
-    const source=buildings.get(place.buildingId),palette=DESIGNS[place.design];
+    const source=buildings.get(place.buildingId);
+    const heritage=place.id==='belconnen-library'||place.id==='dickson-library';
+    const gallery=place.id==='belconnen-arts-centre';
+    const palette=place.id==='dickson-library'?{...DESIGNS.library,wall:0x69534b,trim:0xc0beb4,accent:0x454541,glass:0x505d5e}:
+      place.id==='belconnen-library'?{...DESIGNS.library,wall:0xd5d0ba,trim:0xe3ddcf,accent:0x544e40,glass:0x536565}:
+      place.id==='ais-arena'?{...DESIGNS.arena,wall:0xc0b7a4,roof:0xb9b9b1,trim:0xd6d9d1,glass:0x75888a,accent:0x40566f}:
+      gallery?{...DESIGNS.exhibition,wall:0x515453,roof:0x646867,trim:0x9c9d97,accent:0x393c3c,glass:0x576d72}:DESIGNS[place.design];
     const outer=source&&ring(source.points),holes=source&&(source.innerRings||[]).map(h=>ring(h.points||h));
     const height=source?.height;
     if(!palette||!outer||holes.some(h=>!h)||!(Number.isFinite(height)&&height>0)||used.has(source.id)||
@@ -57,6 +71,36 @@ export function createRegionalLandmarksView(scene,map,heightAt){
     const flat=[...outer,...holes.flat()];
     const faces=THREE.ShapeUtils.triangulateShape(outer.map(p=>new THREE.Vector2(...p)),holes.map(h=>h.map(p=>new THREE.Vector2(...p))));
     for(const face of faces){const points=face.map(i=>[flat[i][0],roof,flat[i][1]]);if(signedArea(points.map(p=>[p[0],p[2]]))>0)points.reverse();tri(body,...points,palette.roof);}
+    if(place.id==='ais-arena'&&edges.length>=4){
+      // Twelve external masts and 36 stays identify the AIS roof. Slice the
+      // footprint instead of assuming a rectangular plan or a north-facing arena.
+      const axis=edges.reduce((best,e)=>e.length>best.length?e:best);
+      const uv=outer.map(([px,pz])=>[(px-x)*axis.tx+(pz-z)*axis.tz,(px-x)*axis.nx+(pz-z)*axis.nz]);
+      const low=Math.min(...uv.map(p=>p[0])),high=Math.max(...uv.map(p=>p[0]));
+      const point=(u,v,h)=>[x+axis.tx*u+axis.nx*v,roof+h,z+axis.tz*u+axis.nz*v];
+      for(let column=0;column<6;column++){
+        const u=low+(high-low)*(.11+column*.156),cross=[];
+        for(let i=0;i<uv.length;i++){
+          const a=uv[i],b=uv[(i+1)%uv.length];
+          if((a[0]<=u&&u<b[0])||(b[0]<=u&&u<a[0]))cross.push(a[1]+(b[1]-a[1])*(u-a[0])/(b[0]-a[0]));
+        }
+        if(cross.length!==2)continue;
+        const mid=(cross[0]+cross[1])/2;
+        for(const v of cross){
+          const sign=Math.sign(v-mid),foot=v+sign*3.2,head=v-sign*1.75,tip=7.2;
+          // Dark compression masts rake from the grass past the pale roof. A
+          // four-sided section and offset stay anchor read clearly at street level.
+          const section=(v,y,r)=>[point(u-r,v-r,y),point(u+r,v-r,y),point(u+r,v+r,y),point(u-r,v+r,y)];
+          const lower=section(foot,-height,.39),upper=section(head,tip,.27);
+          for(let j=0;j<4;j++)quad(body,lower[j],lower[(j+1)%4],upper[(j+1)%4],upper[j],j%2?0x33383b:0x55585a);
+          masts++;
+          for(const offset of [-3.6,0,3.6]){
+            const end=offset===0?foot+sign*1.2:head*.40+mid*.60,anchorY=offset===0?-height:.06;
+            quad(body,point(u-.095,head,tip-.2),point(u+.095,head,tip-.2),point(u+offset+.095,end,anchorY),point(u+offset-.095,end,anchorY),0x444c50);stays++;
+          }
+        }
+      }
+    }
     // Edges and entry selection belong to this source outline, never an inferred
     // rectangular replacement or an extra physical footprint on the public road.
     const px=Number.isFinite(place.x)?place.x:x,pz=Number.isFinite(place.z)?place.z:z;
@@ -64,10 +108,20 @@ export function createRegionalLandmarksView(scene,map,heightAt){
       const da=((a.a[0]+a.b[0])/2-px)**2+((a.a[1]+a.b[1])/2-pz)**2;
       const db=((b.a[0]+b.b[0])/2-px)**2+((b.a[1]+b.b[1])/2-pz)**2;return da-db||b.length-a.length;
     })[0];
+    const at=(edge,u,y,depth)=>[edge.a[0]+edge.tx*u+edge.nx*depth,y,edge.a[1]+edge.tz*u+edge.nz*depth];
     function strip(edge,u0,u1,y0,y1,tint,depth=.045){
-      if(u1<=u0||y1<=y0||(detail.positions.length-startDetail)/9>=MAX_DETAIL_TRIANGLES)return;
-      const at=(u,y)=>[edge.a[0]+edge.tx*u+edge.nx*depth,y,edge.a[1]+edge.tz*u+edge.nz*depth];
-      quad(detail,at(u0,y0),at(u0,y1),at(u1,y1),at(u1,y0),tint);
+      if(u1<=u0||y1<=y0||(detail.positions.length-startDetail)/9+2>MAX_DETAIL_TRIANGLES)return;
+      quad(detail,at(edge,u0,y0,depth),at(edge,u0,y1,depth),at(edge,u1,y1,depth),at(edge,u1,y0,depth),tint);
+    }
+    function ledge(edge,u0,u1,y,depth,thickness,tint){
+      if(u1<=u0||(detail.positions.length-startDetail)/9+10>MAX_DETAIL_TRIANGLES)return;
+      strip(edge,u0,u1,y-thickness,y,tint,depth);
+      quad(detail,at(edge,u0,y,0),at(edge,u1,y,0),at(edge,u1,y,depth),at(edge,u0,y,depth),tint);
+      quad(detail,at(edge,u0,y-thickness,depth),at(edge,u1,y-thickness,depth),at(edge,u1,y-thickness,0),at(edge,u0,y-thickness,0),0x504f49);
+      for(const u of [u0,u1]){
+        if((detail.positions.length-startDetail)/9+2>MAX_DETAIL_TRIANGLES)break;
+        quad(detail,at(edge,u,y,0),at(edge,u,y,depth),at(edge,u,y-thickness,depth),at(edge,u,y-thickness,0),tint);
+      }
     }
     if(front&&height>=3){
       const mid=front.length/2,entry=Math.min(5,front.length*.40),doorTop=ground+Math.min(3.3,height*.62);
@@ -76,6 +130,10 @@ export function createRegionalLandmarksView(scene,map,heightAt){
       strip(front,mid+entry/2,mid+entry/2+.16,ground+.05,doorTop+.2,palette.trim,.13);
       strip(front,mid-entry/2-.16,mid+entry/2+.16,doorTop,doorTop+.2,palette.accent,.13);
       strip(front,mid-.04,mid+.04,ground+.1,doorTop,palette.trim,.14);
+      if(front.length>8&&height>4) {
+        const half=Math.min(front.length*.40,place.design==='mall'?7.5:4);
+        ledge(front,mid-half,mid+half,doorTop+.35,place.design==='mall'?1.45:.8,.16,palette.trim);
+      }
       const label=String(place.name||'').normalize('NFKD').replace(/[^A-Za-z0-9 -]/g,'').toUpperCase().slice(0,24);
       const pixel=Math.min(.17,(front.length-.8)/Math.max(1,label.length*4)),span=Math.max(0,(label.length*4-1)*pixel);
       const y=ground+Math.min(height-1.12,Math.max(3.2,height*.72));
@@ -93,6 +151,22 @@ export function createRegionalLandmarksView(scene,map,heightAt){
     const decorated=edges.filter(e=>e.length>=3).sort((a,b)=>Number(b===front)-Number(a===front)||b.length-a.length).slice(0,20);
     for(const edge of decorated){
       strip(edge,0,edge.length,roof-Math.min(.45,height*.10),roof,palette.trim,.025);
+      if(heritage&&edge.length>5){
+        // Taglietti's deep shadow line and off-form Dickson fascia differ
+        // from Belconnen's off-white continuous horizontal concrete band.
+        ledge(edge,.05,edge.length-.05,roof,place.id==='dickson-library'?1.25:1.6,
+          Math.min(height*.18,place.id==='dickson-library'?.86:.60),palette.trim);
+      }
+      if(place.id==='ais-arena'&&edge.length>=12){
+        strip(edge,edge.length*.05,edge.length*.45,ground+height*.31,ground+height*.60,0x52677e,.11);
+        const panels=Math.min(18,Math.floor(edge.length/4));
+        for(let i=0;i<panels;i++){
+          const u0=i*edge.length/panels+.07,u1=(i+1)*edge.length/panels-.07;
+          const y0=i%2?roof-.26:roof-1.45,y1=i%2?roof-1.45:roof-.26;
+          if((detail.positions.length-startDetail)/9+2<=MAX_DETAIL_TRIANGLES)
+            quad(detail,at(edge,u0,y0,.14),at(edge,u1,y1,.14),at(edge,u1,y1+.105,.14),at(edge,u0,y0+.105,.14),0xe1dfcf);
+        }
+      }
       if(edge.length<3||height<2.5)continue;
       const rows=place.design==='arena'||place.design==='exhibition'?1:Math.min(5,Math.max(1,Math.floor((height-1)/3.2)));
       const bays=Math.min(18,Math.max(1,Math.floor(edge.length/palette.spacing))),bay=edge.length/bays;
@@ -100,7 +174,19 @@ export function createRegionalLandmarksView(scene,map,heightAt){
         const low=ground+(place.design==='arena'?Math.min(height-1.8,Math.max(2,height*.62)):place.design==='exhibition'?Math.min(height-1.8,Math.max(1.5,height*.44)):Math.min(height-1.8,1.1+row*(height-2)/rows)),high=Math.min(roof-.65,low+Math.min(1.55,height*.22));
         strip(edge,.25,edge.length-.25,low,high,palette.glass);
         strip(edge,.25,edge.length-.25,high-.12,high,0xa2b7b5,.052);
-        for(let column=1;column<bays;column++)strip(edge,column*bay-.06,column*bay+.06,low,high,palette.trim,.065);
+        for(let column=1;column<bays;column++){
+          strip(edge,column*bay-.06,column*bay+.06,low,high,palette.trim,.065);
+        }
+        if(row===0&&edge.length>=6){
+          // A projecting sill with a shaded return remains legible in a moving car.
+          ledge(edge,.25,edge.length-.25,low+.04,heritage?.28:.18,.13,palette.trim);
+          if(gallery){
+            for(let column=0;column<bays;column++)for(let j=1;j<=3;j++) {
+              const u=(column+j/4)*bay;
+              strip(edge,u-.045,u+.045,high+.12,roof-.25,0x818582,.065);
+            }
+          }
+        }
       }
       if(['arena','campus','library','exhibition'].includes(place.design)){
         for(let i=1;i<bays;i++)strip(edge,i*bay-.13,i*bay+.13,ground+.2,roof-.5,palette.trim,.085);
@@ -114,37 +200,54 @@ export function createRegionalLandmarksView(scene,map,heightAt){
   function batchMesh(batch,name){
     if(!batch.positions.length)return null;
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(batch.positions,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(batch.colors,3));geometry.computeVertexNormals();
+    const vertices=geometry.attributes.position.count;
+    const Index=vertices>65535?Uint32Array:Uint16Array;
+    geometry.setIndex(new THREE.BufferAttribute(new Index(vertices),1).setUsage(THREE.DynamicDrawUsage));
+    geometry.setDrawRange(0,0);
     const material=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});
     const mesh=new THREE.Mesh(geometry,material);mesh.name=name;mesh.frustumCulled=false;root.add(mesh);
-    return {mesh,original:geometry.attributes.position.array.slice()};
+    return {mesh};
   }
   let bodyBatch=batchMesh(body,'Exact sourced landmark shells'),detailBatch=batchMesh(detail,'Original regional landmark facade accents');
   body.positions.length=body.colors.length=detail.positions.length=detail.colors.length=0;
   const batches=[bodyBatch,detailBatch].filter(Boolean);
-  let visible=0,detailed=0,visibleTriangles=0;
-  function slice(batch,start,count,show){
-    if(!batch)return;const attribute=batch.mesh.geometry.attributes.position,array=attribute.array;
-    for(let i=start*3;i<(start+count)*3;i++)array[i]=show?batch.original[i]:0;
-    attribute.needsUpdate=true;
+  let visible=0,detailed=0,visibleTriangles=0,lastX,lastZ;
+  // Each geometry is immutable. Rebuild its small index prefix only when a site
+  // enters/leaves range. Distant sites consume neither draw calls nor vertex work.
+  function select(batch,layer){
+    if(!batch)return;
+    const geometry=batch.mesh.geometry,index=geometry.index;
+    let count=0;
+    for(const site of sites)if(site[layer+'Shown']){
+      const start=site[layer+'Start'],end=start+site[layer+'Count'];
+      for(let i=start;i<end;i++)index.array[count++]=i;
+    }
+    geometry.setDrawRange(0,count);batch.mesh.visible=count>0;
+    if(count){index.clearUpdateRanges();index.addUpdateRange(0,count);index.needsUpdate=true;}
   }
   function update(focus){
     if(disposed)return;
-    const valid=focus&&Number.isFinite(focus.x)&&Number.isFinite(focus.z);visible=detailed=visibleTriangles=0;
+    const valid=focus&&Number.isFinite(focus.x)&&Number.isFinite(focus.z);
+    const x=valid?focus.x:null,z=valid?focus.z:null;
+    if(x===lastX&&z===lastZ)return;
+    lastX=x;lastZ=z;visible=detailed=visibleTriangles=0;
+    let bodiesChanged=false,detailsChanged=false;
     for(const site of sites){
       const dx=valid?Math.max(0,site.minX-focus.x,focus.x-site.maxX):Infinity;
       const dz=valid?Math.max(0,site.minZ-focus.z,focus.z-site.maxZ):Infinity;
       const distance=dx*dx+dz*dz,showBody=distance<BODY_RANGE**2,showDetail=distance<DETAIL_RANGE**2;
       if(showBody){visible++;visibleTriangles+=site.bodyCount/3;}if(showDetail){detailed++;visibleTriangles+=site.detailCount/3;}
-      if(showBody!==site.bodyShown){site.bodyShown=showBody;slice(bodyBatch,site.bodyStart,site.bodyCount,showBody);}
-      if(showDetail!==site.detailShown){site.detailShown=showDetail;slice(detailBatch,site.detailStart,site.detailCount,showDetail);}
+      if(showBody!==site.bodyShown){site.bodyShown=showBody;bodiesChanged=true;}
+      if(showDetail!==site.detailShown){site.detailShown=showDetail;detailsChanged=true;}
     }
-    if(bodyBatch)bodyBatch.mesh.visible=visible>0;if(detailBatch)detailBatch.mesh.visible=detailed>0;
+    if(bodiesChanged)select(bodyBatch,'body');
+    if(detailsChanged)select(detailBatch,'detail');
   }
   update(null);
   return {update,managedBuildingIds:Object.freeze(managed),
-    get stats(){return {sites:sites.length,rejected,visible,detailed,drawCalls:disposed?0:Number(visible>0&&!!bodyBatch)+Number(detailed>0&&!!detailBatch),
-      triangles:disposed?0:batches.reduce((n,b)=>n+(b.mesh.visible?b.mesh.geometry.attributes.position.count/3:0),0),visibleTriangles:disposed?0:visibleTriangles,
+    get stats(){return {sites:sites.length,rejected,aisMasts:masts,aisStays:stays,visible,detailed,drawCalls:disposed?0:Number(visible>0&&!!bodyBatch)+Number(detailed>0&&!!detailBatch),
+      triangles:disposed?0:batches.reduce((n,b)=>n+(b.mesh.visible?b.mesh.geometry.drawRange.count/3:0),0),visibleTriangles:disposed?0:visibleTriangles,
       geometryCount:disposed?0:batches.length,materialCount:disposed?0:batches.length,textureCount:0,bodyRange:BODY_RANGE,detailRange:DETAIL_RANGE,capacity:MAX_SITES,maxVerticesPerSite:MAX_VERTICES,maxDetailTrianglesPerSite:MAX_DETAIL_TRIANGLES,disposed};},
-    dispose(){if(disposed)return;disposed=true;visible=detailed=visibleTriangles=0;scene.remove(root);for(const b of batches){b.mesh.geometry.dispose();b.mesh.material.dispose();b.original=null;}batches.length=0;bodyBatch=detailBatch=null;root.clear();},
+    dispose(){if(disposed)return;disposed=true;visible=detailed=visibleTriangles=0;scene.remove(root);for(const b of batches){b.mesh.geometry.dispose();b.mesh.material.dispose();}batches.length=0;bodyBatch=detailBatch=null;root.clear();},
   };
 }

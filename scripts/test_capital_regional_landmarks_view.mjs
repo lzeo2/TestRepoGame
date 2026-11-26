@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import {loadCapitalMap} from './capital-map-fixture.mjs';
 import {createRegionalLandmarksView} from '../Games/Capital Drive/regional-landmarks-view.js';
 
 const designs=['arena','mall','library','hospital','campus','exhibition'];
@@ -26,13 +27,12 @@ const constructionCalls=heightCalls;
 for(let i=0;i<map.regionalPlaces.length;i++){
  const place=map.regionalPlaces[i],source=map.buildings[i];view.update(place);
  assert.equal(view.stats.visible,1);assert.equal(view.stats.detailed,1);assert.equal(view.stats.drawCalls,2);
- assert(view.stats.triangles>=view.stats.visibleTriangles,'pooled submission count includes collapsed distant triangles honestly');
+ assert.equal(view.stats.triangles,view.stats.visibleTriangles,'only visible index ranges reach the GPU');
  const positions=body.geometry.attributes.position,xs=source.points.map(p=>p[0]),zs=source.points.map(p=>p[1]);
  const center=[(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...zs)+Math.max(...zs))/2],roof=200+center[0]*.001+center[1]*.002+15;
  let roofArea=0,wallVertices=0;
- for(let v=0;v<positions.count;v+=3){
-  const triangle=[0,1,2].map(j=>[positions.getX(v+j),positions.getY(v+j),positions.getZ(v+j)]);
-  if(triangle.every(p=>p.every(n=>n===0)))continue;
+ for(let v=0;v<body.geometry.drawRange.count;v+=3){
+  const triangle=[0,1,2].map(j=>body.geometry.index.getX(v+j)).map(j=>[positions.getX(j),positions.getY(j),positions.getZ(j)]);
   for(const p of triangle){
    const known=[...source.points,...source.innerRings.flatMap(h=>h.points)].some(([x,z])=>Math.hypot(x-p[0],z-p[2])<.001);
    assert(known,'shell vertices belong to the exact source footprint or courtyard');
@@ -49,17 +49,17 @@ for(let i=0;i<map.regionalPlaces.length;i++){
  const hash=createHash('sha256');
  for(const mesh of [body,detail]){
   const p=mesh.geometry.attributes.position,c=mesh.geometry.attributes.color;
-  for(let j=0;j<p.count;j++)if(p.getY(j)!==0)hash.update(JSON.stringify([Math.round((p.getX(j)-center[0])*1000),Math.round((p.getY(j)-roof+15)*1000),Math.round((p.getZ(j)-center[1])*1000),c.getX(j),c.getY(j),c.getZ(j)]));
+  for(let i=0;i<mesh.geometry.drawRange.count;i++){const j=mesh.geometry.index.getX(i);hash.update(JSON.stringify([Math.round((p.getX(j)-center[0])*1000),Math.round((p.getY(j)-roof+15)*1000),Math.round((p.getZ(j)-center[1])*1000),c.getX(j),c.getY(j),c.getZ(j)]));}
  }
  signatures.add(hash.digest('hex'));
- const versions=root.children.map(m=>m.geometry.attributes.position.version);view.update(place);
- root.children.forEach((m,j)=>assert.equal(m.geometry.attributes.position.version,versions[j],'stationary focus does not upload geometry'));
+ const versions=root.children.map(m=>m.geometry.index.version);view.update(place);
+ root.children.forEach((m,j)=>assert.equal(m.geometry.index.version,versions[j],'stationary focus does not upload geometry'));
 }
 const submittedTriangles=view.stats.triangles;
 assert.equal(signatures.size,6,'six facade families have distinct original detail/color geometry');assert.equal(heightCalls,constructionCalls,'distance updates never resample terrain');
 view.update({x:400,z:200});assert.equal(view.stats.visible,1);assert.equal(view.stats.detailed,0);assert.equal(view.stats.drawCalls,1,'far view keeps only the sourced shell');
 view.update({x:100000,z:100000});assert.equal(view.stats.drawCalls,0);assert.equal(view.stats.triangles,0);
-for(const mesh of root.children)assert(mesh.geometry.attributes.position.array.every(v=>v===0));
+for(const mesh of root.children)assert.equal(mesh.geometry.drawRange.count,0);
 view.update({x:NaN,z:Infinity});assert.equal(view.stats.visible,0);
 const detached=view.stats;detached.visible=99;assert.equal(view.stats.visible,0);
 assert.deepEqual(map,original,'view never edits source/collider metadata');
@@ -74,3 +74,23 @@ const largeStats=longView.stats;longView.dispose();
 const invalid=createRegionalLandmarksView(extraScene,{buildings:[{id:'oversize',height:20,points:Array.from({length:1025},(_,i)=>[Math.sin(i)*100,Math.cos(i)*100])}],regionalPlaces:[{id:'missing',buildingId:'missing',design:'arena'},{id:'oversize',buildingId:'oversize',design:'mall'}]},()=>100);
 assert.equal(invalid.stats.sites,0);assert.equal(invalid.stats.rejected,2);assert.deepEqual(invalid.managedBuildingIds,[],'missing/oversize owners retain generic fallback instead of clipped footprints');invalid.dispose();
 console.log(`PASS regional landmarks: six source-bound archetypes, concave roofs/courtyard, height/rotation, two opaque batches/${submittedTriangles} submitted triangles/no textures, cached near/far LOD, immutable metadata/managed IDs and exact disposal; stress ${largeStats.visibleTriangles} triangles capped at ${largeStats.maxDetailTrianglesPerSite} facade triangles/site`);
+
+const actual=await loadCapitalMap(),regionalScene=new THREE.Scene();
+const actualView=createRegionalLandmarksView(regionalScene,actual,()=>10);
+assert.equal(actualView.stats.sites,25);assert.equal(actualView.stats.rejected,0);
+assert.equal(actualView.stats.aisMasts,12);assert.equal(actualView.stats.aisStays,36);
+assert(actualView.managedBuildingIds.includes('osm-5124277'),'Dickson Library uses its exact source building');
+let peak=0;const realPlaces=[...actual.regionalPlaces.filter(p=>p.design),actual.landmarks.find(p=>p.id==='dickson-library')];
+for(const place of realPlaces){
+  const build=actual.buildings.find(b=>b.id===place.buildingId);
+  const [x,z]=build.points[0];
+  actualView.update({x,z});const stats=actualView.stats;
+  assert(stats.visible>=1&&stats.detailed>=1&&stats.drawCalls<=2,place.id);
+  assert.equal(stats.triangles,stats.visibleTriangles);
+  peak=Math.max(peak,stats.triangles);
+}
+const realGeometry=regionalScene.children[0].children;
+const vertexBudget=realGeometry.reduce((n,m)=>n+m.geometry.attributes.position.count/3,0);
+assert(peak<vertexBudget/2,'regional clusters submit less than half the city geometry even at peak');
+console.log(`PASS mapped landmark exteriors: ${realPlaces.length} places, AIS ${actualView.stats.aisMasts} masts/${actualView.stats.aisStays} stays, ${peak}/${vertexBudget} peak/total triangles, two opaque draws, static vertex buffers`);
+actualView.dispose();
