@@ -255,16 +255,22 @@ export function createSimulation(map, options = {}) {
   // A walker already on the lower level keeps it at overlapping X/Z.
   // Transient ownership follows that actor only, without changing save poses.
   const actorSupports = new WeakMap();
+  const bridgeLevelTolerance = .9;
   function isBelowBridge(x, z, y) {
     if (!Number.isFinite(y)) return false;
     const deck = options.bridgeHeightAt?.(x, z);
-    return Number.isFinite(deck) && y + .9 < deck;
+    return Number.isFinite(deck) && y + bridgeLevelTolerance < deck;
   }
   function vehicleBelowBridge(pose, x, z) {
-    return options.bridgeHeightAt && options.vehicleHeightAt && isBelowBridge(x, z, vehicleBase(pose));
+    const deck = options.bridgeHeightAt?.(x, z);
+    return Number.isFinite(deck) && options.vehicleHeightAt && vehicleBase(pose) + bridgeLevelTolerance < deck;
   }
   function setActorSupport(actor, y) {
-    if (options.bridgeHeightAt && Number.isFinite(y)) actorSupports.set(actor, { x: actor.x, z: actor.z, y });
+    if (!options.bridgeHeightAt || !Number.isFinite(y)) return;
+    const prior = actorSupports.get(actor);
+    if (prior) {
+      prior.x = actor.x; prior.z = actor.z; prior.y = y;
+    } else actorSupports.set(actor, { x: actor.x, z: actor.z, y });
   }
   function sampleActorSupport(actor, x, z, priorY) {
     if (isBelowBridge(x, z, priorY)) return options.groundHeightAt?.(x, z);
