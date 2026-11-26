@@ -281,6 +281,7 @@ async def trial(page, g, result, evidence, base):
             async def sample():
                 return await controlled_value(page, selector)
         previous = await sample()
+        inputs_before = len(result['inputs'])
         for step in steps.split('|'):
             if step.startswith('key:'):
                 await key(page, step[4:])
@@ -302,9 +303,16 @@ async def trial(page, g, result, evidence, base):
                 result['inputs'].append('Click '+step)
         await page.wait_for_timeout(180)
         current = await sample()
-        if current != previous and (current is not None or previous is not None):
-            result['proof'] = {'selector': selector, 'before': str(previous)[:230],
-                               'after': str(current)[:230]}
+        if len(result['inputs']) != inputs_before and current != previous:
+            proof = {'selector': selector}
+            if isinstance(previous,list) and isinstance(current,list):
+                index = next((i for i,(a,b) in enumerate(zip(previous,current)) if a!=b),
+                             min(len(previous),len(current)))
+                proof.update(index=index, beforeCount=len(previous), afterCount=len(current))
+                previous = previous[index] if index < len(previous) else None
+                current = current[index] if index < len(current) else None
+            proof.update(before=str(previous)[:230],after=str(current)[:230])
+            result['proof'] = proof
             verified = True
     if not verified:
         node = await surface(page)
