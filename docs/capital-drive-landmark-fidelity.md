@@ -41,6 +41,20 @@ The regional renderer draws the exterior walls and roofs on the mapped building 
 
 The former waterpark at Macquarie retains its four mapped pool outlines and six slide routes. The Macquarie shopping precinct, Manuka and Kingston shopping precincts, commercial tenants, and Civic noodle restaurant use the separate shopping, storefront, Macquarie and noodle-shop views. Most houses and unnamed commercial buildings still use the streamed world renderer’s footprint-based architecture.
 
+### Street-level geographic captures
+
+![Shopfronts and the actual Franklin Street roadway in Manuka](capital-drive-previews/landmark-studies/manuka-street.webp)
+
+![Parliament House from its mapped public approach](capital-drive-previews/landmark-studies/parliament-street.webp)
+
+The geographic harness loads the shipped Inner South terrain and street data, applies production road profiles and building replacements, then runs the normal low-graphics world streamer, real building and shop views, foliage atlas, daylight lighting, parked-car generator and streetlight renderer. The two 1280 × 720 captures use fixed pedestrian-height cameras. A playable session adds its HUD, player, moving actors, missions and changing weather. The Parliament Drive photograph loaded 20 world chunks and submitted 135,420 triangles. The Franklin Street photograph loaded 17 and submitted 137,470 triangles. The harness also reports tree, building and road segment counts.
+
+To reproduce both images, install Python Playwright and Pillow, point the command at a local Chromium executable and run it from the repository root. It serves the checked-out files on a loopback port.
+
+```sh
+python scripts/capture_capital_street_views.py --chromium /usr/bin/chromium --output /tmp/capital-street-views
+```
+
 ### Model studies
 
 These images come from Chromium rendering the production geometry and materials with fixed daylight on a neutral ground plane. The close views isolate the geometric detail. Traffic, nearby buildings, sky, terrain and game HUD appear during normal play.
