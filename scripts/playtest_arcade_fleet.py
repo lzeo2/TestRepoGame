@@ -36,8 +36,10 @@ PROBES = {
     'TowerOfHanoi': ('#disk-1|#tower-b', '#step-counter'),
     'MiniGolf': ('key:ArrowLeft|key:Space', '#strokes'),
     'Sokoban': ('key:ArrowRight|key:ArrowLeft|key:ArrowDown|key:ArrowUp', '#msg'),
-    'Dominoes': ('drag:#block1>#mesto1', '#mesto1'),
-    'SchoolyardCourtyardCast': ('#pause', '#pause'),
+    'Dominoes': ('#block1|#mesto1', '#mesto1'),
+    'Garage Borough': ('#hire', '#cash'),
+    'BrainrotBoulevard': ('key:l', '#lockStatus'),
+    'ServerSurvival': ('#btn-fast', '#btn-fast'),
     'SchoolyardGapGlide': ('#restart|#start|#pause', '#pause'),
     'Puzzle15': ('key:ArrowRight|key:ArrowLeft|key:ArrowDown|key:ArrowUp', '#moves'),
     'PegSolitaire': ('[data-row="3"][data-col="1"]|[data-row="3"][data-col="3"]', '#pegCount'),
@@ -87,7 +89,8 @@ STATE_PROBES = {
     'Asteroids': ('key:Space|key:ArrowRight', 'window.Game?.ship?.rot'),
     'Archery': ('key:ArrowRight', 'typeof kbAngle === "undefined" ? null : kbAngle'),
     'Borough Run': ('key:p', 'window.__gameDebug?.state'),
-    'Night Shift': ('key:p', 'window.__gameDebug?.state'),
+    'Night Shift': ('key:j', 'window.__gameDebug?.entityCounts.bullets'),
+    'SchoolyardCourtyardCast': ('#aim-settings summary|#launch', 'window.schoolyardGame?.state.nextIndex'),
     'Rhythm': ('hold:s', 'window.isHolding?.s'),
     'ADarkRoom': ('#lightButton', 'window.$SM?.get("game.fire.value")'),
     'Jankolock3D': ('#pause', 'document.querySelector("#resume")?.checkVisibility()'),
@@ -129,8 +132,10 @@ START = {
     'Circuit Ward': '#startSolo', 'Tag Relay': '#start', 'Spline Ride': '#play',
     'Tanks and Soldiers': '#deploy', 'Jankolock3D': '#start',
     'Capital Drive': '#start-button', 'Foldwild': '#start', 'Below the Obvious': '#playBtn',
-    'Rhythm': '.btn--start', 'Slipstream Borough': '#start',
-    'ADarkRoom': 'div.button:text-is("disable audio")',
+    'BrainrotBoulevard': '#playButton',
+    'ServerSurvival': 'button[onclick="startSandbox()"]',
+    'Garage Borough': '#start', 'Rhythm': '.btn--start', 'Slipstream Borough': '#start',
+    'ADarkRoom': '#exitButtons #no',
     'Nim': '#playBtn', 'DotsAndBoxes': '#playBtn', 'Mastermind': '#playBtn',
     'UltimateTicTacToe': '#playBtn', 'War': '#startBtn', 'WordLadder': '#startBtn',
     'WordSearch': '#startScreen .primary', 'StealFootballer': '#start',
@@ -264,11 +269,15 @@ async def trial(page, g, result, evidence, base):
     start = time.monotonic()
     ident, directory = g['id'], g['directory']
     url = base + quote(g['entry'])
-    response = await page.goto(url, wait_until='domcontentloaded', timeout=30000)
+    wait_for_start = directory in ('ServerSurvival','BrainrotBoulevard')
+    response = await page.goto(url, wait_until='commit' if wait_for_start else 'domcontentloaded', timeout=30000)
     result['http'] = response.status if response else None
     if result['http'] != 200:
         result['outcome'] = 'entry-unavailable'
         return
+    if wait_for_start:
+        await page.locator(START[directory]).wait_for(state='visible',timeout=60000)
+        await page.wait_for_function('(selector)=>!document.querySelector(selector).disabled',arg=START[directory],timeout=60000)
     await page.wait_for_timeout(4800 if ident in HEAVY or ident in EMULATED else 1000)
     if directory == 'Character AI':
         # Protected interactive chat. Inspect its visible shell without sending
@@ -286,6 +295,12 @@ async def trial(page, g, result, evidence, base):
             pass
     if directory in CANVAS_MENUS:
         await page.wait_for_timeout(2400)
+    if directory == 'ADarkRoom':
+        # The first-run audio choice is created after the room's fade-in.
+        try:
+            await page.locator('#exitButtons #no').wait_for(state='visible',timeout=10000)
+        except Error:
+            pass
     before_text = await page.evaluate("document.body?.innerText || ''")
     result['initialText'] = ' '.join(before_text.split())[:240]
     started = False
@@ -302,6 +317,10 @@ async def trial(page, g, result, evidence, base):
                 result['inputs'].append('Start '+label.strip()[:40])
             except Error:
                 pass
+    # Both starts deliberately show their controls before enabling the level.
+    if directory in ('Night Shift', 'Borough Run') and started:
+        if await click_element(page,'#play'):
+            result['inputs'].append('Start level #play')
     for fraction_x, fraction_y in CANVAS_MENUS.get(directory, []):
         await page.mouse.click(round(fraction_x*850),round(fraction_y*590))
         result['inputs'].append(f'Canvas menu at {fraction_x:.2f}, {fraction_y:.2f}')
@@ -429,7 +448,10 @@ async def examine(browser, g, output, origin):
             await route.abort()
         else:
             await route.continue_()
-    await context.route('**/*',guard)
+    # Route only off-origin requests through Python. Hundreds of local modules
+    # can otherwise queue behind browser-to-runner round trips.
+    allowed_host = re.escape(urlsplit(origin).netloc)
+    await context.route(re.compile(r'^https?://(?!'+allowed_host+r'(?:/|$))',re.I),guard)
     await context.route_web_socket(re.compile(r'^wss?://'),lambda socket: socket.close())
     page = await context.new_page()
     page.set_default_timeout(1800)
@@ -446,7 +468,7 @@ async def examine(browser, g, output, origin):
                 result['failedLocal'].append(value)
     page.on('response',observe)
     try:
-        await asyncio.wait_for(trial(page,g,result,evidence,origin),timeout=205 if g['id']==245 else 70)
+        await asyncio.wait_for(trial(page,g,result,evidence,origin),timeout=205 if g['id']==245 else 135 if g['directory'] in ('ServerSurvival','BrainrotBoulevard','FancyPantsAdventure3') else 70)
     except (Error,asyncio.TimeoutError) as exc:
         result['error'] = str(exc).replace(origin,'')[:350] or 'Time budget exceeded'
         try:

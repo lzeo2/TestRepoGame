@@ -9,6 +9,26 @@
     "receipt": "emulator-deep/221/proof.json",
     "status": "gameplay"
   },
+  "BasketRandom": {
+    "observation": "Right team jumped after the native Up input. Default embedded ad cancellation and both menu clicks completed without a page error.",
+    "receipt": "vendor-deep/5/proof.json",
+    "status": "gameplay"
+  },
+  "BurritoBison": {
+    "observation": "Advanced through the story, dragged the wrestler away from the ropes and released to launch. Clicked the in-flight slam prompt and reached the post-run mission panel.",
+    "receipt": "unity-deep/bison-display/session.log, launch.jpg, smash.jpg",
+    "status": "gameplay"
+  },
+  "Capital Drive": {
+    "observation": "The shipping 2D fallback accepted Campaign, Start, skip, and J. The player selected a direct radio route, Milo’s longer case-table handover, then the direct route. The test seeded six completed introductions and the initial position. Separately, the normal 3D Free roam entry reached started and unpaused with the player active.",
+    "receipt": "canberra-park-detail/crew-radio-native-a4/results.json (sibling preview folder)",
+    "status": "gameplay"
+  },
+  "Checkers": {
+    "observation": "Moved the piece from square 40 to 33 and observed both board squares change.",
+    "receipt": "root-deep/Checkers.json",
+    "status": "gameplay"
+  },
   "Chess Workshop": {
     "observation": "The legal move and an independent Stockfish reply appeared in notation. Recorded inputs were Mouse drag e2 to e4.",
     "receipt": "originals-deep/247/proof.json",
@@ -17,6 +37,11 @@
   "Circuit Ward": {
     "observation": "Live player Z coordinate moved after holding W in a solo wave. Recorded inputs were Click #startSolo, Hold W.",
     "receipt": "originals-deep/222/proof.json",
+    "status": "gameplay"
+  },
+  "Crossword": {
+    "observation": "Submitted the matching answer for an across clue. The solved count increased from 0 of 16 to 1 of 16.",
+    "receipt": "verified-seven-native/Crossword.json",
     "status": "gameplay"
   },
   "Dive Trivia": {
@@ -29,9 +54,59 @@
     "receipt": "scripts/test_arcade_legacy_startup.py",
     "status": "gameplay"
   },
+  "DoodleJump": {
+    "observation": "Selected Play. ArrowRight moved the player horizontally while the avatar continued its automatic jump.",
+    "receipt": "root-deep/DoodleJump.json",
+    "status": "gameplay"
+  },
+  "DoodleJumpHacked": {
+    "observation": "Selected Play. ArrowRight moved the player horizontally during the automatic jump.",
+    "receipt": "root-deep/DoodleJumpHacked.json",
+    "status": "gameplay"
+  },
   "DrMario": {
     "observation": "A fresh one-player Level 00 bottle showed four viruses. Holding Right moved the active red capsule across the top of the bottle; Z rotated its orientation and pressing Down advanced the piece toward the viruses.",
     "receipt": "emulator-deep/114/proof.json",
+    "status": "gameplay"
+  },
+  "FireboyAndWatergirl": {
+    "observation": "Horizontal movement of real Phaser level character while holding the right arrow.",
+    "receipt": "vendor-deep/127/proof.json",
+    "status": "gameplay"
+  },
+  "FireboyAndWatergirlCrystalTemple": {
+    "observation": "Horizontal movement of real Phaser level character while holding the right arrow.",
+    "receipt": "vendor-deep/128/proof.json",
+    "status": "gameplay"
+  },
+  "FireboyAndWatergirlCrystalTempleHacked": {
+    "observation": "Horizontal movement of real Phaser level character while holding the right arrow.",
+    "receipt": "vendor-deep/133/proof.json",
+    "status": "gameplay"
+  },
+  "FireboyAndWatergirlForestTemple": {
+    "observation": "Right arrow moved Fireboy while Watergirl stayed still in the first Forest Temple level.",
+    "receipt": "vendor-deep/129/proof.json",
+    "status": "gameplay"
+  },
+  "FireboyAndWatergirlForestTempleHacked": {
+    "observation": "Horizontal movement of real Phaser level character while holding the right arrow.",
+    "receipt": "vendor-deep/132/proof.json",
+    "status": "gameplay"
+  },
+  "FireboyAndWatergirlHacked": {
+    "observation": "Horizontal movement of real Phaser level character while holding the right arrow.",
+    "receipt": "vendor-deep/131/proof.json",
+    "status": "gameplay"
+  },
+  "Foldwild": {
+    "observation": "Selected a starter, entered the world and focused the normal game canvas. Holding W moved the active player from z=16 to z=15.4.",
+    "receipt": "root-deep/Foldwild.json",
+    "status": "gameplay"
+  },
+  "Frogger": {
+    "observation": "The full 320 × 480 board fit in three viewports. ArrowRight on desktop and one Hop right tap in portrait and landscape each moved the visible frog from x=159 to x=209.",
+    "receipt": "frogger-viewport/results.json",
     "status": "gameplay"
   },
   "JetpackJoyride": {
@@ -44,6 +119,11 @@
     "receipt": "scripts/test_arcade_legacy_startup.py",
     "status": "entry"
   },
+  "Joust": {
+    "observation": "ArrowRight moved the rider from x=100 to x=110.67. Space changed vertical velocity from +38.04 to −191.85.",
+    "receipt": "verified-seven-native/Joust.json",
+    "status": "gameplay"
+  },
   "KirbyAmazingMirror": {
     "observation": "Entered File 1, reached the opening gate with the playable pink Kirby and three companions, and used Z to jump. The last image shows Kirby above the ground while the companions remain below.",
     "receipt": "emulator-deep/120/proof.json",
@@ -54,19 +134,64 @@
     "receipt": "emulator-deep/117/proof.json",
     "status": "gameplay"
   },
+  "Mastermind": {
+    "observation": "Entered 1, 2, 3 and 4, then pressed Enter. The game advanced to guess 2 of 8.",
+    "receipt": "root-deep/Mastermind.json",
+    "status": "gameplay"
+  },
+  "MegaManZero": {
+    "observation": "Chose New Game, completed the rescue opening, and reached an active Zero with a health meter. Right moved Zero into the Pantheon group. The jump key sent Zero up above the rocks and the B button produced a combat impact immediately afterward. Repeated input returned Zero to ground among the enemies.",
+    "receipt": "emulator-deep/119/proof.json",
+    "status": "gameplay"
+  },
   "MetroidFusion": {
-    "observation": "Selected File A and started the Metroid Fusion story. Advanced the captioned spaceship/asteroid narrative to the planet scene. On-foot movement and firing as Samus were not verified in this capture.",
+    "observation": "Started File A, followed Samus through the X infection and BSL approach, and reached the live Quarantine Bay briefing. After dismissing that briefing, the HUD read Energy 99. Right turned/moved Samus right; the subsequent A raised her from the platform into a jump, then she landed.",
     "receipt": "emulator-deep/118/proof.json",
-    "status": "story"
+    "status": "gameplay"
+  },
+  "Qix": {
+    "observation": "ArrowUp moved the player from y=597 to y=592. The shipped game describes itself as a drawing prototype.",
+    "receipt": "verified-seven-native/Qix.json",
+    "status": "gameplay"
   },
   "Run3": {
     "observation": "Started Explore from the native character menu. The runner entered the tunnel, then received left, right and jump inputs. The play and steer frames show the live level.",
     "receipt": "run3-play.png, run3-steer.png",
     "status": "gameplay"
   },
+  "SameGame": {
+    "observation": "Clicked adjacent matching colours to select and remove the group. The board changed after the second click.",
+    "receipt": "root-deep/SameGame.json",
+    "status": "gameplay"
+  },
+  "Snake": {
+    "observation": "Steered, toggled pause and resume with P, crashed and started a new game.",
+    "receipt": "root-deep/Snake.json",
+    "status": "gameplay"
+  },
+  "SnakeHacked": {
+    "observation": "Steered, toggled pause and resume and crossed a wrapping boundary.",
+    "receipt": "root-deep/SnakeHacked.json",
+    "status": "gameplay"
+  },
+  "SoccerRandom": {
+    "observation": "Releasing the Up arrow after a hold lifted the right team’s players. The other pair stayed on the ground.",
+    "receipt": "vendor-deep/4/proof.json",
+    "status": "gameplay"
+  },
+  "SonicAdvance": {
+    "observation": "Selected Game Start and entered a playable beach stage as Amy Rose. Holding Right moved Amy past a palm and scrolled new terrain into view. Pressing A sent her into the air, she landed, and another A produced the second jump. Stage timer advanced from 00:00.35 to 00:03.82.",
+    "receipt": "emulator-deep/121/proof.json",
+    "status": "gameplay"
+  },
   "StealBasketballer": {
     "observation": "World avatar moved after W from a fresh profile. Recorded inputs were Click #start, Hold W.",
     "receipt": "originals-deep/246/proof.json",
+    "status": "gameplay"
+  },
+  "StealFootballer": {
+    "observation": "World avatar moved after W from a fresh profile. Recorded inputs were Click #start, Hold W.",
+    "receipt": "originals-deep/227/proof.json",
     "status": "gameplay"
   },
   "StrandedInIsekai": {
@@ -79,9 +204,29 @@
     "receipt": "emulator-deep/115/proof.json",
     "status": "gameplay"
   },
+  "SubwaySurfers": {
+    "observation": "Cleared local onboarding, started a run with Space and tap, and used upward input. The score advanced from 5 to 35 to 44 while the player continued along the track.",
+    "receipt": "unity-deep/subway-local/session.log, jump.jpg, checkpoint.jpg",
+    "status": "gameplay"
+  },
+  "SubwaySurfersHacked": {
+    "observation": "Started a fresh run, steered against a barrier, then opened pause and observed the mission score of 44.",
+    "receipt": "unity-deep/subway-hacked-fixed/pause.jpg, session.log",
+    "status": "gameplay"
+  },
+  "Superhot": {
+    "observation": "Advanced the introduction to the first 3D encounter. WASD and mouse input moved the camera in the scene with the opponent and reticle visible.",
+    "receipt": "unity-deep/superhot-display/",
+    "status": "gameplay"
+  },
   "Tanks and Soldiers": {
     "observation": "Live rifle ammunition count decreased after F. Recorded inputs were Select touch control mode, Click #deploy, Hold F to fire.",
     "receipt": "originals-deep/248/proof.json",
+    "status": "gameplay"
+  },
+  "VolleyRandom": {
+    "observation": "Releasing the Up arrow after a hold lifted the right team’s players. The other pair stayed on the ground.",
+    "receipt": "vendor-deep/6/proof.json",
     "status": "gameplay"
   }
 }

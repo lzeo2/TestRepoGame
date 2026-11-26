@@ -117,7 +117,7 @@ var Frog = function() {
 
 		if(!this.animating){
 			var direction = Game.takeDirection();
-			if(direction === 'up') { 
+			if(direction === 'up') {
 				this.steppingTime = 0; 
 				this.vy = -this.maxVel; 
 				this.animating = true; 
@@ -129,7 +129,7 @@ var Frog = function() {
 				} else if(this.finalY < 0){ 
 					this.finalY = 0; 
 				}
-			} else if(direction === 'down') { 
+			} else if(direction === 'down') {
 				this.steppingTime = 0; 
 				this.vy = this.maxVel; 
 				this.animating = true;
@@ -141,7 +141,7 @@ var Frog = function() {
 				} else if(this.finalY < 0){ 
 					this.finalY = 0; 
 				}
-			} else if(direction === 'left') { 
+			} else if(direction === 'left') {
 				this.steppingTime = 0; 
 				this.vx = -this.maxVel; 
 				this.animating = true; 
@@ -153,7 +153,7 @@ var Frog = function() {
 				} else if(this.finalX > Game.width - this.w) { 
 					this.finalX = Game.width - this.w;
 				}
-			} else if(direction === 'right') { 
+			} else if(direction === 'right') {
 				this.steppingTime = 0; 
 				this.vx = this.maxVel; 
 				this.animating = true; 
