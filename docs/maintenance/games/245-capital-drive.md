@@ -371,6 +371,8 @@ you lose the police. The Campaign briefing records an unfinished
 interview as avoided, and the record can affect later attention. Clearing
 other searches also works anywhere, including after leaving a getaway car.
 Marked handovers and pickups still register once before their escape step.
+See the [campaign and streaming verification](../../verification/capital-drive-campaign-performance-2026-11-26.md)
+for the escape regression, geometry parity and sustained browser profile.
 
 Campaign and Street Life each save missing original aircraft and the condition
 of the three fictional police posts. Mission failure restores prelaunch world
