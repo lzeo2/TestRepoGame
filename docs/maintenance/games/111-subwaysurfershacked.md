@@ -75,3 +75,7 @@ promise and could leave the animated title screen waiting indefinitely.
 The local bridge now delivers `commercialBreakCompleted` and reports
 `rewardedBreakCompleted` with the string `false` for the optional ad reward,
 matching the original integration signature. [Controller regression](../../../scripts/test_arcade_trust_boundaries.mjs)
+
+The permanent top-right “HACKED” chip covered the Unity score in a
+480 × 600 run. The document title and loading heading now identify the
+edition while the score remains visible in the game HUD.

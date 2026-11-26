@@ -140,3 +140,7 @@ for (const game of ['SubwaySurfers','SubwaySurfersHacked']) {
     ['Runner','rewardedBreakCompleted','false']]);
 }
 console.log('PASS both Subway Surfers bridges release gameplay after a commercial break and grant no offline ad reward.');
+const hackedRunner = read('Games/SubwaySurfersHacked/index.html');
+assert.match(hackedRunner, /<title>Subway Surfers Hacked<\/title>/);
+assert.match(hackedRunner, /<h1>Subway Surfers Hacked<\/h1>/);
+assert.doesNotMatch(hackedRunner, /id="hackBadge"/);
