@@ -244,6 +244,8 @@ def main():
                     info.tap()
                     page.wait_for_function("document.activeElement.classList.contains('ux-detail__play')")
                     page.keyboard.press('Tab')
+                    assert page.locator('.ux-detail__copy').evaluate('el => el === document.activeElement')
+                    page.keyboard.press('Tab')
                     assert page.locator('.ux-detail__close').evaluate('el => el === document.activeElement')
                     page.keyboard.press('Escape')
                     assert info.evaluate('el => el === document.activeElement')

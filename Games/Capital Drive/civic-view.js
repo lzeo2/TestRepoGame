@@ -120,6 +120,7 @@ export function createCivicView(scene,map,heightAt,{roadHeightAt=(road,x,z)=>hei
   }
   for(const segment of segments) {
     const {a,b,width}=segment,length=Math.hypot(b[0]-a[0],b[1]-a[1]),nx=-(b[1]-a[1])/length,nz=(b[0]-a[0])/length,steps=Math.ceil(length/12);
+    const railSides=[[],[]],commonwealth=segment.road.name==='Commonwealth Avenue';
     for(const side of [-1,1])for(let j=0;j<steps;j++) {
       const at=t=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],u=at(j/steps),v=at((j+1)/steps),off=width/2+1.9;
       const aa=[u[0]+nx*off*side,u[1]+nz*off*side],bb=[v[0]+nx*off*side,v[1]+nz*off*side];
@@ -140,18 +141,34 @@ export function createCivicView(scene,map,heightAt,{roadHeightAt=(road,x,z)=>hei
       const edgeY0=deckHeight(segment.road,edgeA),edgeY1=deckHeight(segment.road,edgeB);
       // Open steel balustrades preserve the lake view over each concrete edge.
       // The upper rail remains inside the existing 1.05m collision envelope.
-      const commonwealth=segment.road.name==='Commonwealth Avenue',plinth=commonwealth?.30:.44;
+      const plinth=commonwealth?.30:.44;
       wall(bridges,edgeA,edgeB,edgeY0-.35,edgeY1-.35,ya+plinth,yb+plinth,0xb6b5aa);
       const rail=(t,h,offset=0)=>[edgeA[0]+(edgeB[0]-edgeA[0])*t+nx*offset,ya+(yb-ya)*t+h,edgeA[1]+(edgeB[1]-edgeA[1])*t+nz*offset];
-      for(const h of [commonwealth?.62:.70,1.05]){
-        quad(bridges,rail(0,h-.065,-.05),rail(1,h-.065,-.05),rail(1,h,.05),rail(0,h,.05),commonwealth?0x697475:0x868d88);
-      }
+      railSides[side>0?1:0].push({j,ya,yb,rail});
       const stepLength=length/steps,posts=Math.max(1,Math.round(stepLength/6));
       for(let p=0;p<posts;p++){
         const t=(p+.5)/posts,half=.055/stepLength;
         quad(bridges,rail(t-half,plinth),rail(t+half,plinth),rail(t+half,1.035),rail(t-half,1.035),0x6e7776);
       }
       barriers.push(Object.freeze({id:`civic-parapet-${barriers.length}`,sourceId:segment.road.sourceId,roadContext:Object.freeze({id:segment.road.id}),kind:'bridge-parapet',height:1.05,points:Object.freeze(q.map(p=>Object.freeze(p)))}));
+    }
+    // One rail face can span several adjoining deck panels. Preserve gaps for
+    // adjacent carriageways and split whenever the deck grade changes.
+    for(const panels of railSides){
+      for(let first=0;first<panels.length;){
+        const start=panels[first],rise=start.yb-start.ya;
+        let last=first;
+        while(last+1<panels.length && last-first<5){
+          const next=panels[last+1];
+          if(next.j!==panels[last].j+1 || Math.abs(start.ya+rise*(next.j-start.j+1)-next.yb)>.025)break;
+          last++;
+        }
+        for(const h of [commonwealth?.62:.70,1.05]){
+          const end=panels[last];
+          quad(bridges,start.rail(0,h-.065,-.05),end.rail(1,h-.065,-.05),end.rail(1,h,.05),start.rail(0,h,.05),commonwealth?0x697475:0x868d88);
+        }
+        first=last+1;
+      }
     }
   }
   const makeMesh=(batch,material,name)=>{
