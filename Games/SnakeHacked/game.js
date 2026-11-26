@@ -23,7 +23,13 @@ class SnakeGame {
 
         // Score
         this.score = 999999; // HACKED: start with max score
-        this.highScore = localStorage.getItem('snakeHighScore') || 0;
+        this.scoreKey = 'snakeHackedHighScore';
+        this.highScore = 0;
+        try {
+            const saved = Number(localStorage.getItem(this.scoreKey));
+            if (Number.isSafeInteger(saved) && saved >= 0) this.highScore = saved;
+        } catch { /* The current game still works without browser storage. */ }
+        this.turns = [];
 
         this.initializeGame();
         this.setupEventListeners();
@@ -35,79 +41,26 @@ class SnakeGame {
     }
 
     setupEventListeners() {
-        // Keyboard controls
-        document.addEventListener('keydown', (e) => {
-            if (!this.gameRunning || this.gamePaused) return;
-
-            switch(e.key) {
-                case 'ArrowUp':
-                case 'w':
-                case 'W':
-                    if (this.dy !== 1) {
-                        this.dx = 0;
-                        this.dy = -1;
-                    }
-                    break;
-                case 'ArrowDown':
-                case 's':
-                case 'S':
-                    if (this.dy !== -1) {
-                        this.dx = 0;
-                        this.dy = 1;
-                    }
-                    break;
-                case 'ArrowLeft':
-                case 'a':
-                case 'A':
-                    if (this.dx !== 1) {
-                        this.dx = -1;
-                        this.dy = 0;
-                    }
-                    break;
-                case 'ArrowRight':
-                case 'd':
-                case 'D':
-                    if (this.dx !== -1) {
-                        this.dx = 1;
-                        this.dy = 0;
-                    }
-                    break;
+        const keys = {ArrowUp:'up', w:'up', ArrowDown:'down', s:'down',
+            ArrowLeft:'left', a:'left', ArrowRight:'right', d:'right'};
+        document.addEventListener('keydown', event => {
+            if (!this.gameRunning) return;
+            if (event.code === 'KeyP' && !event.repeat) {
+                event.preventDefault();
+                this.togglePause();
+                return;
+            }
+            const direction = keys[event.key] || keys[event.key.toLowerCase()];
+            if (direction && !this.gamePaused) {
+                event.preventDefault();
+                this.turn(direction);
             }
         });
-
-        // Mobile touch controls
-        document.querySelectorAll('.control-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (!this.gameRunning || this.gamePaused) return;
-
-                const direction = btn.dataset.direction;
-                switch(direction) {
-                    case 'up':
-                        if (this.dy !== 1) {
-                            this.dx = 0;
-                            this.dy = -1;
-                        }
-                        break;
-                    case 'down':
-                        if (this.dy !== -1) {
-                            this.dx = 0;
-                            this.dy = 1;
-                        }
-                        break;
-                    case 'left':
-                        if (this.dx !== 1) {
-                            this.dx = -1;
-                            this.dy = 0;
-                        }
-                        break;
-                    case 'right':
-                        if (this.dx !== -1) {
-                            this.dx = 1;
-                            this.dy = 0;
-                        }
-                        break;
-                }
-            });
+        document.querySelectorAll('.control-btn').forEach(button => {
+            button.addEventListener('click', () => this.turn(button.dataset.direction));
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && this.gameRunning && !this.gamePaused) this.togglePause();
         });
 
         // Game control buttons
@@ -122,6 +75,17 @@ class SnakeGame {
         document.getElementById('restart-btn').addEventListener('click', () => {
             this.restartGame();
         });
+    }
+
+    turn(direction) {
+        if (!this.gameRunning || this.gamePaused || this.turns.length >= 2) return;
+        const next = SnakeGame.directions[direction];
+        if (!next) return;
+        const last = this.turns.at(-1);
+        const dx = last ? last[0] : this.dx;
+        const dy = last ? last[1] : this.dy;
+        if ((next[0] && dx) || (next[1] && dy)) return;
+        this.turns.push(next);
     }
 
     startGame() {
@@ -153,6 +117,7 @@ class SnakeGame {
         if (this.gamePaused) {
             clearInterval(this.gameLoop);
             document.getElementById('pause-btn').textContent = 'Resume';
+            this.drawGame();
         } else {
             this.gameLoop = setInterval(() => {
                 this.update();
@@ -168,6 +133,8 @@ class SnakeGame {
         // If snake hasn't started moving, don't update
         if (this.dx === 0 && this.dy === 0) return;
 
+        const next = this.turns.shift();
+        if (next) [this.dx, this.dy] = next;
         // Move snake head
         let hx = this.snake[0].x + this.dx;
         let hy = this.snake[0].y + this.dy;
@@ -178,17 +145,15 @@ class SnakeGame {
         if (hy >= this.tileCount) hy = 0;
         const head = {x: hx, y: hy};
 
-        // Check collision - HACKED: god mode, never die
-        if (false) {
-            this.gameOver();
-            return;
-        }
-
         this.snake.unshift(head);
 
         // Check if food is eaten
         if (head.x === this.food.x && head.y === this.food.y) {
             this.score += 1000; // HACKED: 1000 points per food
+            if (this.score > this.highScore) {
+                this.highScore = this.score;
+                try { localStorage.setItem(this.scoreKey, String(this.highScore)); } catch { /* Keep the session score. */ }
+            }
             this.updateScoreDisplay();
             this.generateFood();
         } else {
@@ -202,12 +167,21 @@ class SnakeGame {
     }
 
     generateFood() {
-        do {
-            this.food = {
-                x: Math.floor(Math.random() * this.tileCount),
-                y: Math.floor(Math.random() * this.tileCount)
-            };
-        } while (this.snake.some(segment => segment.x === this.food.x && segment.y === this.food.y));
+        const occupied = new Set(this.snake.map(part => part.y * this.tileCount + part.x));
+        const free = this.tileCount * this.tileCount - occupied.size;
+        if (!free) {
+            document.querySelector('#game-over h2').textContent = 'Board complete!';
+            this.gameOver();
+            return;
+        }
+        let choice = Math.floor(Math.random() * free);
+        for (let cell = 0; cell < this.tileCount * this.tileCount; cell++) {
+            if (occupied.has(cell)) continue;
+            if (choice-- === 0) {
+                this.food = {x: cell % this.tileCount, y: Math.floor(cell / this.tileCount)};
+                return;
+            }
+        }
     }
 
     drawGame() {
@@ -307,7 +281,7 @@ class SnakeGame {
         // Update high score
         if (this.score > this.highScore) {
             this.highScore = this.score;
-            localStorage.setItem('snakeHighScore', this.highScore);
+            try { localStorage.setItem(this.scoreKey, String(this.highScore)); } catch { /* Keep the session score. */ }
             this.updateScoreDisplay();
         }
 
@@ -322,6 +296,7 @@ class SnakeGame {
         this.gamePaused = false;
         clearInterval(this.gameLoop);
 
+        this.turns.length = 0;
         // Reset snake
         this.snake = [{x: 10, y: 10}];
         this.dx = 0;
@@ -334,6 +309,7 @@ class SnakeGame {
         // Generate new food
         this.generateFood();
 
+        document.querySelector('#game-over h2').textContent = 'Game Over!';
         // Hide game over screen
         document.getElementById('game-over').classList.add('hidden');
 
@@ -368,6 +344,8 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
         this.closePath();
     };
 }
+
+SnakeGame.directions = {up:[0,-1], down:[0,1], left:[-1,0], right:[1,0]};
 
 // Initialize game
 document.addEventListener('DOMContentLoaded', () => {

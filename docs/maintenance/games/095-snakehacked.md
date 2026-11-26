@@ -48,3 +48,15 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 First bound food generation and expose reset; next save lifecycle, truthful controls, keyboard/focus and reduced-motion styling. Later test long god-mode sessions for growth/rendering cost. Defer new game modes, collision restoration and new artwork pending owner scope/source verification.
+
+
+## Controls and board completion
+
+Arrow keys, WASD and the direction buttons share a two-turn queue. Two fast
+perpendicular turns take effect on consecutive ticks. P pauses and resumes.
+Hiding the page pauses an active game until the player resumes. Finishing
+the board ends the round without searching indefinitely for another food
+position. Game state still works when browser score storage is unavailable.
+Classic retains its existing score key, and the wraparound edition records
+its own high score. Run `node scripts/test_snake_controls.mjs` for both
+editions.
