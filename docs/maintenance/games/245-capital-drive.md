@@ -1520,7 +1520,10 @@ checks are not native collection/travel or device-performance evidence.
 The 29 registered tenancies use documented frontage profiles. In Manuka,
 Receipt Cafe has a Palmerston Lane arcade entrance, and You Sushi has a
 suspended Flinders Way blade sign. In Dickson, closely stocked noodle shelves
-draw on accounts of Swan Asian Grocery. Source-tagged
+draw on accounts of Swan Asian Grocery. Five separately registered Civic shops
+now have distinct exteriors at their playable doors. [Civic photos, geometry and checks](../../verification/capital-drive-civic-storefronts-2026-11-26.md)
+
+Source-tagged
 retail buildings elsewhere use broader ground-floor display glass on the side
 facing a nearby street. The landmark renderers now distinguish named structures
 including Parliament House, the Manuka Oval scoreboard, AIS Arena and Dickson

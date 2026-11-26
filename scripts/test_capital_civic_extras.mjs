@@ -84,11 +84,45 @@ const viewCode=(await readFile(join(game,'civic-extras-view.js'),'utf8'))
   .replace("'./civic-extras.js'",JSON.stringify(asModule(moduleBytes)));
 const {createCivicExtrasView}=await import(asModule(viewCode)),scene=new THREE.Scene();
 const view=createCivicExtrasView(scene,north,()=>550);
-assert.equal(view.stats.drawCalls,0);view.update(c);
-assert(view.stats.drawCalls<=5&&view.stats.triangles<=8000);
-assert(view.stats.triangles>500&&view.stats.visible>0);
+const mesh=scene.children[0].children[0], geometry=mesh.geometry;
+const {position,color}=geometry.attributes;
+const vertexVersion=position.version;
+function frontageVertices(store, tint) {
+  const f=store.frontage, angle=f.yaw+Math.PI, target=new THREE.Color(tint), found=[];
+  for(let i=0;i<position.count;i++) {
+    if(Math.abs(color.getX(i)-target.r)>1e-6 || Math.abs(color.getY(i)-target.g)>1e-6 || Math.abs(color.getZ(i)-target.b)>1e-6) continue;
+    const dx=position.getX(i)-f.x, dz=position.getZ(i)-f.z;
+    if(dx*dx+dz*dz>16)continue;
+    found.push({u:dx*Math.cos(angle)-dz*Math.sin(angle), depth:dx*Math.sin(angle)+dz*Math.cos(angle), y:position.getY(i)-550});
+  }
+  assert(found.length,store.name+' has physical frontage geometry in its mapped slot');
+  return found;
+}
+const [comics,records,pasticceria,games,restaurant]=m.EXTRA_STORES;
+assert(frontageVertices(comics,0xe8b82c).every(v=>v.y>=3.28),'yellow header sits above the comic billboard');
+assert(frontageVertices(records,0x714d31).length===20*6,'timber fascia has 20 visible board seams');
+assert(Math.max(...frontageVertices(records,0xeee2ca).map(v=>v.depth))>1.1,'under-awning record blade projects out from the wall');
+assert(frontageVertices(pasticceria,0xf5ebd6).length===2*10*6,'both cafe fanlights have curved segmented heads');
+assert(frontageVertices(games,0xab9977).length===2*3*6,'each tabletop display has three stocked shelves');
+assert(frontageVertices(restaurant,0xcaa45c).every(v=>Math.abs(v.u)<1.54),'red and gold portal occupies a narrow bay');
+for(const store of [comics,records,pasticceria,games]) {
+  const door=frontageVertices(store,0x232b2f);
+  assert(Math.min(...door.map(v=>v.u))<-.46 && Math.max(...door.map(v=>v.u))>.46,'visible door straddles interaction origin');
+}
+assert(frontageVertices(restaurant,0x202a2c).some(v=>v.u<-.55),'restaurant opening aligns with entrance');
+assert.equal(view.stats.drawCalls,0);assert.equal(geometry.drawRange.count,0);
+view.update(c);
+assert.equal(view.stats.drawCalls,1);assert.equal(view.stats.materialCount,1);assert.equal(view.stats.textureCount,0);
+assert(view.stats.triangles>500 && view.stats.triangles<2700);
+assert(view.stats.drawnTriangles>0 && view.stats.drawnTriangles<view.stats.triangles,'only nearby sites are submitted');
 assert(view.stats.copingEdges>2,'rounded metal coping follows the raised skateable crests');
-view.update({x:10000,z:10000});assert.equal(view.stats.drawCalls,0);
+const drawIndex=geometry.index.version;
+view.update({x:c.x+.02,z:c.z+.02});
+assert.equal(geometry.index.version,drawIndex,'same neighbourhood has no buffer upload');
+view.update(comics.frontage);
+assert(view.stats.drawnTriangles>0 && view.stats.drawnTriangles<view.stats.triangles);
+view.update({x:10000,z:10000});assert.equal(view.stats.drawCalls,0);assert.equal(geometry.drawRange.count,0);
+assert.equal(position.version,vertexVersion,'visibility never rewrites positions');
 view.dispose();view.dispose();assert.equal(scene.children.length,0);assert(view.stats.disposed);
 
 const args=process.argv.slice(2),cacheIndex=args.indexOf('--cache'),actIndex=args.indexOf('--act-cache');
