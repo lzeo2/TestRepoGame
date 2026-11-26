@@ -312,6 +312,7 @@
 
   /* --- Local catalog cache: one request shared by search-adjacent UX --- */
   var _gameUrlCache = null;
+  var catalogTitlesByUrl = new Map();
   var _gameCachePromise = null;
   var _gamesList = [];
   var _gamesPromise = null;
@@ -339,6 +340,13 @@
           });
           return game;
         });
+        catalogTitlesByUrl.clear();
+        _gamesList.forEach(function (game) {
+          if (game && typeof game.title === 'string' && game.url !== './' && safeGamePath(game.url) === game.url) {
+            catalogTitlesByUrl.set(game.url, game.title);
+          }
+        });
+        renderRecentRow();
         catalogFailed = false;
         var notice = $('.ux-catalog-error');
         if (notice) notice.remove();
@@ -350,6 +358,8 @@
         _gameCachePromise = null;
         _gameUrlCache = null;
         _gamesList = [];
+        catalogTitlesByUrl.clear();
+        renderRecentRow();
         showCatalogRetry();
         return _gamesList;
       });
@@ -404,17 +414,13 @@
     return _gameCachePromise;
   }
 
-  function openGameUrl(url, titleHint) {
+  function openGameUrl(url) {
     var safe = safeGamePath(url);
-    if (safe === './') return;
-    /* Record recent play */
-    var recentTitle = titleHint || '';
-    if (!recentTitle && _gameUrlCache) {
-      _gameUrlCache.forEach(function(v, k) { if (v === safe && !recentTitle) recentTitle = k; });
-    }
-    recordRecent(safe, recentTitle);
+    var title = catalogTitlesByUrl.get(safe);
+    if (!title) return;
+    recordRecent(safe, title);
     renderRecentRow();
-    openGamePlayer(safe, recentTitle || 'Game');
+    openGamePlayer(safe, title);
   }
 
   function openGamePlayer(url, title) {
@@ -1138,11 +1144,11 @@
       var title = textOf($('.game-card__title', card));
       var url = _gameUrlCache && _gameUrlCache.get(title);
       if (url) {
-        openGameUrl(url, title);
+        openGameUrl(url);
       } else {
         fetchGameUrlCache().then(function (cache) {
           var resolved = cache.get(title);
-          if (resolved) openGameUrl(resolved, title);
+          if (resolved) openGameUrl(resolved);
         });
       }
     }, true); /* capture phase */
@@ -1601,6 +1607,7 @@
 
   function getRecentList() {
     try {
+      if (!catalogTitlesByUrl.size) return [];
       var raw = localStorage.getItem(RECENT_KEY);
       var list = raw ? JSON.parse(raw) : [];
       if (!Array.isArray(list)) return [];
@@ -1609,10 +1616,10 @@
       for (var i = 0; i < list.length && normalized.length < RECENT_MAX; i++) {
         var entry = list[i];
         if (!entry || typeof entry !== 'object' || typeof entry.title !== 'string' ||
-            typeof entry.url !== 'string' || entry.url === './' || safeGamePath(entry.url) !== entry.url ||
+            typeof entry.url !== 'string' || !catalogTitlesByUrl.has(entry.url) ||
             typeof entry.ts !== 'number' || !Number.isFinite(entry.ts) || seen.has(entry.url)) continue;
         seen.add(entry.url);
-        normalized.push({ title: entry.title, url: entry.url, ts: entry.ts });
+        normalized.push({ title: catalogTitlesByUrl.get(entry.url), url: entry.url, ts: entry.ts });
       }
       return normalized;
     } catch(e) {}
@@ -1806,7 +1813,7 @@
     playBtn.textContent = 'Play';
     playBtn.addEventListener('click', function() {
       closeDetailPanel();
-      if (game.url) openGameUrl(game.url, game.title);
+      if (game.url) openGameUrl(game.url);
     });
     actions.appendChild(playBtn);
     var closeBtn = document.createElement('button');
