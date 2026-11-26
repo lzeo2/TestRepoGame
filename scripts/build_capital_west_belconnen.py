@@ -18,12 +18,11 @@ SPEC = dict(
         ('latham-shopping-hub', 'Latham Shopping Hub', 'way/815187745', 'mall', ('way/815187745',)),
         ('charnwood-shops', 'Charnwood Shops', 'way/24785037', None, ('way/372148527',)),
         ('kippax-public-library', 'Kippax Public Library', 'way/27243629', 'library', ('way/27243629',)),
-        # The shopping-centre multipolygon has open member ways. Its source
-        # landmark is retained without inventing a closed building carrier.
-        ('kippax-fair', 'Kippax Fair Shopping Centre', 'relation/9912221', None, ()),
+        ('kippax-fair', 'Kippax Fair Shopping Centre', 'relation/9912221', 'mall', ('relation/9912221',)),
         ('latham-oval', 'Latham Oval', 'way/51245171', None, ()),
         ('charnwood-district-playing-fields', 'Charnwood District Playing Fields', 'way/122237056', None, ()),
     ),
+    relation_buildings=('relation/9912221',),
     waters=(),
 )
 

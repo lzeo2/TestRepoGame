@@ -55,6 +55,7 @@ SUITES = (
     'test_capital_parked_cars_view.mjs', 'test_capital_contact_levels.mjs', 'test_capital_vehicle_access.mjs',
     'test_capital_bridge_support_selection.mjs', 'test_capital_actor_vehicle_escape.mjs', 'test_capital_car_model.mjs',
     'test_capital_regional_expansion.mjs', 'test_capital_regional_landmarks_view.mjs',
+    'test_capital_regional_architecture.mjs', 'test_capital_national_architecture.mjs',
     'test_capital_regional_water.mjs', 'test_capital_regions_actual.mjs',
     'test_capital_gallery_contract.mjs', 'test_capital_jetpack_collision.mjs', 'test_capital_foliage_lighting.mjs',
     'test_capital_war_memorial.mjs', 'test_capital_birds_view.mjs', 'test_capital_bus_passenger_service.mjs',
