@@ -203,3 +203,28 @@ and holds. Check the runtime catalog and actual hosting configuration separately
 when publication is in scope; merged files do not automatically add a portal
 listing or prove that the intended host deployed them. Follow current explicit
 release authorization rather than a historical source record's old push order.
+
+## Source a shopfront or public landmark
+
+Locate its map footprint, rendering owner and door authority first. A named
+retail point can lie inside a larger shopping-centre building. Keep its public
+entrance usable when changing display widths or adding a projecting fascia.
+Prefer operator photographs, architectural project records and ACT public
+asset registers. Record the date, named tenant, source coverage, licensing
+and which details are estimates. A recently replaced tenant can be historically
+accurate while its current neighbour has changed. Reuse original geometry and
+parody signage. Keep commercial photographs out of game assets unless their
+licence permits redistribution.
+
+Review a street-level view and a close-up. Check framing, glazing, entrance
+clearance and back-of-house walls. In the streamed world renderer, only use a
+source-tagged retail building and a nearby street-facing edge to infer display
+windows. Check an oblique edge and a road behind the building. Access roads and
+courtyards may have different architecture. In the regional renderer compare
+visible submitted indices, material draws and idle buffer uploads at every owner
+footprint. Keep store atlas lettering readable in motion and run the appropriate
+terrain, map census, gameplay-door and cache gates.
+
+[Shopfront source inventory](../../../../docs/capital-drive-shopfront-architecture.md)
+· [Landmark owners and references](../../../../docs/capital-drive-landmark-fidelity.md)
+· [Review images](../../../../docs/verification/arcade-canberra-2026-11-26/README.md)
