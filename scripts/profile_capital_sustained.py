@@ -335,7 +335,15 @@ def main():
                         report['loaded_resources'][str(path.relative_to(root))] = hashlib.sha256(path.read_bytes()).hexdigest()
                 page.on('response', response_seen)
                 page.goto(f'http://127.0.0.1:{server.server_port}/Games/Capital%20Drive/', wait_until='load', timeout=150000)
-                page.wait_for_function('typeof capitalDriveSnapshot === "function"', timeout=150000)
+                # Playwright's wait_for_function compiles a predicate with eval;
+                # the deployed game CSP blocks that even though normal module
+                # execution is allowed. Runtime.evaluate polling does not relax
+                # page CSP and keeps the probe read-only.
+                ready_deadline = time.monotonic() + 150
+                while not page.evaluate('typeof capitalDriveSnapshot === "function"'):
+                    if time.monotonic() >= ready_deadline:
+                        raise TimeoutError('Capital Drive snapshot API did not become ready')
+                    page.wait_for_timeout(250)
                 page.locator('[data-game-mode=free]').click()
                 if page.locator('#guided-tutorial').count():
                     page.locator('#guided-tutorial').uncheck()
