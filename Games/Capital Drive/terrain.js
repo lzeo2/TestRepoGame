@@ -30,6 +30,12 @@ export const BRIDGE_CLEARANCE_SITES=Object.freeze([
   {name:'Kent Street',over:['667672050'],under:['183083401','77004916']},
   {name:'Barry Drive',over:['53537161','53537162'],under:['192541793']},
   {name:'Carruthers Street',over:['26661928','50856748'],under:['668406211','546708907']},
+  {name:'Cotter Road Offramp',over:['26651010'],under:['77004917','73011078']},
+  {name:'Cotter Road',over:['10277907','10277901'],under:['26662181','75858653']},
+  {name:'Tuggeranong Parkway',over:['24985048','75500315'],under:['75508758']},
+  {name:'Glenloch Interchange',over:['24147667','73232298','24241635','24241648','73316086','172274879'],
+    under:['669690422','24145489','996503653']},
+  {name:'Glenloch Interchange',over:['1124045979','1124045980'],under:['294434708']},
 ].map(site=>Object.freeze({...site,over:Object.freeze(site.over.map(id=>`way/${id}`)),under:Object.freeze(site.under.map(id=>`way/${id}`))})));
 const RAMP=160,CLEARANCE=5,key=p=>`${p[0]},${p[1]}`;
 const tagged=r=>Boolean(r.sourceTags?.bridge&&r.sourceTags.bridge!=='no');
@@ -52,7 +58,9 @@ function prepareBridgeClearance(roads,deckRoads,{groundHeightAt,deckHeightAt}){
     for(const over of upper)for(const under of lower)for(let i=1;i<over.points.length;i++)for(let j=1;j<under.points.length;j++){
       const p=crossing(over.points[i-1],over.points[i],under.points[j-1],under.points[j]);if(!p)continue;
       const baseline=deckHeightAt(over,...p);if(!Number.isFinite(baseline))continue;
-      const ground=groundHeightAt(...p);lift=Math.max(lift,ground+CLEARANCE-baseline);
+      // A lower road can itself approach a separate raised deck, as at the
+      // Glenloch slips. Use its established paved support at the crossing.
+      const lowerSupport=rampHeightAt(under,...p);lift=Math.max(lift,lowerSupport+CLEARANCE-baseline);
       crossings.push(Object.freeze({over:source(over),under:source(under),x:p[0],z:p[1],clearance:CLEARANCE}));
     }
     if(lift<=0||!upper.length)continue;

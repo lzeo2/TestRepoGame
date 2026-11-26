@@ -1,23 +1,11 @@
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
-import {applyMapExpansion} from '../Games/Capital Drive/map-expansion.js';
-import {applyRoadProfiles} from '../Games/Capital Drive/road-network.js';
-import {applyAirport} from '../Games/Capital Drive/airport.js';
-import {applyDefenceDepot} from '../Games/Capital Drive/defence-depot.js';
-import {applyNorthWest} from '../Games/Capital Drive/north-west.js';
-import {applyRegionalExpansion} from '../Games/Capital Drive/regional-expansion.js';
 import {createTerrainSampler} from '../Games/Capital Drive/terrain.js';
 import {createShotObstacles} from '../Games/Capital Drive/shot-obstacles.js';
 import {BRIDGE_CLEARANCE_SITES} from '../Games/Capital Drive/terrain.js';
+import {loadCapitalMap} from './capital-map-fixture.mjs';
 
-const data=async name=>JSON.parse(await readFile(new URL(`../Games/Capital Drive/data/${name}.json`,import.meta.url)));
-const names=['canberra','canberra-north','road-profiles','north-terrain','airport','airport-terrain','north-west','north-west-terrain','giant-spray','region-belconnen','region-north','region-south'];
-const inputs=new Map(await Promise.all(names.map(async name=>[name,await data(name)]))),get=name=>inputs.get(name);
-let map=applyMapExpansion(applyRoadProfiles(get('canberra'),get('road-profiles')),get('canberra-north'));
-map.terrainTiles=[get('north-terrain').terrain];map=applyDefenceDepot(applyAirport(map,get('airport'),get('airport-terrain')));
-map=applyNorthWest(map,get('north-west'),get('north-west-terrain'),get('giant-spray'));
-map=applyRegionalExpansion(map,['region-belconnen','region-north','region-south'].map(get));map.lakeWaterLevel=5.93;
+const map=await loadCapitalMap();
 const digest=()=>createHash('sha256').update(JSON.stringify(map)).digest('hex'),before=digest();
 const selected=new Set(BRIDGE_CLEARANCE_SITES.flatMap(site=>site.over));
 // A source-admission control uses the identical contour/geometry model, with
@@ -25,19 +13,26 @@ const selected=new Set(BRIDGE_CLEARANCE_SITES.flatMap(site=>site.over));
 const control=createTerrainSampler({...map,roads:map.roads.map(r=>selected.has(r.sourceId)?{...r,sourceId:`control/${r.sourceId}`}:r)});
 const terrain=createTerrainSampler(map),stats=terrain.stats.clearance;
 assert.equal(control.stats.clearance.raisedRoads,0);
-assert(stats.crossings.length>=14&&stats.crossings.length<=24);
-assert(stats.raisedRoads>=9&&stats.raisedRoads<=20);
+assert(stats.crossings.length>=36&&stats.crossings.length<=48);
+assert(stats.raisedRoads>=24&&stats.raisedRoads<=38);
 assert(stats.rampRoads>0&&stats.rampRoads<150,'only finite named source approaches are retained');
 const bySource=new Map();for(const road of map.roads){if(!bySource.has(road.sourceId))bySource.set(road.sourceId,[]);bySource.get(road.sourceId).push(road);}
 let minimum=Infinity,maximumLegacy=0,seams=0;
 for(const crossing of stats.crossings){
- const over=bySource.get(crossing.over)[0],under=bySource.get(crossing.under)[0],{x,z}=crossing;
+ const {x,z}=crossing,over=bySource.get(crossing.over)[0];
+ const distanceToRoad=road=>Math.min(...road.points.slice(1).map((b,i)=>{
+  const a=road.points[i],dx=b[0]-a[0],dz=b[1]-a[1];
+  const t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz||1)));
+  return Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t);
+ }));
+ const under=bySource.get(crossing.under).reduce((a,b)=>distanceToRoad(a)<distanceToRoad(b)?a:b);
  assert.equal(over.sourceTags.bridge,'yes');assert(Number(over.sourceTags.layer)>Number(under.sourceTags.layer||0));
  const upper=terrain.roadHeightAt(over,x,z),lower=terrain.roadHeightAt(under,x,z),legacy=control.roadHeightAt(over,x,z)-control.roadHeightAt(under,x,z);
  minimum=Math.min(minimum,upper-lower);maximumLegacy=Math.max(maximumLegacy,legacy);
- assert(legacy<.1,'actual selected source overpasses reproduce the former nearly coincident surfaces');
+ assert(legacy<4.25,'selected source overpasses reproduce insufficient legacy clearance');
  assert(upper-lower>=4.99,`${over.name} over ${under.name} has authored playable clearance`);
- assert.equal(lower,control.roadHeightAt(under,x,z),'underpass source ground owner is unchanged');
+ if(crossing.under==='way/294434708') assert(lower>control.roadHeightAt(under,x,z)+3,'Glenloch slips clear the already raised lower approach');
+ else assert.equal(lower,control.roadHeightAt(under,x,z),'underpass source ground owner is unchanged');
  assert.equal(terrain.groundHeightAt(x,z),control.groundHeightAt(x,z));
  const a=over.points[0],b=over.points.at(-1),yaw=Math.atan2(a[0]-b[0],a[1]-b[1]);
  assert.equal(terrain.vehicleHeightAt({x,z,yaw},over),upper);assert.equal(terrain.vehicleHeightAt({x,z,yaw},under),lower);
