@@ -247,11 +247,21 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     }
     normal.normalize();
     setTint(tint);
-    for (const p of [a, b, c]) {
-      batch.positions.push(...p);
-      batch.normals.push(normal.x, normal.y, normal.z);
-      batch.colors.push(color.r, color.g, color.b);
-    }
+    batch.positions.push(
+      a[0], a[1], a[2],
+      b[0], b[1], b[2],
+      c[0], c[1], c[2]
+    );
+    batch.normals.push(
+      normal.x, normal.y, normal.z,
+      normal.x, normal.y, normal.z,
+      normal.x, normal.y, normal.z
+    );
+    batch.colors.push(
+      color.r, color.g, color.b,
+      color.r, color.g, color.b,
+      color.r, color.g, color.b
+    );
     if (uv) batch.uvs.push(...uv);
     counters.triangles++;
     return true;
