@@ -7,11 +7,10 @@ const terrain = createTerrainSampler(map);
 const layer = road => Number(road.sourceTags?.layer ?? 0);
 const source = road => road.sourceId || `way/${String(road.id).split('-')[0]}`;
 const isDeck = road => Boolean(road.sourceTags?.bridge && road.sourceTags.bridge !== 'no');
-const isLocalPath = road => road.standalonePath || road.type === 'service';
 const cellLength = 100;
 const cells = new Map(), upperSegments = [];
 for (const road of map.roads) {
-  if (isLocalPath(road) || road.sourceTags?.tunnel === 'yes') continue;
+  if (road.type === 'service' || road.sourceTags?.tunnel === 'yes') continue;
   for (let i = 1; i < road.points.length; i++) {
     const a = road.points[i-1], b = road.points[i], dx = b[0]-a[0], dz = b[1]-a[1];
     const length = Math.hypot(dx,dz);
@@ -28,10 +27,10 @@ for (const road of map.roads) {
     if(isDeck(road) && layer(road)>0) upperSegments.push(segment);
   }
 }
-const pairs = new Map();
+const pairs = new Map(), walking = new Map();
 for (const upper of upperSegments) {
   for (const lower of new Set(upper.keys.flatMap(key=>cells.get(key)))) {
-    if (layer(lower.road)>=layer(upper.road) || isDeck(lower.road) ||
+    if (lower.road.standalonePath || layer(lower.road)>=layer(upper.road) || isDeck(lower.road) ||
         (upper.road.name && upper.road.name===lower.road.name)) continue;
     const cross = upper.dx*lower.dz-upper.dz*lower.dx;
     if (Math.abs(cross) < upper.length*lower.length*.25) continue;
@@ -43,7 +42,8 @@ for (const upper of upperSegments) {
     const lowerY=terrain.roadHeightAt(lower.road,x,z);
     const upperY=terrain.roadHeightAt(upper.road,x,z);
     const key=`${source(upper.road)} over ${source(lower.road)}`;
-    pairs.set(key,Math.min(pairs.get(key)??Infinity,upperY-lowerY));
+    const selected=upper.road.standalonePath?walking:pairs;
+    selected.set(key,Math.min(selected.get(key)??Infinity,upperY-lowerY));
   }
 }
 const minimumGap = Math.min(...pairs.values());
@@ -53,5 +53,10 @@ for(const key of ['way/75247036 over way/1089981018','way/75247010 over way/5640
                    'way/4878927 over way/4844798','way/1124045978 over way/294434708']) {
   assert(pairs.has(key),`${key} is covered in the full map`);
 }
-console.log(JSON.stringify({pairs:pairs.size,minimumCentrelineGap:minimumGap,
-  scope:'Positive-layer motor decks over lower, non-tunnel road interiors at distinct centerline intersections. Narrow samples, authored heights.'}));
+assert(walking.size >= 55, 'census includes the newly admitted path bridges');
+for (const [key,gap] of walking) {
+  const target=key.startsWith('way/51801463 ') ? 4.4 : 4.95;
+  assert(gap>=target,`${key} only has ${gap.toFixed(2)} m`);
+}
+console.log(JSON.stringify({motorPairs:pairs.size,pathPairs:walking.size,minimumCentrelineGap:minimumGap,
+  scope:'Positive-layer motor and path decks over lower, non-tunnel road interiors at distinct centerline intersections. Narrow samples, authored heights.'}));

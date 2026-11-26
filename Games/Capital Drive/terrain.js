@@ -53,14 +53,31 @@ const LAKE_UNDER_ROADS = {
   'Kings Avenue': new Set(['way/4844798','way/673080483']),
 };
 
-function prepareBridgeClearance(roads,deckRoads,{groundHeightAt,deckHeightAt,lakeWaterLevel,additionalSites = [],lakeSites = [],lakeFields}){
+function prepareBridgeClearance(roads,deckRoads,{groundHeightAt,deckHeightAt,lakeWaterLevel,additionalSites = [],pathSites = [],lakeSites = [],lakeFields}){
   const bySource=new Map(),lifts=new Map(),ramps=new Map(),crossings=[];
   for(const road of roads){const id=source(road);if(!bySource.has(id))bySource.set(id,[]);bySource.get(id).push(road);}
   const deckIds=new Set(deckRoads.map(r=>r.id));
-  for(const site of [...BRIDGE_CLEARANCE_SITES,...lakeSites,...additionalSites]){
+  const pedestrianApproaches=pathSites.length?roads.filter(road=>road.standalonePath&&!deckIds.has(road.id)):[];
+  const pedestrianDecks=pathSites.length?deckRoads.filter(road=>road.standalonePath):[];
+  function indexedApproaches(network){
+    const graph=new Map();
+    for(const road of network)for(let i=1;i<road.points.length;i++){
+      const a=road.points[i-1],b=road.points[i],length=Math.hypot(b[0]-a[0],b[1]-a[1]);
+      for(const [p,q]of [[a,b],[b,a]]){
+        const id=key(p);
+        if(!graph.has(id))graph.set(id,[]);
+        graph.get(id).push({id:key(q),length});
+      }
+    }
+    return graph;
+  }
+  const pathGraph=indexedApproaches(pedestrianApproaches);
+  for(const site of [...BRIDGE_CLEARANCE_SITES,...lakeSites,...additionalSites,...pathSites]){
     const upper=site.lakeRoads||site.over.flatMap(id=>bySource.get(id)||[]).filter(road=>tagged(road)&&!lakeFields.has(road.id));
     const lower=site.under.flatMap(id=>bySource.get(id)||[]).filter(r=>!tagged(r));
-    const verifyLayer=additionalSites.includes(site);
+    const pathOnly=pathSites.includes(site);
+    const verifyLayer=pathOnly||additionalSites.includes(site);
+    const target=site.clearance??CLEARANCE;
     let lift=site.lakeLift||0;
     // These coarse terrain cells sample the dam slope beneath the roadway.
     // Grade the named road corridor from a continuous deck above the lake.
@@ -74,26 +91,23 @@ function prepareBridgeClearance(roads,deckRoads,{groundHeightAt,deckHeightAt,lak
       const baseline=deckHeightAt(over,...p);if(!Number.isFinite(baseline))continue;
       // A lower road can itself approach a separate raised deck, as at the
       // Glenloch slips. Use its established paved support at the crossing.
-      const lowerSupport=rampHeightAt(under,...p);lift=Math.max(lift,lowerSupport+CLEARANCE-baseline);
-      crossings.push(Object.freeze({over:source(over),under:source(under),x:p[0],z:p[1],clearance:CLEARANCE}));
+      const lowerSupport=rampHeightAt(under,...p);lift=Math.max(lift,lowerSupport+target-baseline);
+      crossings.push(Object.freeze({over:source(over),under:source(under),x:p[0],z:p[1],clearance:target}));
     }
     if(lift<=0||!upper.length)continue;
     // Connected bridge joints in this same named corridor receive one lift.
     // Exact source nodes are the only connection rule; nearby roads never join.
     const affected=new Set(upper),points=new Set(upper.flatMap(r=>r.points.map(key)));
     let changed=true;
-    while(changed){changed=false;for(const road of deckRoads){
-      if(affected.has(road)||road.name!==site.name||(!site.lakeRoads&&lakeFields.has(road.id))||!road.points.some(p=>points.has(key(p))))continue;
+    while(changed){changed=false;for(const road of (pathOnly?pedestrianDecks:deckRoads)){
+      if(affected.has(road)||(!pathOnly&&road.name!==site.name)||(!site.lakeRoads&&lakeFields.has(road.id))||!road.points.some(p=>points.has(key(p))))continue;
       affected.add(road);road.points.forEach(p=>points.add(key(p)));changed=true;
     }}
     for(const road of affected)lifts.set(road.id,Math.max(lifts.get(road.id)||0,lift));
     const pathNetwork=upper.some(road=>road.standalonePath);
-    const network=roads.filter(r=>!deckIds.has(r.id)&&(r.name===site.name||pathNetwork&&r.standalonePath));
-    const graph=new Map();
-    for(const road of network)for(let i=1;i<road.points.length;i++){
-      const a=road.points[i-1],b=road.points[i],length=Math.hypot(b[0]-a[0],b[1]-a[1]);
-      for(const [p,q]of [[a,b],[b,a]]){const id=key(p);if(!graph.has(id))graph.set(id,[]);graph.get(id).push({id:key(q),length});}
-    }
+    const network=pathOnly?pedestrianApproaches:
+      roads.filter(r=>!deckIds.has(r.id)&&(r.name===site.name||pathNetwork&&r.standalonePath));
+    const graph=pathOnly?pathGraph:indexedApproaches(network);
     const distances=new Map(),pending=new Set(),anchors=new Map();
     for(const road of affected)for(let i=0;i<road.points.length;i++){
       const p=road.points[i],id=key(p);
@@ -105,10 +119,11 @@ function prepareBridgeClearance(roads,deckRoads,{groundHeightAt,deckHeightAt,lak
       }
       distances.set(id,0);pending.add(id);
     }
+    const maxReach=pathOnly?45:RAMP;
     while(pending.size){
       let nearest,best=Infinity;for(const id of pending)if(distances.get(id)<best){best=distances.get(id);nearest=id;}
-      pending.delete(nearest);if(best>=RAMP)continue;
-      for(const edge of graph.get(nearest)||[]){const cost=best+edge.length;if(cost<(distances.get(edge.id)??Infinity)){distances.set(edge.id,cost);anchors.set(edge.id,anchors.get(nearest));if(cost<RAMP)pending.add(edge.id);}}
+      pending.delete(nearest);if(best>=maxReach)continue;
+      for(const edge of graph.get(nearest)||[]){const cost=best+edge.length;if(cost<(distances.get(edge.id)??Infinity)){distances.set(edge.id,cost);anchors.set(edge.id,anchors.get(nearest));if(cost<maxReach)pending.add(edge.id);}}
     }
     for(const road of network)for(let i=1;i<road.points.length;i++){
       const a=road.points[i-1],b=road.points[i],da=distances.get(key(a))??Infinity,db=distances.get(key(b))??Infinity;
@@ -353,7 +368,7 @@ export function createTerrainSampler(map) {
     }
     if(lakeLift>0)lakeSites.push({name:group[0].name,lakeRoads:group,lakeLift,under:[]});
   }
-  const clearance=prepareBridgeClearance(roads,deckRoads,{groundHeightAt,lakeWaterLevel,additionalSites:map.additionalBridgeCrossings,lakeSites,lakeFields,deckHeightAt(road,x,z){
+  const clearance=prepareBridgeClearance(roads,deckRoads,{groundHeightAt,lakeWaterLevel,additionalSites:map.additionalBridgeCrossings,pathSites:map.pathBridgeCrossings,lakeSites,lakeFields,deckHeightAt(road,x,z){
     if(estimates.has(String(road.id)))return NaN;
     let nearest=Infinity,height=NaN;
     for(let i=1;i<road.points.length;i++){

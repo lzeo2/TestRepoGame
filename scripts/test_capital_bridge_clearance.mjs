@@ -5,7 +5,7 @@ import {createShotObstacles} from '../Games/Capital Drive/shot-obstacles.js';
 import {BRIDGE_CLEARANCE_SITES} from '../Games/Capital Drive/terrain.js';
 import {loadCapitalMap} from './capital-map-fixture.mjs';
 
-const map={...await loadCapitalMap(),additionalBridgeCrossings:[]};
+const map={...await loadCapitalMap(),additionalBridgeCrossings:[],pathBridgeCrossings:[]};
 const digest=()=>createHash('sha256').update(JSON.stringify(map)).digest('hex'),before=digest();
 const selected=new Set(BRIDGE_CLEARANCE_SITES.flatMap(site=>site.over));
 // A source-admission control uses the identical contour/geometry model, with
