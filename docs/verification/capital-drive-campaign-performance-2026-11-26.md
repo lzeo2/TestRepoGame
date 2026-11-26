@@ -1,7 +1,7 @@
 # Capital Drive campaign and streaming verification
 
 26 November 2026. Campaign and shoreline changes for game 245. The offline
-cache contains 240 files and reports build `01f289fffe47`.
+cache contains 240 files and reports build `5f231a530d8e`.
 
 ## Campaign
 
@@ -14,8 +14,9 @@ again because the interview remained open.
 Native input confirmed the booth dialogue and four punches to defeat Dot.
 Those punches originally raised two stars before the player could exit. In the
 fixed build, the controlled tutorial punches trigger their witness report on
-exit. A strike that also hits another person can still raise wanted stars
-immediately, and the rematch uses ordinary assault reporting.
+exit. The tutorial one-star pursuit clears after 12 simulation seconds out
+of police sight. A strike that also hits another person can still raise wanted
+stars immediately, and the rematch uses ordinary assault reporting.
 
 The escape regression visits all 24 story missions and checks all 17 escape
 objectives, including 11 that have no destination marker. Six still require a
@@ -99,7 +100,7 @@ with equal vehicle poses and camera headings across runs. The paired tests
 took 127.8 and 123.3 wall seconds and recorded 64.6 and 65.6 supplied simulation
 seconds. Source and loaded asset hashes stayed stable in both runs. No page,
 request, HTTP or external request errors were recorded.
-The subsequent `01f289fffe47` build changed the scripted indoor fight path.
+The subsequent `5f231a530d8e` build changed the scripted indoor fight and tutorial pursuit.
 The shoreline code and the Free roam fixture path are the same in both builds.
 
 | Stationary sample | RAF p95 before | RAF p95 after | Script ms/render before | Script ms/render after |
