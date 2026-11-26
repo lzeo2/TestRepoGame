@@ -18,7 +18,15 @@ const simulation = createSimulation(map, { isOnBridge: sampler.isOnBridge, traff
 const options = { waterAt: simulation.waterAt, isOnBridge: sampler.isOnBridge, canOccupy: simulation.canOccupy, nearestRoad: simulation.nearestRoad };
 const lamps = createStreetlights(map.roads, options);
 
-assert.equal(lamps.length, STREETLIGHT_CAP, 'lamp count hits the named cap exactly');
+const estimates=createStreetlights(map.roads,{...options,columns:[]});
+assert.equal(estimates.length, STREETLIGHT_CAP, 'existing estimated coverage retains its budget');
+const surveyed=lamps.filter(lamp=>lamp.source==='ACT');
+assert(surveyed.length>100 && lamps.length>estimates.length,'surveyed city-centre clusters add coverage');
+assert(surveyed.some(lamp=>lamp.tint==='led') && surveyed.some(lamp=>lamp.tint==='sodium'));
+assert(surveyed.some(lamp=>lamp.outreach>2) && surveyed.some(lamp=>lamp.height>8));
+for (const lamp of lamps.filter(lamp=>!lamp.source))
+  assert(!surveyed.some(column=>Math.hypot(lamp.x-column.x,lamp.z-column.z)<=12),'no duplicate inferred pole beside a surveyed one');
+
 assert(Object.isFrozen(lamps));
 assert.equal(new Set(lamps.map(lamp => lamp.id)).size, lamps.length, 'lamp ids are unique');
 const rebuilt = createStreetlights(map.roads, options);
@@ -42,7 +50,7 @@ for (const lamp of lamps) {
   assert(!(road.sourceTags?.bridge && road.sourceTags.bridge !== 'no'), 'no lamps on tagged bridge ways');
   const profile = roadProfile(road);
   const distance = segmentDistance(road, lamp.x, lamp.z);
-  assert(distance <= 9, `lamp stays within 9 m of its road (${distance.toFixed(2)})`);
+  assert(distance <= (lamp.source ? 18 : 9), `lamp stays on its road verge (${distance.toFixed(2)})`);
   assert(distance >= profile.driveWidth / 2 - .25, `lamp sits outside its roadway (${distance.toFixed(2)})`);
   assert(!simulation.waterAt(lamp.x, lamp.z), 'no lamps in water');
   assert(!sampler.isOnBridge(lamp.x, lamp.z), 'no lamps on bridge decks');
@@ -56,13 +64,17 @@ const heightAt = (x, z) => x * .03 - z * .08;
 const view = createStreetlightsView(scene, lamps, heightAt);
 const [poles, glow] = scene.children;
 assert(scene.children.every(mesh => mesh.isInstancedMesh && !mesh.isLight && !mesh.castShadow));
-assert.equal(poles.count, lamps.length * 3);
-assert.equal(glow.count, lamps.length * 2);
-assert.equal(view.stats.lamps, lamps.length);
-assert.equal(view.stats.poleInstances, lamps.length * 3);
-assert.equal(view.stats.glowInstances, lamps.length * 2);
+assert.equal(view.stats.placedLamps,lamps.length);
+assert.equal(view.stats.sourceColumns,surveyed.length);
+assert.equal(view.stats.lamps,0,'no scenery drawn before receiving exterior camera focus');
+const focus=surveyed.find(lamp=>lamp.street==='Bunda Street') || surveyed[0];
+view.update(focus);
+assert(view.stats.visibleColumns>1 && view.stats.lamps<=STREETLIGHT_CAP);
+assert.equal(poles.count,view.stats.lamps*3);assert.equal(glow.count,view.stats.lamps*2);
+assert.equal(view.stats.poleInstances,view.stats.lamps*3);
+assert.equal(view.stats.glowInstances, view.stats.lamps * 2);
 assert.equal(view.stats.maxDrawCalls, STREETLIGHT_VIEW_LIMITS.maxDrawCalls);
-const focus = { x: 0, z: 0 };
+const focusCount=view.stats.lamps, writes=view.stats.matrixWrites, queries=view.stats.queries;
 view.update(focus, { night: .3, hour: 13 });
 assert.equal(view.stats.drawCalls, 1, 'daytime shows poles only');
 assert.equal(view.stats.glowDrawCalls, 0, 'daytime glow pass draws nothing');
@@ -81,6 +93,35 @@ assert.equal(view.stats.glowDrawCalls, 1);
 view.update(focus, { night: NaN, hour: 23 });
 assert.equal(view.stats.glowDrawCalls, 0, 'invalid night input falls back to day');
 
+for(let i=0;i<600;i++)view.update(focus,{night:i%2});
+assert.equal(view.stats.matrixWrites,writes,'stationary clock changes do not upload scenery');
+assert.equal(view.stats.queries,queries,'stationary camera never requeries citywide columns');
+const maxDraws=view.stats.drawCalls;
+view.update({x:9e6,z:9e6},{night:1});
+assert.equal(view.stats.drawCalls,0,'out-of-range city is fully culled');
+view.update(focus,{night:1});
+assert.equal(view.stats.drawCalls,maxDraws);
+assert.equal(view.stats.lamps,focusCount);
+const sampleScene=new THREE.Scene();
+const synthetic={x:6,z:6,roadId:'road',source:'ACT',outreach:3.7,height:10.5,tint:'led',column:'steel',yaw:0};
+const compare=createStreetlightsView(sampleScene,[{...synthetic,id:'a'},{...synthetic,id:'b',x:25,outreach:.6,height:4.5,tint:'sodium',column:'heritage'}],heightAt);
+compare.update(synthetic,{night:1});
+const [sampleMasts,sampleGlows]=sampleScene.children, matrix=new THREE.Matrix4(), cool=new THREE.Color(),warm=new THREE.Color();
+sampleMasts.getMatrixAt(0,matrix);
+assert(Math.abs(matrix.elements[5]-10.5)<1e-6,'surveyed mast height is rendered');
+sampleMasts.getMatrixAt(2,matrix);
+assert(Math.abs(matrix.elements[14]-(synthetic.z-3.7))<1e-5,'recorded outreach aims the head toward the roadway');
+sampleGlows.getMatrixAt(0,matrix);
+assert(Math.abs(matrix.elements[13]-heightAt(matrix.elements[12],matrix.elements[14])-.11)<1e-5,'night pool sampled on the sloping road under the head');
+sampleGlows.getColorAt(0,cool);sampleGlows.getColorAt(2,warm);
+assert(cool.b>warm.b && cool.g>warm.g,'surveyed white LEDs and warm sodium lamps differ');
+compare.dispose();
+
+const dense=createStreetlightsView(new THREE.Scene(),Array.from({length:300},(_,i)=>({...synthetic,id:'thing-'+i,x:i,z:6})));
+dense.update(synthetic,{night:1});
+assert.equal(dense.stats.lamps,STREETLIGHT_CAP);assert.equal(dense.stats.drawCalls,2);
+assert(dense.stats.poleInstances<=STREETLIGHT_VIEW_LIMITS.maxPoleInstances && dense.stats.glowInstances<=STREETLIGHT_VIEW_LIMITS.maxGlowInstances);
+dense.dispose();
 const resources = [poles, glow, poles.geometry, glow.geometry, poles.material, glow.material, glow.material.map];
 let disposals = 0;
 for (const resource of resources) resource.addEventListener('dispose', () => disposals++);
@@ -93,12 +134,15 @@ assert.equal(view.stats.lamps, 0);
 assert.equal(view.stats.drawCalls, 0);
 assert.equal(view.stats.poleInstances, 0);
 assert(view.stats.disposed);
-assert.equal(beforePoles, lamps.length * 3, 'build-time instance count was never mutated by updates');
+assert.equal(beforePoles,focusCount*3,'returning to the district restores its visible lamp set');
 
 const pair = [Object.freeze({ id: 'a', x: 1, z: 1, yaw: 0, roadId: 'r' }), Object.freeze({ id: 'b', x: -1, z: 1, yaw: 0, roadId: 'r' })];
 const broken = createStreetlightsView(new THREE.Scene(), pair, (x, z) => (x < 0 ? NaN : 1));
+broken.update({x:0,z:0});
 assert.equal(broken.stats.lamps, 1, 'lamps without finite ground are skipped');
 broken.dispose();
 assert(broken.stats.disposed);
 
-console.log(`Capital streetlights: ${lamps.length}/${STREETLIGHT_CAP} road-anchored lamps, deterministic rebuild, no water/airport/bridge/roadway poles, day-gated ${STREETLIGHT_VIEW_LIMITS.maxDrawCalls}-draw night glow, stats and exact disposal PASS`);
+console.log(JSON.stringify({pass:true,estimatedBaseline:estimates.length,placed:lamps.length,surveyed:surveyed.length,
+  sampleStreet:focus.street,sampleVisible:focusCount,sampleNightDraws:maxDraws,cap:STREETLIGHT_CAP,
+  stationaryUploads:0,stationaryQueries:0,simulatedSeconds:10}));
