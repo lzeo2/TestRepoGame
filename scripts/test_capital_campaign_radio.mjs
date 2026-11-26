@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict';
+import {createCampaign} from '../Games/Capital Drive/campaign.js';
+import {createCampaignRadio} from '../Games/Capital Drive/campaign-radio.js';
+
+const map={spawn:{x:120,z:-150},landmarks:[
+  {id:'kingston',name:'Kingston',x:30,z:20},{id:'coals',name:'Coals',store:true,x:170,z:0}
+],roads:[],storyHomes:{basement:{x:-65,z:85,name:'Milo’s',roomId:'story-milo-home',street:'Kingston',approach:{x:-70,z:96}}}};
+const journal=createCampaign(map).journal();
+const beforeMeeting={version:2,character:'corporate',intros:Object.fromEntries(journal.introductions.map(hero=>[hero.character,hero.chapters.map(chapter=>chapter.id)])),meeting:false,legacy:false,completed:[]};
+const ctx={campaign:true,sandbox:false,paused:false,pose:{x:30,z:20,speed:0},onFoot:true,health:100,vehicleHealth:100,respawnSerial:0,wanted:0};
+function advance(game,context,seconds=1) {for(let i=0;i<seconds*20;i++)game.update(.05,context);}
+const game=createCampaign(map,beforeMeeting);
+assert(game.start(ctx).ok);
+assert(!game.chooseMeetingRoute('backup',ctx).ok,'crew must first come together in Kingston');
+advance(game,ctx);assert.equal(game.state.active.stage,1);
+const directTarget=structuredClone(game.state.active.target),directToken=game.captureRetry();
+for(const bad of [{campaign:false},{recovering:true},{sandbox:true},{respawnSerial:8},{wanted:NaN}])assert(!game.chooseMeetingRoute('backup',{...ctx,...bad}).ok);
+assert(!game.chooseMeetingRoute('nonsense',ctx).ok);
+assert(game.chooseMeetingRoute('backup',ctx).ok);assert.equal(game.state.active.stageCount,3);
+assert.equal(game.current().stages[2].kind,'home-action');assert(!game.chooseMeetingRoute('backup',ctx).ok);
+assert(game.chooseMeetingRoute('direct',ctx).ok);assert.deepEqual(game.state.active.target,directTarget);assert.equal(game.state.active.stageCount,2);
+assert(game.chooseMeetingRoute('backup',ctx).ok);
+assert.notDeepEqual(game.state.active.target,directTarget);const backupToken=game.captureRetry();
+const backupStop={...ctx,onFoot:false,pose:{...game.state.active.target,speed:0}};
+advance(game,{...backupStop,pose:{...directTarget,speed:0}});assert.equal(game.state.active.stage,1,'direct stop cannot skip backup');
+advance(game,backupStop);assert.equal(game.state.active.stage,2);
+assert(!game.chooseMeetingRoute('direct',ctx).ok,'route locks on arrival');
+advance(game,{...ctx,respawnSerial:1});assert.equal(game.state.active,null);
+assert(!game.resumeRetry(directToken,{...ctx,respawnSerial:1}).ok,'superseded branch snapshot rejected');
+assert(game.resumeRetry(backupToken,{...ctx,respawnSerial:1}).ok);assert.equal(game.state.active.meetingRoute,'backup');
+advance(game,{...backupStop,respawnSerial:1});assert.equal(game.state.active.stage,2);
+const goal=game.state.active.target;
+const indoors={...ctx,respawnSerial:1,pose:goal,interior:{roomId:goal.roomId,atStation:true,stationId:goal.stationId}};
+advance(game,{...indoors,homeAction:{serial:0,roomId:goal.roomId,outcome:'packed'}});assert.equal(game.state.active.stage,2);
+advance(game,{...indoors,homeAction:{serial:1,roomId:'another-house',outcome:'packed'}});assert.equal(game.state.active.stage,2);
+advance(game,{...indoors,homeAction:{serial:2,roomId:goal.roomId,outcome:'packed'}});
+assert.equal(game.state.active,null);assert(game.serialize().meeting);assert(!JSON.stringify(game.serialize()).includes('meetingRoute'));
+const saved=game.serialize();assert(createCampaign(map,saved).isCompleted('three-receipts'));
+const direct=createCampaign(map,beforeMeeting);assert(direct.start(ctx).ok);advance(direct,ctx);
+advance(direct,{...ctx,onFoot:false,pose:{...direct.state.active.target,speed:0}});
+assert.deepEqual(direct.serialize(),saved,'both routes rejoin with the same earned story completion');
+
+let writes=0;
+const textNode=()=>({value:'',get textContent(){return this.value;},set textContent(v){this.value=v;writes++;}});
+const panel={children:[textNode(),textNode()],hidden:true},radio=createCampaignRadio(panel);
+const mission={id:'three-receipts',stage:0};
+radio.update(.05,mission);assert.equal(panel.hidden,false);assert.equal(panel.children[0].value,'Kit');
+for(let i=0;i<40;i++)radio.update(.05,mission);
+assert.equal(writes,2,'constant caption does not rewrite the live region');
+radio.update(.25,mission,{paused:true});assert(panel.hidden);
+for(let i=0;i<200;i++)radio.update(.1,mission,{paused:true});
+radio.update(.01,mission);assert(!panel.hidden);assert.equal(writes,2,'pause holds the same line and reading time');
+for(let i=0;i<25;i++)radio.update(.1,mission);
+assert.equal(panel.children[0].value,'Rowan');
+mission.stage=1;radio.update(.01,mission);assert.match(panel.children[1].value,/Your call/);
+mission.meetingRoute='backup';radio.update(.01,mission);assert.match(panel.children[1].value,/case table/);
+mission.meetingRoute='direct';radio.update(.01,mission);assert.match(panel.children[1].value,/originals/);
+let hot={id:'late-parcel',stage:1,escapeReached:false};
+for(let i=0;i<200;i++)radio.update(.1,hot,{wanted:2});
+assert(panel.hidden,'heat line waits for the physical pickup');
+hot.escapeReached=true;radio.update(.1,hot,{wanted:2});assert.match(panel.children[1].value,/case is here/);
+for(let i=0;i<200;i++)radio.update(.1,hot,{wanted:2});
+assert(panel.hidden,'conditional line does not loop');
+radio.update(.1,null);radio.update(.1,{...mission,stage:0,developer:true});assert(panel.hidden);
+radio.update(.1,{...mission,stage:0});assert(!panel.hidden);assert.equal(panel.children[0].value,'Kit');
+console.log('PASS campaign radio and Three receipts handover: both playable routes, fresh in-room packing, failure/branch retry, earned save continuity, crew exchange, route and heat response, pause and idle DOM');
