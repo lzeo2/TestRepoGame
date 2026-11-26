@@ -305,6 +305,14 @@
             description.textContent = gData.desc;
             body.insertBefore(description, actions);
           }
+          if (body && actions && gData.players && !$('.game-card__players', card)) {
+            var count = String(gData.players);
+            var players = document.createElement('span');
+            players.className = 'game-card__players';
+            players.textContent = count + (count === '1' ? ' player' : ' players');
+            body.insertBefore(players, actions);
+            card.setAttribute('aria-label', title + ', ' + players.textContent + '. Press Enter to play.');
+          }
         }
       }
     });
@@ -1816,6 +1824,33 @@
       if (game.url) openGameUrl(game.url);
     });
     actions.appendChild(playBtn);
+    var gamePath = safeGamePath(game.url);
+    if (gamePath !== './') {
+      var link = new URL(gamePath, document.baseURI).href;
+      var copyLink = document.createElement('button');
+      copyLink.type = 'button';
+      copyLink.className = 'ux-detail__copy';
+      copyLink.textContent = 'Copy game link';
+      var linkField = document.createElement('input');
+      linkField.type = 'url';
+      linkField.readOnly = true;
+      linkField.value = link;
+      linkField.hidden = true;
+      linkField.className = 'ux-detail__link';
+      linkField.setAttribute('aria-label', 'Game link');
+      panel.appendChild(linkField);
+      copyLink.addEventListener('click', async function () {
+        try {
+          await navigator.clipboard.writeText(link);
+          copyLink.textContent = 'Link copied';
+        } catch (_) {
+          linkField.hidden = false;
+          linkField.select();
+          linkField.focus();
+        }
+      });
+      actions.appendChild(copyLink);
+    }
     var closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'ux-detail__close';

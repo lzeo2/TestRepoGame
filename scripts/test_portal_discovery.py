@@ -40,6 +40,21 @@ def main():
                     page.screenshot(path=str(shots / f'{label}-{theme}.png'))
             page.keyboard.press('/')
             assert page.locator('.search-bar__input').evaluate('el => el === document.activeElement')
+            first_card = page.locator('.game-card').first
+            assert first_card.locator('.game-card__players').inner_text().strip()
+            first_card.locator('.game-card__info').click()
+            copy = page.get_by_role('button', name='Copy game link')
+            context.grant_permissions(['clipboard-read', 'clipboard-write'], origin=base.rstrip('/'))
+            copy.click()
+            page.wait_for_function("document.querySelector('.ux-detail__copy').textContent === 'Link copied'")
+            target = page.locator('.ux-detail__link').input_value()
+            assert target.startswith(base + 'Games/') and page.evaluate('navigator.clipboard.readText()') == target
+            page.evaluate("Object.defineProperty(navigator, 'clipboard', {configurable:true, value:undefined})")
+            copy = page.locator('.ux-detail__copy')
+            copy.click()
+            assert page.get_by_role('textbox', name='Game link').input_value() == target
+            page.keyboard.press('Escape')
+            print('PASS player count and direct game link: native clipboard and selectable fallback')
             print('PASS discovery: descriptions, search shortcut, 44px actions, 1440/390/320 layouts in both themes')
             context.close()
 
@@ -94,6 +109,8 @@ def main():
                 page.keyboard.press('Tab')
                 assert page.locator('.ux-detail__play').evaluate('el => el === document.activeElement')
                 if exit_path == 'close':
+                    page.keyboard.press('Tab')
+                    assert page.get_by_role('button', name='Copy game link').evaluate('el => el === document.activeElement')
                     page.keyboard.press('Tab')
                     page.keyboard.press('Enter')
                 elif exit_path == 'backdrop':
