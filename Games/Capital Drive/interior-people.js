@@ -3,8 +3,7 @@ import {rayTargetDistance} from './ballistics.js';
 import {createInteriorCollider} from './interior-navigation.js';
 const LIMIT = 16, BODY_RADIUS = .28, THROW_WINDUP = .75, THROW_FLIGHT = .55;
 const FIGHT_WINDUP=.65, FIGHT_RECOVER=.85;
-// ponytail: per-mission scripted-fight tuning; add ids here if more tutorial fights are ordered.
-const FIGHT_TUNING = Object.freeze({ 'corporate-lunch-breakpoint': Object.freeze({ damage: 1, minHits: 1 }) });
+const FIGHT_TUNING = Object.freeze({ 'corporate-lunch-breakpoint': Object.freeze({ damage: 1, minHits: 1, reportAfterExit: true }) });
 const fightTuning = missionId => FIGHT_TUNING[missionId] || Object.freeze({ damage: 7, minHits: 2 });
 const finite = n => Number.isFinite(n);
 const point = p => p && finite(p.x) && finite(p.z);
@@ -358,7 +357,7 @@ export function createInteriorPeople() {
     p.fear = 1; p.reactionTimer = Math.max(p.reactionTimer, duration);
     p.reaction = p.knockdown>0 ? 'knockdown' : p.stun>0 ? 'stunned' : 'panic';
   }
-  function alert({x,z,radius=28,kind='gunshot',hasLineOfSight,offenderId='player'} = {}) {
+  function alert({x,z,radius=28,kind='gunshot',hasLineOfSight,offenderId='player',reportWitness=true} = {}) {
     if (!plan || ![x,z,radius].every(finite)) return 0;
     const reach = clamp(radius,0,100);
     let witness = null, count = 0;
@@ -366,7 +365,7 @@ export function createInteriorPeople() {
       if (p.health<=0 || Math.hypot(p.x-x,p.z-z)>reach || (hasLineOfSight && !hasLineOfSight({x,z},p))) continue;
       p.anger=0;p.angerOffender=null;p.attackTimer=0;frighten(p); witness ||= p; count++;
     }
-    report({x,z,offenderId},kind,witness);
+    if (reportWitness) report({x,z,offenderId},kind,witness);
     return count;
   }
   function strike({x,z,yaw=0,range=2,damage=20,kind='melee',hasLineOfSight,offenderId='player',interiorId} = {}) {
@@ -376,6 +375,8 @@ export function createInteriorPeople() {
     if(explosion && typeof hasLineOfSight!=='function') return {hits:0,people:hits};
     const reach=clamp(range,0,explosion?8:100), power=clamp(damage,0,100);
     const gun=['pistol','gunshot','firearm','shot','fire'].includes(kind);
+    const deferredTarget=offenderId==='player'&&kind==='melee'&&encounterState?.fightActive&&encounterState.throwEmitted&&
+      FIGHT_TUNING[encounterState.missionId]?.reportAfterExit&&sameRoomActor({x,z,interiorId}) ? encounterState.personId : null;
     const candidates=people.map(p=>({p,distance:Math.hypot(p.x-x,p.z-z)})).filter(({p,distance})=>{
       const forward=(p.x-x)*-Math.sin(yaw)+(p.z-z)*-Math.cos(yaw);
       const lateral=Math.abs((p.x-x)*Math.cos(yaw)-(p.z-z)*Math.sin(yaw));
@@ -388,11 +389,11 @@ export function createInteriorPeople() {
       if(explosion && hasLineOfSight({x,z},p)!==true) continue;
       const dealt=explosion?power*(1-distance/reach):power;
       applyHit(p,dealt,kind,offenderId,{x,z,interiorId},!explosion&&typeof hasLineOfSight==='function'&&hasLineOfSight({x,z},p)===true);
-      if(!explosion || p.health>0) witness ||= p;
+      if(p.id!==deferredTarget && (!explosion || p.health>0)) witness ||= p;
       hits.push(Object.freeze({id:p.id,x:p.x,z:p.z,health:p.health,reaction:p.reaction}));
     }
     if (hits.length) report({x,z,offenderId},kind,witness);
-    return {hits:hits.length,people:hits};
+    return {hits:hits.length,people:hits,deferReport:Boolean(deferredTarget&&hits.length&&!witness)};
   }
   function applyHit(p,dealt,kind,offenderId,source,visible) {
     const gun=['pistol','gunshot','firearm','shot','fire'].includes(kind);

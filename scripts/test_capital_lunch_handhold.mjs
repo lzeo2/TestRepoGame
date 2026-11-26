@@ -31,7 +31,10 @@ function fight(missionId) {
   const swings = lunch.pool.drainEvents().filter(e => e.type === 'retaliation' && e.kind === 'melee');
   assert(swings.length > 0, 'tutorial fight still swings so the step-back cue is teachable');
   assert(swings.every(e => e.damage === 1), 'Dot deals trivial damage in the lunch tutorial fight');
-  assert.equal(lunch.strike().hits, 1);
+  const punch = lunch.strike();
+  assert.equal(punch.hits, 1);
+  assert.equal(punch.deferReport, true, 'the scripted punch is reported when Rowan leaves');
+  assert(!lunch.pool.drainEvents().some(event => event.type === 'witness'));
   const won = lunch.pool.encounter;
   assert.equal(won.victory, true, 'one clean knockdown punch wins the hand-held lunch fight');
   assert.equal(won.outcome, 'noodle-victory');
@@ -42,7 +45,10 @@ function fight(missionId) {
   rematch.tick(74);
   const swings = rematch.pool.drainEvents().filter(e => e.type === 'retaliation' && e.kind === 'melee');
   assert(swings.length > 0 && swings.every(e => e.damage === 7), 'the separate CASES rematch keeps its real fight damage');
-  assert.equal(rematch.strike().hits, 1);
+  const punch = rematch.strike();
+  assert.equal(punch.hits, 1);
+  assert.equal(punch.deferReport, false, 'the rematch uses ordinary assault reporting');
+  assert(rematch.pool.drainEvents().some(event => event.type === 'witness'));
   const after = rematch.pool.encounter;
   assert.equal(after.victory, false, 'the rematch still requires two clean fist hits');
   assert.equal(after.phase, 'retry');

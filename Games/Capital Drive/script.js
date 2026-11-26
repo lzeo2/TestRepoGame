@@ -4599,7 +4599,11 @@ async function boot() {
   const witnesses={snapshot:()=>interiors.active?roomPeople.snapshot():[...pedestrians.snapshot(),...streetDealers.snapshot(),...(rideService?.people||[]).filter(person=>person.active)],
     drainEvents:()=>[...pedestrians.drainEvents(),...roomPeople.drainEvents(),...(rideService?.drainCombatEvents()||[])],
     alert:spec=>{if(interiors.active)roomPeople.alert(spec);else{pedestrians.alert(spec);streetDealers.alert(spec);rideService?.alert(spec);}},
-    strike:spec=>{const results=(interiors.active?[roomPeople.strike(spec)]:[pedestrians.strike(spec),streetDealers.strike(spec),rideService?.strike(spec),contractTarget.body&&contractTarget.strike(spec),skylineLease&&skylineOpponents.strike(spec)]).filter(Boolean);return {hits:results.reduce((total,result)=>total+result.hits,0),people:results.flatMap(result=>result.people||[])};}};
+    strike:spec=>{
+      if(interiors.active)return roomPeople.strike(spec);
+      const results=[pedestrians.strike(spec),streetDealers.strike(spec),rideService?.strike(spec),contractTarget.body&&contractTarget.strike(spec),skylineLease&&skylineOpponents.strike(spec)].filter(Boolean);
+      return {hits:results.reduce((total,result)=>total+result.hits,0),people:results.flatMap(result=>result.people||[])};
+    }};
   const canStandForRecovery=pose=>!simulation.moveActor({...pose},0,0,.45).blocked;
   const recoveryHouse=origin=>planSafehouseReturn({
     entries:interiors.entries,origin,storyHome:map.storyHomes?.basement,
