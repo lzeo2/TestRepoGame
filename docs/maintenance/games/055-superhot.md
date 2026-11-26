@@ -52,3 +52,18 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Rights/privacy first; hardware compatibility and real loading feedback second. Month refurbishment should measure memory and old-loader browser support, then fix shell sizing and keyboard focus only where evidenced. Touch adaptation requires engine-level support and maintainable sources; no promise of a phone port or engine rewrite.
+
+## Native scene and offline hardware survey, 26 November 2026
+
+The Unity 5 game sends its hardware survey through XMLHttpRequest. The
+dedicated entry now handles its two optional `stats.unity3d.com` survey
+paths in memory. Other requests keep their original method, URL, async
+flag and credentials. A fresh Chromium run fetched all three local game
+payloads, accepted the start click and showed the first 3D encounter and the
+WASD/mouse tutorial without a remote request.
+
+Chromium's software compositor can spend over 30 seconds capturing one game
+frame after that click. A private Xorg dummy display and a framebuffer
+capture showed the actual scene while headless screenshots timed out.
+The Unity runtime still reports unsupported GPU timer queries and framebuffer
+feedback warnings under SwiftShader. [Controller check](../../../scripts/test_arcade_trust_boundaries.mjs)

@@ -144,3 +144,22 @@ const hackedRunner = read('Games/SubwaySurfersHacked/index.html');
 assert.match(hackedRunner, /<title>Subway Surfers Hacked<\/title>/);
 assert.match(hackedRunner, /<h1>Subway Surfers Hacked<\/h1>/);
 assert.doesNotMatch(hackedRunner, /id="hackBadge"/);
+
+const calls = [];
+class LocalRequest {open(...parameters) {calls.push(parameters);}}
+vm.runInNewContext(read('Games/Superhot/main.js'),{XMLHttpRequest:LocalRequest});
+const localRequest = new LocalRequest();
+for (const endpoint of ['HWStats.cgi','HWStatsUpdate.cgi']) {
+  localRequest.open('POST','https://stats.unity3d.com/'+endpoint,true);
+}
+localRequest.open('GET','webgl.datagz',false,'user','password');
+localRequest.open('POST','http://127.0.0.1/save',true);
+assert.deepEqual(calls,[
+  ['GET','data:application/octet-stream;base64,',true],
+  ['GET','data:application/octet-stream;base64,',true],
+  ['GET','webgl.datagz',false,'user','password'],
+  ['POST','http://127.0.0.1/save',true]
+]);
+const superhotEntry = read('Games/Superhot/index.html');
+assert.ok(superhotEntry.indexOf('"main.js"') < superhotEntry.indexOf('"UnityLoader.js"'));
+console.log('PASS Super Hot suppresses only its two optional Unity hardware survey posts.');
