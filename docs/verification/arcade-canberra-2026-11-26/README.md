@@ -3,12 +3,14 @@
 | View | What was captured |
 | --- | --- |
 | [Franklin Street, Manuka](../../capital-drive-previews/landmark-studies/manuka-street.webp) · [Parliament Drive](../../capital-drive-previews/landmark-studies/parliament-street.webp) | Street-level views from the geographic renderer with actual roads, buildings, terrain and foliage. |
-| [Free roam at Telopea Park School](free-roam-telopea.webp) | Actual 1280 × 800 WebGL session using the Performance preset on build `385c082ce2af`. The normal startup, cache, mobile and desktop version badges, scene rendering, map search and Free roam teleport all passed. |
-| [Driving on New South Wales Crescent](free-roam-driving.webp) | Starting from rest near Telopea Park School, W moved the car 3.61 m. Adding D turned it 4.5° and brought the odometer to 5.75 m. The HUD shows 39 km/h in second gear. Captured at 720 × 450 on the Performance preset in a separate software WebGL session on build `385c082ce2af`. |
+| [Free roam at Telopea Park School](free-roam-telopea.webp) | Actual 1280 × 800 WebGL session using the Performance preset on build `3b359ed1b628`. The normal startup, cache, mobile and desktop version badges, scene rendering, map search and Free roam teleport all passed. |
+| [Driving on New South Wales Crescent](free-roam-driving.webp) | Starting from rest near Telopea Park School, W moved the car 4.38 m. Adding D turned it 4.8° and brought the odometer to 6.70 m. The HUD shows 41 km/h in second gear. Captured at 720 × 450 on the Performance preset in a separate software WebGL session on build `3b359ed1b628`. |
 | [Six arcade games in play](arcade-games.webp) | Actual browser sessions, including both Subway editions and Super Hot. Individual outcomes are in the fleet report. |
 | ![Six Canberra shops with distinct entrances, shelves and signage](shopfronts.webp) | Six isolated shopfronts rendered by the game. The models use parody names. [Tenant-by-tenant sources](../../capital-drive-shopfront-architecture.md) |
 | [Canberra landmarks](../../capital-drive-previews/landmark-studies/inner-and-west.webp) · [Northern and eastern landmarks](../../capital-drive-previews/landmark-studies/north-and-east.webp) | Eight model views from the game renderer. [Public references and model budgets](../../capital-drive-landmark-fidelity.md) |
 | ![Seven Canberra building models, including the Shine Dome arches, Museum loop and Library colonnade](national-buildings.webp) | Production model geometry drawn on the shipped footprints with daylight and flat ground. The camera rises above the Arboretum, Museum and Mint to show their roof shapes. [Capture details](#national-and-regional-building-captures) |
+| [Five Civic shopfronts](civic-shopfronts.webp) | Distinct Garema Place and Bunda Street facades. [Frontage sources and WebGL measurements](../capital-drive-civic-storefronts-2026-11-26.md) |
+| [Nine regional landmarks](regional-exteriors.webp) · [Seven North Canberra frontages](../../capital-drive-previews/landmark-studies/north-frontages.webp) | Includes GIO Stadium, Kippax Fair and street-level buildings in Dickson and Lyneham. [Regional references](../../capital-drive-regional-exteriors.md) · [Northern references](../../capital-drive-north-frontages.md) |
 | ![Brick outdoor barbecue with two hotplates](park-barbecue.webp) | Standalone view of the model assigned to ACT register entry BBQ429. The tile is an original photographic material from Poly Haven. |
 | ![A character speaks during Three Receipts](mission-radio.webp) | Campaign dialogue in the game's 2D compatibility mode. Native controls selected the mission and switched between its two routes from a fixture with the previous chapters completed. |
 | ![Run 3 in its tunnel](run-3.webp) | The browser entered Explore and accepted steering and jump controls after the level files were repaired. |
@@ -42,7 +44,7 @@ python -B scripts/capture_capital_national_buildings.py --output docs/verificati
 - [ACT park fixture positions, attribution and filtering](../../capital-drive-park-amenities.md)
 - [Streetlight locations and bounded rendering](../../capital-drive-streetlight-columns.md)
 
-The road check covered 27,417 roads, 155,465 source segments and 639,234 static lane clearance probes. There were 1,465 occupied probes on 305 roads. A control run with all 191 park fixtures removed produced the same results. Individual occupied probes need case-by-case inspection. The run does not establish that every vehicle can drive every possible turn.
+The initial road check, before the additional Kippax Fair building was joined from its two map ways, covered 27,417 roads, 155,465 source segments and 639,234 static lane clearance probes. There were 1,465 occupied probes on 305 roads. A control run with all 191 park fixtures removed produced the same results. Individual occupied probes need case-by-case inspection. The run does not establish that every vehicle can drive every possible turn.
 
 ## Pedestrian setup profile
 
