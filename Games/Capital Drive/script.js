@@ -4485,7 +4485,7 @@ async function boot() {
   streetlightsView=compatibility?emptyView():createStreetlightsView(scene,createStreetlights(map.roads,{waterAt:simulation.waterAt,isOnBridge:terrainSampler.isOnBridge,canOccupy:simulation.canOccupy,nearestRoad:simulation.nearestRoad}),terrainSampler.heightAt);
   rentalStorefrontsView=compatibility?emptyView():createRentalStorefrontsView(scene,terrainSampler.heightAt,carRentalSites);
   nitroView=compatibility?emptyView():createNitroView(scene);
-  highwayBarriersView=compatibility?emptyView():createHighwayBarriersView(scene,terrainSampler.heightAt);
+  highwayBarriersView=compatibility?emptyView():createHighwayBarriersView(scene,terrainSampler.heightAt,{roads:map.roads,roadHeightAt:terrainSampler.roadHeightAt});
   signalsView=compatibility?emptyView():createTrafficLightsView(scene,world.heightAt);
   roadGuidanceView=compatibility?emptyView():createRoadGuidanceView(scene,(x,z,yaw)=>world.vehicleHeightAt({x,z,yaw}),{
     placePoint:(point,yaw)=>{
