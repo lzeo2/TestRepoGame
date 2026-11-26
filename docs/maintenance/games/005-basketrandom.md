@@ -36,7 +36,9 @@ Keep runtime/data/sprites paired. Wrapper HTML/CSS and a verified SDK boundary a
 
 ## Verification
 
-Actually run: Git blob `scripts/main.f.js` through `node --check`, exit 0. Read-only Git inventory/reference review; zero native browser runs/screenshots. Repeat syntax without checkout: `git show HEAD:Games/BasketRandom/scripts/main.f.js | node --check`. Main must lease a narrow game tree for native WebGL, sound, both-player input, victory/rematch and mobile screenshots. Cold network denial and warm-cache navigation are different tests. Main's full-catalog gate remains separate.
+On 26 November 2026, a clean Chromium profile opened the game, chose the two-player match, and held and released Up. The right-hand team's heads rose from approximately Y 111 to Y 106 while the other players stayed on the ground. In this coordinate system smaller Y values are higher on screen. An earlier native session caught the archived GameDistribution SDK throwing during ad cancellation because this offline placement had no video element. The entry now supplies the two ad methods used by Construct. A normal placement resolves immediately and the game’s own unavailability handler receives declined rewarded preloads. The SDK element guard prevents loading the remote-service adapter. Repeat with external network blocked, using PLAY, 2P and Up, and monitor for unhandled promise rejections through both clicks.
+
+Earlier static receipt: Git blob `scripts/main.f.js` through `node --check`, exit 0. Read-only Git inventory/reference review; zero native browser runs/screenshots. Repeat syntax without checkout: `git show HEAD:Games/BasketRandom/scripts/main.f.js | node --check`. Main must lease a narrow game tree for native WebGL, sound, both-player input, victory/rematch and mobile screenshots. Cold network denial and warm-cache navigation are different tests. Main's full-catalog gate remains separate.
 
 ### Static metadata receipt (2026-10-15)
 
