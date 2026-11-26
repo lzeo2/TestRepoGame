@@ -481,6 +481,8 @@ assert.equal(corporate.state.active.stage, 1, 'old noodle fights do not count');
 tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11, outcome: 'noodle-victory', victory: true, missionId: 'corporate-lunch-breakpoint' } });
 assert.equal(corporate.state.active.stage, 2);
 assert.deepEqual(corporate.state.intros.corporate, ['corporate-present-tense'], 'fight alone does not skip the exit');
+assert.equal(corporate.policeSearchDuration(1), 12, 'the tutorial escape needs a short break in police sight');
+assert.equal(corporate.policeSearchDuration(2), undefined, 'additional offences keep the ordinary higher-star patrol timing');
 const clearLunch = { ...ctx, onFoot: false, pose: { x: -1000, z: 1500 } };
 tick(corporate, { ...clearLunch, wanted: 1 }, 35);
 assert.equal(corporate.state.active.stage, 2, 'escape objective still requires a clear wanted state');

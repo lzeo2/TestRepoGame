@@ -301,7 +301,12 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     return hero ? `Switch to ${hero.name} for ${shared[state.completed.length].name}.` : null;
   };
   const isCompleted = id => state.completed.includes(id) || state.optionalCompleted.includes(id) || (id === meeting.id && state.meeting) || ids.some(hero => state.intros[hero].includes(id));
-  const policeSearchDuration = wanted => (sharedIds.has(state.active?.id) || state.active?.assassination) && wanted >= 1 ? SHARED_SEARCH_DURATION[wanted] : undefined;
+  function policeSearchDuration(wanted) {
+    const active = state.active;
+    if (wanted === 1 && active?.id === 'corporate-lunch-breakpoint' && active.target.kind === 'escape') return 12;
+    if (sharedIds.has(active?.id) || active?.assassination) return SHARED_SEARCH_DURATION[wanted] || undefined;
+    return undefined;
+  }
   const isStoryRobbery = id => sharedIds.has(state.active?.id) && state.active.target.kind === 'robbery' && state.active.target.storeId === id;
   function validContext(ctx) {
     return ctx && finitePoint(ctx.pose) && typeof ctx.onFoot === 'boolean' && Number.isSafeInteger(ctx.respawnSerial) && Number.isFinite(ctx.wanted) && ctx.wanted >= 0 && ctx.wanted <= 5;
