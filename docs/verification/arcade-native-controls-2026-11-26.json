@@ -1,0 +1,87 @@
+{
+  "AdvanceWars": {
+    "observation": "Played Field Training, mission 1, Troop Orders. On the battlefield, moved the hand cursor across tiles under native arrow input; pressing A on an unrequested unit/ground triggered Nell’s “No, not there” correction and another prompt. Unit travel and battle resolution remain unverified.",
+    "receipt": "emulator-deep/116/proof.json",
+    "status": "gameplay"
+  },
+  "Balatro": {
+    "observation": "Started an Ante 1 Small Blind game with target 300, initial four hands/four discards and an eight-card hand. D-pad and Z lifted a chosen card, switched the blue/red hand preview to Hi-Card and played it into the scoring area.",
+    "receipt": "emulator-deep/221/proof.json",
+    "status": "gameplay"
+  },
+  "Chess Workshop": {
+    "observation": "The legal move and an independent Stockfish reply appeared in notation. Recorded inputs were Mouse drag e2 to e4.",
+    "receipt": "originals-deep/247/proof.json",
+    "status": "gameplay"
+  },
+  "Circuit Ward": {
+    "observation": "Live player Z coordinate moved after holding W in a solo wave. Recorded inputs were Click #startSolo, Hold W.",
+    "receipt": "originals-deep/222/proof.json",
+    "status": "gameplay"
+  },
+  "Dive Trivia": {
+    "observation": "One valid entry in a daily round scored points and revealed the submitted answer. Recorded inputs were Click #playBtn, Keyboard answer \"Barcelona\" then Enter.",
+    "receipt": "originals-deep/235/proof.json",
+    "status": "gameplay"
+  },
+  "DogeMiner": {
+    "observation": "Clicked through the four-stage introduction and mined once. The mined counter increased from 0 to 1.",
+    "receipt": "scripts/test_arcade_legacy_startup.py",
+    "status": "gameplay"
+  },
+  "DrMario": {
+    "observation": "A fresh one-player Level 00 bottle showed four viruses. Holding Right moved the active red capsule across the top of the bottle; Z rotated its orientation and pressing Down advanced the piece toward the viruses.",
+    "receipt": "emulator-deep/114/proof.json",
+    "status": "gameplay"
+  },
+  "JetpackJoyride": {
+    "observation": "The Phaser GamePlay scene mounted. A canvas tap and 600 ms hold completed with zero uncaught errors or failed requests. The observation did not measure the avatar’s altitude.",
+    "receipt": "scripts/test_arcade_legacy_startup.py",
+    "status": "entry"
+  },
+  "JetpackJoyrideHacked": {
+    "observation": "The Phaser GamePlay scene mounted. A canvas tap and 600 ms hold completed with zero uncaught errors or failed requests. The observation did not measure the avatar’s altitude.",
+    "receipt": "scripts/test_arcade_legacy_startup.py",
+    "status": "entry"
+  },
+  "KirbyAmazingMirror": {
+    "observation": "Entered File 1, reached the opening gate with the playable pink Kirby and three companions, and used Z to jump. The last image shows Kirby above the ground while the companions remain below.",
+    "receipt": "emulator-deep/120/proof.json",
+    "status": "gameplay"
+  },
+  "MarioKartSuperCircuit": {
+    "observation": "First run selected Luigi and Peach Circuit. In a fresh second run selected Peach, 50cc Star Cup. Reached Lap 1/3 in eighth position at a standing start, then held A and steered. The kart yaws, moves away from its start position, and the race clock advances to 00:01.95.",
+    "receipt": "emulator-deep/117/proof.json",
+    "status": "gameplay"
+  },
+  "MetroidFusion": {
+    "observation": "Selected File A and started the Metroid Fusion story. Advanced the captioned spaceship/asteroid narrative to the planet scene. On-foot movement and firing as Samus were not verified in this capture.",
+    "receipt": "emulator-deep/118/proof.json",
+    "status": "story"
+  },
+  "Run3": {
+    "observation": "Started Explore from the native character menu. The runner entered the tunnel, then received left, right and jump inputs. The play and steer frames show the live level.",
+    "receipt": "run3-play.png, run3-steer.png",
+    "status": "gameplay"
+  },
+  "StealBasketballer": {
+    "observation": "World avatar moved after W from a fresh profile. Recorded inputs were Click #start, Hold W.",
+    "receipt": "originals-deep/246/proof.json",
+    "status": "gameplay"
+  },
+  "StrandedInIsekai": {
+    "observation": "Holding Space on the cover opened map 1 and instantiated its character. Movement and combat on that map need a longer session.",
+    "receipt": "scripts/test_arcade_legacy_startup.py",
+    "status": "entry"
+  },
+  "StreetFighter2": {
+    "observation": "Selected Arcade, Ryu and normal speed. The fight against Ken opened with both health bars and running clock. ArrowUp changed player Ryu from a grounded stance to an airborne pose. Follow-up directional and attack button inputs were accepted in that match.",
+    "receipt": "emulator-deep/115/proof.json",
+    "status": "gameplay"
+  },
+  "Tanks and Soldiers": {
+    "observation": "Live rifle ammunition count decreased after F. Recorded inputs were Select touch control mode, Click #deploy, Hold F to fire.",
+    "receipt": "originals-deep/248/proof.json",
+    "status": "gameplay"
+  }
+}

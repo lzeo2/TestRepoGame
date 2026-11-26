@@ -31,6 +31,12 @@ HEAVY = {7, 8, 47, 48, 49, 50, 55, 56, 59, 60, 64, 89, 111, 245}
 # these immediately before and after input, so opening a menu cannot pass.
 # Controls separated with | are sequential. key:... uses actual key events.
 PROBES = {
+    'TowerOfHanoi': ('#disk-1|#tower-b', '#step-counter'),
+    'MiniGolf': ('key:ArrowLeft|key:Space', '#strokes'),
+    'Sokoban': ('key:ArrowRight|key:ArrowLeft|key:ArrowDown|key:ArrowUp', '#msg'),
+    'Dominoes': ('drag:#block1>#mesto1', '#mesto1'),
+    'SchoolyardCourtyardCast': ('#pause', '#pause'),
+    'SchoolyardGapGlide': ('#restart|#start|#pause', '#pause'),
     'Puzzle15': ('key:ArrowRight|key:ArrowLeft|key:ArrowDown|key:ArrowUp', '#moves'),
     'PegSolitaire': ('[data-row="3"][data-col="1"]|[data-row="3"][data-col="3"]', '#pegCount'),
     'Reversi': ('.square:has(.hint-b), .square:has(.hint-w)', '#countYou, #countThem'),
@@ -77,12 +83,12 @@ STATE_PROBES = {
     'BreakoutClassic': ('key:ArrowRight', 'typeof paddle === "undefined" ? null : paddle.x'),
     'BreakoutHacked': ('key:ArrowRight', 'typeof paddle === "undefined" ? null : paddle.x'),
     'Asteroids': ('key:Space|key:ArrowRight', 'window.Game?.ship?.rot'),
-    'Archery': ('key:r|key:ArrowUp|key:Space', 'typeof arrowsLeft === "undefined" ? null : arrowsLeft'),
+    'Archery': ('key:ArrowRight', 'typeof kbAngle === "undefined" ? null : kbAngle'),
+    'Borough Run': ('#pause', 'window.__gameDebug?.state'),
     'Tag Relay': ('key:d', 'window.tagRelaySnapshot?.red?.x'),
     'Spline Ride': ('#view', 'window.splineRideSnapshot?.view'),
     'Jankolock3D': ('key:w', 'window.jank3dSnapshot?.().controller?.position'),
     'SchoolyardLaneRun': ('key:ArrowRight', 'window.schoolyardGame?.state.player.lane'),
-    'SchoolyardGapGlide': ('#restart|key:Space', 'window.schoolyardGame?.state.player.vy < 0'),
 }
 
 START = {
