@@ -3668,6 +3668,7 @@ function resize() {
 }
 function createCompatibilityRenderer(canvas) {
   const context = canvas.getContext('2d');
+  $('map-view-label').hidden = false;
   return {
     domElement: canvas, info: { render: { calls: 1, triangles: 0 } },
     setSize(w, h) { canvas.width = w; canvas.height = h; },
@@ -3703,9 +3704,6 @@ function createCompatibilityRenderer(canvas) {
         const x = (person.x - p.x) * scale + w / 2, y = (person.z - p.z) * scale + h / 2;
         if (x > 0 && y > 0 && x < w && y < h) { context.beginPath(); context.arc(x, y, 2.5, 0, Math.PI * 2); context.fill(); }
       }
-      context.fillStyle = '#172127'; context.fillRect(w - 265, 100, 250, 47);
-      context.fillStyle = '#f5f2e9'; context.font = 'bold 12px Arial'; context.fillText('2D COMPATIBILITY VIEW', w - 252, 119);
-      context.font = '10px Arial'; context.fillText('This browser does not provide WebGL.', w - 252, 135);
     },
   };
 }
