@@ -14,7 +14,7 @@ export function aerialGuidance(pose,destination,{arrivalRadius=35,straightAngle=
 
 // Routes use the same directed OSM graph as ambient traffic.
 export function findRoute(graph, start, destination) {
-  const roadNodes = [...graph.nodes.values()].filter(node => node.outgoing.some(edge => edge.road.name && edge.road.type !== 'service'));
+  const roadNodes = [...graph.nodes.values()].filter(node => node.outgoing.some(edge => edge.road.name && edge.road.type !== 'service' && !edge.road.standalonePath));
   if (!roadNodes.length) return [];
   const closest = point => roadNodes.reduce((best, node) =>
     Math.hypot(node.x - point.x, node.z - point.z) < Math.hypot(best.x - point.x, best.z - point.z) ? node : best);
@@ -54,6 +54,7 @@ export function findRoute(graph, start, destination) {
     if (cost !== costs.get(node.id)) continue;
     if (node === goal) break;
     for (const edge of node.outgoing) {
+      if (edge.road.standalonePath) continue;
       const nextCost = cost + edge.length;
       if (nextCost < (costs.get(edge.to.id) ?? Infinity)) {
         costs.set(edge.to.id, nextCost);

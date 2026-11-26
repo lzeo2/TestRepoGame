@@ -18,6 +18,7 @@ import { HIGHWAY_BARRIERS } from './highway-barriers.js';
 import { applyMapExpansion, expansionPlaces } from './map-expansion.js';
 import { applyNorthWest } from './north-west.js';
 import { applyRegionalExpansion } from './regional-expansion.js';
+import { WEST_BRIDGE_LINKS } from './west-bridge-links.js';
 import { applyResidentialExpansion } from './residential-expansion.js';
 import { applyAnuCampus } from './anu-campus.js';
 import { MACQUARIE_SHOPS_REFERENCE } from './macquarie-shops-view.js';
@@ -49,6 +50,9 @@ export function composeCapitalMap(packs) {
   map = applyNorthWest(map, get('north-west'), get('north-west-terrain'), get('giant-spray'));
   const regions = GAME_DATA_FILES.filter(file => file.startsWith('data/region-'));
   map = applyRegionalExpansion(map, regions.map(file => packs[file]));
+  const bridged = applyMapExpansion(map, WEST_BRIDGE_LINKS);
+  for (let i = 0; i < map.roads.length; i++) bridged.roads[i] = map.roads[i];
+  map = { ...map, roads: bridged.roads, bounds: bridged.bounds };
   map = applyResidentialExpansion(map, get('residential-supplement'));
   map = applyAnuCampus(map);
 

@@ -106,7 +106,7 @@ import {createInteriorPeople} from './interior-people.js';
 import {createInteriorPeopleView} from './interior-people-view.js';
 import {createMicromobility} from './micromobility.js';
 import {WEAPONS,WEAPON_IDS,weaponById} from './weapons.js';
-import {createWeaponWheel} from './weapon-wheel.js';
+import {createWeaponWheel,WEAPON_WHEEL_KEY} from './weapon-wheel.js';
 import {createWeaponWheelView} from './weapon-wheel-view.js';
 import {createStreetDealers} from './street-dealers.js';
 import {createStreetDealersView} from './street-dealers-view.js';
@@ -257,7 +257,7 @@ function cityState(){
   const roomId=interiors.active?.id,stash=roomId&&progression.isSafehouse(roomId)?progression.state.stashes[roomId]||emptyStash():null;
   const properties=progression.propertyOffers.map(offer=>({...offer,label:'House near '+(simulation.nearestRoad(offer.x,offer.z)?.road.name||'local street')}));
   const droneDealer=streetDealers.services.reduce((nearest,site)=>!nearest||Math.hypot(site.x-focus().x,site.z-focus().z)<Math.hypot(nearest.x-focus().x,nearest.z-focus().z)?site:nearest,null);
-  const gearContext=utilityContext(),utilityAvailability=Object.fromEntries(['medkit','repair-kit','jammer'].map(item=>[item,progression.utilityAvailability(item,gearContext)]));
+  const gearContext=utilityContext(),utilityAvailability=Object.fromEntries(['repair-kit','jammer'].map(item=>[item,progression.utilityAvailability(item,gearContext)]));
   const gear=currentGear();
   const trainingState=trainingContext();
   return {training:training.describe(gameMode),trainingLocked:trainingState.inMission||trainingState.preview||trainingState.recovering?'Finish the current mission or recovery to train.':'',
@@ -3032,7 +3032,16 @@ function refreshUtilityKeyLabels(){
     const label=$('utility-key-'+kind+'-label');
     if(label)label.textContent=rebindKind===kind?'press a key':keyLabelFor(utilityKeyFor(kind));
   }
+  const medkitKey=keyLabelFor(utilityKeyFor('medkit')),medkitButton=$('use-medkit');
+  $('medkit-key').textContent=medkitKey;
+  medkitButton.title=`Use medkit (${medkitKey})`;
+  medkitButton.setAttribute('aria-keyshortcuts',medkitKey);
 }
+$('use-medkit').addEventListener('click',()=>{
+  if(paused())return;
+  useUtilityDirect('medkit');
+  renderer.domElement.focus();
+});
 for(const kind of UTILITY_KINDS){
   $('utility-key-'+kind)?.addEventListener('click',()=>{rebindKind=kind;refreshUtilityKeyLabels();});
 }
@@ -3080,11 +3089,18 @@ window.addEventListener('keydown', event => {
     if(event.code!=='Escape')notify(rebindUtility(rebindKind,event.code).message);
     rebindKind=null;refreshUtilityKeyLabels();return;
   }
-  if(event.code==='F1'){event.preventDefault();if(!event.repeat)openHelp();return;}
-  if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(event.target.tagName) && event.code !== 'Escape') return;
-  if (weaponWheel.isOpen() && ['Escape', 'KeyP', 'KeyM', 'KeyT', 'KeyG', 'KeyK', 'KeyJ', 'F1'].includes(event.code)) {
-    closeWeaponWheel(); if (event.code === 'Escape') return;
+  if(event.code==='F1'){event.preventDefault();if(!event.repeat){closeWeaponWheel();openHelp();}return;}
+  if(weaponWheel.isOpen()){
+    if(['ArrowUp','ArrowLeft','ArrowDown','ArrowRight'].includes(event.code)){
+      event.preventDefault();
+      weaponWheelView.step(['ArrowUp','ArrowLeft'].includes(event.code)?-1:1);
+      return;
+    }
+    if(['Escape','Tab','KeyP','KeyM','KeyT','KeyG','KeyK','KeyJ','KeyE'].includes(event.code)){
+      closeWeaponWheel();if(event.code==='Escape'||event.code==='Tab')return;
+    }
   }
+  if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(event.target.tagName) && event.code !== 'Escape') return;
   const controls = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyX', 'KeyZ', 'KeyI', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight'];
   if (controls.includes(event.code)) event.preventDefault();
   if(event.code==='KeyF'&&started&&!paused()&&cockpitAvailable()){
@@ -3115,7 +3131,7 @@ window.addEventListener('keydown', event => {
     if (event.code === 'KeyG') { streetUI.renderGarage(); openDialog('garage-dialog'); return; }
     if (event.code === 'KeyK') { streetUI.renderServices(); openDialog('services-dialog'); return; }
     if (event.code === 'KeyE' && !paused()) { event.preventDefault(); interact(); return; }
-    if (event.code === 'Tab' && !paused()) { event.preventDefault(); if (gameplay.state.mode === 'foot') openWeaponWheel(); return; }
+    if(event.code===WEAPON_WHEEL_KEY){openWeaponWheel();return;}
     const utilityKind=matchUtilityKey(event.code);
     if(utilityKind&&!paused()){event.preventDefault();useUtilityDirect(utilityKind);return;}
     if (event.code === 'KeyR' && !paused()) { gameplay.state.mode === 'foot' ? gameplay.reload() : recover(); return; }
@@ -3123,12 +3139,19 @@ window.addEventListener('keydown', event => {
   }
   if (!paused()) keys.add(event.code);
 });
-window.addEventListener('keyup', event => { keys.delete(event.code); if (event.code === 'Tab') selectWeaponWheel(); });
+window.addEventListener('keyup',event=>{
+  keys.delete(event.code);
+  if(event.code===WEAPON_WHEEL_KEY){
+    if(paused())closeWeaponWheel();
+    else selectWeaponWheel();
+  }
+});
 window.addEventListener('blur', () => { windowFocused=false;clearInput();closeWeaponWheel(); if (started && !cutscenes.snapshot().active && !dialogs.some(d => d.open)) openDialog('pause-dialog'); });
 window.addEventListener('focus',()=>{windowFocused=true;});
 document.addEventListener('visibilitychange', () => {
   clearInput();
   if (!document.hidden) return;
+  closeWeaponWheel();
   finishGraphicsTest(null, 'Keep this tab visible during the graphics test.');
   if (started && !cutscenes.snapshot().active) openDialog('pause-dialog');
 });
@@ -3221,10 +3244,17 @@ $('recon-phone-camera').addEventListener('click',()=>{closeDialogs();renderer.do
 $('fight-retry').addEventListener('click',()=>{const person=roomPeople.snapshot().find(p=>p.character==='booth-guest');if(person)openNpcDialogue(person);});
 $('touch-weapon').addEventListener('click',()=>{if(!paused())openWeaponWheel();});
 const weaponWheel=createWeaponWheel({weapons:WEAPONS,ownedFor:()=>WEAPONS.filter(w=>isSandbox()||progression.state.equipment[w.id]).map(w=>w.id),ammoFor:id=>gameplay.getAmmo(id),currentFor:()=>gameplay.state.weapon});
-const weaponWheelView=createWeaponWheelView({wheel:weaponWheel,onSelect:id=>{gameplay.setWeapon(id);streetUI.refresh();}});
-function openWeaponWheel(){if(paused()||!started||gameplay.state.mode!=='foot')return;weaponWheel.open();weaponWheelView.show();}
+function equipWheelChoice(id){
+  if(id){gameplay.setWeapon(id);streetUI.refresh();}
+  renderer.domElement.focus();
+}
+const weaponWheelView=createWeaponWheelView({wheel:weaponWheel,onSelect:equipWheelChoice});
+function openWeaponWheel(){
+  if(paused()||weaponWheel.isOpen()||droneActive||gameplay.state.recovery||gameplay.state.passenger||gameplay.state.mode!=='foot')return;
+  weaponWheel.open();weaponWheelView.show();
+}
 function closeWeaponWheel(){if(weaponWheel.isOpen())weaponWheel.close();weaponWheelView.hide();}
-function selectWeaponWheel(){if(!weaponWheel.isOpen())return;const id=weaponWheel.select();weaponWheelView.hide();if(id){gameplay.setWeapon(id);streetUI.refresh();}}
+function selectWeaponWheel(){if(!weaponWheel.isOpen())return;const id=weaponWheel.select();weaponWheelView.hide();equipWheelChoice(id);}
 for (const button of document.querySelectorAll('[data-action]')) bindTouchHold(button, actionTouch, button.dataset.action);
 function walkingInput() {
   if(droneActive||paused()||gameplay?.state.recovery||gameplay?.state.passenger||(streetChallenge()?.aircraft||streetChallenge()?.house)||(activities.active??activities.snapshot().active)||rentalHack.snapshot().active||(micromobility?.active??micromobility?.snapshot().active))return {};
@@ -3718,6 +3748,8 @@ function updateHud() {
   const p = focus(), nearby = simulation.nearestRoad(p.x, p.z);
   const gear=currentGear(),armour=$('armour-value');
   if(armour)armour.textContent=String(Math.floor(gear.armour??0));
+  const medkitCount=$('medkit-count'),supplies=String(gear.medkits??0);
+  if(medkitCount.textContent!==supplies)medkitCount.textContent=supplies;
   const heistNotice=$('heist-notice'),robbery=heists?.active?heists.snapshot():null;
   const skyline=skylineLease&&skylineJob.snapshot();
   const pressure=skyline&&skylinePressure.snapshot(),strike=pressure?.strike;

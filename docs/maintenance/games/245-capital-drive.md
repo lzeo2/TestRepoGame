@@ -294,11 +294,11 @@ short time. A separate $250 jammer temporarily disables nearby cameras. Both
 operate entirely within the game simulation.
 
 Canalside Supplies sells $350 body armour, $120 medkits, $160 repair kits, a
-sniper rifle and an RPG. Armour absorbs some combat damage. Phone → Gear
-uses a medkit or repairs a nearby stopped car. Weapons are now chosen from a
-radial weapon wheel instead of the number keys: hold Tab on keyboard or tap
-the touch EQUIP button, point or drag to a slot, then release Tab or tap the
-slot to equip. The wheel lists fists plus each owned weapon in catalogue
+sniper rifle and an RPG. Armour absorbs some combat damage. Use Medkit next
+to Health or press 8 to heal on foot. Phone → Gear still offers repair kits
+and jammers. Hold the left bracket key **[** or tap **EQUIP** to open the weapon
+wheel. Move the pointer or cycle with the arrow keys. Release **[** or tap a
+slot to equip. Escape or a tap on the background cancels. The wheel lists fists plus each owned weapon in catalogue
 order, capped at eight slots, opens highlighted on the current weapon, and
 dims entries whose magazine and reserve are both empty. Firing and melee are
 suppressed only while the wheel is open; movement and aim stay live, and any
@@ -680,10 +680,10 @@ ends or is skipped. Help is available before starting; it groups the full contro
 by task rather than placing every key on the start panel.
 
 Utilities (medkit, repair kit, jammer) have rebindable hotkeys, defaulting to
-**8**, **9** and **0** so they never collide with weapon digits or movement keys.
-Each dispatches the same `progression.useUtility` path as the Phone → Gear Use
-buttons (heal, vehicle repair write, camera jam, career save, street UI refresh)
-and respects the recovering/foot guards inside `useUtility`. The More popover
+**8**, **9** and **0**. The HUD medkit, the Gear panel's repair and jammer
+buttons, and all three shortcuts use `progression.useUtility` with the existing
+foot and recovery guards. Saved utility shortcuts that used **[** fall back
+to a free utility number when the weapon wheel takes that key. The More popover
 lists one rebind row per utility: click it, press any free key, Escape cancels;
 bindings persist in localStorage under `capital-drive-utility-keys-v1` via
 `utility-keys.js`, which rejects core control codes and codes held by another
