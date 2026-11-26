@@ -12,7 +12,7 @@ const CORE_CONTROL_CODES = new Set([
   'KeyP', 'KeyJ', 'KeyK', 'KeyE', 'KeyG', 'KeyH', 'Escape', 'Space', 'ShiftLeft',
   'ShiftRight', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'F1',
   WEAPON_WHEEL_KEY,
-  ...Array.from({ length: 7 }, (_, index) => 'Digit' + (index + 1)),
+  ...Array.from({ length: 6 }, (_, index) => 'Digit' + (index + 2)),
 ]);
 
 const CODE_PATTERN = /^(Key[A-Z]|Digit[0-9]|Numpad[0-9]|F([1-9]|1[0-2])|Comma|Period|Slash|Semicolon|Quote|Backquote|BracketLeft|BracketRight|Minus|Equal|Backslash)$/;

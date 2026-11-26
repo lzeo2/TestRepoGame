@@ -296,8 +296,8 @@ operate entirely within the game simulation.
 Canalside Supplies sells $350 body armour, $120 medkits, $160 repair kits, a
 sniper rifle and an RPG. Armour absorbs some combat damage. Use Medkit next
 to Health or press 8 to heal on foot. Phone → Gear still offers repair kits
-and jammers. Hold the left bracket key **[** or tap **EQUIP** to open the weapon
-wheel. Move the pointer or cycle with the arrow keys. Release **[** or tap a
+and jammers. Hold **1** above the letter keys or tap **EQUIP** to open the weapon
+wheel. Move the pointer or cycle with the arrow keys. Release **1** or tap a
 slot to equip. Escape or a tap on the background cancels. The wheel lists fists plus each owned weapon in catalogue
 order, capped at eight slots, opens highlighted on the current weapon, and
 dims entries whose magazine and reserve are both empty. Firing and melee are
@@ -682,7 +682,7 @@ by task rather than placing every key on the start panel.
 Utilities (medkit, repair kit, jammer) have rebindable hotkeys, defaulting to
 **8**, **9** and **0**. The HUD medkit, the Gear panel's repair and jammer
 buttons, and all three shortcuts use `progression.useUtility` with the existing
-foot and recovery guards. Saved utility shortcuts that used **[** fall back
+foot and recovery guards. Saved utility shortcuts that used **1** fall back
 to a free utility number when the weapon wheel takes that key. The More popover
 lists one rebind row per utility: click it, press any free key, Escape cancels;
 bindings persist in localStorage under `capital-drive-utility-keys-v1` via

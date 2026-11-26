@@ -48,10 +48,11 @@ assert.equal(keyLabelFor('KeyH'), 'H');
 assert.equal(rebindUtility('medkit', 'Escape').ok, false, 'escape is reserved for menus');
 
 // Migrate old custom use of the new wheel key while keeping other assignments.
-store.set('capital-drive-utility-keys-v1', JSON.stringify({ medkit: 'BracketLeft', 'repair-kit': 'Digit8', jammer: 'Slash' }));
+store.set('capital-drive-utility-keys-v1', JSON.stringify({ medkit: 'Digit1', 'repair-kit': 'Digit8', jammer: 'Slash' }));
 assert.deepEqual(loadUtilityKeys(), { medkit: 'Digit9', 'repair-kit': 'Digit8', jammer: 'Slash' });
-assert.equal(matchUtilityKey('BracketLeft'), null);
-assert.equal(rebindUtility('jammer', 'BracketLeft').ok, false);
+assert.equal(matchUtilityKey('Digit1'), null);
+assert.equal(rebindUtility('jammer', 'Digit1').ok, false);
+assert.equal(rebindUtility('jammer', 'BracketLeft').ok, true);
 store.delete('capital-drive-utility-keys-v1');
 
 // The three default keys dispatch through progression.useUtility with a real career context.
