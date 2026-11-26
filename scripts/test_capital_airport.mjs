@@ -46,6 +46,7 @@ assert(clearApproachEdges>100,'vehicle clearance covers new eastern approach, in
 const centre=terminal.points.reduce((a,p)=>({x:a.x+p[0]/terminal.points.length,z:a.z+p[1]/terminal.points.length}),{x:0,z:0});
 assert.equal(sim.canOccupy({...centre,yaw:0},{length:4.5,width:1.8}),false,'terminal remains a physical body');
 const scene=new THREE.Scene(),view=createAirportView(scene,map,sampler.heightAt);assert.equal(view.stats.residentChunks,0,'distant airport allocates no geometry');
+assert(view.stats.terminalSunshades>4&&view.stats.terminalSunshades<80,'sunshade runs follow the public terminal street facade');
 for(let i=0;i<30;i++)view.update(anchor);
 assert(view.stats.residentChunks>0&&view.stats.residentChunks<=28);assert.equal(view.stats.pendingChunks,0);
 assert(view.stats.drawCalls<=28&&view.stats.triangles>100&&view.stats.triangles<25000);

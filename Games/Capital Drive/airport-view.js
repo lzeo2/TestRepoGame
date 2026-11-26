@@ -43,15 +43,30 @@ export function createAirportView(scene,map,heightAt) {
     }
   }
   const terminal=(map.buildings||[]).find(b=>b.id===airport?.terminalBuildingId);
+  let terminalBase=null,terminalSunshades=0;
   if(terminal) {
     const points=terminal.points.slice(0,-1),height=terminal.height;
     if(points.reduce((sum,a,i)=>{const b=points[(i+1)%points.length];return sum+a[0]*b[1]-b[0]*a[1];},0)<0)points.reverse();
+    terminalBase=Math.max(...points.map(p=>heightAt(...p)));
+    // Limit architectural projections to the public terminal street elevation.
+    const frontage=(map.roads||[]).filter(r=>/^Terminal Avenue(?: Upper| Lower)?$/i.test(r.name||''))
+      .flatMap(r=>r.points.slice(1).map((b,i)=>[r.points[i],b]));
+    const nearStreet=(x,z)=>frontage.some(([a,b])=>{
+      const dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz||1)));
+      return (x-a[0]-dx*t)**2+(z-a[1]-dz*t)**2<35**2;
+    });
     add(points,0xb8beb9,height,'roof');
     for(let i=0;i<points.length;i++) {
       const a=points[i],b=points[(i+1)%points.length];add([a,b],0xb6c0bc,height,'wall');
       // Glazing bands follow the exact footprint; original cladding, no photos.
       add([a,b],0x344f59,11.5,'glass');
       const l=Math.hypot(b[0]-a[0],b[1]-a[1]);
+      if(l>=4&&nearStreet((a[0]+b[0])/2,(a[1]+b[1])/2)){
+        // Blue-grey brise-soleil and a silver-edged blade canopy on the street
+        // elevation, under the angular metal roof photographed by the architect.
+        for(const h of [height*.65,height*.73,height*.81])add([a,b],0x5e7582,h,'blade');
+        add([a,b],0xc2c9c7,height-.1,'eave');terminalSunshades++;
+      }
       if(l>12)for(let d=0;d<l;d+=9) {
         const t=Math.min(1,d/l),u=Math.min(1,(d+.24)/l);
         add([[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u]],0xcbd0c9,height,'mullion');
@@ -69,15 +84,21 @@ export function createAirportView(scene,map,heightAt) {
         quad([x-.1,y,z],[x+.1,y,z],[x+.1,y+height,z],[x-.1,y+height,z],tint);
         quad([x,y,z-.1],[x,y,z+.1],[x,y+height,z+.1],[x,y+height,z-.1],tint);
         quad([x-.11,y+.78,z-.015],[x+.11,y+.78,z-.015],[x+.11,y+.98,z-.015],[x-.11,y+.98,z-.015],0xd5b858);
+      } else if(kind==='blade'||kind==='eave'){
+        const [a,b]=points,dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz),depth=kind==='eave'?1.7:.72,thick=kind==='eave'?.24:.13;
+        const edge=(p,offset,h)=>[p[0]+dz/l*offset,terminalBase+height+h,p[1]-dx/l*offset];
+        quad(edge(a,.03,0),edge(b,.03,0),edge(b,depth,-.12),edge(a,depth,-.12),tint);
+        quad(edge(a,depth,-.12),edge(b,depth,-.12),edge(b,depth,-.12-thick),edge(a,depth,-.12-thick),0x4f6067);
+        quad(edge(a,.03,-thick),edge(b,.03,-thick),edge(b,depth,-.12-thick),edge(a,depth,-.12-thick),0x717e80);
       } else if(['wall','glass','mullion'].includes(kind)) {
-        const [a,b]=points,base=Math.max(heightAt(...a),heightAt(...b));
-        const low=base+(kind==='glass'?2.5:0),top=base+height;
+        const [a,b]=points,base=terminalBase;
+        const low=kind==='wall'?Math.min(heightAt(...a),heightAt(...b))-.12:base+(kind==='glass'?1.25:0),top=base+height;
         // Glazing is slightly outside the source wall to avoid coincident faces.
         const dx=b[0]-a[0],dz=b[1]-a[1],length=Math.hypot(dx,dz)||1,off=kind==='glass'?.035:kind==='mullion'?.06:0;
         const ax=a[0]+dz/length*off,az=a[1]-dx/length*off,bx=b[0]+dz/length*off,bz=b[1]-dx/length*off;
         quad([ax,low,az],[bx,low,bz],[bx,top,bz],[ax,top,az],tint);
       } else {
-        const ring=points.map(p=>new THREE.Vector2(...p)),flat=kind==='roof'?Math.max(...points.map(p=>heightAt(...p)))+height:null;
+        const ring=points.map(p=>new THREE.Vector2(...p)),flat=kind==='roof'?terminalBase+height:null;
         for(const face of THREE.ShapeUtils.triangulateShape(ring,[])) {
           const p=face.map(i=>[points[i][0],flat??heightAt(...points[i])+height,points[i][1]]);tri(p[2],p[1],p[0],tint);
         }
@@ -99,6 +120,6 @@ export function createAirportView(scene,map,heightAt) {
     for(const cell of queue.slice(0,2)){if(resident.size>=MAX_RESIDENT)break;build(cell);pending--;}
   }
   const stats=()=>Object.freeze({residentChunks:resident.size,maxResidentChunks:MAX_RESIDENT,sourceChunks:cells.size,pendingChunks:pending,createdChunks:created,evictedChunks:evicted,
-    drawCalls:[...resident.values()].filter(i=>i.mesh.visible).length,triangles:[...resident.values()].reduce((s,i)=>s+i.triangles,0),bufferBytes:[...resident.values()].reduce((s,i)=>s+i.bytes,0),terminalFootprints:terminal?1:0,sourceSurfaces:airport?.surfaces.length||0,decorativePosts:posts.length,maxDecorativePosts:96,disposed});
+    drawCalls:[...resident.values()].filter(i=>i.mesh.visible).length,triangles:[...resident.values()].reduce((s,i)=>s+i.triangles,0),bufferBytes:[...resident.values()].reduce((s,i)=>s+i.bytes,0),terminalSunshades,terminalFootprints:terminal?1:0,sourceSurfaces:airport?.surfaces.length||0,decorativePosts:posts.length,maxDecorativePosts:96,disposed});
   return {update,get stats(){return stats();},dispose(){if(disposed)return;disposed=true;for(const key of [...resident.keys()])remove(key);pending=0;material.dispose();scene.remove(root);}};
 }

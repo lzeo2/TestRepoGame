@@ -87,6 +87,7 @@ const view=createCivicExtrasView(scene,north,()=>550);
 assert.equal(view.stats.drawCalls,0);view.update(c);
 assert(view.stats.drawCalls<=5&&view.stats.triangles<=8000);
 assert(view.stats.triangles>500&&view.stats.visible>0);
+assert(view.stats.copingEdges>2,'rounded metal coping follows the raised skateable crests');
 view.update({x:10000,z:10000});assert.equal(view.stats.drawCalls,0);
 view.dispose();view.dispose();assert.equal(scene.children.length,0);assert(view.stats.disposed);
 

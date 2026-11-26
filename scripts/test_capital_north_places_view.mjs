@@ -10,6 +10,8 @@ const view=createNorthPlacesView(scene,{tower,waterpark,heightAt:(x,z)=>20+x*.00
 assert.equal(scene.children.length,2);
 const towerRoot=scene.children[0],parkRoot=scene.children[1];
 assert.equal(towerRoot.userData.height,195.2);
+assert.equal(view.stats().towerGlazedLevels,2);
+assert.equal(view.stats().towerOpenTerraces,3);
 assert.equal(towerRoot.position.y,20+500*.001);
 assert.equal(parkRoot.rotation.y,.7);
 towerRoot.updateMatrixWorld(true);

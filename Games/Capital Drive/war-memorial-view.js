@@ -73,6 +73,51 @@ export function buildWarMemorialGeometry(site, heightAt) {
       i % 4 === 0 ? DARK_COPPER : COPPER);
   }
 
+  // A patinated copper crown sits over the stepped, sandstone Hall of
+  // Memory. Narrow raised sheet seams catch light without a separate material.
+  for(let i=0;i<domeRing.length;i++){
+    const a=domeRing[i],b=domeRing[(i+1)%domeRing.length];
+    const p=[a[0]*.966+b[0]*.034,a[1]*.966+b[1]*.034];
+    for(let level=0;level<6;level++){
+      const raised=(point,l)=>{const q=domePoint(point,l);q[1]+=.035;return q;};
+      quad(detail,raised(a,level),raised(p,level),raised(p,level+1),raised(a,level+1),0xa9b8a7);
+    }
+  }
+  const towerRing=openRing(site.tower.points),courtCenter=court.reduce(([x,z],p)=>[x+p[0]/court.length,z+p[1]/court.length],[0,0]);
+  const edgeList=[];
+  for(let i=0;i<towerRing.length;i++){
+    const a=towerRing[i],b=towerRing[(i+1)%towerRing.length],length=Math.hypot(b[0]-a[0],b[1]-a[1]);
+    if(length<.01)continue;
+    const tx=(b[0]-a[0])/length,tz=(b[1]-a[1])/length;
+    const prev=edgeList.at(-1);
+    if(prev&&prev.tx*tx+prev.tz*tz>.998){prev.b=b;prev.length+=length;}
+    else edgeList.push({a,b,tx,tz,length});
+    const n=(x,z)=>{const r=Math.hypot(x-centre[0],z-centre[1]);return [(x-centre[0])/r,(z-centre[1])/r];};
+    const cornice=(p,y,d)=>{const [nx,nz]=n(...p);return [p[0]+nx*d,y,p[1]+nz*d];};
+    for(const h of [.9,.32])quad(detail,cornice(a,towerTop-h,.18),cornice(b,towerTop-h,.18),
+      cornice(b,towerTop-h+.13,.18),cornice(a,towerTop-h+.13,.18),PALE);
+  }
+  const dist=e=>((e.a[0]+e.b[0])/2-courtCenter[0])**2+((e.a[1]+e.b[1])/2-courtCenter[1])**2;
+  const facade=edgeList.filter(e=>e.length>10).sort((a,b)=>dist(a)-dist(b))[0];
+  let archedWindows=0;
+  if(facade){
+    const {a,b,tx,tz}=facade,mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2,sign=(mx-centre[0])*tz-(mz-centre[1])*tx<0?-1:1;
+    const wallPoint=(u,y,d)=>[mx+tx*u+tz*sign*d,y,mz+tz*u-tx*sign*d];
+    const radius=Math.min(2.55,facade.length*.19),spring=towerTop-4.65,foot=roofY+.5;
+    quad(detail,wallPoint(-radius,foot,.07),wallPoint(radius,foot,.07),wallPoint(radius,spring,.07),wallPoint(-radius,spring,.07),0x525d5f);
+    const arch=(angle,r,d)=>wallPoint(Math.cos(angle)*r,spring+Math.sin(angle)*r,d);
+    for(let i=0;i<12;i++){
+      const a=i*Math.PI/12,b=(i+1)*Math.PI/12;
+      tri(detail,wallPoint(0,spring,.07),arch(a,radius,.07),arch(b,radius,.07),0x525d5f);
+      quad(detail,arch(a,radius,.14),arch(b,radius,.14),arch(b,radius+.28,.14),arch(a,radius+.28,.14),i%3?PALE:STONE);
+    }
+    for(const u of [-radius*.52,0,radius*.52]){
+      const h=spring+Math.sqrt(radius**2-u**2);
+      quad(detail,wallPoint(u-.05,foot,.17),wallPoint(u+.05,foot,.17),wallPoint(u+.05,h,.17),wallPoint(u-.05,h,.17),0x948d7f);
+    }
+    archedWindows++;
+  }
+
   // Original ashlar courses, recessed window panels and narrow pilasters follow
   // each actual exterior wing edge. They do not describe observed entrances.
   const signedArea = outer.reduce((a, p, i) => {
@@ -162,7 +207,7 @@ export function buildWarMemorialGeometry(site, heightAt) {
     result.computeVertexNormals(); result.computeBoundingSphere(); return result;
   }
   const result = {body: geometry(body), detail: geometry(detail), baseY, roofY, domeTop,
-    panels, terraceBands, groundTriangles, triangles: (body.positions.length + detail.positions.length) / 9};
+    panels, terraceBands, archedWindows, domeSeams:domeRing.length, groundTriangles, triangles: (body.positions.length + detail.positions.length) / 9};
   if (result.triangles > 16000) {
     result.body.dispose(); result.detail.dispose(); throw new Error('War Memorial exterior triangle budget exceeded');
   }

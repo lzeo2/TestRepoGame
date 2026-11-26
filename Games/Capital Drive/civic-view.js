@@ -138,9 +138,19 @@ export function createCivicView(scene,map,heightAt,{roadHeightAt=(road,x,z)=>hei
       }
       const edgeA=side>0?q[0]:q[3],edgeB=side>0?q[1]:q[2];
       const edgeY0=deckHeight(segment.road,edgeA),edgeY1=deckHeight(segment.road,edgeB);
-      wall(bridges,edgeA,edgeB,edgeY0-.35,edgeY1-.35,edgeY0+.14,edgeY1+.14,0x98998f);
-      wall(bridges,q[0],q[1],ya,yb,ya+1.05,yb+1.05,0xb9b5a7);wall(bridges,q[3],q[2],ya,yb,ya+1.05,yb+1.05,0xb9b5a7);
-      quad(bridges,[q[0][0],ya+1.05,q[0][1]],[q[1][0],yb+1.05,q[1][1]],[q[2][0],yb+1.05,q[2][1]],[q[3][0],ya+1.05,q[3][1]],0xd7d0bb);
+      // Open steel balustrades preserve the lake view over each concrete edge.
+      // The upper rail remains inside the existing 1.05m collision envelope.
+      const commonwealth=segment.road.name==='Commonwealth Avenue',plinth=commonwealth?.30:.44;
+      wall(bridges,edgeA,edgeB,edgeY0-.35,edgeY1-.35,ya+plinth,yb+plinth,0xb6b5aa);
+      const rail=(t,h,offset=0)=>[edgeA[0]+(edgeB[0]-edgeA[0])*t+nx*offset,ya+(yb-ya)*t+h,edgeA[1]+(edgeB[1]-edgeA[1])*t+nz*offset];
+      for(const h of [commonwealth?.62:.70,1.05]){
+        quad(bridges,rail(0,h-.065,-.05),rail(1,h-.065,-.05),rail(1,h,.05),rail(0,h,.05),commonwealth?0x697475:0x868d88);
+      }
+      const stepLength=length/steps,posts=Math.max(1,Math.round(stepLength/6));
+      for(let p=0;p<posts;p++){
+        const t=(p+.5)/posts,half=.055/stepLength;
+        quad(bridges,rail(t-half,plinth),rail(t+half,plinth),rail(t+half,1.035),rail(t-half,1.035),0x6e7776);
+      }
       barriers.push(Object.freeze({id:`civic-parapet-${barriers.length}`,sourceId:segment.road.sourceId,roadContext:Object.freeze({id:segment.road.id}),kind:'bridge-parapet',height:1.05,points:Object.freeze(q.map(p=>Object.freeze(p)))}));
     }
   }

@@ -49,9 +49,20 @@ export function createCivicExtrasView(scene,map,heightAt) {
       const edge=rampEdges.get(key);if(edge)edge.count++;else rampEdges.set(key,{a,b,count:1});
     }
   }
+  let copingEdges=0;
   for(const {a,b,count} of rampEdges.values())if(count===1&&(a[1]>0||b[1]>0)) {
     const ga=ground(a[0],a[2])+.045,gb=ground(b[0],b[2])+.045;
     quad([a[0],ga,a[2]],[b[0],gb,b[2]],[b[0],gb+b[1],b[2]],[a[0],ga+a[1],a[2]],0x90958f);
+    const length=Math.hypot(b[0]-a[0],b[2]-a[2]);
+    if(length>.08&&Math.min(a[1],b[1])>.45&&Math.abs(a[1]-b[1])/length<.10){
+      // Metal coping follows the existing curved ramp and ledge crests. The
+      // axle-worn crown catches the light above its darker steel shoulders.
+      const nx=(a[2]-b[2])/length,nz=(b[0]-a[0])/length;
+      const p=(v,base,offset,h)=>[v[0]+nx*offset,base+v[1]+h,v[2]+nz*offset];
+      for(const [u,v,h,k,tint] of [[-.05,-.025,0,.033,0x777f82],[-.025,.025,.033,.033,0xcbd1cf],[.025,.05,.033,0,0x858c8b]])
+        quad(p(a,ga,u,h),p(b,gb,u,h),p(b,gb,v,k),p(a,ga,v,k),tint);
+      copingEdges++;
+    }
   }
   for(const rail of BARRIERS) {
     const dx=rail.b[0]-rail.a[0],dz=rail.b[1]-rail.a[1],length=Math.hypot(dx,dz),tx=dx/length,tz=dz/length,nx=-tz,nz=tx;
@@ -75,6 +86,6 @@ export function createCivicExtrasView(scene,map,heightAt) {
     if(dirty)geometry.attributes.position.needsUpdate=true;mesh.visible=visible>0;
   }
   update(null);
-  return {update,get stats(){return {sites:EXTRA_STORES.length,skateparks:1,visible,drawCalls:visible?1:0,triangles:positions.length/9,geometryCount:1,materialCount:1,textureCount:0,disposed};},
+  return {update,get stats(){return {sites:EXTRA_STORES.length,skateparks:1,copingEdges,visible,drawCalls:visible?1:0,triangles:positions.length/9,geometryCount:1,materialCount:1,textureCount:0,disposed};},
     dispose(){if(disposed)return;disposed=true;visible=0;scene.remove(root);geometry.dispose();material.dispose();}};
 }
