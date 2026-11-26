@@ -97,9 +97,24 @@ export function createCivicView(scene,map,heightAt,{roadHeightAt=(road,x,z)=>hei
       sign(points[0],points[1],base+3.65,3,12);
       // Original double entrance panels coincide with the exported clear Bunda-side approach.
       const a=approachEdge[0],b=approachEdge[1],mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2,tx=(b[0]-a[0])/approachLength,tz=(b[1]-a[1])/approachLength;
+      const doorPoint=(along,out)=>[mx+tx*along+tz*out,mz+tz*along-tx*out];
       for(const side of [-1,1]) {
-        const u=[mx+tx*(side*.65-.59)+tz*.09,mz+tz*(side*.65-.59)-tx*.09],v=[mx+tx*(side*.65+.59)+tz*.09,mz+tz*(side*.65+.59)-tx*.09];
-        wall(glass,u,v,base+.08,base+.08,base+2.6,base+2.6,0x8ca8a4);
+        const left=doorPoint(side*.65-.59,.09),right=doorPoint(side*.65+.59,.09);
+        wall(glass,left,right,base+.08,base+.08,base+2.6,base+2.6,0x8ca8a4);
+        const u=doorPoint(side*.65-.59,.102),v=doorPoint(side*.65+.59,.102);
+        wall(body,u,v,base+.82,base+.82,base+.86,base+.86,0xb9cbc7);
+        wall(body,u,v,base+.08,base+.08,base+.19,base+.19,0x788581);
+        const frame=side*1.26;
+        wall(body,doorPoint(frame-.035,.105),doorPoint(frame+.035,.105),base+.06,base+.06,base+2.68,base+2.68,0x536160);
+      }
+      // The public Bunda elevation pairs a dark shelter lip with the warm grey
+      // shopfront fascia. Recessed lighting and light panes follow that edge.
+      const half=Math.min(approachLength*.46,8.2);
+      wall(body,doorPoint(-half,1.415),doorPoint(half,1.415),base+2.77,base+2.77,base+2.91,base+2.91,0x62706f);
+      wall(body,doorPoint(-half,.11),doorPoint(half,.11),base+2.65,base+2.65,base+2.72,base+2.72,0x938f82);
+      for(let d=-half+.9;d<half-.6;d+=2.9){
+        const a=doorPoint(d,.67),b=doorPoint(Math.min(half,d+.65),.67),c=doorPoint(Math.min(half,d+.65),.76),e=doorPoint(d,.76);
+        quad(body,[a[0],base+2.885,a[1]],[b[0],base+2.885,b[1]],[c[0],base+2.885,c[1]],[e[0],base+2.885,e[1]],0xe7d5ac);
       }
     }
   }

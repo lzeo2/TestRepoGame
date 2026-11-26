@@ -109,10 +109,19 @@ export function createShoppingView(scene,map,heightAt) {
       panel(glass,base+4.8,base+7.65,.035,0x69868a);
       panel(solid,base+3.45,base+4.65,.055,0xe1d4b8);
       panel(solid,top-.6,top,.055,0xe1d4b8);
+      // The strata of the Terrace wrap around the retained curved corner:
+      // pale coping, recessed shadow reveals and separate upper window lights.
+      panel(solid,base+4.55,base+4.66,.065,0xb6ac99);
+      panel(solid,top-.15,top-.10,.072,0xf1e4ce);
+      panel(glass,base+6.95,base+7.61,.048,0x8daba9);
+      panel(solid,base+6.9,base+6.96,.07,0x536362);
+      panel(solid,base+.36,base+.53,.06,0x9b9485);
       // Broad dark canopy follows the ACT edge continuously, including the curved corner.
       const canopy=[a,b].map(p=>[p[0]+nx*1.55,base+3.18,p[1]+nz*1.55]);
       quad(solid,[a[0],base+3.18,a[1]],canopy[0],canopy[1],[b[0],base+3.18,b[1]],0x343d3e);
       panel(solid,base+3.02,base+3.18,1.55,0x343d3e);
+      panel(solid,base+3.145,base+3.18,1.56,0x96988e);
+      panel(solid,base+2.99,base+3.025,1.54,0x77796d);
       const n=Math.ceil(length/.5);
       for(let j=0;j<n;j++) {
         const at=t=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
