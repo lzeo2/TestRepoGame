@@ -59,8 +59,18 @@
   window.pokiBridge = null;
   window.initPokiBridge = function (name) {
     window.pokiBridge = name;
-    window.commercialBreak = function () { return Promise.resolve(false); };
-    window.rewardedBreak = function () { return Promise.resolve(false); };
+    // Unity ignores the JavaScript promise; release its pending game action
+    // through the response messages used by this export's original bridge.
+    window.commercialBreak = function () {
+      return window.PokiSDK.commercialBreak().then(function () {
+        window.unityGame.SendMessage(name, "commercialBreakCompleted");
+      });
+    };
+    window.rewardedBreak = function () {
+      return window.PokiSDK.rewardedBreak().then(function (watched) {
+        window.unityGame.SendMessage(name, "rewardedBreakCompleted", String(watched));
+      });
+    };
     if (window.pokiReady) {
       try { window.unityGame.SendMessage(name, "ready"); } catch (e) {}
     }

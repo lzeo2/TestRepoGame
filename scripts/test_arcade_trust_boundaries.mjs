@@ -111,3 +111,32 @@ assert.ok(lookup);
 const cached = vm.runInNewContext(lookup + '\ngetTranslations()', {languageJSON:languageData});
 assert.equal(await cached,languageData);
 console.log('PASS the registered OvO edition retains its bundled languages and uses the engine’s no-analytics path.');
+
+const burrito = 'Games/BurritoBison/';
+const shim = vm.runInNewContext(read(burrito+'js/unity-mod.js') + '\nopenUnityRequest', {
+  URL, document:{baseURI:'https://offline.example/arcade/Games/BurritoBison/'}
+});
+const opens = [];
+const request = {open(...args){opens.push(args);}};
+shim(request,'POST','https://api.cloudmoolah.com/data');
+shim(request,'POST','//sample.api.swrve.com/1/batch');
+shim(request,'GET','Build/Web.json');
+shim(request,'POST','save?name=cloudmoolah.com');
+assert.deepEqual(opens,[['GET','json/null.json',true],['GET','json/null.json',true],
+  ['GET','Build/Web.json',true],['POST','save?name=cloudmoolah.com',true]]);
+assert.match(read(burrito+'Build/Web.asm.framework.unityweb.js'),/openUnityRequest\(http,_method,_url\)/);
+assert.doesNotThrow(()=>JSON.parse(read(burrito+'json/null.json')));
+console.log('PASS Burrito Bison reads its static offline reply with GET and preserves local request methods.');
+
+for (const game of ['SubwaySurfers','SubwaySurfersHacked']) {
+  const messages = [];
+  const window = {unityGame:{SendMessage(...message) {messages.push(message);}}};
+  vm.runInNewContext(read('Games/'+game+'/js/poki-noop.js'),{window});
+  window.initPokiBridge('Runner');
+  await Promise.resolve();
+  await window.commercialBreak();
+  await window.rewardedBreak();
+  assert.deepEqual(messages,[['Runner','ready'],['Runner','commercialBreakCompleted'],
+    ['Runner','rewardedBreakCompleted','false']]);
+}
+console.log('PASS both Subway Surfers bridges release gameplay after a commercial break and grant no offline ad reward.');
