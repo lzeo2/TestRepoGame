@@ -3,6 +3,45 @@ const SUFFIXES = { st: 'street', rd: 'road', ave: 'avenue', av: 'avenue', cres: 
   cr: 'crescent', cct: 'circuit', cir: 'circuit', dr: 'drive', pl: 'place', ct: 'court',
   tce: 'terrace', pde: 'parade', ln: 'lane', hwy: 'highway', cl: 'close', sq: 'square',
   gr: 'grove', gdns: 'gardens', pkwy: 'parkway' };
+// These public venues have retained building outlines but no separate map pin.
+const VENUE_FOOTPRINTS = new Set([
+  'osm-4970449', 'osm-5035476', 'osm-5954392', 'osm-210305032',
+  'osm-30160608', 'osm-217376654', 'osm-663660535',
+]);
+
+function footprintLocation(building) {
+  const outer = building.points;
+  if (!Array.isArray(outer) || outer.length < 3) return null;
+  const rings = [outer, ...(building.innerRings || []).map(hole => hole.points || hole)];
+  let minZ = Infinity, maxZ = -Infinity;
+  for (const [, z] of outer) {
+    minZ = Math.min(minZ, z);
+    maxZ = Math.max(maxZ, z);
+  }
+  const z = (minZ + maxZ) / 2;
+  const crossings = [];
+  for (const ring of rings) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const a = ring[j], b = ring[i];
+      if ((a[1] > z) !== (b[1] > z)) {
+        crossings.push(a[0] + (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]));
+      }
+    }
+  }
+  // Even-odd spans keep the result inside a wing of a concave building and
+  // out of any courtyard. A vertex average can place a pin on the pavement.
+  crossings.sort((a, b) => a - b);
+  let widest = 0, point = null;
+  for (let i = 1; i < crossings.length; i += 2) {
+    const span = crossings[i] - crossings[i - 1];
+    if (span > widest) {
+      widest = span;
+      point = { x: crossings[i - 1] + span / 2, z };
+    }
+  }
+  return point;
+}
+
 function normalize(value) {
   return String(value || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
     .replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/).map(word => SUFFIXES[word] || word).join(' ');
@@ -42,6 +81,12 @@ export function createAddressSearch(map, addresses = []) {
   for (const landmark of [...(map.landmarks || []),...(map.searchPlaces || [])]) {
     add({ id: `landmark:${landmark.id}`, label: landmark.name, x: landmark.x, z: landmark.z,
       kind: landmark.store?'store':'landmark', detail: landmark.description || 'Mapped landmark' }, [landmark.name,...(landmark.aliases||[])].join(' '), landmark.name);
+  }
+  for (const building of map.buildings || []) {
+    if (!VENUE_FOOTPRINTS.has(building.id) || !building.name) continue;
+    const point = footprintLocation(building);
+    if (point) add({ id: `building:${building.id}`, label: building.name, ...point,
+      kind: 'landmark', detail: 'Mapped building footprint' }, building.name, building.name);
   }
   function search(query, limit = 10) {
     const q = normalize(query);

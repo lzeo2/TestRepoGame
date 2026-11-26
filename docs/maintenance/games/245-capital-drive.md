@@ -657,6 +657,7 @@ deform and terminal interiors/airline services are absent. Two original stealabl
 - `districts.js`: exact source Manuka retail polygon, shared appearance classifier.
 - `pedestrians.js`:36 suburban /64 nearby Civic instanced fictional adults, safe sidewalk walking,
   panic/anger/knockdown/recovery swept player contacts/yielding and causally attributed witness events.
+- [Seven named public buildings](../../capital-drive-landmark-coverage.md) resolve to map positions inside their source outlines. These search entries reuse the local index and add no minimap pins.
 - `navigation.js`, `map-projection.js`, `address-search.js`: directed road routes,
   shared map transform and bounded offline landmark/street/address matching.
 - `game-data.js`, `cache-client.js`, `service-worker.js`: local map loading,
