@@ -27,6 +27,7 @@ import {createSecurityCameras,shopCameraLocation,streetCameraLocations} from './
 import {createSecurityCamerasView,drawCameraMarks} from './security-cameras-view.js';
 import {createCityUI} from './city-ui.js';
 import {createBurglary} from './burglary.js';
+import {UTILITY_KINDS,loadUtilityKeys,rebindUtility,utilityKeyFor,matchUtilityKey,keyLabelFor} from './utility-keys.js';
 import {createHouseController} from './house-controller.js';
 import {createDeliveryService,deliverySources} from './delivery-service.js';
 import {createDeliveryView} from './delivery-view.js';
@@ -217,6 +218,16 @@ function utilityContext(){
   return {...context,preview:!!developerReturn,vehiclePose:simulation.player,jammerPoint,jammerTargets:securityCameras?.jammerTargets(jammerPoint)||0};
 }
 function currentGear(){return gearForMode(progression.state.gear,isSandbox());}
+function useUtilityDirect(kind){
+  const context=utilityContext();const result=progression.useUtility(kind,context);
+  if(result.ok){
+    if(result.heal)gameplay.heal(result.heal);
+    if(Number.isFinite(result.vehicleHealth))gameplay.state.vehicleHealth=result.vehicleHealth;
+    if(result.kind==='jammer')securityCameras.jamNearby(context.jammerPoint);
+    streetUI?.refresh();saveCareer();
+  }
+  notify(result.message);cityUI?.render();
+}
 function crewAtPlayer(){
   if(!campaignScenes || !gameplay)return false;
   const pose=focus(),room=interiors.active?.id ?? null;
@@ -2994,6 +3005,20 @@ function combatFeedback(event){
 }
 $('sound-button').addEventListener('click', toggleSound);
 $('pause-sound-button').addEventListener('click', toggleSound);
+
+// Rebindable utility hotkeys (medkit, repair kit, jammer) persist via localStorage.
+loadUtilityKeys();
+let rebindKind=null;
+function refreshUtilityKeyLabels(){
+  for(const kind of UTILITY_KINDS){
+    const label=$('utility-key-'+kind+'-label');
+    if(label)label.textContent=rebindKind===kind?'press a key':keyLabelFor(utilityKeyFor(kind));
+  }
+}
+for(const kind of UTILITY_KINDS){
+  $('utility-key-'+kind)?.addEventListener('click',()=>{rebindKind=kind;refreshUtilityKeyLabels();});
+}
+refreshUtilityKeyLabels();
 function horn(level=.07,duration=.3) {
   if (!audio?.enabled) return;
   const now=audio.context.currentTime;
@@ -3032,6 +3057,11 @@ window.addEventListener('keydown', event => {
     return;
   }
   if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if(rebindKind){
+    event.preventDefault();
+    if(event.code!=='Escape')notify(rebindUtility(rebindKind,event.code).message);
+    rebindKind=null;refreshUtilityKeyLabels();return;
+  }
   if(event.code==='F1'){event.preventDefault();if(!event.repeat)openHelp();return;}
   if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(event.target.tagName) && event.code !== 'Escape') return;
   const controls = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyX', 'KeyZ', 'KeyI', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight'];
@@ -3066,6 +3096,8 @@ window.addEventListener('keydown', event => {
     if (event.code === 'KeyE' && !paused()) { event.preventDefault(); interact(); return; }
     if (event.code === 'Digit1' && !paused()) gameplay.setWeapon('unarmed');
     if(!paused()){const weapon=WEAPONS.find(w=>event.code==='Digit'+w.key);if(weapon)gameplay.setWeapon(weapon.id);}
+    const utilityKind=matchUtilityKey(event.code);
+    if(utilityKind&&!paused()){event.preventDefault();useUtilityDirect(utilityKind);return;}
     if (event.code === 'KeyR' && !paused()) { gameplay.state.mode === 'foot' ? gameplay.reload() : recover(); return; }
     if (event.code === 'KeyH' && !paused()) horn();
   }

@@ -669,6 +669,16 @@ and missions. Attacks are disabled during guided controls and return when it
 ends or is skipped. Help is available before starting; it groups the full controls
 by task rather than placing every key on the start panel.
 
+Utilities (medkit, repair kit, jammer) have rebindable hotkeys, defaulting to
+**8**, **9** and **0** so they never collide with weapon digits or movement keys.
+Each dispatches the same `progression.useUtility` path as the Phone → Gear Use
+buttons (heal, vehicle repair write, camera jam, career save, street UI refresh)
+and respects the recovering/foot guards inside `useUtility`. The More popover
+lists one rebind row per utility: click it, press any free key, Escape cancels;
+bindings persist in localStorage under `capital-drive-utility-keys-v1` via
+`utility-keys.js`, which rejects core control codes and codes held by another
+utility.
+
 Choose Campaign, Street Life or Free roam. Campaign initially places Kit Vale
 (18, Telopea student), Rowan Pike (29, Civic analyst) or Milo Finch (26, basement
 regular) at a checked character-specific approach; changing character mid-session
