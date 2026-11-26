@@ -92,7 +92,7 @@ def main():
             try:
                 page.goto(f"http://127.0.0.1:{PORT}/{g['url']}", timeout=15000, wait_until="domcontentloaded")
                 page.wait_for_timeout(args.wait_ms)
-                for sel in ("#playBtn", ".play-btn", ".game-card__play", "button:has-text('Play')", "button:has-text('Start')"):
+                for sel in ("#playBtn", ".play-btn", ".game-card__play", "button:text-is('Play')", "button:text-is('Start')"):
                     try:
                         if page.locator(sel).first.is_visible(timeout=1200):
                             page.locator(sel).first.click(timeout=2000)

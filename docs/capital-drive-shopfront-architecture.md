@@ -56,3 +56,24 @@ node scripts/test_capital_civic.mjs
 ```
 
 The tests check every named facade against its assigned width, terrain and approach direction. They compare the submitted draw indices with the expected visible sites and verify that geometry buffers stay static across districts. Precinct tests check the source buildings, clear paths, triangle budgets, existing bridge clearances and disposal.
+
+## Franklin Street paving and setup cost
+
+Franklin Street now has **137 paved threshold sections** between the mapped
+shopfronts and their estimated public approaches. Each section follows the
+terrain and is checked against source road widths and building polygons.
+The five precincts retain 1,607 mapped path sections and 509 other apron
+sections. Together they use two draws and 6,440 triangles.
+
+The precinct renderer previously built a temporary clearance index across all
+42,406 buildings and 27,417 roads in the composed map. It now clips the index
+to its sampled area, including long shapes that enter from outside. Only 81
+road cells and 91 building cells are populated. In three sequential Node runs
+per version on the shared cloud host, median setup for this renderer fell from
+4,207 ms to 1,245 ms. The median heap change during setup fell from 132.4 MB
+to 29.4 MB. These are module construction timings. Full startup and frame rate
+depend on other game systems, browser caching and the device.
+
+```sh
+node --expose-gc scripts/profile_capital_shopping.mjs
+```

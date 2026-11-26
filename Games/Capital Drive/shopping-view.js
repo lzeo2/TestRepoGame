@@ -32,23 +32,44 @@ function distance(x,z,a,b) {
 export function createShoppingView(scene,map,heightAt) {
   const root=new THREE.Group();root.name='Source shopping precinct exteriors';
   const solid={positions:[],colors:[]},glass={positions:[],colors:[]};
-  const buildings=map.buildings||[],roads=(map.roads||[]).flatMap(r=>r.points.slice(1).map((b,i)=>({a:r.points[i],b,width:r.width||7.5})));
-  const buildingCells=new Map(),roadCells=new Map(),cell=32;
-  function index(items,target,points,margin) {
-    for(const item of items) {
-      const p=points(item),m=margin(item);
-      for(let x=Math.floor((Math.min(...p.map(v=>v[0]))-m)/cell);x<=Math.floor((Math.max(...p.map(v=>v[0]))+m)/cell);x++)
-        for(let z=Math.floor((Math.min(...p.map(v=>v[1]))-m)/cell);z<=Math.floor((Math.max(...p.map(v=>v[1]))+m)/cell);z++) {
-          const key=`${x},${z}`;if(!target.has(key))target.set(key,[]);target.get(key).push(item);
-        }
+  const buildings=map.buildings||[],buildingCells=new Map(),roadCells=new Map(),cell=32;
+  const franklinStores=MAPPED_STORES.filter(store=>store.road==='Franklin Street'&&store.district==='Manuka');
+  const relevantIds=new Set([...SHOPPING_BUILDING_IDS,...franklinStores.map(store=>store.buildingId)]);
+  const available=new Set();
+  for(const building of buildings)if(relevantIds.has(building.id))available.add(building.id);
+  const managed=SHOPPING_PRECINCTS.flatMap(p=>p.buildings).filter(b=>SHOPPING_BUILDING_IDS.includes(b.id)&&available.has(b.id));
+  const workPoints=[...paths.flatMap(path=>path.points),...managed.flatMap(building=>building.points),
+    ...franklinStores.map(store=>[store.frontage.x,store.frontage.z])];
+  // All ground sampling for these five precincts stays within this rectangle.
+  // Clip each candidate's full extent so long crossing roads still participate.
+  const margin=12,workMinX=Math.min(...workPoints.map(p=>p[0]))-margin,workMaxX=Math.max(...workPoints.map(p=>p[0]))+margin;
+  const workMinZ=Math.min(...workPoints.map(p=>p[1]))-margin,workMaxZ=Math.max(...workPoints.map(p=>p[1]))+margin;
+  function index(target,item,x0,z0,x1,z1) {
+    for(let x=Math.floor(Math.max(x0,workMinX)/cell);x<=Math.floor(Math.min(x1,workMaxX)/cell);x++)
+      for(let z=Math.floor(Math.max(z0,workMinZ)/cell);z<=Math.floor(Math.min(z1,workMaxZ)/cell);z++){
+        const key=x+','+z;
+        if(!target.has(key))target.set(key,[]);
+        target.get(key).push(item);
+      }
+  }
+  for(const building of buildings){
+    let x0=Infinity,z0=Infinity,x1=-Infinity,z1=-Infinity;
+    for(const [x,z] of building.points){x0=Math.min(x0,x);z0=Math.min(z0,z);x1=Math.max(x1,x);z1=Math.max(z1,z);}
+    if(x1+1<workMinX||x0-1>workMaxX||z1+1<workMinZ||z0-1>workMaxZ)continue;
+    index(buildingCells,building,x0-1,z0-1,x1+1,z1+1);
+  }
+  for(const road of map.roads||[]){
+    const width=road.width||7.5,pad=width/2+1;
+    for(let i=1;i<road.points.length;i++){
+      const a=road.points[i-1],b=road.points[i],x0=Math.min(a[0],b[0])-pad,x1=Math.max(a[0],b[0])+pad;
+      const z0=Math.min(a[1],b[1])-pad,z1=Math.max(a[1],b[1])+pad;
+      if(x1<workMinX||x0>workMaxX||z1<workMinZ||z0>workMaxZ)continue;
+      index(roadCells,{a,b,width},x0,z0,x1,z1);
     }
   }
-  index(buildings,buildingCells,b=>b.points,()=>1);
-  index(roads,roadCells,r=>[r.a,r.b],r=>r.width/2+1);
-  const nearby=(target,x,z)=>target.get(`${Math.floor(x/cell)},${Math.floor(z/cell)}`)||[];
-  const available=new Set(buildings.map(b=>b.id));
-  const managed=SHOPPING_PRECINCTS.flatMap(p=>p.buildings).filter(b=>SHOPPING_BUILDING_IDS.includes(b.id)&&available.has(b.id));
-  const counters={buildings:managed.length,precincts:SHOPPING_PRECINCTS.length,paths:0,pathSections:0,apronSections:0,furniture:0};
+  const nearby=(target,x,z)=>target.get(Math.floor(x/cell)+','+Math.floor(z/cell))||[];
+  const counters={buildings:managed.length,precincts:SHOPPING_PRECINCTS.length,paths:0,pathSections:0,
+    apronSections:0,thresholdSections:0,furniture:0,roadCells:roadCells.size,buildingCells:buildingCells.size};
   const color=new THREE.Color();
   const y=(x,z)=>{const h=heightAt(x,z);if(!Number.isFinite(h))throw new Error('Shopping exteriors require finite terrain');return h;};
   function triangle(batch,a,b,c,tint) {
@@ -60,7 +81,7 @@ export function createShoppingView(scene,map,heightAt) {
     return !nearby(buildingCells,x,z).some(b=>inside(x,z,b.points)||b.points.some((a,i)=>distance(x,z,a,b.points[(i+1)%b.points.length])<margin))
       &&!nearby(roadCells,x,z).some(r=>distance(x,z,r.a,r.b)<r.width/2+.25);
   }
-  function paved(q,tint) {
+  function paved(q,tint,lift=.14) {
     // Half-metre subdivisions and perimeter samples prevent bridges through bodies/roads.
     const probes=[...q,[(q[0][0]+q[2][0])/2,(q[0][1]+q[2][1])/2],...q.map((a,i)=>[(a[0]+q[(i+1)%4][0])/2,(a[1]+q[(i+1)%4][1])/2])];
     if(!probes.every(p=>clear(...p)))return false;
@@ -71,8 +92,22 @@ export function createShoppingView(scene,map,heightAt) {
       if(building.points.some(p=>inside(...p,q)))return false;
       if(q.some((a,i)=>building.points.some((b,j)=>intersects(a,q[(i+1)%4],b,building.points[(j+1)%building.points.length]))))return false;
     }
-    const p=q.map(v=>[v[0],y(...v)+.14,v[1]]);
+    const p=q.map(v=>[v[0],y(...v)+lift,v[1]]);
     quad(solid,p[0],p[3],p[2],p[1],tint);return true;
+  }
+  // The street-front strip joins Franklin Street's footpath to the entry.
+  // Draw underneath the separately mapped footpaths and leave the carriageway clear.
+  for(const store of franklinStores){
+    if(!available.has(store.buildingId))continue;
+    const f=store.frontage,sin=Math.sin(f.yaw),cos=Math.cos(f.yaw);
+    const point=(u,d)=>[f.x+cos*u-sin*d,f.z-sin*u-cos*d];
+    const depth=Math.min(6,Math.hypot(store.publicApproach.x-f.x,store.publicApproach.z-f.z));
+    const lanes=Math.ceil(f.width/1.75),rows=Math.ceil(depth);
+    for(let col=0;col<lanes;col++)for(let row=0;row<rows;row++){
+      const a=(col/lanes-.5)*f.width,b=((col+1)/lanes-.5)*f.width;
+      const d0=.16+(depth-.16)*row/rows,d1=.16+(depth-.16)*(row+1)/rows;
+      if(paved([point(a,d0),point(b,d0),point(b,d1),point(a,d1)],0xbbab95,.055))counters.thresholdSections++;
+    }
   }
   for(const path of paths) {
     let drawn=false;
