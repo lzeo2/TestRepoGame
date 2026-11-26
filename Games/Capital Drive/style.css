@@ -397,3 +397,10 @@ h3{font-size:15px;line-height:1.35;}
 @media (max-width:520px) {
   #city-dialog .city-skill button, #city-dialog .city-home-upgrades button { width:100%; margin-inline:0; white-space:normal; }
 }
+
+
+#campaign-radio{position:absolute;z-index:5;left:50%;bottom:calc(var(--footer-height) + 108px);transform:translateX(-50%);box-sizing:border-box;width:max-content;max-width:min(34rem,calc(100% - 2rem));margin:0;padding:.48rem .8rem;border-radius:.3rem;background:#101712ed;color:#fff;font-size:1rem;line-height:1.38;text-align:center;pointer-events:none}
+#campaign-radio strong{color:#ffd577}
+#meeting-routes [aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:-2px}
+@media(max-width:790px){#campaign-radio{bottom:calc(var(--footer-height) + 150px);font-size:.87rem;max-width:min(30rem,calc(100% - 1rem))}}
+@media(max-height:510px){#campaign-radio{bottom:calc(var(--footer-height) + 52px);max-width:56vw;font-size:.81rem}}

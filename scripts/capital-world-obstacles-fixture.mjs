@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import * as THREE from '../assets/car-arcade/vendor/three.module.js';
 import {createCivicView} from '../Games/Capital Drive/civic-view.js';
 import {createNoodleShopView} from '../Games/Capital Drive/noodle-shop-view.js';
+import {PARK_AMENITIES} from '../Games/Capital Drive/park-amenities.js';
+import {createParkAmenitiesView} from '../Games/Capital Drive/park-amenities-view.js';
 import {createCampusView} from '../Games/Capital Drive/campus-view.js';
 import {createLocalDetailsView} from '../Games/Capital Drive/local-details-view.js';
 import {createNeighbourhoodDetails} from '../Games/Capital Drive/neighbourhood.js';
@@ -34,6 +36,8 @@ export function addCapitalWorldObstacles(map,terrain){
     const noodle=createNoodleShopView(scene,terrain.heightAt);views.push(noodle);
     const campus=createCampusView(scene,map,terrain.heightAt);views.push(campus);
     const local=createLocalDetailsView(scene,map,terrain.heightAt);views.push(local);
+    const amenities=createParkAmenitiesView(scene,{entries:PARK_AMENITIES,heightAt:terrain.heightAt});views.push(amenities);
+    add('parkAmenities',amenities.obstacles);
     add('campus',campus.obstacles||[]);add('localDetails',local.obstacles||[]);
     add('civic',civic.barriers||[]);add('noodleFurniture',noodle.obstacles||[]);
     const neighbourhood=createNeighbourhoodDetails(scene,map,terrain.heightAt,{lowGraphics:true,streaming:true});views.push(neighbourhood);

@@ -54,3 +54,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Rights and all-four playability first. Next expose honest per-child load/audio feedback. Month work should record child-specific save/input regressions and shared-runtime upgrade compatibility. No registration split, remote loader restoration or replacement game is authorized.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

@@ -24,6 +24,8 @@ The source repo reports a CPU-only elevated rear three-quarter camera projection
 Maintain independent offline asset closure, collision-aligned visible obstacles, keyboard/touch parity and same-origin roster. Keep real likeness and reference files private; publication of this fictional prototype does not grant permission for model uploads. No change to sibling games or proxy.
 
 ## Verification
+
+The entry description now includes dodging, jumping, sliding and the 2D fallback. The fleet runner records the lane change from a native Right Arrow press. [November 2026 fleet results](../../verification/arcade-fleet-playtest-2026-11-26.md)
 Before packaging, original `node tests/run.js` reached eleven runner engine passes and the runner projection check, then timed out later in the broader launcher-heavy suite at 100 seconds; it was not a full-suite PASS. The release entry and all referenced files were statically checked and touched scripts passed `node --check`. Full-fleet smoke was not run before this owner-directed production test; retain that release-risk exception and test the hosted game separately.
 
 ## Future outlook

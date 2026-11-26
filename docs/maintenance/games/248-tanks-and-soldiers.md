@@ -75,6 +75,8 @@ reviewed commits with regenerated inventory.
 
 ## Verification
 
+The entry now has the catalog description. A live Chromium session entered play and used F to fire, decreasing the ammunition count. [November 2026 fleet results](../../verification/arcade-fleet-playtest-2026-11-26.md)
+
 - `node --check` passes on all copied `src/*.js`; all HTML references
   resolve locally; catalog validated (unique id 248, schema complete, URL
   resolves to tracked files).

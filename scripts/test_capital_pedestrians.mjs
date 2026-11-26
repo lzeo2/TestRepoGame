@@ -462,3 +462,49 @@ for (const a of alerted) for (const b of alerted) {
 }
 panic.dispose();
 console.log('PASS panic spread: ' + alerted.length + ' alerted adults, delay shrinks with proximity, ' + positives.length + '/' + (positives.length + negatives.length) + ' scatter samples move away from the danger');
+
+// Use the rendered population's path count. Both sidewalks span the whole
+// short road, so a missing or extra path identifies an actual clearance change.
+function checkSidewalks(roadZ, footprint, isWater, expectedSides, message) {
+  const road = { id: 'probe', name: 'Probe Street', type: 'residential', width: 8,
+    points: [[-12, roadZ], [12, roadZ]] };
+  const map = { bounds, roads: [road], spawn: { x: 0, z: roadZ, yaw: 0 },
+    buildings: isWater ? [] : [{ points: footprint }],
+    areas: isWater ? [{ type: 'water', points: footprint }] : [] };
+  const people = createPedestrians(new THREE.Scene(), map, () => 0);
+  const occupiedSides = new Set(people.snapshot().map(person => Math.sign(person.z - roadZ)));
+  assert.equal(people.stats.paths, expectedSides.length, message);
+  assert.deepEqual([...occupiedSides].sort(), expectedSides, message);
+  people.dispose();
+}
+
+function subdivideRing(corners) {
+  const points = [];
+  for (let i = 0; i < corners.length; i++) {
+    const start = corners[i], end = corners[(i + 1) % corners.length];
+    for (let j = 0; j < 16; j++) {
+      points.push([start[0] + (end[0] - start[0]) * j / 16, start[1] + (end[1] - start[1]) * j / 16]);
+    }
+  }
+  return points;
+}
+
+for (const sign of [-1, 1]) {
+  // The only close sample is the 0.45 m outer edge of the sidewalk. It
+  // lies on the opposite side of a 32 m row boundary from the shoreline.
+  const shore = sign * 31.9;
+  const lake = subdivideRing([[-48, 0], [48, 0], [48, shore], [-48, shore]]);
+  const outerOffset = 4 + 1.2 + 0.45;
+  const roadAtGap = gap => shore + sign * (outerOffset + gap);
+  checkSidewalks(roadAtGap(0.29), lake, true, [sign], 'shoreline rejects the nearby outer sidewalk edge across a row boundary');
+  checkSidewalks(roadAtGap(0.31), lake, true, [-1, 1], 'shoreline leaves both sidewalks open beyond the clearance');
+}
+
+// The lower sidewalk crosses the building. The upper one stays inside
+// the open courtyard cutout, which lies inside the bounding box.
+const courtyard = [[-48,-12],[48,-12],[48,20],[16,20],[16,0],[-16,0],[-16,20],[-48,20]];
+for (const ring of [courtyard, subdivideRing(courtyard)]) {
+  checkSidewalks(0, ring, false, [1], 'concave building keeps its courtyard sidewalk open');
+  checkSidewalks(0, ring.slice().reverse(), false, [1], 'reversing the footprint preserves the courtyard');
+}
+console.log('PASS shoreline clearance across positive and negative grid rows and compact/segmented concave courtyards');

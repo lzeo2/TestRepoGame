@@ -39,6 +39,47 @@ const actual = createAddressSearch(map, payload);
 for (const address of payload.addresses.filter((_, i) => i % 97 === 0)) {
   assert(actual.search(`${address.number} ${address.street}`, 50).some(result => result.label === address.label), `actual explicit address searchable: ${address.id} ${address.label}`);
 }
+// Cross-check each venue against the retained source building and a transit
+// result with the venue as an alias. Each expected point is inside the mapped
+// ring, rounded to two decimals for comparison with source coordinates.
+const venues = [
+  ['osm-4970449', 'Shine Dome', -1303.26, -3819.37],
+  ['osm-5035476', 'National Museum of Australia', -1420.87, -2790.03],
+  ['osm-5954392', 'National Library of Australia', -680.22, -2394.90],
+  ['osm-210305032', 'National Convention Centre', -237.57, -3708.47],
+  ['osm-30160608', 'Canberra Outlet Centre', 3744.22, 2084.42],
+  ['osm-217376654', 'Royal Australian Mint', -4010.28, 83.38],
+  ['osm-663660535', 'National Arboretum Canberra Village Centre', -6154.94, -3346.22],
+];
+const buildings = [];
+for (const pack of ['canberra-north', 'airport', 'region-south', 'region-molonglo']) {
+  const file = new URL(`../Games/Capital Drive/data/${pack}.json`, import.meta.url);
+  buildings.push(...JSON.parse(await readFile(file, 'utf8')).buildings);
+}
+const searchPlaces = venues.map(([id, name]) => ({
+  id: `stop-${id}`, name: `Bus stop near ${name}`, aliases: [name], x: 0, z: 0,
+}));
+const landmarks = [];
+const venueSearch = createAddressSearch({ buildings, searchPlaces, landmarks });
+for (const [id, name, x, z] of venues) {
+  const [venue, stop] = venueSearch.search(name, 2);
+  assert.equal(venue.id, `building:${id}`, name);
+  assert.equal(venue.label, name);
+  assert.equal(venue.kind, 'landmark');
+  assert.equal(venue.detail, 'Mapped building footprint');
+  assert(Math.abs(venue.x - x) < .011 && Math.abs(venue.z - z) < .011, name);
+  assert.equal(stop.id, `landmark:stop-${id}`);
+}
+assert.equal(landmarks.length, 0, 'searching a footprint never creates a world or minimap pin');
+assert.equal(searchPlaces.length, venues.length);
+assert.deepEqual(createAddressSearch({}).search('Shine Dome'), []);
+const specimen = {
+  id:'osm-4970449', name:'Uneven courtyard', points:[[0,0],[30,0],[30,10],[0,10]],
+  innerRings:[{points:[[6,1],[10,1],[10,9],[6,9]]}],
+};
+const courtyard = createAddressSearch({ buildings:[specimen] }).search(specimen.name)[0];
+assert.deepEqual([courtyard.x,courtyard.z], [20,5]);
+assert.deepEqual(createAddressSearch({ buildings:[{...specimen, id:'other'}] }).search(specimen.name), []);
 // Exercise importer geometry and omission rules without requiring the external cache.
 const python = spawnSync('python3', ['-B', '-c', `import importlib.util
 spec=importlib.util.spec_from_file_location('addresses','scripts/build_capital_drive_addresses.py')

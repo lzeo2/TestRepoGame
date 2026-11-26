@@ -52,3 +52,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Week 1: rights and compatibility hold. Week 2: approved layout/error repair if reproduced. Week 3: compare a licensed local emulator upgrade only after source/notice validation. Week 4: real-hardware movie interactions and save regression. Defer visual redesign and new launch overlays; they conceal rather than repair the unproven play path.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

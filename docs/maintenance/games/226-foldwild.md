@@ -197,6 +197,8 @@ Keep one renderer/canvas; inspection should reparent, resize, await its generati
 
 ## Verification
 
+Rapidly reopening the save or reset dialog preserves the new confirmation. The native Chromium save test covers two-tab conflicts, deterministic replay after importing a backup, unreadable storage and quota failures. Run `python3 -B scripts/test_foldwild_polish_save.py` with the prerequisites in the script. [November 2026 fleet results](../../verification/arcade-fleet-playtest-2026-11-26.md)
+
 Final `eb917858` source: **20 Node suites, 10 game JS syntax checks**, runner
 regression, bounded diagnostic self-check and unchanged M2 shell ABI pass. Native-5
 is **2/2 clean** with 13 accepted event2 viewport captures within 0.1473–0.8260s

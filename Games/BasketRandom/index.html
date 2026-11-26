@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Basket Random Unblocked</title>
@@ -34,6 +34,13 @@ window.addEventListener("keydown", function(e) {
 	</noscript>
 	<script src="scripts/supportcheck.js"></script>
 	<script src="scripts/offlineclient.js"></script>
+	<!-- The Construct plugin uses this element ID to identify its ad adapter. -->
+	<script id="gamedistribution-jssdk">
+		window.gdsdk = {
+			showAd() { return Promise.resolve(); },
+			preloadAd() { return Promise.reject(new Error("Rewarded ads are unavailable offline.")); }
+		};
+	</script>
 	<script src="scripts/main.f.js"></script>
 	<script src="scripts/register-sw.js"></script>
 </body>

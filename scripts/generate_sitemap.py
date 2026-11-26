@@ -17,6 +17,7 @@ def sitemap():
         ['git', 'ls-files', '-z'], cwd=ROOT).decode().split('\0'))
     games = json.loads((ROOT / 'games.json').read_text())
     ids = set()
+    titles = set()
     urls = [BASE]
     for game in games:
         if not {'id', 'title', 'cat', 'icon', 'desc', 'url', 'featured'} <= game.keys():
@@ -24,6 +25,10 @@ def sitemap():
         if type(game['id']) is not int or game['id'] in ids:
             raise ValueError('Invalid or duplicate catalog ID')
         ids.add(game['id'])
+        title = game['title'].strip() if isinstance(game['title'], str) else ''
+        if not title or title.casefold() in titles:
+            raise ValueError(f'Empty or duplicate catalog title at game {game["id"]}')
+        titles.add(title.casefold())
         parsed = urlsplit(game['url'])
         path = unquote(parsed.path).removeprefix('./')
         if (parsed.scheme or parsed.netloc or parsed.query or parsed.fragment or

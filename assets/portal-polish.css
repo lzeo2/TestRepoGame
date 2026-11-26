@@ -351,3 +351,8 @@ html[data-theme] .ux-catalog-error button {
   min-height: 44px; padding: 8px 16px; border: 1px solid var(--border);
   background: #000; color: #fff; border-radius: var(--radius); cursor: pointer;
 }
+
+html[data-theme] .game-card__players { color: var(--text-muted, var(--text)); font-size: 0.875rem; }
+html[data-theme] .ux-detail__copy { min-height: 44px; padding-inline: 12px; }
+html[data-theme] .ux-detail__link { width: 100%; margin-block: 8px; }
+html[data-theme] .ux-detail__actions { flex-wrap: wrap; }

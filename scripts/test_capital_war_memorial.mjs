@@ -43,6 +43,8 @@ for (const feature of [site.main, site.courtyard, site.tower, site.dome, ...site
 }
 const sampler = createTerrainSampler(map), geometry = buildWarMemorialGeometry(site, sampler.groundHeightAt);
 assert(geometry.triangles > 5000 && geometry.triangles < 16000);
+assert.equal(geometry.archedWindows,1);
+assert.equal(geometry.domeSeams,site.dome.points.length-1);
 assert(geometry.panels > 40 && geometry.panels <= 180);
 assert.equal(geometry.terraceBands, 19, 'bounded tread detail stays within the mapped public stair polygon');
 assert(geometry.groundTriangles > 4000, 'actual public paving/lawn polygons are finely draped over source terrain');

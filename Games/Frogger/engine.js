@@ -19,76 +19,57 @@ var Game = new function() {
 		this.ctx = this.canvas.getContext && this.canvas.getContext('2d');
 		if(!this.ctx) { return alert("Please upgrade your browser to play"); }
 
-		this.canvasMultiplier = 1;
-		this.playerOffset = 10;
-		this.setupMobile();
 		this.setupInput();
-
-		if(this.mobile){
-			this.setBoard(2,new TouchControls());
-		}
 		this.loop(); 
 
 		SpriteSheet.load(sprite_data,callback);
 	};
 
-	this.setupMobile = function() {
-		var container = document.getElementById("container"),
-			hasTouch =  !!('ontouchstart' in window),
-			w = window.innerWidth, h = window.innerHeight;
-
-		if(hasTouch) { mobile = true; }
-
-		if(screen.width > 1100) { return false; }
-
-		if(w > h) {
-			// portrait layout: the canvas is shown as is
-			w = window.innerWidth; h = window.innerHeight;
-		}
-
-		container.style.height = h*2 + "px";
-		window.scrollTo(0,1);
-
-		h = window.innerHeight;
-		container.style.height = h + "px";
-
-		if(h >= this.canvas.height * 1.75 || w >= this.canvas.height * 1.75) {
-			this.canvasMultiplier = 2;
-			this.canvas.width = w / 2;
-			this.canvas.height = h / 2;
-			this.canvas.style.width = w + "px";
-			this.canvas.style.height = h + "px";
-		} else {
-			this.canvas.width = w;
-			this.canvas.height = h;
-		}
-
-		this.canvas.style.position='absolute';
-		this.canvas.style.left="0px";
-		this.canvas.style.top="0px";
-
-		this.mobile = true;
-
+	// The native board is 320 × 480. CSS fits it inside the viewport.
+	var arrowKeys = {ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right"};
+	var directions = Object.values(arrowKeys);
+	this.keys = {};
+	var pendingPad = null;
+	var heldPad = null;
+	this.takeDirection = function() {
+		var direction = pendingPad || heldPad || directions.find(function(key) {
+			return Game.keys[key];
+		});
+		pendingPad = null;
+		return direction;
 	};
 
-	// Handle Input
-	var KEY_CODES = { 37:'left', 38 :'up', 39:'right', 40:'down' };
-	this.keys = {};
-
 	this.setupInput = function() {
-		window.addEventListener('keydown',function(e) {
-			if(KEY_CODES[event.keyCode]) {
-				Game.keys[KEY_CODES[event.keyCode]] = true;
-				e.preventDefault();
-			}
-		},false);
-
-		window.addEventListener('keyup',function(e) {
-			if(KEY_CODES[event.keyCode]) {
-				Game.keys[KEY_CODES[event.keyCode]] = false; 
-				e.preventDefault();
-			}
-		},false);
+		function keyboard(event) {
+			var key = arrowKeys[event.key];
+			if (!key) return;
+			Game.keys[key] = event.type === "keydown";
+			event.preventDefault();
+		}
+		window.addEventListener("keydown", keyboard);
+		window.addEventListener("keyup", keyboard);
+		window.addEventListener("blur", function() {
+			Game.keys = {};
+			pendingPad = heldPad = null;
+		});
+		document.querySelectorAll("[data-direction]").forEach(function(button) {
+			var direction = button.dataset.direction;
+			button.addEventListener("pointerdown", function(event) {
+				if (!event.isPrimary || event.button !== 0) return;
+				button.setPointerCapture(event.pointerId);
+				pendingPad = heldPad = direction;
+			});
+			button.addEventListener("lostpointercapture", function() {
+				if (heldPad === direction) heldPad = null;
+			});
+			button.addEventListener("pointercancel", function() {
+				if (pendingPad === direction) pendingPad = null;
+			});
+			button.addEventListener("click", function(event) {
+				// Keyboard and assistive activation have no preceding pointerdown.
+				if (event.detail === 0) pendingPad = direction;
+			});
+		});
 	};
 
 	// Game Loop
@@ -111,45 +92,6 @@ var Game = new function() {
 	return this;
 };
 
-
-this.setupMobile = function() {
-	var container = document.getElementById("container"),
-		hasTouch =  !!('ontouchstart' in window),
-		w = window.innerWidth, h = window.innerHeight;
-
-	if(hasTouch) { mobile = true; }
-
-	if(screen.width > 1100) { return false; }
-
-	if(w > h) {
-		// portrait layout: the canvas is shown as is
-		w = window.innerWidth; h = window.innerHeight;
-	}
-
-	container.style.height = h*2 + "px";
-	window.scrollTo(0,1);
-
-	h = window.innerHeight;
-	container.style.height = h + "px";
-
-	if(h >= this.canvas.height * 1.75 || w >= this.canvas.height * 1.75) {
-		this.canvasMultiplier = 2;
-		this.canvas.width = w / 2;
-		this.canvas.height = h / 2;
-		this.canvas.style.width = w + "px";
-		this.canvas.style.height = h + "px";
-	} else {
-		this.canvas.width = w;
-		this.canvas.height = h;
-	}
-
-	this.canvas.style.position='absolute';
-	this.canvas.style.left="0px";
-	this.canvas.style.top="0px";
-
-	this.mobile = true;
-
-};
 
 var SpriteSheet = new function() {
 	this.map = { }; 
@@ -200,8 +142,9 @@ var TitleScreen = function TitleScreen(title,subtitle,callback) {
 	var up = false;
 	var goingDown = false;
 	this.step = function(dt) {
-		if(!Game.keys['up']) up = true;
-		if(up && Game.keys['up'] && callback) callback();
+		var direction = Game.takeDirection();
+		if(direction !== "up") up = true;
+		if(up && direction === "up" && callback) callback();
 	};
 
 	this.draw = function(ctx) {
@@ -393,79 +336,3 @@ Spawner.prototype.step = function(dt) {
 Spawner.prototype.draw = function(ctx) {
 	ctx.fillText(CURRENT_FROG_LIVES, 26, 20);
 };
-
-
-var TouchControls = function() {
-
-	var gutterWidth = 10;
-	var unitWidth = Game.width/5;
-	var blockWidth = unitWidth-gutterWidth;
-
-	this.drawSquare = function(ctx,x,y,txt,on) {
-		ctx.globalAlpha = on ? 0.9 : 0.6;
-		ctx.fillStyle =  "#CCC";
-		ctx.fillRect(x,y,blockWidth,blockWidth);
-
-		ctx.fillStyle = "#FFF";
-		ctx.textAlign = "center";
-		ctx.globalAlpha = 1.0;
-		ctx.font = "bold " + (3*unitWidth/4) + "px arial";
-
-		ctx.fillText(txt, 
-					 x+blockWidth/2,
-					 y+3*blockWidth/4);
-	};
-
-	this.draw = function(ctx) {
-		ctx.save();
-
-		var yLoc = Game.height - unitWidth;
-		this.drawSquare(ctx,gutterWidth,yLoc,"\u25C0", Game.keys['left']);
-		this.drawSquare(ctx,2*unitWidth + gutterWidth,yLoc,"\u25B6", Game.keys['right']);
-		this.drawSquare(ctx,unitWidth + gutterWidth,yLoc - unitWidth,"\u25B2", Game.keys['up']);
-		this.drawSquare(ctx,unitWidth + gutterWidth,yLoc ,"\u25BC", Game.keys['down']);
-
-		ctx.restore();
-	};
-
-	this.step = function(dt) { };
-
-	this.trackTouch = function(e) {
-		var touch, x, y;
-
-		e.preventDefault();
-		Game.keys['left'] = false;
-		Game.keys['right'] = false;
-		Game.keys['up'] = false;
-		Game.keys['down'] = false;
-
-		if(e.type == 'touchstart' || e.type == 'touchmove') {
-			for(i=0;i<e.changedTouches.length;i++) {
-				touch = e.changedTouches[i];
-				x = touch.clientX / Game.canvasMultiplier;
-				y = touch.clientY / Game.canvasMultiplier;
-				if(x < gutterWidth + unitWidth) {
-					Game.keys['left'] = true;
-				} else if(x > (gutterWidth  + unitWidth) * 2 && x < (gutterWidth + unitWidth) * 3){
-					Game.keys['right'] = true;				
-				} else if(x > gutterWidth + unitWidth && x < (gutterWidth  + unitWidth) * 2){
-					if(y > Game.height - unitWidth){
-						Game.keys['down'] = true;					
-					} else if(y > Game.height - unitWidth * 2){						
-						Game.keys['up'] = true;				
-					}
-				}
-			}
-		}
-
-	};
-
-	Game.canvas.addEventListener('touchstart',this.trackTouch,false);
-	Game.canvas.addEventListener('touchmove',this.trackTouch,false);
-	Game.canvas.addEventListener('touchend',this.trackTouch,false);
-	Game.canvas.addEventListener('touchcancel',this.trackTouch,false);
-
-	Game.playerOffset = unitWidth + 20;
-};
-
-

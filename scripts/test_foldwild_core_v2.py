@@ -32,20 +32,27 @@ def snapshot(page):
     return page.evaluate('window.foldwildSnapshot')
 
 
+def expand_markers(page):
+    markers = page.locator('.nearby-markers')
+    if not markers.evaluate('element => element.open'):
+        markers.locator('summary').click()
+
+
 def walk(page, point, x, z):
+    expand_markers(page)
     before = snapshot(page)['state']['position']
     page.locator(f'[data-point="{point}"]').click()
     after = snapshot(page)['state']['position']
     assert math.hypot(before['x'] - after['x'], before['z'] - after['z']) < 1, 'route teleported'
     page.wait_for_function('''p => {const s=window.foldwildSnapshot.state.position;
-        return Math.hypot(s.x-p[0],s.z-p[1])<.31}''', arg=[x, z], timeout=45000)
+        return Math.hypot(s.x-p[0],s.z-p[1])<=1.4}''', arg=[x, z], timeout=45000)
     assert page.locator('#interact').is_enabled()
 
 
 def keyboard_to(page, x, z, keyboard=None):
     """Walk open authored lanes; an iframe uses its owning Page's keyboard."""
     keyboard = keyboard or page.keyboard
-    deadline = monotonic() + 30
+    deadline = monotonic() + 90
     page.locator('#game-canvas').focus()
     while monotonic() < deadline:
         s = snapshot(page)

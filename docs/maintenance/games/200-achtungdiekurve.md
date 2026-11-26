@@ -26,13 +26,13 @@ Local `CREDITS.md` records upstream https://github.com/stravid/achtung-die-kurve
 
 ## Audit findings
 
-- HIGH, `javascripts/script.js::updatePlayerList`: player names from `#playerNameInput` are concatenated into `innerHTML`. Local input can become executable markup in the portal origin. Recommended reproduction: enter harmless `<b>name</b>` and observe formatting, then test inert escaping. Minimal fix: create list nodes and assign name with `textContent`; retain numeric IDs and color separately. No remote attacker path established.
+- Resolved in the 26 November 2026 defensive pass. The roster creates DOM rows and inserts rider names and points as text. Removal uses the row ID, returns its controls, and keeps a reused engine slot aligned with the displayed rider. Removing a player before starting a round no longer triggers its end callback. The browser regression covers a name with punctuation and literal angle brackets.
 - MEDIUM, `adk.minified.js::Player.resetTimeout/calculateNextHole`: inconsistent timer property leaves old callbacks alive. Fix at the shared timer owner, with a restart/cancel check, not per caller.
 - MEDIUM, `index.html` head and `stylesheets/style.css::#rightColumn`: no viewport metadata or narrow-screen reflow. Native phone layout remains unverified.
 
 ## Safe iteration
 
-Patch name rendering in the wrapper first; do not replace pixel-collision gameplay. For compressed engine fixes, recover the pinned readable upstream source rather than hand-editing unrelated minified logic. Keep the two-player touch ceiling visible. Preserve MIT notices. Any reset change must reconcile wrapper lists with engine IDs, especially after removal/re-addition.
+Keep roster text and the existing pixel-collision simulation independently testable. For compressed engine fixes, recover the pinned readable upstream source rather than hand-editing unrelated minified logic. Keep the two-player touch ceiling visible. Preserve MIT notices. Any reset change must reconcile wrapper lists with engine IDs, especially after removal/re-addition.
 
 ## Verification
 
@@ -48,4 +48,4 @@ A future authorized focused browser run may extract only this directory with `gi
 
 ## Future outlook
 
-Week 1: safe name DOM and timer identity. Week 2: native removal buttons, focus labels, viewport and touch layout. Later: blur/visibility reset for held directions and resize handling only after round continuity tests. Do not add online multiplayer or change scoring as a refurbishment shortcut.
+The roster text change is complete. Timer identity remains for the next engine pass. Week 2: native removal buttons, focus labels, viewport and touch layout. Later: blur/visibility reset for held directions and resize handling only after round continuity tests. Do not add online multiplayer or change scoring as a refurbishment shortcut.

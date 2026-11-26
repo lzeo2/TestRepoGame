@@ -52,3 +52,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 First rights/notices, then explicit fallback failure recovery and real platforming input review. Month work should compare primary/fallback compatibility and player fit at phone/desktop sizes. New art, reconstructed platforming code and shared-runtime migration are deferred until permission, source and native evidence exist.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

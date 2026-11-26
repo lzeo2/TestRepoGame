@@ -33,6 +33,16 @@ assert.deepEqual(region.meta.sourceBoxes,[[149.015,-35.25,149.06,-35.19]]);
 assert.equal(region.meta.clipPolicy.sourceNodeFringeDegrees,.004);
 assert.equal(region.meta.files.length,12);for(const pin of region.meta.files){assert.match(pin.sha256,/^[a-f0-9]{64}$/);assert.match(pin.url,/^https:\/\/api\.openstreetmap\.org\/api\/0\.6\/map.json\?bbox=/);}
 assert(region.roads.length>1000&&region.buildings.length>900);assert(region.buildings.length<=2100);
+const fair=region.landmarks.find(place=>place.id==='kippax-fair');
+const fairBuilding=bodies.get(fair.buildingId);
+assert.equal(fairBuilding.sourceId,'relation/9912221');
+assert.deepEqual(fairBuilding.sourceWayIds,[27243622,713272037]);
+assert.equal(fairBuilding.points.length,16);
+assert.deepEqual(fairBuilding.points[0],fairBuilding.points.at(-1));
+const area=Math.abs(fairBuilding.points.slice(1).reduce((sum,b,i)=>{
+  const a=fairBuilding.points[i];return sum+a[0]*b[1]-a[1]*b[0];
+},0))/2;
+assert(Math.abs(area-7497.29)<.02);
 assert.equal(region.terrain.validation.unsupportedCells,0);assert.equal(region.terrain.validation.nearestFillCells,0);
 assert(region.terrain.validation.maximumNearestContourMetres<200);
 assert.equal(region.terrain.license,'CC-BY-4.0');assert.equal(region.terrain.verticalDatum,'AHD');

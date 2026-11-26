@@ -49,3 +49,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Week 1: reconcile font rights/contact metadata and repair input coordinate/release handling if reproduced. Week 2: native touch actions and pause/restart accessibility, followed by desktop/mobile image review. Later: bound hidden-tab elapsed time and review audio unlock behavior. A new engine, promotional overlay or replacement artwork is deferred; rights and actual gameplay evidence come first.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

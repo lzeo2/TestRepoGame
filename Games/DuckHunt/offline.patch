@@ -1,0 +1,109 @@
+--- a/src/libs/levelCreator.js
++++ b/src/libs/levelCreator.js
+@@ -1,20 +1,24 @@
+ const urlQueryString = new URLSearchParams(window.location.search);
+
+-function parseQueryParamAsInt(param) {
+-  return parseInt(urlQueryString.get(param), 10);
++function readInteger(name, fallback, minimum, maximum) {
++  const value = urlQueryString.get(name);
++  if (value === null || !/^-?\d+$/.test(value)) return fallback;
++  const number = Number(value);
++  if (!Number.isFinite(number)) return fallback;
++  return Math.min(maximum, Math.max(minimum, number));
+ }
+
+ module.exports.parseLevelQueryString = function() {
+   return {
+     id: -1,
+-    title: urlQueryString.get('title') || 'Generated Level',
+-    waves: parseQueryParamAsInt('waves') || 1,
+-    ducks: parseQueryParamAsInt('ducks') || 1,
+-    pointsPerDuck: parseQueryParamAsInt('points') || 100,
+-    speed: parseQueryParamAsInt('speed') || 8,
+-    bullets: parseQueryParamAsInt('bullets') || 100,
+-    radius: parseQueryParamAsInt('radius') || 60,
+-    time: parseQueryParamAsInt('time') || 30
++    title: (urlQueryString.get('title') || 'Generated Level').slice(0, 64),
++    waves: readInteger('waves', 1, 1, 100),
++    ducks: readInteger('ducks', 1, 1, 64),
++    pointsPerDuck: readInteger('points', 100, 1, 1000),
++    speed: readInteger('speed', 8, 1, 10),
++    bullets: readInteger('bullets', 100, 1, 128),
++    radius: readInteger('radius', 60, 30, 200),
++    time: readInteger('time', 30, 5, 120)
+   };
+ };
+
+--- a/src/modules/Game.js
++++ b/src/modules/Game.js
+@@ -421,6 +421,7 @@
+     this.quackingSoundId = sound.play('quacking');
+     this.wave += 1;
+     this.waveStartTime = Date.now();
++    this.timePaused = 0;
+     this.bullets = this.level.bullets;
+     this.ducksShotThisWave = 0;
+     this.waveEnding = false;
+@@ -548,7 +549,7 @@
+     if (!this.paused) {
+       this.pause();
+     }
+-    window.open('/creator.html', '_blank');
++    window.open('creator.html', '_blank', 'noopener');
+   }
+
+   handleClick(event) {
+--- a/dist/creator.html
++++ b/dist/creator.html
+@@ -1,5 +1,5 @@
+ <!DOCTYPE HTML>
+-<html>
++<html lang="en">
+ <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1"/>
+ <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+ <head>
+@@ -95,35 +95,33 @@
+ </p>
+ <form action="index.html">
+     <div class="form-grid">
+-        <div><label for="title">level title:</label> <input type="text" id="title" name="title"></div>
++        <div><label for="title">level title:</label> <input type="text" id="title" name="title" maxlength="64"></div>
+         <div><label for="waves">total waves*:</label> <input type="number" id="waves" name="waves" min="1" max="100"
+                                                        placeholder="1-100" value="3" required></div>
+-        <div><label for="ducks">ducks per wave*:</label> <input type="number" id="ducks" name="ducks" min="1" max="5000"
+-                                                       placeholder="1-5000" value="50" required></div>
++        <div><label for="ducks">ducks per wave*:</label> <input type="number" id="ducks" name="ducks" min="1" max="64"
++                                                       placeholder="1-64" value="50" required></div>
+         <div><label for="points">points per duck*:</label> <input type="number" id="points" name="points" min="1" max="1000"
+                                                          placeholder="1-1000" value="100" required></div>
+         <div><label for="bullets">bullets per wave*:</label> <input type="number" id="bullets" name="bullets" min="1"
+-                                                           max="10000" placeholder="1-10000" value="100" required>
++                                                           max="128" placeholder="1-128" value="100" required>
+         </div>
+         <div><label for="radius">blast radius*:</label><input type="number" id="radius" name="radius" min="30"
+                                                               max="200" placeholder="30-200" value="60"></div>
+         <div><label for="speed">duck speed*:</label> <input type="number" id="speed" name="speed" min="1" max="10"
+                                                        placeholder="1-10" value="6" required></div>
+-        <div><label for="time">time per wave:</label> <input type="number" id="time" name="time" min="10" max="120"
+-                                                    placeholder="10-120" value="30"></div>
++        <div><label for="time">time per wave:</label> <input type="number" id="time" name="time" min="5" max="120"
++                                                    placeholder="5-120" value="30"></div>
+     </div>
+     <br><br>
+     <button type="submit">Generate Level <br> GLHF!</button>
+ </form>
+
+ <br><br>
+-<small>Field limit validation is not performed in game, so if you really want to see what happens when you <a
+-        href="index.html?title=1%20Click%20Challenge&ducks=1000&radius=1000">shoot
+-    1000 ducks all at once</a>, you can make that happen.</small>
++<small>Try the <a href="index.html?title=Flock+Challenge&amp;ducks=32&amp;radius=200">32-duck flock challenge</a>.</small>
+ <br><br>
+ <h2>Legendary Levels</h2>
+ <ul>
+-    <li><a href="https://duckhuntjs.com/index.html?title=10+for+10&waves=10&ducks=1&points=1&bullets=1&radius=30&speed=10&time=10">10 for 10</a></li>
++    <li><a href="index.html?title=10+for+10&waves=10&ducks=1&points=1&bullets=1&radius=30&speed=10&time=10">10 for 10</a></li>
+     <li><a href="index.html?title=Splits-ville&waves=5&ducks=2&points=100&bullets=1&radius=100&speed=6&time=30">Splits-ville</a></li>
+     <li><a href="index.html?title=Marathon&waves=26&ducks=2&points=100&bullets=2&radius=60&speed=6&time=5">Marathon</a></li>
+ </ul>

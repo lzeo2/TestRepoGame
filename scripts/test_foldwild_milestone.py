@@ -30,7 +30,8 @@ def ready(page, mode):
         return v && v.mode===mode && v.countLoadedModels >= (mode==='battle'?2:1)
         && v.frames>2}''', arg=mode, timeout=30000)
     v = snapshot(page)['view']
-    assert not v['fallbackModels'] and not v['hiddenAvailable'], v
+    assert not v['fallbackModels'], v
+    assert v['hiddenAvailable'] == (ROOT / 'Games/Foldwild/models/secret-cave-creature.glb').is_file(), 'optional model packaging disagrees with the renderer'
     assert v['cacheSize'] <= 12, v
     assert v['width'] <= (960 if v['quality'] == 'low' else 1280), v
     assert v['height'] <= (540 if v['quality'] == 'low' else 720), v

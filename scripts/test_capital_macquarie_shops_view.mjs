@@ -15,7 +15,8 @@ assert.equal(view.stats.buildings,2);assert(view.stats.triangles>300&&view.stats
 assert(view.stats.pavingJoints>20);assert(view.stats.shrubs>0&&view.stats.shrubs<=9);
 view.update(site);assert.equal(view.stats.drawCalls,1);assert.equal(scene.children.length,1);
 const root=scene.children[0],mesh=root.children[0],geometry=mesh.geometry,material=mesh.material;
-assert.equal(root.children.length,1);assert(material.isMeshLambertMaterial);assert.equal(material.map,null);
+assert.equal(root.children.length,1);assert(material.isMeshLambertMaterial);assert(material.map.isDataTexture);assert.equal(material.map.image.data.byteLength,512);assert(material.map.generateMipmaps);
+assert(view.stats.ribbedFasciaMetres>210);
 assert(!mesh.castShadow&&!mesh.receiveShadow);assert(geometry.boundingSphere.radius<65);
 const p=geometry.attributes.position,c=geometry.attributes.color,n=geometry.attributes.normal,positions=p.array;
 for(const attribute of Object.values(geometry.attributes))assert([...attribute.array].every(Number.isFinite));

@@ -48,3 +48,34 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 First resolve nested remote loads, rights and error fallback. Next verify cheat targets and preserve loader progress/accessibility. Later audit duplicate build consumers for storage reduction, with evidence before deletion. Defer graphics/engine rebuilds and online features.
+
+## Legacy links, 26 November 2026
+
+The old `subwaysurfers/index.html` path redirects to this title's maintained
+local entry. It no longer launches a second loader or an analytics script.
+The duplicate build assets remain tracked. See the
+[fleet defensive review](../../verification/arcade-defensive-review-2026-11-26.md).
+
+
+## Shipped Unity build
+
+The active SanFrancisco manifest points to the local WebAssembly code,
+framework and data files. Its former ASM.js entries named three missing
+files. Browsers without WebAssembly now take the loader's built-in
+unsupported-browser path. The three shipped WebAssembly files total
+54,266,278 bytes in each variant. In a disposable ordinary Chromium profile
+the public assets transferred on the cold load and came entirely from the
+HTTP cache on immediate repeat. This measures the asset fetch.
+
+## Offline run-start repair, 26 November 2026
+
+The exported Unity framework invokes the commercial break function and waits
+for a named message. The old offline SDK only resolved its JavaScript
+promise and could leave the animated title screen waiting indefinitely.
+The local bridge now delivers `commercialBreakCompleted` and reports
+`rewardedBreakCompleted` with the string `false` for the optional ad reward,
+matching the original integration signature. [Controller regression](../../../scripts/test_arcade_trust_boundaries.mjs)
+
+The permanent top-right “HACKED” chip covered the Unity score in a
+480 × 600 run. The document title and loading heading now identify the
+edition while the score remains visible in the game HUD.

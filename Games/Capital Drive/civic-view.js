@@ -97,14 +97,30 @@ export function createCivicView(scene,map,heightAt,{roadHeightAt=(road,x,z)=>hei
       sign(points[0],points[1],base+3.65,3,12);
       // Original double entrance panels coincide with the exported clear Bunda-side approach.
       const a=approachEdge[0],b=approachEdge[1],mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2,tx=(b[0]-a[0])/approachLength,tz=(b[1]-a[1])/approachLength;
+      const doorPoint=(along,out)=>[mx+tx*along+tz*out,mz+tz*along-tx*out];
       for(const side of [-1,1]) {
-        const u=[mx+tx*(side*.65-.59)+tz*.09,mz+tz*(side*.65-.59)-tx*.09],v=[mx+tx*(side*.65+.59)+tz*.09,mz+tz*(side*.65+.59)-tx*.09];
-        wall(glass,u,v,base+.08,base+.08,base+2.6,base+2.6,0x8ca8a4);
+        const left=doorPoint(side*.65-.59,.09),right=doorPoint(side*.65+.59,.09);
+        wall(glass,left,right,base+.08,base+.08,base+2.6,base+2.6,0x8ca8a4);
+        const u=doorPoint(side*.65-.59,.102),v=doorPoint(side*.65+.59,.102);
+        wall(body,u,v,base+.82,base+.82,base+.86,base+.86,0xb9cbc7);
+        wall(body,u,v,base+.08,base+.08,base+.19,base+.19,0x788581);
+        const frame=side*1.26;
+        wall(body,doorPoint(frame-.035,.105),doorPoint(frame+.035,.105),base+.06,base+.06,base+2.68,base+2.68,0x536160);
+      }
+      // The public Bunda elevation pairs a dark shelter lip with the warm grey
+      // shopfront fascia. Recessed lighting and light panes follow that edge.
+      const half=Math.min(approachLength*.46,8.2);
+      wall(body,doorPoint(-half,1.415),doorPoint(half,1.415),base+2.77,base+2.77,base+2.91,base+2.91,0x62706f);
+      wall(body,doorPoint(-half,.11),doorPoint(half,.11),base+2.65,base+2.65,base+2.72,base+2.72,0x938f82);
+      for(let d=-half+.9;d<half-.6;d+=2.9){
+        const a=doorPoint(d,.67),b=doorPoint(Math.min(half,d+.65),.67),c=doorPoint(Math.min(half,d+.65),.76),e=doorPoint(d,.76);
+        quad(body,[a[0],base+2.885,a[1]],[b[0],base+2.885,b[1]],[c[0],base+2.885,c[1]],[e[0],base+2.885,e[1]],0xe7d5ac);
       }
     }
   }
   for(const segment of segments) {
     const {a,b,width}=segment,length=Math.hypot(b[0]-a[0],b[1]-a[1]),nx=-(b[1]-a[1])/length,nz=(b[0]-a[0])/length,steps=Math.ceil(length/12);
+    const railSides=[[],[]],commonwealth=segment.road.name==='Commonwealth Avenue';
     for(const side of [-1,1])for(let j=0;j<steps;j++) {
       const at=t=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],u=at(j/steps),v=at((j+1)/steps),off=width/2+1.9;
       const aa=[u[0]+nx*off*side,u[1]+nz*off*side],bb=[v[0]+nx*off*side,v[1]+nz*off*side];
@@ -123,10 +139,36 @@ export function createCivicView(scene,map,heightAt,{roadHeightAt=(road,x,z)=>hei
       }
       const edgeA=side>0?q[0]:q[3],edgeB=side>0?q[1]:q[2];
       const edgeY0=deckHeight(segment.road,edgeA),edgeY1=deckHeight(segment.road,edgeB);
-      wall(bridges,edgeA,edgeB,edgeY0-.35,edgeY1-.35,edgeY0+.14,edgeY1+.14,0x98998f);
-      wall(bridges,q[0],q[1],ya,yb,ya+1.05,yb+1.05,0xb9b5a7);wall(bridges,q[3],q[2],ya,yb,ya+1.05,yb+1.05,0xb9b5a7);
-      quad(bridges,[q[0][0],ya+1.05,q[0][1]],[q[1][0],yb+1.05,q[1][1]],[q[2][0],yb+1.05,q[2][1]],[q[3][0],ya+1.05,q[3][1]],0xd7d0bb);
+      // Open steel balustrades preserve the lake view over each concrete edge.
+      // The upper rail remains inside the existing 1.05m collision envelope.
+      const plinth=commonwealth?.30:.44;
+      wall(bridges,edgeA,edgeB,edgeY0-.35,edgeY1-.35,ya+plinth,yb+plinth,0xb6b5aa);
+      const rail=(t,h,offset=0)=>[edgeA[0]+(edgeB[0]-edgeA[0])*t+nx*offset,ya+(yb-ya)*t+h,edgeA[1]+(edgeB[1]-edgeA[1])*t+nz*offset];
+      railSides[side>0?1:0].push({j,ya,yb,rail});
+      const stepLength=length/steps,posts=Math.max(1,Math.round(stepLength/6));
+      for(let p=0;p<posts;p++){
+        const t=(p+.5)/posts,half=.055/stepLength;
+        quad(bridges,rail(t-half,plinth),rail(t+half,plinth),rail(t+half,1.035),rail(t-half,1.035),0x6e7776);
+      }
       barriers.push(Object.freeze({id:`civic-parapet-${barriers.length}`,sourceId:segment.road.sourceId,roadContext:Object.freeze({id:segment.road.id}),kind:'bridge-parapet',height:1.05,points:Object.freeze(q.map(p=>Object.freeze(p)))}));
+    }
+    // One rail face can span several adjoining deck panels. Preserve gaps for
+    // adjacent carriageways and split whenever the deck grade changes.
+    for(const panels of railSides){
+      for(let first=0;first<panels.length;){
+        const start=panels[first],rise=start.yb-start.ya;
+        let last=first;
+        while(last+1<panels.length && last-first<5){
+          const next=panels[last+1];
+          if(next.j!==panels[last].j+1 || Math.abs(start.ya+rise*(next.j-start.j+1)-next.yb)>.025)break;
+          last++;
+        }
+        for(const h of [commonwealth?.62:.70,1.05]){
+          const end=panels[last];
+          quad(bridges,start.rail(0,h-.065,-.05),end.rail(1,h-.065,-.05),end.rail(1,h,.05),start.rail(0,h,.05),commonwealth?0x697475:0x868d88);
+        }
+        first=last+1;
+      }
     }
   }
   const makeMesh=(batch,material,name)=>{

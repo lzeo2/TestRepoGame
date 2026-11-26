@@ -83,6 +83,8 @@ def self_test():
     parser = Page()
     parser.feed('<!-- <script src="https://cdn.invalid/x"></script> --><script type="application/ld+json">{}</script><script>var x=1;</script>')
     assert not parser.refs and len(parser.scripts) == 1
+    parser.feed('<script type="module" src="./a.js"></script><script src="b.js"></script>')
+    assert parser.script_files == [('./a.js', True), ('b.js', False)]
     print('PASS: URL resolver and HTML comment/JSON-LD self-test')
 
 
@@ -91,6 +93,7 @@ class Page(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.refs = []
         self.scripts = []
+        self.script_files = []
         self.base = None
         self.script = None
 
@@ -106,7 +109,9 @@ class Page(HTMLParser):
             if attrs.get(attr):
                 self.refs.append((line, tag, attr, attrs[attr], attrs.get('rel', '')))
         if tag == 'script':
-            typ = attrs.get('type', '').lower()
+            typ = (attrs.get('type') or '').strip().lower()
+            if attrs.get('src') and typ in ('', 'text/javascript', 'application/javascript', 'module'):
+                self.script_files.append((attrs['src'], typ == 'module'))
             if not attrs.get('src') and typ in ('', 'text/javascript', 'application/javascript', 'module'):
                 self.script = [line, typ == 'module', '']
 
@@ -153,6 +158,8 @@ def scan(revision, syntax):
     patterns = []
     references = []
     syntax_results = []
+    script_modes = collections.defaultdict(set)
+    selected_scripts = []
     excluded = collections.defaultdict(lambda: [0, 0])
     scanned_extensions = collections.defaultdict(lambda: [0, 0])
     duplicates = collections.defaultdict(list)
@@ -231,6 +238,10 @@ def scan(revision, syntax):
                                        'rel': rel, 'classification': 'external_resource' if kind == 'external' else 'missing_literal_local',
                                        'target': safe_path(local) if local else '[external URL omitted]'})
             if syntax:
+                for source, module in page.script_files:
+                    reference, local = resolve_reference(path, source, page.base)
+                    if reference == 'local':
+                        script_modes[local].add(module)
                 for script_line, module, script in page.scripts:
                     if script.strip():
                         status, error = node_check(script, module)
@@ -239,9 +250,13 @@ def scan(revision, syntax):
             # Bounded bootstrap/site selection; no implication that small means authored.
             selected = path.startswith(('assets/', 'uv/', 'netlify/')) or posixpath.basename(path) in ('script.js', 'main.js', 'boot.js', 'game.js', 'loader.js')
             if selected and size <= 128 * 1024:
-                module = extension == '.mjs' or bool(re.search(r'^\s*(?:import\s+(?!\()|export\s+)', text, re.M))
-                status, error = node_check(text, module)
-                syntax_results.append({'path': safe_path(path), 'line': 1, 'kind': 'file module' if module else 'file classic', 'status': status, 'error': error})
+                selected_scripts.append((path, extension, text))
+    for path, extension, text in selected_scripts:
+        # HTML entry points can appear after their modules in Git path order.
+        modes = script_modes[path] or {extension == '.mjs' or bool(re.search(r'^\s*(?:import\s+(?!\()|export\s+)', text, re.M))}
+        for module in sorted(modes):
+            status, error = node_check(text, module)
+            syntax_results.append({'path': safe_path(path), 'line': 1, 'kind': 'file module' if module else 'file classic', 'status': status, 'error': error})
     batch.stdin.close()
     batch.stdout.close()
     assert batch.wait(timeout=5) == 0
@@ -268,7 +283,7 @@ def scan(revision, syntax):
                             'HTML literal references only; no srcset, CSS asset closure, computed JS imports, rewrite routing, binary/decompressed engine inspection or secret certification.',
                             'Reference resolution does not model redirect endpoints or JavaScript DOM mutations.',
                             'Pattern windows cannot certify absence of obfuscated or longer-than-overlap constructs; invalid UTF-8 is replacement-decoded.',
-                            'Node syntax only for HTML inline JS and selected JS bootstrap/site files; module mode inferred, not browser execution.',
+                            'Node syntax only for HTML inline JS and selected JS bootstrap/site files; use explicit HTML script type when available and infer other selected files. Browser execution is separate.',
                             'No native browser checks, screenshots, gameplay, performance, licensing or release certification.'],
             'elapsed_seconds': round(time.monotonic() - started, 2)}
 

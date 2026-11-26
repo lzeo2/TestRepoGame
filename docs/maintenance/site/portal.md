@@ -165,3 +165,20 @@ The [repository review](../../verification/arcade-repository-review-2026-11-26.m
 records the remaining discovery and accessibility work. Run
 `python3 -B scripts/test_portal_discovery.py` for repeated open and close
 cycles, keyboard navigation, catalog retry and the six theme/viewport captures.
+
+## Recently played routes, 26 November 2026
+
+A stored recent record supplies its timestamp. The shelf resolves its route
+and display name against the current catalog before showing a launch button.
+Renamed games retain their correct labels, and retired paths do not appear.
+If the catalog download fails, Retry restores verified recent entries along
+with game details. See the [fleet defensive review](../../verification/arcade-defensive-review-2026-11-26.md).
+
+
+## Player counts and sharing
+
+The card and its Info view show the catalog's player count. The 2 players
+filter uses the verified multiplayer tags. **Copy game link** in Info copies
+the direct local game URL. When the browser denies clipboard access, the
+same button reveals and selects a read-only URL field. Test the clipboard
+and fallback in `scripts/test_portal_discovery.py`.

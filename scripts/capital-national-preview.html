@@ -1,0 +1,103 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Capital Drive architecture preview</title>
+<style>html,body{margin:0;overflow:hidden}canvas{display:block}</style>
+<script type="module">
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import {emitRegionalArchitecture} from '../Games/Capital Drive/regional-architecture.js';
+import {emitNationalArchitecture} from '../Games/Capital Drive/national-architecture.js';
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(1);
+renderer.setSize(innerWidth,innerHeight);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+document.body.append(renderer.domElement);
+
+const packs=new Map();
+window.captureNationalBuilding=async function({id,pack,azimuth,eyeHeight,detail}){
+  if(!packs.has(pack)){
+    const response=await fetch('../Games/Capital Drive/data/'+pack+'.json');
+    if(!response.ok)throw Error('Missing map pack '+pack);
+    packs.set(pack,(await response.json()).buildings);
+  }
+  const building=packs.get(pack).find(candidate=>candidate.id===id);
+  if(!building)throw Error('Missing footprint '+id);
+  const vertices=[],colours=[],tint=new THREE.Color();
+  function emitTriangle(a,b,c,colour){
+    if(!Number.isInteger(colour))throw Error('Invalid tint for '+id);
+    tint.setHex(colour);
+    for(const p of [a,b,c]){
+      if(p.length!==3||!p.every(Number.isFinite))throw Error('Invalid vertex for '+id);
+      vertices.push(...p);
+      colours.push(tint.r,tint.g,tint.b);
+    }
+  }
+  let points=building.points;
+  if(points.length>3&&points[0][0]===points.at(-1)[0]&&points[0][1]===points.at(-1)[1])points=points.slice(0,-1);
+  const options={points,base:.12,footing:-.3,lowGraphics:false,emitTriangle};
+  if(!emitRegionalArchitecture(building,options))emitNationalArchitecture(building,options);
+  if(!vertices.length)throw Error('No production model for '+id);
+
+  const geometry=new THREE.BufferGeometry();
+  geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+  geometry.setAttribute('color',new THREE.Float32BufferAttribute(colours,3));
+  geometry.computeBoundingBox();
+  const middle=geometry.boundingBox.getCenter(new THREE.Vector3());
+  const size=geometry.boundingBox.getSize(new THREE.Vector3());
+  geometry.translate(-middle.x,0,-middle.z);
+  geometry.computeVertexNormals();
+  const model=new THREE.Mesh(geometry,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.FrontSide}));
+  model.castShadow=model.receiveShadow=true;
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0xd8e4e9);
+  scene.add(model,new THREE.HemisphereLight(0xe4eff4,0xaaa895,1.40));
+  const span=Math.max(size.x,size.z,size.y);
+  const pad=new THREE.Mesh(new THREE.PlaneGeometry(span*18,span*18),new THREE.MeshLambertMaterial({color:0xb3b5a8}));
+  pad.rotation.x=-Math.PI/2;
+  pad.receiveShadow=true;
+  scene.add(pad);
+  const angle=azimuth*Math.PI/180;
+  const sun=new THREE.DirectionalLight(0xffecd6,1.65);
+  sun.position.set(Math.sin(angle-.72)*span*1.5,span*1.5,Math.cos(angle-.72)*span*1.5);
+  sun.castShadow=true;
+  Object.assign(sun.shadow.camera,{left:-span*.8,right:span*.8,top:span*.8,bottom:-span*.8,near:span*.05,far:span*4});
+  sun.shadow.mapSize.set(2048,2048);
+  sun.shadow.bias=-.00018;
+  sun.shadow.normalBias=span*.00016;
+  scene.add(sun,sun.target);
+
+  const camera=new THREE.PerspectiveCamera(37,innerWidth/innerHeight,.1,span*20);
+  const target=detail?new THREE.Vector3(detail.x-middle.x,detail.y,detail.z-middle.z):new THREE.Vector3(0,size.y*.42,0);
+  const samples=geometry.attributes.position,projected=new THREE.Vector3();
+  function setCamera(distance){
+    camera.position.set(target.x+Math.sin(angle)*distance,eyeHeight,target.z+Math.cos(angle)*distance);
+    camera.lookAt(target);
+    camera.updateMatrixWorld();
+  }
+  function fits(){
+    for(let v=0;v<samples.count;v++){
+      projected.fromBufferAttribute(samples,v).project(camera);
+      if(projected.z<=-1||projected.z>=1||Math.abs(projected.x)>.9||Math.abs(projected.y)>.81)return false;
+    }
+    return true;
+  }
+  if(detail)setCamera(detail.distance);
+  else{
+    // Fit even deeply concave buildings without cutting off a wing near the camera.
+    let near=Math.max(1,span*.06),far=span*4;
+    for(let step=0;step<16;step++){
+      const distance=(near+far)/2;
+      setCamera(distance);
+      if(fits())far=distance;
+      else near=distance;
+    }
+    setCamera(far);
+  }
+  renderer.render(scene,camera);
+  const stats={id,name:building.name,footprint:building.sourceId,pack,eyeHeight,azimuth,triangles:vertices.length/9};
+  geometry.dispose();model.material.dispose();pad.geometry.dispose();pad.material.dispose();sun.shadow.dispose();
+  return stats;
+};
+</script>

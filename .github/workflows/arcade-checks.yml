@@ -1,0 +1,49 @@
+name: Arcade checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the catalog and checks
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            /games.json
+            /sitemap.xml
+            /assets/portal-ux.js
+            /scripts/generate_sitemap.py
+            /scripts/audit_arcade_entry_assets.py
+            /scripts/update_game_descriptions.py
+            /scripts/test_arcade_trust_boundaries.mjs
+            /uv/index.js
+            /Games/Ovo/**/*level-editor.js
+            /Games/Ovo/**/*level-editor copy.js
+            /Games/Ovo/1.4.5/data.js
+            /Games/Ovo/1.4.5/languages.json
+            /Games/Ovo/1.4.5/unlockalllevels.js
+            /Games/_emulatorjs/data/emulator.js
+            /Games/_emulatorjs/data/emulator.min.js
+            /Games/BurritoBison/js/unity-mod.js
+            /Games/BurritoBison/Build/Web.asm.framework.unityweb.js
+            /Games/BurritoBison/json/null.json
+            /Games/SubwaySurfers*/js/poki-noop.js
+            /Games/Superhot/main.js
+            /Games/**/*.html
+            /Games/**/*.htm
+          sparse-checkout-cone-mode: false
+      - name: Check the catalog, sitemap and portal
+        run: |
+          python3 -B scripts/generate_sitemap.py --check
+          python3 -B scripts/audit_arcade_entry_assets.py --check
+          node --check assets/portal-ux.js
+      - name: Check game entry descriptions
+        run: python3 -B scripts/update_game_descriptions.py --check
+      - name: Check browser trust boundaries and offline game adapters
+        run: node scripts/test_arcade_trust_boundaries.mjs

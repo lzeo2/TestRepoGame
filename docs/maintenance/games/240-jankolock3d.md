@@ -175,6 +175,8 @@ browser slots and the disk guard before asset writes. No installs/new runtime de
 
 ## Verification
 
+The entry description now identifies the locally playable solo game and its bot teammates. Run `python3 -B scripts/update_game_descriptions.py --check` when the listing changes. [November 2026 fleet results](../../verification/arcade-fleet-playtest-2026-11-26.md)
+
 Run `node Games/Jankolock3D/integration-test.mjs` and the commands in INTEGRATION.md.
 The latest source checkpoint passes both 600-second chain directions with ten
 configured heroes (human plus nine bots), fractional start clock, real bridge-height waypoints,

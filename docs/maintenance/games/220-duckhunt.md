@@ -1,7 +1,13 @@
 <!-- maintenance-game: Games/DuckHunt -->
 # Duck Hunt maintenance
 
-## Identity and status
+## Current playable build, 26 November 2026
+
+The pinned upstream source now supplies the matching main script, eight local renderer chunks, creator and third-party notices. The source patch localises the creator, bounds the numeric parameters for shared levels, and resets paused time per wave. The browser regression starts the normal level, scores a shot, pauses, and enters a custom level through the creator. Run `python scripts/test_duckhunt_offline.py`. The source and packaging details are in [CREDITS](../../../Games/DuckHunt/CREDITS.md).
+
+## Historical baseline audit
+
+### Identity and status
 
 Registered id **220**, category `classic`, not featured; entry `Games/DuckHunt/index.html`. Baseline `8c8a055` has 11 files and 2,023,491 bytes. The local page loads a prebuilt webpack bundle. Registration is not evidence that its asynchronous dependency closure works: static inspection found missing chunks and empty stubs on renderer paths.
 
@@ -47,3 +53,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Week 1: source/asset/dependency-notice and missing-chunk triage before polish. Week 2 only after boot works: accessible instructions/loading/error and replay semantics. Later: rebuild controller timing/input fixes from verified editable source. Level creator, new art and performance certification are deferred until permission and native evidence exist.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

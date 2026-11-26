@@ -9,11 +9,11 @@ Registered id **107**, category `action`, entry [index.html](../../../Games/Jetp
 
 Entry loads `css/styles.css`, Phaser 3.24.1 and `game3.js`, with local `adsbygoogle`/`adBreak` no-ops before the game. Hosts are `#content`, `#phaser-canvas`, `#rotate_image` and `.fontLoader`; local `jetpackia` font resolves beneath CSS's font directory. Atlas/audio assets include extensionless files. The separate audio-directory HTML is empty.
 
-Source review coverage: entire entry and the shared-form style; selected game3 window-load/config/audio/save anchors, including `a0zy`, inspected. The obfuscated 1,196,802-byte game3 and 1,623,651-byte Phaser engine are not fully human-reviewed. Authored hack code is completely read: creates `window.JJ_HACK`, attempts a storage method override, polls for `window.game || window.phaserGame`, then wraps updates for currently registered scenes.
+Source review coverage: entire entry and the shared-form style; selected game3 window-load/config/audio/save anchors, including `a0zy`, inspected. The obfuscated 1,196,802-byte game3 and 1,623,651-byte Phaser engine are not fully human-reviewed. Authored hack code is completely read: creates `window.JJ_HACK`, attempts a storage method override, polls for `window.game || window.phaserGame`, then uses the game-level pre-step event to apply edition settings to active scenes, including after a restart.
 
 ## Gameplay and controls
 
-Hint explicitly documents hold click/tap to ascend and release to descend; keyboard mapping is not established by the HTML. Cheat wrapper forces `scene.coins`, `scene.totalCoin` and `scene.textCoins` where present, disables `scene.player.body.enable`, and hides/deactivates active `coinGroup` children. These property checks do not prove each real scene exposes those fields. Disabling a physics body can affect movement as well as obstacle damage and must be tested, not treated as automatically safe invincibility. Engine owns start/menu/result/retry; wrapper adds no restart button.
+The on-screen hint describes holding click or touch to ascend and releasing to descend. The edition sets the runner’s invulnerability flag and attempts to force the coin properties where present. The compiled game owns start, results and retry.
 
 ## State and persistence
 
@@ -25,23 +25,31 @@ No license/README/CREDITS/source pin exists in the assigned directory inventory.
 
 ## Audit findings
 
-- **HIGH triage**, `game3.js:6325-6333`, injected ad SDK boundary: three fresh follow-up boots reproduce `Unexpected token '<'`. The bundle creates `gamedistribution-jssdk` with `src='#'`, fetching this HTML entry as a script (HTTP 200, `text/html`), not a missing PNG or transient network failure. Run3 nevertheless reaches GamePlay, so this error alone is not proof of a permanent boot stall. Historical undefined-length failure was not reproduced. No authored safe repair was established; request legitimate source/a separately approved hook rather than suppressing the request or editing the bundle.
+- Resolved in the entry. The compiled game checks for `gamedistribution-jssdk` before injecting a script with `src="#"`. That URL returned the HTML entry and raised a parser error. The existing local, inert SDK adapter now identifies itself with the expected ID.
 - **MEDIUM**, `index.html`, `localStorage.setItem` override: page-wide substring matching may replace structured saves with a scalar and relies on overriding a Storage instance method. Identify exact keys and use game-specific numeric mutation at the real save boundary. Verify installation/storage contents; preserve intentional high coins.
-- **MEDIUM**, same file, `hookInterval` and scene update replacement: discovery is unbounded on failed boot; wrapper ownership and future-scene coverage are absent. Bound polling and tie wrappers to verified scene lifecycle instead of adding another timer.
+- The entry polls for the Phaser instance during boot. Once present it subscribes once to the game pre-step event. An interrupted startup can still leave the poll active until the page is closed.
 - **MEDIUM**, same file, `#hack-badge`/viewport/hint: perpetual pulse ignores reduced motion, zoom is disabled and instructions expire. Small authored CSS/help changes are sufficient.
 
 ## Safe iteration
 
 Do not remove cheats as a supposed security repair. Change only verified wrapper contracts first, preserving normal game identity and authored hack intent. Any source-level physics alteration needs legitimate source and focused play evidence. No manual obfuscated-bundle editing, asset deletion or broad save-key migration without caller tracing and rollback copies.
 
+## Invincibility and thrust
+
+The original override disabled the player's entire Arcade Physics body every frame. The runner stayed on the floor under sustained thrust. The edition now sets the game's own `player.invulnerable` flag. The compiled `onCollideWithZapper`, `onCollideWithMissile` and `onCollideWithLaser` handlers consult that flag, while its enabled body continues integrating flight. The local startup regression checks both flags together in the real GamePlay scene.
+
 ## Verification
+
+The dedicated Chromium run on 26 November 2026 checked the guard and the live physics body at eight metres, then held the mouse to thrust. The runner rose from y638 to y621.08. `python3 -B scripts/test_arcade_legacy_startup.py --game JetpackJoyrideHacked` exercises this route through the normal game and checks for page errors or failed assets.
+
+On 26 November 2026, a clean desktop Chromium session reached the active Phaser GamePlay scene and exercised click, hold and release on the canvas. The run recorded zero uncaught JavaScript errors, external requests or HTTP errors. The headless software audio device issued warnings, so sound quality remains unverified. Run `python3 scripts/test_arcade_legacy_startup.py --game JetpackJoyrideHacked`. [Local browser regression](../../../scripts/test_arcade_legacy_startup.py)
 
 2026-10-15 [full fleet gate](../audits/fleet-2026-10-15-lane6.md): this title
 failed with zero collected console errors and seven failed requests; the full
 run failed 122/125, exit 1. Only three request samples are retained, all reporting
 `net::ERR_NETWORK_CHANGED`; the other four reasons are unavailable. [Triage](../audits/fleet-2026-10-15-triage.md)
 confirmed those sampled assets exist in Git and the entry/tree still match the
-inventory. No fresh isolated Jetpack runtime rerun or confirmed fix occurred.
+inventory. That October fleet gate did not include an isolated rerun.
 Transport/environment cause remains suspected, not established; keep this failure
 held alongside existing save/rights findings. No smoke screenshots exist.
 
@@ -65,7 +73,7 @@ not verified 999999. No result/restart, spending/reload, denied/corrupt storage,
 mobile, hardware or theme acceptance follows. Twenty-two desktop diagnostic
 screenshots were captured; two representative menu/play images were reviewed.
 
-No retry code or regression fixture was justified/added. All requests finished;
+The October follow-up added no retry or regression fixture. All requests finished;
 a retry would not repair the injected-script error, local decoding, audio or
 cheat contracts. Smoke code/filters/timeouts remain unchanged. The static catalog
 schema/Git URL check passed for 125 entries, the three inline scripts and game3
@@ -77,4 +85,6 @@ Historical audit checks (before this follow-up): game3 Git blob through `node --
 
 ## Future outlook
 
-Resolve boot and provenance first. Then isolate cheat saves, bound discovery and remove unnecessary badge animation while retaining a clear variant label. Later profile load/CPU on actual hardware; defer new cheats and engine refurbishment until reliable play/source rights exist.
+Establish bundle and asset provenance. Then isolate cheat saves, bound discovery and remove unnecessary badge animation while retaining a clear variant label. Later profile load/CPU on actual hardware; defer new cheats and engine refurbishment until reliable play/source rights exist.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

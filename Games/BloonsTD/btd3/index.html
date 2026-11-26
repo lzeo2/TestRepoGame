@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <meta http-equiv="Content-Security-Policy" content="connect-src 'self'">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Bloons Tower Defence 3 | Seraph</title>
     <style>
@@ -33,7 +34,7 @@
         player.style.height = "100%";
         player.style.background = "#000";
         container.appendChild(player);
-        player.load({ url: "btd3.swf", autoplay: "on", splashScreen: false, unmuteOverlay: "hidden", backgroundColor: "#000000" });
+        player.load({ url: "btd3.swf", allowNetworking: "none", autoplay: "on", splashScreen: false, unmuteOverlay: "hidden", backgroundColor: "#000000" });
       });
     </script>
   </body>

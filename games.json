@@ -10,8 +10,8 @@
     "tags": [
       "2p"
     ],
-    "players": "2",
-    "howto": "Arrows + Space to make your athlete jump; one control randomly swaps each round; 2 players share one keyboard"
+    "players": "1–2",
+    "howto": "In two-player mode, Player 1 uses Up Arrow and Player 2 uses W. Both share one keyboard."
   },
   {
     "id": 5,
@@ -24,8 +24,8 @@
     "tags": [
       "2p"
     ],
-    "players": "2",
-    "howto": "Arrows + Space to make your athlete jump; one control randomly swaps each round; 2 players share one keyboard"
+    "players": "1–2",
+    "howto": "In two-player mode, Player 1 uses Up Arrow and Player 2 uses W. Both share one keyboard."
   },
   {
     "id": 6,
@@ -38,8 +38,8 @@
     "tags": [
       "2p"
     ],
-    "players": "2",
-    "howto": "Arrows + Space to make your athlete jump; one control randomly swaps each round; 2 players share one keyboard"
+    "players": "1–2",
+    "howto": "In two-player mode, Player 1 uses Up Arrow and Player 2 uses W. Both share one keyboard."
   },
   {
     "id": 7,
@@ -73,7 +73,9 @@
     "desc": "Classic snake game. Eat food, grow, don't hit the wall!",
     "url": "Games/Snake/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Choose Start Game. Steer with WASD, the arrow keys or the on-screen direction buttons. Eat food and avoid your own tail."
   },
   {
     "id": 10,
@@ -83,7 +85,9 @@
     "desc": "The famous offline Chrome dinosaur game.",
     "url": "Games/ChromeDino/dino.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Press Space or Up, or tap, to jump. Down drops faster while airborne. Press Enter after a crash to restart."
   },
   {
     "id": 11,
@@ -93,7 +97,9 @@
     "desc": "Classic arcade breakout. Break all the bricks!",
     "url": "Games/BreakoutClassic/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Space serves. Left and Right move the paddle. Enter pauses. On touch, tap the paddle to start and drag sideways."
   },
   {
     "id": 14,
@@ -103,7 +109,9 @@
     "desc": "Chat with an AI character.",
     "url": "Games/Character AI/Alsen.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Type a message and press Enter or Send. Choose a suggested prompt to start a conversation."
   },
   {
     "id": 47,
@@ -116,7 +124,7 @@
     "tags": [
       "2p"
     ],
-    "players": "2",
+    "players": "1–2",
     "howto": "P1 and P2 pick WASD, Arrows, or gamepad in the pre-fight menu"
   },
   {
@@ -127,7 +135,9 @@
     "desc": "Physics launch game - fling the burrito, smash gummy bears, grab cash, and buy upgrades to travel further each run.",
     "url": "Games/BurritoBison/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Use the mouse to launch and slam. Spend coins earned during the run on upgrades for the next launch."
   },
   {
     "id": 49,
@@ -137,7 +147,9 @@
     "desc": "Text-based life simulation - born into a family, then steer a whole lifetime one year at a time: school, careers, relationships, crime, and whatever else aging throws at you.",
     "url": "Games/BitLife/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Start a new life and choose an action. Use the age button to advance a year and see what happens next."
   },
   {
     "id": 50,
@@ -147,7 +159,9 @@
     "desc": "Endless runner - dodge trains, jump and roll, and switch lanes to keep the run going through San Francisco. Fan-hosted Unity WebGL port; online leaderboards and services are inert offline.",
     "url": "Games/SubwaySurfers/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Use the arrow keys or swipe to dodge trains, jump obstacles and roll under barriers."
   },
   {
     "id": 51,
@@ -157,7 +171,9 @@
     "desc": "Tend a fire, build a shelter, gather resources, and explore - a branching narrative progression that begins in one dark room and spirals far beyond it.",
     "url": "Games/ADarkRoom/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Select Light fire, then Stoke fire as the button becomes available. Watch the room for new actions."
   },
   {
     "id": 52,
@@ -167,7 +183,9 @@
     "desc": "Fantasy RPG - stranded in another world, explore villages and forests, talk to NPCs, win quiz battles, and level up through the story.",
     "url": "Games/StrandedInIsekai/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Use the arrows to move and Space to start or interact. On a touchscreen, use the direction pad and A."
   },
   {
     "id": 53,
@@ -177,7 +195,9 @@
     "desc": "Flipline Studios' classic time-management game - take orders, build pizzas, bake them, and serve happy customers through a full workday shift. Original 2007 Flash build running locally under the bundled Ruffle emulator; MochiAds/FliplineAds ad calls are answered locally, so it's fully playable offline.",
     "url": "Games/PapasPizzeria/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Use the mouse to take an order, drag toppings onto the pizza, then bake and cut it to match the ticket."
   },
   {
     "id": 54,
@@ -187,7 +207,9 @@
     "desc": "Fan-hosted HTML5 port of New Star Games' Retro Bowl - build a franchise, draft, and play arcade football with simple tap/swipe controls. Local GameMaker:HTML5 build; Poki SDK replaced by a local stub, so it's fully playable offline.",
     "url": "Games/RetroBowl/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Drag and hold to aim a pass, then release to throw. Swipe while running to dodge defenders."
   },
   {
     "id": 55,
@@ -197,7 +219,9 @@
     "desc": "Fan-hosted Unity WebGL port of SUPERHOT - time moves only when you move. Dismantle a slow-motion world with thrown weapons and well-timed shots. Local build; fully playable offline.",
     "url": "Games/Superhot/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Move with WASD and look with the mouse. Time advances as you move."
   },
   {
     "id": 56,
@@ -207,7 +231,9 @@
     "desc": "Fan-hosted Unity WebGL port of Flanne's 10 Minutes Till Dawn - survive the horde for ten minutes, level up on the fly, and stack upgrades as the night gets darker. Local build; fully playable offline.",
     "url": "Games/TenMinutesTillDawn/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Move with WASD and hold the left mouse button to shoot. Survive the waves and choose upgrades as you level up."
   },
   {
     "id": 57,
@@ -217,7 +243,9 @@
     "desc": "Fan-hosted port of the Henry Stickmin adventure Fleeing the Complex - escape the prison through zany, choice-driven outcomes. Original Flash game running under the bundled local Ruffle emulator.",
     "url": "Games/FleeingTheComplex/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Click an option to choose Henry's next move. Retry a failed choice to take a different path through the prison."
   },
   {
     "id": 58,
@@ -227,7 +255,9 @@
     "desc": "Fan-hosted port of the Henry Stickmin adventure Infiltrating the Airship - sneak aboard the Toppat airship and pick your path through branching chaos. Original Flash game running under the bundled local Ruffle emulator.",
     "url": "Games/InfiltratingTheAirship/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Click an option to choose Henry's next move. Retry failed choices to discover another route through the airship."
   },
   {
     "id": 59,
@@ -237,7 +267,9 @@
     "desc": "Fan-hosted Unity WebGL port of Mystman12's Baldi's Basics in Education and Learning - explore the school, solve notebook math problems, and outrun Baldi as he gets faster with every wrong answer. Local build; fully playable offline.",
     "url": "Games/BaldisBasics/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Move with WASD or the arrows, look with the mouse, hold Shift to run, and click or press E to interact."
   },
   {
     "id": 60,
@@ -247,7 +279,9 @@
     "desc": "Fan-hosted HTML5 port (Babylon.js) of the Temple Run 2 endless-runner concept - sprint through the lost temple ruins, turn, jump and slide to survive. Local assets; fully playable offline.",
     "url": "Games/TempleRun2/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Swipe or drag to turn, jump or slide past obstacles. You can also use the arrow keys."
   },
   {
     "id": 62,
@@ -257,7 +291,9 @@
     "desc": "Physics puzzle levels - feed Om Nom the candy",
     "url": "Games/CutTheRope/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Drag across a rope to cut it. Time the cuts to guide the candy to Om Nom."
   },
   {
     "id": 63,
@@ -267,7 +303,9 @@
     "desc": "Fluid hand-drawn platformer with levels to run",
     "url": "Games/FancyPantsAdventure3/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Use Left and Right to move, S to jump and Up to enter a door."
   },
   {
     "id": 64,
@@ -277,7 +315,9 @@
     "desc": "Trap-filled platforming gauntlet, 10 levels",
     "url": "Games/Vex7/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Use the arrow keys or WASD to move and jump through the traps. On touchscreens, use the on-screen arrows."
   },
   {
     "id": 66,
@@ -287,7 +327,9 @@
     "desc": "Rhythm platformer - jump to the beat, level after level",
     "url": "Games/GeometryDashLite/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Choose Stereo Madness from level selection to start a run. Select Practice Mode to rehearse a level."
   },
   {
     "id": 79,
@@ -297,7 +339,9 @@
     "desc": "The iconic idle/clicker game. Click the cookie, buy buildings, and watch the numbers grow!",
     "url": "Games/CookieClicker/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Click or tap the big cookie to bake. Spend cookies in the store to increase production."
   },
   {
     "id": 80,
@@ -307,7 +351,9 @@
     "desc": "Classic tower defense - pop bloons with monkeys! Four versions included: BTD 1-4, playable via bundled Ruffle emulator.",
     "url": "Games/BloonsTD/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Choose one of the four editions. Select a tower, click a site beside the path to build it, then start the next wave."
   },
   {
     "id": 81,
@@ -317,7 +363,9 @@
     "desc": "Endless drifting game - steer your car through obstacles, chain combos, and drift as far as you can!",
     "url": "Games/DriftBoss/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Hold Space, the mouse button or your finger on the screen to steer right. Release to steer left."
   },
   {
     "id": 83,
@@ -327,7 +375,9 @@
     "desc": "Classic vertical platformer - jump as high as you can, dodge monsters, collect power-ups!",
     "url": "Games/DoodleJump/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Steer each bounce with Left and Right. Press Space or Up to shoot."
   },
   {
     "id": 84,
@@ -337,7 +387,9 @@
     "desc": "Play against a built-in AI opponent. Drag pieces to move, select search depth for AI difficulty!",
     "url": "Games/Chess/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Drag a white piece to a legal square. The computer plays Black. Change search depth to adjust its difficulty."
   },
   {
     "id": 86,
@@ -347,7 +399,9 @@
     "desc": "Endless side-scrolling runner - strap on a jetpack, dodge lasers and missiles, and grab coins!",
     "url": "Games/JetpackJoyride/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Hold the mouse button or touch the screen to rise. Release to descend and slip between obstacles."
   },
   {
     "id": 107,
@@ -359,7 +413,9 @@
     "featured": false,
     "tags": [
       "hacked"
-    ]
+    ],
+    "players": "1",
+    "howto": "Hold the mouse button or touch the screen to rise. Release to descend."
   },
   {
     "id": 87,
@@ -369,7 +425,9 @@
     "desc": "The Dogecoin Mining Simulator - click to mine, hire helpers, buy upgrades, and reach the moon!",
     "url": "Games/DogeMiner/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Click Doge to mine coins. Buy helpers and upgrades in the shop to increase production."
   },
   {
     "id": 89,
@@ -381,7 +439,9 @@
     "featured": false,
     "tags": [
       "hacked"
-    ]
+    ],
+    "players": "1",
+    "howto": "Drag and hold to aim a pass, then release to throw. Swipe while running to dodge defenders."
   },
   {
     "id": 90,
@@ -393,7 +453,9 @@
     "featured": false,
     "tags": [
       "hacked"
-    ]
+    ],
+    "players": "1",
+    "howto": "Click or tap the big cookie to bake. Use the store to buy buildings and upgrades."
   },
   {
     "id": 94,
@@ -405,7 +467,9 @@
     "featured": false,
     "tags": [
       "hacked"
-    ]
+    ],
+    "players": "1",
+    "howto": "Press Space to serve, steer the paddle with Left and Right, and press Enter to pause. Drag sideways on touch screens."
   },
   {
     "id": 95,
@@ -417,7 +481,9 @@
     "featured": false,
     "tags": [
       "hacked"
-    ]
+    ],
+    "players": "1",
+    "howto": "Choose Start Game, then steer with WASD, the arrow keys or the direction buttons."
   },
   {
     "id": 111,
@@ -429,7 +495,9 @@
     "featured": false,
     "tags": [
       "hacked"
-    ]
+    ],
+    "players": "1",
+    "howto": "Use the arrow keys or swipe to change lane, jump and roll past obstacles."
   },
   {
     "id": 109,
@@ -441,7 +509,9 @@
     "featured": false,
     "tags": [
       "hacked"
-    ]
+    ],
+    "players": "1",
+    "howto": "Steer each bounce with Left and Right. Press Space or Up to shoot."
   },
   {
     "id": 114,
@@ -451,17 +521,21 @@
     "desc": "Classic pill-matching puzzle. Drop Megavitamins to wipe the viruses.",
     "url": "Games/DrMario/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Enter starts. Move the capsules with the arrow keys and use Z or X to rotate them. Match colours to clear viruses."
   },
   {
     "id": 115,
     "title": "Street Fighter II",
     "cat": "action",
     "icon": "",
-    "desc": "Super Street Fighter II Turbo Revival. 2-player versus on one keyboard via emulator control settings.",
+    "desc": "Super Street Fighter II Turbo Revival for Game Boy Advance. Choose a fighter and play the arcade ladder against the computer.",
     "url": "Games/StreetFighter2/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Press Enter to start and use the arrows to move. The default GBA buttons are Z for A, X for B, Q for L and E for R."
   },
   {
     "id": 116,
@@ -471,7 +545,11 @@
     "desc": "Turn-based tactics campaign. Command armies and capture HQs.",
     "url": "Games/AdvanceWars/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p"
+    ],
+    "players": "1–4",
+    "howto": "Use arrows to select a unit and Z to confirm an order. Play the campaign solo or pass one keyboard between turns in Versus."
   },
   {
     "id": 117,
@@ -481,7 +559,9 @@
     "desc": "GBA kart racing across all the classic tracks.",
     "url": "Games/MarioKartSuperCircuit/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Press Enter to start, steer with the arrows and hold Z to accelerate. Adjust button mapping in the emulator's control settings."
   },
   {
     "id": 118,
@@ -491,7 +571,9 @@
     "desc": "Samus investigates a bio-station. Classic GBA metroidvania.",
     "url": "Games/MetroidFusion/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Use the arrows to move Samus, Z to jump and X to fire. Enter opens the GBA Start screen."
   },
   {
     "id": 119,
@@ -501,7 +583,9 @@
     "desc": "Zero returns. Fast action platforming with the Z-saber.",
     "url": "Games/MegaManZero/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Move Zero with the arrow keys. Z and X are the default GBA A and B buttons. Enter opens the Start screen."
   },
   {
     "id": 120,
@@ -511,7 +595,9 @@
     "desc": "Split-path GBA Kirby adventure through the mirror world.",
     "url": "Games/KirbyAmazingMirror/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Move Kirby with the arrow keys. Use Z to jump and X to inhale or use your current ability."
   },
   {
     "id": 121,
@@ -521,7 +607,9 @@
     "desc": "Sonic, Tails, Knuckles and Amy on the GBA. Speed running with rings.",
     "url": "Games/SonicAdvance/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Use the arrow keys to move and Z to jump. Press Enter for Start. Choose a character and collect rings as you run."
   },
   {
     "id": 123,
@@ -531,7 +619,9 @@
     "desc": "Trebuchet physics siege. Demolish castles and their occupants.",
     "url": "Games/CrushTheCastle/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Click or press Space once to start the trebuchet swinging, then again to release the projectile."
   },
   {
     "id": 127,
@@ -541,7 +631,12 @@
     "desc": "Control both characters to solve temple puzzles. Collect gems and reach the exits.",
     "url": "Games/FireboyAndWatergirl/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p",
+      "coop"
+    ],
+    "players": "1–2",
+    "howto": "Use A/D/W for Watergirl and Left/Right/Up for Fireboy. Work the switches and bring both characters to their exits."
   },
   {
     "id": 128,
@@ -551,7 +646,12 @@
     "desc": "Control Fireboy and Watergirl together through crystal-temple puzzles, teleporting portals, traps and gems.",
     "url": "Games/FireboyAndWatergirlCrystalTemple/index.html",
     "featured": false,
-    "tags": []
+    "tags": [
+      "2p",
+      "coop"
+    ],
+    "players": "1–2",
+    "howto": "Use A/D/W for Watergirl and Left/Right/Up for Fireboy. Guide both through the crystal portals to their exits."
   },
   {
     "id": 129,
@@ -565,8 +665,8 @@
       "2p",
       "coop"
     ],
-    "players": "2",
-    "howto": "Fireboy: WASD; Watergirl: Arrow keys; work together and never mix fire with water."
+    "players": "1–2",
+    "howto": "Use A/D/W for Watergirl and Left/Right/Up for Fireboy. Use the switches to bring both characters to their exits."
   },
   {
     "id": 131,
@@ -581,7 +681,9 @@
       "puzzle",
       "co-op",
       "hacked"
-    ]
+    ],
+    "players": "1–2",
+    "howto": "Use A/D/W for Watergirl and Left/Right/Up for Fireboy. Pick an unlocked Light Temple level and reach both exits."
   },
   {
     "id": 132,
@@ -596,7 +698,9 @@
       "puzzle",
       "co-op",
       "hacked"
-    ]
+    ],
+    "players": "1–2",
+    "howto": "Use A/D/W for Watergirl and Left/Right/Up for Fireboy. Pick an unlocked Forest Temple level and reach both exits."
   },
   {
     "id": 133,
@@ -611,7 +715,9 @@
       "puzzle",
       "co-op",
       "hacked"
-    ]
+    ],
+    "players": "1–2",
+    "howto": "Use A/D/W for Watergirl and Left/Right/Up for Fireboy. Guide both characters through an unlocked Crystal Temple level."
   },
   {
     "id": 136,
@@ -621,7 +727,9 @@
     "desc": "Deploy a squad of cats across five lanes; merge, upgrade, and repel enemies from your base.",
     "url": "Games/MergeCatsDefender/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Choose your squad before the wave. Select a cat and place it in a lane to defend the base."
   },
   {
     "id": 137,
@@ -633,7 +741,9 @@
     "featured": false,
     "tags": [
       "hacked"
-    ]
+    ],
+    "players": "1",
+    "howto": "Choose your squad, then select a cat and place it in a lane. This edition unlocks the squad and waives deployment costs."
   },
   {
     "id": 149,
@@ -645,7 +755,9 @@
     "featured": false,
     "tags": [
       "sports"
-    ]
+    ],
+    "players": "1",
+    "howto": "Drag from the bow toward the target and release. On keyboard, Left and Right aim, Up and Down set power, and Space shoots."
   },
   {
     "id": 152,
@@ -657,7 +769,9 @@
     "featured": false,
     "tags": [
       "sports"
-    ]
+    ],
+    "players": "1",
+    "howto": "Aim with Left and Right. Hold Space or Shoot to build power and release in the green zone."
   },
   {
     "id": 154,
@@ -669,7 +783,9 @@
     "featured": false,
     "tags": [
       "strategy"
-    ]
+    ],
+    "players": "1",
+    "howto": "Play white against the computer. Select a checker, then a highlighted destination. Bear off all fifteen checkers to win."
   },
   {
     "id": 160,
@@ -681,19 +797,21 @@
     "featured": false,
     "tags": [
       "maze"
-    ]
+    ],
+    "players": "1",
+    "howto": "Use the arrow keys or touch pad to steer. Eat the pellets and avoid the ghosts. P pauses and N starts a new game."
   },
   {
     "id": 161,
     "title": "Qix",
     "cat": "arcade",
     "icon": "",
-    "desc": "Claim territory by drawing lines from the border while a spike spiral roams the void.",
+    "desc": "Draw a trail across the field in this early JIX movement prototype, with a countdown and a faster dash.",
     "url": "Games/Qix/index.html",
     "featured": false,
-    "tags": [
-      "territory"
-    ]
+    "tags": [],
+    "players": "1",
+    "howto": "Use the arrow keys or touch pad to draw a trail. Hold Shift while moving to dash."
   },
   {
     "id": 162,
@@ -705,19 +823,24 @@
     "featured": false,
     "tags": [
       "arcade"
-    ]
+    ],
+    "players": "1",
+    "howto": "Move with Left and Right and flap with Space, or use the on-screen buttons. Strike rivals from above."
   },
   {
     "id": 163,
     "title": "Tron Light Cycles",
     "cat": "arcade",
     "icon": "",
-    "desc": "Steer a light cycle that leaves deadly walls behind; trap the AI or survive longer.",
+    "desc": "Two riders share the keyboard. Steer a light cycle to leave a wall behind and outlast the other rider.",
     "url": "Games/TronLightCycles/index.html",
     "featured": false,
     "tags": [
-      "duel"
-    ]
+      "duel",
+      "2p"
+    ],
+    "players": "2",
+    "howto": "Share a keyboard. Player 1 steers with WASD and Player 2 with the arrow keys. Space starts the next round."
   },
   {
     "id": 169,
@@ -727,7 +850,9 @@
     "desc": "Slide the numbered tiles into order 1 to 15 on a 4x4 board with a random-walk shuffle that always solves; count moves, beat the clock and your best.",
     "url": "Games/Puzzle15/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Tap a tile beside the gap to slide it. The arrow keys or WASD move the gap. Put the tiles in numerical order."
   },
   {
     "id": 170,
@@ -737,7 +862,9 @@
     "desc": "Jump pegs over their neighbours to clear the English cross board; finish with exactly one peg standing, with undo and a no-moves-left lose state.",
     "url": "Games/PegSolitaire/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Select a peg, then a highlighted landing hole to jump a neighbour. With a keyboard, use arrows and Enter."
   },
   {
     "id": 171,
@@ -747,7 +874,9 @@
     "desc": "Face the computer on an 8x8 board with forced jumps, forward-only men and king promotion; tap pieces or steer a cursor with the arrow keys.",
     "url": "Games/Checkers/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "Select a light piece, then its destination. Take a jump whenever one is available. The computer plays dark."
   },
   {
     "id": 172,
@@ -757,7 +886,9 @@
     "desc": "Trap rival discs between two of yours to flip them; legal-move hints against an MCTS computer player on the classic 8x8 board.",
     "url": "Games/Reversi/index.html",
     "featured": false,
-    "tags": []
+    "tags": [],
+    "players": "1",
+    "howto": "You play black. Click a highlighted square or use the arrows and Enter to place a disc and flip the computer's pieces."
   },
   {
     "id": 174,
@@ -769,7 +900,9 @@
     "featured": false,
     "tags": [
       "puzzle"
-    ]
+    ],
+    "players": "1",
+    "howto": "Use Left and Right to choose a hole and 1–6 to place a colour. Fill all four and press Enter, or pick colours on screen."
   },
   {
     "id": 175,
@@ -781,7 +914,9 @@
     "featured": false,
     "tags": [
       "1p"
-    ]
+    ],
+    "players": "1",
+    "howto": "Press 1, 2 or 3, or tap a Take button, to remove that many stones. The computer takes the next turn."
   },
   {
     "id": 176,
@@ -794,7 +929,9 @@
     "tags": [
       "1p",
       "2p"
-    ]
+    ],
+    "players": "1–2",
+    "howto": "Play the computer or share the board. Tap an edge, or use arrows and Enter to claim it. Complete a box to move again."
   },
   {
     "id": 177,
@@ -807,7 +944,9 @@
     "tags": [
       "1p",
       "2p"
-    ]
+    ],
+    "players": "1–2",
+    "howto": "Play the computer or a friend. Click a square, or use arrows and Enter. Its position chooses the next small board."
   },
   {
     "id": 178,
@@ -819,7 +958,9 @@
     "featured": false,
     "tags": [
       "classic"
-    ]
+    ],
+    "players": "1",
+    "howto": "Drag a card or tap it to move it. Press S to draw from the stock and U to undo. Build four foundations from aces up."
   },
   {
     "id": 179,
@@ -831,7 +972,9 @@
     "featured": false,
     "tags": [
       "classic"
-    ]
+    ],
+    "players": "1",
+    "howto": "Tap a card, then its destination. Tab and Enter also move cards. Use the free cells to free up buried cards."
   },
   {
     "id": 180,
@@ -843,7 +986,9 @@
     "featured": false,
     "tags": [
       "classic"
-    ]
+    ],
+    "players": "1",
+    "howto": "Set your bet and press Enter to deal. H hits, S stands and D doubles. Beat the dealer without passing 21."
   },
   {
     "id": 181,
@@ -855,7 +1000,9 @@
     "featured": false,
     "tags": [
       "classic"
-    ]
+    ],
+    "players": "1",
+    "howto": "Deal five cards. Tap the cards to keep, or press keys 1–5. Press Enter to draw replacements."
   },
   {
     "id": 182,
@@ -867,7 +1014,9 @@
     "featured": false,
     "tags": [
       "classic"
-    ]
+    ],
+    "players": "1",
+    "howto": "Roll the dice, tap the ones to keep, then roll again or select an open scorecard row to bank your points."
   },
   {
     "id": 184,
@@ -879,7 +1028,9 @@
     "featured": false,
     "tags": [
       "classic"
-    ]
+    ],
+    "players": "1",
+    "howto": "Click a card or focus it and press Enter to ask the computer for that rank. Collect sets of four."
   },
   {
     "id": 185,
@@ -891,7 +1042,9 @@
     "featured": false,
     "tags": [
       "classic"
-    ]
+    ],
+    "players": "1",
+    "howto": "Use Flip or press Space to reveal both top cards. Capture the computer's deck, including ties resolved by war."
   },
   {
     "id": 186,
@@ -903,7 +1056,9 @@
     "featured": false,
     "tags": [
       "word"
-    ]
+    ],
+    "players": "1",
+    "howto": "Drag from a word's first letter to its last, or tap the two ends. Words can run diagonally or backwards."
   },
   {
     "id": 188,
@@ -915,7 +1070,9 @@
     "featured": false,
     "tags": [
       "word"
-    ]
+    ],
+    "players": "1",
+    "howto": "Type a valid four-letter word one letter different from the previous word. Press Enter to submit each step toward the target."
   },
   {
     "id": 190,
@@ -927,7 +1084,9 @@
     "featured": false,
     "tags": [
       "word"
-    ]
+    ],
+    "players": "1",
+    "howto": "Type the unscrambled word and press Enter or Check before time runs out. Reshuffle rearranges the letters."
   },
   {
     "id": 191,
@@ -939,7 +1098,9 @@
     "featured": false,
     "tags": [
       "sports"
-    ]
+    ],
+    "players": "1",
+    "howto": "Tap the board to throw, or aim with the arrows and press Space. Bring 501 down to exactly zero with a double."
   },
   {
     "id": 193,
@@ -951,7 +1112,9 @@
     "featured": false,
     "tags": [
       "puzzle"
-    ]
+    ],
+    "players": "1",
+    "howto": "Select two matching uncovered tiles with an open side. The arrow keys move between free tiles and Enter selects."
   },
   {
     "id": 195,
@@ -960,7 +1123,9 @@
     "icon": "",
     "desc": "Push every box onto a goal mark across 100 classic warehouse puzzle levels with keyboard or touch controls.",
     "url": "Games/Sokoban/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Use arrows, WASD or the on-screen buttons to push boxes onto goals. Make room before pushing into a corner."
   },
   {
     "id": 196,
@@ -969,7 +1134,9 @@
     "icon": "",
     "desc": "Move the stack of disks from the left peg to the right peg in as few moves as you can, one disk at a time.",
     "url": "Games/TowerOfHanoi/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Click a disk, then its destination peg, or drag it there. Move the stack to the right without placing a larger disk on a smaller one."
   },
   {
     "id": 197,
@@ -978,7 +1145,9 @@
     "icon": "",
     "desc": "Fill the grid to match the number clues on every row and column in this picture logic puzzle.",
     "url": "Games/Nonogram/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Click or tap squares to match the row and column clues. Press X to switch between filling a square and marking it empty."
   },
   {
     "id": 198,
@@ -987,7 +1156,9 @@
     "icon": "",
     "desc": "Sink the computer's fleet on a 10 by 10 grid with click, tap or arrow-key firing.",
     "url": "Games/Battleship/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Tap a cell on the computer's grid to fire, or move with the arrows and press Enter. A hit earns another shot."
   },
   {
     "id": 199,
@@ -996,7 +1167,9 @@
     "icon": "",
     "desc": "Find connected words on a 4 by 4 letter grid by dragging or typing before the 90 second timer runs out.",
     "url": "Games/Boggle/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Drag through touching letters to make words of at least three letters, or type a word and press Enter."
   },
   {
     "id": 200,
@@ -1005,7 +1178,12 @@
     "icon": "",
     "desc": "Steer a growing line and outsurvive the other players in this classic curve duel for two to four on one keyboard.",
     "url": "Games/AchtungDieKurve/index.html",
-    "featured": false
+    "featured": false,
+    "players": "2–4",
+    "howto": "Add at least two players and assign each a pair of turn keys. Steer around trails and borders on one shared screen.",
+    "tags": [
+      "2p"
+    ]
   },
   {
     "id": 201,
@@ -1014,7 +1192,9 @@
     "icon": "",
     "desc": "Arrange eight domino tiles so matching ends line up and fill the whole board.",
     "url": "Games/Dominoes/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Drag dominoes into the eight slots so their ends match. You can also tap a tile and then its destination."
   },
   {
     "id": 202,
@@ -1023,7 +1203,9 @@
     "icon": "",
     "desc": "Aim, pull back, and sink the ball in as few strokes as you can across randomized holes.",
     "url": "Games/MiniGolf/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Pull back from the ball and release to putt, or use the arrows to aim and Space to putt."
   },
   {
     "id": 203,
@@ -1032,7 +1214,9 @@
     "icon": "",
     "desc": "Flick the ball down a 3D lane with real physics and roll ten frames of proper scoring.",
     "url": "Games/Bowling/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Drag the ball sideways to line it up, then flick it forward. The arrow keys line up a shot and Space bowls."
   },
   {
     "id": 204,
@@ -1041,7 +1225,9 @@
     "icon": "",
     "desc": "Classic four player hearts with smart computer opponents and running score.",
     "url": "Games/HeartsClassic/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Click a card from your hand. Follow the leading suit when possible. The other three seats are computer opponents."
   },
   {
     "id": 205,
@@ -1050,7 +1236,9 @@
     "icon": "",
     "desc": "Ten column spider solitaire with hint, undo, stats and keyboard play.",
     "url": "Games/SpiderSolitaire/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Drag or tap a card onto a column one rank higher. Complete a king-to-ace run of one suit to clear it."
   },
   {
     "id": 206,
@@ -1059,7 +1247,9 @@
     "icon": "",
     "desc": "Clear groups of two or more matching tiles from the board; bigger groups score more points.",
     "url": "Games/SameGame/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Click or tap a group of at least two touching tiles of one colour to clear it. On keyboard, use arrows and Enter."
   },
   {
     "id": 207,
@@ -1068,7 +1258,9 @@
     "icon": "",
     "desc": "Build and upgrade towers to stop waves of monsters before they reach the exit.",
     "url": "Games/TowerDefense/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Choose a tower, tap an empty grass tile to build, then start the next wave. Select a built tower to upgrade or sell it."
   },
   {
     "id": 208,
@@ -1077,7 +1269,9 @@
     "icon": "",
     "desc": "Drive lap after lap on a 3d road and try to beat your fastest lap time.",
     "url": "Games/JavaScriptRacer/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Drive with the arrow keys or the on-screen steering and pedal buttons. Complete laps to improve your best time."
   },
   {
     "id": 209,
@@ -1086,7 +1280,9 @@
     "icon": "",
     "desc": "Hit falling notes in time with the music and finish the song for the highest score.",
     "url": "Games/Rhythm/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Press S, D, F, Space, J, K or L as the note reaches its lane's line. The on-screen keys also accept taps."
   },
   {
     "id": 210,
@@ -1095,7 +1291,9 @@
     "icon": "",
     "desc": "Fly through escalating levels of bullets and bosses while your score multiplier climbs.",
     "url": "Games/BulletHell/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "On a touch screen, drag to move your ship and hold to fire. Dodge incoming shots. P pauses the game."
   },
   {
     "id": 211,
@@ -1104,7 +1302,9 @@
     "icon": "",
     "desc": "Play classic two-player cribbage against the computer with pegging, crib scoring hints, and adjustable settings.",
     "url": "Games/CribbageClassic/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Select two cards for the crib, then tap cards to peg against the computer without pushing the running count over 31."
   },
   {
     "id": 212,
@@ -1113,7 +1313,9 @@
     "icon": "",
     "desc": "Solve a freshly generated crossword puzzle clue by clue with reveal-answer help and a progress tracker.",
     "url": "Games/Crossword/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Choose an Across or Down clue, type the whole word and press Answer. You can retry a missed clue."
   },
   {
     "id": 213,
@@ -1122,7 +1324,12 @@
     "icon": "",
     "desc": "Five in a row on a 15x15 board, against a brutal AI or a second player.",
     "url": "Games/Gomoku/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1–2",
+    "howto": "Choose an AI opponent or a two-player game. Take turns clicking an empty intersection to make five in a row.",
+    "tags": [
+      "2p"
+    ]
   },
   {
     "id": 214,
@@ -1131,7 +1338,12 @@
     "icon": "",
     "desc": "Sow seeds around the Kalah board, capture pits, and outscore the AI or a friend.",
     "url": "Games/Mancala/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1–2",
+    "howto": "Choose Human vs Human or Human vs AI. Select a pit on your side to sow its seeds. A last seed in your store earns another move.",
+    "tags": [
+      "2p"
+    ]
   },
   {
     "title": "Asteroids",
@@ -1140,7 +1352,9 @@
     "desc": "Rotate, thrust and shoot your way through waves of splitting space rocks.",
     "url": "Games/Asteroids/index.html",
     "id": 215,
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Left and Right turn the ship, Up thrusts and Space fires. P pauses. The touch buttons mirror these actions."
   },
   {
     "title": "Frogger",
@@ -1149,7 +1363,9 @@
     "desc": "Hop a frog across traffic and a rushing river to reach home safely.",
     "url": "Games/Frogger/index.html",
     "id": 216,
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Hop with the arrow keys or touch pad. Dodge the traffic, then ride the logs to reach the far bank."
   },
   {
     "title": "Missile Command",
@@ -1158,7 +1374,9 @@
     "desc": "Defend six cities from incoming missile waves with limited anti-ballistic batteries.",
     "url": "Games/MissileCommand/index.html",
     "id": 217,
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Click or tap the sky to send a countermeasure there. Intercept missiles before they reach your cities."
   },
   {
     "title": "Lunar Lander",
@@ -1167,7 +1385,9 @@
     "desc": "Touch your lunar module down on the moon gently under gravity with limited fuel.",
     "url": "Games/LunarLander/index.html",
     "id": 218,
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Left and Right rotate the lander. Up turns on the thruster and Down cuts it. Approach the surface gently."
   },
   {
     "title": "Space Invaders",
@@ -1176,7 +1396,9 @@
     "desc": "Hold the line against descending alien waves with your laser cannon.",
     "url": "Games/SpaceInvaders/index.html",
     "id": 219,
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Move with Left and Right and fire with Up. On touch, drag to move the ship and tap to fire."
   },
   {
     "title": "Duck Hunt",
@@ -1185,7 +1407,9 @@
     "desc": "Shoot the flying ducks before they escape in this classic light-gun shooter.",
     "url": "Games/DuckHunt/index.html",
     "id": 220,
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Aim at a flying duck and click to shoot it before it escapes."
   },
   {
     "id": 221,
@@ -1194,7 +1418,9 @@
     "icon": "",
     "desc": "Poker roguelike: build joker synergies and hit the blinds. GBA demake v0.2.2.",
     "url": "Games/Balatro/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Enter starts the GBA demake. Use the arrows to navigate and Z and X for the GBA A and B buttons. Build scoring poker hands."
   },
   {
     "id": 222,
@@ -1218,7 +1444,12 @@
     "icon": "TR",
     "desc": "Local two-player chase across 14 arenas. Adapted from Leo B / Hack Club (MIT).",
     "url": "Games/Tag Relay/index.html",
-    "featured": false
+    "featured": false,
+    "players": "2",
+    "howto": "Share a keyboard or use both touch pads. Red moves with WASD, Blue with IJKL. Red scores by catching Blue.",
+    "tags": [
+      "2p"
+    ]
   },
   {
     "id": 224,
@@ -1227,7 +1458,9 @@
     "icon": "SR",
     "desc": "Explore 16 spline paths with ride and orbit views. Adapted from the three.js authors (MIT).",
     "url": "Games/Spline Ride/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Drag to orbit and scroll or pinch to zoom. Space plays or pauses the ride, R restarts and V changes the view."
   },
   {
     "id": 225,
@@ -1236,7 +1469,9 @@
     "icon": "SB",
     "desc": "Preview: city police chases and highway races, plus an all-car handling sandbox. City driving supports reverse.",
     "url": "Games/Slipstream Borough/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Hold W or Up for gas. Steer with A/D or Left/Right. S or Down brakes. Touch controls are available in the car."
   },
   {
     "id": 226,
@@ -1245,7 +1480,9 @@
     "icon": "FW",
     "desc": "Preview: explore five regions, collect creatures and fight turn-based battles. Full campaign and device testing remain ongoing.",
     "url": "Games/Foldwild/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Move with WASD, arrows or the touch buttons. Press E to interact. In battle, use 1–4 for abilities and Space to wait."
   },
   {
     "id": 227,
@@ -1296,7 +1533,9 @@
     "featured": false,
     "tags": [
       "ported"
-    ]
+    ],
+    "players": "1",
+    "howto": "Move with WASD or arrows and aim with the mouse in solo bot matches. Shift sprints and Tab opens scores and match options."
   },
   {
     "id": 231,
@@ -1308,7 +1547,9 @@
     "featured": false,
     "tags": [
       "ported"
-    ]
+    ],
+    "players": "1",
+    "howto": "Choose Chase or Free drive. Steer and drive with WASD or arrows. Space drifts and Shift uses nitro."
   },
   {
     "id": 232,
@@ -1320,7 +1561,9 @@
     "featured": false,
     "tags": [
       "ported"
-    ]
+    ],
+    "players": "1",
+    "howto": "Use Up and Down to choose a flight and Enter to confirm. Fly solo against AI pilots with a keyboard and mouse."
   },
   {
     "id": 233,
@@ -1332,7 +1575,9 @@
     "featured": false,
     "tags": [
       "3d"
-    ]
+    ],
+    "players": "1",
+    "howto": "Choose a service from the toolbar and place it on the grid. Use Link to connect services and watch for failed requests."
   },
   {
     "id": 234,
@@ -1344,7 +1589,9 @@
     "featured": false,
     "tags": [
       "3d"
-    ]
+    ],
+    "players": "1",
+    "howto": "Guide the ball through the maze with the arrow keys or direction buttons. Hold I for help."
   },
   {
     "id": 235,
@@ -1353,7 +1600,9 @@
     "icon": "Games/Dive Trivia/guide.svg",
     "desc": "Original self-made rare-answer trivia commissioned for this arcade. Seven-question UTC daily dives, numbered games and four themed packs with curated rarity scoring. Offline solo; online Battle is not enabled.",
     "url": "Games/Dive Trivia/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Type an answer and press Enter to lock it in, or choose Pass. Find a rarer accepted answer across seven questions."
   },
   {
     "id": 240,
@@ -1367,7 +1616,9 @@
     "tags": [
       "shooter",
       "solo"
-    ]
+    ],
+    "players": "1",
+    "howto": "Choose a hero and move with WASD. Use the mouse or drag to look. Keys 1–4 trigger your hero's abilities."
   },
   {
     "id": 241,
@@ -1382,7 +1633,9 @@
       "sandbox",
       "3d",
       "defense"
-    ]
+    ],
+    "players": "1",
+    "howto": "Select a building tool and click a dry lot to build. Drag for roads. WASD moves the camera and right-drag rotates it."
   },
   {
     "id": 242,
@@ -1395,7 +1648,9 @@
     "tags": [
       "solo",
       "3d"
-    ]
+    ],
+    "players": "1",
+    "howto": "Left and Right or A and D change lane. Up or Space jumps. Down or S slides under obstacles. P pauses."
   },
   {
     "id": 243,
@@ -1408,7 +1663,9 @@
     "tags": [
       "solo",
       "3d"
-    ]
+    ],
+    "players": "1",
+    "howto": "Press Space or Up, or tap the courtyard, to gain lift. Fly through the gaps without hitting the frames."
   },
   {
     "id": 244,
@@ -1421,7 +1678,9 @@
     "tags": [
       "solo",
       "3d"
-    ]
+    ],
+    "players": "1",
+    "howto": "Pull back at the sling and release to launch. Tap again in flight or press Space to use the pilot's ability."
   },
   {
     "id": 1,
@@ -1430,7 +1689,9 @@
     "icon": "Games/BrainrotBoulevard/favicon.svg",
     "desc": "Single-player collect-and-raid game with three AI rivals. PBR-textured creatures, hidden GLB collectible. Offline, no accounts.",
     "url": "Games/BrainrotBoulevard/index.html",
-    "featured": false
+    "featured": false,
+    "players": "1",
+    "howto": "Move with WASD, drag to look and press E near a character or the conveyor belt to interact. Q drops what you are carrying."
   },
   {
     "id": 245,

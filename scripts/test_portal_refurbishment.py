@@ -171,6 +171,7 @@ def main():
             # Negative storage fixtures only, independent disposable page state.
             cases = ['[null]', '[1]', '{bad', json.dumps([
                 None, 1, {}, {'title':'bad','url':'https://invalid.example','ts':1},
+                {'title':'Retired game','url':'Games/Retired/index.html','ts':1},
                 {'title':'bad','url':'Games/%2e%2e/x','ts':1},
                 {'title':'bad','url':' Games/Snake/index.html','ts':1},
                 {'title':1,'url':'Games/Snake/index.html','ts':1},
@@ -188,12 +189,13 @@ def main():
                 assert page.locator('.ux-recent__chip').count() == 0
                 wait_count(page, count)
             oversized = [{'title':f'Fixture {i}', 'url':f'Games/Fixture{i}/index.html', 'ts':i} for i in range(1000)]
-            oversized.insert(1, oversized[0])
+            oversized.extend({'title':'Old display name','url':game['url'],'ts':i} for i,game in enumerate(games[:10]))
+            oversized.insert(1001, oversized[1000])
             page.evaluate("raw => localStorage.setItem('unblockmath_recent', raw)", json.dumps(oversized))
             page.reload(wait_until='networkidle')
             page.wait_for_selector('.ux-recent__chip')
             assert page.locator('.ux-recent__chip').count() == 8
-            assert len(set(page.locator('.ux-recent__chip').all_text_contents())) == 8
+            assert page.locator('.ux-recent__chip').all_text_contents() == [game['title'] for game in games[:8]]
             assert idle_changes(page) == 0
             # Normal UI Play records a real catalog entry, even after bad old data.
             page.evaluate("localStorage.setItem('unblockmath_recent', '[null]')")
@@ -241,6 +243,8 @@ def main():
                     info = page.locator('.game-card[data-title="Soccer Random"] .game-card__info')
                     info.tap()
                     page.wait_for_function("document.activeElement.classList.contains('ux-detail__play')")
+                    page.keyboard.press('Tab')
+                    assert page.locator('.ux-detail__copy').evaluate('el => el === document.activeElement')
                     page.keyboard.press('Tab')
                     assert page.locator('.ux-detail__close').evaluate('el => el === document.activeElement')
                     page.keyboard.press('Escape')

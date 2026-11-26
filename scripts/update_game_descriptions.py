@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROTECTED = 'Games/Character AI/'
 OTHER_OWNERS = ('Games/Wings/', 'Games/JetpackJoyrideHacked/')
 # Replace inherited keyword stuffing/marketing with the reviewed catalog summary.
-REPLACE = {10, 66, 211, 220, 233}
+REPLACE = {10, 66, 211, 233}
 # Catalog claims narrowed where the existing manual contradicts or qualifies them.
 DESCRIPTIONS = {
     4: 'Physics-based soccer with random elements.',
@@ -41,8 +41,8 @@ DESCRIPTIONS = {
     64: 'Trap-filled platformer with checkpoints and level progression.',
     79: 'Click the cookie, buy buildings and grow production in an idle game.',
     80: 'A hub for Bloons TD 1-4, hosted with local Ruffle. Place towers to pop bloons.',
-    81: 'Hold to drift and release to drive straight in an endless driving game.',
-    87: 'Dogecoin-themed mining game with helpers, upgrades and new locations. Current build has a known script startup blocker.',
+    81: 'Steer right while holding, then release to steer left and stay on the winding track.',
+    87: 'Dogecoin-themed mining game with helpers, upgrades and new locations.',
     89: 'Retro Bowl variant with increased coaching-credit and salary-cap values on save loading.',
     90: 'Cookie Clicker variant with recurring cookie top-ups.',
     94: 'Breakout variant awarding 1000 points per brick with recurring brick grids.',
@@ -70,7 +70,7 @@ DESCRIPTIONS = {
     217: 'Defend six cities from missile waves with an unlimited single launcher.',
     218: 'Guide a lunar module under gravity toward a landing pad.',
     219: 'Fire at descending alien ships with your laser cannon.',
-    220: 'Duck-shooting game with timed waves and scoring. Missing renderer chunks remain a documented loading blocker.',
+    220: 'Track ducks through timed waves, watch your ammunition and create a custom level.',
     222: 'Original arena shooter with six solo bot waves and manual 2-4-player LAN co-op pairing; connectivity depends on the local network.',
     229: 'Archive stealth prototype with a case-retrieval objective. Input, pause and extraction defects remain documented.',
 }
@@ -166,10 +166,12 @@ def main():
     args = parser.parse_args()
     changes = []
     covered = 0
+    total = 0
     pending = []
     for game, path in catalog_entries():
         if path.startswith(PROTECTED):
             continue
+        total += 1
         raw = entry_bytes(path)
         head = Head(raw)
         covered += len(head.descriptions) == 1 and bool(head.descriptions[0][2].strip())
@@ -180,7 +182,7 @@ def main():
         updated = patch(raw, description_for(game), game['id'] in REPLACE)
         if updated != raw:
             changes.append((path, raw, updated))
-    print(f'Coverage: {covered}/124 nonprotected entries; Character AI read-only exception')
+    print(f'Coverage: {covered}/{total} nonprotected entries; Character AI read-only exception')
     print(f'Owned changes needed: {len(changes)}; other-owner missing: {len(pending)}')
     for path in pending:
         print('PENDING other owner: ' + path)

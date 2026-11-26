@@ -47,3 +47,12 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 First resolve rights and actual request/input evidence. Next implement the specifically identified authored wrapper lifecycle/accessibility fix with one small regression. Later profile real-device memory/load time and preserve saves before approved refurbishment. Defer new assets, online SDKs, engine rebuilds and speculative features.
+
+## Static host request repair, 26 November 2026
+
+A local game session returned HTTP 501 when the generated framework posted
+to the offline JSON file. The request bridge now opens that file with GET
+for the listed service hosts and their subdomains. Local URLs retain their
+original URL and HTTP method, including relative paths containing words
+that resemble a service host. The regression checks the generated framework
+call, the local reply and both routing outcomes. [Controller test](../../../scripts/test_arcade_trust_boundaries.mjs)

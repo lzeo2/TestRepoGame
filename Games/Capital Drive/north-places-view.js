@@ -1,4 +1,5 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
+import {createNorthFrontages} from './north-frontages.js';
 
 const finite=n=>Number.isFinite(n)?n:0;
 const PALETTE={concrete:0xb8b5aa,dark:0x39474d,glass:0x456773,rust:0x937259,blue:0x8ba8aa};
@@ -6,7 +7,7 @@ const validPoints=points=>(points||[]).filter(p=>Array.isArray(p)&&p.length>=2&&
 
 // Original interpretive geometry. The map's tower footprint remains authoritative;
 // the dry pool outlines are scenery, with no public-access or operating-ride claim.
-export function createNorthPlacesView(scene,{tower,towerFootprint,waterpark,heightAt=()=>0}={}) {
+export function createNorthPlacesView(scene,{map,tower,towerFootprint,waterpark,heightAt=()=>0}={}) {
   const roots=[],geometries=new Set(),materials=new Set(),textures=new Set();
   const counters={towerInstances:0,waterparkInstances:0,pools:0,slideTriangles:0};
   const physicalProps=[];
@@ -53,19 +54,36 @@ export function createNorthPlacesView(scene,{tower,towerFootprint,waterpark,heig
       const podium=new THREE.Mesh(geo,material({color:PALETTE.concrete,fog:false,side:THREE.DoubleSide}));
       podium.name='Tower podium on the mapped footprint';root.add(podium);
     }else ring(0,9,2,PALETTE.concrete);
-    // Taper in short shared-cylinder sections rather than expensive unique meshes.
-    for(let i=0;i<13;i++)ring(2+i*8,5.7-i*.21,8,PALETTE.concrete);
-    ring(58,8,4,PALETTE.concrete);
-    for(const [y,r] of [[62,15],[69,13],[76,10]]){
-      ring(y,r,1.7,PALETTE.concrete);ring(y+1.7,r*.94,3.5,PALETTE.glass);ring(y+5.2,r,1,PALETTE.concrete);
-    }
-    ring(106,2.5,29,PALETTE.dark);ring(135,1.5,31,PALETTE.concrete);ring(166,.65,height-166,PALETTE.dark);
+    // The open lower terraces and the enclosed two-storey drum have distinct
+    // profiles. Original broad silhouettes are sufficient at skyline distances.
+    for(const [y,r,h] of [[1,5.5,53],[54,5.2,48],[102,3.7,15]])ring(y,r,h,PALETTE.concrete);
     const antennas=[];
-    for(let i=0;i<8;i++){
-      const angle=i*Math.PI/4,r=3.7;
-      antennas.push({position:[Math.sin(angle)*r,116+(i%2)*6,Math.cos(angle)*r],size:[.5,9,.6],rotation:[0,angle,0],color:PALETTE.concrete});
+    for(const [y,r] of [[54,15.1],[61.1,15.3],[68.2,15.1]]){
+      ring(y,r,1.2,0xd5ceba);
+      ring(y+1.2,r*.95,.22,0x888577);
+      for(let i=0;i<6;i++){
+        const angle=(i/6+(y===61.1?.08:0))*Math.PI*2;
+        antennas.push({position:[Math.sin(angle)*(r-1),y+2.5,Math.cos(angle)*(r-1)],size:[.19,3.6,.19],color:0x68716f});
+      }
+      for(let i=0;i<5;i++) {
+        const angle=(i/5+(y===61.1?.13:.025))*Math.PI*2;
+        pieces.push({position:[Math.sin(angle)*(r-.25),y+2.25,Math.cos(angle)*(r-.25)],
+          size:[1.52,.40,1.52],rotation:[Math.PI/2,0,-angle],color:0xe0e0d3});
+      }
     }
+    // Step the soffit outward under the glass crown. Pale mullions interrupt
+    // two dark horizontal belts, with small open terraces above them.
+    for(const [y,r,h] of [[72,7.8,1.2],[73.2,9.5,1.2],[74.4,11,1.2],[75.6,12.8,1.4],
+      [77,13.65,1.4],[78.4,13.65,2.4],[80.8,13.65,.8],[81.6,13.65,2.4],[84,13.8,1.0],
+      [87.5,8.9,.75],[91,7.5,.65]])ring(y,r,h,[78.4,81.6].includes(y)?0x3f5153:0xd1cbb7);
+    for(let i=0;i<28;i++){
+      const angle=i*Math.PI/14;
+      antennas.push({position:[Math.sin(angle)*13.65,81.2,Math.cos(angle)*13.65],size:[.22,5.8,.20],
+        rotation:[0,angle,0],color:0xdad6c7});
+    }
+    ring(117,2.35,25,0xbfbdae);ring(142,1.45,25,0xc9c4b6);ring(167,.68,height-167,0x93978e);
     batch(root,cylinder,pieces,true);batch(root,box,antennas,true);counters.towerInstances=pieces.length+antennas.length;
+    counters.towerGlazedLevels=2;counters.towerOpenTerraces=3;
     root.userData.height=height;
   }
   if(waterpark){
@@ -160,12 +178,14 @@ export function createNorthPlacesView(scene,{tower,towerFootprint,waterpark,heig
     }
     batch(root,box,boxes);batch(root,cylinder,posts);counters.waterparkInstances=boxes.length+posts.length;
   }
-  function update(focus){if(disposed)return;for(const site of roots)site.root.visible=!!focus&&(finite(focus.x)-site.x)**2+(finite(focus.z)-site.z)**2<site.range**2;}
+  const frontages=createNorthFrontages(scene,map,heightAt);
+  function update(focus){if(disposed)return;frontages.update(focus);for(const site of roots)site.root.visible=!!focus&&(finite(focus.x)-site.x)**2+(finite(focus.z)-site.z)**2<site.range**2;}
   function stats(){
     let draws=0,triangles=0,visibleSites=0;
     if(!disposed)for(const site of roots)if(site.root.visible){visibleSites++;site.root.traverse(o=>{if(o.isMesh){draws++;triangles+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3*(o.isInstancedMesh?o.count:1);}});}
-    return {...counters,draws,triangles,visibleSites,disposed};
+    const northFrontages=frontages.stats();
+    return {...counters,draws:draws+northFrontages.draws,triangles:triangles+northFrontages.triangles,visibleSites:visibleSites+northFrontages.visible,northFrontages,disposed};
   }
-  function dispose(){if(disposed)return;disposed=true;for(const site of roots)scene.remove(site.root);geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());}
+  function dispose(){if(disposed)return;disposed=true;frontages.dispose();for(const site of roots)scene.remove(site.root);geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());}
   return {update,dispose,stats,physicalProps};
 }

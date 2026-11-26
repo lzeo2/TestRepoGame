@@ -139,6 +139,32 @@ const white=new THREE.Color(0xffffff),red=new THREE.Color(0xc53c40);
 for(let i=0;i<silhouette.length/3;i++)if(silhouette[i*3+1]>88){if(Math.abs(silhouetteColor.getX(i)-white.r)<1e-6)whiteFlag++;if(Math.abs(silhouetteColor.getX(i)-red.r)<1e-6&&Math.abs(silhouetteColor.getY(i)-red.g)<1e-6)redFlag++;}
 assert.ok(whiteFlag>100&&redFlag>12,'flag has white stars/canton and red cross geometry');
 
+function coloredPoints(group,layer,tint){
+  const geometry=group.children[layer].geometry,pos=geometry.attributes.position,colors=geometry.attributes.color;
+  const expected=new THREE.Color(tint),points=[];
+  for(let i=0;i<pos.count;i++)if(Math.abs(colors.getX(i)-expected.r)<1e-6&&Math.abs(colors.getY(i)-expected.g)<1e-6&&Math.abs(colors.getZ(i)-expected.b)<1e-6)
+    points.push([pos.getX(i),pos.getY(i),pos.getZ(i)]);
+  return points;
+}
+const steel=coloredPoints(parliament,1,0xe7e9df);
+for(const y of [57,67]){
+  const cross=steel.filter(p=>p[1]===y);
+  assert.equal(new Set(cross.map(([x,,z])=>[Math.sign(x),Math.sign(z)].join())).size,4,'four separated pylons survive the bend');
+}
+const oldHouse=root.getObjectByName('Old Parliament House');
+const arch=coloredPoints(oldHouse,0,0xe8e6dc);
+for(const x of [-60,-34,34,60])assert(arch.some(p=>Math.abs(p[0]-x)<.01&&p[1]>9),'bronze window has an arched reveal');
+const glassworks=root.getObjectByName('Kingston Powerhouse');
+const ridges=coloredPoints(glassworks,1,0x7e8580).filter(p=>p[1]===16);
+assert.deepEqual([...new Set(ridges.map(p=>p[0]))].sort((a,b)=>a-b),[-7,7],'twin pitched roofs');
+const column=coloredPoints(glassworks,1,0xa3c7be);
+assert.equal(Math.max(...column.map(p=>p[1])),23);
+assert(Math.abs(Math.max(...column.map(([x,,z])=>Math.hypot(x+3,z-44)))-1)<.00001,'two-metre glass tower diameter');
+const oval=root.getObjectByName('Manuka Oval'),scoreboard=map.buildings.find(p=>p.id==='osm-1290130248');
+const shutters=coloredPoints(oval,0,0xc8c8b3);
+assert(shutters.length>90);
+assert(shutters.every(([x,,z])=>scoreboard.points.some((a,i,arr)=>distanceToSegment([x+oval.position.x,z+oval.position.z],a,arr[(i+1)%arr.length])<.14)),'score shutters follow a mapped side of the real scoreboard');
+
 view.update(LANDMARKS[0]);assert.equal(view.stats.visibleNear,2);assert.ok(view.stats.visibleDistant>=1);
 view.update({x:LANDMARKS[0].x-2500,z:LANDMARKS[0].z});assert.ok(parliament.visible);assert.equal(parliament.children[0].visible,false);
 assert.equal(parliament.children[1].material.fog,false,'distant skyline survives world fog');
@@ -147,8 +173,7 @@ view.dispose();view.dispose();assert.equal(scene.children.length,0);assert.equal
 const empty = createLandmarksView(scene,{bounds:{minX:0,maxX:1,minZ:0,maxZ:1}},ground);assert.equal(empty.stats.landmarks,0);empty.dispose();
 // Exercise the actual world candidate filter: one exact clearing removes its
 // candidates while a distant polygon preserves identical generation/budgets.
-const worldSource=(await read('../Games/Capital Drive/world-view.js')).replace('../../assets/car-arcade/vendor/three.module.js',threeURL).replace('./covered-passage.js',dataURL(await read('../Games/Capital Drive/covered-passage.js'))).replace('./road-network.js',dataURL(await read('../Games/Capital Drive/road-network.js'))).replace('./districts.js',dataURL(await read('../Games/Capital Drive/districts.js'))).replace('./suburb-character.js',dataURL(await read('../Games/Capital Drive/suburb-character.js'))).replace('./exterior-materials.js',dataURL(await read('../Games/Capital Drive/exterior-materials.js'))).replace('./foliage-placement.js',new URL('../Games/Capital Drive/foliage-placement.js',import.meta.url).href).replace('./water-contact.js',new URL('../Games/Capital Drive/water-contact.js',import.meta.url).href).replace('./terrain.js',dataURL(await read('../Games/Capital Drive/terrain.js')));
-const {createWorldView}=await import(dataURL(worldSource));
+const {createWorldView}=await import('../Games/Capital Drive/world-view.js');
 const treeMap={bounds:{minX:0,maxX:200,minZ:0,maxZ:200},roads:[],buildings:[],areas:[{type:'park',points:[[0,0],[200,0],[200,200],[0,200]]}],landmarks:[]};
 const trees=createWorldView(scene,treeMap), baseline=trees.stats.trees;assert.ok(baseline>0);trees.dispose();
 const cleared=createWorldView(scene,{...treeMap,landmarkTreeExclusions:[[[-10,-10],[210,-10],[210,210],[-10,210]]]});assert.equal(cleared.stats.trees,0);cleared.dispose();

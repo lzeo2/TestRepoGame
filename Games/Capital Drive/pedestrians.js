@@ -36,21 +36,55 @@ function indexBoxes(items) {
       }
     }
   }
-  return (x, z) => cells.get(`${Math.floor(x / CELL)},${Math.floor(z / CELL)}`) || [];
+  const empty = [];
+  let lastX, lastZ, lastList = empty;
+  return (x,z) => {
+    const ix=Math.floor(x/CELL), iz=Math.floor(z/CELL);
+    if(ix!==lastX || iz!==lastZ){
+      lastX=ix;lastZ=iz;lastList=cells.get(ix+','+iz)||empty;
+    }
+    return lastList;
+  };
 }
 
-function segmentDistance(x, z, a, b) {
-  const dx = b[0] - a[0], dz = b[1] - a[1];
-  const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / (dx * dx + dz * dz || 1)));
-  return Math.hypot(x - a[0] - dx * t, z - a[1] - dz * t);
+function distanceSquared(x,z,ax,az,dx,dz,lengthSquared) {
+  const qx=x-ax,qz=z-az;
+  const t=Math.max(0,Math.min(1,(qx*dx+qz*dz)/(lengthSquared||1)));
+  const ex=qx-t*dx,ez=qz-t*dz;
+  return ex*ex+ez*ez;
 }
 
-function inFootprint(x, z, points) {
-  let inside = false;
-  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
-    const a = points[i], b = points[j];
-    if (segmentDistance(x, z, a, b) < 0.3) return true;
-    if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
+function sidewalkFootprint(points,margin) {
+  let minX=Infinity,minZ=Infinity,maxX=-Infinity,maxZ=-Infinity;
+  // A lake can have thousands of shoreline vertices. Ray crossings only use
+  // edges spanning this latitude. Include the edge clearance on both sides
+  // of a band so near-boundary samples still reject exactly as before.
+  const bands=points.length>48?new Map():null;
+  for(let i=0,j=points.length-1;i<points.length;j=i++){
+    const a=points[i],b=points[j];
+    minX=Math.min(minX,a[0]);maxX=Math.max(maxX,a[0]);minZ=Math.min(minZ,a[1]);maxZ=Math.max(maxZ,a[1]);
+    if(!bands)continue;
+    const first=Math.floor((Math.min(a[1],b[1])-.3)/CELL),last=Math.floor((Math.max(a[1],b[1])+.3)/CELL);
+    for(let band=first;band<=last;band++){
+      if(!bands.has(band))bands.set(band,[]);
+      bands.get(band).push(i);
+    }
+  }
+  return {points,bands,minX:minX-margin,maxX:maxX+margin,minZ:minZ-margin,maxZ:maxZ+margin};
+}
+
+function inFootprint(x,z,shape) {
+  if(x<shape.minX||x>shape.maxX||z<shape.minZ||z>shape.maxZ)return false;
+  const points=shape.points,edges=shape.bands?.get(Math.floor(z/CELL));
+  if(shape.bands&&!edges)return false;
+  let inside=false;
+  for(let n=0,limit=edges?edges.length:points.length;n<limit;n++){
+    const i=edges?edges[n]:n,a=points[i],b=points[i?i-1:points.length-1];
+    if(z<Math.min(a[1],b[1])-.3||z>Math.max(a[1],b[1])+.3)continue;
+    const dx=b[0]-a[0],dz=b[1]-a[1];
+    if(x>=Math.min(a[0],b[0])-.3&&x<=Math.max(a[0],b[0])+.3&&
+       distanceSquared(x,z,a[0],a[1],dx,dz,dx*dx+dz*dz)<.09)return true;
+    if((a[1]>z)!==(b[1]>z)&&x<dx*(z-a[1])/dz+a[0])inside=!inside;
   }
   return inside;
 }
@@ -61,26 +95,25 @@ function sidewalkPaths(map) {
   for (const road of map.roads || []) {
     for (let i = 1; i < road.points.length; i++) {
       const a = road.points[i - 1], b = road.points[i], clearance = road.width / 2 + 0.55;
-      roadSegments.push({ a, b, clearance, minX: Math.min(a[0], b[0]) - clearance,
+      const dx=b[0]-a[0],dz=b[1]-a[1];
+      roadSegments.push({ a, dx, dz, lengthSquared:dx*dx+dz*dz, clearanceSquared:clearance*clearance, minX: Math.min(a[0], b[0]) - clearance,
         maxX: Math.max(a[0], b[0]) + clearance, minZ: Math.min(a[1], b[1]) - clearance,
         maxZ: Math.max(a[1], b[1]) + clearance });
     }
   }
   const roadsAt = indexBoxes(roadSegments);
-  const buildingsAt = indexBoxes((map.buildings || []).map(building => ({ points: building.points,
-    minX: Math.min(...building.points.map(p => p[0])) - 0.3,
-    maxX: Math.max(...building.points.map(p => p[0])) + 0.3,
-    minZ: Math.min(...building.points.map(p => p[1])) - 0.3,
-    maxZ: Math.max(...building.points.map(p => p[1])) + 0.3 })));
-  const waterAt = indexBoxes((map.areas || []).filter(area => area.type === 'water').map(area => ({ points: area.points,
-    minX: Math.min(...area.points.map(p => p[0])) - 1, maxX: Math.max(...area.points.map(p => p[0])) + 1,
-    minZ: Math.min(...area.points.map(p => p[1])) - 1, maxZ: Math.max(...area.points.map(p => p[1])) + 1 })));
-  const { minX, maxX, minZ, maxZ } = map.bounds;
-  function safe(x, z) {
-    return x > minX + 1 && x < maxX - 1 && z > minZ + 1 && z < maxZ - 1 &&
-      !waterAt(x, z).some(area => inFootprint(x, z, area.points)) &&
-      !roadsAt(x, z).some(s => segmentDistance(x, z, s.a, s.b) < s.clearance) &&
-      !buildingsAt(x, z).some(b => x >= b.minX && x <= b.maxX && z >= b.minZ && z <= b.maxZ && inFootprint(x, z, b.points));
+  const buildingsAt=indexBoxes((map.buildings||[]).map(building=>sidewalkFootprint(building.points,.3)));
+  const waterAt=indexBoxes((map.areas||[]).filter(area=>area.type==='water').map(area=>sidewalkFootprint(area.points,1)));
+  const {minX,maxX,minZ,maxZ}=map.bounds;
+  function safe(x,z) {
+    if(!(x>minX+1&&x<maxX-1&&z>minZ+1&&z<maxZ-1))return false;
+    for(const water of waterAt(x,z))if(inFootprint(x,z,water))return false;
+    for(const road of roadsAt(x,z)){
+      if(x<road.minX||x>road.maxX||z<road.minZ||z>road.maxZ)continue;
+      if(distanceSquared(x,z,road.a[0],road.a[1],road.dx,road.dz,road.lengthSquared)<road.clearanceSquared)return false;
+    }
+    for(const building of buildingsAt(x,z))if(inFootprint(x,z,building))return false;
+    return true;
   }
   const paths = [];
   for (const road of map.roads || []) {
@@ -89,6 +122,7 @@ function sidewalkPaths(map) {
     for (const side of [-1, 1]) {
       let points = [], lengths = [0];
       function finish() {
+        if(!points.length)return;
         const length = lengths[lengths.length - 1];
         if (length >= 12) paths.push({ roadId: road.id, name: road.name, offset: road.width / 2 + 1.2,
           side, points, lengths, length });

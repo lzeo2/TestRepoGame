@@ -46,3 +46,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Prioritize single-loop/reset correctness and powerup availability. Then persistent controls, responsive canvas, input labels/focus and reduced motion. Later profile collision stability at capped speed 8. Defer multiball/AI placeholders and new levels until reliability and source rights are established.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

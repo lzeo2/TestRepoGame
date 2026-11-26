@@ -58,3 +58,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 Rights and honest save feedback first; import validation and accessible controls next. Month work should regression-test versioned saves, minigame lifecycle and background timing before performance changes. New upgrades/content/mod hosting are deferred.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

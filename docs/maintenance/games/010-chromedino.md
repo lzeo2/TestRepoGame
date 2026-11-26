@@ -46,3 +46,5 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 First reconcile licensing and honest browser/title labeling. Next prove touch/audio/visibility lifecycle and accessible instructions. Later profile DPR rendering. Defer permanent save tracking unless requested; the current session-only score is sufficient once documented.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

@@ -186,7 +186,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
         stages: [target(shop, 'Drive to the marked Coals shop and come to a full stop outside', 'drive', { stop: true }), target(shop, 'Inside Coals: walk to the marked stock station and press Q to finish the stock shift', 'work', { storeId: shop.id, hold: 0 })] },
     ],
     corporate: [
-      { id: 'corporate-present-tense', name: 'Present tense', combat: false, cutscene: scene('corporate-present-tense', 'Margin Parade', ['Rowan', 'I approved Margin Parade’s depot account. The promotion slideshow says it is clean, but I have not checked the original orders.'], ['Rowan', 'One presentation, then lunch. How hard can that be?']), contact: 'Rowan Pike, analyst', reward: 100, time: 480,
+      { id: 'corporate-present-tense', name: 'Present tense', combat: false, cutscene: scene('corporate-present-tense', 'Margin Parade', ['Jules', 'The board is downstairs. What does the green line on your depot slide mean?'], ['Rowan', 'It means they paid. Or we paid. It definitely means lunch if I can get through this.']), contact: 'Rowan Pike, analyst', reward: 100, time: 480,
         briefing: 'Margin Parade, your employer, has a crucial slideshow due. The Capitol Centre office is on Bunda Street: walk to its marked door and press E to go inside. Walk to the PowerPunt presentation station and press Q to start the presentation, which dies in an outage. Walk back out the marked door (E leaves) and step outside to end the mission. Attacks are disabled.',
         outro: 'Rowan: PowerPunt lost every slide. My manager called that an opportunity. I am taking lunch.',
         stages: [target(mall, 'Capitol Centre office on Bunda Street: press E at the marked door, then press Q at the PowerPunt station', 'presentation', { roomId: 'interior-canberra-centre', hold: 0 }), target(mall, 'Walk back out the marked office door (E leaves) and step outside after the outage', 'foot', { radius: 18, hold: 0 })] },
@@ -206,10 +206,15 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
         stages: [target(shop, 'Inside Coals: press Q at the stock station and finish the parcel preparation shift', 'work', { storeId: shop.id, hold: 0 }), target(deliveryApproach, `Press E beside your car, drive to ${deliveryApproach.name || 'the Kingston meeting approach'} and come to a full stop`, 'drive', { stop: true }), target(deliveryApproach, 'Press E to step out, then walk to Mara to hand over the sealed parcel', 'foot', { radius: 16, hold: 0 })] },
     ],
   });
-  const meeting = freeze({ id: 'three-receipts', name: 'Three receipts', cutscene: scene('three-receipts', 'One fraudulent depot', ['Mara', 'Kit needs the club refund. Rowan approved the procurement account. Milo needs his false debt cancelled. One depot used the same order reference on all three.'], ['Mara', 'Meet at Kingston. We take back the money and the ledger together.']), contact: 'Kit, Rowan, Milo and Mara', reward: 200, time: 600,
-    briefing: 'All three introductions are complete. Walk (or drive, then press E to step out) to the marked Kingston public approach and walk up to Kit, Rowan and Milo so Mara can connect the three receipts. Then get in any car, drive to the marked Crescent late-shift point and come to a full stop.',
+  const meeting = freeze({ id: 'three-receipts', name: 'Three receipts', cutscene: scene('three-receipts', 'One fraudulent depot', ['Kit', 'Two strangers want to meet me about a missing refund. You have actually met them, right?'], ['Mara', 'One signed the order. One got the bill. Bring what the club got. I’ll be at Kingston.']), contact: 'Kit, Rowan, Milo and Mara', reward: 200, time: 600,
+    briefing: 'Meet the others on foot at the marked Kingston approach to compare all three receipts. Drive the originals to Mara on the Crescent, or open Campaign (J) after the meeting and choose to keep a backup. For the backup, park by Milo’s house, go inside and pack the copies at his case table.',
     outro: 'Mara: Three people, one fraudulent depot. We take back the money together. Meet on the Crescent for the interception.',
-    stages: [target(meetingPoint || kingston, 'Walk to the marked Kingston public approach to bring the three receipts together', 'foot', { radius: 16, hold: 0 }), target(map.spawn, 'Drive to the marked Crescent point for the late shift and come to a full stop', 'drive', { stop: true })] });
+    stages: [target(meetingPoint || kingston, 'Walk to the marked Kingston public approach to bring the three receipts together', 'foot', { radius: 16, hold: 0 }), target(map.spawn, 'Drive to Mara on the Crescent and stop. Open Campaign (J) to choose the safehouse backup instead.', 'drive', { stop: true })] });
+  const meetingBackup = freeze({...meeting,
+    stages:[meeting.stages[0],
+      target(homeApproach, `Drive to the marked stop outside ${homeLocation}. Open Campaign (J) to switch to Mara’s handover.`, 'drive', {stop:true}),
+      target(home, `Enter ${homeLocation} and complete a fresh packing task at the case table (Q) to keep the crew’s copies.`, 'home-action', homeTask)],
+    outro:'Mara: Three signed copies, three witnesses. If the depot wants to deny a refund now, it has to deny all of you.'});
   const ids = characters.map(c => c.id);
   const aviation = { id: 'above-the-paperwork', name: 'Optional: Above the paperwork', contact: 'Jules', reward: 1800, time: 1800, aviation: true, optional: true, combat: true,
     briefing: 'Jules needs an aerial copy of the depot route. Walk to the marked helicopter at Canberra Airport and press E to bypass its lock and climb in. Hold Space to climb above 15 m. Come back down beside the marked jets, land to a full stop and press E to step out, then press E at a jet to board. Hold Space to climb above 20 m and the second copy is sent. This optional flight leaves the main story order unchanged.',
@@ -268,6 +273,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     if (optionalChapter) return optionalChapter;
     if (developerChapter) return developerChapter;
     if (state.active) {
+      if (state.active.id === meeting.id && state.active.meetingRoute === 'backup') return meetingBackup;
       const chapter = shared.find(chapter => chapter.id === state.active.id);
       if (chapter) return chapter;
     }
@@ -340,6 +346,18 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
     const chapter = current();
     if (!chapter) return { ok: false, message: !state.character ? 'Choose a character first.' : requiredMessage() || (!allIntroduced() && state.character !== 'legacy' ? 'Choose another character to complete their introduction.' : 'Campaign complete.') };
     return begin(chapter, ctx);
+  }
+  function chooseMeetingRoute(route, ctx) {
+    const active=state.active;
+    if (!validContext(ctx) || ctx.campaign!==true || ctx.sandbox || ctx.recovering || ctx.respawnSerial!==active?.serial ||
+        active?.id!==meeting.id || active.stage!==1 || active.developer || !['direct','backup'].includes(route))
+      return {ok:false,message:'Choose a handover after meeting the crew in Kingston.'};
+    if ((active.meetingRoute || 'direct')===route) return {ok:false,message:'That handover is already marked.'};
+    const chapter=route==='backup'?meetingBackup:meeting;
+    active.meetingRoute=route;
+    active.target=clone(chapter.stages[active.stage]);active.stageCount=chapter.stages.length;
+    active.held=0;active.escapeReached=false;active.prompt=objectivePrompt(active,ctx);
+    return {ok:true,message:route==='backup'?'Milo’s case table is marked on the map.':'Mara’s Crescent handover is marked on the map.'};
   }
   function begin(chapter, ctx, developer = false) {
     retireRetries();
@@ -544,7 +562,7 @@ export function createCampaign(map, saved = null, { meetingPoint, stealthContrac
       events.push({ type: 'complete', id: chapter.id, reward: chapter.reward, message: chapter.outro });
     }
   }
-  return { state, characters, get chapters() { return chapters(); }, optionalChapters: optional, optionalUnlocked, contractPlans: id=>optionalUnlocked()?(contractOptions.get(id)??null):null, current, nextRequiredCharacter, start, startOptional, startDeveloper, captureRetry, resumeRetry, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, companionSwitchReason, canSwitchCompanion, switchCompanion, isCompleted, policeSearchDuration, isStoryRobbery,
+  return { state, characters, get chapters() { return chapters(); }, optionalChapters: optional, optionalUnlocked, chooseMeetingRoute, contractPlans: id=>optionalUnlocked()?(contractOptions.get(id)??null):null, current, nextRequiredCharacter, start, startOptional, startDeveloper, captureRetry, resumeRetry, developerChapters: () => developerList, update, selectCharacter, canSelectCharacter, companionSwitchReason, canSwitchCompanion, switchCompanion, isCompleted, policeSearchDuration, isStoryRobbery,
     cancel: () => fail('Mission cancelled.'),
     serialize: () => clone({ version: 2, character: state.character, intros: state.intros, meeting: state.meeting, legacy: state.legacy, completed: state.completed, ...(state.optionalCompleted.length?{optionalCompleted:state.optionalCompleted}:{}) }),
     journal: () => freeze(clone({ character: state.character, introductions: ids.map(id => ({ character: id, chapters: intros[id].map(item => ({ id: item.id, name: item.name, complete: isCompleted(item.id) })) })), meeting: state.meeting, shared: shared.map(item => ({ id: item.id, character: item.character, name: item.name, complete: isCompleted(item.id) })) })),

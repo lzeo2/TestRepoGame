@@ -25,7 +25,7 @@ Phaser version is pinned by filename, not verified against an upstream revision.
 
 ## Audit findings
 
-- **HIGH**, `game3.js`, boot/asset boundary: historical r4 recorded non-fatal `Unexpected token '<'`; id 107's r5 failed boot with that plus undefined length. Current JS parses, but endpoint/source was not isolated. Reproduce while recording response URL, status and content type; fix the actual asset/loader contract rather than suppress page errors.
+- Resolved in the entry. The compiled game checks for `gamedistribution-jssdk` before injecting a script with `src="#"`. That URL returned the HTML entry and raised a parser error. The existing local, inert SDK adapter now identifies itself with the expected ID.
 - **MEDIUM**, `index.html`, viewport/controls hint: prohibits zoom and removes only instructions after ten seconds. Permit zoom and expose persistent help without masking the game menu.
 - **MEDIUM**, `game3.js`, localStorage/JSON read anchors: no reviewed schema/catch at those reads. Verify corrupt settings/save behavior; repair the save boundary from legitimate source, not by scattered try/catches in wrappers.
 
@@ -35,7 +35,9 @@ Start with authored viewport/help and explicit local ad callback contracts after
 
 ## Verification
 
-Actually run: `git show HEAD:Games/JetpackJoyride/game3.js | node --check` passed. Git inventory reviewed; native **0**, screenshots **0**. Recommended supervisor-approved narrow checkout: record boot through active scene, response content types, menu start, press/release pointer flight, eventual failure, result/retry and reload persistence. Test portrait/landscape, denied storage and audio-disabled device. Compare both variants without claiming software-rendered screenshots establish hardware performance. Main owns full catalog smoke.
+On 26 November 2026, a clean desktop Chromium session reached the active Phaser GamePlay scene and exercised click, hold and release on the canvas. The run recorded zero uncaught JavaScript errors, external requests or HTTP errors. The headless software audio device issued warnings, so sound quality remains unverified. Run `python3 scripts/test_arcade_legacy_startup.py --game JetpackJoyride`. [Local browser regression](../../../scripts/test_arcade_legacy_startup.py)
+
+Earlier static receipt: `git show HEAD:Games/JetpackJoyride/game3.js | node --check` passed. Git inventory reviewed; native **0**, screenshots **0**. Recommended supervisor-approved narrow checkout: record boot through active scene, response content types, menu start, press/release pointer flight, eventual failure, result/retry and reload persistence. Test portrait/landscape, denied storage and audio-disabled device. Compare both variants without claiming software-rendered screenshots establish hardware performance. Main owns full catalog smoke.
 
 ### Static metadata receipt (2026-10-15)
 
@@ -45,4 +47,6 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 
 ## Future outlook
 
-First isolate historical boot parse errors and establish source/rights. Next persistent accessible controls, orientation messaging and storage recovery. Later measure load time and memory on target hardware before compressing/removing assets. Defer stronger engine changes, online services and new art.
+Establish source and asset rights. Next persistent accessible controls, orientation messaging and storage recovery. Later measure load time and memory on target hardware before compressing/removing assets. Defer stronger engine changes, online services and new art.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).

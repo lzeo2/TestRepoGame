@@ -2,3 +2,7 @@
 Games/SchoolyardLaneRun/vendor/three.iife.js whitespace=-blank-at-eol,-space-before-tab
 Games/SchoolyardGapGlide/vendor/three.iife.js whitespace=-blank-at-eol,-space-before-tab
 Games/SchoolyardCourtyardCast/vendor/three.iife.js whitespace=-blank-at-eol,-space-before-tab
+
+# The Run 3 level reader uses CRLF as its record delimiter, including the path metadata header.
+Games/Run3/tn6pS9dCf37xAhkJv/text/ExploreLevels.txt -text whitespace=cr-at-eol
+Games/Run3/tn6pS9dCf37xAhkJv/text/InfiniteLevels.txt -text whitespace=cr-at-eol

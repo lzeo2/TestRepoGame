@@ -27,10 +27,11 @@ and `uv/sw.js` (4 files, 15,117 logical bytes). All four were read in full.
    native `disabled` and `aria-disabled`. Missing config returns **before** worker
    registration or form-handler binding, so today's absent distribution does
    not register a new root worker through this entry.
-4. If config were present, registration of `/uv/sw.js` with `{scope:'/'}` occurs
-   **before** the backend flag is consulted. Registration failure reports an
-   error but is not a readiness prerequisite for the rest of that hypothetical
-   flow. Do not equate the backend flag with complete worker isolation.
+4. With config present, the operator flag is checked before the root worker
+   could register. The disabled state prevents form submission and exits
+   without contacting a proxy or changing registrations. The self-contained
+   [trust-boundary regression](../../../scripts/test_arcade_trust_boundaries.mjs)
+   checks both missing and present local configuration.
 5. `uv/sw.js` tries relative `importScripts('./uv.sw.js')`; on failure it logs
    and calls `self.registration.unregister()`, with swallowed unregister errors.
    The imported distribution is not tracked, so it provides no relay here.
@@ -42,8 +43,7 @@ and `uv/sw.js` (4 files, 15,117 logical bytes). All four were read in full.
 
 ## Input and trust boundaries
 
-The submit handler, if dependency setup reaches it, prevents default and checks
-`BACKEND_ENABLED` first. Its inactive URL path trims input, rejects C0/DEL/C1
+The disabled launcher prevents form submission and returns before its routing handler. Its inactive URL path trims input, rejects C0/DEL/C1
 characters, defaults missing schemes to HTTPS, and `isHttpUrl()` accepts only
 `http:`/`https:` via `URL`. Navigation would be `prefix + encode(url)` using
 `window.location.assign()`. These client checks are neither server access control
@@ -78,11 +78,10 @@ configured. Historic third-party relay URLs in comments are history, not loads.
 
 ## Audit findings
 
-- **INF-01, MEDIUM:** `uv/index.js`, registration before `BACKEND_ENABLED` gate.
-  A future distribution-only change could install a root worker despite disabled
-  backend status. Minimal fix under a separate approved assignment: gate worker
-  registration on explicit disabled-state policy and verified readiness, never
-  enable the backend as a repair. Today's missing config still exits first.
+- **INF-01, resolved 26 November 2026.** Loading the UV configuration alone
+  does not allow root worker registration. The launcher also requires an
+  explicit backend opt-in.
+
 - **INF-02, MEDIUM:** `uv/index.html` missing bundle/client script tags create
   local load errors for an intentionally unavailable feature. Minimal fix:
   maintain a static unavailable page without probing missing distribution files;

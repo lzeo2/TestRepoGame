@@ -270,6 +270,34 @@ def water_areas(slug, name, source, elements, nodes, ways):
     return results
 
 
+def nominated_relation_building(source, elements, nodes, ways):
+    """Recover an explicitly selected single shell by joining OSM member node IDs."""
+    from shapely.geometry import Polygon
+
+    feature = elements[source]
+    tags = feature['tags']
+    outer = rings(feature, ways, 'outer')
+    if tags.get('type') != 'multipolygon' or not tags.get('building') or len(outer) != 1:
+        raise ValueError(f'Expected one tagged building exterior for {source}')
+    chain, member_ids = outer[0]
+    points = [xy(nodes[ref]) for ref in chain]
+    inner = [dict(points=[xy(nodes[ref]) for ref in refs], sourceWayIds=members)
+             for refs, members in rings(feature, ways, 'inner')]
+    shape = Polygon(points, [hole['points'] for hole in inner])
+    if not shape.is_valid or shape.area < 20:
+        raise ValueError(f'Invalid assembled building for {source}')
+    height = tagged_number(tags.get('height'))
+    levels = tagged_number(tags.get('building:levels'))
+    if not (height or levels):
+        raise ValueError(f'No height or level evidence for {source}')
+    return dict(id=f'osm-relation-{feature["id"]}', sourceId=source, source='osm',
+                sourceVersion=feature['version'], sourceWayIds=member_ids,
+                name=tags.get('name', ''), type=tags['building'],
+                height=round(height or levels*3.2, 2), heightSource='OSM height tag' if height else 'OSM level estimate',
+                points=points, **({'innerRings': inner} if inner else {}),
+                sourceTags={k: v for k, v in tags.items() if k in BUILDING_TAGS})
+
+
 def build(region, cache, existing):
     spec = REGIONS[region]
     manifest, elements = load_source(cache)
@@ -284,6 +312,15 @@ def build(region, cache, existing):
                  if row[2].startswith('relation/') else {} for row in spec['sites'] for ref in row[4]}
     sites = [(row, midpoint(source_points(elements[row[2]], nodes, ways))) for row in spec['sites']]
     buildings, invalid, housing_coverage = make_buildings(boxes, ways, nodes, [point for _, point in sites], requested, history[3], region)
+    if spec.get('relation_buildings'):
+        existing_sources = {body.get('sourceId') for body in history[3]+buildings}
+        for source in spec['relation_buildings']:
+            if source not in existing_sources:
+                buildings.append(nominated_relation_building(source, elements, nodes, ways))
+                existing_sources.add(source)
+        if len(buildings) > MAX_BUILDINGS + HOUSING_LIMITS.get(region, 0):
+            raise ValueError(f'Selected relation buildings exceed the {region} footprint budget')
+        buildings.sort(key=lambda body: body['id'])
     building_ids = {body.get('sourceId'):body['id'] for body in history[3]+buildings}
     landmarks = []
     seen_names = set()

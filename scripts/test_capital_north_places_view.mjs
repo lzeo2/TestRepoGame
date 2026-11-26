@@ -10,6 +10,8 @@ const view=createNorthPlacesView(scene,{tower,waterpark,heightAt:(x,z)=>20+x*.00
 assert.equal(scene.children.length,2);
 const towerRoot=scene.children[0],parkRoot=scene.children[1];
 assert.equal(towerRoot.userData.height,195.2);
+assert.equal(view.stats().towerGlazedLevels,2);
+assert.equal(view.stats().towerOpenTerraces,3);
 assert.equal(towerRoot.position.y,20+500*.001);
 assert.equal(parkRoot.rotation.y,.7);
 towerRoot.updateMatrixWorld(true);
@@ -61,3 +63,62 @@ let textureDisposals=0;liveScene.traverse(o=>{if(o.material?.map)o.material.map.
 actual.dispose();actual.dispose();assert.equal(textureDisposals,1);assert.equal(liveScene.children.length,0);
 assert.equal(JSON.stringify(source),sourceBefore);
 console.log(`PASS frozen Giant Spray geometry: 4 source pool polygons, 6 source slide routes, property-inset sign; ${measured.draws} draws/${measured.triangles} triangles including tower and sign; texture disposed once`);
+
+// The released composed map is authoritative for footprint ownership and height.
+const {GAME_DATA_FILES}=await import('../Games/Capital Drive/game-data.js');
+const {composeCapitalMap}=await import('../Games/Capital Drive/map-source.js');
+const packs=Object.fromEntries(await Promise.all(GAME_DATA_FILES.map(async file=>
+  [file,JSON.parse(await readFile(new URL('../Games/Capital Drive/'+file,import.meta.url),'utf8'))])));
+const {map,terrainSampler}=composeCapitalMap(packs);
+const publicSites=['daramalan-college','dickson-college','lyneham-high-school','st-ninians-church','abc-canberra','parklands-hotel','dickson-village'];
+const primary=map.landmarks.filter(p=>publicSites.includes(p.id));
+assert.equal(primary.length,7);
+const previouslyManaged=map.landmarkBuildingIds.slice();
+const expectedPolygons=new Map(primary.map(place=>{
+  const src=map.buildings.find(b=>b.id===place.sourceBuildingId);
+  assert(src && !previouslyManaged.includes(src.id),'North frontages decorate live, ordinarily rendered bodies');
+  return [place.id,JSON.stringify(src.points)];
+}));
+const northScene=new THREE.Scene();
+let labelsDrawn=0;
+globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({fillRect(){},fillText(){labelsDrawn++;}})})};
+const northern=createNorthPlacesView(northScene,{map,heightAt:terrainSampler.groundHeightAt});
+if(oldDocument===undefined)delete globalThis.document;else globalThis.document=oldDocument;
+assert.equal(labelsDrawn,7,'seven signs share one generated atlas');
+assert.equal(northern.stats().northFrontages.sites,7);assert.equal(northern.stats().draws,0);
+assert.deepEqual(northern.physicalProps,[]);
+const inverseView=northScene.children.map(g=>g.name);
+const triangleCounts=new Set();
+let totalTriangles=0,maxDraws=0;
+for(const place of primary){
+  const group=northScene.getObjectByName(place.name+' public frontage');
+  assert(group);northern.update(group.position);
+  assert(group.visible);
+  const size=group.children.reduce((n,m)=>n+m.geometry.attributes.position.count/3,0);
+  triangleCounts.add(size);totalTriangles+=size;maxDraws=Math.max(maxDraws,northern.stats().draws);
+  assert(size<=470 && group.children.length<=2,'each frontage has at most two opaque, static draws');
+  const footprint=JSON.parse(expectedPolygons.get(place.id));
+  const signedDistance=(p,a,b)=>{
+    const dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dz)/(dx*dx+dz*dz||1)));
+    return Math.hypot(p[0]-a[0]-dx*t,p[1]-a[1]-dz*t);
+  };
+  const distance=Math.min(...footprint.slice(1).map((b,i)=>signedDistance([group.position.x,group.position.z],footprint[i],b)));
+  assert(distance<.0001,'each local origin anchors to the retained polygon edge');
+  for(const mesh of group.children){
+    const attributes=mesh.geometry.attributes;
+    assert([...attributes.position.array].every(Number.isFinite));
+    assert(attributes.normal.count===attributes.position.count);
+  }
+}
+assert(triangleCounts.size>=6,'distinct silhouettes and massing survive batching');
+assert.deepEqual(map.landmarkBuildingIds,previouslyManaged);
+for(const place of primary)assert.equal(JSON.stringify(map.buildings.find(b=>b.id===place.sourceBuildingId).points),expectedPolygons.get(place.id));
+const refs=northScene.children.flatMap(g=>g.children.map(m=>m.geometry.attributes.position.array));
+northern.update({x:50000,z:50000});assert.equal(northern.stats().draws,0);
+northern.update(northScene.children[0].position);
+assert.deepEqual(northScene.children.map(g=>g.name),inverseView);
+assert(refs.every((ref,i)=>ref===northScene.children.flatMap(g=>g.children.map(m=>m.geometry.attributes.position.array))[i]));
+let atlasDisposal=0;
+northScene.children.flatMap(g=>g.children).find(m=>m.material.map).material.map.addEventListener('dispose',()=>atlasDisposal++);
+northern.dispose();northern.dispose();assert.equal(atlasDisposal,1);assert.equal(northScene.children.length,0);
+console.log('PASS seven actual North frontages, '+totalTriangles+' static triangles total, '+maxDraws+' peak facade draws at seven observation points, exact ground rings, independent retail/collision ownership and atlas disposal');

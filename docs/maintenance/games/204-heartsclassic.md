@@ -50,3 +50,7 @@ A future authorized focused browser run may extract only this directory with `gi
 ## Future outlook
 
 Week 1: worker disposal and plain-text names/settings guards. Week 2: card/pass keyboard semantics and valid shell CSS. Later: verify no-pass convention with upstream, first-trick penalties and simulator parity using bounded rule fixtures; profile search before adding stronger AI. Retain gameplay rather than redesigning the engine.
+
+The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).
+
+The shipped flat-colour stylesheet now has valid declarations for 14 controls, table and score selectors. A normal Chromium check dealt 13 selectable cards, passed three, confirmed the exchanged cards and submitted a legal card with Go!. The check observed no page errors or failed or off-origin asset requests.

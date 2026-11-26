@@ -657,6 +657,7 @@ deform and terminal interiors/airline services are absent. Two original stealabl
 - `districts.js`: exact source Manuka retail polygon, shared appearance classifier.
 - `pedestrians.js`:36 suburban /64 nearby Civic instanced fictional adults, safe sidewalk walking,
   panic/anger/knockdown/recovery swept player contacts/yielding and causally attributed witness events.
+- [Seven named public buildings](../../capital-drive-landmark-coverage.md) resolve to map positions inside their source outlines. These search entries reuse the local index and add no minimap pins.
 - `navigation.js`, `map-projection.js`, `address-search.js`: directed road routes,
   shared map transform and bounded offline landmark/street/address matching.
 - `game-data.js`, `cache-client.js`, `service-worker.js`: local map loading,
@@ -1513,6 +1514,29 @@ including wanted and active-mission saves. A pending renewal cannot charge twice
 The [city contract](../../capital-drive-city-systems-contract.md) records source
 selection, paid-rest authority, courier lifecycle and distinct cargo rules. Pure
 checks are not native collection/travel or device-performance evidence.
+
+## Retail, landmarks and street life — 26 November 2026
+
+The 29 registered tenancies use documented frontage profiles. In Manuka,
+Receipt Cafe has a Palmerston Lane arcade entrance, and You Sushi has a
+suspended Flinders Way blade sign. In Dickson, closely stocked noodle shelves
+draw on accounts of Swan Asian Grocery. Five separately registered Civic shops
+now have distinct exteriors at their playable doors. [Civic photos, geometry and checks](../../verification/capital-drive-civic-storefronts-2026-11-26.md)
+
+Source-tagged
+retail buildings elsewhere use broader ground-floor display glass on the side
+facing a nearby street. The landmark renderers now distinguish named structures
+including Parliament House, the Manuka Oval scoreboard, AIS Arena and Dickson
+Library. The lighting layer includes surveyed ACT streetlight columns. Search
+Free roam for an ACT park asset ID such as BBQ429 or DRFN315 to locate the added
+barbecues and water facilities.
+
+In Campaign, open the journal during the handover in Three Receipts. A direct
+route and a second route via Milo's case table have different objectives. Radio
+captions identify who is speaking. [Gameplay and visual evidence](../../verification/arcade-canberra-2026-11-26/README.md)
+· [Shop architecture](../../capital-drive-shopfront-architecture.md)
+· [Landmark architecture](../../capital-drive-landmark-fidelity.md)
+· [Seven Dickson and Lyneham frontages](../../capital-drive-north-frontages.md)
 
 ## Future outlook
 

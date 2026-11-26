@@ -20,6 +20,8 @@ assert.equal(view.stats.buildings,1,'only the explicitly replaced ACT centre');
 assert.deepEqual(SHOPPING_BUILDING_IDS,['act-87705-0']);
 assert.equal(view.stats.drawCalls,0);assert.equal(root.children.length,2);
 assert(view.stats.triangles<=12000,'merged geometry budget');
+assert(view.stats.thresholdSections>0,'street-facing Franklin Street shops meet a visible paved threshold');
+assert(view.stats.roadCells>0&&view.stats.roadCells<300&&view.stats.buildingCells<300,'clearance index is limited to its precincts');
 assert(view.stats.paths>0&&view.stats.pathSections>0&&view.stats.apronSections>0,'clear source pedestrian ribbons and exterior apron');
 assert(view.stats.furniture<=3,'restrained approach furniture');
 assert(Object.isFrozen(SHOPPING_CLEARINGS)&&SHOPPING_CLEARINGS.every(p=>Object.isFrozen(p)&&p.every(Object.isFrozen)),'immutable prop exclusions');
