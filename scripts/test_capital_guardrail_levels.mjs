@@ -22,9 +22,10 @@ const owner = map.roads.find(r => r.id === rail.roadContext.id);
 const x = (rail.a[0] + rail.b[0]) / 2, z = (rail.a[1] + rail.b[1]) / 2;
 const upperY = terrain.roadHeightAt(owner, x, z), groundY = terrain.groundHeightAt(x, z);
 assert(upperY - groundY > 4, 'confirmed deck clearance');
-assert(upperY - terrain.heightAt(x, z) > 3,'nearest unowned support would sink this rail toward the lower path');
 const scene = new THREE.Scene();
-const roadView = createHighwayBarriersView(scene,terrain.heightAt,{roads:map.roads,roadHeightAt:terrain.roadHeightAt});
+// Force the unowned fallback onto the lower level. A closer new pedestrian
+// deck can otherwise hide a view which accidentally ignores the road owner.
+const roadView = createHighwayBarriersView(scene,terrain.groundHeightAt,{roads:map.roads,roadHeightAt:terrain.roadHeightAt});
 const panels = selectHighwayBarrierPanels({x,z});
 roadView.update({x,z});
 const beams = scene.getObjectByName('Source highway guard rails');
