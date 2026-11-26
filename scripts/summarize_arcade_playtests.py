@@ -72,6 +72,20 @@ def summarize(inputs, observations=None):
     yield 'Start control measures entry into a new visible screen. '
     yield 'The remaining outcomes need a deeper game-specific route. '
     yield 'Protected chat coverage stops at its shell. These short sessions do not measure completion of entire stories, device frame rates or multiplayer.\n'
+    if observations and len(direct | native) < len(ordered):
+        yield '## Entries without a verified game control\n'
+        for game in ordered:
+            directory = game['directory']
+            if directory in direct or directory in native:
+                continue
+            detail = observations.get(directory,{}).get('observation')
+            if directory == 'Character AI':
+                detail = 'The protected chat shell opened. The session did not send a message.'
+            if not detail:
+                latest = records[directory][-1][1]
+                detail = LABELS.get(latest['outcome'],latest['outcome']) + ' in the latest fleet attempt.'
+            yield f"- **{cell(game['title'])}**. {cell(detail)}"
+        yield ''
     yield '## Latest outcome per title\n'
     yield '| Outcome | Titles |\n| --- | ---: |'
     for key in LABELS:
@@ -104,7 +118,7 @@ def summarize(inputs, observations=None):
         proof = next((r for _,r in reversed(history) if r['outcome']=='game-control-state-confirmed'),None)
         action = ''
         if proof:
-            inputs = [a for a in proof['inputs'] if a.startswith(('Click ', 'key:', 'drag:', 'fill:', 'double:', 'hold:'))]
+            inputs = [a for a in proof['inputs'] if a.startswith(('Click ', 'key:', 'drag:', 'fill:', 'double:', 'hold:', 'activate:'))]
             action = ' + '.join(inputs)[:128] or proof.get('proof',{}).get('selector','')
         name = game['title'] + ('' if game['registered'] else ' (unlisted)')
         scope = observations.get(game['directory'],{}).get('status','')

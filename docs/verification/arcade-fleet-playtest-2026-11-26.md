@@ -1,8 +1,8 @@
 # Arcade fleet interaction results
 
-142 game projects (136 registered and 6 unlisted), 264 isolated fleet browser attempts.
-47 titles had a verified game-control change in at least one fleet attempt.
-Combining that evidence with dedicated gameplay observations covers 136 distinct titles. The other 6 have more limited evidence in these sessions.
+142 game projects (136 registered and 6 unlisted), 267 isolated fleet browser attempts.
+50 titles had a verified game-control change in at least one fleet attempt.
+Combining that evidence with dedicated gameplay observations covers 139 distinct titles. The other 3 have more limited evidence in these sessions.
 
 ## Coverage
 
@@ -14,15 +14,21 @@ Start control measures entry into a new visible screen.
 The remaining outcomes need a deeper game-specific route.
 Protected chat coverage stops at its shell. These short sessions do not measure completion of entire stories, device frame rates or multiplayer.
 
+## Entries without a verified game control
+
+- **Character Alsen**. The protected chat shell opened. The session did not send a message.
+- **Blackout**. Selected Capture the Flag and Office in the normal menu. The match HUD showed Office Tower, two flags, and a three-capture win condition. The software WebGPU run lost its GPU instance during shader compilation before weapon input could be verified.
+- **Slope**. The offline-unavailable notice returned to the arcade through its real Back to Arcade link. The game engine was intentionally removed from this unlisted entry.
+
 ## Latest outcome per title
 
 | Outcome | Titles |
 | --- | ---: |
-| Game control verified | 47 |
-| Visible response | 25 |
+| Game control verified | 50 |
+| Visible response | 23 |
 | Start control responded | 4 |
 | Animation only | 42 |
-| No visible change | 13 |
+| No visible change | 12 |
 | Frame unavailable | 6 |
 | Protected shell | 1 |
 | Unavailable by design | 1 |
@@ -49,6 +55,7 @@ Each run directory contains JSON observations and captured frames. The last thre
 | interaction-targeted-11 | `f6b98a1dd5aa` | 3 | 0 | 0 | 0 |
 | interaction-targeted-12 | `7364d4ddecbc` | 1 | 0 | 0 | 0 |
 | interaction-targeted-13 | `1bb1b4c5fc3b` | 9 | 0 | 0 | 0 |
+| interaction-targeted-14 | `ae4e79a491a2` | 3 | 0 | 0 | 0 |
 
 ## Dedicated native-input observations
 
@@ -72,9 +79,12 @@ Receipt paths refer to the external session folder or a tracked test script.
 | Retro Bowl | gameplay | Started an original Buffalo career, selected the favorite-team checkbox, skipped the introductory office tutorial, and entered the Week 18 match against New York J. Started the opening kickoff from Get Ready. Quarter clock, possession and score then advanced; a Buffalo field goal made it 3–0. This run did not verify a manual offensive pass. | classics-deep/54/proof.json |
 | Super Hot | gameplay | Advanced the introduction to the first 3D encounter. WASD and mouse input moved the camera in the scene with the opponent and reticle visible. | unity-deep/superhot-display/ |
 | 10 Minutes Till Dawn | gameplay | Selected Shana and the revolver, entered survival and held the left mouse button. Displayed ammunition fell from 006/006 to 005/006 as the timer counted down. One optional Steam wishlist navigation was blocked offline. | verified-last-native/TenMinutesTillDawn.json |
+| Fleeing the Complex | gameplay | The original software-graphics run remained near the start of its preloader after two minutes. With the shared current Ruffle Canvas renderer the PLAY button appeared, the game reached Holding B, and the native Play Dead choice caused the branch-specific Fail screen (“Pretty convincing there”, unique 1, fail count 1). Retry was then selected. | classics-deep/57/proof.json |
+| Infiltrating the Airship | gameplay | Reached Operation ready for launch, started the live airship introduction and chose Sticky Hand from the four entry routes. Henry hung from the pink hand on the outside of the ship, and the game advanced to a new set of choices inside the Toppat cargo hold. | classics-deep/58/proof.json |
 | Baldi's Basics | gameplay | Entered Story Mode with zero of seven notebooks. Holding W moved through the hall and D strafed, changing the view of the fixed exit sign and doors. The repaired wrapper fit across all four tested viewport sizes. An optional Unity analytics request was blocked. | unity-deep/verified-baldi-fixed/moved.jpg, strafe.jpg, session.log |
-| Temple Run 2 | gameplay | Confirmed the in-run Restart action, including its confirmation panel: the displayed score and distance reset from 5,526 and 552 to zero. The first run also raised an undefined SelectedDefinition exception and displayed the runner over clouds; collision and jumping in that run remain unverified. The session also logged 1 page errors. | vendor-deep/60/proof.json |
+| Temple Run 2 | gameplay | Paused an active run, confirmed Restart, and saw score 5,526 and distance 552 reset to zero. One session also showed an empty-cloud course and an undefined track-definition exception. Two fresh runs did not reproduce it. Jumping and collisions remain unverified. | vendor-deep/60/proof.json |
 | Cut the Rope | gameplay | Clicked Play and dragged across the first rope. Om Nom received the candy with three stars. The result showed 5,439 points, then the Next button advanced. | unity-deep/rope-display/three-stars.jpg, solved.jpg, next.jpg |
+| Fancy Pants Adventure 3 | gameplay | Clicked Play Now in World 3, advanced the bedroom dialogue with Up, and used S at the prompt to jump from the bed. The next frame shows Fancy Pants in the air above the window; left input then moved the hero across the floor toward the bedroom door. The original software-GPU attempt timed out taking its first frame. | classics-deep/63/proof.json |
 | Vex 7 | gameplay | Holding D in the playable tutorial hub moved the character X -150 to -132. Horizontal speed rose from zero to 3.6 while the character stayed on the same platform. | vendor-deep/64/proof.json |
 | Geometry Dash Lite | gameplay | Selected Stereo Madness in Normal Mode and started Attempt 1. A native pointer press sent the cube into a rotating airborne pose. Esc opened the in-level pause menu and the game recorded a new 3% normal-mode best. | classics-deep/66/proof.json |
 | Bloons TD | gameplay | Chose Bloons TD 1 through the hub and New Game. Selected the brown dart tower from Build Towers and placed it on the grass inside the bend. The tower appeared with a range circle and upgrade/sell controls, and money dropped from 650 to 400 while lives remained 40. | classics-deep/80/proof.json |
@@ -142,7 +152,7 @@ Receipt paths refer to the external session folder or a tracked test script.
 | Gap Glide | gameplay | Space started flight from a stationary Ready state. The HUD switched to Gliding. | controls-deep/SchoolyardGapGlide/proof.json |
 | Courtyard Cast | gameplay | Space launched the next character from the normal court. The throw queue advanced. | controls-deep/SchoolyardCourtyardCast/proof.json |
 | Brainrot Boulevard: After Dark | gameplay | The normal mobile start button entered the boulevard. Tapping pause from the running HUD opened the game menu. | controls-deep/BrainrotBoulevard/proof.json |
-| Capital Drive: Canberra (Preview) | gameplay | The shipping 2D fallback accepted Campaign, Start, skip, and J. The player selected a direct radio route, Milo’s longer case-table handover, then the direct route. The test seeded six completed introductions and the initial position. Separately, the normal 3D Free roam entry reached started and unpaused with the player active. | canberra-park-detail/crew-radio-native-a4/results.json (sibling preview folder) |
+| Capital Drive: Canberra (Preview) | gameplay | In normal 3D Free roam, W then D moved the vehicle 5.754 m, changed heading by 0.079 radians and reached 39 km/h in second gear. Build 385c082ce2af reported no page exception or external request. Separately, the 2D campaign test used seeded introductory progress and switched between the direct radio route and Milo’s longer case-table handover. | docs/verification/arcade-canberra-2026-11-26/README.md, free-roam-driving.webp and sibling preview folder canberra-park-detail/crew-radio-native-a4/results.json |
 | Steal a Basketballer (Preview) | gameplay | World avatar moved after W from a fresh profile. | originals-deep/246/proof.json |
 | Chess Workshop | gameplay | The legal move and an independent Stockfish reply appeared in notation. | originals-deep/247/proof.json |
 | Tanks and Soldiers (Preview) | gameplay | Live rifle ammunition count decreased after F. | originals-deep/248/proof.json |
@@ -176,12 +186,12 @@ Each row distinguishes the latest quick fleet attempt from separate game-specifi
 | Retro Bowl | No visible change | 2 | gameplay |  |
 | Super Hot | Animation only | 3 | gameplay |  |
 | 10 Minutes Till Dawn | Visible response | 1 | gameplay |  |
-| Fleeing the Complex | Animation only | 2 |  |  |
-| Infiltrating the Airship | Animation only | 2 |  |  |
+| Fleeing the Complex | Animation only | 2 | gameplay |  |
+| Infiltrating the Airship | Animation only | 2 | gameplay |  |
 | Baldi's Basics | Animation only | 2 | gameplay |  |
 | Temple Run 2 | Animation only | 1 | gameplay |  |
 | Cut the Rope | Animation only | 3 | gameplay |  |
-| Fancy Pants Adventure 3 | Animation only | 5 |  |  |
+| Fancy Pants Adventure 3 | Animation only | 5 | gameplay |  |
 | Vex 7 | Animation only | 2 | gameplay |  |
 | Geometry Dash Lite | No visible change | 1 | gameplay |  |
 | Cookie Clicker | Game control verified | 1 |  | Click #bigCookie + Click #bigCookie |
@@ -248,7 +258,7 @@ Each row distinguishes the latest quick fleet attempt from separate game-specifi
 | Battleship | Game control verified | 2 |  | Click #computer-board .cell |
 | Boggle | Game control verified | 1 |  | Click #new |
 | Achtung die Kurve | Visible response | 1 | gameplay |  |
-| Dominoes | No visible change | 3 | gameplay |  |
+| Dominoes | Game control verified | 4 | gameplay | activate:#block1 + activate:#mesto1 |
 | Mini Golf | Game control verified | 3 |  | key:ArrowLeft + key:Space |
 | Bowling | Visible response | 1 | gameplay |  |
 | Hearts Classic | No visible change | 1 | gameplay |  |
@@ -286,8 +296,8 @@ Each row distinguishes the latest quick fleet attempt from separate game-specifi
 | JANKOLOCK | Animation only | 3 | gameplay |  |
 | CITISTEN | Frame unavailable | 2 | gameplay |  |
 | Lane Run | Game control verified | 2 |  | key:ArrowRight |
-| Gap Glide | Visible response | 3 | gameplay |  |
-| Courtyard Cast | Visible response | 3 | gameplay |  |
+| Gap Glide | Game control verified | 4 | gameplay | key:Space |
+| Courtyard Cast | Game control verified | 4 | gameplay | key:Space |
 | Brainrot Boulevard: After Dark | Test interrupted | 4 | gameplay |  |
 | Capital Drive: Canberra (Preview) | Test interrupted | 2 | gameplay |  |
 | Steal a Basketballer (Preview) | Frame unavailable | 2 | gameplay |  |

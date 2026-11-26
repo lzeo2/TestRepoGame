@@ -36,11 +36,11 @@ PROBES = {
     'TowerOfHanoi': ('#disk-1|#tower-b', '#step-counter'),
     'MiniGolf': ('key:ArrowLeft|key:Space', '#strokes'),
     'Sokoban': ('key:ArrowRight|key:ArrowLeft|key:ArrowDown|key:ArrowUp', '#msg'),
-    'Dominoes': ('#block1|#mesto1', '#mesto1'),
+    'Dominoes': ('activate:#block1|activate:#mesto1', '#mesto1'),
     'Garage Borough': ('#hire', '#cash'),
     'BrainrotBoulevard': ('key:l', '#lockStatus'),
     'ServerSurvival': ('#btn-fast', '#btn-fast'),
-    'SchoolyardGapGlide': ('#restart|#start|#pause', '#pause'),
+    'SchoolyardGapGlide': ('key:Space', '#status'),
     'Puzzle15': ('key:ArrowRight|key:ArrowLeft|key:ArrowDown|key:ArrowUp', '#moves'),
     'PegSolitaire': ('[data-row="3"][data-col="1"]|[data-row="3"][data-col="3"]', '#pegCount'),
     'Reversi': ('.square:has(.hint-b), .square:has(.hint-w)', '#countYou, #countThem'),
@@ -90,7 +90,7 @@ STATE_PROBES = {
     'Archery': ('key:ArrowRight', 'typeof kbAngle === "undefined" ? null : kbAngle'),
     'Borough Run': ('key:p', 'window.__gameDebug?.state'),
     'Night Shift': ('key:j', 'window.__gameDebug?.entityCounts.bullets'),
-    'SchoolyardCourtyardCast': ('#aim-settings summary|#launch', 'window.schoolyardGame?.state.nextIndex'),
+    'SchoolyardCourtyardCast': ('key:Space', 'window.schoolyardGame?.state.nextIndex'),
     'Rhythm': ('hold:s', 'window.isHolding?.s'),
     'ADarkRoom': ('#lightButton', 'window.$SM?.get("game.fire.value")'),
     'Jankolock3D': ('#pause', 'document.querySelector("#resume")?.checkVisibility()'),
@@ -139,7 +139,7 @@ START = {
     'Nim': '#playBtn', 'DotsAndBoxes': '#playBtn', 'Mastermind': '#playBtn',
     'UltimateTicTacToe': '#playBtn', 'War': '#startBtn', 'WordLadder': '#startBtn',
     'WordSearch': '#startScreen .primary', 'StealFootballer': '#start',
-    'StealBasketballer': '#start', 'SchoolyardGapGlide': '#start',
+    'StealBasketballer': '#start',
     'SchoolyardLaneRun': '#start', 'Night Shift': '#play', 'Borough Run': '#play',
 }
 # Normalized viewport coordinates refer to the runner's fixed 850 by 590
@@ -355,6 +355,12 @@ async def trial(page, g, result, evidence, base):
             if step.startswith('key:'):
                 await key(page, step[4:])
                 result['inputs'].append(step)
+            elif step.startswith('activate:'):
+                control = await first_visible(page.locator(step[9:]))
+                if control:
+                    await control.focus()
+                    await page.keyboard.press('Enter')
+                    result['inputs'].append(step)
             elif step.startswith('hold:'):
                 await page.keyboard.down(step[5:])
                 held.append(step[5:])

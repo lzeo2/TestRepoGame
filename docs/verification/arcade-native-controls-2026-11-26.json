@@ -70,8 +70,8 @@
     "status": "gameplay"
   },
   "Capital Drive": {
-    "observation": "The shipping 2D fallback accepted Campaign, Start, skip, and J. The player selected a direct radio route, Milo’s longer case-table handover, then the direct route. The test seeded six completed introductions and the initial position. Separately, the normal 3D Free roam entry reached started and unpaused with the player active.",
-    "receipt": "canberra-park-detail/crew-radio-native-a4/results.json (sibling preview folder)",
+    "observation": "In normal 3D Free roam, W then D moved the vehicle 5.754 m, changed heading by 0.079 radians and reached 39 km/h in second gear. Build 385c082ce2af reported no page exception or external request. Separately, the 2D campaign test used seeded introductory progress and switched between the direct radio route and Milo’s longer case-table handover.",
+    "receipt": "docs/verification/arcade-canberra-2026-11-26/README.md, free-roam-driving.webp and sibling preview folder canberra-park-detail/crew-radio-native-a4/results.json",
     "status": "gameplay"
   },
   "Checkers": {
@@ -159,6 +159,11 @@
     "receipt": "more-classics/DuckHunt/proof.json",
     "status": "gameplay"
   },
+  "FancyPantsAdventure3": {
+    "observation": "Clicked Play Now in World 3, advanced the bedroom dialogue with Up, and used S at the prompt to jump from the bed. The next frame shows Fancy Pants in the air above the window; left input then moved the hero across the floor toward the bedroom door. The original software-GPU attempt timed out taking its first frame.",
+    "receipt": "classics-deep/63/proof.json",
+    "status": "gameplay"
+  },
   "FireboyAndWatergirl": {
     "observation": "Horizontal movement of real Phaser level character while holding the right arrow.",
     "receipt": "vendor-deep/127/proof.json",
@@ -187,6 +192,11 @@
   "FireboyAndWatergirlHacked": {
     "observation": "Horizontal movement of real Phaser level character while holding the right arrow.",
     "receipt": "vendor-deep/131/proof.json",
+    "status": "gameplay"
+  },
+  "FleeingTheComplex": {
+    "observation": "The original software-graphics run remained near the start of its preloader after two minutes. With the shared current Ruffle Canvas renderer the PLAY button appeared, the game reached Holding B, and the native Play Dead choice caused the branch-specific Fail screen (“Pretty convincing there”, unique 1, fail count 1). Retry was then selected.",
+    "receipt": "classics-deep/57/proof.json",
     "status": "gameplay"
   },
   "Foldwild": {
@@ -222,6 +232,11 @@
   "Hextris": {
     "observation": "Started the round, rotated the main hex from lane 0 to 1 with Left, then returned to lane 0 with Right.",
     "receipt": "more-classics/Hextris/proof.json",
+    "status": "gameplay"
+  },
+  "InfiltratingTheAirship": {
+    "observation": "Reached Operation ready for launch, started the live airship introduction and chose Sticky Hand from the four entry routes. Henry hung from the pink hand on the outside of the ship, and the game advanced to a new set of choices inside the Toppat cargo hold.",
+    "receipt": "classics-deep/58/proof.json",
     "status": "gameplay"
   },
   "Jankolock": {
@@ -430,7 +445,7 @@
     "status": "gameplay"
   },
   "TempleRun2": {
-    "observation": "Confirmed the in-run Restart action, including its confirmation panel: the displayed score and distance reset from 5,526 and 552 to zero. The first run also raised an undefined SelectedDefinition exception and displayed the runner over clouds; collision and jumping in that run remain unverified. The session also logged 1 page errors.",
+    "observation": "Paused an active run, confirmed Restart, and saw score 5,526 and distance 552 reset to zero. One session also showed an empty-cloud course and an undefined track-definition exception. Two fresh runs did not reproduce it. Jumping and collisions remain unverified.",
     "receipt": "vendor-deep/60/proof.json",
     "status": "gameplay"
   },
