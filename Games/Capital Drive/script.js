@@ -81,6 +81,7 @@ import {createBuses} from './buses.js';
 import {createBirdsView} from './birds-view.js';
 import {createWarMemorialView} from './war-memorial-view.js';
 import {createLightRail} from './light-rail.js';
+import {prepareRailBridges} from './rail-bridges.js';
 import {createLightRailView} from './light-rail-view.js';
 import {buildHeistSites} from './heist-sites.js';
 import {createHeistSitesView} from './heist-sites-view.js';
@@ -4396,8 +4397,9 @@ async function boot() {
   map.landmarkTreeExclusions.push(...carRentalSites.map(site=>site.apron).filter(Boolean));
   map.servicePins=[];
   const standClear=(pose,ignoreId)=>!simulation.moveActor({...pose,id:ignoreId},0,0,.45).blocked;
-  lightRail=createLightRail(map,{heightAt:surfaceAt,canStand:standClear,canReach:simulation.hasLineOfSight});
-  lightRailView=compatibility?emptyView():createLightRailView(scene,lightRail,surfaceAt);
+  const railBridges=prepareRailBridges(map.bounds,terrainSampler.groundHeightAt,surfaceAt);
+  lightRail=createLightRail(map,{heightAt:railBridges.heightAt,canStand:standClear,canReach:simulation.hasLineOfSight});
+  lightRailView=compatibility?emptyView():createLightRailView(scene,lightRail,railBridges.heightAt,railBridges.decks);
   depotTank=createDepotTank(map,simulation,{heightAt:terrainSampler.heightAt});
   depotTankView=compatibility?emptyView():createDepotTankView(scene);
   if(map.defenceDepot?.drivableTank){

@@ -1,0 +1,14 @@
+# Mapped rail bridge decks
+
+The source census found 12 complete ways tagged `bridge=yes` and `layer=1` over the retained Canberra and region-north map tiles. All points fall inside the game’s terrain bounds. Light-rail directions already follow the four exact tram centerlines. Their two shared structures now have external concrete decks beneath the existing service. Height estimates use the terrain, a bounded transition along the running rail and an authored low clearance. Structural dimensions are estimated where the data supplies only track centerlines. [OpenStreetMap data terms](https://www.openstreetmap.org/copyright)
+
+| Physical structure | Mapped rail ways and model |
+| --- | --- |
+| Sullivans Creek light-rail bridge, ref 1409 | Tracks [664869275](https://www.openstreetmap.org/way/664869275) and [684739960](https://www.openstreetmap.org/way/684739960) cross [Sullivans Creek](https://www.openstreetmap.org/way/67645948). They share one concrete deck. The width is estimated. |
+| Gungaderra Creek light-rail bridge, ref 1407 | Tracks [767984382](https://www.openstreetmap.org/way/767984382) and [767984384](https://www.openstreetmap.org/way/767984384) cross [Gungaderra Creek](https://www.openstreetmap.org/way/445289572) and its [lower cycleway](https://www.openstreetmap.org/way/699525257). The deck uses the 8.7 m mapped structural width and the straight track axis. The native polygon has small corner variations. [Mapped concrete outline](https://www.openstreetmap.org/way/1355896350) |
+| Canberra Line and old sidings over Jerrabomberra Creek | The current [main line 60738390](https://www.openstreetmap.org/way/60738390) and the two former sidings [60738385](https://www.openstreetmap.org/way/60738385) and [60738389](https://www.openstreetmap.org/way/60738389) carry short track silhouettes over [the creek](https://www.openstreetmap.org/way/56254756). Slab finishes and dimensions beyond the way centerlines are artistic estimates. |
+| Miniature railway | Each of [796336968](https://www.openstreetmap.org/way/796336968), [796336971](https://www.openstreetmap.org/way/796336971), [796336976](https://www.openstreetmap.org/way/796336976), [796341089](https://www.openstreetmap.org/way/796341089) and [796341090](https://www.openstreetmap.org/way/796341090) uses its own mapped line with miniature rails and narrow deck dimensions inferred from scale. |
+
+The external main-line, disused and miniature shapes are scenery. The tram’s running rails and fleet use one callback at the two raised decks. Source stations, paths and service timing are preserved. Players board at the existing platforms. All 35 deck sections fit into the existing nearby rail geometry batch.
+
+Run `node scripts/test_capital_rail_bridges.mjs`. It matches each tram span to the shipped route nodes, checks both grades and deck support, advances the production service across both bridges, and checks visible instances, distant culling and disposal.

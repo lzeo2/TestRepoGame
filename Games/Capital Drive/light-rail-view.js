@@ -138,11 +138,34 @@ function eachTrackSpan(routes, heightAt, add) {
   }
 }
 
-export function createLightRailView(scene, { routes = [], stops = [], platforms } = {}, heightAt = () => 0) {
+function addBridgeDecks(decks,add) {
+  for(const deck of decks) {
+    const miniature=deck.kind==='miniature';
+    const tram=deck.kind==='tram';
+    const slab=miniature?.19:.52;
+    const color=deck.kind==='disused'?0x73645a:miniature?0x7c7268:CONCRETE;
+    for(const span of deck.spans) {
+      const left=-(deck.width/2-.09),right=-left;
+      const slope=Math.atan2(span.y1-span.y0,span.length);
+      const length=Math.hypot(span.length,span.y1-span.y0)+.014;
+      const parts=[piece(0,-slab/2,0,deck.width,slab,length,color)];
+      if(tram) {
+        for(const at of [left,right])parts.push(piece(at,.24,0,.16,.48,length,0x68716e));
+      } else {
+        const gauge=miniature?.16:.718, tint=deck.kind==='disused'?0x705847:STEEL;
+        for(const at of [-gauge,gauge])parts.push(piece(at,.06,0,miniature?.028:.07,.066,length,tint));
+      }
+      add({x:(span.a[0]+span.b[0])/2,z:(span.a[1]+span.b[1])/2,y:(span.y0+span.y1)/2,
+        yaw:Math.atan2(-span.dx,-span.dz),pitch:slope,bridge:true,parts});
+    }
+  }
+}
+
+export function createLightRailView(scene, { routes = [], stops = [], platforms } = {}, heightAt = () => 0, railDecks = []) {
   const geometry = new THREE.BoxGeometry(1, 1, 1), material = new THREE.MeshLambertMaterial({ color: 0xffffff });
   const track = new THREE.InstancedMesh(geometry, material, STATIC_CAP);
   const fleet = new THREE.InstancedMesh(geometry, material, TRAIN_CAP);
-  track.name = 'Light rail running rails and sheltered platforms';
+  track.name = 'Rail bridge decks, running rails and sheltered platforms';
   fleet.name = 'Original Capital Link light rail fleet';
   for (const mesh of [track, fleet]) {
     mesh.count = 0; mesh.visible = false; mesh.frustumCulled = false;
@@ -159,7 +182,7 @@ export function createLightRailView(scene, { routes = [], stops = [], platforms 
   const tramMatrices = TRAIN_ART.map(parts => parts.map(box => { setLocalBox(box); return local.matrix.clone(); }));
   for (let index = 0; index < TRAIN_CAP; index++) fleet.setColorAt(index, color.setHex(TRAIN_ART[1][index % TRAIN_ART[1].length].color));
   fleet.instanceColor.needsUpdate = true;
-  const stats = { trains: 0, trackSections: 0, stops: 0, platforms: 0, drawCalls: 0, triangles: 0,
+  const stats = { trains: 0, trackSections: 0, bridgeSections: 0, stops: 0, platforms: 0, drawCalls: 0, triangles: 0,
     maxDrawCalls: 2, trackCapacity: STATIC_CAP, trainCapacity: TRAIN_CAP, staticUploads: 0, vehicleUploads: 0, disposed: false };
   let anchor = null, previousFleet = '';
 
@@ -169,6 +192,7 @@ export function createLightRailView(scene, { routes = [], stops = [], platforms 
     groups.get(key).push(item);
   }
   eachTrackSpan(routes, heightAt, add);
+  addBridgeDecks(railDecks,add);
   const sourcedPlatforms = Array.isArray(platforms);
   for (const stop of sourcedPlatforms ? platforms : stops) {
     if (!position(stop) || !Number.isFinite(stop.yaw)) continue;
@@ -206,22 +230,25 @@ export function createLightRailView(scene, { routes = [], stops = [], platforms 
   function updateTrack(focus) {
     if (anchor && rangeSquared(anchor, focus) < 18 ** 2) return;
     anchor = { x: focus.x, z: focus.z };
-    track.count = 0; stats.trackSections = 0; stats.stops = 0; stats.platforms = 0;
+    track.count = 0; stats.trackSections = stats.bridgeSections = 0; stats.stops = 0; stats.platforms = 0;
     const stopIds = new Set();
     const visible = [];
     for (let x = Math.floor((focus.x - RANGE.platform) / CELL); x <= Math.floor((focus.x + RANGE.platform) / CELL); x++) {
       for (let z = Math.floor((focus.z - RANGE.platform) / CELL); z <= Math.floor((focus.z + RANGE.platform) / CELL); z++) {
         for (const item of groups.get(cellKey(x, z)) || []) {
           const distance = rangeSquared(item, focus);
-          if (distance <= RANGE[item.track ? 'track' : 'platform'] ** 2) visible.push({ item, distance });
+          if (distance <= RANGE[item.track || item.bridge ? 'track' : 'platform'] ** 2) visible.push({ item, distance });
         }
       }
     }
-    visible.sort((a, b) => Number(!!a.item.track) - Number(!!b.item.track) || a.distance - b.distance);
+    const priority=item=>item.track?2:item.bridge?1:0;
+    visible.sort((a, b) => priority(a.item) - priority(b.item) || a.distance - b.distance);
     for (const { item } of visible) {
       if (track.count + item.parts.length > STATIC_CAP) continue;
       drawParts(track, item, item.parts, item.widthScale, item.lengthScale);
-      if (item.track) stats.trackSections++; else { stats.platforms++; stopIds.add(item.stopId || item.id); }
+      if (item.track) stats.trackSections++;
+      else if(item.bridge) stats.bridgeSections++;
+      else { stats.platforms++; stopIds.add(item.stopId || item.id); }
     }
     stats.stops = stopIds.size;
     flush(track); stats.staticUploads++;
@@ -264,7 +291,7 @@ export function createLightRailView(scene, { routes = [], stops = [], platforms 
     if (stats.disposed) return;
     if (position(focus)) { updateTrack(focus); updateFleet(vehicles, focus); }
     else { anchor = null; previousFleet = ''; track.count = fleet.count = 0; track.visible = fleet.visible = false;
-      stats.trains = stats.stops = stats.platforms = stats.trackSections = 0; }
+      stats.trains = stats.stops = stats.platforms = stats.trackSections = stats.bridgeSections = 0; }
     stats.drawCalls = Number(track.visible) + Number(fleet.visible);
     stats.triangles = 12 * (track.count + fleet.count);
   }
