@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { createCampaign } from '../Games/Capital Drive/campaign.js';
+import { createCampaignAftermath } from '../Games/Capital Drive/campaign-aftermath.js';
 import { createMissionGuide } from '../Games/Capital Drive/mission-locations.js';
 
 const source = await readFile(new URL('../Games/Capital Drive/script.js', import.meta.url), 'utf8');
@@ -14,8 +15,8 @@ function controllerFunction(name) {
 }
 const map = { spawn: { x: 0, z: 0 }, landmarks: [{ id: 'coals', name: 'Coals', store: true, x: 100, z: 10 }] };
 const prefix = createCampaign(map).journal().shared.map(chapter => chapter.id);
-const campaign = createCampaign(map, { version: 1, completed: prefix.slice(0, prefix.indexOf('quiet-streets')) });
-const context = { pose: { x: 0, z: 0, speed: 0 }, onFoot: false, wanted: 2, health: 100, vehicleHealth: 100,
+const campaign = createCampaign(map, { version: 1, completed: prefix.slice(0, prefix.indexOf('borrowed-wheels')) });
+const context = { pose: { x: 0, z: 0, speed: 0 }, onFoot: false, wanted: 2, health: 100, vehicleHealth: 100, vehicle: { stolen:true },
   respawnSerial: 0, campaign: true, sandbox: false };
 assert(campaign.start(context).ok);
 campaign.drainEvents();
@@ -34,6 +35,7 @@ vm.runInContext(`${controllerFunction('campaignNavigationTarget')}\n${controller
 const objective = source.match(/^  const objective = (.+);$/m)?.[1];
 assert(objective, 'actual world marker expression is available');
 const worldTarget = () => vm.runInContext(`(${objective})`, env);
+for(let i=0;i<5;i++)campaign.update(.1,context);
 env.updateCareer();
 assert(env.destination && env.route.length > 0, 'controller routes before actual arrival');
 assert(worldTarget(), 'world marker exists before arrival');
@@ -69,7 +71,28 @@ assert.equal(calls.length, routed, 'leaving the reached location does not restor
 assert.equal(worldTarget(), null);
 assert(campaign.cancel());
 assert(campaign.start(context).ok);
+for(let i=0;i<5;i++)campaign.update(.1,context);
 env.updateCareer();
 assert.equal(campaign.snapshot().active.escapeReached, false, 'new attempt requires new actual arrival');
 assert(env.destination && worldTarget(), 'fresh attempt restores navigation');
 console.log('PASS actual escape navigation: genuine campaign arrival, exterior guard, guide target, controller GPS clearing, world marker clearing, no garage fallback, remote clearing denial and fresh-attempt route');
+
+const lunch = 'corporate-lunch-breakpoint';
+const aftermath = createCampaignAftermath();
+assert(aftermath.begin(lunch, { x: 1, z: 2 }, { witnesses: 2 }));
+let completion = [{ type: 'complete', id: lunch, message: 'Lunch is over.', reward: 150 }];
+let saved = null;
+Object.assign(env, {
+  campaign: { state: { active: null }, drainEvents() { return completion.splice(0); } },
+  campaignAftermath: aftermath, inquiryOfficer: { x: 1, z: 2 },
+  clearInput() {}, trainingCredit: () => '', syncPlayerAppearance() {},
+  saveCareer() { saved = aftermath.serialize(); },
+});
+env.progression.state.cash = 0;
+env.gameplay.reportOffence = () => assert.fail('finishing lunch must not restart the pursuit');
+env.updateCareer();
+assert.equal(env.inquiryOfficer, null);
+assert.equal(env.progression.state.cash, 150);
+assert.equal(saved[lunch].decision, 'avoided', 'the completion save includes the pending witness decision');
+env.updateCareer();
+assert.equal(env.progression.state.cash, 150, 'completion does not pay twice');

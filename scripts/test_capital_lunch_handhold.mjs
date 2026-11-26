@@ -151,7 +151,7 @@ for (const frontWidth of [6.2, 7.5, 9]) {
       assert(typeof chapter.briefing === 'string' && chapter.briefing.length >= 120,
         `${chapter.id} keeps a full step-by-step briefing`);
       assert(!chapter.briefing.includes('—'), `${chapter.id} briefing avoids em-dashes`);
-      assert(/press [EFQI]|Press E|hold Space|SCAN/i.test(chapter.briefing),
+      assert(/press [EFQI]|Campaign \(J\)|hold Space|SCAN/i.test(chapter.briefing),
         `${chapter.id} briefing names the actual key for its actions`);
       for (const [index, stage] of chapter.stages.entries()) {
         assert(typeof stage.label === 'string' && stage.label.length >= 25, `${chapter.id} stage ${index} label is explicit`);

@@ -32,7 +32,7 @@ const kinds = [], receipts = { recon: { serial: 10 }, heist: { serial: 20 }, evi
 for (let index = 0; index < additions.length; index++) {
   assert(campaign.selectCharacter(['corporate', 'basement', 'student', 'corporate'][index], ctx).ok);
   const chapter = campaign.current(); assert.equal(chapter.id, additions[index]); kinds.push(chapter.stages.map(g => g.kind));
-  if (chapter.id === 'earmuffs-rematch') assert.equal(chapter.stages[1].foot, true, 'post-fight escape retains its on-foot completion rule');
+  if (chapter.id === 'earmuffs-rematch') assert.equal(chapter.stages[1].anywhere, true, 'post-fight escape can finish where the pursuit ends');
   assert(campaign.start({ ...ctx, ...receipts }).ok); campaign.drainEvents();
   while (campaign.state.active) {
     const active = campaign.state.active, goal = active.target, stage = active.stage;

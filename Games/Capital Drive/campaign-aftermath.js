@@ -49,7 +49,12 @@ export function createCampaignAftermath(saved) {
   function scrutiny() {
     return Object.values(records).some(record => record.civilianHarm || (record.witnesses > 0 && record.decision !== 'cooperated')) ? 1 : 0;
   }
-  return { begin, canSpeak, choose, step, scrutiny,
+  function finish(id) {
+    if (!pending || pending.id !== id) return false;
+    settle('avoided');
+    return true;
+  }
+  return { begin, canSpeak, choose, step, scrutiny, finish,
     isCase: id => CASES.has(id), recorded: id => Object.hasOwn(records, id),
     current: () => pending ? copy(pending) : null,
     serialize: () => ({ ...records }), restore(value) { records = validate(value); pending = null; },

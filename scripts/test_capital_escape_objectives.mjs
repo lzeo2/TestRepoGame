@@ -14,7 +14,8 @@ for (const entry of catalog.developerChapters()) {
   catalog.cancel();
 }
 assert.equal(catalog.developerChapters().length, 24, 'audit all actual campaign definitions');
-assert.deepEqual(escapeIds, ['student-paper-chase', 'corporate-lunch-breakpoint', 'late-parcel', 'under-the-awning', 'borrowed-wheels', 'quiet-streets', 'across-the-water', 'home-by-the-lake', 'shelf-life', 'two-till-problem', 'sealed-account', 'earmuffs-rematch', 'closing-time', 'conflict-of-interest']);
+assert.deepEqual(escapeIds, ['student-paper-chase', 'corporate-lunch-breakpoint', 'late-parcel', 'under-the-awning', 'borrowed-wheels', 'quiet-streets', 'across-the-water', 'home-by-the-lake', 'shelf-life', 'two-till-problem', 'carbon-copy', 'sealed-account', 'earmuffs-rematch', 'closing-time', 'terminal-transfer', 'conflict-of-interest', 'three-clean-copies']);
+const handovers = new Set(['late-parcel', 'borrowed-wheels', 'across-the-water', 'carbon-copy', 'terminal-transfer', 'three-clean-copies']);
 let serial = 0;
 function contextFor(campaign) {
   const target = campaign.state.active.target;
@@ -58,16 +59,22 @@ function opening(id) {
 for (const id of escapeIds) {
   const campaign = opening(id), saved = campaign.serialize(), arrival = contextFor(campaign);
   const far = { ...arrival, pose: { x: arrival.pose.x + 1000, z: arrival.pose.z + 1000 }, wanted: 0 };
-  tick(campaign, { ...far, wanted: 2 }, 1);
-  tick(campaign, far);
-  assert(campaign.state.active, `${id}: clearing without arrival earns nothing`);
-  assert.equal(campaign.snapshot().active.escapeReached, false);
+  const marked = handovers.has(id);
+  assert.equal(Boolean(campaign.state.active.target.anywhere), !marked, `${id}: only a physical handover has an arrival marker`);
+  if (marked) {
+    tick(campaign, { ...far, wanted: 2 }, 1);
+    tick(campaign, far);
+    assert(campaign.state.active, `${id}: clearing without the handover earns nothing`);
+    assert.equal(campaign.snapshot().active.escapeReached, false);
+  }
   for (const invalid of [{ paused: true }, { sandbox: true }, { campaign: false }, { health: 0 }, { health: NaN }, { interior: { roomId: 'wrong-room' } }]) {
     campaign.update(.1, { ...arrival, wanted: 2, ...invalid });
     assert.equal(campaign.snapshot().active.escapeReached, false, `${id}: invalid context cannot record arrival`);
   }
   if (campaign.state.active.target.drive) {
-    for (const invalid of [{ onFoot: true }, { vehicleHealth: 0 }, { pose: { ...arrival.pose, speed: 4 } }]) {
+    const invalidDriving = [{ onFoot: true }, { vehicleHealth: 0 }, { passenger: true }];
+    if (campaign.state.active.target.stop) invalidDriving.push({ pose: { ...arrival.pose, speed: 4 } });
+    for (const invalid of invalidDriving) {
       campaign.update(.1, { ...arrival, wanted: 2, ...invalid });
       assert.equal(campaign.snapshot().active.escapeReached, false, 'drive arrival requires healthy stopped car');
     }
@@ -76,9 +83,13 @@ for (const id of escapeIds) {
     campaign.update(.1, { ...arrival, wanted: 2, vehicle: { stolen: false } });
     assert.equal(campaign.snapshot().active.escapeReached, false, 'a stolen-car handover requires the stolen car');
   }
+  if (campaign.state.active.target.arriveOnFoot) {
+    campaign.update(.1, { ...arrival, onFoot: false, wanted: 2 });
+    assert.equal(campaign.snapshot().active.escapeReached, false, 'the physical handover requires stepping out');
+  }
   campaign.update(0, { ...arrival, wanted: 2 });
   assert.equal(campaign.snapshot().active.escapeReached, false, 'zero dt cannot record arrival');
-  campaign.update(.1, { ...arrival, wanted: 2 });
+  campaign.update(.1, { ...(marked ? arrival : far), wanted: 2 });
   assert.equal(campaign.snapshot().active.escapeReached, true);
   assert.deepEqual(campaign.serialize(), saved, 'arrival is transient');
   tick(campaign, { ...far, wanted: 2 });
@@ -135,8 +146,7 @@ for (const id of escapeIds) {
 for (const id of ['carbon-copy', 'terminal-transfer']) {
   const probe = createCampaign(map);
   assert(probe.startDeveloper(id, { ...base, developer: true }).ok);
-  const deliveries = probe.current().stages.filter(stage => stage.clear);
-  assert(deliveries.length > 0);
-  assert(deliveries.every(stage => stage.kind !== 'escape'), `${id}: physical deliveries and handovers retain location requirements`);
+  const goal = probe.current().stages.at(-1);
+  assert(goal.arriveOnFoot && goal.clear && !goal.anywhere, `${id}: the marked handover must register before losing wanted anywhere`);
 }
 console.log(`PASS escape objectives: all 24 definitions audited, ${escapeIds.length} real escape stages, sticky arrival, exterior/context/dt guards, responsive departures, authored dwell reset, retry reset and once-only rewards`);

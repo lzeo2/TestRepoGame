@@ -81,9 +81,10 @@ export function createMissionGuide(entries, storyHomes = {}) {
       if(point(context?.vehicle))return result('Walk to your marked car and press E to get in.','Your car',context.vehicle);
       return Object.freeze({instruction:'Walk to a car and press E to get in.',location:'Find a car',point:null,distance:null,indoors:false,roaming:true});
     }
-    if(goal.kind==='escape' && active.escapeReached===true)return Object.freeze({
-      instruction: goal.aftermath && context.aftermathResolved === false && !plan ?
-        'Walk out (E leaves) and speak to the officer outside, or simply leave the area.' : context.wanted>0?'Location reached. Keep moving until the police search bar empties.':'Location reached. Stay clear of the police.',
+    if (goal.kind === 'escape' && (active.escapeReached || goal.anywhere)) return Object.freeze({
+      instruction: goal.drive && !active.escapeReached ? goal.label : context.wanted > 0
+        ? (goal.aftermath && context.inquiryPending ? 'Lose the police anywhere. You can also give a statement to the responding officer.' : 'Lose the police anywhere.')
+        : 'Stay clear of the police.',
       location:'Escape the police',point:null,distance:null,indoors:false,entryId:null,stationId:null,escaping:true});
     const findVehicle = goal.kind === 'stolen' && goal.anywhere;
     if (goal.kind==='stealth-contract' && goal.roomId) {

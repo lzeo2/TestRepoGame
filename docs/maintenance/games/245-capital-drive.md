@@ -366,9 +366,11 @@ handovers take three seconds and use their own admission rules.
 
 After Lunch Breakpoint and the Pink Earmuffs rematch, an officer collects
 descriptions from surviving witnesses. Give a statement, decline to answer
-or leave the area. The Campaign briefing records the outcome. Witnessed
-departures, refusal and civilian harm can raise attention later. Completing
-the mission banks that outcome with the prelaunch checkpoint flow.
+or leave the area. Once you are outside with no wanted stars, the mission
+finishes wherever you are. The Campaign briefing records an unfinished
+interview as avoided, and the record can affect later attention. Clearing
+other searches also works anywhere, including after leaving a getaway car.
+Marked handovers and pickups still register once before their escape step.
 
 Campaign and Street Life each save missing original aircraft and the condition
 of the three fictional police posts. Mission failure restores prelaunch world

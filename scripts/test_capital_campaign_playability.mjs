@@ -123,7 +123,7 @@ for (const descriptor of chapters) {
           // Explicit unit-fixture placement. Travel budgets are reported separately.
           const travel = 0; // fixture placement; budget scenarios below retain real graph distance
           const arrival = { ...destination, speed: 0 };
-          Object.assign(ctx, { onFoot: target.kind === 'foot' || target.foot === true });
+          Object.assign(ctx, { onFoot: target.kind === 'foot' || target.foot === true || target.arriveOnFoot === true });
           if (target.kind === 'drive') { ctx.onFoot = false; ctx.vehicle ||= { ...gameplay.state.vehicle }; }
           for (let remaining = travel; remaining > 0 && campaign.state.active?.stage === index; remaining -= .1) {
             tick(Math.min(.1, remaining)); stage.simulatedSeconds += Math.min(.1, remaining);

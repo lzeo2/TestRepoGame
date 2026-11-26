@@ -31,7 +31,7 @@ for (let index = 0; index < 2; index++) {
   assert.equal(chapter.id, ['closing-time', 'terminal-transfer'][index]);
   assert.equal(chapter.time, 1440);
   assert.deepEqual(chapter.companions, ['student', 'corporate', 'basement'].filter(id => id !== hero));
-  assert.deepEqual(chapter.stages.map(g => g.kind), index ? ['home-action', 'drive', 'drive', 'foot'] : ['robbery', 'evidence', 'drive', 'robbery', 'escape']);
+  assert.deepEqual(chapter.stages.map(g => g.kind), index ? ['home-action', 'drive', 'drive', 'escape'] : ['robbery', 'evidence', 'drive', 'robbery', 'escape']);
   assert(campaign.start(context).ok);
   const start = campaign.drainEvents().find(e => e.type === 'started');
   if (index) {
@@ -42,7 +42,7 @@ for (let index = 0; index < 2; index++) {
   const advance = live => { const stage = campaign.state.active.stage; for (let n = 0; n < 100 && campaign.state.active?.stage === stage; n++) campaign.update(.1, live); };
   while (campaign.state.active) {
     const { target: goal, stage } = campaign.state.active;
-    const live = { ...context, pose: { ...goal, speed: 0 }, interior: null, onFoot: ['robbery', 'evidence', 'home-action', 'foot'].includes(goal.kind), vehicle: { stolen: false } };
+    const live = { ...context, pose: { ...goal, speed: 0 }, interior: null, onFoot: ['robbery', 'evidence', 'home-action', 'foot'].includes(goal.kind) || goal.arriveOnFoot === true, vehicle: { stolen: false } };
     if (['robbery', 'evidence'].includes(goal.kind)) {
       const key = goal.kind === 'robbery' ? 'heist' : 'evidence';
       live.interior = { storeId: goal.storeId, roomId: `interior-${goal.storeId}` };
