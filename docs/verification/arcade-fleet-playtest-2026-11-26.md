@@ -1,8 +1,8 @@
 # Arcade fleet interaction results
 
-142 game projects, 255 isolated browser attempts.
+142 game projects (136 registered and 6 unlisted), 264 isolated fleet browser attempts.
 47 titles had a verified game-control change in at least one fleet attempt.
-Combining that evidence with dedicated gameplay observations covers 135 distinct titles. The other 7 have more limited evidence in these sessions.
+Combining that evidence with dedicated gameplay observations covers 136 distinct titles. The other 6 have more limited evidence in these sessions.
 
 ## Coverage
 
@@ -19,10 +19,10 @@ Protected chat coverage stops at its shell. These short sessions do not measure 
 | Outcome | Titles |
 | --- | ---: |
 | Game control verified | 47 |
-| Visible response | 27 |
+| Visible response | 25 |
 | Start control responded | 4 |
-| Animation only | 39 |
-| No visible change | 14 |
+| Animation only | 42 |
+| No visible change | 13 |
 | Frame unavailable | 6 |
 | Protected shell | 1 |
 | Unavailable by design | 1 |
@@ -32,22 +32,23 @@ Protected chat coverage stops at its shell. These short sessions do not measure 
 
 A run records the starting Git revision. Source repairs and targeted retries occurred during this sweep.
 An asset or script loaded by an earlier attempt can differ from a later one.
-Each run directory contains JSON observations and captured frames.
+Each run directory contains JSON observations and captured frames. The last three columns count entries where that kind of event was observed. A missing optional asset can appear in these counts even when the game runs.
 
-| Run | Starting revision | Entries |
-| --- | --- | ---: |
-| interaction-pass-01 | `d5c2e95b2857` | 142 |
-| interaction-targeted-02 | `d5c2e95b2857` | 16 |
-| interaction-targeted-03 | `a6f904aa2e38` | 32 |
-| interaction-targeted-04 | `e6b9475f5850` | 30 |
-| interaction-targeted-05 | `e36ad2ddefd1` | 13 |
-| interaction-targeted-06 | `03d28d3b2ecf` | 1 |
-| interaction-targeted-07 | `d69b6e719ffc` | 8 |
-| interaction-targeted-08 | `4ff80b644dca` | 2 |
-| interaction-targeted-09 | `eb6c78934ffc` | 3 |
-| interaction-targeted-10 | `c07dd9123ea8` | 4 |
-| interaction-targeted-11 | `f6b98a1dd5aa` | 3 |
-| interaction-targeted-12 | `7364d4ddecbc` | 1 |
+| Run | Starting revision | Entries | Page exceptions | Local HTTP errors | Off-origin HTTP blocked |
+| --- | --- | ---: | ---: | ---: | ---: |
+| interaction-pass-01 | `d5c2e95b2857` | 142 | 16 | 4 | 12 |
+| interaction-targeted-02 | `d5c2e95b2857` | 16 | 0 | 0 | 3 |
+| interaction-targeted-03 | `a6f904aa2e38` | 32 | 1 | 2 | 1 |
+| interaction-targeted-04 | `e6b9475f5850` | 30 | 0 | 0 | 1 |
+| interaction-targeted-05 | `e36ad2ddefd1` | 13 | 0 | 0 | 0 |
+| interaction-targeted-06 | `03d28d3b2ecf` | 1 | 0 | 0 | 0 |
+| interaction-targeted-07 | `d69b6e719ffc` | 8 | 0 | 0 | 0 |
+| interaction-targeted-08 | `4ff80b644dca` | 2 | 0 | 0 | 0 |
+| interaction-targeted-09 | `eb6c78934ffc` | 3 | 0 | 0 | 0 |
+| interaction-targeted-10 | `c07dd9123ea8` | 4 | 0 | 0 | 0 |
+| interaction-targeted-11 | `f6b98a1dd5aa` | 3 | 0 | 0 | 0 |
+| interaction-targeted-12 | `7364d4ddecbc` | 1 | 0 | 0 | 0 |
+| interaction-targeted-13 | `1bb1b4c5fc3b` | 9 | 0 | 0 | 0 |
 
 ## Dedicated native-input observations
 
@@ -71,6 +72,7 @@ Receipt paths refer to the external session folder or a tracked test script.
 | Retro Bowl | gameplay | Started an original Buffalo career, selected the favorite-team checkbox, skipped the introductory office tutorial, and entered the Week 18 match against New York J. Started the opening kickoff from Get Ready. Quarter clock, possession and score then advanced; a Buffalo field goal made it 3–0. This run did not verify a manual offensive pass. | classics-deep/54/proof.json |
 | Super Hot | gameplay | Advanced the introduction to the first 3D encounter. WASD and mouse input moved the camera in the scene with the opponent and reticle visible. | unity-deep/superhot-display/ |
 | 10 Minutes Till Dawn | gameplay | Selected Shana and the revolver, entered survival and held the left mouse button. Displayed ammunition fell from 006/006 to 005/006 as the timer counted down. One optional Steam wishlist navigation was blocked offline. | verified-last-native/TenMinutesTillDawn.json |
+| Baldi's Basics | gameplay | Entered Story Mode with zero of seven notebooks. Holding W moved through the hall and D strafed, changing the view of the fixed exit sign and doors. The repaired wrapper fit across all four tested viewport sizes. An optional Unity analytics request was blocked. | unity-deep/verified-baldi-fixed/moved.jpg, strafe.jpg, session.log |
 | Temple Run 2 | gameplay | Confirmed the in-run Restart action, including its confirmation panel: the displayed score and distance reset from 5,526 and 552 to zero. The first run also raised an undefined SelectedDefinition exception and displayed the runner over clouds; collision and jumping in that run remain unverified. The session also logged 1 page errors. | vendor-deep/60/proof.json |
 | Cut the Rope | gameplay | Clicked Play and dragged across the first rope. Om Nom received the candy with three stars. The result showed 5,439 points, then the Next button advanced. | unity-deep/rope-display/three-stars.jpg, solved.jpg, next.jpg |
 | Vex 7 | gameplay | Holding D in the playable tutorial hub moved the character X -150 to -132. Horizontal speed rose from zero to 3.6 while the character stayed on the same platform. | vendor-deep/64/proof.json |
@@ -176,7 +178,7 @@ Each row distinguishes the latest quick fleet attempt from separate game-specifi
 | 10 Minutes Till Dawn | Visible response | 1 | gameplay |  |
 | Fleeing the Complex | Animation only | 2 |  |  |
 | Infiltrating the Airship | Animation only | 2 |  |  |
-| Baldi's Basics | Animation only | 2 |  |  |
+| Baldi's Basics | Animation only | 2 | gameplay |  |
 | Temple Run 2 | Animation only | 1 | gameplay |  |
 | Cut the Rope | Animation only | 3 | gameplay |  |
 | Fancy Pants Adventure 3 | Animation only | 5 |  |  |
@@ -196,14 +198,14 @@ Each row distinguishes the latest quick fleet attempt from separate game-specifi
 | Snake Hacked | Game control verified | 3 | gameplay | Click #pause-btn |
 | Subway Surfers Hacked | No visible change | 1 | gameplay |  |
 | Doodle Jump Hacked | Animation only | 1 | gameplay |  |
-| Dr. Mario | Animation only | 1 | gameplay |  |
-| Street Fighter II | Animation only | 1 | gameplay |  |
-| Advance Wars | Visible response | 1 | gameplay |  |
-| Mario Kart Super Circuit | Animation only | 1 | gameplay |  |
-| Metroid Fusion | Animation only | 1 | gameplay |  |
-| Mega Man Zero | Animation only | 1 | gameplay |  |
-| Kirby Amazing Mirror | Visible response | 1 | gameplay |  |
-| Sonic Advance | Visible response | 1 | gameplay |  |
+| Dr. Mario | Animation only | 2 | gameplay |  |
+| Street Fighter II | Animation only | 2 | gameplay |  |
+| Advance Wars | Animation only | 2 | gameplay |  |
+| Mario Kart Super Circuit | Animation only | 2 | gameplay |  |
+| Metroid Fusion | Animation only | 2 | gameplay |  |
+| Mega Man Zero | Visible response | 2 | gameplay |  |
+| Kirby Amazing Mirror | Animation only | 2 | gameplay |  |
+| Sonic Advance | Animation only | 2 | gameplay |  |
 | Crush the Castle | Visible response | 1 | gameplay |  |
 | Fireboy and Watergirl | Animation only | 1 | gameplay |  |
 | Fireboy & Watergirl 4: Crystal Temple | Animation only | 1 | gameplay |  |
@@ -265,7 +267,7 @@ Each row distinguishes the latest quick fleet attempt from separate game-specifi
 | Missile Command | Visible response | 1 | gameplay |  |
 | Lunar Lander | No visible change | 1 | gameplay |  |
 | Space Invaders | Game control verified | 3 |  | key:ArrowRight |
-| Duck Hunt | No visible change | 1 | gameplay |  |
+| Duck Hunt | Animation only | 2 | gameplay |  |
 | Balatro | Animation only | 2 | gameplay |  |
 | Circuit Ward | Start control responded | 1 | gameplay |  |
 | Tag Relay | Game control verified | 2 |  | key:d |

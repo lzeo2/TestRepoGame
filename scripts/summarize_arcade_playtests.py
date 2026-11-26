@@ -33,7 +33,9 @@ def summarize(inputs, observations=None):
         run = json.loads((directory/'results.json').read_text())
         rows = run['games']
         assert len(rows) == run['count'] == len({row['directory'] for row in rows})
-        runs.append((directory.name,run['revision'][:12],len(rows)))
+        diagnostics = [sum(bool(row.get(key)) for row in rows)
+                       for key in ('errors','failedLocal','externalBlocked')]
+        runs.append((directory.name,run['revision'][:12],len(rows),diagnostics))
         for row in rows:
             # Gravity can reverse vertical velocity during an idle frame. The
             # first runner used this field, which cannot isolate a flap.
@@ -54,7 +56,9 @@ def summarize(inputs, observations=None):
               if any(row['outcome']=='game-control-state-confirmed' for _,row in history)}
     native = {name for name, observation in observations.items() if observation['status']=='gameplay'}
     yield '# Arcade fleet interaction results\n'
-    yield f'{len(ordered)} game projects, {sum(len(h) for h in records.values())} isolated browser attempts. '
+    registered = sum(game['registered'] for game in ordered)
+    yield (f'{len(ordered)} game projects ({registered} registered and {len(ordered)-registered} unlisted), '
+           f'{sum(len(h) for h in records.values())} isolated fleet browser attempts.')
     yield f'{len(direct)} titles had a verified game-control change in at least one fleet attempt. '
     if observations:
         yield (f'Combining that evidence with dedicated gameplay observations covers {len(direct | native)} distinct titles. '
@@ -76,10 +80,11 @@ def summarize(inputs, observations=None):
     yield '\n## Runs\n'
     yield 'A run records the starting Git revision. Source repairs and targeted retries occurred during this sweep. '
     yield 'An asset or script loaded by an earlier attempt can differ from a later one. '
-    yield 'Each run directory contains JSON observations and captured frames.\n'
-    yield '| Run | Starting revision | Entries |\n| --- | --- | ---: |'
-    for name, revision, total in runs:
-        yield f'| {cell(name)} | `{revision}` | {total} |'
+    yield 'Each run directory contains JSON observations and captured frames. The last three columns count entries where that kind of event was observed. A missing optional asset can appear in these counts even when the game runs.\n'
+    yield '| Run | Starting revision | Entries | Page exceptions | Local HTTP errors | Off-origin HTTP blocked |\n| --- | --- | ---: | ---: | ---: | ---: |'
+    for name, revision, total, diagnostic in runs:
+        exceptions, http_errors, blocked = diagnostic
+        yield f'| {cell(name)} | `{revision}` | {total} | {exceptions} | {http_errors} | {blocked} |'
     if observations:
         yield '\n## Dedicated native-input observations\n'
         yield 'The following longer sessions used individual game controls. Scope identifies exactly how far the evidence reached. '

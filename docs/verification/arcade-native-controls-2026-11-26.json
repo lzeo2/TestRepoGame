@@ -24,6 +24,11 @@
     "receipt": "emulator-deep/221/proof.json",
     "status": "gameplay"
   },
+  "BaldisBasics": {
+    "observation": "Entered Story Mode with zero of seven notebooks. Holding W moved through the hall and D strafed, changing the view of the fixed exit sign and doors. The repaired wrapper fit across all four tested viewport sizes. An optional Unity analytics request was blocked.",
+    "receipt": "unity-deep/verified-baldi-fixed/moved.jpg, strafe.jpg, session.log",
+    "status": "gameplay"
+  },
   "BasketRandom": {
     "observation": "Right team jumped after the native Up input. Default embedded ad cancellation and both menu clicks completed without a page error.",
     "receipt": "vendor-deep/5/proof.json",
