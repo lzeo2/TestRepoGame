@@ -226,10 +226,13 @@ export function createTerrainSampler(map) {
     bridgeEnds.has(keyOf(road.points.at(-1))) && road.points.slice(1).reduce((total, p, i) =>
       total + Math.hypot(p[0] - road.points[i][0], p[1] - road.points[i][1]), 0) <= 50);
   const deckRoads = [...bridgeRoads, ...connectors];
-  const nodes = new Map();
+  const nodes = new Map(), firstDeckAtNode = new Map();
   for (const road of deckRoads) for (let i = 0; i < road.points.length; i++) {
     const p = road.points[i], key = keyOf(p);
-    if (!nodes.has(key)) nodes.set(key, { point: p, neighbours: new Map(), names: new Set() });
+    if (!nodes.has(key)) {
+      nodes.set(key, { point: p, neighbours: new Map(), names: new Set() });
+      firstDeckAtNode.set(key, road);
+    }
     nodes.get(key).names.add(road.name);
     if (i) {
       const previous = road.points[i - 1], other = keyOf(previous), distance = Math.hypot(p[0] - previous[0], p[1] - previous[1]);
@@ -437,7 +440,7 @@ export function createTerrainSampler(map) {
         const a=points[i-1],b=points[i],length=Math.hypot(b[0]-a[0],b[1]-a[1]);
         if(length>0){segments.push({a,b,distance,length});distance+=length;}
       }
-      const bridge=deckRoads.find(other=>other.points.some(p=>keyOf(p)===keyOf(point)));
+      const bridge=firstDeckAtNode.get(keyOf(point));
       const field=bridge&&!estimates.has(String(bridge.id))&&lakeFields.get(bridge.id);
       const outer=segments.find(segment=>segment.distance+segment.length>=20);
       let landing=null;
