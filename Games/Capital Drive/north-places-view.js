@@ -1,4 +1,5 @@
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
+import {createNorthFrontages} from './north-frontages.js';
 
 const finite=n=>Number.isFinite(n)?n:0;
 const PALETTE={concrete:0xb8b5aa,dark:0x39474d,glass:0x456773,rust:0x937259,blue:0x8ba8aa};
@@ -6,7 +7,7 @@ const validPoints=points=>(points||[]).filter(p=>Array.isArray(p)&&p.length>=2&&
 
 // Original interpretive geometry. The map's tower footprint remains authoritative;
 // the dry pool outlines are scenery, with no public-access or operating-ride claim.
-export function createNorthPlacesView(scene,{tower,towerFootprint,waterpark,heightAt=()=>0}={}) {
+export function createNorthPlacesView(scene,{map,tower,towerFootprint,waterpark,heightAt=()=>0}={}) {
   const roots=[],geometries=new Set(),materials=new Set(),textures=new Set();
   const counters={towerInstances:0,waterparkInstances:0,pools:0,slideTriangles:0};
   const physicalProps=[];
@@ -177,12 +178,14 @@ export function createNorthPlacesView(scene,{tower,towerFootprint,waterpark,heig
     }
     batch(root,box,boxes);batch(root,cylinder,posts);counters.waterparkInstances=boxes.length+posts.length;
   }
-  function update(focus){if(disposed)return;for(const site of roots)site.root.visible=!!focus&&(finite(focus.x)-site.x)**2+(finite(focus.z)-site.z)**2<site.range**2;}
+  const frontages=createNorthFrontages(scene,map,heightAt);
+  function update(focus){if(disposed)return;frontages.update(focus);for(const site of roots)site.root.visible=!!focus&&(finite(focus.x)-site.x)**2+(finite(focus.z)-site.z)**2<site.range**2;}
   function stats(){
     let draws=0,triangles=0,visibleSites=0;
     if(!disposed)for(const site of roots)if(site.root.visible){visibleSites++;site.root.traverse(o=>{if(o.isMesh){draws++;triangles+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3*(o.isInstancedMesh?o.count:1);}});}
-    return {...counters,draws,triangles,visibleSites,disposed};
+    const northFrontages=frontages.stats();
+    return {...counters,draws:draws+northFrontages.draws,triangles:triangles+northFrontages.triangles,visibleSites:visibleSites+northFrontages.visible,northFrontages,disposed};
   }
-  function dispose(){if(disposed)return;disposed=true;for(const site of roots)scene.remove(site.root);geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());}
+  function dispose(){if(disposed)return;disposed=true;frontages.dispose();for(const site of roots)scene.remove(site.root);geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());}
   return {update,dispose,stats,physicalProps};
 }

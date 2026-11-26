@@ -1533,6 +1533,7 @@ route and a second route via Milo's case table have different objectives. Radio
 captions identify who is speaking. [Gameplay and visual evidence](../../verification/arcade-canberra-2026-11-26/README.md)
 · [Shop architecture](../../capital-drive-shopfront-architecture.md)
 · [Landmark architecture](../../capital-drive-landmark-fidelity.md)
+· [Seven Dickson and Lyneham frontages](../../capital-drive-north-frontages.md)
 
 ## Future outlook
 
