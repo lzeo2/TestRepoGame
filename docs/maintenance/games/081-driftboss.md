@@ -7,7 +7,7 @@ Registered id **81**, category `action`, entry `Games/DriftBoss/index.html`. Bas
 
 ## Implementation map
 
-Entry loads `game.css` and `game.js`; `#game/#canvas` supplies Impact UI and `#webgl/#webglcanvas` Babylon rendering. `#orientate` contains landscape artwork; `#play` cover exists but entry CSS forces both `#play` and `#play-desktop` hidden. A 12-second `#controls-hint` overlays the game. `unlock()` attempts `ig.webaudio_ctx.resume()` once on pointerdown/keydown. `dismiss()` hides hint after 600 ms and is invoked by timeout, key/touch or its dismiss span.
+Entry loads `game.css` and `game.js`; `#game/#canvas` supplies Impact UI and `#webgl/#webglcanvas` Babylon rendering. `#orientate` contains landscape artwork; `#play` cover exists but entry CSS forces both `#play` and `#play-desktop` hidden. A 12-second `#controls-hint` overlays the game. `unlock()` attempts `ig.webaudio_ctx.resume()` once on pointerdown/keydown. `dismiss()` hides hint after 600 ms and is invoked by timeout, Space, a pointer press on the game or its focusable Dismiss button.
 
 Selected bundle launch calls `ig.main('#canvas',MyGame,60,…,ig.SplashLoader)` and `wgl.webglmain('#webglcanvas',60)`. `MyGame.init` constructs IoManager/storage and finalizes; `startIfBabylonReady` polls at 500 ms until WebGL game readiness. Scene/controller anchors include `EntityMainMenuController`, `EntityGameOverController`, `EntitySelectBoostersController`, `goToLevel` and `getLevelID`. These distinguish real menu UI from the disabled HTML cover.
 
@@ -15,7 +15,7 @@ Source review coverage: complete entry/inline CSS and `game.css`; selected launc
 
 ## Gameplay and controls
 
-Wrapper hint says hold tap/click/Space to drift, release to drive straight. Source corroborates `ig.input.bind(ig.KEY.SPACE,'space')`; gameplay/tutorial set car direction from `isClicking` with touch Y thresholds or `ig.input.state("space")`. This does not mean Space starts the main menu. Selected game-over controller has home/restart artwork and menu controller has real play/settings/car-selection entities. Score and collected coins are engine state. A full fall/failure/restart sequence has not been newly verified.
+The tested tutorial directs players to hold a pointer or Space to steer right, then release to steer left. Source corroborates `ig.input.bind(ig.KEY.SPACE,'space')`; gameplay/tutorial set car direction from `isClicking` with touch Y thresholds or `ig.input.state("space")`. This does not mean Space starts the main menu. Selected game-over controller has home/restart artwork and menu controller has real play/settings/car-selection entities. Score and collected coins are engine state. A full fall/failure/restart sequence has not been newly verified.
 
 ## State and persistence
 
@@ -29,7 +29,7 @@ Entry/bundle/CSS use local media and bundled Babylon/Impact/Howler/jukebox/physi
 
 ## Audit findings
 
-- **MEDIUM, dead dismiss control:** `index.html`, `#controls-hint{pointer-events:none}` applies to the parent; dismiss span does not re-enable pointer events and is not keyboard-focusable. Its click listener cannot offer normal pointer activation. Root fix: real button with `pointer-events:auto`, visible focus and 44px target, leaving the rest of hint click-through.
+- **Resolved 26 November, formerly inert dismissal control.** `index.html`, `#controls-hint{pointer-events:none}` applies to the parent; dismiss span does not re-enable pointer events and is not keyboard-focusable. Its click listener cannot offer normal pointer activation. Root fix: real button with `pointer-events:auto`, visible focus and 44px target, leaving the rest of hint click-through.
 - **MEDIUM, misleading boot copy:** entry comment says game starts on load; source has a distinct main-menu controller. Rewrite guidance after native play evidence; no automatic gameplay claim.
 - **MEDIUM, corrupt-save risk:** `game.js`, both `ig.Storage.get` definitions return raw text after JSON parse failure, `loadAll` merges arbitrary fields. Root fix: validated object restore in storage manager, retaining backup/defaults and both duplicate storage definitions in review.
 - **HIGH, privacy/provenance hold:** baked cannon metadata includes personal contact information; rights/source notices must be reviewed by Main without copying private data. Do not hand-edit vendor notices under this docs task.
@@ -56,3 +56,13 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 First resolve rights/privacy and reproduce the held menu-start issue. Next fix the small hint accessibility defect and validate save migration. Month work should profile dual-canvas hardware rendering and test pause/resume/reward lifecycle. New cars, ad services and broad engine refurbishment are deferred.
 
 The entry now declares its English page language. See the [arcade presentation review](../../verification/arcade-presentation-2026-11-26.md).
+
+## Tutorial input and hint, 26 November 2026
+
+The small control hint previously displayed a “dismiss” span inside a panel
+that ignored pointer input. Clicking it passed through to the game. The
+dismissal control is now a native button with its own pointer target and a
+visible keyboard focus ring. Tabbing to it leaves the hint available.
+Pointer click and Tab followed by Enter both dismissed it in Chromium.
+A separate full-game run entered the tutorial and steered with Space.
+[Native results](../../verification/arcade-native-retries-2026-11-26.md)
