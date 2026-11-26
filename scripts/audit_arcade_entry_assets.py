@@ -39,6 +39,7 @@ def git(*args):
 def main():
     cli = argparse.ArgumentParser(description=__doc__)
     cli.add_argument('--ref', default='HEAD')
+    cli.add_argument('--check', action='store_true', help='fail if a referenced script or stylesheet is unresolved')
     cli.add_argument('--project-prefix', default='/TestRepoGame/')
     args = cli.parse_args()
     prefix = '/' + args.project_prefix.strip('/') + '/'
@@ -89,6 +90,8 @@ def main():
     print(json.dumps(dict(ref=git('rev-parse', args.ref).decode().strip(),
                          project_prefix=prefix, catalog_entries=len(catalog),
                          counts=dict(sorted(counts.items())), findings=findings), indent=2))
+    if args.check and findings:
+        raise SystemExit(1)
 
 
 if __name__ == '__main__':
