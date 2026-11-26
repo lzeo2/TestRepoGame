@@ -26,3 +26,17 @@ export function retailDistrict(map, x, z, { aprons = false } = {}) {
   }
   return null;
 }
+
+// The nearest point must be in front of this wall. A road behind the shop or
+// coming straight at its gable should not turn the service elevation into glass.
+export function facesRetailStreet(x, z, normalX, normalZ, segments) {
+  return segments.some(segment => {
+    const dx=segment.b[0]-segment.a[0], dz=segment.b[1]-segment.a[1];
+    const length=Math.hypot(dx,dz);
+    if (!length || Math.abs((dx*normalX+dz*normalZ)/length)>.65) return false;
+    const t=Math.max(0,Math.min(1,((x-segment.a[0])*dx+(z-segment.a[1])*dz)/(length*length)));
+    const toX=segment.a[0]+t*dx-x, toZ=segment.a[1]+t*dz-z;
+    const distance=Math.hypot(toX,toZ);
+    return distance>=segment.width/2 && distance<=32 && toX*normalX+toZ*normalZ>distance*.8;
+  });
+}

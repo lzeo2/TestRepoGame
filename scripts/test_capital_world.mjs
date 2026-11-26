@@ -1,5 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import {facesRetailStreet} from '../Games/Capital Drive/districts.js';
+const parallelStreet=[{a:[-50,14],b:[50,14],width:8}];
+assert(facesRetailStreet(0,0,0,1,parallelStreet));
+assert(!facesRetailStreet(0,0,0,-1,parallelStreet),'service side keeps its original windows');
+assert(!facesRetailStreet(0,0,1,0,parallelStreet),'road perpendicular to a gable');
+assert(!facesRetailStreet(0,-48,0,1,parallelStreet),'distant streets cannot define a frontage');
 const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const threeURL = moduleURL(await readFile(new URL('../assets/car-arcade/vendor/three.module.js', import.meta.url), 'utf8'));
 const THREE = await import(threeURL);

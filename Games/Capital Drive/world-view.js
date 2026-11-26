@@ -4,7 +4,7 @@ import { createTerrainSampler } from './terrain.js';
 import { placeFoliage } from './foliage-placement.js';
 import { prepareWaterRing } from './water-contact.js';
 import { roadProfile, roadMarkingOffsets } from './road-network.js';
-import { retailDistrict } from './districts.js';
+import { retailDistrict, facesRetailStreet } from './districts.js';
 import { suburbCharacter } from './suburb-character.js';
 import { ROAD_TEXTURE_SIZE, SURFACE_TEXTURE_SIZE, ATLAS_INSET, ATLAS_SPAN, createRoadPixels, createSurfacePixels } from './exterior-materials.js';
 
@@ -901,16 +901,20 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
       }
       if (utility || length < 3) continue;
       const columns = windowColumns[i];
+      const midX=(a[0]+b[0])/2,midZ=(a[1]+b[1])/2;
+      const retailFront=!shopping && building.type==='retail' && !passage && !isSchool && columns>0 &&
+        facesRetailStreet(midX,midZ,nx,nz,nearby(roadCells,midX+nx*10,midZ+nz*10));
       const bay = (u, v, halfWidth, halfHeight, offset, tint, glass = false) => {
         const cx = a[0] + ex * u + nx * offset, cz = a[1] + ez * u + nz * offset;
         faceQuad([[cx - ex * halfWidth, v - halfHeight, cz - ez * halfWidth], [cx + ex * halfWidth, v - halfHeight, cz + ez * halfWidth],
           [cx + ex * halfWidth, v + halfHeight, cz + ez * halfWidth], [cx - ex * halfWidth, v + halfHeight, cz - ez * halfWidth]], tint, glass ? 'glass' : true);
       };
       for (let row = 0; row < floors; row++) for (let col = 0; col < columns; col++) {
-        const u = (col + 0.5) / columns * length, y = base + (isSchool ? 1.7 : 1.9) + row * (isSchool ? 3.55 : 3.0);
-        const hw = Math.min(isSchool ? 1.0 : shopping && row === 0 ? 1.25 : 0.82, length / columns * 0.34);
+        const displayWindow = retailFront && row===0;
+        const u = (col + 0.5) / columns * length, y = base + (isSchool ? 1.7 : displayWindow ? 1.5 : 1.9) + row * (isSchool ? 3.55 : 3.0);
+        const hw = Math.min(isSchool ? 1.0 : displayWindow ? 2.1 : shopping && row === 0 ? 1.25 : 0.82, length / columns * (displayWindow ? .44 : .34));
         if (passage && y - 1.3 < footing) continue;
-        const hh = isSchool ? 0.95 : shopping && row === 0 ? 1.2 : 0.72;
+        const hh = isSchool ? 0.95 : displayWindow ? 1.12 : shopping && row === 0 ? 1.2 : 0.72;
         if (simpleFacade) {
           bay(u, y, hw, hh, 0.055, [0x586b79, 0x71818a, 0x485c6c][(row + col + index) % 3]);
           counters.windows++;
