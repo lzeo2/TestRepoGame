@@ -18,7 +18,7 @@ class QuietHandler(SimpleHTTPRequestHandler):
         pass
 
 
-def run(output):
+def run(output, compatibility=False):
     server = ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=str(ROOT)))
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -39,9 +39,11 @@ def run(output):
 
     try:
         with sync_playwright() as playwright:
+            gpu_flags = ['--disable-webgl'] if compatibility else [
+                '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
+            ]
             browser = playwright.chromium.launch(executable_path='/usr/bin/chromium', args=[
-                '--no-sandbox', '--disable-dev-shm-usage', '--use-angle=swiftshader',
-                '--enable-unsafe-swiftshader',
+                '--no-sandbox', '--disable-dev-shm-usage', *gpu_flags,
             ])
             context = browser.new_context(has_touch=True, is_mobile=True, viewport={'width': 390, 'height': 820},
                                           service_workers='block')
@@ -50,7 +52,8 @@ def run(output):
             page.on('pageerror', lambda error: errors.append(str(error)))
             page.on('response', lambda response: failed.append(response.url) if response.status >= 400 else None)
             page.goto(origin + '/Games/Capital%20Drive/', wait_until='domcontentloaded', timeout=60000)
-            page.wait_for_function('() => window.capitalDriveSnapshot?.().ready', timeout=160000)
+            page.wait_for_function('() => window.capitalDriveSnapshot?.().ready', polling=250, timeout=160000)
+            assert page.evaluate('() => capitalDriveSnapshot().rendering.compatibility') == compatibility
             page.locator('[data-game-mode=free]').tap()
             page.locator('#guided-tutorial').uncheck()
             preset = page.locator('#startup-quality')
@@ -152,7 +155,8 @@ def run(output):
             browser.close()
     finally:
         (output / 'result.json').write_text(json.dumps({'checks': checks, 'pageErrors': errors,
-                                                         'external': external, 'httpFailures': failed}, indent=2) + '\n')
+                                                         'external': external, 'httpFailures': failed,
+                                                         'compatibility': compatibility}, indent=2) + '\n')
         server.shutdown()
         thread.join(timeout=3)
         server.server_close()
@@ -161,8 +165,10 @@ def run(output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True, type=Path, help='New directory outside the repo for evidence.')
-    output = parser.parse_args().output.resolve()
+    parser.add_argument('--compatibility', action='store_true', help='Use the game’s native 2D fallback.')
+    args = parser.parse_args()
+    output = args.output.resolve()
     if output == ROOT or ROOT in output.parents:
         parser.error('--output must be outside the repository')
     output.mkdir(parents=True, exist_ok=False)
-    run(output)
+    run(output, args.compatibility)
