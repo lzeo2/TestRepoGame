@@ -42,7 +42,7 @@ DESCRIPTIONS = {
     79: 'Click the cookie, buy buildings and grow production in an idle game.',
     80: 'A hub for Bloons TD 1-4, hosted with local Ruffle. Place towers to pop bloons.',
     81: 'Hold to drift and release to drive straight in an endless driving game.',
-    87: 'Dogecoin-themed mining game with helpers, upgrades and new locations. Current build has a known script startup blocker.',
+    87: 'Dogecoin-themed mining game with helpers, upgrades and new locations.',
     89: 'Retro Bowl variant with increased coaching-credit and salary-cap values on save loading.',
     90: 'Cookie Clicker variant with recurring cookie top-ups.',
     94: 'Breakout variant awarding 1000 points per brick with recurring brick grids.',
