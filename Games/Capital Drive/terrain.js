@@ -463,7 +463,9 @@ export function createTerrainSampler(map) {
         const t=(20-outer.distance)/outer.length,dx=outer.b[0]-outer.a[0],dz=outer.b[1]-outer.a[1];
         landing={x:lerp(outer.a[0],outer.b[0],t),z:lerp(outer.a[1],outer.b[1],t),nx:-dz/outer.length,nz:dx/outer.length};
       }
-      approaches.get(road.id).push({point,deck:jointHeights.get(keyOf(point)),field,segments,landing});
+      const deck=jointHeights.get(keyOf(point));
+      const offset=clearance.hasRamp(road)?deck-clearance.rampHeightAt(road,...point):0;
+      approaches.get(road.id).push({point,deck,field,segments,landing,offset});
     }
   }
   function roadHeightAt(road,x,z) {
@@ -471,10 +473,13 @@ export function createTerrainSampler(map) {
     if(!road)return ground;
     const deck=ownDeckHeight(road,x,z);
     if(deck!==null)return Math.max(ground,deck);
-    if(clearance.hasRamp(road))return clearance.rampHeightAt(road,x,z);
-    let result=ground;
+    const hasRamp=clearance.hasRamp(road);
+    const base=hasRamp?clearance.rampHeightAt(road,x,z):ground;
+    let blendedHeight=0,influences=0;
     for(const approach of approaches.get(road.id)||[]) {
-      if(Math.hypot(x-approach.point[0],z-approach.point[1])>=20+(Number(road.width)||8))continue;
+      const width=Number(road.width)||8;
+      if(Math.hypot(x-approach.point[0],z-approach.point[1])>=20+width)continue;
+      if(x===approach.point[0]&&z===approach.point[1])return Math.max(ground,approach.deck);
       let nearest=Infinity,distance=Infinity,offset=0;
       for(const segment of approach.segments){
         const p=project(x,z,segment.a,segment.b);
@@ -483,16 +488,19 @@ export function createTerrainSampler(map) {
           offset=((x-segment.a[0])*(-p.dz)+(z-segment.a[1])*p.dx)/segment.length;
         }
       }
-      if(distance>=20)continue;
-      // Match the bridge cross-section, rather than adding one centreline
-      // height delta to sloping bank terrain. Fade along the source road so
-      // lane and pavement edges meet the same abutment plane as the deck.
+      if(distance>=20||nearest>width/2+3)continue;
       const t=distance/20,weight=1-t*t*(3-2*t);
       const landing=approach.landing;
       const outer=landing?groundHeightAt(landing.x+landing.nx*offset,landing.z+landing.nz*offset):ground;
-      result=Math.max(result,lerp(outer,approach.field?approach.field(x,z):approach.deck,weight));
+      const deckHeight=approach.field?approach.field(x,z):approach.deck;
+      const height=hasRamp?base+approach.offset*weight:lerp(outer,deckHeight,weight);
+      // Short roads sometimes join decks at both ends. Each end takes its
+      // own deck height and its influence fades smoothly between the joins.
+      const influence=weight/Math.max(1e-6,distance*distance+nearest*nearest);
+      influences+=influence;
+      blendedHeight+=height*influence;
     }
-    return result;
+    return influences?Math.max(ground,blendedHeight/influences):base;
   }
   // Only bridge-neighbourhood road segments are indexed. Ordinary city poses
   // return ground without scanning roads; explicit traffic road ownership wins.
