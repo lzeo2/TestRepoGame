@@ -173,8 +173,7 @@ view.dispose();view.dispose();assert.equal(scene.children.length,0);assert.equal
 const empty = createLandmarksView(scene,{bounds:{minX:0,maxX:1,minZ:0,maxZ:1}},ground);assert.equal(empty.stats.landmarks,0);empty.dispose();
 // Exercise the actual world candidate filter: one exact clearing removes its
 // candidates while a distant polygon preserves identical generation/budgets.
-const worldSource=(await read('../Games/Capital Drive/world-view.js')).replace('../../assets/car-arcade/vendor/three.module.js',threeURL).replace('./covered-passage.js',dataURL(await read('../Games/Capital Drive/covered-passage.js'))).replace('./road-network.js',dataURL(await read('../Games/Capital Drive/road-network.js'))).replace('./districts.js',dataURL(await read('../Games/Capital Drive/districts.js'))).replace('./suburb-character.js',dataURL(await read('../Games/Capital Drive/suburb-character.js'))).replace('./exterior-materials.js',dataURL(await read('../Games/Capital Drive/exterior-materials.js'))).replace('./foliage-placement.js',new URL('../Games/Capital Drive/foliage-placement.js',import.meta.url).href).replace('./water-contact.js',new URL('../Games/Capital Drive/water-contact.js',import.meta.url).href).replace('./terrain.js',dataURL(await read('../Games/Capital Drive/terrain.js')));
-const {createWorldView}=await import(dataURL(worldSource));
+const {createWorldView}=await import('../Games/Capital Drive/world-view.js');
 const treeMap={bounds:{minX:0,maxX:200,minZ:0,maxZ:200},roads:[],buildings:[],areas:[{type:'park',points:[[0,0],[200,0],[200,200],[0,200]]}],landmarks:[]};
 const trees=createWorldView(scene,treeMap), baseline=trees.stats.trees;assert.ok(baseline>0);trees.dispose();
 const cleared=createWorldView(scene,{...treeMap,landmarkTreeExclusions:[[[-10,-10],[210,-10],[210,210],[-10,210]]]});assert.equal(cleared.stats.trees,0);cleared.dispose();

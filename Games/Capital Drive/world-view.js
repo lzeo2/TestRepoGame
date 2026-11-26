@@ -1,5 +1,7 @@
 import { coveredCentrePassage } from './covered-passage.js';
 import * as THREE from '../../assets/car-arcade/vendor/three.module.js';
+import { NATIONAL_ARCHITECTURE_IDS, emitNationalArchitecture } from './national-architecture.js';
+import { REGIONAL_ARCHITECTURE_IDS, emitRegionalArchitecture } from './regional-architecture.js';
 import { createTerrainSampler } from './terrain.js';
 import { placeFoliage } from './foliage-placement.js';
 import { prepareWaterRing } from './water-contact.js';
@@ -796,6 +798,20 @@ export function createWorldView(scene, map, { lowGraphics = false, streaming = f
     if (!points || points.length < 3) return;
     if (points.length > 3 && points[0][0] === points.at(-1)[0] && points[0][1] === points.at(-1)[1]) points = points.slice(0, -1);
     const x = points.reduce((sum, p) => sum + p[0], 0) / points.length, z = points.reduce((sum, p) => sum + p[1], 0) / points.length;
+    const national = NATIONAL_ARCHITECTURE_IDS.has(building.id);
+    if (national || REGIONAL_ARCHITECTURE_IDS.has(building.id)) {
+      if (!owns(x, z)) return;
+      const floorHeights = points.map(p => heightAt(...p));
+      const batch = batchAt(x, z);
+      const emit = national ? emitNationalArchitecture : emitRegionalArchitecture;
+      if (emit(building, {
+        points, base: Math.max(...floorHeights) + .12, footing: Math.min(...floorHeights) - .3, lowGraphics,
+        emitTriangle: (a, b, c, tint) => triangle(batch, a, b, c, tint),
+      })) {
+        counters.buildings++;
+        return;
+      }
+    }
     if (String(building.id).startsWith('osm-') && nearby(buildingCells, x, z).some(b => String(b.id).startsWith('act-') && inside(x, z, b.points))) return;
     const isSchool = school && Math.hypot(x - school.x, z - school.z) < (school.radius || 140) && !/residential|house|apartment|diplomatic/.test(building.type || '');
     const shopping = Boolean(retailDistrict(map, x, z));

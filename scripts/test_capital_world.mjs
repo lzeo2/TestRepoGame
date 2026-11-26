@@ -1,19 +1,21 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import {facesRetailStreet} from '../Games/Capital Drive/districts.js';
+import * as THREE from '../assets/car-arcade/vendor/three.module.js';
+import {facesRetailStreet, inManukaRetail, MANUKA_RETAIL_POLYGON} from '../Games/Capital Drive/districts.js';
 const parallelStreet=[{a:[-50,14],b:[50,14],width:8}];
 assert(facesRetailStreet(0,0,0,1,parallelStreet));
 assert(!facesRetailStreet(0,0,0,-1,parallelStreet),'service side keeps its original windows');
 assert(!facesRetailStreet(0,0,1,0,parallelStreet),'road perpendicular to a gable');
 assert(!facesRetailStreet(0,-48,0,1,parallelStreet),'distant streets cannot define a frontage');
-const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
-const threeURL = moduleURL(await readFile(new URL('../assets/car-arcade/vendor/three.module.js', import.meta.url), 'utf8'));
-const THREE = await import(threeURL);
-const source = await readFile(new URL('../Games/Capital Drive/world-view.js', import.meta.url), 'utf8');
-const districtsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/districts.js', import.meta.url), 'utf8'));
-const characterURL = moduleURL(await readFile(new URL('../Games/Capital Drive/suburb-character.js', import.meta.url), 'utf8'));
-const roadsURL = moduleURL(await readFile(new URL('../Games/Capital Drive/road-network.js', import.meta.url), 'utf8'));
-const loadWorld = async text => import(moduleURL(text.replace('../../assets/car-arcade/vendor/three.module.js', threeURL).replace('./covered-passage.js',moduleURL(await readFile(new URL('../Games/Capital Drive/covered-passage.js',import.meta.url),'utf8'))).replace('./road-network.js', roadsURL).replace('./districts.js', districtsURL).replace('./suburb-character.js', characterURL).replace('./exterior-materials.js', moduleURL(await readFile(new URL('../Games/Capital Drive/exterior-materials.js',import.meta.url),'utf8'))).replace('./foliage-placement.js',new URL('../Games/Capital Drive/foliage-placement.js',import.meta.url).href).replace('./water-contact.js',new URL('../Games/Capital Drive/water-contact.js',import.meta.url).href).replace('./terrain.js', moduleURL(await readFile(new URL('../Games/Capital Drive/terrain.js',import.meta.url),'utf8')))));
+const worldURL = new URL('../Games/Capital Drive/world-view.js', import.meta.url);
+const source = await readFile(worldURL, 'utf8');
+// This test also runs a float32 reference variant from a data URI. Resolve its
+// imports beside the real world module so new renderers use the production graph.
+function loadWorld(text) {
+  const resolved = text.replace(/from (['"])([^'"]+)\1/g,
+    (_, quote, path) => `from ${quote}${new URL(path, worldURL).href}${quote}`);
+  return import(`data:text/javascript;base64,${Buffer.from(resolved).toString('base64')}`);
+}
 const { createWorldView } = await loadWorld(source);
 globalThis.document = { createElement: () => ({ getContext: () => ({ createImageData: (w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }), putImageData() {}, fillRect() {}, strokeRect() {}, fillText() {} }) }) };
 const polygons = [ [[20, 20], [60, 20], [60, 35], [40, 35], [40, 60], [20, 60]], [[100, 20], [130, 20], [130, 45], [100, 45]] ];
@@ -97,7 +99,6 @@ assert.ok((closest.x - arch.x) * arch.nx + (closest.z - arch.z) * arch.nz > clos
 schoolView.dispose();
 console.log(`PASS actual ACT school: ${checkedSides} long facades have both window rows; ${schoolView.stats.windows} windows; arches face NSW Crescent`);
 
-const { inManukaRetail, MANUKA_RETAIL_POLYGON } = await import(districtsURL);
 const centre = MANUKA_RETAIL_POLYGON.reduce((sum, p) => [sum[0] + p[0] / 8, sum[1] + p[1] / 8], [0, 0]);
 assert(inManukaRetail(...centre), 'source Manuka retail centre is classified');
 assert(inManukaRetail(...MANUKA_RETAIL_POLYGON[0]), 'source polygon boundary is included');
