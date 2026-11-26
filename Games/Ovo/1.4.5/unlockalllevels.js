@@ -365,11 +365,6 @@ function isIpad() {
 // ================= LANGUAGES ===================
 // vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
-function tsvToArray(tsv) {
-  let tempArr = tsv.split(/\r?\n|\r/);
-  return tempArr.map((x) => x.split("\t"));
-}
-
 function mergeInstanceVars() {
   let saved = JSON.parse(globalThis.savedVars);
   let real = JSON.parse(globalThis.curVars);
@@ -418,56 +413,8 @@ function translateTips(locale) {
 }
 
 async function getTranslations() {
-  let result = await fetch(
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vSOU_pMce0njTy64pTFVI7yLN2t5ReGYaRCmJDdj_KRSSbAEL7XPixR80X4Jzm0r8sDL0KHq1QRkVGC/pub?output=tsv"
-  );
-  let data = await result.text();
-  let array = tsvToArray(data);
-  const json = {};
-  json.version = array[0][0];
-  const length = array[1].length;
-  json.languages = {};
-
-  const startX = 4;
-  const startY = 3;
-  const colsPerLang = 2;
-  const idColumn = 2;
-  const langRow = 1;
-  const langIdRow = 2;
-  const rowsPerLine = 1;
-  for (let i = startX; i < length; i += colsPerLang) {
-    json.languages[array[langIdRow][i]] = array[langRow][i];
-  }
-  json.data = {};
-  for (let i = startY; i < array.length; i += rowsPerLine) {
-    for (let j = startX; j < length; j += colsPerLang) {
-      json.data[array[langIdRow][j]] = json.data[array[langIdRow][j]] || {};
-      if (json.data[array[langIdRow][j]][array[i][idColumn]]) {
-        console.warn("key " + array[i][idColumn] + "already exists");
-      }
-      json.data[array[langIdRow][j]][array[i][idColumn]] = {
-        text: array[i][j],
-        extra: [],
-      };
-      for (let k = 1; k < colsPerLang; k++) {
-        try {
-          let extrajson = JSON.parse(array[i][j + k]);
-          Object.keys(extrajson).forEach((key) => {
-            if (key === "text" || key === "extra") return;
-            json.data[array[langIdRow][j]][array[i][idColumn]][key] =
-              extrajson[key];
-          });
-        } catch (e) {
-          json.data[array[langIdRow][j]][array[i][idColumn]].extra.push(
-            array[i][j + k]
-          );
-        }
-      }
-    }
-  }
-  c2_callFunction("Language > LoadLanguageFile", [JSON.stringify(json)]);
-  globalThis.languageJSON = json;
-  return json;
+  // The "Language > Loaded" event has already installed this edition's languages.json.
+  return globalThis.languageJSON;
 }
 
 function listLanguages() {

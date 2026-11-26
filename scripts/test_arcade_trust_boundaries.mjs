@@ -71,3 +71,43 @@ for (const edition of ['1.4.5','kaizo','reverse']) {
 }
 assert.doesNotMatch(read('Games/_emulatorjs/data/localization/Translate.html'), /<script[^>]+src=["'](?:https?:)?\/\//i);
 console.log('PASS five legacy wrapper pages use local games and the EmulatorJS translation tool has no external script.');
+
+// Both distributions may run on localhost. Exercise the precise update branch
+// with a local callback so tests cover debug and production without networking.
+for (const name of ['emulator.js','emulator.min.js']) {
+  const source = read('Games/_emulatorjs/data/' + name);
+  const branch = name === 'emulator.js'
+    ? source.match(/if \(window\.EJS_CHECK_FOR_UPDATES[^\n]+this\.checkForUpdates\(\);/)?.[0]
+    : source.match(/!0===window\.EJS_CHECK_FOR_UPDATES&&this\.checkForUpdates\(\)/)?.[0];
+  assert.ok(branch, name);
+  assert.equal(source.match(/this\.checkForUpdates\(\)/g)?.length, 1);
+  for (const flag of [undefined,false,true]) {
+    let checks = 0;
+    const sandbox = {window:{EJS_CHECK_FOR_UPDATES:flag}, checkForUpdates(){checks++;}};
+    vm.runInNewContext(branch, sandbox);
+    assert.equal(checks, flag === true ? 1 : 0, name);
+  }
+}
+console.log('PASS EmulatorJS source and release only check upstream when explicitly requested.');
+
+const ovo = 'Games/Ovo/1.4.5/';
+const entry = read(ovo + 'index.html');
+assert.doesNotMatch(entry, /<script\b[^>]*src=["'](?:\.\/)?GameAnalytics\.js/i);
+const fallback = entry.match(/<script>(window\.GameAnalytics\s*=.*?window\.gameanalytics\s*=.*?;)<\/script>/)?.[1];
+assert.ok(fallback);
+const globals = {window:{}};
+vm.runInNewContext(fallback,globals);
+assert.equal(typeof globals.window.GameAnalytics.initialize,'undefined');
+assert.equal(typeof globals.window.gameanalytics.GameAnalytics,'undefined');
+const languageData = JSON.parse(read(ovo + 'languages.json'));
+assert.equal(languageData.version,'1.4.5');
+assert.ok(Object.keys(languageData.languages).length > 1);
+const engineEvents = read(ovo + 'data.js');
+assert.ok(/"setLanguageJSON".{0,150}"getTranslations"/.test(engineEvents));
+const translation = read(ovo + 'unlockalllevels.js');
+assert.doesNotMatch(translation,/docs\.google\.com/);
+const lookup = translation.match(/async function getTranslations\(\) \{[\s\S]*?\n\}/)?.[0];
+assert.ok(lookup);
+const cached = vm.runInNewContext(lookup + '\ngetTranslations()', {languageJSON:languageData});
+assert.equal(await cached,languageData);
+console.log('PASS the registered OvO edition retains its bundled languages and uses the engine’s no-analytics path.');

@@ -41,6 +41,28 @@ vulnerabilities. The protected Character AI project received no edits.
 | [Subway Surfers](../../Games/SubwaySurfers/subwaysurfers/index.html) and its [hacked counterpart](../../Games/SubwaySurfersHacked/subwaysurfers/index.html) | Direct links to two old entry files ran a separate loader, a remote analytics tag and a missing cloak script. Each old entry now redirects to its own supported local game and supplies a keyboard-accessible link. The four San Francisco Unity manifests held identical Git blobs in the baseline. | The compatibility check verifies both local destinations and the absence of third-party script tags in these wrappers. |
 | OvO export helpers and [EmulatorJS translator](../../Games/_emulatorjs/data/localization/Translate.html) | Three historical SDK preview pages loaded a remote testing SDK that targeted an authoring machine. They now link to their corresponding local build. The translation utility retains its translator UI and no longer downloads analytics. | The static regression checks all four documents. The compiled game engines and shared emulator cores were left intact. |
 
+## Follow-up from the browser sweep
+
+Nine EmulatorJS entries issued an upstream version request on localhost. The
+upstream constructor previously treated a local web server as opt-in. Both
+the readable JS and the shipped minified bundle now leave that request off
+unless a maintainer explicitly sets `window.EJS_CHECK_FOR_UPDATES = true`
+before loading the game. Game ROMs and emulator cores retain their local paths.
+
+The registered OvO 1.4.5 build made a second request for translations after
+Construct loaded the five-language dictionary bundled with the game. It now
+uses that installed dictionary. The entry also uses the generated plugin's
+built-in SDK-absent path instead of loading its third-party analytics SDK.
+The translation and telemetry changes cover the registered edition. Archived
+alternate exports still contain independent SDKs.
+
+At frozen commit `00d0902c`, the static rescan covered 4,263 source files
+(332,125,033 bytes) and passed all 244 selected script syntax checks. The
+HTML reference scan went from eight external references to two canonical
+links, and from thirteen missing literal references to nine. These numbers
+pre-date the later runtime startup fixes above. The two reports provide
+point-in-time comparisons for the same scanner and syntax modes.
+
 ## Other reviewed boundaries
 
 - The authored portal uses text nodes for descriptions, names, how-to
