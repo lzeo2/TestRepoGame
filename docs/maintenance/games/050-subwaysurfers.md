@@ -48,3 +48,21 @@ No engine audit or gameplay acceptance; source-coverage limits and known holds r
 ## Future outlook
 
 First resolve rights and actual request/input evidence. Next implement the specifically identified authored wrapper lifecycle/accessibility fix with one small regression. Later profile real-device memory/load time and preserve saves before approved refurbishment. Defer new assets, online SDKs, engine rebuilds and speculative features.
+
+## Legacy links, 26 November 2026
+
+The old `subwaysurfers/index.html` path redirects to this title's maintained
+local entry. It no longer launches a second loader or an analytics script.
+The duplicate build assets remain tracked. See the
+[fleet defensive review](../../verification/arcade-defensive-review-2026-11-26.md).
+
+
+## Shipped Unity build
+
+The active SanFrancisco manifest points to the local WebAssembly code,
+framework and data files. Its former ASM.js entries named three missing
+files. Browsers without WebAssembly now take the loader's built-in
+unsupported-browser path. The three shipped WebAssembly files total
+54,266,278 bytes in each variant. In a disposable ordinary Chromium profile
+the public assets transferred on the cold load and came entirely from the
+HTTP cache on immediate repeat. This measures the asset fetch.
