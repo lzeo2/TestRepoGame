@@ -93,6 +93,13 @@ def main():
                 page.wait_for_function("()=>capitalDriveSnapshot().campaign.active?.meetingRoute==='backup'")
                 page.wait_for_function("()=>document.querySelector('#campaign-radio span').textContent.includes('case table')")
                 check(page.evaluate('()=>capitalDriveSnapshot().campaign.active.stageCount')==3,'Case-table action added to the real itinerary')
+                if args.map_view:
+                    label=page.locator('#map-view-label')
+                    label.wait_for(state='visible')
+                    label_box=label.bounding_box()
+                    card_box=page.locator('#career-hud').bounding_box()
+                    check(label_box['y'] >= card_box['y'] + card_box['height'],
+                          '2D map indicator sits below the character HUD in the attribution footer')
                 page.screenshot(path=str(output/'02-crew-radio.png'))
                 page.keyboard.press('j')
                 check(page.locator('#meeting-backup').get_attribute('aria-pressed')=='true','Journal remembers the current choice')
