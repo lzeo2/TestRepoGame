@@ -5,7 +5,7 @@ import {createShotObstacles} from '../Games/Capital Drive/shot-obstacles.js';
 import {BRIDGE_CLEARANCE_SITES} from '../Games/Capital Drive/terrain.js';
 import {loadCapitalMap} from './capital-map-fixture.mjs';
 
-const map=await loadCapitalMap();
+const map={...await loadCapitalMap(),additionalBridgeCrossings:[]};
 const digest=()=>createHash('sha256').update(JSON.stringify(map)).digest('hex'),before=digest();
 const selected=new Set(BRIDGE_CLEARANCE_SITES.flatMap(site=>site.over));
 // A source-admission control uses the identical contour/geometry model, with
@@ -37,7 +37,8 @@ for(const crossing of stats.crossings){
  const a=over.points[0],b=over.points.at(-1),yaw=Math.atan2(a[0]-b[0],a[1]-b[1]);
  assert.equal(terrain.vehicleHeightAt({x,z,yaw},over),upper);assert.equal(terrain.vehicleHeightAt({x,z,yaw},under),lower);
  const upperProbe={x,z,yaw},lowerA=under.points[0],lowerB=under.points.at(-1),lowerYaw=Math.atan2(lowerA[0]-lowerB[0],lowerA[1]-lowerB[1]);
- for(const heading of [yaw,yaw+Math.PI])assert(Math.abs(terrain.vehicleHeightAt({...upperProbe,yaw:heading})-upper)<.1,'unbound upper vehicle selects its directional source owner');
+ if(over.standalonePath)assert(Math.abs(terrain.heightAt(x,z)-upper)<.1,'standalone path has its upper walking support');
+ for(const heading of over.standalonePath?[]:[yaw,yaw+Math.PI])assert(Math.abs(terrain.vehicleHeightAt({...upperProbe,yaw:heading})-upper)<.1,'unbound upper vehicle selects its directional source owner');
  for(const heading of [lowerYaw,lowerYaw+Math.PI])assert(Math.abs(terrain.vehicleHeightAt({x,z,yaw:heading})-lower)<.1,'unbound lower vehicle stays underneath');
  for(const p of [over.points[0],over.points.at(-1)])for(const approach of map.roads.filter(r=>!r.sourceTags?.bridge&&r.name===over.name&&[r.points[0],r.points.at(-1)].some(q=>q[0]===p[0]&&q[1]===p[1]))){
   assert(Math.abs(terrain.roadHeightAt(over,...p)-terrain.roadHeightAt(approach,...p))<.02,`${over.name} source abutment joins without a step`);seams++;
@@ -49,12 +50,12 @@ for(const crossing of stats.crossings){
  }
 }
 assert(seams>20);
-// Outside the five confirmed corridors and their exact source-node joining
-// links all deck/ground samples stay identical, including the lake bridges.
+// Outside the selected corridors and their joined motor approaches, source
+// samples stay identical. Standalone path approaches have a separate check.
 let retained=0;
 const corridorNames=new Set(BRIDGE_CLEARANCE_SITES.map(site=>site.name));
 const joins=new Set(map.roads.filter(r=>selected.has(r.sourceId)).flatMap(r=>[r.points[0],r.points.at(-1)].map(p=>p.join(','))));
-for(const road of map.roads.filter(r=>!corridorNames.has(r.name)&&!r.points.some(p=>joins.has(p.join(',')))))for(const p of [road.points[0],road.points.at(-1)]){
+for(const road of map.roads.filter(r=>!r.standalonePath&&!corridorNames.has(r.name)&&!r.points.some(p=>joins.has(p.join(',')))))for(const p of [road.points[0],road.points.at(-1)]){
  assert.equal(terrain.roadHeightAt(road,...p),control.roadHeightAt(road,...p),`${road.id} ${road.name} at ${p}`);retained++;
 }
 assert(retained>20_000);

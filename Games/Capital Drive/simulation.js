@@ -224,7 +224,8 @@ function coveredCentreRoutingGuard(map) {
 }
 
 export function createSimulation(map, options = {}) {
-  const graph = buildRoadGraph(map.roads || [], { excludeSegment: coveredCentreRoutingGuard(map) });
+  const motorRoads = (map.roads || []).filter(road => !road.standalonePath);
+  const graph = buildRoadGraph(motorRoads, { excludeSegment: coveredCentreRoutingGuard(map) });
   const trafficLights = createTrafficLights(map, graph, options.trafficSignals || map.trafficSignals);
   const roadIndex = new SpatialGrid(80), buildingIndex = new SpatialGrid(48), waterIndex = new SpatialGrid(128), barrierIndex = new SpatialGrid(32);
   const replacedColliders=new Set(map.collisionReplacedBuildingIds||[]);

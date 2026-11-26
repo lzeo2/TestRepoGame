@@ -64,6 +64,11 @@ for (const road of map.roads) {
 for (const segment of raw.segments) {
   const id = `${segment.road.id}:${segment.index}`;
   const actual = runtimeSegments.get(id);
+  if (segment.road.standalonePath) {
+    excludedSegments++;
+    if (actual) fail(id, 'standalone path leaked into the motor route graph');
+    continue;
+  }
   if (!actual) { fail(id, 'source graph segment missing from runtime graph'); continue; }
   const length = Math.hypot(segment.b[0] - segment.a[0], segment.b[1] - segment.a[1]);
   if (!actual.edges.length && segment.edges.length) { excludedSegments++; notes.push({ id, problem: 'runtime covered-passage routing exclusion' }); continue; }

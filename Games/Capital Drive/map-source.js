@@ -1,3 +1,4 @@
+import { ADDITIONAL_BRIDGE_CROSSINGS } from './bridge-grade-crossings.js';
 // Canonical source-pack composition shared by browser boot and domain audits.
 // No DOM, network, actors or renderer: callers own loading and live-world setup.
 import { GAME_DATA_FILES } from './game-data.js';
@@ -60,6 +61,7 @@ export function composeCapitalMap(packs) {
   map.landmarks.push({ id, name, x, z, radius, aliases: ['Macquarie Place', 'Macquarie shops'] });
   map.trafficSignals = get('traffic-signals');
   map.lakeWaterLevel = 5.93;
+  map.additionalBridgeCrossings = ADDITIONAL_BRIDGE_CROSSINGS;
   // Preserve the production support sampler's creation point before decoration.
   const terrainSampler = createTerrainSampler(map);
 
