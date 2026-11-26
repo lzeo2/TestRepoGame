@@ -95,7 +95,8 @@ const explicitBridge={id:'explicit-lake',name:'Commonwealth Avenue',type:'primar
 const explicitApproach={id:'explicit-approach',type:'primary',width:8,points:[[-40,0],[0,0]]};
 const explicit=createTerrainSampler({roads:[explicitBridge,explicitApproach],bridgeDecks:[{roadId:explicitBridge.id,heights:[10,12]}]});
 assert.equal(explicit.roadHeightAt(explicitBridge,150,0),11,'supplied surveyed/authored override wins over fitted lake estimate');
-assert.equal(explicit.roadHeightAt(explicitApproach,0,3),10,'explicit abutment plane remains shared across lane width');
+assert(Math.abs(explicit.roadHeightAt(explicitApproach,0,3)-10)<=10*Number.EPSILON,
+  'explicit abutment plane remains shared across lane width within floating-point rounding');
 assert(footApproaches>=12,'both bridges expose actual foot approach samples outside the deck mask');
 assert.equal(JSON.stringify(map),before,'source coordinates, heights and tags remain immutable');
 console.log(`Capital bridge approaches PASS: ${crossSections} real lane/pavement joins, worst seam ${worstSeam.toFixed(4)}m; ${footApproaches} bounded foot approaches; ${kingsGradeSamples} Kings lane-grade samples max ${(worstKingsGrade*100).toFixed(2)}%; ${profileSamples} smooth lake-deck samples, minimum bank clearance ${smallestClearance.toFixed(3)}m; shared Common field and retained Kings/Common under-road levels.`);

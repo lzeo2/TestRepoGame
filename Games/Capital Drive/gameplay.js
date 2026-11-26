@@ -254,7 +254,7 @@ export function createGameplay(map, simulation, options = {}) {
     state.attackTimer = weapon ? 0.15 : 0.3;
     if(!weapon)state.attackSerial=(state.attackSerial||0)+1;
     const adapterKind = weapon && kind !== 'pistol' ? 'firearm' : kind;
-    let hits = 0, policeHits = 0;
+    let hits = 0, policeHits = 0, deferReport = false;
     if (rocket) {
       const length=.35;
       state.shots.push({...rocket,shotSerial,endX:rocket.x+rocket.dx*length,endY:rocket.y+rocket.dy*length,
@@ -295,6 +295,7 @@ export function createGameplay(map, simulation, options = {}) {
     } else {
       const result=options.pedestrians?.strike?.({x:actor.x,z:actor.z,yaw:actor.yaw,range:2.3,damage:25,kind:adapterKind,hasLineOfSight:visible});
       hits=result?.hits||0;
+      deferReport=result?.deferReport===true;
       for(const police of state.police) if(sameSpace(police)&&police.mode==='foot'&&police.health>0) {
         const px=police.x-actor.x,pz=police.z-actor.z,dx=-Math.sin(actor.yaw),dz=-Math.cos(actor.yaw);
         if(px*dx+pz*dz>=0&&distance(actor,police)<=2.3&&Math.abs(px*dz-pz*dx)<1.8&&visible(actor,police)){police.health=Math.max(0,police.health-20*(police.armour?.65:1));policeHits++;}
@@ -306,9 +307,10 @@ export function createGameplay(map, simulation, options = {}) {
       if(feedback.hits)feedback.hitSerial++;
       feedback.recoil=Math.min(1,feedback.recoil+(weapon.recoil||.2)*(state.aiming?.7:1));
     }
-    if (weapon || hits || policeHits) options.pedestrians?.alert?.({ x: actor.x, z: actor.z, radius: weapon ? 90 : 18, kind: adapterKind, hasLineOfSight: visible });
+    const report = Boolean(weapon || policeHits || (hits && !deferReport));
+    if (weapon || hits || policeHits) options.pedestrians?.alert?.({ x: actor.x, z: actor.z, radius: weapon ? 90 : 18, kind: adapterKind, hasLineOfSight: visible, reportWitness:report });
     if (state.shots.length > MAX_SHOT_TRACES) state.shots.splice(0, state.shots.length - MAX_SHOT_TRACES);
-    const offenceReported = (weapon || hits || policeHits) ? reportOffence(policeHits ? 'attack on police' : weapon ? 'gunfire' : 'assault', policeHits ? 2 : 1,
+    const offenceReported = report ? reportOffence(policeHits ? 'attack on police' : weapon ? 'gunfire' : 'assault', policeHits ? 2 : 1,
       { witnessed: policeHits ? true : undefined }) : false;
     emit('attack', hits || policeHits ? 'Impact.' : rocket ? 'Rocket launched.' : weapon ? 'Shot fired.' : 'Swing.', { weapon:weapon?.id||null,
       offenceReported,shotSerial,hitSerial:state.combatFeedback.hitSerial,hits:hits+policeHits,recoil:state.combatFeedback.recoil });

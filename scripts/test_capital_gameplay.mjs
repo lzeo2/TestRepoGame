@@ -43,6 +43,20 @@ game.step(1 / 60, { fire: true }); assert.equal(game.state.ammo, 11, 'fire coold
 assert(game.reload()); tick(1.5); assert.equal(game.state.ammo, 12); assert.equal(game.state.reserveAmmo, 71);
 assert.deepEqual(heldAmmunition.pistol, { ammo: 11, reserveAmmo: 72 }, 'ammunition snapshots stay detached during reload');
 assert.equal(game.state.wanted > 0, true);
+for (const deferReport of [true, false]) {
+  const rehearsal = createSimulation(map, { trafficCount: 0 });
+  let reportedByAlert;
+  const combat = createGameplay(map, rehearsal, { pedestrians: {
+    snapshot: () => [{ x: 0, z: -1, health: 100 }],
+    strike: () => ({ hits: 1, deferReport }),
+    alert: ({ reportWitness }) => { reportedByAlert = reportWitness; },
+  }});
+  assert(combat.interact());
+  combat.step(1/60, { melee: true });
+  assert.equal(combat.state.attackSerial, 1);
+  assert.equal(combat.state.wanted, Number(!deferReport));
+  assert.equal(reportedByAlert, !deferReport);
+}
 // Police on the opposite side of the building must search and cannot arrest through it.
 game.state.police.splice(0, game.state.police.length, ...Array.from({ length: 4 }, (_, i) => ({ id: `test${i}`, x: 23, z: i, yaw: 0, speed: 0, health: 100, searchTime: 0 })));
 game.state.wanted = 5; game.step(1 / 60);

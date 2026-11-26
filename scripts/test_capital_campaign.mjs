@@ -70,7 +70,7 @@ function finishMission(value, developer = false) {
   let guard = 0;
   while (value.state.active && guard++ < 12) {
     const target = value.state.active.target;
-    const context = { ...ctx, pose: { ...target, speed: 0 }, vehicle: { stolen: true }, onFoot: ['foot', 'interior', 'work', 'presentation', 'encounter', 'school-alarm', 'robbery', 'home-action', 'recon', 'evidence', 'fight'].includes(target.kind) || target.foot === true };
+    const context = { ...ctx, pose: { ...target, speed: 0 }, vehicle: { stolen: true }, onFoot: ['foot', 'interior', 'work', 'presentation', 'encounter', 'school-alarm', 'robbery', 'home-action', 'recon', 'evidence', 'fight'].includes(target.kind) || target.foot === true || target.arriveOnFoot === true };
     if (target.kind === 'interior') context.interior = { storeId: target.storeId, roomId: 'shop-room', atCounter: true };
     if (target.kind === 'work') {
       context.interior = { storeId: target.storeId, roomId: 'shop-room' };
@@ -138,7 +138,7 @@ for (const chapter of previewChapters) {
   assert.deepEqual(preview.journal(), journal);
   assert.deepEqual(createCampaign(map, preview.serialize()).serialize(), saved, 'reload never restores transient preview');
   const stage = preview.state.active.stage;
-  tick(preview, { ...ctx, pose: { x: 999999, z: 999999 } }, 30);
+  tick(preview, { ...ctx, wanted: 1, pose: { x: 999999, z: 999999 } }, 30);
   assert.equal(preview.state.active.stage, stage, 'preview still needs the actual objective');
   assert.deepEqual(preview.serialize(), saved);
   finishMission(preview, true);
@@ -362,10 +362,10 @@ tick(pendingAftermath, { ...ctx, onFoot: true, interior: fightRoom, encounter: {
   phase: 'complete', outcome: 'noodle-victory', victory: true,
 } });
 assert.equal(pendingAftermath.state.active.stage, 1);
-tick(pendingAftermath, { ...ctx, onFoot: true, pose: pendingAftermath.state.active.target, aftermathResolved: false }, 40);
-assert.equal(pendingAftermath.state.active.escapeReached, true, 'arrival can latch before the response choice');
+tick(pendingAftermath, { ...gone, wanted: 1 });
+assert.equal(pendingAftermath.state.active.escapeReached, true, 'no waypoint is required after the fight');
 assert.equal(pendingAftermath.isCompleted('earmuffs-rematch'), false);
-tick(pendingAftermath, { ...gone, aftermathResolved: true }, 20);
+tick(pendingAftermath, gone, 1);
 assert.equal(pendingAftermath.isCompleted('earmuffs-rematch'), true);
 
 const schoolEntry = { x: 12, z: 34, roomId: 'interior-telopea-school' };
@@ -393,10 +393,10 @@ for (const invalid of [
 }
 tick(schoolCampaign, { ...schoolContext, wanted: 1, schoolAlarm: { ...alarm, serial: 21 } });
 assert.equal(schoolCampaign.state.active.stage, 1);
-const schoolExit = { ...ctx, onFoot: true, pose: { x: 12, z: 34 } };
-for (const invalid of [{ ...schoolExit, wanted: 1 }, { ...schoolExit, interior: { roomId: alarm.roomId } }, { ...schoolExit, onFoot: false }]) {
+const schoolExit = { ...ctx, onFoot: false, pose: { x: 700, z: 300 } };
+for (const invalid of [{ ...schoolExit, interior: { roomId: alarm.roomId } }, { ...schoolExit, wanted: 1 }]) {
   tick(schoolCampaign, invalid, 40);
-  assert.equal(schoolCampaign.state.active.stage, 1, 'escape requires outside, on foot and clear of police');
+  assert.equal(schoolCampaign.state.active.stage, 1, 'escape requires leaving the building and clearing the search');
 }
 tick(schoolCampaign, schoolExit, 40);
 assert.equal(schoolCampaign.state.active, null);
@@ -481,9 +481,12 @@ assert.equal(corporate.state.active.stage, 1, 'old noodle fights do not count');
 tick(corporate, { ...counter, encounter: { ...counter.encounter, serial: 11, outcome: 'noodle-victory', victory: true, missionId: 'corporate-lunch-breakpoint' } });
 assert.equal(corporate.state.active.stage, 2);
 assert.deepEqual(corporate.state.intros.corporate, ['corporate-present-tense'], 'fight alone does not skip the exit');
-tick(corporate, { ...ctx, onFoot: true, wanted: 1, pose: { ...corporate.state.active.target } }, 35);
+assert.equal(corporate.policeSearchDuration(1), 12, 'the tutorial escape needs a short break in police sight');
+assert.equal(corporate.policeSearchDuration(2), undefined, 'additional offences keep the ordinary higher-star patrol timing');
+const clearLunch = { ...ctx, onFoot: false, pose: { x: -1000, z: 1500 } };
+tick(corporate, { ...clearLunch, wanted: 1 }, 35);
 assert.equal(corporate.state.active.stage, 2, 'escape objective still requires a clear wanted state');
-tick(corporate, { ...ctx, onFoot: true, pose: { ...corporate.state.active.target } }, 35);
+tick(corporate, clearLunch, 1);
 assert.equal(corporate.state.active, null);
 assert.equal(corporate.drainEvents().filter(event => event.type === 'complete').length, 1);
 
@@ -646,11 +649,11 @@ assert.equal(finale.state.active.stage, 1, 'the intro home receipt cannot pack t
 tick(finale, { ...homeContext, homeAction: { ...homeAction, serial: 43 } });
 assert.equal(finale.state.active.stage, 2);
 assert.deepEqual(finale.state.completed, legacyIds.slice(0, 5));
-for (const invalid of [{ ...finalePark, onFoot: false }, { ...finalePark, onFoot: true, wanted: 1 }, { ...finalePark, onFoot: true, interior: { roomId: homeDescriptor.roomId } }]) {
+for (const invalid of [{ ...finalePark, onFoot: true, interior: { roomId: homeDescriptor.roomId } }, { ...finalePark, onFoot: true, wanted: 1 }]) {
   tick(finale, invalid, 40);
-  assert.equal(finale.state.active.stage, 2, 'final split requires being outside, on foot and clear');
+  assert.equal(finale.state.active.stage, 2, 'final split requires leaving the house and clearing the search');
 }
-tick(finale, { ...finalePark, onFoot: true }, 40);
+tick(finale, { ...finalePark, pose: { x: 600, z: 400 } }, 1);
 assert.deepEqual(finale.state.completed, legacyIds);
 assert.equal(finale.drainEvents().filter(event => event.type === 'complete').length, 1);
 assert.deepEqual(createCampaign(homeMap, finale.serialize()).state.completed, legacyIds, 'final home completion remains save-compatible');

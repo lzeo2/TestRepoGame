@@ -295,10 +295,10 @@
       "title": "Capital Drive: Canberra (Preview)",
       "registered": true,
       "entry": "Games/Capital Drive/index.html",
-      "entry_blob": "c230f4979b6c528d0a9e372f7d4acdcc4b461c13",
-      "tree": "b4e2da26e6939f567df97e7357a3ea9c064d737e",
+      "entry_blob": "866af39e691d6fb882f5e4fb6caccd944601f740",
+      "tree": "c6b25797cf6414fab023acb4dbf07eb610e494b7",
       "files": 239,
-      "bytes": 40502661,
+      "bytes": 40502960,
       "document": "docs/maintenance/games/245-capital-drive.md"
     },
     {
@@ -331,10 +331,10 @@
       "title": "Chess",
       "registered": true,
       "entry": "Games/Chess/index.html",
-      "entry_blob": "4ac3130c57cf1d0b409afb703e251da723a8af6b",
-      "tree": "51d9d0b76913dffa4b20c3e876976c74151ecd03",
-      "files": 24,
-      "bytes": 365188,
+      "entry_blob": "681cb8e91148ec06e00a28e3a65a4f99ed5ed1d6",
+      "tree": "ece4f7a9fba25b83e2d8241674a43eb344c8108a",
+      "files": 25,
+      "bytes": 369256,
       "document": "docs/maintenance/games/084-chess.md"
     },
     {

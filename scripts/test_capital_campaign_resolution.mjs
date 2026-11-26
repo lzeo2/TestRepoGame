@@ -20,7 +20,7 @@ for(const [index,hero] of ['corporate','basement'].entries()) {
   assert(campaign.selectCharacter(hero,ctx).ok);const chapter=campaign.current();
   assert.equal(chapter.id,added[index]);assert.equal(chapter.combat,false);assert.equal(chapter.stages.length,3);
   assert.equal(chapter.cutscene.lines.length,2);assert(chapter.cutscene.lines.reduce((total,line)=>total+line.duration,0)<=7);
-  assert.deepEqual(chapter.stages.map(goal=>goal.kind),index===0?['recon','evidence','escape']:['home-action','drive','foot']);
+  assert.deepEqual(chapter.stages.map(goal=>goal.kind),index===0?['recon','evidence','escape']:['home-action','drive','escape']);
   assert(campaign.start(ctx).ok);campaign.drainEvents();
   while(campaign.state.active) {
     const active=campaign.state.active,goal=active.target,stage=active.stage;

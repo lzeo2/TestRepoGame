@@ -41,7 +41,7 @@ const definitions = owners.map((hero, index) => {
 assert.deepEqual(definitions.map(chapter => chapter.stages.map(goal => goal.kind)), [
   ['drive', 'work', 'drive', 'work', 'escape'],
   ['drive', 'robbery', 'drive', 'robbery', 'escape'],
-  ['home-action', 'drive', 'drive', 'work', 'drive', 'foot'],
+  ['home-action', 'drive', 'drive', 'work', 'drive', 'escape'],
 ], 'the continuation combines distinct multi-stage preparation, work, transport, robbery and escape chains');
 for (const chapter of definitions) {
   assert.equal(chapter.companions.length, 2);
@@ -92,7 +92,7 @@ for (let index = 0; index < additions.length; index++) {
   campaign.drainEvents();
   while (campaign.state.active) {
     const active = campaign.state.active, goal = active.target, stage = active.stage;
-    let live = { ...ctx, ...receipts, pose: { ...goal, speed: 0 }, onFoot: ['work', 'robbery', 'home-action', 'foot'].includes(goal.kind) || goal.foot === true };
+    let live = { ...ctx, ...receipts, pose: { ...goal, speed: 0 }, onFoot: ['work', 'robbery', 'home-action', 'foot'].includes(goal.kind) || goal.foot === true || goal.arriveOnFoot === true };
     if (goal.kind === 'work' || goal.kind === 'robbery' || goal.kind === 'home-action') {
       const key = goal.kind === 'work' ? 'workCompletion' : goal.kind === 'robbery' ? 'heist' : 'homeAction';
       const outcome = goal.kind === 'home-action' ? { roomId: goal.roomId, outcome: 'packed' } : { storeId: goal.storeId, ...(goal.kind === 'robbery' ? { kind: 'robbery' } : {}) };

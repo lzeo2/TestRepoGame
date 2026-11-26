@@ -107,7 +107,7 @@ export function createAssassinationChapter(map, { canStand = () => false, hasLin
         { ...approach, kind: 'foot',approaches:[compound.approaches.front,compound.approaches.service], radius: 3, hold: .5, clear: true, label: 'Reach the front gate or service passage on foot' },
         { ...target, kind: 'assassination', targetId: ASSASSINATION_TARGET_ID, targetName: 'Adrian Voss', appearanceId: 'contract:blackthorn-voss',
           radius: 90, hold: 0, label: 'Eliminate Adrian Voss' },
-        { ...exit, kind: 'escape', pickupOnFoot: true, radius: 4, hold: 1, clear: true, requireWanted: false,
+        { ...exit, kind: 'escape', arriveOnFoot: true, radius: 4, hold: 1, clear: true, requireWanted: false,
           label: 'Reach the pickup on foot. Lose any police tail.' },
       ] });
   }

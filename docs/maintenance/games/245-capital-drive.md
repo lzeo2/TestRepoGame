@@ -366,9 +366,16 @@ handovers take three seconds and use their own admission rules.
 
 After Lunch Breakpoint and the Pink Earmuffs rematch, an officer collects
 descriptions from surviving witnesses. Give a statement, decline to answer
-or leave the area. The Campaign briefing records the outcome. Witnessed
-departures, refusal and civilian harm can raise attention later. Completing
-the mission banks that outcome with the prelaunch checkpoint flow.
+or leave the area. After leaving the restaurant, the mission finishes wherever
+you lose the police. In Lunch Breakpoint, the scripted fight with Dot starts its
+police search when Rowan steps outside. The one-star chase clears after 12 game
+seconds out of police sight. Offences against other people can still draw police
+before the exit. The Campaign briefing records an unfinished
+interview as avoided, and the record can affect later attention. Clearing
+other searches also works anywhere, including after leaving a getaway car.
+Marked handovers and pickups still register once before their escape step.
+See the [campaign and streaming verification](../../verification/capital-drive-campaign-performance-2026-11-26.md)
+for the escape regression, geometry parity and sustained browser profile.
 
 Campaign and Street Life each save missing original aircraft and the condition
 of the three fictional police posts. Mission failure restores prelaunch world

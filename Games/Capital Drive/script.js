@@ -699,7 +699,7 @@ function careerContext() {
   return { mode:gameMode,pose: focus(), onFoot: state.mode === 'foot'&&!state.passenger&&!jetpack?.active&&!state.actor.swimming, vehicleKey:playerCarKey,vehicle: { ...state.vehicle },
     wanted: state.wanted, vehicleHealth: state.vehicleHealth, respawnSerial: state.respawnSerial, aircraft:aircraft?.active||null,
     health:state.health,weapon:state.weapon,reserveAmmo:state.reserveAmmo,ammunition:Object.fromEntries(WEAPONS.map(w=>[w.id,gameplay.getAmmo(w.id)])),planId:interiors.active?.id,passenger:!!state.passenger,recovering:!!state.recovery,sandbox:isSandbox(),campaign:gameMode==='campaign',interior:interiorContext(),presentation:presentationOutcome,workCompletion,schoolAlarm:schoolAlarmOutcome,heist:heistOutcome,homeAction:homeActionOutcome,encounter:roomPeople?.encounter,recon:reconOutcome,evidence:evidenceOutcome,stealthOutcome,
-    assassinationOutcome,aftermathResolved:!developerReturn&&campaignAftermath?.isCase(campaign.state.active?.id)?campaignAftermath.recorded(campaign.state.active.id):undefined };
+    assassinationOutcome };
 }
 function rideContext(){
   return {pose:focus(),onFoot:gameplay.state.mode==='foot',sandbox:isSandbox(),wanted:gameplay.state.wanted,
@@ -1553,7 +1553,7 @@ function enterInterior(entry){
 }
 function leaveInterior(){
   const roomId=interiors.active?.id;
-  const mission=campaign?.state.active?.id,encounter=roomPeople.encounter;
+  const active=campaign?.state.active,mission=active?.id,encounter=roomPeople.encounter;
   const cases=gameMode==='campaign'&&!developerReturn&&campaignAftermath?.isCase(mission)&&encounter?.missionId===mission;
   const bystanders=cases?roomPeople.snapshot().filter(person=>person.character!=='booth-guest'):[];
   if(bystanders.some(person=>person.health<100))inquiryHarm=true;
@@ -1566,8 +1566,9 @@ function leaveInterior(){
   if(cases&&encounter.outcome==='noodle-victory'){
     const pose=gameplay.state.actor,point=placeInquiryOfficer(pose);
     if(campaignAftermath.begin(mission,point,{witnesses:bystanders.filter(person=>person.health>0).length,civilianHarm:inquiryHarm})){
+      if(!active.sawWanted&&!gameplay.state.wanted)gameplay.reportOffence('witness report',1,{point,witnessed:true});
       inquiryOfficer={...point,id:'campaign-inquiry-officer',mode:'foot',health:100,yaw:Math.atan2(point.x-pose.x,point.z-pose.z),speed:0};
-      notify('Police are taking witness descriptions. Speak to the officer or leave the area.');
+      notify('Lose the police. You can give a statement to the responding officer.');
     }
   }
 }
@@ -2256,11 +2257,11 @@ function campaignNavigationTarget(){
   return active?{...active.target,campaignObjective:true}:null;
 }
 function renderMissionGuide(){
-  const active=campaign.state.active,aftermathResolved=!campaignAftermath?.isCase(active?.id)||campaignAftermath.recorded(active.id)||!!developerReturn;
+  const active=campaign.state.active,inquiryPending=Boolean(inquiryOfficer);
   const pose=focus(), plan=interiors.active;
   const onFoot=gameplay.state.mode==='foot'&&!gameplay.state.passenger&&!jetpack?.active;
   const goal=gameMode==='campaign'&&active?missionLocations.guide(active,{
-    pose,plan,vehicle:simulation.player,people:roomPeople.snapshot(),wanted:gameplay.state.wanted,aftermathResolved
+    pose,plan,vehicle:simulation.player,people:roomPeople.snapshot(),wanted:gameplay.state.wanted,inquiryPending
   }):null;
   missionGuideState=missionFootpath.guide(goal,{pose,onFoot,indoors:!!plan,stage:active?.stage,
     // A stationary player can need new guidance when a passing car moves.
@@ -3880,6 +3881,7 @@ function updateCareer(dt=0) {
     if(event.type==='started')reportCampaignIncident(event);
     if(event.type==='complete'){
       const crewPresent=missionCheckpoint?.completionCrewPresent;
+      if(campaignAftermath?.finish(event.id))inquiryOfficer=null;
       acceptMissionCheckpoint();
       clearInput();
       const credit=trainingCredit(event,crewPresent);
@@ -4063,8 +4065,8 @@ function animate(time) {
           if(!heist.challenge || heist.feedback!==result.message){clearInput();notify(result.message);}
         }
       }
-      if(inquiryOfficer)resolveInquiry(campaignAftermath.step({pose:focus(),indoors:!!interiors.active,recovering:!!gameplay.state.recovery}));
       if(!aircraft?.active||campaign.state.active?.aviation===true||campaign.state.active?.target?.kind==='escape')advanceCampaign(1/60);
+      if(inquiryOfficer&&campaign.state.active?.target.aftermath)resolveInquiry(campaignAftermath.step({pose:focus(),indoors:!!interiors.active,recovering:!!gameplay.state.recovery}));
       if(previousActorMode!==gameplay.state.mode){
         previousActorMode=gameplay.state.mode;footCameraYaw=gameplay.state.actor.yaw;footLookPitch=0;cameraReady=false;cockpitCamera=false;clearInput();
         if(gameplay.state.mode==='vehicle'&&destination?.id==='personal-car'){
@@ -4597,7 +4599,11 @@ async function boot() {
   const witnesses={snapshot:()=>interiors.active?roomPeople.snapshot():[...pedestrians.snapshot(),...streetDealers.snapshot(),...(rideService?.people||[]).filter(person=>person.active)],
     drainEvents:()=>[...pedestrians.drainEvents(),...roomPeople.drainEvents(),...(rideService?.drainCombatEvents()||[])],
     alert:spec=>{if(interiors.active)roomPeople.alert(spec);else{pedestrians.alert(spec);streetDealers.alert(spec);rideService?.alert(spec);}},
-    strike:spec=>{const results=(interiors.active?[roomPeople.strike(spec)]:[pedestrians.strike(spec),streetDealers.strike(spec),rideService?.strike(spec),contractTarget.body&&contractTarget.strike(spec),skylineLease&&skylineOpponents.strike(spec)]).filter(Boolean);return {hits:results.reduce((total,result)=>total+result.hits,0),people:results.flatMap(result=>result.people||[])};}};
+    strike:spec=>{
+      if(interiors.active)return roomPeople.strike(spec);
+      const results=[pedestrians.strike(spec),streetDealers.strike(spec),rideService?.strike(spec),contractTarget.body&&contractTarget.strike(spec),skylineLease&&skylineOpponents.strike(spec)].filter(Boolean);
+      return {hits:results.reduce((total,result)=>total+result.hits,0),people:results.flatMap(result=>result.people||[])};
+    }};
   const canStandForRecovery=pose=>!simulation.moveActor({...pose},0,0,.45).blocked;
   const recoveryHouse=origin=>planSafehouseReturn({
     entries:interiors.entries,origin,storyHome:map.storyHomes?.basement,

@@ -2,6 +2,7 @@
 // The tree selects candidates only; parity, projection and contact arithmetic
 // retain the original polygon narrow phase, including source-order distance ties.
 export function prepareWaterRing(points, metrics = null) {
+  const paritySlack = 1e-7;
   let area = 0;
   const edges = [];
   for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
@@ -28,9 +29,12 @@ export function prepareWaterRing(points, metrics = null) {
   function contains(x, z) {
     let inside = false;
     function visit(node) {
-      if (!node || z < node.minZ || z >= node.maxZ) return;
+      // Preserve the original ray arithmetic at vertices despite rounding.
+      if (!node || z < node.minZ || z >= node.maxZ || x > node.maxX + paritySlack) return;
       if (node.edges) {
-        for (const { a, b } of node.edges) {
+        for (const edge of node.edges) {
+          if (z < edge.minZ || z >= edge.maxZ || x > edge.maxX + paritySlack) continue;
+          const { a, b } = edge;
           if (metrics) metrics.parityEdges = (metrics.parityEdges || 0) + 1;
           if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inside = !inside;
         }

@@ -80,5 +80,5 @@ assert.match(source,/skillEffects:\(\)=>training\.effects\(gameMode/);
 assert.match(source,/campaignScenes\?\.update\(\{skillEffects:training\.effects/);
 assert.ok(source.indexOf('acceptMissionCheckpoint();',source.indexOf('function updateCareer'))<source.indexOf('const credit=trainingCredit(event,crewPresent)',source.indexOf('function updateCareer')),'campaign checkpoint commits before training award');
 assert.match(source,/missionCheckpoint\.completionCrewPresent=crewAtPlayer\(\)/,'terminal tick captures crew before scene teardown');
-assert.match(source,/const crewPresent=missionCheckpoint\?\.completionCrewPresent;\s*acceptMissionCheckpoint\(\);\s*clearInput\(\);\s*const credit=trainingCredit\(event,crewPresent\)/,'frame event processing uses terminal crew capture after commit');
+assert.match(source,/const crewPresent=missionCheckpoint\?\.completionCrewPresent;\s*if\(campaignAftermath\?\.finish\(event\.id\)\)inquiryOfficer=null;\s*acceptMissionCheckpoint\(\);\s*clearInput\(\);\s*const credit=trainingCredit\(event,crewPresent\)/,'frame event processing settles the interview before the commit and uses the terminal crew capture for training');
 console.log('Capital training integration PASS: real job and campaign events, active modes, filters, late crew repeat, persistence and production hooks');

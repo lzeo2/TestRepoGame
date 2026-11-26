@@ -1,183 +1,12 @@
 var board,
     game = new Chess();
-
-/*The "AI" part starts here */
-
-var minimaxRoot =function(depth, game, isMaximisingPlayer) {
-
-    var newGameMoves = game.ugly_moves();
-    var bestMove = -9999;
-    var bestMoveFound;
-
-    for(var i = 0; i < newGameMoves.length; i++) {
-        var newGameMove = newGameMoves[i]
-        game.ugly_move(newGameMove);
-        var value = minimax(depth - 1, game, -10000, 10000, !isMaximisingPlayer);
-        game.undo();
-        if(value >= bestMove) {
-            bestMove = value;
-            bestMoveFound = newGameMove;
-        }
-    }
-    return bestMoveFound;
-};
-
-var minimax = function (depth, game, alpha, beta, isMaximisingPlayer) {
-    positionCount++;
-    if (depth === 0) {
-        return -evaluateBoard(game.board());
-    }
-
-    var newGameMoves = game.ugly_moves();
-
-    if (isMaximisingPlayer) {
-        var bestMove = -9999;
-        for (var i = 0; i < newGameMoves.length; i++) {
-            game.ugly_move(newGameMoves[i]);
-            bestMove = Math.max(bestMove, minimax(depth - 1, game, alpha, beta, !isMaximisingPlayer));
-            game.undo();
-            alpha = Math.max(alpha, bestMove);
-            if (beta <= alpha) {
-                return bestMove;
-            }
-        }
-        return bestMove;
-    } else {
-        var bestMove = 9999;
-        for (var i = 0; i < newGameMoves.length; i++) {
-            game.ugly_move(newGameMoves[i]);
-            bestMove = Math.min(bestMove, minimax(depth - 1, game, alpha, beta, !isMaximisingPlayer));
-            game.undo();
-            beta = Math.min(beta, bestMove);
-            if (beta <= alpha) {
-                return bestMove;
-            }
-        }
-        return bestMove;
-    }
-};
-
-var evaluateBoard = function (board) {
-    var totalEvaluation = 0;
-    for (var i = 0; i < 8; i++) {
-        for (var j = 0; j < 8; j++) {
-            totalEvaluation = totalEvaluation + getPieceValue(board[i][j], i ,j);
-        }
-    }
-    return totalEvaluation;
-};
-
-var reverseArray = function(array) {
-    return array.slice().reverse();
-};
-
-var pawnEvalWhite =
-    [
-        [0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0],
-        [5.0,  5.0,  5.0,  5.0,  5.0,  5.0,  5.0,  5.0],
-        [1.0,  1.0,  2.0,  3.0,  3.0,  2.0,  1.0,  1.0],
-        [0.5,  0.5,  1.0,  2.5,  2.5,  1.0,  0.5,  0.5],
-        [0.0,  0.0,  0.0,  2.0,  2.0,  0.0,  0.0,  0.0],
-        [0.5, -0.5, -1.0,  0.0,  0.0, -1.0, -0.5,  0.5],
-        [0.5,  1.0, 1.0,  -2.0, -2.0,  1.0,  1.0,  0.5],
-        [0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0]
-    ];
-
-var pawnEvalBlack = reverseArray(pawnEvalWhite);
-
-var knightEval =
-    [
-        [-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0],
-        [-4.0, -2.0,  0.0,  0.0,  0.0,  0.0, -2.0, -4.0],
-        [-3.0,  0.0,  1.0,  1.5,  1.5,  1.0,  0.0, -3.0],
-        [-3.0,  0.5,  1.5,  2.0,  2.0,  1.5,  0.5, -3.0],
-        [-3.0,  0.0,  1.5,  2.0,  2.0,  1.5,  0.0, -3.0],
-        [-3.0,  0.5,  1.0,  1.5,  1.5,  1.0,  0.5, -3.0],
-        [-4.0, -2.0,  0.0,  0.5,  0.5,  0.0, -2.0, -4.0],
-        [-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0]
-    ];
-
-var bishopEvalWhite = [
-    [ -2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0],
-    [ -1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -1.0],
-    [ -1.0,  0.0,  0.5,  1.0,  1.0,  0.5,  0.0, -1.0],
-    [ -1.0,  0.5,  0.5,  1.0,  1.0,  0.5,  0.5, -1.0],
-    [ -1.0,  0.0,  1.0,  1.0,  1.0,  1.0,  0.0, -1.0],
-    [ -1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, -1.0],
-    [ -1.0,  0.5,  0.0,  0.0,  0.0,  0.0,  0.5, -1.0],
-    [ -2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0]
-];
-
-var bishopEvalBlack = reverseArray(bishopEvalWhite);
-
-var rookEvalWhite = [
-    [  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0],
-    [  0.5,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  0.5],
-    [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
-    [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
-    [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
-    [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
-    [ -0.5,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -0.5],
-    [  0.0,   0.0, 0.0,  0.5,  0.5,  0.0,  0.0,  0.0]
-];
-
-var rookEvalBlack = reverseArray(rookEvalWhite);
-
-var evalQueen = [
-    [ -2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0],
-    [ -1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, -1.0],
-    [ -1.0,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -1.0],
-    [ -0.5,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -0.5],
-    [  0.0,  0.0,  0.5,  0.5,  0.5,  0.5,  0.0, -0.5],
-    [ -1.0,  0.5,  0.5,  0.5,  0.5,  0.5,  0.0, -1.0],
-    [ -1.0,  0.0,  0.5,  0.0,  0.0,  0.0,  0.0, -1.0],
-    [ -2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0]
-];
-
-var kingEvalWhite = [
-
-    [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
-    [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
-    [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
-    [ -3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
-    [ -2.0, -3.0, -3.0, -4.0, -4.0, -3.0, -3.0, -2.0],
-    [ -1.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -1.0],
-    [  2.0,  2.0,  0.0,  0.0,  0.0,  0.0,  2.0,  2.0 ],
-    [  2.0,  3.0,  1.0,  0.0,  0.0,  1.0,  3.0,  2.0 ]
-];
-
-var kingEvalBlack = reverseArray(kingEvalWhite);
-
-
-
-
-var getPieceValue = function (piece, x, y) {
-    if (piece === null) {
-        return 0;
-    }
-    var getAbsoluteValue = function (piece, isWhite, x ,y) {
-        if (piece.type === 'p') {
-            return 10 + ( isWhite ? pawnEvalWhite[y][x] : pawnEvalBlack[y][x] );
-        } else if (piece.type === 'r') {
-            return 50 + ( isWhite ? rookEvalWhite[y][x] : rookEvalBlack[y][x] );
-        } else if (piece.type === 'n') {
-            return 30 + knightEval[y][x];
-        } else if (piece.type === 'b') {
-            return 30 + ( isWhite ? bishopEvalWhite[y][x] : bishopEvalBlack[y][x] );
-        } else if (piece.type === 'q') {
-            return 90 + evalQueen[y][x];
-        } else if (piece.type === 'k') {
-            return 900 + ( isWhite ? kingEvalWhite[y][x] : kingEvalBlack[y][x] );
-        }
-        throw "Unknown piece type: " + piece.type;
-    };
-
-    var absoluteValue = getAbsoluteValue(piece, piece.color === 'w', x ,y);
-    return piece.color === 'w' ? absoluteValue : -absoluteValue;
-};
-
-
-/* board visualization and games state handling */
+var positionCount = 0;
+var aiThinking = false;
+var replyTimer = null;
+var searchWorker = null;
+var searchDeadline = null;
+var searchRequestId = 0;
+var AI_SEARCH_BUDGET_MS = 1200;
 
 var showGameStatus = function () {
     var el = document.getElementById('game-status');
@@ -186,10 +15,10 @@ var showGameStatus = function () {
     if (game.in_checkmate()) {
         var loser = game.turn() === 'w' ? 'White' : 'Black';
         result = 'Checkmate — ' + loser + ' loses!';
-    } else if (game.in_draw()) {
-        result = 'Draw — the game is a stalemate.';
     } else if (game.in_stalemate()) {
         result = 'Stalemate — no legal moves.';
+    } else if (game.in_draw()) {
+        result = 'Draw — the game is over.';
     } else {
         result = 'Game over!';
     }
@@ -202,108 +31,139 @@ var clearGameStatus = function () {
     if (el) { el.textContent = ''; el.classList.remove('visible'); }
 };
 
-var onDragStart = function (source, piece, position, orientation) {
-    if (game.in_checkmate() === true || game.in_draw() === true ||
-        piece.search(/^b/) !== -1) {
-        return false;
-    }
-};
-
-var makeBestMove = function () {
-    var bestMove = getBestMove(game);
-    game.ugly_move(bestMove);
-    board.position(game.fen());
-    renderMoveHistory(game.history());
-    if (game.game_over()) {
-        showGameStatus();
-    }
-};
-
-
-var positionCount;
-var getBestMove = function (game) {
-    if (game.game_over()) {
-        showGameStatus();
-    }
-
-    positionCount = 0;
-    var depth = parseInt($('#search-depth').find(':selected').text());
-
-    var d = new Date().getTime();
-    var bestMove = minimaxRoot(depth, game, true);
-    var d2 = new Date().getTime();
-    var moveTime = (d2 - d);
-    var positionsPerS = ( positionCount * 1000 / moveTime);
-
-    $('#position-count').text(positionCount);
-    $('#time').text(moveTime/1000 + 's');
-    $('#positions-per-s').text(positionsPerS);
-    return bestMove;
-};
-
 var renderMoveHistory = function (moves) {
     var historyElement = $('#move-history').empty();
-    historyElement.empty();
-    for (var i = 0; i < moves.length; i = i + 2) {
-        historyElement.append('<span>' + moves[i] + ' ' + ( moves[i + 1] ? moves[i + 1] : ' ') + '</span><br>')
+    for (var i = 0; i < moves.length; i += 2) {
+        historyElement.append('<span>' + moves[i] + ' ' + (moves[i + 1] || ' ') + '</span><br>');
     }
     historyElement.scrollTop(historyElement[0].scrollHeight);
-
 };
 
-var onDrop = function (source, target) {
+var finishSearch = function (requestId) {
+    if (requestId !== searchRequestId) return;
+    if (searchDeadline !== null) { window.clearTimeout(searchDeadline); searchDeadline = null; }
+    if (searchWorker) { searchWorker.terminate(); searchWorker = null; }
+    aiThinking = false;
+};
 
-    var move = game.move({
-        from: source,
-        to: target,
-        promotion: 'q'
-    });
+var cancelAiTurn = function () {
+    searchRequestId += 1;
+    if (replyTimer !== null) { window.clearTimeout(replyTimer); replyTimer = null; }
+    if (searchDeadline !== null) { window.clearTimeout(searchDeadline); searchDeadline = null; }
+    if (searchWorker) { searchWorker.terminate(); searchWorker = null; }
+    aiThinking = false;
+};
 
-    removeGreySquares();
-    if (move === null) {
-        return 'snapback';
+var applyAiMove = function (requestId, move) {
+    if (requestId !== searchRequestId) return;
+    finishSearch(requestId);
+    if (!move || game.game_over() || game.turn() !== 'b') {
+        if (game.game_over()) showGameStatus();
+        return;
     }
 
     clearGameStatus();
-    renderMoveHistory(game.history());
-    window.setTimeout(makeBestMove, 250);
-};
-
-var onSnapEnd = function () {
+    var played = game.move({ from: move.from, to: move.to, promotion: move.promotion || 'q' });
+    if (!played) return;
     board.position(game.fen());
+    renderMoveHistory(game.history());
+    if (game.game_over()) showGameStatus();
 };
 
-var onMouseoverSquare = function(square, piece) {
-    var moves = game.moves({
-        square: square,
-        verbose: true
-    });
+var fallbackMove = function () {
+    var legalMoves = game.moves({ verbose: true });
+    if (!legalMoves.length) return null;
+    return { from: legalMoves[0].from, to: legalMoves[0].to, promotion: 'q' };
+};
 
-    if (moves.length === 0) return;
+var updateSearchMetrics = function (data) {
+    positionCount = data.positions || 0;
+    var elapsed = data.elapsed || 0;
+    $('#position-count').text(positionCount);
+    $('#time').text((elapsed / 1000).toFixed(2) + 's');
+    $('#positions-per-s').text(elapsed > 0 ? Math.round(positionCount * 1000 / elapsed) : 0);
+};
 
-    greySquare(square);
-
-    for (var i = 0; i < moves.length; i++) {
-        greySquare(moves[i].to);
+var startAiSearch = function () {
+    if (game.game_over() || game.turn() !== 'b') {
+        aiThinking = false;
+        if (game.game_over()) showGameStatus();
+        return;
     }
+
+    var requestId = ++searchRequestId;
+    var bestMove = fallbackMove();
+    var worker;
+    try {
+        worker = new Worker('chess-worker.js');
+    } catch (error) {
+        applyAiMove(requestId, bestMove);
+        return;
+    }
+    searchWorker = worker;
+    var status = document.getElementById('game-status');
+    if (status) { status.textContent = 'AI thinking…'; status.classList.add('visible'); }
+    worker.onmessage = function (event) {
+        var data = event.data || {};
+        if (requestId !== searchRequestId || data.requestId !== requestId) return;
+        if (data.type === 'progress' && data.move) {
+            bestMove = data.move;
+            updateSearchMetrics(data);
+        } else if (data.type === 'complete') {
+            if (data.move) bestMove = data.move;
+            updateSearchMetrics(data);
+            applyAiMove(requestId, bestMove);
+        } else if (data.type === 'error') {
+            applyAiMove(requestId, bestMove);
+        }
+    };
+    worker.onerror = function () { applyAiMove(requestId, bestMove); };
+    searchDeadline = window.setTimeout(function () {
+        applyAiMove(requestId, bestMove);
+    }, AI_SEARCH_BUDGET_MS);
+    worker.postMessage({
+        type: 'search', requestId: requestId, fen: game.fen(),
+        maxDepth: parseInt($('#search-depth').val(), 10) || 3
+    });
 };
 
-var onMouseoutSquare = function(square, piece) {
+var onDragStart = function (source, piece) {
+    if (aiThinking || game.game_over() || game.turn() !== 'w' || piece.search(/^w/) !== 0) return false;
+};
+
+var onDrop = function (source, target) {
+    if (aiThinking || game.game_over() || game.turn() !== 'w') return 'snapback';
+    var move = game.move({ from: source, to: target, promotion: 'q' });
     removeGreySquares();
+    if (move === null) return 'snapback';
+
+    clearGameStatus();
+    renderMoveHistory(game.history());
+    aiThinking = true;
+    replyTimer = window.setTimeout(function () {
+        replyTimer = null;
+        startAiSearch();
+    }, 250);
 };
 
-var removeGreySquares = function() {
+var onSnapEnd = function () { board.position(game.fen()); };
+
+var onMouseoverSquare = function (square) {
+    var moves = game.moves({ square: square, verbose: true });
+    if (!moves.length) return;
+    greySquare(square);
+    for (var i = 0; i < moves.length; i++) greySquare(moves[i].to);
+};
+
+var onMouseoutSquare = function () { removeGreySquares(); };
+
+var removeGreySquares = function () {
     $('#board .square-55d63').css('background', '');
 };
 
-var greySquare = function(square) {
+var greySquare = function (square) {
     var squareEl = $('#board .square-' + square);
-
-    var background = '#a9a9a9';
-    if (squareEl.hasClass('black-3c85d') === true) {
-        background = '#696969';
-    }
-
+    var background = squareEl.hasClass('black-3c85d') ? '#696969' : '#a9a9a9';
     squareEl.css('background', background);
 };
 
@@ -318,19 +178,13 @@ var cfg = {
 };
 board = ChessBoard('board', cfg);
 
-/* ── Responsive resize ── */
-$(window).on('resize', function () {
-    board.resize();
-});
-
-/* ── New Game ── */
+$(window).on('resize', function () { board.resize(); });
 $('#new-game-btn').on('click', function () {
+    cancelAiTurn();
     game = new Chess();
     board.position('start', false);
     positionCount = 0;
-    $('#position-count').text('');
-    $('#time').text('');
-    $('#positions-per-s').text('');
+    $('#position-count, #time, #positions-per-s').text('');
     $('#move-history').empty();
     clearGameStatus();
 });
